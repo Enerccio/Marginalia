@@ -391,4 +391,35 @@ class AgentDialogTest extends AgentTestBase {
 
         assertThat(dialog.getInstructionsField().getMaxLength()).isEqualTo(AgentService.MAX_INSTRUCTIONS_LENGTH);
     }
+
+    @Test
+    void theDialogShowsWhatThePromptTheInstructionsAndTheCommandsWeighInEveryRequest() throws Exception {
+        manuscript();
+        AgentDialog dialog = dialog(null);
+        String first = dialog.getSizeLabel().getText();
+        assertThat(first).startsWith("About ").contains("tokens with every request");
+
+        dialog.getInstructionsField().setValue("Never rename a character. ".repeat(200));
+        String longer = dialog.getSizeLabel().getText();
+        dialog.getCommandsEditor().select(AgentCommandPreset.NONE);
+
+        assertThat(tokensOf(longer)).as("long instructions weigh").isGreaterThan(tokensOf(first));
+        assertThat(tokensOf(dialog.getSizeLabel().getText())).as("no commands weigh less").isLessThan(tokensOf(longer));
+        assertThat(dialog.getCommandsEditor().getSelectedTokens()).isZero();
+    }
+
+    @Test
+    void everyCommandHasTheTokensItsDefinitionCosts() throws Exception {
+        manuscript();
+        AgentDialog dialog = dialog(null);
+
+        dialog.getCommandsEditor().select(AgentCommandPreset.ALL);
+
+        assertThat(dialog.getCommandsEditor().getGrid().getListDataView().getItems()).allSatisfy(row -> assertThat(row.tokens()).isPositive());
+        assertThat(dialog.getCommandsEditor().getSelectedTokens()).isPositive();
+    }
+
+    private static long tokensOf(String sizeText) {
+        return Long.parseLong(sizeText.replaceFirst("^About (\\d+) tokens.*$", "$1"));
+    }
 }

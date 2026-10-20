@@ -4,9 +4,12 @@ import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
 import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
+import com.github.enerccio.marginalia.domain.service.AgentMessageService;
 import com.github.enerccio.marginalia.domain.service.AgentRunner;
 import com.github.enerccio.marginalia.domain.service.agent.AgentContext;
 import com.github.enerccio.marginalia.domain.service.agent.AgentContext.Kind;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.test.AgentTestBase;
 import com.github.enerccio.marginalia.test.llm.MockLLMRequest;
 import com.github.enerccio.marginalia.test.llm.MockLLMResponse;
@@ -27,6 +30,9 @@ class AgentContextTest extends AgentTestBase {
 
     @Autowired
     private AgentRunner runner;
+
+    @Autowired
+    private AgentMessageService messageService;
 
     private AgentRun finishedTurn() throws Exception {
         loginAgentUser();
@@ -107,5 +113,67 @@ class AgentContextTest extends AgentTestBase {
 
         assertThatThrownBy(() -> runner.context(other)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> runner.context(null)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void theHistoryTellsWhatTheContextWasMadeOfAtEachAnswer() throws Exception {
+        loginAgentUser();
+        Agent agent = newAgent(manuscript());
+        agent.setSystemPrompt("You are a test agent.");
+        agent.setAllowedCommands(List.of("get-book-info"));
+        agent = agentService.save(agent);
+        AgentRun run = agentRunService.start(agent);
+        messageService.append(run, List.of(LLMChatMessage.of(LLMRole.USER, "Count the parts of the book please")));
+        messageService.appendAnswer(run, LLMChatMessage.of(LLMRole.ASSISTANT, "The first answer of the agent"), 100, null);
+        messageService.append(run, List.of(LLMChatMessage.of(LLMRole.USER, "And once more, count them again")));
+        messageService.appendAnswer(run, LLMChatMessage.of(LLMRole.ASSISTANT, "The second answer of the agent"), 220, null);
+        messageService.compact(run, LLMChatMessage.of(LLMRole.USER, "Summary of the work so far"), 40);
+        messageService.appendAnswer(run, LLMChatMessage.of(LLMRole.ASSISTANT, "The third answer of the agent"), 60, null);
+
+        List<AgentContext.Point> history = runner.context(run).history();
+
+        assertThat(history).extracting(AgentContext.Point::tokens).containsExactly(100L, 220L, 40L, 60L);
+        assertThat(history).allSatisfy(point -> {
+            assertThat(point.estimated().get(Kind.SYSTEM_PROMPT)).as("the prompt is in every one").isPositive();
+            assertThat(point.estimated().get(Kind.TOOL)).as("so are the tools").isPositive();
+        });
+        assertThat(history.get(0).estimated()).containsKeys(Kind.USER, Kind.ASSISTANT).doesNotContainKeys(Kind.SUMMARY, Kind.RESULT);
+        assertThat(history.get(1).estimated().get(Kind.USER)).as("it grows with the conversation").isGreaterThan(history.get(0).estimated().get(Kind.USER));
+        assertThat(history.get(1).estimated().get(Kind.ASSISTANT)).isGreaterThan(history.get(0).estimated().get(Kind.ASSISTANT));
+        // the summary replaced what was said before it
+        assertThat(history.get(2).estimated()).containsKey(Kind.SUMMARY).doesNotContainKeys(Kind.USER, Kind.ASSISTANT);
+        assertThat(history.get(3).estimated()).containsKeys(Kind.SUMMARY, Kind.ASSISTANT).doesNotContainKey(Kind.USER);
+        assertThat(history.get(3).estimatedTokens()).isLessThan(history.get(1).estimatedTokens());
+    }
+
+    @Test
+    void whatARewindWentBackOverIsNotInTheContextOfTheLaterAnswers() throws Exception {
+        loginAgentUser();
+        Agent agent = newAgent(manuscript());
+        agent.setAllowedCommands(List.of("get-book-info"));
+        agent = agentService.save(agent);
+        AgentRun run = agentRunService.start(agent);
+        messageService.append(run, List.of(LLMChatMessage.of(LLMRole.USER, "Count the parts of the book please")));
+        messageService.appendAnswer(run, LLMChatMessage.of(LLMRole.ASSISTANT, "First"), 100, null);
+        messageService.append(run, List.of(LLMChatMessage.of(LLMRole.USER, "And once more, count them again")));
+        messageService.appendAnswer(run, LLMChatMessage.of(LLMRole.ASSISTANT, "Second, a rather long answer that costs tokens"), 220, null);
+        messageService.rewind(run, 3);
+        messageService.appendAnswer(run, LLMChatMessage.of(LLMRole.ASSISTANT, "Another"), 130, null);
+
+        List<AgentContext.Point> history = runner.context(run).history();
+
+        assertThat(history).extracting(AgentContext.Point::tokens).containsExactly(100L, 220L, 130L);
+        assertThat(history.get(2).estimated().get(Kind.USER)).as("what the author said stays").isEqualTo(history.get(1).estimated().get(Kind.USER));
+        assertThat(history.get(2).estimated().get(Kind.ASSISTANT)).as("the answer that was gone is not counted")
+                .isLessThan(history.get(1).estimated().get(Kind.ASSISTANT));
+    }
+
+    @Test
+    void theMarkdownHasATableOfTheSizesAtEachAnswer() throws Exception {
+        AgentRun run = finishedTurn();
+
+        String markdown = runner.context(run).toMarkdown();
+
+        assertThat(markdown).contains("## Size at each answer").contains("| Answer | Reported |");
     }
 }

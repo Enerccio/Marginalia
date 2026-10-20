@@ -161,6 +161,66 @@ class AgentRunnerTest extends AgentTestBase {
                 .extracting(LLMChatMessage::getRole).containsExactly(LLMRole.USER);
     }
 
+    /**
+     * An agent that calls the example command that takes ten seconds and stops when it is told to.
+     */
+    private Agent waitingAgent() throws Exception {
+        Agent agent = readingAgent();
+        agent.setAllowedCommands(List.of("hello-world-async"));
+        return agentService.save(agent);
+    }
+
+    @Test
+    void stoppingARunCancelsTheCommandThatIsGoingOn() throws Exception {
+        Agent agent = waitingAgent();
+        llm.enqueue(MockLLMResponse.toolCall("hello-world-async", "{}"));
+
+        AgentRun run = startRun(agent);
+        llm.awaitCompletionRequests(1, Duration.ofSeconds(10));
+        Thread.sleep(600);
+        long began = System.currentTimeMillis();
+        agentRunService.stop(agentRunService.find(run.getId()), true);
+
+        run = await(run, Set.of(AgentRunStatus.STOPPED_KEPT));
+
+        assertThat(System.currentTimeMillis() - began).as("did not wait for the ten seconds of the command").isLessThan(5_000);
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.STOPPED_KEPT);
+        assertThat(transcript(run).getLast().getContent()).contains("author stopped the run");
+    }
+
+    @Test
+    void pausingAtOnceCancelsTheCommandThatIsGoingOn() throws Exception {
+        Agent agent = waitingAgent();
+        llm.enqueue(MockLLMResponse.toolCall("hello-world-async", "{}"));
+
+        AgentRun run = startRun(agent);
+        llm.awaitCompletionRequests(1, Duration.ofSeconds(10));
+        Thread.sleep(600);
+        long began = System.currentTimeMillis();
+        runner.pauseNow(agentRunService.find(run.getId()));
+
+        run = await(run, Set.of(AgentRunStatus.PAUSED));
+
+        assertThat(System.currentTimeMillis() - began).isLessThan(5_000);
+        assertThat(transcript(run).getLast().getContent()).contains("paused the run at once");
+    }
+
+    @Test
+    void aPlainPauseWaitsForTheCommandThatIsGoingOn() throws Exception {
+        Agent agent = waitingAgent();
+        llm.enqueue(MockLLMResponse.toolCall("hello-world-async", "{}"), MockLLMResponse.text("Hello came."));
+
+        AgentRun run = startRun(agent);
+        llm.awaitCompletionRequests(1, Duration.ofSeconds(10));
+        Thread.sleep(600);
+        agentRunService.pause(agentRunService.find(run.getId()));
+        Thread.sleep(1_000);
+
+        assertThat(agentRunService.find(run.getId()).getStatus()).as("it waits for the answer of the command").isEqualTo(AgentRunStatus.PAUSING);
+        run = await(run, Set.of(AgentRunStatus.PAUSED));
+        assertThat(transcript(run).getLast().getContent()).isEqualTo("Hello world");
+    }
+
     @Test
     void aPlainPauseWaitsForTheRequestAndKeepsItsAnswer() throws Exception {
         Agent agent = readingAgent();

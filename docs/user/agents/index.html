@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845829205283">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845831272684">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845829205283" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845831272684" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845829205283" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845831272684" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845829205283" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845831272684" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -364,11 +364,14 @@ server stopped is reported to the model as &quot;outcome unknown&quot;.</p>
 <p><strong>Failed:</strong> the runner itself broke; the reason says what.</p>
 </li>
 </ul>
-<p><strong>Pause</strong> and <strong>Stop</strong> take effect between two rounds: the model request and the calls that are going on finish first. That can take
+<p><strong>Pause</strong> takes effect between two rounds: the model request and the calls that are going on finish first. That can take
 long (a slow model, a long generation), so there is <strong>Pause now</strong>: it cancels the request to the model, whose answer is thrown away, and the call
-that is going on (it is told to stop; a command that can&#x27;t be stopped may still finish, so the agent is told that it is not known whether the call was done and checks
-the state when it goes on), answers the calls of the round that were not made as such, and the run is <em>Paused</em> in a moment. What the thrown away request would have
-cost is lost; resume as usual.</p>
+that is going on, answers the calls of the round that were not made as such, and the run is <em>Paused</em> in a moment. What the thrown away request would have
+cost is lost; resume as usual. <strong>Stop</strong> does the same: it does not wait for the request or the call that is going on, they are cancelled and the run ends at once
+(kept or discarded as you chose).</p>
+<p>A command that is going on is told to stop, and a command that is written to be stopped (the ones that write with a model, search and replace) ends at once and leaves what it had
+done so far. One that can&#x27;t be stopped may still finish; either way the agent is told that it is not known whether the call was done and checks the state with a read
+command when it goes on. The commands of the sub-agents are cancelled the same way when the run is paused, stopped or sent a message at once.</p>
 <p>While the agent waits for a free place at its model (see <doc-anchor-trigger to="#one-model-several-agents">One model, several agents</doc-anchor-trigger>) it is <em>Running</em>; a <strong>Pause</strong> or <strong>Stop</strong> ends that wait at once.</p>
 <h2 id="the-console">The console</h2>
 <p><strong>Console</strong> opens a window for the latest run of the agent, with seven tabs: <strong>Run</strong>, <strong>Runs</strong>, <strong>Workspace</strong>, <strong>Checkpoints</strong>, <strong>Context</strong>, <strong>Book copy</strong> and <strong>Sub-agents</strong>.</p>
@@ -539,11 +542,11 @@ made of the copy and no extension sees a book open. It is read when you open the
 <h3 id="the-context">The context</h3>
 <p>The <strong>Context</strong> tab shows what the model reads with its <strong>next request</strong>, taken apart, so you can see where the tokens go and debug an agent that behaves oddly. It is made when you open the tab and when you press <strong>Refresh</strong> (not while the run works: it counts the tokens of every part).</p>
 <ul>
-<li>Three charts: the <strong>kinds of parts</strong> against the limit of the context (the prompt of the agent, your instructions, the notes of the runner, the tool definitions, the summary of a compaction, your messages, the answers of the agent, the results of its calls, and what is free), <strong>every part in the order it is sent</strong> (a bar for each, in the colour of its kind: a tool whose description is huge or a result that fills the context stands out), and the <strong>size of the context the model reported at each of its answers</strong> with the limit as a dashed line.</li>
+<li>Three charts: the <strong>kinds of parts</strong> against the limit of the context (the prompt of the agent, your instructions, the notes of the runner, the tool definitions, the summary of a compaction, your messages, the answers of the agent, the results of its calls, and what is free), <strong>every part in the order it is sent</strong> (a bar for each, in the colour of its kind: a tool whose description is huge or a result that fills the context stands out), and the <strong>context at each answer of the model</strong>: a stacked bar of what it was made of (the same kinds, estimated), the size the model <strong>reported</strong> as a line and the limit as a dashed line. Where the line is above the bars, the model counted more than the estimate (images, the format of the provider); a bar that drops is a compaction or a rewind.</li>
 <li>A <strong>table of the parts</strong> with the kind, name, tokens and share of the context. Pick a row to read <strong>exactly the text the model is sent</strong> for that part: a section of the system message, the description and parameters of one tool, a message, the arguments of a call or the result of one.</li>
 <li><strong>Download</strong> gives the whole context as one Markdown file (the system message with its sections, every tool with its description and schema, the conversation message by message, each text in a code fence), <strong>Copy</strong> puts the same text on the clipboard.</li>
 </ul>
-<p>The sizes of the parts are estimates; the number the model reported is the real one (the request and its answer). The system message and the tools are the ones the next request would use, so a change of the prompt, the instructions or the allowed commands shows at once. The messages are the transcript as stored, without what a resume adds (a &quot;go on&quot;, the answers to calls an interruption left open). Reasoning is not part of the context (the model is not sent it back) and images show as their file names. What a compaction replaced is not in the context either; the <strong>Run</strong> tab and the <strong>Runs</strong> download still have it.</p>
+<p>The sizes of the parts are estimates; the number the model reported is the real one (the request and its answer). In the chart of the answers the prompt, the instructions and the tools are as they are now (an older answer may have had others if you changed them), the conversation is as it was then: a summary replaced what was before it, and what a rewind went back over is gone from the answers after it (a compaction that was itself rewound is not brought back, the bars after it are a little too small). The system message and the tools are the ones the next request would use, so a change of the prompt, the instructions or the allowed commands shows at once. The messages are the transcript as stored, without what a resume adds (a &quot;go on&quot;, the answers to calls an interruption left open). Reasoning is not part of the context (the model is not sent it back) and images show as their file names. What a compaction replaced is not in the context either; the <strong>Run</strong> tab and the <strong>Runs</strong> download still have it.</p>
 <h2 id="checkpoints">Checkpoints</h2>
 <p>A <strong>checkpoint</strong> is a restore point of the working copy of the run (the parts, summaries, lorebooks and the data of the extensions, with the handles the agent was given) and of the
 workspace of the agent, so that a job that went wrong can be undone: the agent goes back with <code translate="no" v-pre>checkpoint_restore</code>, or you do it in the <strong>Checkpoints</strong> tab of the console. Who makes them:</p>
@@ -583,7 +586,7 @@ of two thousand parts). You can restore while the agent does not work; the agent
 | **Compact at (% of context)** | When the context of the model passes this share of its limit and the agent did not [compact its work](#running-a-command-yourself) itself, the run does it: the agent writes the summary of its earlier work, which replaces it. Empty is 90, zero never (the run then stops when the context is full), otherwise 50 to 99. |
 | **System prompt** | What the agent is told to be. Leave it empty and the agent follows the default - yours from [Settings](account.md#templates), else your administrator's, else the built-in one - which is shown in grey. The info icon has **Insert Default Template**, which fills the default in so you can edit a copy of it; clear the field again to follow the default. |
 | **Compaction prompt** | What the agent is asked when you [`/compact`](#running-a-command-yourself) it: to write the summary that replaces its earlier work. Empty follows the default, like the system prompt, with the same info icon. |
-| **Instructions (agents.md)** | Your instructions to the agent, added to its prompt in every run. The agent can read them, never change them. Empty follows your default from [Settings](account.md#templates), if you have one (it is shown in grey), else there are none. |
+| **Instructions (agents.md)** | Your instructions to the agent, added to its prompt in every run. The agent can read them, never change them. Empty follows your default from [Settings](account.md#templates), if you have one (it is shown in grey), else there are none. Under it a line says what the prompt, the instructions and the ticked commands weigh in **every request**, in tokens (an estimate, with the tools for files and for the run and the notes of the runner on top). |
 | **Allowed commands** | See below. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -644,7 +647,7 @@ of two thousand parts). You can restore while the agent does not work; the agent
 </tr>
 <tr>
 <td><strong>Instructions (agents.md)</strong></td>
-<td>Your instructions to the agent, added to its prompt in every run. The agent can read them, never change them. Empty follows your default from <a href="../account/#templates">Settings</a>, if you have one (it is shown in grey), else there are none.</td>
+<td>Your instructions to the agent, added to its prompt in every run. The agent can read them, never change them. Empty follows your default from <a href="../account/#templates">Settings</a>, if you have one (it is shown in grey), else there are none. Under it a line says what the prompt, the instructions and the ticked commands weigh in <strong>every request</strong>, in tokens (an estimate, with the tools for files and for the run and the notes of the runner on top).</td>
 </tr>
 <tr>
 <td><strong>Allowed commands</strong></td>
@@ -658,7 +661,8 @@ of two thousand parts). You can restore while the agent does not work; the agent
 <p>The agent is offered only the commands you tick. The table lists every command with its effect (<em>Destructive</em> changes or removes
 data, <em>Non-destructive</em> only reads or adds). The <strong>Selection</strong> box ticks many at once: <strong>All</strong>, <strong>None</strong> or <strong>All non-destructive</strong>
 (the default for a new agent), or a role; ticking a command yourself makes the selection <em>Custom</em>. Commands that an extension brings stay allowed
-when the extension is not loaded, you just don&#x27;t see them.</p>
+when the extension is not loaded, you just don&#x27;t see them. The <strong>Tokens</strong> column is what the definition of the command (its name, description and parameters) adds to every request of the agent, and
+the line under the instructions adds up the ticked ones: the whole set is about 20 000 tokens, so a smaller selection (a role) leaves more room in the context for the work.</p>
 <p>The roles are sets of commands for a job. All of them can read the book and the lorebooks (every command that only reads, those of extensions too), and none can remove data:</p>
 <retype-table copy-text="| Role | Besides reading |
 |---|---|
@@ -747,7 +751,7 @@ editing again after you paused or stopped the run. Other lorebooks are not affec
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (70bf3377).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (f2e1d474).</p></div>
             </footer>
         </div>
     </div>

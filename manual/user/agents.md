@@ -74,11 +74,15 @@ How a run ends a stretch of work:
   server stopped is reported to the model as "outcome unknown".
 - **Failed:** the runner itself broke; the reason says what.
 
-**Pause** and **Stop** take effect between two rounds: the model request and the calls that are going on finish first. That can take
+**Pause** takes effect between two rounds: the model request and the calls that are going on finish first. That can take
 long (a slow model, a long generation), so there is **Pause now**: it cancels the request to the model, whose answer is thrown away, and the call
-that is going on (it is told to stop; a command that can't be stopped may still finish, so the agent is told that it is not known whether the call was done and checks
-the state when it goes on), answers the calls of the round that were not made as such, and the run is *Paused* in a moment. What the thrown away request would have
-cost is lost; resume as usual.
+that is going on, answers the calls of the round that were not made as such, and the run is *Paused* in a moment. What the thrown away request would have
+cost is lost; resume as usual. **Stop** does the same: it does not wait for the request or the call that is going on, they are cancelled and the run ends at once
+(kept or discarded as you chose).
+
+A command that is going on is told to stop, and a command that is written to be stopped (the ones that write with a model, search and replace) ends at once and leaves what it had
+done so far. One that can't be stopped may still finish; either way the agent is told that it is not known whether the call was done and checks the state with a read
+command when it goes on. The commands of the sub-agents are cancelled the same way when the run is paused, stopped or sent a message at once.
 
 While the agent waits for a free place at its model (see [One model, several agents](#one-model-several-agents)) it is *Running*; a **Pause** or **Stop** ends that wait at once.
 
@@ -287,11 +291,11 @@ made of the copy and no extension sees a book open. It is read when you open the
 
 The **Context** tab shows what the model reads with its **next request**, taken apart, so you can see where the tokens go and debug an agent that behaves oddly. It is made when you open the tab and when you press **Refresh** (not while the run works: it counts the tokens of every part).
 
-- Three charts: the **kinds of parts** against the limit of the context (the prompt of the agent, your instructions, the notes of the runner, the tool definitions, the summary of a compaction, your messages, the answers of the agent, the results of its calls, and what is free), **every part in the order it is sent** (a bar for each, in the colour of its kind: a tool whose description is huge or a result that fills the context stands out), and the **size of the context the model reported at each of its answers** with the limit as a dashed line.
+- Three charts: the **kinds of parts** against the limit of the context (the prompt of the agent, your instructions, the notes of the runner, the tool definitions, the summary of a compaction, your messages, the answers of the agent, the results of its calls, and what is free), **every part in the order it is sent** (a bar for each, in the colour of its kind: a tool whose description is huge or a result that fills the context stands out), and the **context at each answer of the model**: a stacked bar of what it was made of (the same kinds, estimated), the size the model **reported** as a line and the limit as a dashed line. Where the line is above the bars, the model counted more than the estimate (images, the format of the provider); a bar that drops is a compaction or a rewind.
 - A **table of the parts** with the kind, name, tokens and share of the context. Pick a row to read **exactly the text the model is sent** for that part: a section of the system message, the description and parameters of one tool, a message, the arguments of a call or the result of one.
 - **Download** gives the whole context as one Markdown file (the system message with its sections, every tool with its description and schema, the conversation message by message, each text in a code fence), **Copy** puts the same text on the clipboard.
 
-The sizes of the parts are estimates; the number the model reported is the real one (the request and its answer). The system message and the tools are the ones the next request would use, so a change of the prompt, the instructions or the allowed commands shows at once. The messages are the transcript as stored, without what a resume adds (a "go on", the answers to calls an interruption left open). Reasoning is not part of the context (the model is not sent it back) and images show as their file names. What a compaction replaced is not in the context either; the **Run** tab and the **Runs** download still have it.
+The sizes of the parts are estimates; the number the model reported is the real one (the request and its answer). In the chart of the answers the prompt, the instructions and the tools are as they are now (an older answer may have had others if you changed them), the conversation is as it was then: a summary replaced what was before it, and what a rewind went back over is gone from the answers after it (a compaction that was itself rewound is not brought back, the bars after it are a little too small). The system message and the tools are the ones the next request would use, so a change of the prompt, the instructions or the allowed commands shows at once. The messages are the transcript as stored, without what a resume adds (a "go on", the answers to calls an interruption left open). Reasoning is not part of the context (the model is not sent it back) and images show as their file names. What a compaction replaced is not in the context either; the **Run** tab and the **Runs** download still have it.
 
 ## Checkpoints
 
@@ -333,7 +337,7 @@ of two thousand parts). You can restore while the agent does not work; the agent
 | **Compact at (% of context)** | When the context of the model passes this share of its limit and the agent did not [compact its work](#running-a-command-yourself) itself, the run does it: the agent writes the summary of its earlier work, which replaces it. Empty is 90, zero never (the run then stops when the context is full), otherwise 50 to 99. |
 | **System prompt** | What the agent is told to be. Leave it empty and the agent follows the default - yours from [Settings](account.md#templates), else your administrator's, else the built-in one - which is shown in grey. The info icon has **Insert Default Template**, which fills the default in so you can edit a copy of it; clear the field again to follow the default. |
 | **Compaction prompt** | What the agent is asked when you [`/compact`](#running-a-command-yourself) it: to write the summary that replaces its earlier work. Empty follows the default, like the system prompt, with the same info icon. |
-| **Instructions (agents.md)** | Your instructions to the agent, added to its prompt in every run. The agent can read them, never change them. Empty follows your default from [Settings](account.md#templates), if you have one (it is shown in grey), else there are none. |
+| **Instructions (agents.md)** | Your instructions to the agent, added to its prompt in every run. The agent can read them, never change them. Empty follows your default from [Settings](account.md#templates), if you have one (it is shown in grey), else there are none. Under it a line says what the prompt, the instructions and the ticked commands weigh in **every request**, in tokens (an estimate, with the tools for files and for the run and the notes of the runner on top). |
 | **Allowed commands** | See below. |
 
 ### Allowed commands
@@ -341,7 +345,8 @@ of two thousand parts). You can restore while the agent does not work; the agent
 The agent is offered only the commands you tick. The table lists every command with its effect (*Destructive* changes or removes
 data, *Non-destructive* only reads or adds). The **Selection** box ticks many at once: **All**, **None** or **All non-destructive**
 (the default for a new agent), or a role; ticking a command yourself makes the selection *Custom*. Commands that an extension brings stay allowed
-when the extension is not loaded, you just don't see them.
+when the extension is not loaded, you just don't see them. The **Tokens** column is what the definition of the command (its name, description and parameters) adds to every request of the agent, and
+the line under the instructions adds up the ticked ones: the whole set is about 20 000 tokens, so a smaller selection (a role) leaves more room in the context for the work.
 
 The roles are sets of commands for a job. All of them can read the book and the lorebooks (every command that only reads, those of extensions too), and none can remove data:
 

@@ -271,7 +271,8 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
     }
 
     /**
-     * The size of the context the model reported at each of its answers, with the cap.
+     * The context at each answer of the model: what it was made of (estimated, a stacked bar of the kinds), the size the model
+     * reported and the cap.
      */
     private ChartJs historyChart() {
         List<Integer> labels = new ArrayList<>();
@@ -281,24 +282,43 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
             values.add(point.tokens());
         }
         List<Map<String, Object>> datasets = new ArrayList<>();
+        // the kinds that were in the context at some answer, each a stack of bars
+        for (Kind kind : Kind.values()) {
+            List<Long> tokens = context.history().stream().map(point -> point.estimated().getOrDefault(kind, 0L)).toList();
+            if (tokens.stream().anyMatch(value -> value > 0)) {
+                Map<String, Object> bars = new LinkedHashMap<>();
+                bars.put("type", "bar");
+                bars.put("label", kindName(kind));
+                bars.put("data", tokens);
+                bars.put("backgroundColor", COLORS.get(kind));
+                bars.put("stack", "estimated");
+                datasets.add(bars);
+            }
+        }
         Map<String, Object> reported = new LinkedHashMap<>();
-        reported.put("label", loc.getValue(L.LABEL_TOKENS));
+        reported.put("type", "line");
+        reported.put("label", loc.getValue(L.LABEL_AGENT_CONTEXT_REPORTED));
         reported.put("data", values);
         reported.put("borderColor", COLORS.get(Kind.ASSISTANT));
         reported.put("tension", 0.2);
+        // lines of a chart with stacked scales would add up: each is a stack of its own
+        reported.put("stack", "reported");
         datasets.add(reported);
         if (context.contextCap() > 0) {
             Map<String, Object> cap = new LinkedHashMap<>();
+            cap.put("type", "line");
             cap.put("label", loc.getValue(L.LABEL_TOKEN_CONTEXT));
             cap.put("data", labels.stream().map(label -> context.contextCap()).toList());
             cap.put("borderColor", COLORS.get(Kind.RESULT));
             cap.put("borderDash", List.of(6, 4));
             cap.put("pointRadius", 0);
+            cap.put("stack", "cap");
             datasets.add(cap);
         }
         Map<String, Object> config = new LinkedHashMap<>();
-        config.put("type", "line");
+        config.put("type", "bar");
         config.put("data", Map.of("labels", labels, "datasets", datasets));
+        config.put("options", Map.of("scales", Map.of("x", Map.of("stacked", true), "y", Map.of("stacked", true))));
         return chart(config);
     }
 
