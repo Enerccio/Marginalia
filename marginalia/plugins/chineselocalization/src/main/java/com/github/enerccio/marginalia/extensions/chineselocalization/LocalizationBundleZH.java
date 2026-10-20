@@ -535,6 +535,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_WEBHOOK_ALWAYS, "应用打开时也发送");
         setValue(L.LABEL_AGENT_WEBHOOK_TEST, "发送测试消息");
         setValue(L.LABEL_AGENT_WEBHOOKS_ALLOWED, "允许智能体向用户的 Webhook 发送消息");
+        setValue(L.LABEL_AGENTS_MAX_CONCURRENCY, "同时向模型发出的请求数（每次运行）");
+        setValue(L.LABEL_MAX_SUBAGENTS, "子代理上限");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -939,6 +941,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_USE_OWN_MODEL, "开启：智能体通过命令生成的内容（下一回合、摘要，以及设定生成器等扩展的命令）无论书籍使用何种模型，都使用上面的模型。关闭：使用书籍的模型，这样可以混用模型：一个负责思考，一个负责写作。命令仍可指定智能体的其他模型配置。");
         setValue(L.HELP_AGENT_WEBHOOK_URL, "当智能体提问、等待、完成或失败而您没有打开应用时，服务器会向此地址发送一条简短消息：例如您的 ntfy 主题（https://ntfy.sh/your-topic）、Gotify 消息 URL 或 Discord webhook。知道该地址的人都能读取消息。留空则不发送。");
         setValue(L.HELP_AGENT_WEBHOOKS_ALLOWED, "服务器会调用用户在设置中填写的地址。如果这不可接受（例如服务器能访问用户不应访问的网络），请关闭。");
+        setValue(L.HELP_AGENTS_MAX_CONCURRENCY, "一次运行可同时向模型发出的请求数，代理及其子代理合计。为 1 时，子代理向模型请求期间代理会等待（挂起）。留空为 1。");
+        setValue(L.HELP_AGENT_MAX_SUBAGENTS, "代理可同时运行的子代理数量。0 或留空表示没有：代理不会获得启动子代理的工具。为 1 时，启动子代理会等到它完成；更多时，调用会立即返回，直到达到上限，之后会等待其中一个结束。子代理不能再启动子代理，它们的所有请求都计入本次运行的预算。");
+        setValue(L.HELP_AGENT_CANCEL_QUEUED, "撤回该消息或命令，代理将不会收到它。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

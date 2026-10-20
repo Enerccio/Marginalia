@@ -36,6 +36,11 @@ public interface AgentService extends ExtendableService<Agent, AgentRepository> 
     int MAX_MODEL_PROFILES = 8;
 
     /**
+     * Most sub-agents an agent can be given to have working at once.
+     */
+    int MAX_SUBAGENTS = 10;
+
+    /**
      * How many agents (definitions, clones included) a user may have when the administrator did not say.
      */
     int DEFAULT_MAX_AGENTS = 5;
@@ -52,9 +57,25 @@ public interface AgentService extends ExtendableService<Agent, AgentRepository> 
      * @param maxWorkspaceBytes the most all the files of one workspace of the user take, zero is the default
      * @param maxWorkspaceFiles the most files in one workspace of the user, zero is the default
      * @param maxCheckpointBytes the most the checkpoints of one run of the user take, zero is the default of the application
+     * @param maxConcurrency    how many requests to the model one run can have in the air at once, the agent and its sub-agents
+     *                          together; at least one
      */
     record AgentGrant(boolean allowed, int maxConcurrentRuns, long runTokenBudget, int maxAgents, int maxCopies,
-                      long maxFileBytes, long maxWorkspaceBytes, int maxWorkspaceFiles, long maxCheckpointBytes) {
+                      long maxFileBytes, long maxWorkspaceBytes, int maxWorkspaceFiles, long maxCheckpointBytes,
+                      int maxConcurrency) {
+
+        public AgentGrant {
+            maxConcurrency = Math.max(1, maxConcurrency);
+        }
+
+        /**
+         * A grant with one request at a time per run.
+         */
+        public AgentGrant(boolean allowed, int maxConcurrentRuns, long runTokenBudget, int maxAgents, int maxCopies,
+                          long maxFileBytes, long maxWorkspaceBytes, int maxWorkspaceFiles, long maxCheckpointBytes) {
+            this(allowed, maxConcurrentRuns, runTokenBudget, maxAgents, maxCopies, maxFileBytes, maxWorkspaceBytes,
+                    maxWorkspaceFiles, maxCheckpointBytes, 1);
+        }
 
         /**
          * A grant with no quota of checkpoints: the default one of the application.

@@ -75,6 +75,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
     private Checkbox useOwnModelCheckbox;
     private ComboBox<DestructiveCommandMode> destructiveCombo;
     private IntegerField maxRoundsField;
+    private IntegerField maxSubagentsField;
     private IntegerField tokenBudgetField;
     private IntegerField contextLimitField;
     private IntegerField autoCompactField;
@@ -116,7 +117,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
         form.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1));
         form.setWidthFull();
         form.add(nameField, enabledCheckbox, manuscriptCombo, modelPicker, imagesCheckbox, useOwnModelCheckbox);
-        form.add(destructiveCombo, maxRoundsField, tokenBudgetField, contextLimitField, autoCompactField);
+        form.add(destructiveCombo, maxRoundsField, maxSubagentsField, tokenBudgetField, contextLimitField, autoCompactField);
         form.add(systemPromptField, compactionPromptField, instructionsField, commandsEditor);
         add(form);
 
@@ -161,6 +162,13 @@ public class AgentDialog extends Dialog implements LLMInteract {
         destructiveCombo.setWidthFull();
 
         maxRoundsField = positiveField(L.LABEL_MAX_ROUNDS, L.HELP_AGENT_MAX_ROUNDS);
+        // empty or zero is none
+        maxSubagentsField = new IntegerField(loc.getValue(L.LABEL_MAX_SUBAGENTS));
+        maxSubagentsField.setMin(0);
+        maxSubagentsField.setMax(AgentService.MAX_SUBAGENTS);
+        maxSubagentsField.setStepButtonsVisible(true);
+        maxSubagentsField.setHelperText(loc.getValue(L.HELP_AGENT_MAX_SUBAGENTS));
+        maxSubagentsField.setWidthFull();
         tokenBudgetField = positiveField(L.LABEL_RUN_TOKEN_BUDGET, L.HELP_AGENT_TOKEN_BUDGET);
         contextLimitField = positiveField(L.LABEL_CONTEXT_LIMIT, L.HELP_AGENT_CONTEXT_LIMIT);
 
@@ -262,6 +270,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
             }
             destructiveCombo.setValue(agent.getDestructiveMode());
             maxRoundsField.setValue(agent.getMaxRounds());
+            maxSubagentsField.setValue(agent.getMaxSubagents());
             tokenBudgetField.setValue(agent.getTokenBudget() == null ? null : (int) Math.min(Integer.MAX_VALUE, agent.getTokenBudget()));
             contextLimitField.setValue(agent.getContextCap());
             autoCompactField.setValue(agent.getAutoCompactPercent());
@@ -278,7 +287,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
     private void save() {
         if (StringUtils.isBlank(nameField.getValue()) || manuscriptCombo.getValue() == null
                 || (modelPicker.getAi() == null) != (modelPicker.getProtocol() == null)
-                || fieldInvalid(maxRoundsField) || fieldInvalid(tokenBudgetField) || fieldInvalid(contextLimitField) || fieldInvalid(autoCompactField)
+                || fieldInvalid(maxRoundsField) || fieldInvalid(maxSubagentsField) || fieldInvalid(tokenBudgetField) || fieldInvalid(contextLimitField) || fieldInvalid(autoCompactField)
                 || instructionsField.getValue().length() > AgentService.MAX_INSTRUCTIONS_LENGTH) {
             Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE));
             return;
@@ -296,6 +305,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
             applyMainProfile(agent);
             agent.setDestructiveMode(destructiveCombo.getValue());
             agent.setMaxRounds(maxRoundsField.getValue());
+            agent.setMaxSubagents(maxSubagentsField.getValue() == null || maxSubagentsField.getValue() == 0 ? null : maxSubagentsField.getValue());
             agent.setTokenBudget(tokenBudgetField.getValue() == null ? null : tokenBudgetField.getValue().longValue());
             agent.setContextCap(contextLimitField.getValue());
             agent.setAutoCompactPercent(autoCompactField.getValue());
@@ -371,6 +381,10 @@ public class AgentDialog extends Dialog implements LLMInteract {
 
     ComboBox<DestructiveCommandMode> getDestructiveCombo() {
         return destructiveCombo;
+    }
+
+    IntegerField getMaxSubagentsField() {
+        return maxSubagentsField;
     }
 
     IntegerField getMaxRoundsField() {

@@ -641,7 +641,14 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         force.setAriaLabel(loc.getValue(now));
         Div heading = text(loc.getValue(message.command() ? L.LABEL_COMMAND : L.LABEL_YOU) + " ("
                 + loc.getValue(L.LABEL_AGENT_QUEUED) + ")", true);
-        HorizontalLayout header = new HorizontalLayout(heading, force);
+        Button cancel = new Button(Solid.TRASH.create(), event -> perform(() -> {
+            agentRunner.cancelQueued(run, message.id());
+            return null;
+        }));
+        cancel.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+        cancel.setTooltipText(loc.getValue(L.LABEL_CANCEL) + ": " + loc.getValue(L.HELP_AGENT_CANCEL_QUEUED));
+        cancel.setAriaLabel(loc.getValue(L.LABEL_CANCEL));
+        HorizontalLayout header = new HorizontalLayout(heading, new HorizontalLayout(force, cancel));
         header.setWidthFull();
         header.setPadding(false);
         header.setAlignItems(FlexComponent.Alignment.CENTER);

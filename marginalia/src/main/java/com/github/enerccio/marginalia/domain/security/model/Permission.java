@@ -112,6 +112,14 @@ public class Permission extends ExtendableEntity {
     @ExtendedAttribute
     private Integer agentsMaxCheckpointMb;
 
+    /**
+     * {@link PermissionType#AGENTS}: how many requests to the model one run of the user can have in the air at once, the
+     * agent and its sub-agents together. One when not set: the agent waits (parked) while its only sub-agent asks the model.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Integer agentsMaxConcurrency;
+
     public PermissionType getPermissionType() {
         return permissionType;
     }
@@ -206,6 +214,14 @@ public class Permission extends ExtendableEntity {
 
     public void setAgentsMaxCheckpointMb(Integer agentsMaxCheckpointMb) {
         this.agentsMaxCheckpointMb = agentsMaxCheckpointMb;
+    }
+
+    public Integer getAgentsMaxConcurrency() {
+        return agentsMaxConcurrency;
+    }
+
+    public void setAgentsMaxConcurrency(Integer agentsMaxConcurrency) {
+        this.agentsMaxConcurrency = agentsMaxConcurrency;
     }
 
     public Long getAgentsRunTokenBudget() {

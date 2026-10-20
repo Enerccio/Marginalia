@@ -527,6 +527,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_WEBHOOK_ALWAYS, "アプリを開いているときも送る");
         setValue(L.LABEL_AGENT_WEBHOOK_TEST, "テストメッセージを送る");
         setValue(L.LABEL_AGENT_WEBHOOKS_ALLOWED, "エージェントがユーザーのWebhookへメッセージを送ることを許可する");
+        setValue(L.LABEL_AGENTS_MAX_CONCURRENCY, "モデルへの同時リクエスト数 (実行ごと)");
+        setValue(L.LABEL_MAX_SUBAGENTS, "サブエージェントの最大数");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -931,6 +933,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_USE_OWN_MODEL, "オン：コマンドによる生成（次のターン、要約、ロアジェネレーターなど拡張機能のコマンド）は、書籍のモデルに関係なく上記のモデルを使います。オフ：書籍のモデルを使うため、考えるモデルと書くモデルを組み合わせられます。コマンドで、エージェントの別のモデルプロファイルを指定することもできます。");
         setValue(L.HELP_AGENT_WEBHOOK_URL, "エージェントが質問・待機・完了・失敗したときにアプリを開いていなければ、サーバーがこのアドレスへ短いメッセージを送ります。例：ntfyのトピック（https://ntfy.sh/your-topic）、GotifyのメッセージURL、Discordのwebhook。アドレスを知る人はメッセージを読めます。空欄なら何も送りません。");
         setValue(L.HELP_AGENT_WEBHOOKS_ALLOWED, "サーバーはユーザーが設定に入力したアドレスを呼び出します。これが許容できない環境（ユーザーが到達すべきでないネットワークにサーバーが届く場合など）ではオフにしてください。");
+        setValue(L.HELP_AGENTS_MAX_CONCURRENCY, "1回の実行がエージェントとそのサブエージェントを合わせて同時にモデルへ出せるリクエストの数。1の場合、サブエージェントがモデルに問い合わせている間、エージェントは待機します。空欄は 1。");
+        setValue(L.HELP_AGENT_MAX_SUBAGENTS, "エージェントが同時に動かせるサブエージェントの数。0または空欄は使用しない設定で、起動用のツールは渡されません。1の場合、サブエージェントの起動はその完了まで待ちます。2以上の場合は上限に達するまで即座に戻り、達すると1つが終わるまで待ちます。サブエージェントは別のサブエージェントを起動できず、そのリクエストはすべて実行の予算に含まれます。");
+        setValue(L.HELP_AGENT_CANCEL_QUEUED, "メッセージまたはコマンドを取り消します。エージェントには渡されません。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

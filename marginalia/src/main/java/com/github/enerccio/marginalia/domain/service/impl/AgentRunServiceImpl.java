@@ -510,6 +510,21 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
 
     @Override
     @CommonTxReadOnly
+    public int getMaxSubagents(AgentRun run) throws Exception {
+        AgentRun stored = run == null || run.getId() == null ? null : find(run.getId());
+        Integer max = stored == null ? null : stored.getAgent().getMaxSubagents();
+        return max == null ? 0 : Math.max(0, Math.min(max, AgentService.MAX_SUBAGENTS));
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public int getMaxConcurrency(AgentRun run) throws Exception {
+        AgentRun stored = run == null || run.getId() == null ? null : find(run.getId());
+        return stored == null ? 1 : agentService.getGrant(stored.getOwner()).maxConcurrency();
+    }
+
+    @Override
+    @CommonTxReadOnly
     public boolean isBudgetExceeded(AgentRun run) throws Exception {
         long budget = getTokenBudget(run);
         return budget > 0 && find(run.getId()).getTotalTokens() >= budget;

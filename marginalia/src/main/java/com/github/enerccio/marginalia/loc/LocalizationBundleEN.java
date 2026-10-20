@@ -527,6 +527,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_WEBHOOK_ALWAYS, "Also when the application is open");
         setValue(L.LABEL_AGENT_WEBHOOK_TEST, "Send a test message");
         setValue(L.LABEL_AGENT_WEBHOOKS_ALLOWED, "Agents may send messages to the webhooks of users");
+        setValue(L.LABEL_AGENTS_MAX_CONCURRENCY, "Requests to the model at once (per run)");
+        setValue(L.LABEL_MAX_SUBAGENTS, "Most sub-agents");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -931,6 +933,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_USE_OWN_MODEL, "On: what the agent has written by a command (the next turn, summaries, and the commands of extensions such as the Lore Generator) uses the model above, whatever model the book has. Off: it uses the model of the book, so you can mix models: one that thinks and one that writes. A command can still name another model profile of the agent.");
         setValue(L.HELP_AGENT_WEBHOOK_URL, "When an agent asks something, waits for you, finishes or fails and you do not have the application open, the server sends a short message to this address: for example your ntfy topic (https://ntfy.sh/your-topic), a Gotify message URL or a Discord webhook. Anyone who knows the address can read the messages. Empty sends nothing.");
         setValue(L.HELP_AGENT_WEBHOOKS_ALLOWED, "The server calls the address a user typed in their settings. Turn this off where that is not acceptable (for example the server can reach a network the users should not).");
+        setValue(L.HELP_AGENTS_MAX_CONCURRENCY, "How many requests to the model one run can have in the air at once, the agent and its sub-agents together. With one, the agent waits (is parked) while its sub-agent asks the model. Empty is 1.");
+        setValue(L.HELP_AGENT_MAX_SUBAGENTS, "How many sub-agents the agent can have working at once. Zero or empty is none: the agent gets no tools to start them. With one, starting a sub-agent waits until it is done; with more, the call returns at once until the limit is reached, then waits for one to end. Sub-agents can not start sub-agents, and the requests of all of them count in the budgets of the run.");
+        setValue(L.HELP_AGENT_CANCEL_QUEUED, "Takes the message or command back: the agent will not get it.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

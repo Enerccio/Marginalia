@@ -64,6 +64,7 @@ class AgentConsoleDialogTest extends AgentTestBase {
     // what the fake runner reports as queued, and the ids it was told to force
     private List<AgentRunner.QueuedMessage> queued = List.of();
     private final List<String> forced = new ArrayList<>();
+    private final List<String> cancelled = new ArrayList<>();
     private final List<AgentRun> pausedNow = new ArrayList<>();
     private final List<String> commandLines = new ArrayList<>();
     private boolean changed;
@@ -124,6 +125,12 @@ class AgentConsoleDialogTest extends AgentTestBase {
             }
 
             @Override
+            public boolean cancelQueued(AgentRun run, String id) {
+                cancelled.add(id);
+                return true;
+            }
+
+            @Override
             public AgentRun pauseNow(AgentRun run) throws Exception {
                 pausedNow.add(run);
                 return agentRunService.pause(run);
@@ -174,6 +181,11 @@ class AgentConsoleDialogTest extends AgentTestBase {
         ComponentTree.all(bubble).filter(c -> c instanceof Button).map(c -> (Button) c).findFirst().orElseThrow().click();
 
         assertThat(forced).containsExactly("q1");
+
+        // the second small button takes the message back
+        ComponentTree.all(bubble).filter(c -> c instanceof Button).map(c -> (Button) c).skip(1).findFirst().orElseThrow().click();
+
+        assertThat(cancelled).containsExactly("q1");
 
         // delivered: the bubble is gone and the message is in the transcript, once
         say(run, LLMChatMessage.of(LLMRole.USER, "Do this next."));

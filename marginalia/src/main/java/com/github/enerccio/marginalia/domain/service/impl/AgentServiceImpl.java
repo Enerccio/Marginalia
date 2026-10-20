@@ -67,7 +67,7 @@ public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentReposito
         }
         // the loaded user has the flag, the session's one does not
         if (holder.isAdmin()) {
-            return new AgentGrant(true, Integer.MAX_VALUE, 0, Integer.MAX_VALUE);
+            return new AgentGrant(true, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, 0, 0, 0, 0, 0, Integer.MAX_VALUE);
         }
         Permission permission = permissionService.getPermission(holder, PermissionType.AGENTS);
         if (permission == null || !permission.isGranted()) {
@@ -82,7 +82,8 @@ public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentReposito
                 positive(permission.getAgentsMaxFileKb()) * 1024L,
                 positive(permission.getAgentsMaxWorkspaceMb()) * 1024L * 1024L,
                 positive(permission.getAgentsMaxWorkspaceFiles()),
-                positive(permission.getAgentsMaxCheckpointMb()) * 1024L * 1024L);
+                positive(permission.getAgentsMaxCheckpointMb()) * 1024L * 1024L,
+                permission.getAgentsMaxConcurrency() == null ? 1 : permission.getAgentsMaxConcurrency());
     }
 
     /**
@@ -165,6 +166,9 @@ public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentReposito
         }
         if (agent.getTokenBudget() != null && agent.getTokenBudget() < 0) {
             throw new IllegalArgumentException("The token budget can't be negative");
+        }
+        if (agent.getMaxSubagents() != null && (agent.getMaxSubagents() < 0 || agent.getMaxSubagents() > MAX_SUBAGENTS)) {
+            throw new IllegalArgumentException("The most sub-agents must be between 0 and " + MAX_SUBAGENTS);
         }
         return manuscript;
     }

@@ -91,6 +91,11 @@ class AgentPartTest extends AgentTestBase {
             }
 
             @Override
+            public boolean cancelQueued(AgentRun run, String id) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
             public AgentRun pauseNow(AgentRun run) throws Exception {
                 return agentRunService.pause(run);
             }

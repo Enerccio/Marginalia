@@ -94,9 +94,11 @@ is one) stay above it and the box for your message under it, while the transcrip
 - a **Report of the agent**, when it called `finish`.
 
 In a conversation you can also write while the agent **works**. The message is **queued**: it appears as a dashed bubble at the end of the transcript and the agent
-reads it at the end of its current turn (instead of stopping to wait for you); several queued messages go together as one. When it should not wait, press the
+reads it as soon as the round it is in is over: the request to the model that is on its way and the calls it made finish first, and the next request already contains
+your message (several queued messages go together as one). When it should not wait even for that, press the
 small **Send now** (lightning) button on the bubble: the agent drops the round it is in (the request to the model is canceled, a command that waited for your approval
-is refused, calls that were not made are marked as skipped) and reads your message next. Commands that already ran stay done. Queued messages are lost when the server restarts, and
+is refused, calls that were not made are marked as skipped) and reads your message next. The **trash** button next to it takes the message back as long as the agent has
+not read it yet (the same for a queued command). Commands that already ran stay done. Queued messages are lost when the server restarts, and
 a run that is not a conversation (started *immediately*) does not take messages while it works.
 
 ### Running a command yourself
@@ -153,6 +155,23 @@ because the agent can only read text, or an image (PNG, JPEG, GIF or WebP, recog
 up to 5 MB, and it counts against the total and the number of files like any file). A file is never replaced by an upload: delete the old one first.
 Files can't be changed while the agent works, pause it first. The workspace has a limit of size, file size and number of files, which your administrator can set in your [permission](administration/permissions.md#settings-of-a-permission); the line
 under the table says how much is used. The name `AGENTS.md` at the top is taken by your instructions, which the agent sees there (the file can't be written or deleted).
+
+## Sub-agents
+
+An agent can hand a job to a **sub-agent**: a helper with a conversation of its own that does one task and answers with a text. It has the same commands and files as the agent and works in the same working copy and workspace (what it changes stays), but it does not know the conversation of the agent, so the agent has to say everything in the task. The point is that what the sub-agent reads and tries stays out of the context of the agent: checking a chapter, auditing the names, drafting a part.
+
+Set **Most sub-agents** in the [agent](#creating-and-editing-an-agent) to how many may work at once. Zero (the default) is none: the agent is not even told they exist.
+
+- With **one**, the agent starts a sub-agent and waits (it is *parked*) until the sub-agent is done; the call returns its answer.
+- With **more**, starting a sub-agent returns at once and the agent can go on, start others, look at them (`agent_status`), wait for an answer (`await_agent`) or stop one (`cancel_agent`). The call that reaches the limit waits until one of them is over and returns what ended.
+
+Rules that hold either way:
+
+- A sub-agent can **not start sub-agents**, finish the run, ask you, or make checkpoints; it ends by answering with a text.
+- Everything counts in the **one budget of the run**: rounds, tokens, the limits of the model. A sub-agent that hits a limit fails and says so; the agent then hits the same limit.
+- How many requests are on their way to the model at once is the **Requests to the model at once** your administrator gave you (one when not set): with one, the agent and its sub-agent take turns.
+- Calls that change the book or the workspace are done one at a time, whoever makes them, so two sub-agents never write at the same instant. Still, do not tell two of them to change the same part.
+- A sub-agent lives as long as the work session does. When you **pause** or stop the run the sub-agents are stopped (what they changed stays), and the agent is told so; the sub-agents are not shown in the console, only what the agent does with their answers is in its transcript. An agent that ends its turn while sub-agents still work is told once; if it does it again they are stopped.
 
 ## One model, several agents
 
@@ -268,6 +287,7 @@ of two thousand parts). You can restore while the agent does not work; the agent
 | **The model sees images** | Tick it when the model takes images (the API of the model does not say, so you do). The agent then has `view_image` and you can attach images to your messages; without it it never gets a picture. |
 | **Destructive commands** | What happens when the agent wants a command that changes or removes data: *Run them*, *Ask first* (a [window](#asking-you) asks you to approve it) or *Refuse them*. |
 | **Most rounds**, **Token budget of a run**, **Context limit** | Optional limits of one run. The limit your administrator gave you applies in any case. |
+| **Most sub-agents** | How many [sub-agents](#sub-agents) the agent can have working at once, 0 to 10. Empty or zero is none. |
 | **Compact at (% of context)** | When the context of the model passes this share of its limit and the agent did not [compact its work](#running-a-command-yourself) itself, the run does it: the agent writes the summary of its earlier work, which replaces it. Empty is 90, zero never (the run then stops when the context is full), otherwise 50 to 99. |
 | **System prompt** | What the agent is told to be. Leave it empty and the agent follows the default - yours from [Settings](account.md#templates), else your administrator's, else the built-in one - which is shown in grey. The info icon has **Insert Default Template**, which fills the default in so you can edit a copy of it; clear the field again to follow the default. |
 | **Compaction prompt** | What the agent is asked when you [`/compact`](#running-a-command-yourself) it: to write the summary that replaces its earlier work. Empty follows the default, like the system prompt, with the same info icon. |
