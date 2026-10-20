@@ -68,6 +68,13 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             "grep_files", "list_command_results");
     // the tools that start, wait for and stop sub-agents: they change nothing themselves (and are not dropped as repeats: two spawns of one task are two)
     private static final Set<String> SUBAGENT_TOOLS = Set.of("spawn_agent", "await_agent", "agent_status", "cancel_agent");
+    private static final com.fasterxml.jackson.databind.ObjectMapper JSON = new com.fasterxml.jackson.databind.ObjectMapper();
+    // how many times in a row a model that wrote an unreadable call is asked again (with a notice) before the run pauses
+    private static final int MAX_UNREADABLE_CALLS = 3;
+    private static final java.util.regex.Pattern UNREADABLE_CALL = java.util.regex.Pattern.compile(
+            "(?is)failed to parse tool call|tool call arguments|arguments as json|invalid tool call|malformed tool call");
+    // the calls that wait for a sub-agent: a pause leaves them unanswered, a resume makes them again
+    private static final Set<String> WAITING_TOOLS = Set.of("spawn_agent", "await_agent");
     // images the model is shown at once: the newest ones; an older one is a note that view_image shows it again
     static final int MAX_SHOWN_IMAGES = 4;
 
@@ -759,6 +766,10 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         private FunctionSet subTools;
         // the calls that change the book or the workspace run one at a time, whoever makes them (the agent or a sub-agent)
         private final ReentrantLock changeLock = new ReentrantLock(true);
+        // the id of the call of the agent that is made now (the calls of the agent are made one after the other)
+        private volatile String currentCallId;
+        // the id of the call that is made again because the run was paused while it waited for a sub-agent
+        private volatile String resumedCallId;
         // how often the agent ended its turn with sub-agents working, since it last made a call
         private int stillWorkingNotices;
         // the queued messages and commands of the author to deliver before the work goes on, null for none; a worker
@@ -852,17 +863,23 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             loadModel();
 
             List<LLMChatMessage> transcript = new ArrayList<>(messageService.transcript(run));
-            if (initial == null) {
-                prepare(transcript);
-            } else {
-                // the run waits: no "go on", the calls of an interrupted round only get their answer
-                repairCalls(transcript);
-            }
             runTools.restorePlan(planOf(transcript));
             checkpointTools = new CheckpointToolsImpl(() -> run, checkpointService);
             readOnlyCommands = commandService.getCommands().stream().filter(CommandDefinition::readOnly)
                     .map(CommandDefinition::commandName).collect(Collectors.toSet());
             tools = tools();
+            if (initial == null) {
+                // the sub-agents that were paused go on, and the call of the agent that waited for one waits again
+                restoreSubAgents(true);
+                boolean parked = resumeParked(transcript);
+                run = runService.find(runId);
+                if (!parked || run.getStatus() == AgentRunStatus.RUNNING) {
+                    prepare(transcript);
+                }
+            } else {
+                // the run waits: no "go on", the calls of an interrupted round only get their answer
+                repairCalls(transcript);
+            }
 
             progress.maxRounds = agent.getMaxRounds() == null ? 0 : agent.getMaxRounds();
             progress.contextCap = runService.getContextCap(run);
@@ -890,6 +907,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
 
             startCheckpoint(transcript);
 
+            int unreadable = 0;
             while (true) {
                 // the stable point: a pause or a stop asked meanwhile ends here
                 run = runService.find(runId);
@@ -927,9 +945,19 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     continue;
                 } catch (Exception e) {
                     log.warn("The model of agent run {} could not be asked: {}", run.getUuid(), e.getMessage(), e);
+                    if (isUnreadableCall(e)) {
+                        // the agent is told, in the transcript: a resume would ask the same question and get the same answer
+                        append(transcript, LLMChatMessage.of(LLMRole.USER, Defaults.AGENT_UNREADABLE_CALL));
+                        if (++unreadable <= MAX_UNREADABLE_CALLS) {
+                            log.info("Agent run {}: the agent wrote an unreadable call, it is told and asked again ({} of {})", run.getUuid(),
+                                    unreadable, MAX_UNREADABLE_CALLS);
+                            continue;
+                        }
+                    }
                     pause("The model could not be asked: " + messageOf(e));
                     return;
                 }
+                unreadable = 0;
                 changeLock.lock();
                 try {
                     run = runService.addUsage(run, round.usage().promptTokens(), round.usage().completionTokens());
@@ -987,7 +1015,9 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 List<LLMChatMessage> results = new ArrayList<>();
                 boolean forced = false;
                 boolean paused = false;
-                for (LLMToolCall call : round.calls()) {
+                boolean suspended = false;
+                for (int index = 0; index < round.calls().size() && !suspended; index++) {
+                    LLMToolCall call = round.calls().get(index);
                     if (paused || interrupts.contains(runId)) {
                         paused = true;
                         results.add(LLMChatMessage.ofToolResult(call.getId(), Defaults.AGENT_PAUSED_SKIPPED_CALL));
@@ -1003,6 +1033,11 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     try {
                         result = call(tools, call);
                     } catch (Interrupted e) {
+                        if (WAITING_TOOLS.contains(call.getName()) && subAgents != null) {
+                            // it waited for a sub-agent: no answer, the call is made again when the run goes on
+                            suspended = true;
+                            continue;
+                        }
                         paused = true;
                         results.add(LLMChatMessage.ofToolResult(call.getId(), Defaults.AGENT_PAUSED_CALL));
                         continue;
@@ -1011,12 +1046,29 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                         results.add(LLMChatMessage.ofToolResult(call.getId(), Defaults.AGENT_FORCED_CALL));
                         continue;
                     }
+                    if (SubAgentToolsImpl.SUSPENDED.equals(result)) {
+                        // the run is paused while the call waits for a sub-agent; it is answered when the run goes on
+                        suspended = true;
+                        continue;
+                    }
                     // the arguments and the result are the story's business and not logged
                     log.info("Agent run {}: {} {} in {} ms ({} characters)", run.getUuid(), call.getName(),
                             result.startsWith("Error:") ? "failed" : "done", System.currentTimeMillis() - began, result.length());
                     // stored at once: the console shows the result of a call when it is made, not when the round is over, and a
                     // pause in the middle of a round keeps what the calls before it did
                     append(transcript, LLMChatMessage.ofToolResult(call.getId(), result));
+                }
+                if (suspended) {
+                    log.info("Agent run {}: the run was paused while the agent waited for a sub-agent, the rest of the round waits", run.getUuid());
+                    interrupts.remove(runId);
+                    // the calls that were not answered are answered when the run goes on: the stable point pauses
+                    run = runService.find(runId);
+                    if (run.getStatus() == AgentRunStatus.RUNNING) {
+                        // nobody asked for it, the sub-agents were stopped by something else: the calls get their answer now
+                        append(transcript, openCalls(round.calls(), transcript).stream()
+                                .map(open -> LLMChatMessage.ofToolResult(open.getId(), Defaults.AGENT_PAUSED_CALL)).toArray(LLMChatMessage[]::new));
+                    }
+                    continue;
                 }
                 if (paused) {
                     log.info("Agent run {}: the rest of the round was thrown away, the author paused the run at once", run.getUuid());
@@ -1141,6 +1193,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 CheckpointService.Restored restored = checkpointService.restore(run, id);
                 run = restored.run();
                 tools = tools();
+                // what they said is kept, they are all over: the agent can still ask what came of them
+                restoreSubAgents(false);
                 dirty = false;
                 StringBuilder text = new StringBuilder(String.format(Defaults.AGENT_RESTORED, restored.checkpoint().id(),
                         restored.checkpoint().round()));
@@ -1601,6 +1655,79 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             }
         }
 
+        /**
+         * The calls of the last message of the conversation that made calls and have no result after it, in order (the id of a call
+         * is only the one of its round: a model may use the same ids again).
+         */
+        private List<LLMToolCall> openCalls(List<LLMToolCall> calls, List<LLMChatMessage> transcript) {
+            int from = 0;
+            for (int i = transcript.size() - 1; i >= 0; i--) {
+                if (transcript.get(i).hasToolCalls()) {
+                    from = i + 1;
+                    break;
+                }
+            }
+            Set<String> answered = new HashSet<>();
+            for (int i = from; i < transcript.size(); i++) {
+                if (transcript.get(i).getToolCallId() != null) {
+                    answered.add(transcript.get(i).getToolCallId());
+                }
+            }
+            return calls.stream().filter(call -> !answered.contains(call.getId())).toList();
+        }
+
+        /**
+         * The run is resumed and the last round of the agent stopped at a call that waited for a sub-agent: the call is made
+         * again (the sub-agent is the one that was started, it goes on), and the calls after it, which were never made, are
+         * answered as skipped.
+         *
+         * @return whether the run was paused again while the call waited
+         */
+        private boolean resumeParked(List<LLMChatMessage> transcript) throws Exception {
+            if (subAgents == null || transcript.isEmpty()) {
+                return false;
+            }
+            LLMChatMessage last = null;
+            for (int i = transcript.size() - 1; i >= 0; i--) {
+                if (transcript.get(i).getRole() == LLMRole.ASSISTANT) {
+                    last = transcript.get(i);
+                    break;
+                }
+            }
+            if (last == null || !last.hasToolCalls()) {
+                return false;
+            }
+            List<LLMToolCall> open = openCalls(last.getToolCalls(), transcript);
+            if (open.isEmpty() || !WAITING_TOOLS.contains(open.getFirst().getName())) {
+                return false;
+            }
+            LLMToolCall parked = open.getFirst();
+            log.info("Agent run {}: the agent waits again for the sub-agent of its call {}", run.getUuid(), parked.getName());
+            String result;
+            resumedCallId = parked.getId();
+            try {
+                result = call(tools, parked);
+            } catch (Interrupted e) {
+                interrupts.remove(runId);
+                return true;
+            } catch (Forced e) {
+                // the author wrote: the call is answered as cut off by the repair that follows
+                return false;
+            } finally {
+                resumedCallId = null;
+            }
+            if (SubAgentToolsImpl.SUSPENDED.equals(result)) {
+                return true;
+            }
+            List<LLMChatMessage> results = new ArrayList<>();
+            results.add(LLMChatMessage.ofToolResult(parked.getId(), result));
+            for (LLMToolCall skipped : open.subList(1, open.size())) {
+                results.add(LLMChatMessage.ofToolResult(skipped.getId(), Defaults.AGENT_PAUSED_SKIPPED_CALL));
+            }
+            append(transcript, results.toArray(new LLMChatMessage[0]));
+            return false;
+        }
+
         private void append(List<LLMChatMessage> transcript, LLMChatMessage... messages) throws Exception {
             // one writer of the database at a time: a sub-agent may be writing (SQLite fails the second writer)
             changeLock.lock();
@@ -1638,7 +1765,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 SubAgents pool = new SubAgents(maxSubagents);
                 subAgents = pool;
                 progress.subAgents = () -> "Sub-agents: " + pool.live() + " working of at most " + maxSubagents;
-                SubAgentToolsImpl subAgentTools = new SubAgentToolsImpl(pool, (sub, message) -> startSub(pool, sub, message));
+                SubAgentToolsImpl subAgentTools = new SubAgentToolsImpl(pool, (sub, message) -> startSub(pool, sub, message), () -> currentCallId,
+                        () -> resumedCallId);
                 tools = tools.and(inferenceServices.getFunctionRegistry().bind(SubAgentTools.class, subAgentTools));
                 if (maxSubagents > 1) {
                     // with one, spawning waits for the sub-agent, there is nothing else to do with it
@@ -1782,7 +1910,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
          */
         private List<LLMChatMessage> coalesced(List<LLMChatMessage> transcript) {
             List<LLMChatMessage> result = new ArrayList<>();
-            for (LLMChatMessage message : transcript) {
+            for (LLMChatMessage original : transcript) {
+                LLMChatMessage message = withReadableCalls(original);
                 LLMChatMessage previous = result.isEmpty() ? null : result.getLast();
                 if (previous != null && previous.getRole() == LLMRole.USER && message.getRole() == LLMRole.USER) {
                     LLMChatMessage joined = LLMChatMessage.of(LLMRole.USER, StringUtils.defaultString(previous.getContent())
@@ -1795,6 +1924,40 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 }
             }
             return result;
+        }
+
+        /**
+         * The message as the model is sent it back: a call whose arguments are not valid JSON (the answer was cut off in the middle
+         * of a text) has {@code {}} instead. The model server reads the arguments of the calls in the history again, and refuses
+         * the whole request for the broken one, at every request from then on; the result of the call tells the model what
+         * went wrong, and the stored row keeps what it wrote.
+         */
+        private LLMChatMessage withReadableCalls(LLMChatMessage message) {
+            if (message.getRole() != LLMRole.ASSISTANT || !message.hasToolCalls()) {
+                return message;
+            }
+            boolean broken = false;
+            List<LLMToolCall> calls = new ArrayList<>();
+            for (LLMToolCall call : message.getToolCalls()) {
+                if (isJson(call.getArguments())) {
+                    calls.add(call);
+                } else {
+                    broken = true;
+                    calls.add(LLMToolCall.of(call.getId(), call.getName(), "{}"));
+                }
+            }
+            return broken ? LLMChatMessage.ofToolCalls(message.getContent(), calls) : message;
+        }
+
+        private static boolean isJson(String text) {
+            if (StringUtils.isBlank(text)) {
+                return true;
+            }
+            try {
+                return JSON.readTree(text) != null;
+            } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+                return false;
+            }
         }
 
         /**
@@ -2070,6 +2233,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             if (locked) {
                 lockChanges();
             }
+            currentCallId = call.getId();
             try {
                 try {
                     CompletableFuture<String> answer = tools.call(call.getName(), call.getArguments(), onThread, canceled::get);
@@ -2159,25 +2323,90 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
          * Starts the loop of a sub-agent on a thread of its own.
          */
         private void startSub(SubAgents pool, Sub sub, String message) {
+            LLMChatMessage first = LLMChatMessage.of(LLMRole.USER, message);
+            changeLock.lock();
+            try {
+                messageService.startThread(run, sub.handle(), sub.task(), sub.callId(), first);
+            } catch (Exception e) {
+                throw new IllegalStateException("its conversation can't be stored: " + messageOf(e), e);
+            } finally {
+                changeLock.unlock();
+            }
             log.info("Agent run {}: sub-agent {} is started ({} of {} working)", run.getUuid(), sub.handle(), pool.live(), maxSubagents);
-            executor.execute(() -> runSub(pool, sub, message));
+            List<LLMChatMessage> conversation = new ArrayList<>();
+            conversation.add(first);
+            executor.execute(() -> runSub(pool, sub, conversation));
         }
 
-        private void runSub(SubAgents pool, Sub sub, String message) {
-            try (InRequestScope _ = new InRequestScope(attributes)) {
-                String answer = subLoop(sub, message);
-                pool.finish(sub, State.DONE, answer);
-            } catch (SubStopped e) {
-                pool.finish(sub, e.state, e.getMessage());
-            } catch (Throwable e) {
-                log.warn("Agent run {}: sub-agent {} failed", runId, sub.handle(), e);
-                pool.finish(sub, State.FAILED, "It failed: " + messageOf(e));
-            } finally {
-                // a sub-agent never ends without a state, the agent waits for it
-                pool.finish(sub, State.FAILED, "It ended without an answer.");
-                log.info("Agent run {}: sub-agent {} is {} after {} round(s), {} tokens", runId, sub.handle(), sub.state().name().toLowerCase(),
-                        sub.rounds(), sub.tokens());
+        /**
+         * Brings back the sub-agents the run stored: the ones that ended are there to be asked about, the ones that only waited
+         * (the run was paused, or the server stopped) go on with their conversation.
+         *
+         * @param start whether the unfinished ones go on; false for a worker that must not start any
+         */
+        private void restoreSubAgents(boolean start) throws Exception {
+            SubAgents pool = subAgents;
+            if (pool == null) {
+                return;
             }
+            for (AgentMessageService.SubThread thread : messageService.threads(run)) {
+                if (thread.rewound()) {
+                    continue;
+                }
+                State end = thread.isOver() ? State.valueOf(thread.end()) : null;
+                if (end == null && !start) {
+                    continue;
+                }
+                Sub sub = pool.restore(thread.handle(), StringUtils.defaultString(thread.task()), thread.callId(), end, thread.result(),
+                        thread.rounds(), thread.tokens());
+                if (end == null) {
+                    List<LLMChatMessage> conversation = new ArrayList<>(thread.conversation());
+                    log.info("Agent run {}: sub-agent {} goes on after {} round(s)", run.getUuid(), sub.handle(), sub.rounds());
+                    executor.execute(() -> runSub(pool, sub, conversation));
+                }
+            }
+        }
+
+        private void runSub(SubAgents pool, Sub sub, List<LLMChatMessage> conversation) {
+            // the end is stored with the session of the run, so it is made inside of the scope
+            try (InRequestScope _ = new InRequestScope(attributes)) {
+                try {
+                    String answer = subLoop(sub, conversation);
+                    endSub(pool, sub, State.DONE, answer);
+                } catch (SubStopped e) {
+                    endSub(pool, sub, e.state, e.getMessage());
+                } catch (Throwable e) {
+                    log.warn("Agent run {}: sub-agent {} failed", runId, sub.handle(), e);
+                    endSub(pool, sub, State.FAILED, "It failed: " + messageOf(e));
+                } finally {
+                    // a sub-agent never ends without a state, the agent waits for it
+                    endSub(pool, sub, State.FAILED, "It ended without an answer.");
+                    log.info("Agent run {}: sub-agent {} is {} after {} round(s), {} tokens", runId, sub.handle(), sub.state().name().toLowerCase(),
+                            sub.rounds(), sub.tokens());
+                }
+            }
+        }
+
+        /**
+         * Ends the sub-agent for the agent that waits for it and in the transcript, where a conversation that did not end is one
+         * that goes on with the run. The first end wins.
+         */
+        private void endSub(SubAgents pool, Sub sub, State state, String text) {
+            if (sub.state().isFinished()) {
+                return;
+            }
+            if (state != State.SUSPENDED) {
+                changeLock.lock();
+                try {
+                    messageService.endThread(run, sub.handle(), state.name(), text);
+                } catch (Exception e) {
+                    // the run may be thrown away, and with it the rows
+                    log.debug("Agent run {}: the end of sub-agent {} is not stored: {}", runId, sub.handle(), e.getMessage());
+                } finally {
+                    changeLock.unlock();
+                }
+            }
+            pool.finish(sub, state, text);
         }
 
         /**
@@ -2187,17 +2416,24 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
          * @return the answer
          * @throws SubStopped when it was canceled, the run was paused or thrown away, or a limit of the run was reached
          */
-        private String subLoop(Sub sub, String message) throws Exception {
-            List<LLMChatMessage> conversation = new ArrayList<>();
-            conversation.add(LLMChatMessage.of(LLMRole.USER, message));
+        private String subLoop(Sub sub, List<LLMChatMessage> conversation) throws Exception {
+            // a conversation that was cut off in the middle of a round: the calls nobody answered get their answer
+            List<LLMToolCall> cutOff = conversation.isEmpty() || !conversation.stream().anyMatch(LLMChatMessage::hasToolCalls) ? List.of()
+                    : openCalls(lastCalls(conversation), conversation);
+            if (!cutOff.isEmpty()) {
+                List<LLMChatMessage> answers = cutOff.stream().map(open -> LLMChatMessage.ofToolResult(open.getId(), Defaults.AGENT_INTERRUPTED_CALL)).toList();
+                storeSub(sub, answers);
+                conversation.addAll(answers);
+            }
             Waiter waiter = new Waiter() {
                 @Override
                 public <T> T await(CompletableFuture<T> future, Runnable cancel, boolean queued) throws Exception {
                     return awaitSub(future, cancel, sub);
                 }
             };
-            int rounds = 0;
-            long tokens = 0;
+            int unreadable = 0;
+            int rounds = sub.rounds();
+            long tokens = sub.tokens();
             long contextTokens = 0;
             while (true) {
                 checkSub(sub);
@@ -2218,11 +2454,18 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 Round round;
                 try {
                     round = limitCalls(ask(inference, profile, subPayload(conversation), subTools, waiter));
+                    unreadable = 0;
                 } catch (SubStopped e) {
                     throw e;
                 } catch (Discarded e) {
                     throw new SubStopped(State.CANCELLED, "The run was thrown away.");
                 } catch (Exception e) {
+                    if (isUnreadableCall(e) && ++unreadable <= MAX_UNREADABLE_CALLS) {
+                        LLMChatMessage notice = LLMChatMessage.of(LLMRole.USER, Defaults.AGENT_UNREADABLE_CALL);
+                        storeSub(sub, List.of(notice));
+                        conversation.add(notice);
+                        continue;
+                    }
                     log.warn("The model of agent run {} could not be asked for sub-agent {}: {}", runId, sub.handle(), e.getMessage());
                     throw new SubStopped(State.FAILED, "The model could not be asked: " + messageOf(e));
                 }
@@ -2245,16 +2488,66 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     String text = StringUtils.defaultString(round.text()).strip();
                     return text.isEmpty() ? "(The sub-agent gave no answer.)" : text;
                 }
-                conversation.add(LLMChatMessage.ofToolCalls(StringUtils.isEmpty(round.text()) ? null : round.text(), round.calls()));
-                for (LLMToolCall call : round.calls()) {
-                    checkSub(sub);
-                    long began = System.currentTimeMillis();
-                    String result = callSub(call, sub);
-                    log.info("Agent run {}: sub-agent {} {} {} in {} ms ({} characters)", runId, sub.handle(), call.getName(),
-                            result.startsWith("Error:") ? "failed" : "done", System.currentTimeMillis() - began, result.length());
-                    conversation.add(LLMChatMessage.ofToolResult(call.getId(), result));
-                    sub.progress(rounds, tokens, call.getName());
+                LLMChatMessage said = LLMChatMessage.ofToolCalls(StringUtils.isEmpty(round.text()) ? null : round.text(), round.calls());
+                conversation.add(said);
+                changeLock.lock();
+                try {
+                    messageService.appendAnswerToThread(run, sub.handle(), said, round.usage().promptTokens() + round.usage().completionTokens(),
+                            round.reasoning());
+                } finally {
+                    changeLock.unlock();
                 }
+                for (LLMToolCall call : round.calls()) {
+                    try {
+                        checkSub(sub);
+                        long began = System.currentTimeMillis();
+                        String result = callSub(call, sub);
+                        log.info("Agent run {}: sub-agent {} {} {} in {} ms ({} characters)", runId, sub.handle(), call.getName(),
+                                result.startsWith("Error:") ? "failed" : "done", System.currentTimeMillis() - began, result.length());
+                        LLMChatMessage answer = LLMChatMessage.ofToolResult(call.getId(), result);
+                        storeSub(sub, List.of(answer));
+                        conversation.add(answer);
+                        sub.progress(rounds, tokens, call.getName());
+                    } catch (SubStopped e) {
+                        if (e.state == State.SUSPENDED) {
+                            // the run goes on with this conversation: what is left of the round is answered so that it can
+                            List<LLMChatMessage> answers = new ArrayList<>();
+                            for (LLMToolCall open : openCalls(round.calls(), conversation)) {
+                                answers.add(LLMChatMessage.ofToolResult(open.getId(), open.getId().equals(call.getId())
+                                        ? Defaults.AGENT_PAUSED_CALL : Defaults.AGENT_PAUSED_SKIPPED_CALL));
+                            }
+                            storeSub(sub, answers);
+                        }
+                        throw e;
+                    }
+                }
+            }
+        }
+
+        /**
+         * The calls of the last message of the conversation that made any.
+         */
+        private List<LLMToolCall> lastCalls(List<LLMChatMessage> conversation) {
+            for (int i = conversation.size() - 1; i >= 0; i--) {
+                if (conversation.get(i).hasToolCalls()) {
+                    return conversation.get(i).getToolCalls();
+                }
+            }
+            return List.of();
+        }
+
+        /**
+         * Stores messages of the conversation of a sub-agent; one writer of the database at a time.
+         */
+        private void storeSub(Sub sub, List<LLMChatMessage> messages) throws Exception {
+            if (messages.isEmpty()) {
+                return;
+            }
+            changeLock.lock();
+            try {
+                messageService.appendToThread(run, sub.handle(), messages);
+            } finally {
+                changeLock.unlock();
             }
         }
 
@@ -2319,21 +2612,41 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             if (sub.isCancelRequested()) {
                 throw new SubStopped(State.CANCELLED, "It was canceled.");
             }
-            if (interrupts.contains(runId)) {
-                throw new SubStopped(State.CANCELLED, "The author paused the run at once.");
+            if (sub.isSuspendRequested() || interrupts.contains(runId)) {
+                throw new SubStopped(State.SUSPENDED, "The run was paused.");
             }
             AgentRun current = runService.find(runId);
             if (current == null || current.isDeleted() || current.getStatus() == AgentRunStatus.STOPPED_DISCARDED) {
                 throw new SubStopped(State.CANCELLED, "The run was thrown away.");
             }
             if (current.getStatus() != AgentRunStatus.RUNNING && current.getStatus() != AgentRunStatus.WAITING_APPROVAL) {
-                throw new SubStopped(State.CANCELLED, "The run was " + (current.getStatus() == AgentRunStatus.PAUSING
-                        || current.getStatus() == AgentRunStatus.PAUSED ? "paused" : "stopped or ended") + " before it was done.");
+                if (current.getStatus() == AgentRunStatus.PAUSING || current.getStatus() == AgentRunStatus.PAUSED
+                        || current.getStatus() == AgentRunStatus.STOPPING && runService.getStopTarget(current) == AgentRunStatus.STOPPED_KEPT) {
+                    // it goes on when the run is resumed
+                    throw new SubStopped(State.SUSPENDED, "The run was paused.");
+                }
+                throw new SubStopped(State.CANCELLED, "The run was stopped or ended before it was done.");
             }
         }
 
         /**
-         * Stops the sub-agents that work and waits (a little) for their threads: they use the session of the run.
+         * Whether the run is paused (or stopped to be kept): what its sub-agents said is stored and goes on with it.
+         */
+        private boolean waitsForResume() {
+            try {
+                AgentRun current = runService.find(runId);
+                return current != null && (current.getStatus() == AgentRunStatus.PAUSING || current.getStatus() == AgentRunStatus.PAUSED
+                        || current.getStatus() == AgentRunStatus.STOPPING && runService.getStopTarget(current) == AgentRunStatus.STOPPED_KEPT
+                        || current.getStatus() == AgentRunStatus.STOPPED_KEPT);
+            } catch (Exception e) {
+                log.warn("Agent run {}: its status could not be read: {}", runId, e.getMessage());
+                return false;
+            }
+        }
+
+        /**
+         * Stops the sub-agents that work and waits (a little) for their threads: they use the session of the run. When the run
+         * is paused they stop where they are and go on with it, otherwise they are canceled.
          *
          * @return whether any was working
          */
@@ -2345,7 +2658,12 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             subAgents = null;
             progress.subAgents = null;
             boolean working = agents.live() > 0;
-            agents.cancelAll();
+            if (waitsForResume()) {
+                // they wait for the resume where they are
+                agents.suspend();
+            } else {
+                agents.cancelAll();
+            }
             try {
                 agents.allFinished().get(30, TimeUnit.SECONDS);
             } catch (Exception e) {
@@ -2414,6 +2732,19 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 log.error("Failed to mark agent run {} as failed", run.getUuid(), e);
             }
         }
+    }
+
+    /**
+     * Whether the model server refused the answer because it could not read the arguments of a call in it, which says nothing is
+     * wrong with the server: the same context makes the same mistake again, so the agent has to be told.
+     */
+    static boolean isUnreadableCall(Throwable error) {
+        for (Throwable cause = error; cause != null; cause = cause.getCause() == cause ? null : cause.getCause()) {
+            if (cause.getMessage() != null && UNREADABLE_CALL.matcher(cause.getMessage()).find()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static String messageOf(Throwable error) {

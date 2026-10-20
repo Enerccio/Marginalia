@@ -294,6 +294,19 @@ class CheckpointServiceTest extends AgentTestBase {
     // --- restoring ---
 
     @Test
+    void aRestoreEndsTheSubagentsThatOnlyWaitedBecauseTheirBookIsGone() throws Exception {
+        Info checkpoint = checkpointService.ensureStart(run);
+        messageService.startThread(run, "sub1", "check", "c1", LLMChatMessage.of(LLMRole.USER, "check"));
+        messageService.startThread(run, "sub2", "done one", "c2", LLMChatMessage.of(LLMRole.USER, "done one"));
+        messageService.endThread(run, "sub2", "DONE", "answer");
+
+        checkpointService.restore(run, checkpoint.id());
+
+        assertThat(messageService.threads(run)).extracting(AgentMessageService.SubThread::end).containsExactly("CANCELLED", "DONE");
+        assertThat(messageService.threads(run).getFirst().result()).contains("restored to checkpoint " + checkpoint.id());
+    }
+
+    @Test
     void aRestoreBringsBackTheCopyTheWorkspaceAndTheHandlesOfWhatWasThere() throws Exception {
         String dragon = partOfCopy("there was a dragon").getUuid();
         String handleOfDragon = pairService.handleFor(run, AgentRunPairKind.MESSAGE, dragon);

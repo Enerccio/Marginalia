@@ -804,6 +804,15 @@ vaadin-dialog-overlay.phone-dialog::part(overlay) {
     opacity: 0.45;
 }
 
+/* when a message of the transcript of an agent run was written: small, at the right of its first line */
+.agent-time {
+    float: right;
+    margin-left: var(--lumo-space-s);
+    font-size: var(--lumo-font-size-xxs);
+    font-weight: normal;
+    color: var(--lumo-tertiary-text-color);
+}
+
 .help-message-error {
     background: var(--lumo-error-color-10pct);
     color: var(--lumo-error-text-color);

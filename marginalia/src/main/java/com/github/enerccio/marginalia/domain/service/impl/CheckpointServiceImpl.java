@@ -324,6 +324,8 @@ public class CheckpointServiceImpl implements CheckpointService {
                 AgenticCopy fresh = manuscriptService.createAgenticCopyFromSnapshot(snapshot.manuscript());
                 List<UuidPair> pairs = remap(fresh.pairs(), snapshot.pairs(), pairService.getAll(stored));
                 AgentRun replaced = agentRunService.replaceWorkingCopy(stored, fresh.manuscript(), pairs);
+                // the sub-agents that were only paused worked in the book that is gone
+                messageService.endOpenThreads(replaced, "CANCELLED", "The book was restored to checkpoint " + info.id() + " while it waited.");
                 // the files last: when this fails the database work is rolled back and the workspace is as it was
                 List<String> removed = fileSystemService.open(replaced).restoreWorkspace(snapshot.zip(), CheckpointStore.WORKSPACE,
                         info.workspaceBytes() + UNPACK_SLACK_BYTES);

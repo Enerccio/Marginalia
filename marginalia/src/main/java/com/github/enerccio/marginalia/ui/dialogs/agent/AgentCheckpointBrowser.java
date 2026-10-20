@@ -68,6 +68,8 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
     private Button saveButton;
     // the checkpoints the conversation can go back to, read with the list
     private Set<String> rewindable = Set.of();
+    // what the grid shows now, to leave it alone while nothing changed
+    private String shownRows;
 
     /**
      * @param run      the run whose checkpoints are shown, as it is now; null for none
@@ -262,16 +264,21 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
             AgentRun current = run.get();
             List<Info> infos = current == null ? List.of() : checkpointService.list(current);
             rewindable = current == null ? Set.of() : checkpointService.rewindable(current);
-            grid.setItems(infos);
+            // the same rows again would replace them, and the selection of the user in them; the buttons of a row depend on the state
+            String shown = busy.getAsBoolean() + ":" + (current == null ? null : current.getStatus()) + ":" + rewindable + ":" + infos;
+            if (!shown.equals(shownRows)) {
+                shownRows = shown;
+                grid.setItems(infos);
+            }
             emptyLabel.setVisible(infos.isEmpty());
             boolean canSave = current != null && current.getWorkingCopy() != null && !busy.getAsBoolean();
             saveButton.setEnabled(canSave);
             saveButton.setTooltipText(busy.getAsBoolean() ? loc.getValue(L.MSG_AGENT_CHECKPOINT_BUSY) : null);
             if (current == null || infos.isEmpty()) {
-                usageLabel.setText("");
+                UIUtils.setTextIfChanged(usageLabel, "");
             } else {
                 CheckpointService.Usage usage = checkpointService.usage(current);
-                usageLabel.setText(String.format(loc.getValue(L.MSG_AGENT_CHECKPOINTS_USAGE), CheckpointText.bytes(usage.usedBytes()),
+                UIUtils.setTextIfChanged(usageLabel, String.format(loc.getValue(L.MSG_AGENT_CHECKPOINTS_USAGE), CheckpointText.bytes(usage.usedBytes()),
                         CheckpointText.bytes(usage.quotaBytes()), CheckpointText.bytes(usage.reserveBytes())));
             }
         } catch (Exception e) {

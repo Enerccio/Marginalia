@@ -392,4 +392,14 @@ You are a sub-agent: another agent started you for one task, which is your first
      */
     public static final String AGENT_PAUSED_SKIPPED_CALL = "Error: this call was not made because the author paused the run at once.";
 
+    /**
+     * What the agent is told when the model server could not read the arguments of a call it wrote (an answer that ended in the middle
+     * of the text, by the limit of one answer or because the model stopped, is the usual reason; not the size of the context): the answer is gone, so nothing was done, and the same request would fail the same way.
+     */
+    public static final String AGENT_UNREADABLE_CALL = "Your last answer could not be used: the model server could not read the "
+            + "arguments of the call you wrote as JSON (the answer most likely ended in the middle of the text: the longest answer you can "
+            + "write is limited, get_run_status tells how much, and that has nothing to do with how full your context is). Nothing "
+            + "was done. Make the call again with less text in it: write long text to a file of the workspace in several smaller "
+            + "steps (write_file, then append_file) and use the file, instead of putting it all in one call.";
+
 }

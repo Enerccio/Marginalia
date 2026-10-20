@@ -42,9 +42,11 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.server.streams.InMemoryUploadHandler;
 import com.vaadin.flow.shared.Registration;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.text.DateFormat;
 import java.util.*;
 import java.util.concurrent.Callable;
 
@@ -440,20 +442,20 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             }
         }
         if (run == null) {
-            statusLabel.setText(loc.getValue(L.MSG_AGENT_NO_RUN_YET));
-            usageLabel.setText("");
+            UIUtils.setTextIfChanged(statusLabel, loc.getValue(L.MSG_AGENT_NO_RUN_YET));
+            UIUtils.setTextIfChanged(usageLabel, "");
         } else {
             AgentRunStatus status = run.getStatus();
             String reason = StringUtils.trimToEmpty(run.getStatusReason());
             // the question and the report are in the transcript, where the agent put them
             boolean inTranscript = status == AgentRunStatus.IDLE || status == AgentRunStatus.DONE;
-            statusLabel.setText(loc.getValue(loc.getAgentRunStatus(status))
+            UIUtils.setTextIfChanged(statusLabel, loc.getValue(loc.getAgentRunStatus(status))
                     + (!reason.isEmpty() && !inTranscript ? ": " + reason : ""));
             long budget = agentRunService.getTokenBudget(run);
             long context = agentMessageService.getContextTokens(run);
             long contextCap = agentRunService.getContextCap(run);
             // which run this is, there can be many in the history
-            usageLabel.setText((run.getStartedAt() == null ? "" : java.text.DateFormat.getDateTimeInstance(
+            UIUtils.setTextIfChanged(usageLabel, (run.getStartedAt() == null ? "" : java.text.DateFormat.getDateTimeInstance(
                     java.text.DateFormat.SHORT, java.text.DateFormat.SHORT).format(run.getStartedAt()) + "   ")
                     + loc.getValue(L.LABEL_ROUNDS) + ": " + run.getRounds() + "   "
                     + loc.getValue(L.LABEL_TOKEN_CONTEXT) + ": " + context + (contextCap > 0 ? " / " + contextCap : "") + "   "
@@ -545,7 +547,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         boolean first = shown == 0;
         for (AgentMessage row : messages.subList(Math.min(shown, messages.size()), messages.size())) {
             int before = transcriptBox.getComponentCount();
-            render(row.toChatMessage(), row.getReasoning(), row.isSummary());
+            render(row.toChatMessage(), row.getReasoning(), row.isSummary(), row.getCreation());
             if (row.isRewound()) {
                 // what the agent forgot is still there to read
                 for (int i = before; i < transcriptBox.getComponentCount(); i++) {
@@ -619,25 +621,25 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         });
     }
 
-    private void render(LLMChatMessage message, String reasoning, boolean summary) {
+    private void render(LLMChatMessage message, String reasoning, boolean summary, Date created) {
         switch (message.getRole()) {
-            case USER -> transcriptBox.add(summary ? summaryBubble(message.getContent())
+            case USER -> transcriptBox.add(stamped(summary ? summaryBubble(message.getContent())
                     : isAuthorCommand(message.getContent()) ? authorCommandBubble(message.getContent())
-                    : bubble(loc.getValue(L.LABEL_YOU), message.getContent(), true));
+                    : bubble(loc.getValue(L.LABEL_YOU), message.getContent(), true), created));
             case ASSISTANT -> {
                 if (StringUtils.isNotBlank(reasoning)) {
-                    transcriptBox.add(reasoningBlock(reasoning));
+                    transcriptBox.add(stamped(reasoningBlock(reasoning), created));
                 }
                 if (StringUtils.isNotBlank(message.getContent())) {
-                    transcriptBox.add(bubble(loc.getValue(L.ENUM_DOMAIN_AGENT), message.getContent(), false));
+                    transcriptBox.add(stamped(bubble(loc.getValue(L.ENUM_DOMAIN_AGENT), message.getContent(), false), created));
                 }
                 for (LLMToolCall call : message.getToolCalls()) {
                     Div special = specialCall(call);
                     if (special == null) {
-                        transcriptBox.add(callBlock(call));
+                        transcriptBox.add(stamped(callBlock(call), created));
                     } else {
                         specialCalls.add(call.getId());
-                        transcriptBox.add(special);
+                        transcriptBox.add(stamped(special, created));
                     }
                 }
             }
@@ -648,15 +650,32 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
                     return;
                 }
                 if (body != null) {
-                    body.add(text(loc.getValue(L.LABEL_RESULT), true), text(cut(message.getContent()), false));
+                    body.add(stamped(text(loc.getValue(L.LABEL_RESULT), true), created), text(cut(message.getContent()), false));
                 } else {
-                    transcriptBox.add(bubble(loc.getValue(L.LABEL_RESULT), cut(message.getContent()), false));
+                    transcriptBox.add(stamped(bubble(loc.getValue(L.LABEL_RESULT), cut(message.getContent()), false), created));
                 }
             }
             default -> {
                 // the system message is made for every request and not part of the transcript
             }
         }
+    }
+
+    /**
+     * Puts the time a message was written at the right of the first line of its block: the time of day, with the date when it was
+     * another day (the whole time is the tooltip).
+     */
+    private static <T extends Component> T stamped(T block, Date created) {
+        if (created == null) {
+            return block;
+        }
+        boolean today = DateUtils.isSameDay(created, new Date());
+        Span time = new Span((today ? DateFormat.getTimeInstance(DateFormat.MEDIUM)
+                : DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM)).format(created));
+        time.addClassName(CssStyles.AGENT_TIME);
+        time.getElement().setAttribute("title", DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM).format(created));
+        block.getElement().insertChild(0, time.getElement());
+        return block;
     }
 
     private static boolean isAuthorCommand(String content) {

@@ -169,8 +169,11 @@ public final class FunctionDefinition {
             throw new FunctionCallException(Kind.INVALID_ARGUMENTS,
                     "The arguments of " + name + " must be a JSON object with the parameters of the function");
         } catch (JsonProcessingException e) {
+            String message = e.getOriginalMessage() == null ? "" : e.getOriginalMessage();
             throw new FunctionCallException(Kind.INVALID_ARGUMENTS,
-                    "The arguments of " + name + " are not valid JSON: " + e.getOriginalMessage(), e);
+                    "The arguments of " + name + " are not valid JSON: " + message
+                            + (message.contains("end-of-input") ? ". Your answer was cut off in the middle of the call, most likely at the "
+                            + "limit of one answer: nothing was done. Use shorter texts, in several calls." : ""), e);
         }
     }
 

@@ -11,24 +11,41 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
  * {@link SubAgentTools} and {@link SubAgentControlTools} of one run over its {@link SubAgents}. Starting a sub-agent hands it
  * to the runner, which runs its loop; the call returns at once while fewer sub-agents than the limit work, and when it reaches
  * the limit it waits until one ends (with a limit of one that is the sub-agent just started, so the call returns its answer).
+ * <p>
+ * When the run is paused the sub-agents are suspended, and a call that waits for one gets {@link #SUSPENDED} instead of an
+ * answer: the runner does not store it, the call is made again when the run is resumed ({@code spawn_agent} then finds the
+ * sub-agent it started by the id of the call and waits for it again).
  */
 public final class SubAgentToolsImpl implements SubAgentTools, SubAgentControlTools {
 
+    /**
+     * What a call that waits for a sub-agent returns when the run was paused meanwhile, not an answer to give to the model.
+     */
+    public static final String SUSPENDED = "\u0000suspended";
+
     private final SubAgents agents;
     private final BiConsumer<Sub, String> starter;
+    private final Supplier<String> callId;
+    private final Supplier<String> resumedCall;
 
     /**
-     * @param starter starts the loop of the sub-agent with its first message; a failure of it ends the sub-agent
+     * @param starter     starts the loop of the sub-agent with its first message; a failure of it ends the sub-agent
+     * @param callId      the id of the call of the agent that is being made, null when it is not known
+     * @param resumedCall the id of the call that is made again because the run was paused while it waited, null for any other
+     *                    (a model may use an id again in another round, so only the call the runner says is a resumed one is)
      */
-    public SubAgentToolsImpl(SubAgents agents, BiConsumer<Sub, String> starter) {
+    public SubAgentToolsImpl(SubAgents agents, BiConsumer<Sub, String> starter, Supplier<String> callId, Supplier<String> resumedCall) {
         this.agents = agents;
         this.starter = starter;
+        this.callId = callId;
+        this.resumedCall = resumedCall;
     }
 
     @Override
@@ -37,13 +54,19 @@ public final class SubAgentToolsImpl implements SubAgentTools, SubAgentControlTo
             done.fail("The task is empty: say what the sub-agent has to do");
             return;
         }
+        Sub started = agents.findByCall(resumedCall.get());
+        if (started != null) {
+            // the call was made before, the run was paused while it waited: the sub-agent is not started again
+            goOn(done, started);
+            return;
+        }
         // a call made while the limit is reached (the one before it was cut off) waits for a place first
         if (!agents.whenSlotFree(() -> spawn(done, task, context))) {
             return;
         }
         Sub sub;
         try {
-            sub = agents.create(task.strip());
+            sub = agents.create(task.strip(), callId.get());
         } catch (IllegalStateException e) {
             done.fail(e.getMessage());
             return;
@@ -56,6 +79,21 @@ public final class SubAgentToolsImpl implements SubAgentTools, SubAgentControlTo
             done.fail("The sub-agent could not be started: " + sub.result());
             return;
         }
+        waitFor(done, sub, endedBefore);
+    }
+
+    /**
+     * What the call of {@code spawn_agent} that is made again answers: as it did the first time, for the sub-agent that call started.
+     */
+    private void goOn(FunctionContinuation<String> done, Sub sub) {
+        if (sub.state() == State.SUSPENDED) {
+            done.complete(SUSPENDED);
+            return;
+        }
+        waitFor(done, sub, ended());
+    }
+
+    private void waitFor(FunctionContinuation<String> done, Sub sub, Set<String> endedBefore) {
         if (agents.whenSlotFree(() -> {
             if (!done.isCancelled()) {
                 done.complete(waited(sub, endedBefore));
@@ -70,6 +108,9 @@ public final class SubAgentToolsImpl implements SubAgentTools, SubAgentControlTo
      */
     private String waited(Sub sub, Set<String> endedBefore) {
         List<Sub> ended = agents.all().stream().filter(candidate -> candidate.state().isFinished() && !endedBefore.contains(candidate.handle())).toList();
+        if (sub.state() == State.SUSPENDED || ended.stream().anyMatch(candidate -> candidate.state() == State.SUSPENDED)) {
+            return SUSPENDED;
+        }
         if (ended.isEmpty()) {
             return started(sub);
         }
@@ -149,7 +190,7 @@ public final class SubAgentToolsImpl implements SubAgentTools, SubAgentControlTo
      * One line about a sub-agent: its state and what it did.
      */
     static String line(Sub sub) {
-        return sub.handle() + ": " + sub.state().name().toLowerCase() + ", " + sub.rounds() + " round(s), " + sub.tokens() + " tokens"
+        return sub.handle() + ": " + (sub.state() == State.SUSPENDED ? "paused" : sub.state().name().toLowerCase()) + ", " + sub.rounds() + " round(s), " + sub.tokens() + " tokens"
                 + (sub.lastAction() == null || sub.state().isFinished() ? "" : ", last: " + sub.lastAction())
                 + ", task: " + StringUtils.abbreviate(sub.task().replaceAll("\\s+", " "), 120);
     }
@@ -161,6 +202,7 @@ public final class SubAgentToolsImpl implements SubAgentTools, SubAgentControlTo
         String head = sub.handle() + " (" + sub.rounds() + " round(s), " + sub.tokens() + " tokens) ";
         String text = StringUtils.defaultString(sub.result());
         return switch (sub.state()) {
+            case SUSPENDED -> SUSPENDED;
             case DONE -> head + "is done. Its answer:\n" + (text.length() > Defaults.AGENT_SUBAGENT_RESULT_CHARS
                     ? text.substring(0, Defaults.AGENT_SUBAGENT_RESULT_CHARS) + "\n[The answer is cut off here, it had " + text.length()
                     + " characters. Ask the next sub-agent to write long results to a file of the workspace.]" : text);

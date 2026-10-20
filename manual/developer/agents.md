@@ -311,6 +311,15 @@ agent is told to ask the author at once). A worker (a daemon thread of a cached 
 4. While it waits for a request or a call the worker looks every second whether the run was thrown away (deleted or `STOPPED_DISCARDED`) and cancels the request
    and ends; a pause and a stop wait.
 
+**Calls cut off in the middle.** When the answer of the model ends inside a call (the limit of one answer, see below), the call has arguments that are not valid JSON; the function layer answers it with an error, and the row keeps what the model
+wrote. The history is sent back at every request, and a provider that parses the arguments of the calls in it (LiteLLM in front of llama.cpp) refuses the *whole request* for the broken one, so from then on every request failed and
+only a rewind helped. `Worker.coalesced` (it makes the payload of the agent and of a sub-agent) now sends such a call with `{}` as its arguments (`withReadableCalls`; the stored row is not changed), and the error result says that the answer was cut off.
+
+**Unreadable calls.** A provider that parses the arguments of a call itself (LiteLLM and OpenAI-compatible proxies) refuses the whole answer when the JSON is cut off (the limit of one answer, `TokenLimits.responseTokens`, sent as `max_completion_tokens` only when the protocol or the AI sets one, or a default of the server, or the model stopping; not the context), so the request fails and the transcript did not change: a resume
+repeats it and fails the same way (the run was "bricked" until the user rewound). `AgentRunnerImpl.isUnreadableCall` recognises the message (`Failed to parse tool call arguments`, `arguments as JSON`...,
+in the exception or its causes); the loop (and `subLoop`) then appends `Defaults.AGENT_UNREADABLE_CALL` as a user message and asks again, at most `MAX_UNREADABLE_CALLS` = 3 times in a row (the counter is reset by an answer),
+and pauses with the notices in the transcript when it goes on failing.
+
 **Pause now.** `AgentRunner.pauseNow(run)` is a `pause` that does not wait for the round: it puts the run id in the in-memory `interrupts` set first, then asks `AgentRunService.pause`. `Worker.await` looks at the set before every wait (every second, like the discard check) and cancels what it waits for with `Interrupted`, a subclass of `Discarded` so that the places that rethrow a discard rethrow it too. In the loop `ask` catching it drops the answer (nothing is written or counted) and goes to the stable point, which pauses; in a round whose calls are written the call in the air is answered `Defaults.AGENT_PAUSED_CALL`, the rest `AGENT_PAUSED_SKIPPED_CALL`, and the results are appended with the others of the round; anywhere else the exception reaches `Worker.run`, which settles the requested pause. The set is cleared when the worker ends. An ordinary pause or stop ends the wait for a place at the AI too (`await(..., queued = true)`), since nothing is lost by it.
 
 A status change that finds another status than it expected (the user paused meanwhile) is not an error: `reach` and `pause` then do the pause or stop that was asked.
@@ -318,8 +327,8 @@ Anything the worker throws that is not one of these makes the run `FAILED` with 
 (statuses `pending`, `in_progress`, `done`; the usual other spellings are mapped) `request_compaction` (the focus is noted, `isCompactionRequested`) and `get_run_status`; `RunToolsImpl` only notes the request of the model, the worker acts on
 it after the round, so every call of the round has its result in the transcript first.
 
-The transcript is `AgentMessage` (table `agent_messages`): the run, the `ordinal` and the `LLMChatMessage` as JSON in an extended attribute, only appended. The system
-message is not stored.
+The transcript is `AgentMessage` (table `agent_messages`): the run, the `ordinal`, the `thread` (null: the agent's own conversation, otherwise the handle of a sub-agent, V18) and the `LLMChatMessage`
+as JSON in an extended attribute, only appended; the `creation` of the row is the time the console and the export show. The system message is not stored.
 
 `InferenceService.round(payload, protocol, functions, callback)` is what the runner uses instead of `stream`/`infer`: one request that is streamed to the provider and put together by the service (so the timeout is the wait for the next chunk, the reasoning included, not for the whole answer), and that reports the
 text, the calls the model asked for (they are not called) and the tokens (the provider's, otherwise ours), with the limits and the usage of the user as for any
@@ -328,8 +337,8 @@ request. Services that can't do it throw `UnsupportedOperationException`.
 
 ## Sub-agents
 
-A sub-agent is a thread of the run, not a run: same working copy, workspace, budgets, pause and stop state; only the conversation is its own, and it is **not stored**
-(it lives in the memory of the worker; the console shows nothing of it). Limits: `Agent.maxSubagents` (an extended attribute, 0..`AgentService.MAX_SUBAGENTS` = 10,
+A sub-agent is a thread of the run, not a run: same working copy, workspace, budgets, pause and stop state; only the conversation is its own, and it is **stored with the transcript**
+(`agent_messages`, V18: the column `thread` = the handle, null for the agent's own rows; the console does not show it, the export of the run does). Limits: `Agent.maxSubagents` (an extended attribute, 0..`AgentService.MAX_SUBAGENTS` = 10,
 checked in `AgentServiceImpl.validate`; null or zero offers no tools) read by `AgentRunService.getMaxSubagents(run)`, and the permission setting **Requests to the model at once**
 (`Permission.agentsMaxConcurrency`, `AgentGrant.maxConcurrency`, at least 1, one when not set, unlimited for an administrator) read by `AgentRunService.getMaxConcurrency(run)`.
 
@@ -342,18 +351,34 @@ checked in `AgentServiceImpl.validate`; null or zero offers no tools) read by `A
 - **The loop** is `Worker.subLoop` on a thread of the pool, in `InRequestScope` of the same `AgentRequestAttributes`: system message of the agent plus `Defaults.AGENT_SUBAGENT_NOTE`, the task as the
   first message, `InferenceService.round` with `subTools` (the commands and the file tools of the agent - **no run tools, checkpoint tools, sync or image tools, and no sub-agent tools**, so no sub-agent
   can spawn), the calls one after another, a round without calls is the answer. At most `Defaults.AGENT_SUBAGENT_MAX_ROUNDS`, and the limits of the run (`maxRounds`, `isBudgetExceeded`, the context cap -
-  no compaction) fail it with a reason; every request is added to the run (`addUsage`). `checkSub` runs before every request, call and poll: a cancel, `interrupts`, a run that is not `RUNNING` /
-  `WAITING_APPROVAL` or was thrown away ends it as `CANCELLED` (`SubStopped`).
+  no compaction) fail it with a reason; every request is added to the run (`addUsage`). `checkSub` runs before every request, call and poll: a cancel or a run that was thrown away ends it as `CANCELLED`
+  (`SubStopped`), `interrupts`, `SubAgents.suspend` and a run that is `PAUSING` / `PAUSED` (or `STOPPING` towards `STOPPED_KEPT`) end it as `SUSPENDED`, any other status that is not `RUNNING` /
+  `WAITING_APPROVAL` as `CANCELLED`.
 - **Requests.** `Worker.ask` takes a place of the run's `RequestSlots` (the cap above; a FIFO queue like `AIGate`, in memory) and then the `AIGate` place of the AI, for the agent and the sub-agents alike (`Waiter` abstracts how
   each waits: the agent reacts to a pause at once and a forced message, a sub-agent to `checkSub`). A sub-agent that waits for a turn is cancelable.
 - **One writer.** SQLite can fail the second writer at once (`SQLITE_BUSY`; read-write transactions begin with the write lock now, see [Database](database.md), but the lock keeps the changes of a call in order), and the sub-agents are threads of one run. So `Worker.changeLock` (a fair `ReentrantLock`) is held by every call that `changes(call)`
   (not the run tools, not the reading commands, not the sub-agent tools), by the automatic checkpoint, and by the small writes of the run (`append`, `appendAnswer`, `addUsage`, `compact`). A wait for it is
   pollable (`lockChanges`, `checkSub`). A sub-agent that changes something sets `dirty`, so the next round of the agent gets its automatic checkpoint. The status changes of an `ASK` approval are still not under the lock
   (they run on the thread of the call).
-- **End.** `stopSubAgents` (cancel all, wait up to 30 s: they use the session of the run) runs when the worker ends, before a `checkpoint_restore` (they work in the book that is replaced; the agent is told) and `finish` /
-  `ask_user` cancel them; a plain reply while some work gets `Defaults.AGENT_SUBAGENTS_STILL_WORKING` once. After a pause the call of the agent that waited for a sub-agent has the result `was stopped`.
+- **End.** `stopSubAgents` (wait up to 30 s: they use the session of the run) runs when the worker ends, before a `checkpoint_restore` (they work in the book that is replaced; the agent is told) and `finish` /
+  `ask_user` cancel them; a plain reply while some work gets `Defaults.AGENT_SUBAGENTS_STILL_WORKING` once. It *cancels* them, except when the run is paused or stopped to be kept (`waitsForResume`): then it only
+  calls `SubAgents.suspend` and they stop where they are.
+- **Stored conversations.** `AgentMessageService.startThread` (first row: `threadTask`, `threadCall` = the id of the `spawn_agent` call), `appendToThread`, `appendAnswerToThread` (with the tokens of the
+  request, so `SubThread.rounds()` / `tokens()` are read from the rows), `endThread` (a row with `threadEnd` = `DONE` / `FAILED` / `CANCELLED` whose text is the answer or the reason; the first end wins),
+  `endOpenThreads` and `threads` (the `SubThread` records). A conversation without an end row is one that goes on. The ordinal counts per thread, and every query of the agent's own transcript
+  (`findAllByRun`, `countByRun`, `findLatestByRun`) asks for `thread IS NULL`, so `transcript`, `count`, `compact`, `rewind` and the checkpoints' `after` / `keep` are unchanged; only `deleteForRun` reads
+  every row. `rewind` marks the rows of the sub-agents whose `threadCall` is a call of a rewound row, and `CheckpointService.restore` ends the open ones as `CANCELLED` (the book is another one).
+  `endSub` stores the end under the `changeLock` and the session of the run (it runs inside the `InRequestScope` of `runSub`).
+- **Pause and resume.** A paused sub-agent ends as `State.SUSPENDED` (`finished()` completes, nothing is stored); a call of the agent that waits for it (`await_agent`, `spawn_agent`, the report of
+  `SubAgentToolsImpl`) returns the sentinel `SubAgentToolsImpl.SUSPENDED`, which the loop does **not** store: the rest of the round is left unanswered too (the stable point pauses) and a `pause at once`
+  that cuts such a call off does the same. A sub-agent that is cut off between its calls has the open calls answered (`AGENT_PAUSED_CALL` / `AGENT_PAUSED_SKIPPED_CALL`) before it ends. When the run
+  is resumed `Worker.work` makes the tools, then `restoreSubAgents(true)` (the stored threads become `Sub`s through `SubAgents.restore`, the ones without an end continue with their conversation,
+  after the unanswered calls of a crash got `AGENT_INTERRUPTED_CALL`) and `resumeParked`: when the first unanswered call of the last round is a `WAITING_TOOLS` call it is **made again** (`spawn_agent` finds
+  its sub-agent by `Worker.resumedCallId` and does not start another one) and the calls after it (never made) are answered as skipped; only then does `prepare` go on. `tools()` itself restores nothing
+  (`describe`, for the context view, makes tools too): only `work` and `restoreForAgent` (`restoreSubAgents(false)`: everything is over, the agent can ask) do. `openCalls` looks only at the results after
+  the last message with calls: a model may use the same call id again in another round.
 
-Not done: the transcript of a sub-agent in the console (it needs a thread column in `agent_messages`), another profile (`profile` argument) for a sub-agent, images for a sub-agent, `message_agent`, a sub-agent that survives a pause.
+Not done: the conversations of the sub-agents in the console, another profile (`profile` argument) for a sub-agent, images for a sub-agent, `message_agent`, a sub-agent that survives a stop that discards.
 
 ## What the model is told
 

@@ -11,7 +11,8 @@ import jakarta.persistence.*;
 /**
  * One message of the transcript of an {@link AgentRun}: what the model was told and what it said, one row per
  * {@link LLMChatMessage} (a user message, an assistant message with its tool calls, the result of a tool call). The
- * rows are only appended, the {@link #getOrdinal() ordinal} is the place in the transcript; the system prompt is not
+ * rows are only appended, the {@link #getOrdinal() ordinal} is the place in the transcript (of its {@link #getThread() thread}:
+ * the conversation of the agent, or one of a sub-agent); the system prompt is not
  * stored, it is made from the agent at every request so that a change of the instructions applies on a resume.
  * <p>
  * The message is the JSON of the {@code LLMChatMessage} in an extended attribute, only the run and the place are
@@ -31,6 +32,37 @@ public class AgentMessage extends ExtendableEntity {
 
     @Column(nullable = false)
     private int ordinal;
+
+    /**
+     * The handle of the sub-agent whose conversation this row belongs to ({@code sub1}...), null for the conversation of the
+     * agent itself. A column because every query of the transcript asks for one of them.
+     */
+    @Column(name = "thread", length = 16)
+    private String thread;
+
+    /**
+     * On the first row of the conversation of a sub-agent: what it was asked to do.
+     */
+    @Transient
+    @ExtendedAttribute
+    private String threadTask;
+
+    /**
+     * On the first row of the conversation of a sub-agent: the id of the {@code spawn_agent} call of the agent that started it.
+     * A rewind that goes back over that call takes the sub-agent with it, and a resumed run finds the sub-agent a call waits for.
+     */
+    @Transient
+    @ExtendedAttribute
+    private String threadCall;
+
+    /**
+     * On the last row of the conversation of a sub-agent that is over: how it ended ({@code DONE}, {@code FAILED},
+     * {@code CANCELLED}); the text of the row is its answer or the reason. A conversation without such a row was only
+     * paused, and goes on when the run does.
+     */
+    @Transient
+    @ExtendedAttribute
+    private String threadEnd;
 
     @Transient
     @ExtendedAttribute
@@ -76,6 +108,38 @@ public class AgentMessage extends ExtendableEntity {
     @Transient
     @ExtendedAttribute
     private Boolean rewound;
+
+    public String getThread() {
+        return thread;
+    }
+
+    public void setThread(String thread) {
+        this.thread = thread;
+    }
+
+    public String getThreadTask() {
+        return threadTask;
+    }
+
+    public void setThreadTask(String threadTask) {
+        this.threadTask = threadTask;
+    }
+
+    public String getThreadCall() {
+        return threadCall;
+    }
+
+    public void setThreadCall(String threadCall) {
+        this.threadCall = threadCall;
+    }
+
+    public String getThreadEnd() {
+        return threadEnd;
+    }
+
+    public void setThreadEnd(String threadEnd) {
+        this.threadEnd = threadEnd;
+    }
 
     public boolean isRewound() {
         return rewound != null && rewound;
