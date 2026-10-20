@@ -147,6 +147,31 @@ class LorebookWriteCommandsTest extends GenerationTestBase {
     }
 
     @Test
+    void aBookWithoutALorebookGetsItsRootWhenAnEntryIsCreated() throws Exception {
+        manuscript.setLorebook(null);
+        manuscript = manuscriptService.save(manuscript);
+
+        JsonObject created = run("/create-lore-entry Dragons \"Dragons sleep.\"");
+
+        Lorebook root = lorebookService.find(manuscriptService.find(manuscript.getId()).getLorebook());
+        assertThat(root.getName()).isEqualTo(manuscript.getName());
+        assertThat(created.get("lorebook").getAsInt()).isEqualTo(1);
+        assertThat(lorebookEntryService.getEntriesForLorebook(root)).extracting(LorebookEntry::getName).containsExactly("Dragons");
+    }
+
+    @Test
+    void aBookWithoutALorebookGetsItsRootWhenALorebookIsCreated() throws Exception {
+        manuscript.setLorebook(null);
+        manuscript = manuscriptService.save(manuscript);
+
+        JsonObject created = run("/create-lorebook Cities");
+
+        Lorebook root = lorebookService.find(manuscriptService.find(manuscript.getId()).getLorebook());
+        assertThat(lorebookService.getSubbooks(root)).extracting(Lorebook::getName).containsExactly("Cities");
+        assertThat(created.get("name").getAsString()).isEqualTo("Cities");
+    }
+
+    @Test
     void anEntryIsCreatedInTheRootOrInAGivenLorebook() throws Exception {
         JsonObject created = run("/create-lore-entry Dragons \"Dragons sleep.\"");
 

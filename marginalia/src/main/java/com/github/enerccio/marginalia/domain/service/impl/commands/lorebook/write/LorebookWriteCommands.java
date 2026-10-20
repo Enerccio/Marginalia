@@ -106,7 +106,7 @@ public class LorebookWriteCommands extends LorebookWriteSupport {
     }
 
     private void createLorebook(CommandContext context, String name, String parent) throws Exception {
-        Lore lore = new Lore(new Book(context));
+        Lore lore = loreToAddTo(new Book(context));
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NOTHING_TO_CHANGE));
         }

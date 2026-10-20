@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845839548532">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845844637487">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845839548532" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845844637487" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845839548532" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845844637487" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845839548532" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845844637487" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -528,12 +528,12 @@ describes): the answer lists them and says what to do, <code translate="no" v-pr
 | `/set-book-info [name] [description] [pov] [tense] [style] [language]` | Changes the descriptive settings of the book; only the values you give. |
 | `/set-book-prompts [template] [userPrompt] [summaryPrompt] [metaSummaryPrompt]` | Replaces the prompt templates of the book. Each is checked first. `DESTRUCTIVE`: a bad template spoils every later generation. |
 | `/set-book-tags [add] [remove]` | Adds and takes off tags of the book (comma separated). |
-| `/create-lore-entry &lt;name&gt; &lt;payload&gt; [lorebook] [comment] [enabled] [order] [keys] [filteringMode] [insertionMode] [tags]` | Adds an entry to a lorebook (the root when none is given). A problem of the template or of the regular expression is saved and reported. |
+| `/create-lore-entry &lt;name&gt; &lt;payload&gt; [lorebook] [comment] [enabled] [order] [keys] [filteringMode] [insertionMode] [tags]` | Adds an entry to a lorebook (the root when none is given; a book that has no lorebook gets one, named like the book). A problem of the template or of the regular expression is saved and reported. |
 | `/update-lore-entry &lt;entry&gt; [name] [payload] [comment] [enabled] [order] [keys] [filteringMode] [insertionMode]` | Changes the fields you give. |
 | `/delete-lore-entry &lt;entry&gt;` | Deletes an entry. Asks first. |
 | `/move-lore-entry &lt;entry&gt; &lt;lorebook&gt;` | Moves an entry to another lorebook of the book. |
 | `/set-lore-entry-tags &lt;entry&gt; [add] [remove] [addNegative] [removeNegative]` | Changes the tags and negative tags of an entry (comma separated). |
-| `/create-lorebook &lt;name&gt; [parent]` | Makes a lorebook that is a subbook of `parent` (the root when none is given). |
+| `/create-lorebook &lt;name&gt; [parent]` | Makes a lorebook that is a subbook of `parent` (the root when none is given; a book that has no lorebook gets one first). |
 | `/set-lorebook &lt;lorebook&gt; [name] [enabled]` | Renames a lorebook or switches it on or off. |
 | `/add-subbook &lt;lorebook&gt; &lt;subbook&gt;`, `/remove-subbook &lt;lorebook&gt; &lt;subbook&gt;` | Changes which lorebooks a lorebook contains; a lorebook can't contain itself. |
 | `/delete-lorebook &lt;lorebook&gt;` | Deletes a lorebook with its entries (not the root). Asks first. |">
@@ -628,7 +628,7 @@ describes): the answer lists them and says what to do, <code translate="no" v-pr
 </tr>
 <tr>
 <td><code translate="no" v-pre>/create-lore-entry &lt;name&gt; &lt;payload&gt; [lorebook] [comment] [enabled] [order] [keys] [filteringMode] [insertionMode] [tags]</code></td>
-<td>Adds an entry to a lorebook (the root when none is given). A problem of the template or of the regular expression is saved and reported.</td>
+<td>Adds an entry to a lorebook (the root when none is given; a book that has no lorebook gets one, named like the book). A problem of the template or of the regular expression is saved and reported.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>/update-lore-entry &lt;entry&gt; [name] [payload] [comment] [enabled] [order] [keys] [filteringMode] [insertionMode]</code></td>
@@ -648,7 +648,7 @@ describes): the answer lists them and says what to do, <code translate="no" v-pr
 </tr>
 <tr>
 <td><code translate="no" v-pre>/create-lorebook &lt;name&gt; [parent]</code></td>
-<td>Makes a lorebook that is a subbook of <code translate="no" v-pre>parent</code> (the root when none is given).</td>
+<td>Makes a lorebook that is a subbook of <code translate="no" v-pre>parent</code> (the root when none is given; a book that has no lorebook gets one first).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>/set-lorebook &lt;lorebook&gt; [name] [enabled]</code></td>
@@ -802,7 +802,7 @@ Character Tracker also change the outline and the characters of the open book; o
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (e074c926).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (3dab49ad).</p></div>
             </footer>
         </div>
     </div>

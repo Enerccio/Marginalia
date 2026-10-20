@@ -450,7 +450,7 @@ The copy is read through the pairs of the run (`AgentRunPairService.getAll`, cop
 the book: its settings, `tags` and every `attributes_*` key, the data of the plugins) and is compared **field by field**: the field the agent changed (copy differs from base) and the book did not (book equals base) is a change to
 take over, both changed to different values is a `conflict`, the same value on both sides is nothing. `SET` fields (tags, subbooks) are merged by what each side added and removed and never conflict. A key only in the copy is
 `ADDED`, one only in the base and still in the book is `DELETED` (a conflict when the book changed it since), the ones the user deleted from the book are `problem`s (`PROBLEM_GONE`, `PROBLEM_NEEDS_PARENT`,
-`PROBLEM_NEEDS_LOREBOOK`) and can't be applied. `Item.dependsOn` is the item that must be applied first (the new part a new part follows, the new lorebook a new entry is in); `MergeDiff.chain` and `dependents` follow it.
+`PROBLEM_NEEDS_LOREBOOK`) and can't be applied. `Item.dependsOn` is the item that must be applied first (the new part a new part follows, the new lorebook a new entry is in); `MergeDiff.chain` and `dependents` follow it. A book that had no lorebook when the run started (the commands `create-lore-entry` and `create-lorebook` make its root in the copy, `LorebookWriteSupport.loreToAddTo`) gets the root of the copy as its lorebook when the apply made it (`Applier.adoptRoot`).
 The service adds `sharedWith` (the other books whose lorebook tree holds the lorebook).
 
 **Apply** runs as two transactions (a `TransactionTemplate` of the `common` manager, `apply` has no `@CommonTx`): the changes, all or nothing, and then `AgentRunService.transition(run, APPLIED)`, which deletes the copy, the pairs, the

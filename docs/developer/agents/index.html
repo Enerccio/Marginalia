@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845839548532">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845844637487">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845839548532" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845844637487" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845839548532" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845844637487" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845839548532" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845844637487" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -762,7 +762,7 @@ The copy is read through the pairs of the run (<code translate="no" v-pre>AgentR
 the book: its settings, <code translate="no" v-pre>tags</code> and every <code translate="no" v-pre>attributes_*</code> key, the data of the plugins) and is compared <strong>field by field</strong>: the field the agent changed (copy differs from base) and the book did not (book equals base) is a change to
 take over, both changed to different values is a <code translate="no" v-pre>conflict</code>, the same value on both sides is nothing. <code translate="no" v-pre>SET</code> fields (tags, subbooks) are merged by what each side added and removed and never conflict. A key only in the copy is
 <code translate="no" v-pre>ADDED</code>, one only in the base and still in the book is <code translate="no" v-pre>DELETED</code> (a conflict when the book changed it since), the ones the user deleted from the book are <code translate="no" v-pre>problem</code>s (<code translate="no" v-pre>PROBLEM_GONE</code>, <code translate="no" v-pre>PROBLEM_NEEDS_PARENT</code>,
-<code translate="no" v-pre>PROBLEM_NEEDS_LOREBOOK</code>) and can&#x27;t be applied. <code translate="no" v-pre>Item.dependsOn</code> is the item that must be applied first (the new part a new part follows, the new lorebook a new entry is in); <code translate="no" v-pre>MergeDiff.chain</code> and <code translate="no" v-pre>dependents</code> follow it.
+<code translate="no" v-pre>PROBLEM_NEEDS_LOREBOOK</code>) and can&#x27;t be applied. <code translate="no" v-pre>Item.dependsOn</code> is the item that must be applied first (the new part a new part follows, the new lorebook a new entry is in); <code translate="no" v-pre>MergeDiff.chain</code> and <code translate="no" v-pre>dependents</code> follow it. A book that had no lorebook when the run started (the commands <code translate="no" v-pre>create-lore-entry</code> and <code translate="no" v-pre>create-lorebook</code> make its root in the copy, <code translate="no" v-pre>LorebookWriteSupport.loreToAddTo</code>) gets the root of the copy as its lorebook when the apply made it (<code translate="no" v-pre>Applier.adoptRoot</code>).
 The service adds <code translate="no" v-pre>sharedWith</code> (the other books whose lorebook tree holds the lorebook).</p>
 <p><strong>Apply</strong> runs as two transactions (a <code translate="no" v-pre>TransactionTemplate</code> of the <code translate="no" v-pre>common</code> manager, <code translate="no" v-pre>apply</code> has no <code translate="no" v-pre>@CommonTx</code>): the changes, all or nothing, and then <code translate="no" v-pre>AgentRunService.transition(run, APPLIED)</code>, which deletes the copy, the pairs, the
 base and the checkpoints (the 2000-part measurement: 150 changes on a book of 2000 parts of 4 KB: the plan 0.2 s, the changes and the delete of the copy a few seconds each, the whole apply 5-9 s; a restore is 30 s because it also
@@ -1278,7 +1278,7 @@ older rounds when the context is full (the run pauses instead).</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (e074c926).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (3dab49ad).</p></div>
             </footer>
         </div>
     </div>
