@@ -16,7 +16,7 @@ book, so your book is never touched while it works (the book itself is [locked](
 [review its result](#reviewing-the-result) and take over what you want.
 
 The tab is there only if an administrator gave you the **Agents** [permission](administration/permissions.md) (administrators always
-have it). On a phone each agent is a card with the same buttons, see [On a phone](#on-a-phone).
+have it, but the limits are the same as for everybody: the defaults unless they fill in the settings of their own permission, so an administrator who needs more agents, runs or room in the workspace sets it there; a changed limit reaches a run that is working when it is paused and resumed). On a phone each agent is a card with the same buttons, see [On a phone](#on-a-phone).
 
 ## The table
 

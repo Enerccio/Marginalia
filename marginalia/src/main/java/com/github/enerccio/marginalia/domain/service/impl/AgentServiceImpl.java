@@ -66,12 +66,24 @@ public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentReposito
             return new AgentGrant(false, 0, 0, 0);
         }
         // the loaded user has the flag, the session's one does not
-        if (holder.isAdmin()) {
-            return new AgentGrant(true, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, 0, 0, 0, 0, 0, Integer.MAX_VALUE);
-        }
         Permission permission = permissionService.getPermission(holder, PermissionType.AGENTS);
+        // an administrator needs no permission, but has the limits of one: they know what they need, and a runaway
+        // agent is as costly for them as for anybody
+        if (holder.isAdmin()) {
+            return grantOf(permission);
+        }
         if (permission == null || !permission.isGranted()) {
             return new AgentGrant(false, 0, 0, 0);
+        }
+        return grantOf(permission);
+    }
+
+    /**
+     * The limits of a permission, the defaults for what is not filled in; null is a permission with no settings.
+     */
+    private static AgentGrant grantOf(Permission permission) {
+        if (permission == null) {
+            return new AgentGrant(true, 1, 0, DEFAULT_MAX_AGENTS);
         }
         Integer runs = permission.getAgentsMaxConcurrentRuns();
         Long budget = permission.getAgentsRunTokenBudget();

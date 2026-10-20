@@ -199,8 +199,8 @@ The **lorebooks** are locked with the book, because the run works on a copy of t
 `AgentService` and `AgentRunService` (`domain.service`) manage the definitions of agents and their runs, see
 [`Agent` and `AgentRun`](domain-model.md#agent-and-agentrun-agents). `AgentRunner` works a started run, see [The runner](#the-runner). This is the reference of what the services do; [The life of a run](#the-life-of-a-run) is the overview.
 
-`AgentService` extends `ExtendableService`. `save` checks that a new agent is allowed (`getGrant(user).allowed()`: administrators,
-or a user with the granted permission `AGENTS`), the manuscript exists and is the user's own, a manuscript has no other agent and the
+`AgentService` extends `ExtendableService`. `save` checks that a new agent is allowed (`getGrant(user).allowed()`: administrators, who need no granted permission but get the limits of their own `AGENTS` permission and the defaults when it is empty or missing (`grantOf`),
+or a user with the granted permission `AGENTS`; the grant is read when a run's worker starts, `AgentVirtualFileSystemService.open`), the manuscript exists and is the user's own, a manuscript has no other agent and the
 manuscript of an existing agent is not changed, the instructions are at most `MAX_INSTRUCTIONS_LENGTH`, there are at most
 `MAX_MODEL_PROFILES` profiles with unique non-blank roles and positive limits; names, roles and the allowed commands are trimmed (commands
 also de-duplicated). It does not check that the AI and protocol of a profile exist: `resolveProfile(profile)` does, when the agent is used.

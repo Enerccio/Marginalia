@@ -51,8 +51,27 @@ class AgentServiceTest extends AgentTestBase {
         loginAdmin();
 
         assertThat(agentService.isAllowed()).isTrue();
-        assertThat(agentService.getGrant(currentUser)).isEqualTo(new AgentGrant(true, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, 0, 0, 0, 0, 0, Integer.MAX_VALUE));
+        assertThat(agentService.getGrant(currentUser)).as("the limits of a user, only the permission is not needed")
+                .isEqualTo(new AgentGrant(true, 1, 0, AgentService.DEFAULT_MAX_AGENTS));
         assertThat(agent().getId()).isNotNull();
+    }
+
+    @Test
+    void administratorFollowsTheSettingsOfTheirOwnPermission() throws Exception {
+        User admin = loginAdmin();
+        updatePermission(admin, PermissionType.AGENTS, permission -> {
+            permission.setGranted(false);
+            permission.setAgentsMaxWorkspaceFiles(5000);
+            permission.setAgentsMaxWorkspaceMb(100);
+        });
+
+        AgentGrant grant = agentService.getGrant(currentUser);
+        assertThat(grant.allowed()).as("the granted flag does not matter for an administrator").isTrue();
+        assertThat(grant.maxWorkspaceFiles()).isEqualTo(5000);
+        assertThat(grant.maxWorkspaceBytes()).isEqualTo(100L * 1024 * 1024);
+        assertThat(grant.maxAgents()).as("what is not filled in is the default").isEqualTo(AgentService.DEFAULT_MAX_AGENTS);
+        assertThat(grant.maxConcurrentRuns()).isEqualTo(1);
+        assertThat(grant.maxFileBytes()).isZero();
     }
 
     @Test
