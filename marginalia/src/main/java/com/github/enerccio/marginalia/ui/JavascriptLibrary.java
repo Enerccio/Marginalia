@@ -277,6 +277,28 @@ public final class JavascriptLibrary {
                 """, element);
     }
 
+    /**
+     * Fires {@code chip-click} ({@code detail.label}) on the multi select combo box when the user clicks the label of
+     * one of its chips (not its remove button), without opening the dropdown.
+     */
+    public static void fireChipClickEvent(Element comboBox) {
+        comboBox.executeJs("""
+                const el = $0;
+                if (!el._hasChipClickListener) {
+                  el._hasChipClickListener = true;
+                  el.addEventListener('click', e => {
+                    const path = e.composedPath();
+                    const chip = path.find(n => n.localName === 'vaadin-multi-select-combo-box-chip');
+                    if (!chip || path.some(n => n.getAttribute && n.getAttribute('part') === 'remove-button')) {
+                      return;
+                    }
+                    e.stopPropagation();
+                    el.dispatchEvent(new CustomEvent('chip-click', { detail: { label: chip.label || chip.textContent.trim() } }));
+                  }, true);
+                }
+                """, comboBox);
+    }
+
     // --- tab sheet ---
 
     /**

@@ -566,6 +566,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_DOWNLOAD_JSON, "JSONをダウンロード");
         setValue(L.LABEL_COMMAND_BATCH_POLICY, "バッチ");
         setValue(L.LABEL_AGENT_BATCH_MODE, "1回の回答での呼び出し");
+        setValue(L.LABEL_ONLY_ROOT_LOREBOOKS, "ã«ã¼ãã®ã­ã¢ããã¯ã®ã¿");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");

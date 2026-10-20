@@ -574,6 +574,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_DOWNLOAD_JSON, "下载 JSON");
         setValue(L.LABEL_COMMAND_BATCH_POLICY, "批处理");
         setValue(L.LABEL_AGENT_BATCH_MODE, "一次回答中的调用");
+        setValue(L.LABEL_ONLY_ROOT_LOREBOOKS, "ä»æ¾ç¤ºæ ¹ä¸çä¹¦");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
