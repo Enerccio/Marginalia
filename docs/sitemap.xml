@@ -124,6 +124,9 @@
     <loc>https://enerccio.github.io/Marginalia/developer/database/</loc>
   </url>
   <url>
+    <loc>https://enerccio.github.io/Marginalia/user/lorebooks/lorebooks/</loc>
+  </url>
+  <url>
     <loc>https://enerccio.github.io/Marginalia/user/templates/macros/</loc>
   </url>
   <url>
@@ -143,9 +146,6 @@
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/contributing/</loc>
-  </url>
-  <url>
-    <loc>https://enerccio.github.io/Marginalia/user/lorebooks/lorebooks/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/extensions/arc-outline/</loc>

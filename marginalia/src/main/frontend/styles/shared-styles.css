@@ -1041,3 +1041,25 @@ vaadin-dialog-overlay.phone-dialog::part(overlay) {
     padding: 0;
     --lumo-font-size-m: var(--lumo-font-size-xs);
 }
+
+/* the dialog that tags many books, lorebooks or entries at once */
+/* an item an agent works on: listed, but nothing can be done with it */
+.multi-tag-locked {
+    opacity: 0.45;
+}
+
+.multi-tag-chip {
+    display: inline-block;
+    margin-right: var(--lumo-space-xs);
+    padding: 0 var(--lumo-space-s);
+    border-radius: var(--lumo-border-radius-l);
+    background: var(--lumo-contrast-10pct);
+    font-size: var(--lumo-font-size-xs);
+}
+
+/* the tag picked in the dialog, where an item has it */
+.multi-tag-chip-marked {
+    background: var(--lumo-primary-color);
+    color: var(--lumo-primary-contrast-color);
+    font-weight: 600;
+}

@@ -21,6 +21,7 @@ import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptWindow;
+import com.github.enerccio.marginalia.ui.dialogs.MultiTagDialog;
 import com.github.enerccio.marginalia.ui.dialogs.agent.AgentLockCheck;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableItem;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableProviderBase;
@@ -72,6 +73,7 @@ public class ManuscriptPart implements ManuscriptSection {
     private final Workspace workspace;
     private Grid<ManuscriptWrapper> grid;
     private Button addBookButton;
+    private Button tagBooksButton;
     private VerticalLayout mainLayout;
 
     private Column<ManuscriptWrapper> nameColumn;
@@ -124,7 +126,8 @@ public class ManuscriptPart implements ManuscriptSection {
         addBookButton.setThemeName("primary");
         this.addBookButton = addBookButton;
 
-        headerLayout.add(titleSpan, addBookButton);
+        tagBooksButton = new Button(loc.getValue(L.LABEL_TAG_BOOKS), Solid.TAGS.create(), event -> openTagDialog());
+        headerLayout.add(titleSpan, tagBooksButton, addBookButton);
         headerLayout.setFlexGrow(1, titleSpan);
         headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
@@ -263,6 +266,18 @@ public class ManuscriptPart implements ManuscriptSection {
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+    }
+
+    /**
+     * Opens the dialog that puts a tag on many books at once; the list shows the new tags when it is closed.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = MultiTagDialog.class)})
+    private void openTagDialog() {
+        MultiTagDialog dialog = new MultiTagDialog(MultiTagDialog.Kind.BOOKS, this::refreshGrid);
+        dialog.create();
+        dialog.open();
     }
 
     /**

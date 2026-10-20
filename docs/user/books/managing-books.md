@@ -26,6 +26,16 @@ The refresh button at the end of the filter row reloads the list.
 
 Each row has two buttons: the pen opens the book, the trash button deletes it.
 
+### Tagging many books at once
+
+**Tag books** (next to **Add Book**) opens a window that puts one tag on many books, or takes it off them, without opening
+each. Pick the **Tag** (or type a new one and press Enter) and the list shows every book with its tags; the books that have
+the picked tag come first and show it highlighted. Each row has a **+** button that applies the tag to that book and a
+**-** button that removes it. To do the same for several books, tick their check boxes (the box in the header ticks all)
+and use **Apply the tag to the checked** or **Remove the tag from the checked** at the bottom. A book an agent works on is
+grayed out: it is locked, so it can not be ticked or changed until the run is paused or stopped. The same window tags
+[lorebooks and their entries](../lorebooks/lorebooks.md#tagging-many-at-once).
+
 ## Creating a book
 
 1. Click **Add Book**.

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845831272684">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845833007319">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845831272684" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845833007319" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845831272684" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845833007319" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845831272684" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845833007319" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -168,7 +168,7 @@
 <h2 id="the-lorebook-editor">The lorebook editor</h2>
 <p>Open the <strong>Lorebooks</strong> tab. The editor shows one lorebook at a time; pick it in the <strong>Lorebook</strong> field at the top.
 Lorebooks belong to your account: other users don&#x27;t see them.</p>
-<p>The toolbar:</p>
+<p>The toolbar has two rows, which wrap onto more lines in a narrow window: the first for the lorebooks (<strong>Lorebook</strong> to <strong>Tag lorebooks</strong>), the second for the entries of the selected lorebook (<strong>Add Entry</strong> to <strong>Refresh</strong>).</p>
 <retype-table copy-text="| Button | |
 |---|---|
 | **Lorebook** | Selects the lorebook to edit. |
@@ -176,8 +176,10 @@ Lorebooks belong to your account: other users don&#x27;t see them.</p>
 | **Delete Lorebook** | Deletes the selected lorebook (after confirming). |
 | Import (file icon) | **Import Marginalia Lorebook** or **Import from SillyTavern**, see [Import &amp; export](import-export.md). |
 | Export (file icon) | Downloads the lorebook with its sub lorebooks, see [Import &amp; export](import-export.md#exporting). |
+| Tags (tags icon, last of the first row) | **Tag lorebooks**: puts a tag on many lorebooks at once, see [below](#tagging-many-at-once). Not shown for a lorebook that is open in a book. |
 | **Add Entry** | Adds an entry to the lorebook, see [Entries &amp; activation](entries.md). |
 | **Search and replace** | Changes a text in the name, text and comment of the entries of the lorebook, see [Search and replace](entries.md#search-and-replace). |
+| Tags (tags icon, right of **Search and replace**, second row) | **Tag entries**: puts a tag on many entries of the selected lorebook at once, see [below](#tagging-many-at-once). |
 | **Refresh** | Reloads the entries. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -209,12 +211,20 @@ Lorebooks belong to your account: other users don&#x27;t see them.</p>
 <td>Downloads the lorebook with its sub lorebooks, see <a href="../import-export/#exporting">Import &amp; export</a>.</td>
 </tr>
 <tr>
+<td>Tags (tags icon, last of the first row)</td>
+<td><strong>Tag lorebooks</strong>: puts a tag on many lorebooks at once, see <doc-anchor-trigger to="#tagging-many-at-once">below</doc-anchor-trigger>. Not shown for a lorebook that is open in a book.</td>
+</tr>
+<tr>
 <td><strong>Add Entry</strong></td>
 <td>Adds an entry to the lorebook, see <a href="../entries/">Entries &amp; activation</a>.</td>
 </tr>
 <tr>
 <td><strong>Search and replace</strong></td>
 <td>Changes a text in the name, text and comment of the entries of the lorebook, see <a href="../entries/#search-and-replace">Search and replace</a>.</td>
+</tr>
+<tr>
+<td>Tags (tags icon, right of <strong>Search and replace</strong>, second row)</td>
+<td><strong>Tag entries</strong>: puts a tag on many entries of the selected lorebook at once, see <doc-anchor-trigger to="#tagging-many-at-once">below</doc-anchor-trigger>.</td>
 </tr>
 <tr>
 <td><strong>Refresh</strong></td>
@@ -261,6 +271,16 @@ Lorebooks belong to your account: other users don&#x27;t see them.</p>
 </div>
 </retype-table>
 <p>The rest of the editor is the list of <a href="../entries/">entries</a>. All changes are saved as you make them.</p>
+<p>A lorebook of a book an agent works on is shown read only (see <a href="../../agents/">Agents</a>), without <strong>Add Entry</strong>, <strong>Search and replace</strong>, <strong>Delete Lorebook</strong> and the settings; <strong>Add Lorebook</strong>, import, export and <strong>Refresh</strong> stay, so you can always start another lorebook.</p>
+<h2 id="tagging-many-at-once">Tagging many at once</h2>
+<p>The two tags buttons of the toolbar open one window that puts a tag on many items, or takes it off them: <strong>Tag lorebooks</strong> lists
+your lorebooks, <strong>Tag entries</strong> the entries of the selected lorebook. Pick the <strong>Tag</strong> (or type a new one and press Enter);
+the list shows every item with its tags, and the items that have the picked tag come first with the tag highlighted. A row&#x27;s
+<strong>+</strong> and <strong>-</strong> buttons apply or remove the tag for that item; tick several items (the box in the header ticks all) and
+use <strong>Apply the tag to the checked</strong> or <strong>Remove the tag from the checked</strong> at the bottom to do it for all of them. An item
+an agent works on (a lorebook of a book with a running agent, and so all its entries) is grayed out and can not be changed
+until the run is paused or stopped. The window also tags <a href="../../books/managing-books/#tagging-many-books-at-once">books</a>.
+The tags it puts on entries are the ordinary ones, see <a href="../entries/#tags">Tags</a>; negative tags are set on the entry itself.</p>
 <h2 id="using-a-lorebook-in-a-book">Using a lorebook in a book</h2>
 <p>Open the book and its <strong>Lorebook</strong> tab, and pick the lorebook in the <strong>Lorebook</strong> field. The editor below shows the
 lorebook, so you can add and change entries while you write. Clear the field to write without a lorebook.</p>
@@ -337,7 +357,7 @@ affected.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (f2e1d474).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (f61da541).</p></div>
             </footer>
         </div>
     </div>
