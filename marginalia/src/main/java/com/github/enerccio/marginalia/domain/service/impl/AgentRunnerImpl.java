@@ -12,6 +12,8 @@ import com.github.enerccio.marginalia.domain.service.AgentService.ResolvedProfil
 import com.github.enerccio.marginalia.domain.service.InferenceService.RoundUsage;
 import com.github.enerccio.marginalia.domain.service.agent.*;
 import com.github.enerccio.marginalia.domain.service.agent.RunTools.PlanItem;
+import com.github.enerccio.marginalia.domain.service.agent.SubAgents.State;
+import com.github.enerccio.marginalia.domain.service.agent.SubAgents.Sub;
 import com.github.enerccio.marginalia.domain.service.command.CommandDefinition;
 import com.github.enerccio.marginalia.domain.service.command.CommandRun;
 import com.github.enerccio.marginalia.domain.service.command.CommandScope;
@@ -40,6 +42,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton, DisposableBean {
@@ -62,6 +65,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
     private static final Set<String> NO_CHANGE_TOOLS = Set.of("finish", "ask_user", "update_plan", "get_run_status", "request_compaction",
             "checkpoint", "checkpoint_list", "checkpoint_restore", "checkpoint_delete", "get_sync_report", "view_image", "list_files", "read_file",
             "grep_files", "list_command_results");
+    // the tools that start, wait for and stop sub-agents: they change nothing themselves (and are not dropped as repeats: two spawns of one task are two)
+    private static final Set<String> SUBAGENT_TOOLS = Set.of("spawn_agent", "await_agent", "agent_status", "cancel_agent");
     // images the model is shown at once: the newest ones; an older one is a note that view_image shows it again
     static final int MAX_SHOWN_IMAGES = 4;
 
@@ -429,6 +434,22 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         }
     }
 
+    @Override
+    public boolean cancelQueued(AgentRun run, String id) throws Exception {
+        if (run == null || run.getId() == null) {
+            throw new IllegalArgumentException("The run does not exist");
+        }
+        Inbox inbox = inboxes.get(run.getId());
+        if (inbox == null) {
+            return false;
+        }
+        boolean removed = inbox.remove(id);
+        if (removed) {
+            log.info("Agent run {}: a queued message of the user was taken back", run.getUuid());
+        }
+        return removed;
+    }
+
     /**
      * The messages as one message of the user: some chat templates refuse two of the same role in a row.
      */
@@ -470,6 +491,19 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     : new QueuedMessage(item.id(), item.message().getContent())).toList();
         }
 
+        /**
+         * Removes the queued message with the id (and the wish to have it now).
+         *
+         * @return whether it was queued
+         */
+        synchronized boolean remove(String id) {
+            boolean removed = queued.removeIf(item -> item.id().equals(id));
+            if (removed && id.equals(forced)) {
+                forced = null;
+            }
+            return removed;
+        }
+
         synchronized void force(String id) {
             forced = id;
         }
@@ -480,6 +514,24 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
 
         synchronized String forcedId() {
             return forced;
+        }
+
+        /**
+         * Removes the messages of the author at the head of the queue, up to the first command (a command waits for the end
+         * of the turn, and what is behind it keeps its place after it).
+         */
+        synchronized List<Queued> takeMessages() {
+            int end = 0;
+            while (end < queued.size() && queued.get(end).command() == null) {
+                end++;
+            }
+            List<Queued> head = queued.subList(0, end);
+            List<Queued> taken = new ArrayList<>(head);
+            head.clear();
+            if (forced != null && !contains(forced)) {
+                forced = null;
+            }
+            return taken;
         }
 
         /**
@@ -546,6 +598,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         // the longest answer of the model in tokens, 0 when not known
         volatile long responseCap;
         final long startedAt = System.currentTimeMillis();
+        // what is said about the sub-agents, null for an agent that has none
+        volatile java.util.function.Supplier<String> subAgents;
 
         String render() {
             StringBuilder text = new StringBuilder();
@@ -555,6 +609,10 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             text.append("Longest answer you can write: ").append(responseCap > 0 ? responseCap + " tokens (a call that needs more is cut off and fails, "
                     + "write long texts in parts)" : "no limit is known").append('\n');
             text.append("Working for ").append((System.currentTimeMillis() - startedAt) / 1000).append(" s in this session of the run");
+            java.util.function.Supplier<String> sub = subAgents;
+            if (sub != null) {
+                text.append('\n').append(sub.get());
+            }
             return text.toString();
         }
     }
@@ -626,6 +684,26 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         }
     }
 
+    /**
+     * The end of a sub-agent that is not an exception of the run: it was canceled, the run was paused or thrown away, or it ran into a limit.
+     */
+    private static final class SubStopped extends RuntimeException {
+        private final State state;
+
+        SubStopped(State state, String reason) {
+            super(reason, null, false, false);
+            this.state = state;
+        }
+    }
+
+    /**
+     * How a thread of the run waits for a future: the agent reacts to the author (a pause at once, a forced message), a
+     * sub-agent to its cancel and to the run being paused or thrown away.
+     */
+    private interface Waiter {
+        <T> T await(CompletableFuture<T> future, Runnable cancel, boolean queued) throws Exception;
+    }
+
     private final class Worker implements Runnable {
 
         private final Long runId;
@@ -643,7 +721,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         private CheckpointToolsImpl checkpointTools;
         private Set<String> readOnlyCommands = Set.of();
         // whether the working copy or the workspace may have changed since the last checkpoint
-        private boolean dirty;
+        private volatile boolean dirty;
         // whether the agent was told that no automatic checkpoint fits, until one is made again
         private boolean fullNoticeGiven;
         // the files of the run, opened with the tools; the images the model asked to see in this round
@@ -661,6 +739,16 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         private boolean ignoreForce;
         // the round before which a failed automatic compaction is not tried again
         private long autoCompactRetryAt;
+        // the requests to the model the run has in the air: the agent and its sub-agents take turns when the cap is low
+        private RequestSlots requestSlots = new RequestSlots(1);
+        // how many sub-agents may work at once (zero: none, the agent gets no tools for them), the ones started, the tools of a sub-agent
+        private int maxSubagents;
+        private SubAgents subAgents;
+        private FunctionSet subTools;
+        // the calls that change the book or the workspace run one at a time, whoever makes them (the agent or a sub-agent)
+        private final ReentrantLock changeLock = new ReentrantLock(true);
+        // how often the agent ended its turn with sub-agents working, since it last made a call
+        private int stillWorkingNotices;
         // the queued messages and commands of the author to deliver before the work goes on, null for none; a worker
         // for a run that waits only does these and leaves the run as it is
         private final List<Queued> initial;
@@ -690,6 +778,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             } catch (Throwable e) {
                 log.error("Agent run {} could not start working", run.getUuid(), e);
             } finally {
+                stopSubAgents();
                 dropInbox();
                 interrupts.remove(runId);
                 working.remove(runId);
@@ -733,6 +822,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             // a command of the author that does not ask the model needs none
             inference = profile == null ? null : inferenceServices.forAIOrThrow(profile.ai());
             seesImages = profile != null && profile.profile().isImages();
+            requestSlots = new RequestSlots(runService.getMaxConcurrency(run));
+            maxSubagents = runService.getMaxSubagents(run);
 
             List<LLMChatMessage> transcript = new ArrayList<>(messageService.transcript(run));
             if (initial == null) {
@@ -785,6 +876,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     deliverForced(transcript, List.of());
                     continue;
                 }
+                // between two rounds: what the author wrote meanwhile is read by the next request, not at the end of the turn
+                deliverQueuedMessages(transcript);
                 String limit = limit(run, transcript, inference, progress);
                 if (limit != null) {
                     pause(limit);
@@ -810,7 +903,12 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     pause("The model could not be asked: " + messageOf(e));
                     return;
                 }
-                run = runService.addUsage(run, round.usage().promptTokens(), round.usage().completionTokens());
+                changeLock.lock();
+                try {
+                    run = runService.addUsage(run, round.usage().promptTokens(), round.usage().completionTokens());
+                } finally {
+                    changeLock.unlock();
+                }
                 progress.rounds = run.getRounds();
                 progress.tokens = run.getTotalTokens();
                 progress.contextTokens = round.usage().promptTokens() + round.usage().completionTokens();
@@ -830,15 +928,30 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 LLMChatMessage answer = round.calls().isEmpty()
                         ? LLMChatMessage.of(LLMRole.ASSISTANT, round.text())
                         : LLMChatMessage.ofToolCalls(StringUtils.isEmpty(round.text()) ? null : round.text(), round.calls());
-                messageService.appendAnswer(run, answer, progress.contextTokens, round.reasoning());
+                changeLock.lock();
+                try {
+                    messageService.appendAnswer(run, answer, progress.contextTokens, round.reasoning());
+                } finally {
+                    changeLock.unlock();
+                }
                 transcript.add(answer);
                 if (round.calls().isEmpty()) {
+                    if (subAgents != null && subAgents.live() > 0) {
+                        if (stillWorkingNotices++ < 1) {
+                            append(transcript, LLMChatMessage.of(LLMRole.USER, String.format(Defaults.AGENT_SUBAGENTS_STILL_WORKING,
+                                    subAgents.live(), subAgents.all().stream().filter(sub -> !sub.state().isFinished()).map(Sub::handle)
+                                            .collect(Collectors.joining(", ")))));
+                            continue;
+                        }
+                        subAgents.cancelAll();
+                    }
                     if (endTurn(transcript, AgentRunStatus.IDLE, null)) {
                         continue;
                     }
                     return;
                 }
 
+                stillWorkingNotices = 0;
                 runTools.clearRequests();
                 // the state the changes of this round start from is saved first; the notice for the agent, if any, comes after the results
                 boolean changes = round.calls().stream().anyMatch(this::changes);
@@ -902,6 +1015,9 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 }
                 dirty |= changes;
 
+                if ((runTools.getSummary() != null || runTools.getQuestion() != null) && subAgents != null) {
+                    subAgents.cancelAll();
+                }
                 if (runTools.getSummary() != null) {
                     // a conversation goes on after the report, only the user ends it
                     if (endTurn(transcript, run.isInteractive() ? AgentRunStatus.IDLE : AgentRunStatus.DONE,
@@ -951,7 +1067,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
          */
         private boolean changes(LLMToolCall call) {
             String name = call.getName();
-            return !NO_CHANGE_TOOLS.contains(name) && !readOnlyCommands.contains(name);
+            return !NO_CHANGE_TOOLS.contains(name) && !SUBAGENT_TOOLS.contains(name) && !readOnlyCommands.contains(name);
         }
 
         /**
@@ -964,6 +1080,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             if (!dirty) {
                 return null;
             }
+            // a sub-agent may be writing: the state is saved between its calls
+            changeLock.lock();
             try {
                 // the answer that asks for the changes is already in the transcript: a rewind to this checkpoint forgets it
                 checkpointService.makeAutomatic(run, "before round " + (run.getRounds()), 1);
@@ -977,6 +1095,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 }
                 fullNoticeGiven = true;
                 return Defaults.AGENT_NO_AUTOMATIC_CHECKPOINT + " " + e.getMessage();
+            } finally {
+                changeLock.unlock();
             }
         }
 
@@ -989,12 +1109,17 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             boolean before = ignoreForce;
             ignoreForce = true;
             try {
+                // they work in the book that is replaced
+                boolean stopped = stopSubAgents();
                 CheckpointService.Restored restored = checkpointService.restore(run, id);
                 run = restored.run();
                 tools = tools();
                 dirty = false;
                 StringBuilder text = new StringBuilder(String.format(Defaults.AGENT_RESTORED, restored.checkpoint().id(),
                         restored.checkpoint().round()));
+                if (stopped) {
+                    text.append(" Your sub-agents that were working were stopped.");
+                }
                 if (!restored.removedFiles().isEmpty()) {
                     text.append(" The files you wrote after it are gone: ")
                             .append(restored.removedFiles().stream().limit(20).collect(Collectors.joining(", ")))
@@ -1135,6 +1260,23 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         }
 
         /**
+         * Delivers the messages of the author at the head of the queue (not the commands, they wait for the end of the turn),
+         * so that the next request of the model reads them.
+         */
+        private void deliverQueuedMessages(List<LLMChatMessage> transcript) throws Exception {
+            if (inbox == null) {
+                return;
+            }
+            List<Queued> due;
+            synchronized (inbox) {
+                due = inbox.takeMessages();
+            }
+            if (!due.isEmpty()) {
+                deliver(due, transcript);
+            }
+        }
+
+        /**
          * Puts what the author queued into the transcript, in order: the messages as one message of the author, a command
          * is run (as the author, the agent did not call it) and what it said is a message of the author too.
          *
@@ -1251,7 +1393,12 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     : prompt + (who == Compaction.AGENT ? "\n\nYou asked the summary to stress: " : "\n\nThe author wants the summary to stress: ") + focus));
 
             Round round = ask(inference, profile, payload(history), tools);
-            run = runService.addUsage(run, round.usage().promptTokens(), round.usage().completionTokens());
+            changeLock.lock();
+            try {
+                run = runService.addUsage(run, round.usage().promptTokens(), round.usage().completionTokens());
+            } finally {
+                changeLock.unlock();
+            }
             progress.rounds = run.getRounds();
             progress.tokens = run.getTotalTokens();
             String text = StringUtils.defaultString(round.text()).strip();
@@ -1275,7 +1422,12 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             long summaryTokens = inference.countTokensApprox(summary.getContent());
             // what the next request will be: the system prompt and the tools as well, the model reports the real number then
             long tokens = estimate(payload(List.of(summary))) + toolTokens();
-            messageService.compact(run, summary, tokens);
+            changeLock.lock();
+            try {
+                messageService.compact(run, summary, tokens);
+            } finally {
+                changeLock.unlock();
+            }
             log.info("Agent run {}: {} message(s) compacted to a summary of {} tokens, about {} with the prompt and the tools ({} + {} tokens spent)",
                     run.getUuid(), transcript.size(), summaryTokens, tokens, round.usage().promptTokens(), round.usage().completionTokens());
             transcript.clear();
@@ -1360,7 +1512,9 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             }
             List<Queued> due;
             synchronized (inbox) {
-                due = inbox.takeThrough(inbox.forcedId());
+                // the author may have taken the message back after the round was thrown away: then nothing is due
+                String forcedId = inbox.forcedId();
+                due = forcedId == null ? List.of() : inbox.takeThrough(forcedId);
             }
             if (!due.isEmpty()) {
                 deliver(due, transcript);
@@ -1421,23 +1575,23 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         }
 
         private void append(List<LLMChatMessage> transcript, LLMChatMessage... messages) throws Exception {
-            messageService.append(run, List.of(messages));
+            // one writer of the database at a time: a sub-agent may be writing (SQLite fails the second writer)
+            changeLock.lock();
+            try {
+                messageService.append(run, List.of(messages));
+            } finally {
+                changeLock.unlock();
+            }
             transcript.addAll(List.of(messages));
         }
 
         private FunctionSet tools() throws Exception {
             VirtualFileSystem files = fileSystemService.open(run);
             this.files = files;
-            // what the commands return, whole, for the tool that saves it to a file
-            CommandResults commandResults = new CommandResults();
-            // the commands that send images to their own model take them from the files, whether this model sees them or not
             // the commands run on the working copy of the run, and the agent knows its items by handles, never by uuids
             CommandScope scope = commandScopes.forRun(run);
             CommandCage cage = new CommandCage(scope, pairService.translator(run, scope));
-            FunctionSet tools = CommandFunctions.forAgent(commandService, agent, l -> localization.getValue(l), this::approve,
-                            path -> files.readText(VirtualPath.parse(path)), commandResults,
-                            path -> files.readImage(VirtualPath.parse(path)).toAttachment(path), cage)
-                    .and(fileSystemService.getFileTools(files, commandResults))
+            FunctionSet tools = coreTools(files, cage)
                     .and(inferenceServices.getFunctionRegistry().bind(RunTools.class, runTools))
                     .and(inferenceServices.getFunctionRegistry().bind(CheckpointTools.class, checkpointTools));
             // a run the user did not change the book of has nothing to ask about: a tool that always answers "nothing" only
@@ -1451,8 +1605,34 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     }
                 })));
             }
+            if (maxSubagents > 0) {
+                // a sub-agent has the commands and the files of the agent, and nothing else: it can't start sub-agents of its own
+                subTools = coreTools(files, cage);
+                SubAgents pool = new SubAgents(maxSubagents);
+                subAgents = pool;
+                progress.subAgents = () -> "Sub-agents: " + pool.live() + " working of at most " + maxSubagents;
+                SubAgentToolsImpl subAgentTools = new SubAgentToolsImpl(pool, (sub, message) -> startSub(pool, sub, message));
+                tools = tools.and(inferenceServices.getFunctionRegistry().bind(SubAgentTools.class, subAgentTools));
+                if (maxSubagents > 1) {
+                    // with one, spawning waits for the sub-agent, there is nothing else to do with it
+                    tools = tools.and(inferenceServices.getFunctionRegistry().bind(SubAgentControlTools.class, subAgentTools));
+                }
+            }
             return seesImages ? tools.and(inferenceServices.getFunctionRegistry().bind(ImageTools.class, new ImageToolsImpl(files, shown)))
                     : tools;
+        }
+
+        /**
+         * The commands and the file tools, with the results of the commands kept for the tool that saves one to a file.
+         */
+        private FunctionSet coreTools(VirtualFileSystem files, CommandCage cage) {
+            // what the commands return, whole, for the tool that saves it to a file
+            CommandResults commandResults = new CommandResults();
+            // the commands that send images to their own model take them from the files, whether this model sees them or not
+            return CommandFunctions.forAgent(commandService, agent, l -> localization.getValue(l), this::approve,
+                            path -> files.readText(VirtualPath.parse(path)), commandResults,
+                            path -> files.readImage(VirtualPath.parse(path)).toAttachment(path), cage)
+                    .and(fileSystemService.getFileTools(files, commandResults));
         }
 
         /**
@@ -1599,12 +1779,34 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             if (run.isInteractive()) {
                 system.append("\n\n").append(Defaults.AGENT_INTERACTIVE_NOTE.strip());
             }
+            if (maxSubagents > 0) {
+                system.append("\n\n").append(String.format(Defaults.AGENT_SUBAGENTS_NOTE.strip(), maxSubagents,
+                        maxSubagents == 1 ? Defaults.AGENT_SUBAGENTS_NOTE_ONE : Defaults.AGENT_SUBAGENTS_NOTE_MANY, requestSlots.cap()));
+            }
             if (progress.contextCap > 0 || progress.responseCap > 0) {
                 system.append("\n\n").append(limitsNote());
             }
             List<LLMChatMessage> payload = new ArrayList<>();
             payload.add(LLMChatMessage.of(LLMRole.SYSTEM, system.toString()));
             payload.addAll(withImages(coalesced(transcript)));
+            return payload;
+        }
+
+        /**
+         * What a sub-agent is sent: the prompt and the instructions of the agent, the note of the sub-agent, and its own conversation.
+         */
+        private List<LLMChatMessage> subPayload(List<LLMChatMessage> conversation) {
+            StringBuilder system = new StringBuilder(StringUtils.defaultString(systemPrompt).strip());
+            if (StringUtils.isNotBlank(instructions)) {
+                system.append("\n\n# Instructions of the author\n\n").append(instructions.strip());
+            }
+            system.append("\n\n").append(Defaults.AGENT_SUBAGENT_NOTE.strip());
+            if (progress.contextCap > 0 || progress.responseCap > 0) {
+                system.append("\n\n").append(limitsNote());
+            }
+            List<LLMChatMessage> payload = new ArrayList<>();
+            payload.add(LLMChatMessage.of(LLMRole.SYSTEM, system.toString()));
+            payload.addAll(coalesced(conversation));
             return payload;
         }
 
@@ -1641,20 +1843,33 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
 
         private Round ask(InferenceService inference, ResolvedProfile profile, List<LLMChatMessage> payload,
                           FunctionSet tools) throws Exception {
-            // a model with a cap of requests lets the runs take turns; waiting is part of the round (a pause, a stop and a forced message find it)
-            CompletableFuture<AIGate.Permit> place = aiGate.acquire(profile.ai());
-            if (!place.isDone()) {
-                log.info("Agent run {} waits for a place at the AI {} ({} waiting)", runId, profile.ai().getUuid(), aiGate.waiting(profile.ai()));
+            return ask(inference, profile, payload, tools, this::await);
+        }
+
+        private Round ask(InferenceService inference, ResolvedProfile profile, List<LLMChatMessage> payload,
+                          FunctionSet tools, Waiter waiter) throws Exception {
+            // the run has a cap of requests in the air, its agent and sub-agents take turns (a wait in a queue is part of the round: a
+            // pause, a stop and a forced message find it)
+            CompletableFuture<AIGate.Permit> turn = requestSlots.acquire();
+            if (!turn.isDone()) {
+                log.info("Agent run {} waits for a turn to ask the model ({} waiting, {} in the air)", runId, requestSlots.waiting(), requestSlots.active());
             }
-            try (AIGate.Permit _ = await(place, () -> place.cancel(true), true)) {
-                return request(inference, profile, payload, tools);
+            try (AIGate.Permit _ = waiter.await(turn, () -> turn.cancel(true), true)) {
+                // a model with a cap of requests lets the runs take turns
+                CompletableFuture<AIGate.Permit> place = aiGate.acquire(profile.ai());
+                if (!place.isDone()) {
+                    log.info("Agent run {} waits for a place at the AI {} ({} waiting)", runId, profile.ai().getUuid(), aiGate.waiting(profile.ai()));
+                }
+                try (AIGate.Permit _ = waiter.await(place, () -> place.cancel(true), true)) {
+                    return request(inference, profile, payload, tools, waiter);
+                }
             } catch (ExecutionException e) {
                 throw e.getCause() instanceof Exception cause ? cause : e;
             }
         }
 
         private Round request(InferenceService inference, ResolvedProfile profile, List<LLMChatMessage> payload,
-                              FunctionSet tools) throws Exception {
+                              FunctionSet tools, Waiter waiter) throws Exception {
             CompletableFuture<Round> answer = new CompletableFuture<>();
             CancellationToken token = inference.round(payload, profile.protocol(), tools, new InferenceService.InferenceRoundCallback() {
                 @Override
@@ -1678,7 +1893,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 }
             });
             try {
-                return await(answer, token::cancel);
+                return waiter.await(answer, token::cancel, false);
             } catch (ExecutionException e) {
                 throw e.getCause() instanceof Exception cause ? cause : e;
             }
@@ -1694,9 +1909,19 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 }
             }, executor);
             AtomicReference<Boolean> canceled = new AtomicReference<>(false);
-            CompletableFuture<String> answer = tools.call(call.getName(), call.getArguments(), onThread, canceled::get);
+            boolean locked = changes(call);
+            if (locked) {
+                lockChanges();
+            }
             try {
-                return await(answer, () -> canceled.set(true));
+                try {
+                    CompletableFuture<String> answer = tools.call(call.getName(), call.getArguments(), onThread, canceled::get);
+                    return await(answer, () -> canceled.set(true));
+                } finally {
+                    if (locked) {
+                        changeLock.unlock();
+                    }
+                }
             } catch (ExecutionException e) {
                 Throwable error = e.getCause();
                 if (error instanceof FunctionCallException failure && failure.getKind() != FunctionCallException.Kind.FAILED) {
@@ -1750,6 +1975,226 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     throw new ExecutionException(e);
                 }
             }
+        }
+
+        // ------------------------------------------------------------------ sub-agents
+
+        /**
+         * Waits for the lock of the calls that change the book or the workspace, as the agent does: a pause at once, a forced
+         * message and a run thrown away end the wait.
+         */
+        private void lockChanges() throws Exception {
+            while (!changeLock.tryLock(POLL_MILLIS, TimeUnit.MILLISECONDS)) {
+                if (interrupts.contains(runId)) {
+                    throw new Interrupted();
+                }
+                if (!ignoreForce && inbox != null && inbox.isForced()) {
+                    throw new Forced();
+                }
+                AgentRun current = runService.find(runId);
+                if (current == null || current.isDeleted() || current.getStatus() == AgentRunStatus.STOPPED_DISCARDED) {
+                    throw new Discarded();
+                }
+            }
+        }
+
+        /**
+         * Starts the loop of a sub-agent on a thread of its own.
+         */
+        private void startSub(SubAgents pool, Sub sub, String message) {
+            log.info("Agent run {}: sub-agent {} is started ({} of {} working)", run.getUuid(), sub.handle(), pool.live(), maxSubagents);
+            executor.execute(() -> runSub(pool, sub, message));
+        }
+
+        private void runSub(SubAgents pool, Sub sub, String message) {
+            try (InRequestScope _ = new InRequestScope(attributes)) {
+                String answer = subLoop(sub, message);
+                pool.finish(sub, State.DONE, answer);
+            } catch (SubStopped e) {
+                pool.finish(sub, e.state, e.getMessage());
+            } catch (Throwable e) {
+                log.warn("Agent run {}: sub-agent {} failed", runId, sub.handle(), e);
+                pool.finish(sub, State.FAILED, "It failed: " + messageOf(e));
+            } finally {
+                // a sub-agent never ends without a state, the agent waits for it
+                pool.finish(sub, State.FAILED, "It ended without an answer.");
+                log.info("Agent run {}: sub-agent {} is {} after {} round(s), {} tokens", runId, sub.handle(), sub.state().name().toLowerCase(),
+                        sub.rounds(), sub.tokens());
+            }
+        }
+
+        /**
+         * The conversation of a sub-agent: it asks the model and makes the calls until the model answers with a text, which is its
+         * answer. Nothing of it is stored: it lives while the worker does. Every request counts in the budgets of the run.
+         *
+         * @return the answer
+         * @throws SubStopped when it was canceled, the run was paused or thrown away, or a limit of the run was reached
+         */
+        private String subLoop(Sub sub, String message) throws Exception {
+            List<LLMChatMessage> conversation = new ArrayList<>();
+            conversation.add(LLMChatMessage.of(LLMRole.USER, message));
+            Waiter waiter = new Waiter() {
+                @Override
+                public <T> T await(CompletableFuture<T> future, Runnable cancel, boolean queued) throws Exception {
+                    return awaitSub(future, cancel, sub);
+                }
+            };
+            int rounds = 0;
+            long tokens = 0;
+            long contextTokens = 0;
+            while (true) {
+                checkSub(sub);
+                if (rounds >= Defaults.AGENT_SUBAGENT_MAX_ROUNDS) {
+                    throw new SubStopped(State.FAILED, "It used all its " + Defaults.AGENT_SUBAGENT_MAX_ROUNDS + " rounds without an answer.");
+                }
+                AgentRun current = runService.find(runId);
+                if (progress.maxRounds > 0 && current.getRounds() >= progress.maxRounds) {
+                    throw new SubStopped(State.FAILED, "The run used all its " + progress.maxRounds + " rounds.");
+                }
+                if (runService.isBudgetExceeded(current)) {
+                    throw new SubStopped(State.FAILED, "The run spent its budget of " + progress.tokenBudget + " tokens.");
+                }
+                if (progress.contextCap > 0 && contextTokens >= progress.contextCap) {
+                    throw new SubStopped(State.FAILED, "Its context is full (" + contextTokens + " of " + progress.contextCap
+                            + " tokens), the task is too big for one sub-agent.");
+                }
+                Round round;
+                try {
+                    round = limitCalls(ask(inference, profile, subPayload(conversation), subTools, waiter));
+                } catch (SubStopped e) {
+                    throw e;
+                } catch (Discarded e) {
+                    throw new SubStopped(State.CANCELLED, "The run was thrown away.");
+                } catch (Exception e) {
+                    log.warn("The model of agent run {} could not be asked for sub-agent {}: {}", runId, sub.handle(), e.getMessage());
+                    throw new SubStopped(State.FAILED, "The model could not be asked: " + messageOf(e));
+                }
+                AgentRun counted;
+                while (!changeLock.tryLock(POLL_MILLIS, TimeUnit.MILLISECONDS)) {
+                    checkSub(sub);
+                }
+                try {
+                    counted = runService.addUsage(current, round.usage().promptTokens(), round.usage().completionTokens());
+                } finally {
+                    changeLock.unlock();
+                }
+                progress.rounds = counted.getRounds();
+                progress.tokens = counted.getTotalTokens();
+                rounds++;
+                tokens += round.usage().promptTokens() + round.usage().completionTokens();
+                contextTokens = round.usage().promptTokens() + round.usage().completionTokens();
+                sub.progress(rounds, tokens, null);
+                if (round.calls().isEmpty()) {
+                    String text = StringUtils.defaultString(round.text()).strip();
+                    return text.isEmpty() ? "(The sub-agent gave no answer.)" : text;
+                }
+                conversation.add(LLMChatMessage.ofToolCalls(StringUtils.isEmpty(round.text()) ? null : round.text(), round.calls()));
+                for (LLMToolCall call : round.calls()) {
+                    checkSub(sub);
+                    long began = System.currentTimeMillis();
+                    String result = callSub(call, sub);
+                    log.info("Agent run {}: sub-agent {} {} {} in {} ms ({} characters)", runId, sub.handle(), call.getName(),
+                            result.startsWith("Error:") ? "failed" : "done", System.currentTimeMillis() - began, result.length());
+                    conversation.add(LLMChatMessage.ofToolResult(call.getId(), result));
+                    sub.progress(rounds, tokens, call.getName());
+                }
+            }
+        }
+
+        /**
+         * One call of a sub-agent, as {@link #call} for the agent: the calls that change something run one at a time.
+         */
+        private String callSub(LLMToolCall call, Sub sub) throws Exception {
+            Executor onThread = task -> CompletableFuture.runAsync(() -> {
+                try (InRequestScope _ = new InRequestScope(attributes)) {
+                    task.run();
+                }
+            }, executor);
+            AtomicReference<Boolean> canceled = new AtomicReference<>(false);
+            boolean locked = changes(call);
+            if (locked) {
+                while (!changeLock.tryLock(POLL_MILLIS, TimeUnit.MILLISECONDS)) {
+                    checkSub(sub);
+                }
+                dirty = true;
+            }
+            try {
+                CompletableFuture<String> answer = subTools.call(call.getName(), call.getArguments(), onThread, canceled::get);
+                return awaitSub(answer, () -> canceled.set(true), sub);
+            } catch (ExecutionException e) {
+                Throwable error = e.getCause();
+                if (error instanceof FunctionCallException failure && failure.getKind() != FunctionCallException.Kind.FAILED) {
+                    log.info("Call of function {} by sub-agent {} refused: {}", call.getName(), sub.handle(), failure.getMessage());
+                } else {
+                    log.warn("Function {} called by sub-agent {} failed", call.getName(), sub.handle(), error);
+                }
+                return "Error: " + messageOf(error);
+            } finally {
+                if (locked) {
+                    changeLock.unlock();
+                }
+            }
+        }
+
+        /**
+         * Waits for the future for a sub-agent: its cancel, the run being paused, stopped or thrown away end the wait.
+         */
+        private <T> T awaitSub(CompletableFuture<T> future, Runnable cancel, Sub sub) throws Exception {
+            while (true) {
+                try {
+                    checkSub(sub);
+                    return future.get(POLL_MILLIS, TimeUnit.MILLISECONDS);
+                } catch (TimeoutException e) {
+                    // looks again
+                } catch (SubStopped e) {
+                    cancel.run();
+                    throw e;
+                } catch (CancellationException e) {
+                    throw new ExecutionException(e);
+                }
+            }
+        }
+
+        /**
+         * Ends the sub-agent, at a stable point, when it was canceled or the run is not working any more.
+         */
+        private void checkSub(Sub sub) throws Exception {
+            if (sub.isCancelRequested()) {
+                throw new SubStopped(State.CANCELLED, "It was canceled.");
+            }
+            if (interrupts.contains(runId)) {
+                throw new SubStopped(State.CANCELLED, "The author paused the run at once.");
+            }
+            AgentRun current = runService.find(runId);
+            if (current == null || current.isDeleted() || current.getStatus() == AgentRunStatus.STOPPED_DISCARDED) {
+                throw new SubStopped(State.CANCELLED, "The run was thrown away.");
+            }
+            if (current.getStatus() != AgentRunStatus.RUNNING && current.getStatus() != AgentRunStatus.WAITING_APPROVAL) {
+                throw new SubStopped(State.CANCELLED, "The run was " + (current.getStatus() == AgentRunStatus.PAUSING
+                        || current.getStatus() == AgentRunStatus.PAUSED ? "paused" : "stopped or ended") + " before it was done.");
+            }
+        }
+
+        /**
+         * Stops the sub-agents that work and waits (a little) for their threads: they use the session of the run.
+         *
+         * @return whether any was working
+         */
+        private boolean stopSubAgents() {
+            SubAgents agents = subAgents;
+            if (agents == null) {
+                return false;
+            }
+            subAgents = null;
+            progress.subAgents = null;
+            boolean working = agents.live() > 0;
+            agents.cancelAll();
+            try {
+                agents.allFinished().get(30, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                log.warn("Agent run {}: the sub-agents did not stop in time: {}", runId, e.getMessage());
+            }
+            return working;
         }
 
         // ------------------------------------------------------------------ the status

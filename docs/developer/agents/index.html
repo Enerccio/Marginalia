@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845761354262">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845787827798">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845761354262" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845787827798" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845761354262" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845787827798" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845761354262" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845787827798" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -433,7 +433,7 @@ or a user with the granted permission <code translate="no" v-pre>AGENTS</code>),
 manuscript of an existing agent is not changed, the instructions are at most <code translate="no" v-pre>MAX_INSTRUCTIONS_LENGTH</code>, there are at most
 <code translate="no" v-pre>MAX_MODEL_PROFILES</code> profiles with unique non-blank roles and positive limits; names, roles and the allowed commands are trimmed (commands
 also de-duplicated). It does not check that the AI and protocol of a profile exist: <code translate="no" v-pre>resolveProfile(profile)</code> does, when the agent is used.
-An existing agent can be edited after the permission was taken away, it can&#x27;t run. <code translate="no" v-pre>getGrant(user)</code> is an <code translate="no" v-pre>AgentGrant(allowed, maxConcurrentRuns, runTokenBudget, maxAgents, maxCopies, maxFileBytes, maxWorkspaceBytes, maxWorkspaceFiles)</code>: everything for an administrator (the
+An existing agent can be edited after the permission was taken away, it can&#x27;t run. <code translate="no" v-pre>getGrant(user)</code> is an <code translate="no" v-pre>AgentGrant(allowed, maxConcurrentRuns, runTokenBudget, maxAgents, maxCopies, maxFileBytes, maxWorkspaceBytes, maxWorkspaceFiles, maxCheckpointBytes, maxConcurrency)</code>: everything for an administrator (the
 quotas are the defaults), else the settings of the <code translate="no" v-pre>AGENTS</code> permission (1 run, no budget, <code translate="no" v-pre>DEFAULT_MAX_AGENTS</code> = 5 agents when not set; the <strong>quotas</strong> are
 <code translate="no" v-pre>Permission.agentsMaxCopies</code>, <code translate="no" v-pre>agentsMaxFileKb</code>, <code translate="no" v-pre>agentsMaxWorkspaceMb</code>, <code translate="no" v-pre>agentsMaxWorkspaceFiles</code>, where none, zero or below is the default: no limit of copies,
 and the <code translate="no" v-pre>WorkspaceLimits</code> of the application for the files; the four argument constructor of the record keeps the old callers). <code translate="no" v-pre>AgentRunService.start</code> (and
@@ -528,9 +528,9 @@ closes it (<code translate="no" v-pre>close()</code> runs the destruction callba
 does nothing when a worker has it already): it registers the worker with <code translate="no" v-pre>workerStarted</code> before the thread starts, so a pause asked at once waits for it.
 <code translate="no" v-pre>send(run, text)</code> is the message of the user to an <code translate="no" v-pre>IDLE</code> run (<code translate="no" v-pre>IDLE</code> to <code translate="no" v-pre>RUNNING</code>, the message appended, a worker started); to a <em>conversation</em>
 (<code translate="no" v-pre>run.isInteractive()</code>) that is <code translate="no" v-pre>RUNNING</code>, <code translate="no" v-pre>WAITING_APPROVAL</code> or <code translate="no" v-pre>PAUSING</code> it queues the message in the run&#x27;s <code translate="no" v-pre>Inbox</code> (in memory, by run id, like the approvals;
-<code translate="no" v-pre>queued(run)</code> lists them as <code translate="no" v-pre>QueuedMessage(id, text)</code>). The worker reads the queue where it would end the turn (<code translate="no" v-pre>endTurn</code>: no tool call, <code translate="no" v-pre>finish</code>, <code translate="no" v-pre>ask_user</code>): under the
+<code translate="no" v-pre>queued(run)</code> lists them as <code translate="no" v-pre>QueuedMessage(id, text)</code>). The worker reads the <strong>messages</strong> of the queue at the top of every iteration of the loop (<code translate="no" v-pre>deliverQueuedMessages</code>: the leading messages up to the first command, <code translate="no" v-pre>Inbox.takeMessages</code>, as one <code translate="no" v-pre>USER</code> message, so the next request has them), and everything, commands included, where it would end the turn (<code translate="no" v-pre>endTurn</code>: no tool call, <code translate="no" v-pre>finish</code>, <code translate="no" v-pre>ask_user</code>): under the
 lock of the <code translate="no" v-pre>Inbox</code> it either appends all queued messages as one <code translate="no" v-pre>USER</code> message and goes on, or moves the run to <code translate="no" v-pre>IDLE</code>; <code translate="no" v-pre>enqueue</code> takes the same lock and re-reads the status, so a
-message is never left queued on an <code translate="no" v-pre>IDLE</code> run (it is sent as usual there). A resumed run delivers them instead of the resume message (<code translate="no" v-pre>prepare</code>). <code translate="no" v-pre>force(run, id)</code> sets the
+message is never left queued on an <code translate="no" v-pre>IDLE</code> run (it is sent as usual there). A resumed run delivers them instead of the resume message (<code translate="no" v-pre>prepare</code>). <code translate="no" v-pre>cancelQueued(run, id)</code> removes an item from the <code translate="no" v-pre>Inbox</code> (<code translate="no" v-pre>Inbox.remove</code>; false when it was delivered meanwhile; a wish to force that item goes with it, and <code translate="no" v-pre>deliverForced</code> then delivers nothing). <code translate="no" v-pre>force(run, id)</code> sets the
 wish in the <code translate="no" v-pre>Inbox</code> (or sends at once if the run is <code translate="no" v-pre>IDLE</code>): <code translate="no" v-pre>await</code> sees it every <code translate="no" v-pre>POLL_MILLIS</code> and throws <code translate="no" v-pre>Forced</code>, which cancels the request or the call; the calls of the round that
 were written to the transcript get <code translate="no" v-pre>AGENT_FORCED_CALL</code> (the one in flight) / <code translate="no" v-pre>AGENT_SKIPPED_CALL</code> results, <code translate="no" v-pre>rejectAll</code> refuses a waiting approval (the worker moves the run back to
 <code translate="no" v-pre>RUNNING</code> itself first: two writers of SQLite at once fail), and the messages up to the forced one are appended (<code translate="no" v-pre>deliverForced</code>). An answer of the model that was not complete is not
@@ -579,6 +579,43 @@ message is not stored.</p>
 <p><code translate="no" v-pre>InferenceService.round(payload, protocol, functions, callback)</code> is what the runner uses instead of <code translate="no" v-pre>stream</code>/<code translate="no" v-pre>infer</code>: one non-streaming request that reports the
 text, the calls the model asked for (they are not called) and the tokens (the provider&#x27;s, otherwise ours), with the limits and the usage of the user as for any
 request. Services that can&#x27;t do it throw <code translate="no" v-pre>UnsupportedOperationException</code>.</p>
+<h2 id="sub-agents">Sub-agents</h2>
+<p>A sub-agent is a thread of the run, not a run: same working copy, workspace, budgets, pause and stop state; only the conversation is its own, and it is <strong>not stored</strong>
+(it lives in the memory of the worker; the console shows nothing of it). Limits: <code translate="no" v-pre>Agent.maxSubagents</code> (an extended attribute, 0..<code translate="no" v-pre>AgentService.MAX_SUBAGENTS</code> = 10,
+checked in <code translate="no" v-pre>AgentServiceImpl.validate</code>; null or zero offers no tools) read by <code translate="no" v-pre>AgentRunService.getMaxSubagents(run)</code>, and the permission setting <strong>Requests to the model at once</strong>
+(<code translate="no" v-pre>Permission.agentsMaxConcurrency</code>, <code translate="no" v-pre>AgentGrant.maxConcurrency</code>, at least 1, one when not set, unlimited for an administrator) read by <code translate="no" v-pre>AgentRunService.getMaxConcurrency(run)</code>.</p>
+<ul>
+<li>
+<p><strong>Tools.</strong> <code translate="no" v-pre>SubAgentTools</code> (<code translate="no" v-pre>spawn_agent(task, context?)</code>) is bound when <code translate="no" v-pre>maxSubagents &gt; 0</code>, <code translate="no" v-pre>SubAgentControlTools</code> (<code translate="no" v-pre>await_agent</code>, <code translate="no" v-pre>agent_status</code>, <code translate="no" v-pre>cancel_agent</code>) only when it is more than 1
+(with one, <code translate="no" v-pre>spawn_agent</code> waits by itself). Both are implemented by <code translate="no" v-pre>SubAgentToolsImpl</code> over <code translate="no" v-pre>SubAgents</code>, the registry of the worker (<code translate="no" v-pre>Sub</code> = handle <code translate="no" v-pre>subN</code>, task, state <code translate="no" v-pre>RUNNING</code> /
+<code translate="no" v-pre>DONE</code> / <code translate="no" v-pre>FAILED</code> / <code translate="no" v-pre>CANCELLED</code>, result, rounds, tokens, last action, a <code translate="no" v-pre>finished</code> future). <code translate="no" v-pre>spawn_agent</code> creates the <code translate="no" v-pre>Sub</code>, hands it to the runner (<code translate="no" v-pre>Worker.startSub</code>) and answers at once
+while <code translate="no" v-pre>live() &lt; max</code>; the call that fills the last place is kept (<code translate="no" v-pre>SubAgents.whenSlotFree</code>) and completes, from the thread of the sub-agent that ends, with the results of what ended meanwhile
+(a limit of one: its own answer). A call that finds the limit reached already (one that was cut off) waits for a place first. <code translate="no" v-pre>await_agent</code> completes from the <code translate="no" v-pre>finished</code> future, with an optional timeout.
+The tools are <code translate="no" v-pre>FunctionContinuation</code>s: waiting holds no thread. The system message of the agent says the limits (<code translate="no" v-pre>Defaults.AGENT_SUBAGENTS_NOTE</code>), the results are cut at <code translate="no" v-pre>Defaults.AGENT_SUBAGENT_RESULT_CHARS</code>.</p>
+</li>
+<li>
+<p><strong>The loop</strong> is <code translate="no" v-pre>Worker.subLoop</code> on a thread of the pool, in <code translate="no" v-pre>InRequestScope</code> of the same <code translate="no" v-pre>AgentRequestAttributes</code>: system message of the agent plus <code translate="no" v-pre>Defaults.AGENT_SUBAGENT_NOTE</code>, the task as the
+first message, <code translate="no" v-pre>InferenceService.round</code> with <code translate="no" v-pre>subTools</code> (the commands and the file tools of the agent - <strong>no run tools, checkpoint tools, sync or image tools, and no sub-agent tools</strong>, so no sub-agent
+can spawn), the calls one after another, a round without calls is the answer. At most <code translate="no" v-pre>Defaults.AGENT_SUBAGENT_MAX_ROUNDS</code>, and the limits of the run (<code translate="no" v-pre>maxRounds</code>, <code translate="no" v-pre>isBudgetExceeded</code>, the context cap -
+no compaction) fail it with a reason; every request is added to the run (<code translate="no" v-pre>addUsage</code>). <code translate="no" v-pre>checkSub</code> runs before every request, call and poll: a cancel, <code translate="no" v-pre>interrupts</code>, a run that is not <code translate="no" v-pre>RUNNING</code> /
+<code translate="no" v-pre>WAITING_APPROVAL</code> or was thrown away ends it as <code translate="no" v-pre>CANCELLED</code> (<code translate="no" v-pre>SubStopped</code>).</p>
+</li>
+<li>
+<p><strong>Requests.</strong> <code translate="no" v-pre>Worker.ask</code> takes a place of the run&#x27;s <code translate="no" v-pre>RequestSlots</code> (the cap above; a FIFO queue like <code translate="no" v-pre>AIGate</code>, in memory) and then the <code translate="no" v-pre>AIGate</code> place of the AI, for the agent and the sub-agents alike (<code translate="no" v-pre>Waiter</code> abstracts how
+each waits: the agent reacts to a pause at once and a forced message, a sub-agent to <code translate="no" v-pre>checkSub</code>). A sub-agent that waits for a turn is cancelable.</p>
+</li>
+<li>
+<p><strong>One writer.</strong> SQLite fails the second writer at once (<code translate="no" v-pre>SQLITE_BUSY</code>), and the sub-agents are threads of one run. So <code translate="no" v-pre>Worker.changeLock</code> (a fair <code translate="no" v-pre>ReentrantLock</code>) is held by every call that <code translate="no" v-pre>changes(call)</code>
+(not the run tools, not the reading commands, not the sub-agent tools), by the automatic checkpoint, and by the small writes of the run (<code translate="no" v-pre>append</code>, <code translate="no" v-pre>appendAnswer</code>, <code translate="no" v-pre>addUsage</code>, <code translate="no" v-pre>compact</code>). A wait for it is
+pollable (<code translate="no" v-pre>lockChanges</code>, <code translate="no" v-pre>checkSub</code>). A sub-agent that changes something sets <code translate="no" v-pre>dirty</code>, so the next round of the agent gets its automatic checkpoint. The status changes of an <code translate="no" v-pre>ASK</code> approval are still not under the lock
+(they run on the thread of the call).</p>
+</li>
+<li>
+<p><strong>End.</strong> <code translate="no" v-pre>stopSubAgents</code> (cancel all, wait up to 30 s: they use the session of the run) runs when the worker ends, before a <code translate="no" v-pre>checkpoint_restore</code> (they work in the book that is replaced; the agent is told) and <code translate="no" v-pre>finish</code> /
+<code translate="no" v-pre>ask_user</code> cancel them; a plain reply while some work gets <code translate="no" v-pre>Defaults.AGENT_SUBAGENTS_STILL_WORKING</code> once. After a pause the call of the agent that waited for a sub-agent has the result <code translate="no" v-pre>was stopped</code>.</p>
+</li>
+</ul>
+<p>Not done: the transcript of a sub-agent in the console (it needs a thread column in <code translate="no" v-pre>agent_messages</code>), another profile (<code translate="no" v-pre>profile</code> argument) for a sub-agent, images for a sub-agent, <code translate="no" v-pre>message_agent</code>, a sub-agent that survives a pause.</p>
 <h2 id="what-the-model-is-told">What the model is told</h2>
 <p>The model gets, in every request, a system message built by <code translate="no" v-pre>AgentRunnerImpl.Worker.payload</code> from these parts, in this order, and the transcript after it.
 The system message is <strong>never stored</strong>: it is made again for every round, so a change in <code translate="no" v-pre>Defaults</code> reaches a run that is resumed.</p>
@@ -706,11 +743,12 @@ whose book did not change takes 0.1 s and writes nothing; one with a hundred cha
 <p>The screen is <code translate="no" v-pre>AgentMergeDialog</code>: a multi-select grid of the items beside the detail of the one clicked (the text of the book and an editable box of the text to apply, the added and removed values of a set), opened from
 the Agents tab and the console (<code translate="no" v-pre>Review changes</code>). It keeps the picks consistent with <code translate="no" v-pre>dependsOn</code> and refuses to pick a <code translate="no" v-pre>problem</code> item.</p>
 <h2 id="the-tools-of-an-agent">The tools of an agent</h2>
-<p><code translate="no" v-pre>AgentRunnerImpl.Worker.tools()</code> puts three function sets together with <code translate="no" v-pre>FunctionSet.and</code> (a function name used twice fails the run):</p>
+<p><code translate="no" v-pre>AgentRunnerImpl.Worker.tools()</code> puts the function sets together with <code translate="no" v-pre>FunctionSet.and</code> (a function name used twice fails the run):</p>
 <div id="the-tools-of-an-agent-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-none"><code v-pre class="language-none">CommandFunctions.forAgent(...)                    the commands the agent is allowed
   .and(fileSystemService.getFileTools(files, results))   list_files, read_file, write_file, ..., save_command_result
   .and(registry.bind(RunTools.class, runTools))          finish, ask_user, update_plan, get_run_status
+  .and(registry.bind(SubAgentTools.class, ...))          spawn_agent (and SubAgentControlTools with more than one), only when the agent has sub-agents, see [Sub-agents](#sub-agents)
   .and(registry.bind(ImageTools.class, ...))             view_image, only when the main profile has images</code></pre>
 </doc-codeblock></div>
 <p>A round is one <strong>non-streaming</strong> request (<code translate="no" v-pre>InferenceService.round</code>) that answers with text, the calls the model asked for (they are not called by the
@@ -1088,8 +1126,7 @@ model, so a whole run is tested without a network. The main classes: <code trans
 </div>
 </retype-table>
 <p>Not done: a read only window of the working copy, the sync of the changes of the book into the copy on resume, summaries of
-older rounds when the context is full (the run pauses instead), &quot;Pause now&quot; (the request in the air is waited for), a limit of concurrent requests per AI, threads
-(sub-agents) and handles, stopping a running <code translate="no" v-pre>async</code> command when its run stops.</p>
+older rounds when the context is full (the run pauses instead), stopping a running <code translate="no" v-pre>async</code> command when its run stops.</p>
 
                 
                 <!-- Required only on API pages -->
@@ -1127,7 +1164,7 @@ older rounds when the context is full (the run pauses instead), &quot;Pause now&
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (40d1602f).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (77fc4ed9).</p></div>
             </footer>
         </div>
     </div>

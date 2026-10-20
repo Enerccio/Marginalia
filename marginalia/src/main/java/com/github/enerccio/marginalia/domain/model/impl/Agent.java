@@ -122,6 +122,14 @@ public class Agent extends ExtendableEntity {
     @ExtendedAttribute
     private Boolean useAgentModel;
 
+    /**
+     * How many sub-agents the agent can have working at once; null or zero is none, the agent gets no tools to spawn them.
+     * With one, spawning waits for the sub-agent to finish; with more, the call returns a handle at once, until the limit is reached.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Integer maxSubagents;
+
     public String getName() {
         return name;
     }
@@ -238,6 +246,14 @@ public class Agent extends ExtendableEntity {
 
     public void setAutoCompactPercent(Integer autoCompactPercent) {
         this.autoCompactPercent = autoCompactPercent;
+    }
+
+    public Integer getMaxSubagents() {
+        return maxSubagents;
+    }
+
+    public void setMaxSubagents(Integer maxSubagents) {
+        this.maxSubagents = maxSubagents;
     }
 
     public Integer getContextCap() {

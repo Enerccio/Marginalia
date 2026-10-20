@@ -51,7 +51,7 @@ class AgentServiceTest extends AgentTestBase {
         loginAdmin();
 
         assertThat(agentService.isAllowed()).isTrue();
-        assertThat(agentService.getGrant(currentUser)).isEqualTo(new AgentGrant(true, Integer.MAX_VALUE, 0, Integer.MAX_VALUE));
+        assertThat(agentService.getGrant(currentUser)).isEqualTo(new AgentGrant(true, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, 0, 0, 0, 0, 0, Integer.MAX_VALUE));
         assertThat(agent().getId()).isNotNull();
     }
 

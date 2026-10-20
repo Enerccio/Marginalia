@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845761354262">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845787827798">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845761354262" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845787827798" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845761354262" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845787827798" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845761354262" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845787827798" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -178,7 +178,7 @@ administrators <a href="../../inference-providers/#shared-providers">share</a>).
 |---|---|---|
 | **Create own models** | Adding [inference providers](../inference-providers.md): without it the user can only use the providers the administrators share, the providers they already have keep working and can still be edited. | |
 | **Help assistant** | Asking the [help assistant](help-assistant.md), the chat that answers from the manual. | **Apply limits** and **Allow navigating the interface**, see [Settings of a permission](#settings-of-a-permission). |
-| **Agents** | The [Agents](../agents.md) tab: creating agents, cloning them and running them on a book. | **Most agents**, **Concurrent runs**, **Token budget of a run** and the quotas of copies and files, see [Settings of a permission](#settings-of-a-permission). |">
+| **Agents** | The [Agents](../agents.md) tab: creating agents, cloning them and running them on a book. | **Most agents**, **Concurrent runs**, **Requests to the model at once**, **Token budget of a run** and the quotas of copies and files, see [Settings of a permission](#settings-of-a-permission). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -202,7 +202,7 @@ administrators <a href="../../inference-providers/#shared-providers">share</a>).
 <tr>
 <td><strong>Agents</strong></td>
 <td>The <a href="../../agents/">Agents</a> tab: creating agents, cloning them and running them on a book.</td>
-<td><strong>Most agents</strong>, <strong>Concurrent runs</strong>, <strong>Token budget of a run</strong> and the quotas of copies and files, see <doc-anchor-trigger to="#settings-of-a-permission">Settings of a permission</doc-anchor-trigger>.</td>
+<td><strong>Most agents</strong>, <strong>Concurrent runs</strong>, <strong>Requests to the model at once</strong>, <strong>Token budget of a run</strong> and the quotas of copies and files, see <doc-anchor-trigger to="#settings-of-a-permission">Settings of a permission</doc-anchor-trigger>.</td>
 </tr>
 </tbody>
 </table>
@@ -309,6 +309,7 @@ nothing and does not count as an unsaved change.</p>
 |---|---|
 | **Most agents** | How many agents the user can have, the clones of an agent included. Five when empty. Zero lets the user keep and run their agents, but not create or clone another one. A deleted agent frees its place. |
 | **Concurrent runs** | How many runs of the user can work at the same time. One when empty. |
+| **Requests to the model at once (per run)** | How many requests to the model one run can have in the air at the same time, the agent and its [sub-agents](../agents.md#sub-agents) together. One when empty: while a sub-agent asks the model the agent waits, and the other way round. More lets sub-agents work in parallel with the agent (the model of the agent may have its own [cap of requests](../inference-providers.md#general-settings) too, which applies as well). |
 | **Token budget of a run** | The most tokens (sent and generated) one run of the user can spend. Empty or zero is no limit. |
 | **Working copies** | How many working copies of books the runs of the user keep at the same time. A run that is not finished keeps its copy, a paused one too, and gives it back when it is finished, stopped or deleted. Empty or zero is no limit besides the number of agents. |
 | **Largest file (KB)** | The largest file an agent of the user can write to its workspace. 1024 (1 MB) when empty. |
@@ -331,6 +332,10 @@ nothing and does not count as an unsaved change.</p>
 <tr>
 <td><strong>Concurrent runs</strong></td>
 <td>How many runs of the user can work at the same time. One when empty.</td>
+</tr>
+<tr>
+<td><strong>Requests to the model at once (per run)</strong></td>
+<td>How many requests to the model one run can have in the air at the same time, the agent and its <a href="../../agents/#sub-agents">sub-agents</a> together. One when empty: while a sub-agent asks the model the agent waits, and the other way round. More lets sub-agents work in parallel with the agent (the model of the agent may have its own <a href="../../inference-providers/#general-settings">cap of requests</a> too, which applies as well).</td>
 </tr>
 <tr>
 <td><strong>Token budget of a run</strong></td>
@@ -403,7 +408,7 @@ changes for them until you change it; users you add from now on start with no pe
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (40d1602f).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (77fc4ed9).</p></div>
             </footer>
         </div>
     </div>

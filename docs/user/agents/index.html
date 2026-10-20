@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845761354262">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845787827798">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845761354262" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845787827798" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845761354262" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845787827798" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845761354262" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845787827798" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -380,9 +380,11 @@ is one) stay above it and the box for your message under it, while the transcrip
 <li>a <strong>Report of the agent</strong>, when it called <code translate="no" v-pre>finish</code>.</li>
 </ul>
 <p>In a conversation you can also write while the agent <strong>works</strong>. The message is <strong>queued</strong>: it appears as a dashed bubble at the end of the transcript and the agent
-reads it at the end of its current turn (instead of stopping to wait for you); several queued messages go together as one. When it should not wait, press the
+reads it as soon as the round it is in is over: the request to the model that is on its way and the calls it made finish first, and the next request already contains
+your message (several queued messages go together as one). When it should not wait even for that, press the
 small <strong>Send now</strong> (lightning) button on the bubble: the agent drops the round it is in (the request to the model is canceled, a command that waited for your approval
-is refused, calls that were not made are marked as skipped) and reads your message next. Commands that already ran stay done. Queued messages are lost when the server restarts, and
+is refused, calls that were not made are marked as skipped) and reads your message next. The <strong>trash</strong> button next to it takes the message back as long as the agent has
+not read it yet (the same for a queued command). Commands that already ran stay done. Queued messages are lost when the server restarts, and
 a run that is not a conversation (started <em>immediately</em>) does not take messages while it works.</p>
 <h3 id="running-a-command-yourself">Running a command yourself</h3>
 <p>Under the transcript is the command line of the application (the one of the story tab: type <code translate="no" v-pre>/</code>, the list and the help of the command appear above it) with what you can run on the agent: <code translate="no" v-pre>/compact</code>, <code translate="no" v-pre>/clear-workspace</code> and the
@@ -428,6 +430,21 @@ because the agent can only read text, or an image (PNG, JPEG, GIF or WebP, recog
 up to 5 MB, and it counts against the total and the number of files like any file). A file is never replaced by an upload: delete the old one first.
 Files can&#x27;t be changed while the agent works, pause it first. The workspace has a limit of size, file size and number of files, which your administrator can set in your <a href="../administration/permissions/#settings-of-a-permission">permission</a>; the line
 under the table says how much is used. The name <code translate="no" v-pre>AGENTS.md</code> at the top is taken by your instructions, which the agent sees there (the file can&#x27;t be written or deleted).</p>
+<h2 id="sub-agents">Sub-agents</h2>
+<p>An agent can hand a job to a <strong>sub-agent</strong>: a helper with a conversation of its own that does one task and answers with a text. It has the same commands and files as the agent and works in the same working copy and workspace (what it changes stays), but it does not know the conversation of the agent, so the agent has to say everything in the task. The point is that what the sub-agent reads and tries stays out of the context of the agent: checking a chapter, auditing the names, drafting a part.</p>
+<p>Set <strong>Most sub-agents</strong> in the <doc-anchor-trigger to="#creating-and-editing-an-agent">agent</doc-anchor-trigger> to how many may work at once. Zero (the default) is none: the agent is not even told they exist.</p>
+<ul>
+<li>With <strong>one</strong>, the agent starts a sub-agent and waits (it is <em>parked</em>) until the sub-agent is done; the call returns its answer.</li>
+<li>With <strong>more</strong>, starting a sub-agent returns at once and the agent can go on, start others, look at them (<code translate="no" v-pre>agent_status</code>), wait for an answer (<code translate="no" v-pre>await_agent</code>) or stop one (<code translate="no" v-pre>cancel_agent</code>). The call that reaches the limit waits until one of them is over and returns what ended.</li>
+</ul>
+<p>Rules that hold either way:</p>
+<ul>
+<li>A sub-agent can <strong>not start sub-agents</strong>, finish the run, ask you, or make checkpoints; it ends by answering with a text.</li>
+<li>Everything counts in the <strong>one budget of the run</strong>: rounds, tokens, the limits of the model. A sub-agent that hits a limit fails and says so; the agent then hits the same limit.</li>
+<li>How many requests are on their way to the model at once is the <strong>Requests to the model at once</strong> your administrator gave you (one when not set): with one, the agent and its sub-agent take turns.</li>
+<li>Calls that change the book or the workspace are done one at a time, whoever makes them, so two sub-agents never write at the same instant. Still, do not tell two of them to change the same part.</li>
+<li>A sub-agent lives as long as the work session does. When you <strong>pause</strong> or stop the run the sub-agents are stopped (what they changed stays), and the agent is told so; the sub-agents are not shown in the console, only what the agent does with their answers is in its transcript. An agent that ends its turn while sub-agents still work is told once; if it does it again they are stopped.</li>
+</ul>
 <h2 id="one-model-several-agents">One model, several agents</h2>
 <p>A local server often has one slot (one GPU): ask it for two answers at once and both crawl or time out. Set <strong>Concurrent requests of agents</strong> in the <a href="../inference-providers/#general-settings">settings of the model</a> (1 for one slot) and the requests of your agents to it take turns, in the order they came: the others wait, their runs stay <em>Running</em>, and a <strong>Pause</strong> or <strong>Stop</strong> ends the wait. It counts the model requests of all the agents of all users who use that model, the commands that write with it included. It does not hold up your own writing in the story window, and that does not count against the agents either.</p>
 <h2 id="when-you-are-not-there">When you are not there</h2>
@@ -521,6 +538,7 @@ of two thousand parts). You can restore while the agent does not work; the agent
 | **The model sees images** | Tick it when the model takes images (the API of the model does not say, so you do). The agent then has `view_image` and you can attach images to your messages; without it it never gets a picture. |
 | **Destructive commands** | What happens when the agent wants a command that changes or removes data: *Run them*, *Ask first* (a [window](#asking-you) asks you to approve it) or *Refuse them*. |
 | **Most rounds**, **Token budget of a run**, **Context limit** | Optional limits of one run. The limit your administrator gave you applies in any case. |
+| **Most sub-agents** | How many [sub-agents](#sub-agents) the agent can have working at once, 0 to 10. Empty or zero is none. |
 | **Compact at (% of context)** | When the context of the model passes this share of its limit and the agent did not [compact its work](#running-a-command-yourself) itself, the run does it: the agent writes the summary of its earlier work, which replaces it. Empty is 90, zero never (the run then stops when the context is full), otherwise 50 to 99. |
 | **System prompt** | What the agent is told to be. Leave it empty and the agent follows the default - yours from [Settings](account.md#templates), else your administrator's, else the built-in one - which is shown in grey. The info icon has **Insert Default Template**, which fills the default in so you can edit a copy of it; clear the field again to follow the default. |
 | **Compaction prompt** | What the agent is asked when you [`/compact`](#running-a-command-yourself) it: to write the summary that replaces its earlier work. Empty follows the default, like the system prompt, with the same info icon. |
@@ -566,6 +584,10 @@ of two thousand parts). You can restore while the agent does not work; the agent
 <tr>
 <td><strong>Most rounds</strong>, <strong>Token budget of a run</strong>, <strong>Context limit</strong></td>
 <td>Optional limits of one run. The limit your administrator gave you applies in any case.</td>
+</tr>
+<tr>
+<td><strong>Most sub-agents</strong></td>
+<td>How many <doc-anchor-trigger to="#sub-agents">sub-agents</doc-anchor-trigger> the agent can have working at once, 0 to 10. Empty or zero is none.</td>
 </tr>
 <tr>
 <td><strong>Compact at (% of context)</strong></td>
@@ -684,7 +706,7 @@ editing again after you paused or stopped the run. Other lorebooks are not affec
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (40d1602f).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (77fc4ed9).</p></div>
             </footer>
         </div>
     </div>

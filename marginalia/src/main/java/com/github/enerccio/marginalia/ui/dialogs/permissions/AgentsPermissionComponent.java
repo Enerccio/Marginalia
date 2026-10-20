@@ -14,9 +14,9 @@ import java.util.List;
 
 /**
  * The settings of the permission {@code AGENTS}: how many agents the user can have (clones included), how many of their
- * runs can work at once, how many tokens one run can spend, and the quotas: how many working copies of books their runs
+ * runs can work at once, how many requests to the model one run can have in the air (the agent and its sub-agents), how many tokens one run can spend, and the quotas: how many working copies of books their runs
  * keep and what a workspace of an agent may hold (largest file, size, number of files). An empty field is the default
- * (five agents, one run, no limit of tokens or of copies, the limits of the application for the files).
+ * (five agents, one run, one request at a time, no limit of tokens or of copies, the limits of the application for the files).
  */
 @Configurable
 public class AgentsPermissionComponent implements PermissionUIComponent {
@@ -34,6 +34,7 @@ public class AgentsPermissionComponent implements PermissionUIComponent {
     private IntegerField maxWorkspaceMb;
     private IntegerField maxWorkspaceFiles;
     private IntegerField maxCheckpointMb;
+    private IntegerField maxConcurrency;
     private boolean loading;
 
     // texts need the injected localization, which is there only after the constructor
@@ -49,7 +50,8 @@ public class AgentsPermissionComponent implements PermissionUIComponent {
         maxWorkspaceMb = field(L.LABEL_AGENTS_MAX_WORKSPACE_MB, L.HELP_AGENTS_MAX_WORKSPACE_MB);
         maxWorkspaceFiles = field(L.LABEL_AGENTS_MAX_WORKSPACE_FILES, L.HELP_AGENTS_MAX_WORKSPACE_FILES);
         maxCheckpointMb = field(L.LABEL_AGENTS_MAX_CHECKPOINT_MB, L.HELP_AGENTS_MAX_CHECKPOINT_MB);
-        layout = new VerticalLayout(maxAgents, maxConcurrentRuns, runTokenBudget, maxCopies, maxFileKb, maxWorkspaceMb,
+        maxConcurrency = field(L.LABEL_AGENTS_MAX_CONCURRENCY, L.HELP_AGENTS_MAX_CONCURRENCY);
+        layout = new VerticalLayout(maxAgents, maxConcurrentRuns, maxConcurrency, runTokenBudget, maxCopies, maxFileKb, maxWorkspaceMb,
                 maxWorkspaceFiles, maxCheckpointMb);
         layout.setPadding(false);
     }
@@ -84,6 +86,7 @@ public class AgentsPermissionComponent implements PermissionUIComponent {
         try {
             maxAgents.setValue(permission.getAgentsMaxAgents());
             maxConcurrentRuns.setValue(permission.getAgentsMaxConcurrentRuns());
+            maxConcurrency.setValue(permission.getAgentsMaxConcurrency());
             Long budget = permission.getAgentsRunTokenBudget();
             runTokenBudget.setValue(budget == null ? null : (int) Math.min(Integer.MAX_VALUE, budget));
             maxCopies.setValue(permission.getAgentsMaxCopies());
@@ -101,6 +104,7 @@ public class AgentsPermissionComponent implements PermissionUIComponent {
         build();
         permission.setAgentsMaxAgents(maxAgents.getValue());
         permission.setAgentsMaxConcurrentRuns(maxConcurrentRuns.getValue());
+        permission.setAgentsMaxConcurrency(maxConcurrency.getValue());
         permission.setAgentsRunTokenBudget(runTokenBudget.getValue() == null ? null : runTokenBudget.getValue().longValue());
         permission.setAgentsMaxCopies(maxCopies.getValue());
         permission.setAgentsMaxFileKb(maxFileKb.getValue());

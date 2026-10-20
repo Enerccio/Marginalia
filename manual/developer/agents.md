@@ -205,7 +205,7 @@ manuscript of an existing agent is not changed, the instructions are at most `MA
 `MAX_MODEL_PROFILES` profiles with unique non-blank roles and positive limits; names, roles and the allowed commands are trimmed (commands
 also de-duplicated). It does not check that the AI and protocol of a profile exist: `resolveProfile(profile)` does, when the agent is used.
 An existing agent can be edited after the permission was taken away, it can't run. `getGrant(user)` is an `AgentGrant(allowed,
-maxConcurrentRuns, runTokenBudget, maxAgents, maxCopies, maxFileBytes, maxWorkspaceBytes, maxWorkspaceFiles)`: everything for an administrator (the
+maxConcurrentRuns, runTokenBudget, maxAgents, maxCopies, maxFileBytes, maxWorkspaceBytes, maxWorkspaceFiles, maxCheckpointBytes, maxConcurrency)`: everything for an administrator (the
 quotas are the defaults), else the settings of the `AGENTS` permission (1 run, no budget, `DEFAULT_MAX_AGENTS` = 5 agents when not set; the **quotas** are
 `Permission.agentsMaxCopies`, `agentsMaxFileKb`, `agentsMaxWorkspaceMb`, `agentsMaxWorkspaceFiles`, where none, zero or below is the default: no limit of copies,
 and the `WorkspaceLimits` of the application for the files; the four argument constructor of the record keeps the old callers). `AgentRunService.start` (and
@@ -278,9 +278,9 @@ has `maxAgents` agents (the deleted ones don't count); `canCreate()` is the same
 does nothing when a worker has it already): it registers the worker with `workerStarted` before the thread starts, so a pause asked at once waits for it.
 `send(run, text)` is the message of the user to an `IDLE` run (`IDLE` to `RUNNING`, the message appended, a worker started); to a *conversation*
 (`run.isInteractive()`) that is `RUNNING`, `WAITING_APPROVAL` or `PAUSING` it queues the message in the run's `Inbox` (in memory, by run id, like the approvals;
-`queued(run)` lists them as `QueuedMessage(id, text)`). The worker reads the queue where it would end the turn (`endTurn`: no tool call, `finish`, `ask_user`): under the
+`queued(run)` lists them as `QueuedMessage(id, text)`). The worker reads the **messages** of the queue at the top of every iteration of the loop (`deliverQueuedMessages`: the leading messages up to the first command, `Inbox.takeMessages`, as one `USER` message, so the next request has them), and everything, commands included, where it would end the turn (`endTurn`: no tool call, `finish`, `ask_user`): under the
 lock of the `Inbox` it either appends all queued messages as one `USER` message and goes on, or moves the run to `IDLE`; `enqueue` takes the same lock and re-reads the status, so a
-message is never left queued on an `IDLE` run (it is sent as usual there). A resumed run delivers them instead of the resume message (`prepare`). `force(run, id)` sets the
+message is never left queued on an `IDLE` run (it is sent as usual there). A resumed run delivers them instead of the resume message (`prepare`). `cancelQueued(run, id)` removes an item from the `Inbox` (`Inbox.remove`; false when it was delivered meanwhile; a wish to force that item goes with it, and `deliverForced` then delivers nothing). `force(run, id)` sets the
 wish in the `Inbox` (or sends at once if the run is `IDLE`): `await` sees it every `POLL_MILLIS` and throws `Forced`, which cancels the request or the call; the calls of the round that
 were written to the transcript get `AGENT_FORCED_CALL` (the one in flight) / `AGENT_SKIPPED_CALL` results, `rejectAll` refuses a waiting approval (the worker moves the run back to
 `RUNNING` itself first: two writers of SQLite at once fail), and the messages up to the forced one are appended (`deliverForced`). An answer of the model that was not complete is not
@@ -325,6 +325,35 @@ message is not stored.
 text, the calls the model asked for (they are not called) and the tokens (the provider's, otherwise ours), with the limits and the usage of the user as for any
 request. Services that can't do it throw `UnsupportedOperationException`.
 
+
+## Sub-agents
+
+A sub-agent is a thread of the run, not a run: same working copy, workspace, budgets, pause and stop state; only the conversation is its own, and it is **not stored**
+(it lives in the memory of the worker; the console shows nothing of it). Limits: `Agent.maxSubagents` (an extended attribute, 0..`AgentService.MAX_SUBAGENTS` = 10,
+checked in `AgentServiceImpl.validate`; null or zero offers no tools) read by `AgentRunService.getMaxSubagents(run)`, and the permission setting **Requests to the model at once**
+(`Permission.agentsMaxConcurrency`, `AgentGrant.maxConcurrency`, at least 1, one when not set, unlimited for an administrator) read by `AgentRunService.getMaxConcurrency(run)`.
+
+- **Tools.** `SubAgentTools` (`spawn_agent(task, context?)`) is bound when `maxSubagents > 0`, `SubAgentControlTools` (`await_agent`, `agent_status`, `cancel_agent`) only when it is more than 1
+  (with one, `spawn_agent` waits by itself). Both are implemented by `SubAgentToolsImpl` over `SubAgents`, the registry of the worker (`Sub` = handle `subN`, task, state `RUNNING` /
+  `DONE` / `FAILED` / `CANCELLED`, result, rounds, tokens, last action, a `finished` future). `spawn_agent` creates the `Sub`, hands it to the runner (`Worker.startSub`) and answers at once
+  while `live() < max`; the call that fills the last place is kept (`SubAgents.whenSlotFree`) and completes, from the thread of the sub-agent that ends, with the results of what ended meanwhile
+  (a limit of one: its own answer). A call that finds the limit reached already (one that was cut off) waits for a place first. `await_agent` completes from the `finished` future, with an optional timeout.
+  The tools are `FunctionContinuation`s: waiting holds no thread. The system message of the agent says the limits (`Defaults.AGENT_SUBAGENTS_NOTE`), the results are cut at `Defaults.AGENT_SUBAGENT_RESULT_CHARS`.
+- **The loop** is `Worker.subLoop` on a thread of the pool, in `InRequestScope` of the same `AgentRequestAttributes`: system message of the agent plus `Defaults.AGENT_SUBAGENT_NOTE`, the task as the
+  first message, `InferenceService.round` with `subTools` (the commands and the file tools of the agent - **no run tools, checkpoint tools, sync or image tools, and no sub-agent tools**, so no sub-agent
+  can spawn), the calls one after another, a round without calls is the answer. At most `Defaults.AGENT_SUBAGENT_MAX_ROUNDS`, and the limits of the run (`maxRounds`, `isBudgetExceeded`, the context cap -
+  no compaction) fail it with a reason; every request is added to the run (`addUsage`). `checkSub` runs before every request, call and poll: a cancel, `interrupts`, a run that is not `RUNNING` /
+  `WAITING_APPROVAL` or was thrown away ends it as `CANCELLED` (`SubStopped`).
+- **Requests.** `Worker.ask` takes a place of the run's `RequestSlots` (the cap above; a FIFO queue like `AIGate`, in memory) and then the `AIGate` place of the AI, for the agent and the sub-agents alike (`Waiter` abstracts how
+  each waits: the agent reacts to a pause at once and a forced message, a sub-agent to `checkSub`). A sub-agent that waits for a turn is cancelable.
+- **One writer.** SQLite fails the second writer at once (`SQLITE_BUSY`), and the sub-agents are threads of one run. So `Worker.changeLock` (a fair `ReentrantLock`) is held by every call that `changes(call)`
+  (not the run tools, not the reading commands, not the sub-agent tools), by the automatic checkpoint, and by the small writes of the run (`append`, `appendAnswer`, `addUsage`, `compact`). A wait for it is
+  pollable (`lockChanges`, `checkSub`). A sub-agent that changes something sets `dirty`, so the next round of the agent gets its automatic checkpoint. The status changes of an `ASK` approval are still not under the lock
+  (they run on the thread of the call).
+- **End.** `stopSubAgents` (cancel all, wait up to 30 s: they use the session of the run) runs when the worker ends, before a `checkpoint_restore` (they work in the book that is replaced; the agent is told) and `finish` /
+  `ask_user` cancel them; a plain reply while some work gets `Defaults.AGENT_SUBAGENTS_STILL_WORKING` once. After a pause the call of the agent that waited for a sub-agent has the result `was stopped`.
+
+Not done: the transcript of a sub-agent in the console (it needs a thread column in `agent_messages`), another profile (`profile` argument) for a sub-agent, images for a sub-agent, `message_agent`, a sub-agent that survives a pause.
 
 ## What the model is told
 
@@ -441,12 +470,13 @@ the Agents tab and the console (`Review changes`). It keeps the picks consistent
 
 ## The tools of an agent
 
-`AgentRunnerImpl.Worker.tools()` puts three function sets together with `FunctionSet.and` (a function name used twice fails the run):
+`AgentRunnerImpl.Worker.tools()` puts the function sets together with `FunctionSet.and` (a function name used twice fails the run):
 
 ```text
 CommandFunctions.forAgent(...)                    the commands the agent is allowed
   .and(fileSystemService.getFileTools(files, results))   list_files, read_file, write_file, ..., save_command_result
   .and(registry.bind(RunTools.class, runTools))          finish, ask_user, update_plan, get_run_status
+  .and(registry.bind(SubAgentTools.class, ...))          spawn_agent (and SubAgentControlTools with more than one), only when the agent has sub-agents, see [Sub-agents](#sub-agents)
   .and(registry.bind(ImageTools.class, ...))             view_image, only when the main profile has images
 ```
 
@@ -679,5 +709,4 @@ model, so a whole run is tested without a network. The main classes: `AgentRunne
 | A screen | A class in `ui.dialogs.agent`, a poll in the console when it shows run data. |
 
 Not done: a read only window of the working copy, the sync of the changes of the book into the copy on resume, summaries of
-older rounds when the context is full (the run pauses instead), "Pause now" (the request in the air is waited for), a limit of concurrent requests per AI, threads
-(sub-agents) and handles, stopping a running `async` command when its run stops.
+older rounds when the context is full (the run pauses instead), stopping a running `async` command when its run stops.

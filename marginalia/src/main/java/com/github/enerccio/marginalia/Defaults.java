@@ -328,6 +328,46 @@ The author has opened the console and is watching. Do not start any work yet: ca
     public static final int AGENT_MAX_CALLS_PER_ROUND = 32;
 
     /**
+     * Added to the system prompt of an agent that may have sub-agents: how many can work at once, and how many requests to the
+     * model the run can have in the air.
+     */
+    public static final String AGENT_SUBAGENTS_NOTE = """
+Sub-agents: you can start up to %d sub-agent(s) working at once with spawn_agent. A sub-agent has its own conversation, the same commands and files as you and the same book and workspace, and answers with a text; it does not see your conversation, so give it the whole task. %s The run can have %d request(s) to the model in the air at once, you and your sub-agents together, so the others wait their turn.""";
+
+    /**
+     * The part of the note above for a limit of one sub-agent: spawning waits for it.
+     */
+    public static final String AGENT_SUBAGENTS_NOTE_ONE = "With a limit of one, spawn_agent waits until the sub-agent is done and returns its answer, you are parked meanwhile.";
+
+    /**
+     * The part of the note above for a limit of more: spawning returns at once until the limit is reached.
+     */
+    public static final String AGENT_SUBAGENTS_NOTE_MANY = "spawn_agent returns a handle at once; collect the answer with await_agent, look at them with agent_status, stop one with cancel_agent. "
+            + "The call that reaches the limit waits until one ends and returns what ended. Do not end your turn while sub-agents work.";
+
+    /**
+     * Added to the system prompt of a sub-agent: what it is and how it ends.
+     */
+    public static final String AGENT_SUBAGENT_NOTE = """
+You are a sub-agent: another agent started you for one task, which is your first message. You share its book and workspace, and what you change there stays. You can not start sub-agents, finish, ask the author or make checkpoints. Do the task with your tools, then reply with a text and no call: that text is your answer to the agent, nothing else is passed. Keep it short and concrete (what you found or changed, handles and paths); if it is long, write it to a file of the workspace and give the path. If you can not do the task, say why.""";
+
+    /**
+     * Most rounds a sub-agent may use.
+     */
+    public static final int AGENT_SUBAGENT_MAX_ROUNDS = 60;
+
+    /**
+     * The longest answer of a sub-agent that is passed to the agent whole, in characters.
+     */
+    public static final int AGENT_SUBAGENT_RESULT_CHARS = 8_000;
+
+    /**
+     * Told to the agent that ends its turn while sub-agents still work.
+     */
+    public static final String AGENT_SUBAGENTS_STILL_WORKING = "Notice from the run: %d sub-agent(s) still work (%s). Wait for their answers with "
+            + "await_agent or stop them with cancel_agent; if you end your turn again they are stopped.";
+
+    /**
      * The notice after a round whose calls were cut: the number of calls it had, the number made, and how many of them were
      * repeats of a call that reads only.
      */

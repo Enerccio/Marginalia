@@ -212,6 +212,17 @@ public interface AgentRunService extends ExtendableService<AgentRun, AgentRunRep
     long getTokenBudget(AgentRun run) throws Exception;
 
     /**
+     * How many sub-agents the run can have working at once: what its agent says, zero (none, no tools to spawn them) when it says nothing.
+     */
+    int getMaxSubagents(AgentRun run) throws Exception;
+
+    /**
+     * How many requests to the model the run can have in the air at once, the agent and its sub-agents together: what the
+     * administrator gave to the user, at least one.
+     */
+    int getMaxConcurrency(AgentRun run) throws Exception;
+
+    /**
      * Whether the run spent the whole {@link #getTokenBudget budget}.
      */
     boolean isBudgetExceeded(AgentRun run) throws Exception;

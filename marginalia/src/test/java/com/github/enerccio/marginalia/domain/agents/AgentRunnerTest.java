@@ -357,11 +357,11 @@ class AgentRunnerTest extends AgentTestBase {
     }
 
     @Test
-    void aMessageToAConversationThatWorksWaitsForTheEndOfTheTurn() throws Exception {
+    void aMessageToAConversationThatWorksIsReadByTheNextRequest() throws Exception {
         Agent agent = readingAgent();
         CountDownLatch gate = new CountDownLatch(1);
         llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}").waitFor(gate, Duration.ofSeconds(20)),
-                MockLLMResponse.text("Counted."), MockLLMResponse.text("Got your message."));
+                MockLLMResponse.text("Counted the chapters and the lorebooks."), MockLLMResponse.text("never asked"));
         AgentRun run = startConversation(agent);
         llm.awaitCompletionRequests(1, Duration.ofSeconds(10));
 
@@ -376,14 +376,37 @@ class AgentRunnerTest extends AgentTestBase {
         gate.countDown();
         run = await(run);
 
-        // the turn ended with the text, the messages were read instead of waiting for them, as one message
+        // the round ended with the call, the messages were read by the next request (not at the end of the turn), as one message
         assertThat(run.getStatus()).isEqualTo(AgentRunStatus.IDLE);
         assertThat(runner.queued(run)).isEmpty();
         List<LLMChatMessage> transcript = transcript(run);
         assertThat(transcript).extracting(LLMChatMessage::getRole).containsExactly(LLMRole.USER, LLMRole.ASSISTANT,
-                LLMRole.TOOL, LLMRole.ASSISTANT, LLMRole.USER, LLMRole.ASSISTANT);
-        assertThat(transcript.get(4).getContent()).isEqualTo("Also count the chapters.\n\nAnd the lorebooks.");
-        assertThat(llm.getCompletionRequests()).hasSize(3);
+                LLMRole.TOOL, LLMRole.USER, LLMRole.ASSISTANT);
+        assertThat(transcript.get(3).getContent()).isEqualTo("Also count the chapters.\n\nAnd the lorebooks.");
+        assertThat(llm.getCompletionRequests()).hasSize(2);
+    }
+
+    @Test
+    void aQueuedMessageCanBeTakenBack() throws Exception {
+        Agent agent = readingAgent();
+        CountDownLatch gate = new CountDownLatch(1);
+        llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}").waitFor(gate, Duration.ofSeconds(20)),
+                MockLLMResponse.text("Counted."));
+        AgentRun run = startConversation(agent);
+        llm.awaitCompletionRequests(1, Duration.ofSeconds(10));
+
+        runner.send(agentRunService.find(run.getId()), "Never mind this.");
+        runner.send(agentRunService.find(run.getId()), "Keep this.");
+        List<AgentRunner.QueuedMessage> queued = runner.queued(run);
+        assertThat(runner.cancelQueued(agentRunService.find(run.getId()), queued.getFirst().id())).isTrue();
+        assertThat(runner.cancelQueued(agentRunService.find(run.getId()), queued.getFirst().id())).as("only once").isFalse();
+        assertThat(runner.queued(run)).extracting(AgentRunner.QueuedMessage::text).containsExactly("Keep this.");
+
+        gate.countDown();
+        run = await(run);
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.IDLE);
+        assertThat(transcript(run)).extracting(LLMChatMessage::getContent).contains("Keep this.").doesNotContain("Never mind this.");
     }
 
     @Test

@@ -152,6 +152,15 @@ public interface AgentRunner {
     void force(AgentRun run, String id) throws Exception;
 
     /**
+     * Takes a queued message or command back: it is not given to the agent. Does nothing when it is not queued any more
+     * (it was delivered meanwhile).
+     *
+     * @param id the {@link QueuedMessage#id()}
+     * @return whether it was queued and is gone now
+     */
+    boolean cancelQueued(AgentRun run, String id) throws Exception;
+
+    /**
      * Pauses the run at once: as {@link AgentRunService#pause}, but the request to the model that is going on is canceled (its
      * answer is thrown away and not paid for beyond what the provider counted) and so is the call that is going on (it gets the
      * signal to stop; a command cannot always be killed, so the call is answered as cut off and the agent checks the state
