@@ -245,6 +245,46 @@ class AgentMergeTest extends AgentTestBase {
     }
 
     @Test
+    void aPartInsertedInTheMiddleIsAnAddedPartAndTheMovedPartFollowsItWithoutBeingMadeAgain() throws Exception {
+        chatMessageService.insertPart(copy(), inCopy("Once upon a time"), "Then came night.", null);
+
+        MergePlan plan = plan();
+
+        Item inserted = item(plan, Kind.MESSAGE, Change.ADDED, "Then came night");
+        Item moved = item(plan, Kind.MESSAGE, Change.CHANGED, "there was");
+        assertThat(moved.fields()).extracting(Field::name).containsExactly("parent");
+        assertThat(moved.dependsOn()).isEqualTo(inserted.id());
+        assertThat(moved.conflict()).isFalse();
+        assertThat(field(moved, "parent").base()).contains("Once upon a time");
+        assertThat(field(moved, "parent").agent()).contains("Then came night");
+        assertThat(plan.items().indexOf(inserted)).isLessThan(plan.items().indexOf(moved));
+        // the parts below it did not change, only the one that follows the new part
+        assertThat(plan.items()).hasSize(2);
+
+        String dragon = inBook("there was a dragon").getUuid();
+        applyAll(plan);
+
+        ChatMessage after = inBook("there was a dragon");
+        assertThat(after.getUuid()).as("the part is the same one").isEqualTo(dragon);
+        assertThat(after.getParent().getResponse()).isEqualTo("Then came night.");
+        assertThat(inBook("Then came night.").getParent().getResponse()).isEqualTo("Once upon a time");
+        assertThat(inBook("and a castle").getParent().getResponse()).isEqualTo("there was a dragon");
+        assertThat(bookTexts()).hasSize(4);
+    }
+
+    @Test
+    void aPartInsertedBeforeTheStoryTakesTheOldFirstPartUnderIt() throws Exception {
+        chatMessageService.insertPart(copy(), null, "Prologue.", null);
+
+        MergePlan plan = plan();
+        applyAll(plan);
+
+        assertThat(inBook("Prologue.").getParent()).isNull();
+        assertThat(inBook("Once upon a time").getParent().getResponse()).isEqualTo("Prologue.");
+        assertThat(inBook("there was a dragon").getParent().getResponse()).isEqualTo("Once upon a time");
+    }
+
+    @Test
     void aNewPartFollowsItsParentAndANewPartUnderItDependsOnIt() throws Exception {
         ChatMessage fourth = addTo(copy(), inCopy("and a castle"), "The end.");
         addTo(copy(), fourth, "Or not.");

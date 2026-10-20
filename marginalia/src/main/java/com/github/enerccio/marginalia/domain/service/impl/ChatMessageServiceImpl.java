@@ -326,8 +326,12 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     @CommonTx
     public void hardDeleteForManuscript(Manuscript manuscript) throws Exception {
         List<ChatMessage> messages = new ArrayList<>(getRepository().getAllMessagesIncludingDeleted(manuscript));
-        // a child is always newer than its parent
-        messages.sort(Comparator.comparing(ChatMessage::getId).reversed());
+        // the deepest first, so that no part is deleted while another still follows it (a part inserted into the story is newer
+        // than the parts below it, the age tells nothing)
+        Map<Long, Integer> depths = new HashMap<>();
+        Map<Long, ChatMessage> byId = new HashMap<>();
+        messages.forEach(message -> byId.put(message.getId(), message));
+        messages.sort(Comparator.comparingInt((ChatMessage message) -> depthOf(message, byId, depths)).reversed());
         for (ChatMessage message : messages) {
             Summary summary = message.getSummary() == null ? null : summaryService.find(message.getSummary());
             if (summary != null) {
@@ -337,6 +341,19 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
             }
             delete(message, true);
         }
+    }
+
+    private static int depthOf(ChatMessage message, Map<Long, ChatMessage> byId, Map<Long, Integer> depths) {
+        Integer known = depths.get(message.getId());
+        if (known != null) {
+            return known;
+        }
+        int depth = 0;
+        for (ChatMessage above = message.getParent(); above != null && byId.containsKey(above.getId()); above = byId.get(above.getId()).getParent()) {
+            depth++;
+        }
+        depths.put(message.getId(), depth);
+        return depth;
     }
 
     @Override
@@ -428,6 +445,41 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         if (above == null && hasAnyMessages(book)) {
             throw new IllegalArgumentException("The book has parts already, say after which part the new one comes");
         }
+        ChatMessage created = newPart(book, text, input);
+        ChatMessage saved = above == null ? createRoot(book, created) : addChild(above, created);
+        book.setActiveLeaf(saved);
+        manuscriptService.save(book);
+        return saved;
+    }
+
+    @Override
+    @CommonTx
+    public ChatMessage insertPart(Manuscript manuscript, ChatMessage after, String text, TurnInput input) throws Exception {
+        Manuscript book = ownBook(manuscript);
+        ChatMessage above = after == null ? null : ownPart(book, after);
+        if (!hasAnyMessages(book)) {
+            return createPart(book, null, text, input);
+        }
+        ChatMessage created = newPart(book, text, input);
+        ChatMessage saved = above == null ? createRoot(book, created) : addChild(above, created);
+        // what followed the part follows the new one now, the new part is saved first so that it is not moved under itself
+        if (above == null) {
+            getRepository().reparentRootsUnder(book, saved);
+        } else {
+            getRepository().reparentChildrenExcept(above, saved);
+        }
+        if (book.getActiveLeaf() == null || above != null && book.getActiveLeaf().getId().equals(above.getId())) {
+            // the part was the end of the branch: the new one is the end now
+            book.setActiveLeaf(saved);
+            manuscriptService.save(book);
+        }
+        return saved;
+    }
+
+    /**
+     * A part that is not stored yet: the text counted, the turn input it stands for.
+     */
+    private ChatMessage newPart(Manuscript book, String text, TurnInput input) throws Exception {
         String newText = text == null ? "" : text;
         ChatMessage created = new ChatMessage();
         created.setResponse(newText);
@@ -439,10 +491,7 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
             created.setPresentCharacters(input.presentCharacters());
             created.setInstructions(input.instructions());
         }
-        ChatMessage saved = above == null ? createRoot(book, created) : addChild(above, created);
-        book.setActiveLeaf(saved);
-        manuscriptService.save(book);
-        return saved;
+        return created;
     }
 
     private Set<Long> outdatedHeads(List<ChatMessage> newestFirst) throws Exception {

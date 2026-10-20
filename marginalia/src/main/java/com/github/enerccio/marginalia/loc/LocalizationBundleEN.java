@@ -529,6 +529,17 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_WEBHOOKS_ALLOWED, "Agents may send messages to the webhooks of users");
         setValue(L.LABEL_AGENTS_MAX_CONCURRENCY, "Requests to the model at once (per run)");
         setValue(L.LABEL_MAX_SUBAGENTS, "Most sub-agents");
+        setValue(L.LABEL_AGENT_CONTEXT, "Context");
+        setValue(L.LABEL_AGENT_CONTEXT_PROMPT, "Prompt of the agent");
+        setValue(L.LABEL_AGENT_CONTEXT_NOTES, "Notes of the runner");
+        setValue(L.LABEL_AGENT_CONTEXT_TOOLS, "Tool definitions");
+        setValue(L.LABEL_AGENT_CONTEXT_RESULTS, "Results of calls");
+        setValue(L.LABEL_AGENT_CONTEXT_PARTS, "Parts of the context, in the order they are sent");
+        setValue(L.LABEL_AGENT_CONTEXT_HISTORY, "Context at each answer of the model");
+        setValue(L.LABEL_AGENT_CONTEXT_SHARE, "Share");
+        setValue(L.LABEL_COPY, "Copy");
+        setValue(L.LABEL_COMMAND_INSERT_PART, "Insert a part");
+        setValue(L.LABEL_AGENT_MERGE_FOLLOWS, "Follows");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -876,6 +887,10 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_WEBHOOK_TEST_TEXT, "This is a test message from Marginalia. Agents will tell you here when they need you.");
         setValue(L.MSG_AGENT_WEBHOOK_TEST_OK, "The service accepted the test message.");
         setValue(L.MSG_AGENT_WEBHOOK_TEST_FAILED, "The test message was not sent: %s");
+        setValue(L.MSG_AGENT_CONTEXT_SIZE, "Next request: about %d of %d tokens (estimated)");
+        setValue(L.MSG_AGENT_CONTEXT_SIZE_NO_CAP, "Next request: about %d tokens (estimated)");
+        setValue(L.MSG_AGENT_CONTEXT_REPORTED, "The model reported %d tokens at its last answer.");
+        setValue(L.MSG_AGENT_CONTEXT_PICK, "Pick a part to read exactly what the model is sent.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -936,6 +951,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_AGENTS_MAX_CONCURRENCY, "How many requests to the model one run can have in the air at once, the agent and its sub-agents together. With one, the agent waits (is parked) while its sub-agent asks the model. Empty is 1.");
         setValue(L.HELP_AGENT_MAX_SUBAGENTS, "How many sub-agents the agent can have working at once. Zero or empty is none: the agent gets no tools to start them. With one, starting a sub-agent waits until it is done; with more, the call returns at once until the limit is reached, then waits for one to end. Sub-agents can not start sub-agents, and the requests of all of them count in the budgets of the run.");
         setValue(L.HELP_AGENT_CANCEL_QUEUED, "Takes the message or command back: the agent will not get it.");
+        setValue(L.HELP_AGENT_CONTEXT, "What the model reads with its next request, part by part: the system message, the tool definitions and the conversation. Nothing is cut; download it as Markdown to read it in an editor. The token counts of the parts are estimates, the line of the chart is what the model reported.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");
@@ -1249,6 +1265,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_CREATE_META_SUMMARY, "Has the model merge the summaries of a range into one. Parameters: from (handle), to (handle).");
         setValue(L.DESC_COMMAND_CREATE_META_SUMMARY_LLM, "Has the model merge the summaries from the part `from` (the newest) back to the part `to` (the oldest, rounded up to the end of its summary block) into one meta summary that sits on `from` and takes the place of the summary that was there. Use it to make a long story fit into the context. Both parts are on the same branch and have summaries. Slow and costs tokens of the model of the book. Changes the book. Asynchronous.");
         setValue(L.DESC_COMMAND_CREATE_META_SUMMARY_RETURN, "JSON with the part, the tokens of the meta summary and the start of its text");
+        setValue(L.DESC_COMMAND_INSERT_PART, "Inserts a new part of the story between two parts; the parts that follow stay. Parameters: text, part (handle), before (true or false).");
+        setValue(L.DESC_COMMAND_INSERT_PART_LLM, "Inserts a new part with the given text into the middle of the story: right after the part `part` (its handle), or right before it when `before` is true. Everything that followed the place (all branches) follows the new part now, no part is deleted or written again, so the handles, summaries and data of the other parts stay; every part below the new one moves one position down. Use it instead of deleting and recreating the parts below. The summaries that cover the place become outdated (reported; revalidate-summaries or regenerate-summary fixes them). At the end of the branch it is the same as create-part. Changes the book. Returns the handle of the new part.");
+        setValue(L.DESC_COMMAND_INSERT_PART_RETURN, "JSON with the new part (handle, position, words, tokens), how many branches continue it, the length of its branch and the summaries that became outdated");
+        setValue(L.DESC_COMMAND_INSERT_ANCHOR_PARAM, "The part next to which the new one is inserted (its handle): after it, or before it when before is true");
+        setValue(L.DESC_COMMAND_INSERT_BEFORE_PARAM, "true to insert before the part instead of after it; false when omitted");
 
     }
 

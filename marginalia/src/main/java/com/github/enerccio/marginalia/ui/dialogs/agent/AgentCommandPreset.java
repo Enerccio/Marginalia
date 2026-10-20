@@ -43,15 +43,15 @@ public enum AgentCommandPreset {
      * Reads, and revises the written text: edits parts, fixes their fields, keeps the summaries and the book info.
      */
     EDITOR(L.ENUM_COMMAND_PRESET_EDITOR,
-            "edit-part", "append-to-part", "set-part-fields", "set-summary", "revalidate-summaries", "regenerate-summary",
-            "create-meta-summary", "set-book-info", "set-book-tags"),
+            "edit-part", "append-to-part", "insert-part", "set-part-fields", "set-summary", "revalidate-summaries",
+            "regenerate-summary", "create-meta-summary", "set-book-info", "set-book-tags"),
 
     /**
      * Reads, and writes new text: adds parts and branches, lets the model write the next turn, keeps the summaries and
      * the lorebook entries of what it invents.
      */
     DRAFTER(L.ENUM_COMMAND_PRESET_DRAFTER,
-            "create-part", "branch-part", "switch-branch", "append-to-part", "edit-part", "next", "swipe", "set-summary",
+            "create-part", "insert-part", "branch-part", "switch-branch", "append-to-part", "edit-part", "next", "swipe", "set-summary",
             "regenerate-summary", "create-meta-summary", "revalidate-summaries", "create-lore-entry", "update-lore-entry");
 
     private final L label;

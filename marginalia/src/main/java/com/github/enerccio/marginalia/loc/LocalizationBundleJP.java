@@ -529,6 +529,17 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_WEBHOOKS_ALLOWED, "エージェントがユーザーのWebhookへメッセージを送ることを許可する");
         setValue(L.LABEL_AGENTS_MAX_CONCURRENCY, "モデルへの同時リクエスト数 (実行ごと)");
         setValue(L.LABEL_MAX_SUBAGENTS, "サブエージェントの最大数");
+        setValue(L.LABEL_AGENT_CONTEXT, "コンテキスト");
+        setValue(L.LABEL_AGENT_CONTEXT_PROMPT, "エージェントのプロンプト");
+        setValue(L.LABEL_AGENT_CONTEXT_NOTES, "ランナーのメモ");
+        setValue(L.LABEL_AGENT_CONTEXT_TOOLS, "ツールの定義");
+        setValue(L.LABEL_AGENT_CONTEXT_RESULTS, "呼び出しの結果");
+        setValue(L.LABEL_AGENT_CONTEXT_PARTS, "コンテキストの各部分(送信順)");
+        setValue(L.LABEL_AGENT_CONTEXT_HISTORY, "モデルの各回答時のコンテキスト");
+        setValue(L.LABEL_AGENT_CONTEXT_SHARE, "割合");
+        setValue(L.LABEL_COPY, "コピー");
+        setValue(L.LABEL_COMMAND_INSERT_PART, "パートを挿入");
+        setValue(L.LABEL_AGENT_MERGE_FOLLOWS, "直前のパート");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -876,6 +887,10 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_WEBHOOK_TEST_TEXT, "Marginaliaからのテストメッセージです。エージェントが呼んでいるときはここへ通知されます。");
         setValue(L.MSG_AGENT_WEBHOOK_TEST_OK, "サービスがテストメッセージを受け付けました。");
         setValue(L.MSG_AGENT_WEBHOOK_TEST_FAILED, "テストメッセージを送れませんでした：%s");
+        setValue(L.MSG_AGENT_CONTEXT_SIZE, "次のリクエスト: 約 %d / %d トークン(推定)");
+        setValue(L.MSG_AGENT_CONTEXT_SIZE_NO_CAP, "次のリクエスト: 約 %d トークン(推定)");
+        setValue(L.MSG_AGENT_CONTEXT_REPORTED, "モデルは直前の回答時に %d トークンと報告しました。");
+        setValue(L.MSG_AGENT_CONTEXT_PICK, "部分を選ぶと、モデルに送られる内容がそのまま表示されます。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -936,6 +951,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_AGENTS_MAX_CONCURRENCY, "1回の実行がエージェントとそのサブエージェントを合わせて同時にモデルへ出せるリクエストの数。1の場合、サブエージェントがモデルに問い合わせている間、エージェントは待機します。空欄は 1。");
         setValue(L.HELP_AGENT_MAX_SUBAGENTS, "エージェントが同時に動かせるサブエージェントの数。0または空欄は使用しない設定で、起動用のツールは渡されません。1の場合、サブエージェントの起動はその完了まで待ちます。2以上の場合は上限に達するまで即座に戻り、達すると1つが終わるまで待ちます。サブエージェントは別のサブエージェントを起動できず、そのリクエストはすべて実行の予算に含まれます。");
         setValue(L.HELP_AGENT_CANCEL_QUEUED, "メッセージまたはコマンドを取り消します。エージェントには渡されません。");
+        setValue(L.HELP_AGENT_CONTEXT, "モデルが次のリクエストで読む内容を部分ごとに表示します(システムメッセージ、ツールの定義、会話)。省略はありません。Markdownとしてダウンロードしてエディタで読めます。各部分のトークン数は推定値で、グラフの線はモデルが報告した値です。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");
@@ -1249,6 +1265,11 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_CREATE_META_SUMMARY, "範囲の要約をモデルに1つに統合させます。パラメータ：from（ハンドル）、to（ハンドル）。");
         setValue(L.DESC_COMMAND_CREATE_META_SUMMARY_LLM, "パート `from`（最新）から `to`（最古、その要約ブロックの終わりまで切り上げ）までの要約を、モデルに1つのメタ要約に統合させ、`from` に付けて、そこにあった要約の代わりにします。長いストーリーをコンテキストに収めるために使います。両方のパートは同じブランチ上にあり、要約を持っている必要があります。時間がかかり、本のモデルのトークンを消費します。本を変更します。非同期です。");
         setValue(L.DESC_COMMAND_CREATE_META_SUMMARY_RETURN, "パート、メタ要約のトークン数、テキストの冒頭を含む JSON");
+        setValue(L.DESC_COMMAND_INSERT_PART, "2つのパートの間に新しいパートを挿入します。後続のパートはそのまま残ります。パラメータ: text, part(ハンドル), before(true または false)。");
+        setValue(L.DESC_COMMAND_INSERT_PART_LLM, "指定したテキストの新しいパートをストーリーの途中に挿入します。`part`(ハンドル)の直後、`before` が true のときは直前です。その位置に続いていたものすべて(全ブランチ)が新しいパートの後に続くようになります。パートの削除や再作成は行われないため、他のパートのハンドル、要約、データはそのまま残ります。新しいパートより後ろのパートは1つ後ろにずれます。後ろのパートを削除して作り直す代わりに使ってください。その位置を含む要約は古くなります(報告されます。revalidate-summaries か regenerate-summary で直せます)。ブランチの末尾では create-part と同じです。本を変更します。新しいパートのハンドルを返します。");
+        setValue(L.DESC_COMMAND_INSERT_PART_RETURN, "新しいパート(ハンドル、位置、単語数、トークン数)、続くブランチの数、そのブランチの長さ、古くなった要約を含むJSON");
+        setValue(L.DESC_COMMAND_INSERT_ANCHOR_PARAM, "新しいパートを挿入する基準のパート(ハンドル)。その後ろ、before が true のときは前");
+        setValue(L.DESC_COMMAND_INSERT_BEFORE_PARAM, "true にするとパートの後ろではなく前に挿入します。省略時は false");
     }
 
     @Override

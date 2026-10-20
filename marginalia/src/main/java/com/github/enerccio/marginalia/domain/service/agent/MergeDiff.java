@@ -1,25 +1,11 @@
 package com.github.enerccio.marginalia.domain.service.agent;
 
-import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Change;
-import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Field;
-import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Item;
-import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Kind;
-import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Type;
+import com.github.enerccio.marginalia.domain.service.agent.MergePlan.*;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -68,6 +54,11 @@ public final class MergeDiff {
     private static final String SEPARATOR = "\u0000";
     // the part of the properties of an item that is only shown, not compared
     private static final String DISPLAY = "~";
+    /**
+     * The field of a part that says which part it follows. It is not one of the {@link #MESSAGE_FIELDS}: a part that is moved
+     * under another is only a change of the book when the other is a part the agent inserted above it.
+     */
+    public static final String PARENT = "parent";
     private static final int SNIPPET = 70;
 
     private MergeDiff() {
@@ -307,7 +298,7 @@ public final class MergeDiff {
                 continue;
             }
             Map<String, String> props = new LinkedHashMap<>();
-            props.put("parent", key(text(message, "parentUuid"), toOriginal));
+            props.put(PARENT, key(text(message, "parentUuid"), toOriginal));
             JsonObject extended = object(message, "extendedContent");
             for (String field : MESSAGE_FIELDS) {
                 if (!field.equals("summary")) {
@@ -324,6 +315,11 @@ public final class MergeDiff {
             }
             view.messages.put(messageKey, props);
         }
+        // what a part follows is shown as the part (its place and its start), not as a key
+        for (Map<String, String> props : view.messages.values()) {
+            String parent = props.get("parent");
+            props.put(DISPLAY + "parent", parent == null || !view.messages.containsKey(parent) ? "" : messageLabel(view, parent));
+        }
     }
 
     // --- comparing
@@ -336,7 +332,7 @@ public final class MergeDiff {
         if (SETS.contains(name)) {
             return Type.SET;
         }
-        return name.equals("lorebook") ? Type.REF : Type.TEXT;
+        return name.equals("lorebook") || name.equals(PARENT) ? Type.REF : Type.TEXT;
     }
 
     private static String shown(Map<String, String> props, String name) {
@@ -565,9 +561,19 @@ public final class MergeDiff {
                 continue;
             }
             List<Field> fields = compareAll(MESSAGE_FIELDS, base, props, current);
+            // a part inserted above it: the part follows the new part now, the rest of its branch with it
+            String parent = props.get(PARENT);
+            boolean insertedAbove = parent != null && !parent.equals(base.get(PARENT)) && isNewPart(context, parent);
+            if (insertedAbove) {
+                Field moved = compare(PARENT, base, props, current);
+                if (moved != null) {
+                    fields = new ArrayList<>(fields);
+                    fields.add(moved);
+                }
+            }
             if (!fields.isEmpty()) {
                 changed.add(new Item(ID_MESSAGE + key, Kind.MESSAGE, Change.CHANGED, context.sourceUuid(key), context.targetUuid(key),
-                        messageLabel(context.changed, key), null, fields, fields.stream().anyMatch(Field::conflict),
+                        messageLabel(context.changed, key), insertedAbove ? ID_MESSAGE + parent : null, fields, fields.stream().anyMatch(Field::conflict),
                         current == null ? MergePlan.PROBLEM_GONE : null, List.of()));
             }
         }

@@ -537,6 +537,17 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_WEBHOOKS_ALLOWED, "允许智能体向用户的 Webhook 发送消息");
         setValue(L.LABEL_AGENTS_MAX_CONCURRENCY, "同时向模型发出的请求数（每次运行）");
         setValue(L.LABEL_MAX_SUBAGENTS, "子代理上限");
+        setValue(L.LABEL_AGENT_CONTEXT, "上下文");
+        setValue(L.LABEL_AGENT_CONTEXT_PROMPT, "智能体提示词");
+        setValue(L.LABEL_AGENT_CONTEXT_NOTES, "运行器备注");
+        setValue(L.LABEL_AGENT_CONTEXT_TOOLS, "工具定义");
+        setValue(L.LABEL_AGENT_CONTEXT_RESULTS, "调用结果");
+        setValue(L.LABEL_AGENT_CONTEXT_PARTS, "上下文的各部分(按发送顺序)");
+        setValue(L.LABEL_AGENT_CONTEXT_HISTORY, "模型每次回答时的上下文");
+        setValue(L.LABEL_AGENT_CONTEXT_SHARE, "占比");
+        setValue(L.LABEL_COPY, "复制");
+        setValue(L.LABEL_COMMAND_INSERT_PART, "插入段落");
+        setValue(L.LABEL_AGENT_MERGE_FOLLOWS, "接在");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -884,6 +895,10 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_WEBHOOK_TEST_TEXT, "这是来自 Marginalia 的测试消息。智能体需要您时会在这里通知您。");
         setValue(L.MSG_AGENT_WEBHOOK_TEST_OK, "服务已接受测试消息。");
         setValue(L.MSG_AGENT_WEBHOOK_TEST_FAILED, "测试消息未能发送：%s");
+        setValue(L.MSG_AGENT_CONTEXT_SIZE, "下一次请求:约 %d / %d 个令牌(估算)");
+        setValue(L.MSG_AGENT_CONTEXT_SIZE_NO_CAP, "下一次请求:约 %d 个令牌(估算)");
+        setValue(L.MSG_AGENT_CONTEXT_REPORTED, "模型在上一次回答时报告了 %d 个令牌。");
+        setValue(L.MSG_AGENT_CONTEXT_PICK, "选择一个部分,可原样查看发送给模型的内容。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -944,6 +959,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_AGENTS_MAX_CONCURRENCY, "一次运行可同时向模型发出的请求数，代理及其子代理合计。为 1 时，子代理向模型请求期间代理会等待（挂起）。留空为 1。");
         setValue(L.HELP_AGENT_MAX_SUBAGENTS, "代理可同时运行的子代理数量。0 或留空表示没有：代理不会获得启动子代理的工具。为 1 时，启动子代理会等到它完成；更多时，调用会立即返回，直到达到上限，之后会等待其中一个结束。子代理不能再启动子代理，它们的所有请求都计入本次运行的预算。");
         setValue(L.HELP_AGENT_CANCEL_QUEUED, "撤回该消息或命令，代理将不会收到它。");
+        setValue(L.HELP_AGENT_CONTEXT, "模型下一次请求会读取的内容,按部分显示:系统消息、工具定义和对话。内容不会被截断;可下载为 Markdown 在编辑器中阅读。各部分的令牌数为估算值,图表中的折线是模型报告的值。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");
@@ -1257,6 +1273,11 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_CREATE_META_SUMMARY, "让模型把一个范围内的摘要合并为一个。参数：from（句柄）、to（句柄）。");
         setValue(L.DESC_COMMAND_CREATE_META_SUMMARY_LLM, "让模型把从部分 `from`（最新）到部分 `to`（最旧，向上取整到其摘要块的末尾）的摘要合并为一个元摘要，放在 `from` 上并取代原有的摘要。用于让很长的故事适合上下文。两个部分在同一分支上且都有摘要。较慢，并消耗书的模型的令牌。会更改书。异步。");
         setValue(L.DESC_COMMAND_CREATE_META_SUMMARY_RETURN, "包含该部分、元摘要的令牌数和文本开头的 JSON");
+        setValue(L.DESC_COMMAND_INSERT_PART, "在两个段落之间插入新的段落,后续段落保持不变。参数:text, part(句柄), before(true 或 false)。");
+        setValue(L.DESC_COMMAND_INSERT_PART_LLM, "在故事中间插入一个带有给定文本的新段落:紧接在 `part`(其句柄)之后,`before` 为 true 时则紧接在它之前。原来跟在该位置之后的所有内容(所有分支)现在都跟在新段落之后;不会删除或重写任何段落,因此其他段落的句柄、摘要和数据都保持不变;新段落之后的每个段落向后移动一个位置。请用它代替删除并重建后面的段落。覆盖该位置的摘要会过期(会有报告;可用 revalidate-summaries 或 regenerate-summary 修复)。在分支末尾时与 create-part 相同。会修改书籍。返回新段落的句柄。");
+        setValue(L.DESC_COMMAND_INSERT_PART_RETURN, "包含新段落(句柄、位置、字数、令牌数)、延续它的分支数、其分支长度以及已过期摘要的 JSON");
+        setValue(L.DESC_COMMAND_INSERT_ANCHOR_PARAM, "插入新段落时作为参照的段落(其句柄):插在它之后,before 为 true 时插在它之前");
+        setValue(L.DESC_COMMAND_INSERT_BEFORE_PARAM, "为 true 时插在该段落之前而不是之后;省略时为 false");
     }
 
     @Override

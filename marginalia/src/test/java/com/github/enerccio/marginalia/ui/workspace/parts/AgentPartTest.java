@@ -101,6 +101,11 @@ class AgentPartTest extends AgentTestBase {
             }
 
             @Override
+            public com.github.enerccio.marginalia.domain.service.agent.AgentContext context(AgentRun run) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
             public boolean isWorking(AgentRun run) {
                 return false;
             }

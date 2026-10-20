@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
+import com.github.enerccio.marginalia.domain.service.agent.AgentContext;
 
 import java.util.List;
 
@@ -171,6 +172,18 @@ public interface AgentRunner {
      * @throws IllegalStateException when the run is in a status that can't be paused
      */
     AgentRun pauseNow(AgentRun run) throws Exception;
+
+    /**
+     * What the model of the run reads with its next request, taken apart for the user to look at and to debug a run: the
+     * sections of the system message, the definition of every tool and every message of the conversation, each with its
+     * text and its tokens (estimated). The system message and the tools are made as the next request makes them (a changed
+     * prompt or allowlist shows at once), the messages are the transcript as it is stored, without what a resume adds
+     * ("go on", the answers to calls an interruption left open). The definitions of the tools are left out, with a note, when
+     * they can't be made (the book of the run is gone). Nothing is written and no worker is started, it works while the run does.
+     *
+     * @throws IllegalArgumentException when the run is not a run of the current user
+     */
+    AgentContext context(AgentRun run) throws Exception;
 
     /**
      * Whether a worker is busy with the run in this server.
