@@ -121,6 +121,77 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
         return tokenizerService.countTokensApprox(text);
     }
 
+    // ---- one round
+
+    /**
+     * One request for an agent: the model is asked once, not streamed, and what it answered is handed back, the functions it asked
+     * for are <b>not</b> called (the runner of the agent calls them and asks again).
+     */
+    @Override
+    public CancellationToken round(List<LLMChatMessage> payload, Protocol protocol, FunctionSet functions,
+                                   InferenceRoundCallback callback) throws Exception {
+        if (!UnmeteredScope.isActive()) {
+            limitService.check(ai, approximatePromptTokens(payload), TokenLimits.responseTokens(ai, protocol));
+        }
+        GoogleGenAiMessages.Prepared prepared = GoogleGenAiMessages.prepare(payload);
+        boolean functionsOffered = functions != null && !functions.isEmpty();
+        Run run = new Run(protocol, functionsOffered ? functions : null, null, prepared.systemInstruction(),
+                new Outcome(callback::isDead, (call, result, failed) -> {}, callback::onCancel, callback::onError));
+        Client sdk = client();
+        String model = model();
+        GenerateContentConfig config = config(run, false);
+
+        AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
+        CompletableFuture.runAsync(() -> {
+            try {
+                wrapper.run(() -> {
+                    if (run.outcome.dead().getAsBoolean() || run.token.isCancelled()) {
+                        callback.onCancel();
+                        return;
+                    }
+                    long began = System.nanoTime();
+                    GenerateContentResponse response = sdk.models.generateContent(model, prepared.contents(), config);
+                    long millis = (System.nanoTime() - began) / 1_000_000;
+                    Answer answer = new Answer();
+                    List<ChunkPiece> pieces = answer.absorb(response, functionsOffered);
+                    TokenUsage counted = run.metered
+                            ? recordUsage(run.attributes, prepared.contents(), answer.reported, answer.received.toString()) : null;
+                    if (run.outcome.dead().getAsBoolean() || run.token.isCancelled()) {
+                        callback.onCancel();
+                    } else if (answer.calls.isEmpty() && answer.isEmptyAndStopped()) {
+                        throw answer.stopped();
+                    } else {
+                        String reasoning = pieces.stream().filter(ChunkPiece::reasoning).map(ChunkPiece::text)
+                                .collect(java.util.stream.Collectors.joining());
+                        callback.onRound(answer.text.toString(), reasoning.isEmpty() ? null : reasoning, answer.calls,
+                                roundUsage(counted != null ? counted : answer.reported, answer, millis));
+                    }
+                });
+            } catch (Throwable e) {
+                logFailure("Failed to ask for a round", e);
+                run.failOrCancel(e);
+            } finally {
+                run.forget();
+            }
+        });
+        return run.token;
+    }
+
+    /**
+     * What a round used and how it went. The answer is not streamed, so the time of the whole request is the one thing the
+     * provider's side of the clock can tell: it is given as the time of writing, the wait for the first word is not known.
+     */
+    static RoundUsage roundUsage(TokenUsage reported, Answer answer, long millis) {
+        long prompt = reported == null ? 0 : reported.promptTokens();
+        long generated = reported == null ? 0 : reported.generatedTokens();
+        String finish = answer.finishReason == null ? null
+                : "MAX_TOKENS".equals(answer.finishReason) ? "length"
+                : "STOP".equals(answer.finishReason) ? (answer.calls.isEmpty() ? "stop" : "tool_calls")
+                : answer.finishReason.toLowerCase(Locale.ROOT);
+        return new RoundUsage(prompt, generated, new RoundStats(reported == null ? -1 : reported.cachedTokens(),
+                reported == null ? -1 : reported.thoughtTokens(), -1, millis, finish, -1, -1));
+    }
+
     // ---- streaming
 
     @Override
@@ -557,7 +628,7 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
      * Google reported, otherwise our count of the contents and of the text that arrived (a stopped request has no
      * report).
      */
-    private void recordUsage(RequestAttributes attributes, List<Content> contents, TokenUsage reported, String generated) {
+    private TokenUsage recordUsage(RequestAttributes attributes, List<Content> contents, TokenUsage reported, String generated) {
         try (InRequestScope _ = new InRequestScope(attributes)) {
             long prefill;
             long generatedTokens;
@@ -569,8 +640,11 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
                 generatedTokens = tokenizerService.countTokensApprox(generated);
             }
             usageService.record(ai, prefill, generatedTokens);
+            return new TokenUsage(prefill, generatedTokens, reported == null ? -1 : reported.cachedTokens(),
+                    reported == null ? -1 : reported.thoughtTokens());
         } catch (Exception e) {
             log.warn("Failed to count the usage of AI {}", ai.getId(), e);
+            return null;
         }
     }
 
@@ -606,12 +680,16 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
     /**
      * Token counts Google reported for a request. Thinking tokens are generated tokens: they are billed as such.
      */
-    private record TokenUsage(long promptTokens, long generatedTokens) {
+    record TokenUsage(long promptTokens, long generatedTokens, long cachedTokens, long thoughtTokens) {
+
+        TokenUsage(long promptTokens, long generatedTokens) {
+            this(promptTokens, generatedTokens, -1, -1);
+        }
 
         static TokenUsage of(GenerateContentResponseUsageMetadata usage) {
             long prompt = usage.promptTokenCount().orElse(0) + usage.toolUsePromptTokenCount().orElse(0);
             long generated = usage.candidatesTokenCount().orElse(0) + usage.thoughtsTokenCount().orElse(0);
-            return new TokenUsage(prompt, generated);
+            return new TokenUsage(prompt, generated, usage.cachedContentTokenCount().orElse(-1), usage.thoughtsTokenCount().orElse(-1));
         }
     }
 
@@ -643,7 +721,7 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
     /**
      * What one response (or the chunks of a streamed one) holds: the text, the reasoning, the calls and how it ended.
      */
-    private static class Answer {
+    static class Answer {
         /** The text of the answer, without the reasoning. */
         final StringBuilder text = new StringBuilder();
         /** Everything that arrived, reasoning included. */
@@ -734,7 +812,7 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
         }
     }
 
-    private record ChunkPiece(boolean reasoning, String text) {}
+    record ChunkPiece(boolean reasoning, String text) {}
 
     // ---- streamed answers
 

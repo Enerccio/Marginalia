@@ -48,7 +48,8 @@ edit the **content** of an entry. Everything else is shown as text only: name, o
 mode, negative tags and note. You cannot create, delete, import or export lorebooks, or add entries. Use the desktop
 for that, see [Lorebooks](lorebooks/index.md).
 
-The same reduced editor is used in the *Lorebook* tab of a book.
+The same reduced editor is used in the *Lorebook* tab of a book. When the lorebook of the book has sub lorebooks, the box
+**Shown lorebook** under it switches the tab to any of them, and back, without changing the lorebook of the book.
 
 ![A lorebook on a phone](../images/phone-lorebook.png)
 

@@ -25,6 +25,11 @@ public interface LorebookService extends ExtendableService<Lorebook, LorebookRep
     List<Lorebook> getSubbooks(Lorebook lorebook) throws Exception;
 
     /**
+     * The lorebook and its subbooks, however deep (not the deleted ones), the lorebook first, each lorebook once.
+     */
+    List<Lorebook> getLorebookTree(Lorebook lorebook) throws Exception;
+
+    /**
      * Whether making {@code subbook} a subbook of {@code parent} would make a lorebook contain itself: it is the parent, or
      * the parent is one of its subbooks, however deep.
      */

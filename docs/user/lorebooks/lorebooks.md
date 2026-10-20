@@ -18,6 +18,7 @@ The toolbar has two rows, which wrap onto more lines in a narrow window: the fir
 | Tags (tags icon, last of the first row) | **Tag lorebooks**: puts a tag on many lorebooks at once, see [below](#tagging-many-at-once). Not shown for a lorebook that is open in a book. |
 | **Add Entry** | Adds an entry to the lorebook, see [Entries & activation](entries.md). |
 | **Search and replace** | Changes a text in the name, text and comment of the entries of the lorebook, see [Search and replace](entries.md#search-and-replace). |
+| **Mass edit** | Opens all the entries of the lorebook and of its sub lorebooks in one table, see [Mass edit](#mass-edit). |
 | Tags (tags icon, right of **Search and replace**, second row) | **Tag entries**: puts a tag on many entries of the selected lorebook at once, see [below](#tagging-many-at-once). |
 | **Refresh** | Reloads the entries. |
 
@@ -32,7 +33,27 @@ Below the toolbar are the settings of the selected lorebook:
 
 The rest of the editor is the list of [entries](entries.md). All changes are saved as you make them.
 
-A lorebook of a book an agent works on is shown read only (see [Agents](../agents.md)), without **Add Entry**, **Search and replace**, **Delete Lorebook** and the settings; **Add Lorebook**, import, export and **Refresh** stay, so you can always start another lorebook.
+Under the settings, the estimate of the tokens of the enabled entries of the lorebook is shown. The link **Count with subbooks** next to it adds up
+the tokens of the enabled entries of the lorebook and of all its sub lorebooks, however deep, and shows the total next to it. As when a
+story is written, a disabled sub lorebook is left out together with the lorebooks under it, and a lorebook that is a sub lorebook in more than one place counts once.
+The total is a count of the moment you click: change an entry and it disappears, click again to count again.
+
+A lorebook of a book an agent works on is shown read only (see [Agents](../agents.md)), without **Add Entry**, **Search and replace**, **Mass edit**, **Delete Lorebook** and the settings; **Add Lorebook**, import, export and **Refresh** stay, so you can always start another lorebook.
+
+## Mass edit
+
+**Mass edit** opens a window with every entry of the selected lorebook **and of its sub lorebooks** (however deep) in one table,
+ordered by the **Order** of the entries (entries with the same order by lorebook, then by name). It is for tidying a big lorebook:
+
+- Change the *enabled* box, the **Entry Name**, the **Order** and the **Tags** of an entry in place, as in the editor. The row moves to its
+  new place when you change the order. The text of an entry is shortened in the table; open the entry in the lorebook to read or edit all of it.
+- The **Lorebook** box of a row says in which lorebook the entry is. Pick another one (the lorebook itself or any of its sub lorebooks) to move the entry there.
+- To move many entries, tick them (the box in the header ticks all), pick **Move to lorebook** at the bottom and press **Move checked**.
+- A lorebook that an agent works on is locked: its entries are grayed out and can not be changed or moved, and nothing can be moved into
+  it. This is checked for each lorebook, so a lorebook can be free while one of its sub lorebooks is locked (it is used by another book).
+  **Refresh** reads the window again to see whether a lock is gone.
+
+The lorebook in the editor is refreshed when the window is closed after a change.
 
 ## Tagging many at once
 

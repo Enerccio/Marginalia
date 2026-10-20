@@ -102,6 +102,24 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
 
     @Override
     @CommonTxReadOnly
+    public List<Lorebook> getLorebookTree(Lorebook lorebook) throws Exception {
+        List<Lorebook> tree = new ArrayList<>();
+        Set<Long> seen = new HashSet<>();
+        Deque<Lorebook> queue = new ArrayDeque<>();
+        queue.add(lorebook);
+        while (!queue.isEmpty()) {
+            Lorebook book = queue.remove();
+            if (book.getId() == null || !seen.add(book.getId())) {
+                continue;
+            }
+            tree.add(book);
+            queue.addAll(getSubbooks(book));
+        }
+        return tree;
+    }
+
+    @Override
+    @CommonTxReadOnly
     public boolean wouldCycle(Lorebook parent, Lorebook subbook) throws Exception {
         Lorebook p = own(parent);
         Lorebook sub = own(subbook);

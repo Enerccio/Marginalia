@@ -56,6 +56,7 @@ public interface LorebookEntryService extends ExtendableService<LorebookEntry, L
      * Moves the entry to another lorebook.
      *
      * @throws IllegalArgumentException when the entry or the lorebook is not the user's
+     * @throws LorebookLockedException  when the lorebook the entry is in, or the one it is moved to, is locked by an agent
      */
     LorebookEntry move(LorebookEntry entry, Lorebook target) throws Exception;
 

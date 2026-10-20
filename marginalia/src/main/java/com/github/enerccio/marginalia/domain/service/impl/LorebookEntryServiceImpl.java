@@ -96,6 +96,7 @@ public class LorebookEntryServiceImpl extends ExtendableServiceImpl<LorebookEntr
         }
         Lorebook book = ownLorebook(target);
         agentRunService.checkNotLocked(stored.getLorebook());
+        agentRunService.checkNotLocked(book);
         stored.setLorebook(book);
         return save(stored);
     }

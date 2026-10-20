@@ -19,6 +19,7 @@ import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.Restorable;
 import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
+import com.github.enerccio.marginalia.ui.dialogs.LorebookMassEditDialog;
 import com.github.enerccio.marginalia.ui.dialogs.MultiTagDialog;
 import com.github.enerccio.marginalia.ui.dialogs.search.LorebookSearchReplaceDialog;
 import com.github.enerccio.marginalia.ui.widgets.*;
@@ -27,6 +28,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
@@ -57,6 +59,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Configurable
@@ -101,10 +104,15 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
 
     private Button addEntryButton;
     private Button searchReplaceButton;
+    private Button massEditButton;
+    private Consumer<Lorebook> onOpenSubbook;
     private Button refreshButton;
 
     private Grid<LorebookEntry> grid;
     private Span lorebookTokensSpan;
+    private Span allTokensSpan;
+    private Button countAllTokensButton;
+    private HorizontalLayout tokensRow;
 
     private List<LorebookEntry> currentEntries = new ArrayList<>();
     private final Map<Long, Long> entryTokens = new HashMap<>();
@@ -219,6 +227,8 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
 
         searchReplaceButton = new Button(loc.getValue(L.LABEL_SEARCH_AND_REPLACE), Solid.EXCHANGE_ALT.create(), event -> openSearchReplaceDialog());
 
+        massEditButton = new Button(loc.getValue(L.LABEL_MASS_EDIT), Solid.TABLE.create(), event -> openMassEditDialog());
+
         refreshButton = new Button(loc.getValue(L.LABEL_REFRESH), Solid.REFRESH.create(), event -> {
             try {
                 refreshEntries();
@@ -233,7 +243,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         controlsLayout.setWrap(true);
 
         // what is done with the entries of the selected lorebook is a row of its own, apart from what is done with the lorebooks
-        entriesRow = new HorizontalLayout(addEntryButton, searchReplaceButton, tagEntriesButton, refreshButton);
+        entriesRow = new HorizontalLayout(addEntryButton, searchReplaceButton, massEditButton, tagEntriesButton, refreshButton);
         entriesRow.setWidthFull();
         entriesRow.setAlignItems(Alignment.END);
         entriesRow.setWrap(true);
@@ -315,10 +325,16 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         lorebookHeaderLayout.setFlexGrow(1, tagMultiComboBox);
 
         lorebookTokensSpan = createTokensSpan();
+        allTokensSpan = createTokensSpan();
+        countAllTokensButton = new Button(loc.getValue(L.LABEL_COUNT_TOKENS_WITH_SUBBOOKS), event -> countTokensWithSubbooks());
+        countAllTokensButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_SMALL);
+        tokensRow = new HorizontalLayout(lorebookTokensSpan, countAllTokensButton, allTokensSpan);
+        tokensRow.setAlignItems(Alignment.BASELINE);
+        tokensRow.setPadding(false);
 
         setupGrid();
 
-        add(controlsLayout, entriesRow, lorebookHeaderLayout, lorebookTokensSpan, grid);
+        add(controlsLayout, entriesRow, lorebookHeaderLayout, tokensRow, grid);
         setFlexGrow(1, grid);
         controlsRow = controlsLayout;
 
@@ -622,6 +638,9 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "entry", type = LorebookEntry.class)})
     private void updateLorebookTokens() {
+        // the count with the subbooks is of the entries as they were
+        allTokensSpan.setText("");
+        countAllTokensButton.setVisible(currentLorebook != null);
         if (currentLorebook == null) {
             lorebookTokensSpan.setText("");
             return;
@@ -633,6 +652,50 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         }
         lorebookTokensSpan.setText(formatTokens(total));
+    }
+
+    /**
+     * Counts the tokens of the enabled entries of the lorebook and of its subbooks, however deep, and shows the total next
+     * to the count of the lorebook. As the generation does, a disabled subbook is left out with its own subbooks, and a
+     * lorebook that is a subbook twice counts once.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "seen", type = Set.class),
+                    @APILocals(name = "queue", type = Deque.class),
+                    @APILocals(name = "book", type = Lorebook.class),
+                    @APILocals(name = "entry", type = LorebookEntry.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void countTokensWithSubbooks() {
+        if (currentLorebook == null) {
+            return;
+        }
+        try {
+            long total = 0;
+            Set<Long> seen = new HashSet<>();
+            Deque<Lorebook> queue = new ArrayDeque<>();
+            queue.add(currentLorebook);
+            while (!queue.isEmpty()) {
+                Lorebook book = queue.remove();
+                if (book.getId() == null || !seen.add(book.getId())) {
+                    continue;
+                }
+                // the lorebook shown counts whether it is enabled or not, as its own count does
+                if (book != currentLorebook && !book.isEnabled()) {
+                    continue;
+                }
+                for (LorebookEntry entry : lorebookEntryService.getEntriesForLorebook(book.getId())) {
+                    if (entry.isEnabled()) {
+                        total += book == currentLorebook ? tokensOf(entry)
+                                : tokenizerService.countTokensApprox(StringUtils.defaultString(entry.getPayload()));
+                    }
+                }
+                queue.addAll(lorebookService.getSubbooks(book));
+            }
+            allTokensSpan.setText(String.format(loc.getValue(L.LABEL_TOKENS_WITH_SUBBOOKS), total));
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     @PublicAPI(from = "1.1.0",
@@ -709,7 +772,14 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "subbook", type = Lorebook.class)})
     private void openSubbook(Lorebook subbook) {
-        if (pinnedLorebook || subbook == null) {
+        if (subbook == null) {
+            return;
+        }
+        if (pinnedLorebook) {
+            // a pinned view has no list of lorebooks, its owner decides what is shown
+            if (onOpenSubbook != null) {
+                onOpenSubbook.accept(subbook);
+            }
             return;
         }
         currentLorebook = subbook;
@@ -748,6 +818,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         subLorebooksCombo.setEnabled(hasLorebook);
         addEntryButton.setEnabled(hasLorebook);
         searchReplaceButton.setEnabled(hasLorebook);
+        massEditButton.setEnabled(hasLorebook);
         tagEntriesButton.setEnabled(hasLorebook);
         deleteLorebookButton.setEnabled(hasLorebook);
         exportLorebookButton.setEnabled(hasLorebook);
@@ -826,6 +897,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         deleteLorebookButton.setVisible(!locked && !pinnedLorebook);
         addEntryButton.setVisible(!locked);
         searchReplaceButton.setVisible(!locked);
+        massEditButton.setVisible(!locked);
         tagEntriesButton.setVisible(!locked);
         if (!locked) {
             return;
@@ -960,6 +1032,22 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
     }
 
     /**
+     * Opens the mass edit of the entries of the lorebook and of its subbooks, the entries are shown again when the dialog
+     * is closed after something was changed.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = LorebookMassEditDialog.class)})
+    private void openMassEditDialog() {
+        if (currentLorebook == null) {
+            return;
+        }
+        LorebookMassEditDialog dialog = new LorebookMassEditDialog(currentLorebook, this::refreshEntries);
+        dialog.create();
+        dialog.open();
+    }
+
+    /**
      * Opens the search and replace in the entries of the lorebook, the entries are shown again when something was
      * replaced.
      */
@@ -1024,6 +1112,17 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
      * Called after the user changed what {@link #storeState()} stores (the lorebook, an opened entry), the owner
      * passes it on to the workspace autosave.
      */
+    /**
+     * What a pinned view does when the user clicks a subbook of the shown lorebook (a view that is not pinned shows it
+     * itself); without it nothing happens.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "onOpenSubbook", type = Consumer.class)})
+    public void setOnOpenSubbook(Consumer<Lorebook> onOpenSubbook) {
+        this.onOpenSubbook = onOpenSubbook;
+    }
+
     @PublicAPI(from = "1.3.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "onStateChange", type = Runnable.class)})

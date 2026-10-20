@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845853814863">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845855505957">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845853814863" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845855505957" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845853814863" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845855505957" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845853814863" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845853814863" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845855505957" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845855505957" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -461,7 +461,10 @@ screen (the <code translate="no" v-pre>phone-dialog</code> class), the exit butt
 above the content of the selected tab. Every tab is a <code translate="no" v-pre>PhoneManuscriptDialogPart</code> of <code translate="no" v-pre>ui.dialogs.phone.manuscript</code>
 (the desktop <code translate="no" v-pre>ManuscriptDialogPart</code> without the tab sheet argument): <code translate="no" v-pre>PhoneManuscriptInfoPart</code> and
 <code translate="no" v-pre>PhoneManuscriptPromptPart</code> (one column of fields), <code translate="no" v-pre>PhoneManuscriptLorebookPart</code> (the lorebook of the book and
-<code translate="no" v-pre>PhoneLorebookView(true)</code>, which hides its own lorebook selection like the pinned <code translate="no" v-pre>LorebookView</code>),
+<code translate="no" v-pre>PhoneLorebookView(true)</code>, which hides its own lorebook selection like the pinned <code translate="no" v-pre>LorebookView</code>; both lorebook parts
+have a second box, <em>Shown lorebook</em>, with the lorebook of the book and its subbooks (<code translate="no" v-pre>LorebookService.getLorebookTree</code>, shown only when there is a subbook), which
+sets the lorebook of the pinned view without touching <code translate="no" v-pre>Manuscript.lorebook</code>: the desktop part also gets the click on a subbook chip through
+<code translate="no" v-pre>LorebookView.setOnOpenSubbook</code>, and both rebuild the box in <code translate="no" v-pre>onTabEnter</code> as the subbooks can be changed in the view),
 <code translate="no" v-pre>PhoneManuscriptTreePart</code> (stacked search bar), <code translate="no" v-pre>PhoneManuscriptBackupPart</code> (one row per backup) and
 <code translate="no" v-pre>PhoneManuscriptStoryPart</code>. The story is a single column in an <code translate="no" v-pre>AppLayout</code>: the outline is its drawer (slid in by the
 toggle in the navbar, which also holds the summaries/settings menu bar), the new turn button is at the bottom. Its
@@ -535,7 +538,7 @@ and <code translate="no" v-pre>PhoneManuscriptDialogPart</code> (default: no sta
 | `ManuscriptPart`, `PhoneManuscriptPart` | `filters` (`name`, `tags` as tag uuids) and `dialog`, the state of the open book window. |
 | `ManuscriptDialog`, `PhoneManuscriptDialog` | `manuscript` (uuid), `tab` (`info`, `prompt`, `lorebook`, `story`, `tree`, `backup`) and `parts`, the state of the tabs. |
 | `ManuscriptStoryPart`, `PhoneManuscriptStoryPart` | `newTurn`, the `NewTurnForm`: `scene`, `pov`, `present`, `instructions` and `edited`. The desktop part also stores `tabs`, the `TabDock` state: `selected`, the ids of the tab each sidebar panel shows. |
-| `LorebookPart`, `LorebookView`, `PhoneLorebookView` and the lorebook tab of the book window | `lorebook` (uuid, not for the view pinned to the lorebook of a book) and `entries`, the uuids of the entries whose details are open. |">
+| `LorebookPart`, `LorebookView`, `PhoneLorebookView` and the lorebook tab of the book window | `lorebook` (uuid, not for the view pinned to the lorebook of a book), `rootOnly` (the *Only root lorebooks* box, `LorebookView` only, not when pinned) and `entries`, the uuids of the entries whose details are open. The lorebook tab of the book window (`ManuscriptLorebookPart`, `PhoneManuscriptLorebookPart`) adds `shown`, the uuid of the lorebook it shows when it is not the one of the book (see the lorebook parts above); it is restored before the rest, as the open entries are the ones of that lorebook. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -563,7 +566,7 @@ and <code translate="no" v-pre>PhoneManuscriptDialogPart</code> (default: no sta
 </tr>
 <tr>
 <td><code translate="no" v-pre>LorebookPart</code>, <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>PhoneLorebookView</code> and the lorebook tab of the book window</td>
-<td><code translate="no" v-pre>lorebook</code> (uuid, not for the view pinned to the lorebook of a book) and <code translate="no" v-pre>entries</code>, the uuids of the entries whose details are open.</td>
+<td><code translate="no" v-pre>lorebook</code> (uuid, not for the view pinned to the lorebook of a book), <code translate="no" v-pre>rootOnly</code> (the <em>Only root lorebooks</em> box, <code translate="no" v-pre>LorebookView</code> only, not when pinned) and <code translate="no" v-pre>entries</code>, the uuids of the entries whose details are open. The lorebook tab of the book window (<code translate="no" v-pre>ManuscriptLorebookPart</code>, <code translate="no" v-pre>PhoneManuscriptLorebookPart</code>) adds <code translate="no" v-pre>shown</code>, the uuid of the lorebook it shows when it is not the one of the book (see the lorebook parts above); it is restored before the rest, as the open entries are the ones of that lorebook.</td>
 </tr>
 </tbody>
 </table>
@@ -795,6 +798,7 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 | `HelpAssistantWidget` | The help chat: a round robot `Button` fixed in the bottom right corner (`CssStyles.HELP_FAB`) opening a fixed panel above it (`HELP_PANEL`: header with clear and close, which AI answers, a warning when `Info.metered()`, the messages, an input row whose send button turns into stop). Added to `Main` after the workspace, so the phone layout has it too; hidden unless `HelpAssistantService.isAvailable()` when the page is built, the panel reads `getInfo()` at each opening. Answers stream into a `Markdown` card with `ui.access` + `UIPushGuard.push`; the conversation is `SessionPoint.getHelpChat()` (the widget keeps the list, the callbacks have no session). A request that fails or is refused (limit) takes the question back into the input field and shows the reason in the card. Reasoning chunks are not shown. |
 | `LorebookPreview` | The read only *Lorebook* tab of the desktop story editor: a tree grid of the lorebook (optionally with its sub lorebooks as top level rows) and its entries, opening to the content and the text activation. `create()`, then `refresh(lorebook)`. |
 | `TagMultiComboBox` | Tag selection with lazy search (`TagService.searchTagsForUser`) and creation of new tags. |
+| `LorebookMassEditDialog` (`ui.dialogs`) | The *Mass edit* of `LorebookView`: one `Grid&lt;Row&gt;` with the entries of a lorebook and of its subbooks (`LorebookService.getLorebookTree`, the lorebook first, each once), sorted by `LorebookEntry.order`, then by the position of the lorebook in the tree, then by name. A `Row` is an entry with the lorebook it is in and whether that lorebook is locked (`AgentRunService.findLockingRun(Lorebook)`, asked for each lorebook of the tree, as a subbook can be used by another book than the root). The cells change the enabled flag, name, order (the grid is sorted again) and tags in place through `LorebookEntryService.save`; the lorebook cell and the *Move checked* button call `LorebookEntryService.move`, which refuses (`LorebookLockedException`, shown by `UIUtils.internalServerError` as a warning) both a locked source and, since this dialog, a locked target lorebook. The text is `StringUtils.abbreviate`d to `CONTENT_PREVIEW_LENGTH` and clamped to three lines by `CssStyles.MASS_EDIT_CONTENT`. Locked rows use `CssStyles.MULTI_TAG_LOCKED` and are never targets. The `onChange` runnable (the view's `refreshEntries`) runs when the dialog is closed after a change. |
 | `MultiTagDialog` (`ui.dialogs`) | Puts one tag on many books, lorebooks or the entries of a lorebook (`Kind.BOOKS`, `Kind.LOREBOOKS`, or the constructor with a `Lorebook`), opened from `ManuscriptPart` and `LorebookView`. A `ComboBox&lt;Tag&gt;` (an unknown typed value is made with `TagService.getOrCreateForUser`) and a grid of rows (check box, name, chips of the tags with the picked one marked, apply / remove buttons); the rows with the picked tag sort first. The tags of all rows come from one `TagRelationService.getTagsForObjects`; apply and remove go through `createRelation` / `removeRelation` with the class of the entity (`Manuscript`, `Lorebook`, `LorebookEntry`), positive relations only. A row is locked when `AgentRunService.findLockingRun` returns a run (an entry is locked with its lorebook); locked rows are grayed out (`CssStyles.MULTI_TAG_LOCKED`), can not be ticked and are skipped when the change is made, which asks the lock again as the run may have started since the list was read. The tag relations themselves are not guarded by the services, so the lock is checked here. |
 | `ModelProtocolPicker` | A model and a protocol combo box (the AIs and protocols of the user, the protocol optional) for a dialog that runs the model with a choice of its own: `setSelection(ai, protocol)` / `getAi()` / `getProtocol()` / `addSelectionListener(Runnable)`. Used by the generator dialogs of the Lore Generator and the Arc Outline. |
 | `TextAreaPopoverComponent`, `TextFieldPopOverComponent` | Prompt fields with a hints popover. |
@@ -845,6 +849,10 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 <tr>
 <td><code translate="no" v-pre>TagMultiComboBox</code></td>
 <td>Tag selection with lazy search (<code translate="no" v-pre>TagService.searchTagsForUser</code>) and creation of new tags.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>LorebookMassEditDialog</code> (<code translate="no" v-pre>ui.dialogs</code>)</td>
+<td>The <em>Mass edit</em> of <code translate="no" v-pre>LorebookView</code>: one <code translate="no" v-pre>Grid&lt;Row&gt;</code> with the entries of a lorebook and of its subbooks (<code translate="no" v-pre>LorebookService.getLorebookTree</code>, the lorebook first, each once), sorted by <code translate="no" v-pre>LorebookEntry.order</code>, then by the position of the lorebook in the tree, then by name. A <code translate="no" v-pre>Row</code> is an entry with the lorebook it is in and whether that lorebook is locked (<code translate="no" v-pre>AgentRunService.findLockingRun(Lorebook)</code>, asked for each lorebook of the tree, as a subbook can be used by another book than the root). The cells change the enabled flag, name, order (the grid is sorted again) and tags in place through <code translate="no" v-pre>LorebookEntryService.save</code>; the lorebook cell and the <em>Move checked</em> button call <code translate="no" v-pre>LorebookEntryService.move</code>, which refuses (<code translate="no" v-pre>LorebookLockedException</code>, shown by <code translate="no" v-pre>UIUtils.internalServerError</code> as a warning) both a locked source and, since this dialog, a locked target lorebook. The text is <code translate="no" v-pre>StringUtils.abbreviate</code>d to <code translate="no" v-pre>CONTENT_PREVIEW_LENGTH</code> and clamped to three lines by <code translate="no" v-pre>CssStyles.MASS_EDIT_CONTENT</code>. Locked rows use <code translate="no" v-pre>CssStyles.MULTI_TAG_LOCKED</code> and are never targets. The <code translate="no" v-pre>onChange</code> runnable (the view&#x27;s <code translate="no" v-pre>refreshEntries</code>) runs when the dialog is closed after a change.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>MultiTagDialog</code> (<code translate="no" v-pre>ui.dialogs</code>)</td>
@@ -1317,7 +1325,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (37ce58cb).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (4348f6d5).</p></div>
             </footer>
         </div>
     </div>
