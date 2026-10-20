@@ -576,9 +576,35 @@ text -> VirtualPath.parse -> VirtualFileSystem (mounts) -> WorkspaceMount: check
 `AgentFileToolsImpl` implements the functions: `list_files`, `read_file` (line ranges, cut at 20 000 characters at a line with the line to go on from),
 `write_file`, `append_file`, `replace_in_file` (the old text must be in the file exactly once; a file with Windows line breaks is matched too),
 `regex_replace_in_file`, `grep_files` (at most 100 lines, 1 000 files), `move_file` (a free target name, the folders above it are
-created; not between mounts), `copy_file` (a file or a folder to a free name; all or nothing, checked against the file, size, depth and path-length limits before a byte is copied, through a temporary file or folder moved into place; the same mount only), `merge_files` (up to 100 files, read and joined in Java, one write; a `*` / `?` in the last name of a path stands for the files of that folder by name, the target left out) and `delete_file`. `list_command_results` and `save_command_result` work on the results of the commands, see [References](#references). `list_files` and `grep_files` take a `glob` (`VirtualGlob`: `*`, `**`, `?`, `[a-c]`, `{md,txt}`, case-insensitive, matched on virtual paths only; without a `/` against the name at any depth, with one against the path below the folder). The regular expressions use `TextSearch` and read the text through
+created; not between mounts), `copy_file` (a file or a folder to a free name; all or nothing, checked against the file, size, depth and path-length limits before a byte is copied, through a temporary file or folder moved into place; the same mount only), `merge_files` (up to 100 files, read and joined in Java, one write; a `*` / `?` in the last name of a path stands for the files of that folder by name, the target left out), `unzip_file` (see [Zip files](#zip-files)) and `delete_file`. `list_command_results` and `save_command_result` work on the results of the commands, see [References](#references). `list_files` and `grep_files` take a `glob` (`VirtualGlob`: `*`, `**`, `?`, `[a-c]`, `{md,txt}`, case-insensitive, matched on virtual paths only; without a `/` against the name at any depth, with one against the path below the folder). The regular expressions use `TextSearch` and read the text through
 a `DeadlineCharSequence`, which throws after three seconds, because a thread cannot be stopped from outside and a pattern with a back reference backtracks for
 hours.
+
+### Zip files
+
+The workspace holds three kinds of file: text (UTF-8, no NUL), images (`ImageFiles`) and **zip files** (`ArchiveFiles.isZip`: the `PK` signature). A zip file is
+written by `VirtualFileSystem.writeArchive` (the upload of the workspace browser does it; the model has no tool that writes one) up to
+`WorkspaceLimits.maxArchiveBytes` (10 MB by default, or the file limit when that is more), counts like any file, and cannot be read as text
+(`readText` says to use `unzip_file`). `maxAnyFileBytes()` is the most any file may be, which is what `WorkspaceMount.read` allows.
+
+`unzip_file(path, target)` is `VirtualFileSystem.unzip` -> `WorkspaceMount.unzip`, under the lock of the workspace, all or nothing: the archive is opened with
+`java.util.zip.ZipFile` (so its central directory is the source of the sizes), `ZipExtractor` unpacks into a temporary folder next to the archive
+(`.marginalia-tmp-` prefix, so no folder is made before the archive is known to be good), and the folder is moved to the target, which must not exist.
+`ZipExtractor` trusts nothing of the archive:
+
+- Names: an entry with `..` or a leading `/` refuses the whole archive (zip slip). Other names lose their `.` and empty parts, are normalized (NFC) and
+  must pass `VirtualPath` (an entry that does not is left out and reported; a `\` is a forbidden character, never a separator); the real path is
+  built from the checked names below the temporary folder. A name starting with `.marginalia-tmp-` is left out. Two names equal in lower case, and a name that is
+  both a file and a folder, refuse the archive.
+- Only regular files and folders are made; a link in the archive is an ordinary entry with the target as its bytes, judged as any file.
+- Content: text, images (`ImageFiles.check`) and zip files are kept within their limits; the rest is left out and named in the answer (the first 20).
+  A zip file inside is stored, never unpacked, so there is no recursion.
+- Bombs: at most 5 000 entries; the bytes inflated by all the entries (the ones left out too) must not pass `maxTotalBytes`; an entry is read to the size it
+  declares and refused when it inflates to more; the ratio of inflated to packed bytes is limited to 100 for an entry and for the archive (not looked at
+  below 256 KiB); the files and bytes must fit what the workspace has room for.
+- Encrypted and damaged archives give an error without details of the disk.
+
+`ZipUnpackTest` covers it, with the archives made in the test.
 
 ## Bringing the user in
 

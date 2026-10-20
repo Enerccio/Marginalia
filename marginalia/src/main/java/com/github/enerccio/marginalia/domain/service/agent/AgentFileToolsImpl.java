@@ -389,6 +389,37 @@ public final class AgentFileToolsImpl implements AgentFileTools {
     }
 
     @Override
+    public void unzipFile(FunctionContinuation<String> done, String path, String target) {
+        run(done, "unzip_file", () -> {
+            VirtualPath archive = fs.parse(path);
+            VirtualPath folder;
+            if (target != null && !target.isBlank()) {
+                folder = fs.parse(target);
+            } else {
+                String name = archive.isRoot() ? "" : archive.getName();
+                if (!name.toLowerCase(java.util.Locale.ROOT).endsWith(".zip") || name.length() <= 4) {
+                    throw new VirtualFileException(archive + " does not end with .zip, so give the folder to unpack into as target");
+                }
+                folder = archive.getParent().resolve(name.substring(0, name.length() - 4));
+            }
+            UnzipResult unpacked = fs.unzip(archive, folder);
+            StringBuilder out = new StringBuilder("Unpacked ").append(archive).append(" into ").append(folder).append(": ")
+                    .append(unpacked.files()).append(unpacked.files() == 1 ? " file (" : " files (").append(unpacked.bytes())
+                    .append(" bytes), ").append(unpacked.folders()).append(unpacked.folders() == 1 ? " folder" : " folders");
+            if (unpacked.skipped() > 0) {
+                out.append("\nLeft out ").append(unpacked.skipped()).append(unpacked.skipped() == 1 ? " entry:" : " entries:");
+                for (String skipped : unpacked.skippedNames()) {
+                    out.append("\n- ").append(skipped);
+                }
+                if (unpacked.skipped() > unpacked.skippedNames().size()) {
+                    out.append("\n- and ").append(unpacked.skipped() - unpacked.skippedNames().size()).append(" more");
+                }
+            }
+            return out.toString();
+        });
+    }
+
+    @Override
     public void mergeFiles(FunctionContinuation<String> done, List<String> paths, String target, String delimiter) {
         run(done, "merge_files", () -> {
             if (paths == null || paths.isEmpty()) {

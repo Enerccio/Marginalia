@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845787827798">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845791316238">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845787827798" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845791316238" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845787827798" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845791316238" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845787827798" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845791316238" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -274,7 +274,7 @@ Every round is saved, so a run can be paused and go on later, even after the ser
 these of its own:</p>
 <retype-table copy-text="| Tool | |
 |---|---|
-| Files | `list_files`, `read_file`, `write_file`, `append_file`, `replace_in_file`, `regex_replace_in_file`, `grep_files`, `move_file`, `copy_file`, `merge_files`, `delete_file` in its own workspace (notes it keeps between runs). Next to the workspace it sees the read-only file `/AGENTS.md`, your instructions as the run started with them, which it can read again whenever it likes and never change. `list_files` and `grep_files` take a name pattern (`glob`, for example `*.md` or `chapters/*.md`), `copy_file` copies a folder with everything in it (a quick way to keep a version of the notes), `merge_files` joins several files into one without the text passing through the model (the last name of a path may be a pattern such as `/chapters/*.md`). `list_command_results` and `save_command_result` keep the long result of a command without the agent writing it out again: the last ten results are kept whole (the agent sees a long one cut), and one is saved to a file by its number, the newest when none is given; it then passes the file on as `@file:/path`. |
+| Files | `list_files`, `read_file`, `write_file`, `append_file`, `replace_in_file`, `regex_replace_in_file`, `grep_files`, `move_file`, `copy_file`, `merge_files`, `unzip_file`, `delete_file` in its own workspace (notes it keeps between runs). Next to the workspace it sees the read-only file `/AGENTS.md`, your instructions as the run started with them, which it can read again whenever it likes and never change. `list_files` and `grep_files` take a name pattern (`glob`, for example `*.md` or `chapters/*.md`), `copy_file` copies a folder with everything in it (a quick way to keep a version of the notes), `merge_files` joins several files into one without the text passing through the model (the last name of a path may be a pattern such as `/chapters/*.md`), `unzip_file` unpacks a [zip file](#unpacking-a-zip-file) of the workspace into a new folder. `list_command_results` and `save_command_result` keep the long result of a command without the agent writing it out again: the last ten results are kept whole (the agent sees a long one cut), and one is saved to a file by its number, the newest when none is given; it then passes the file on as `@file:/path`. |
 | `@file:/path` | Not a tool but a way to call one: a text argument of a command that is exactly `@file:/notes/chapter.md` is replaced by the contents of that file of the agent's workspace, so the agent can write a long text to a file once, check it, and pass it to a command (the result shows the short reference in the call, the command gets the text). `write_file` and `append_file` take it as their content too, which copies a file or adds it to another: a long file can be written in parts, each part within the longest answer of the model, and put together this way. |
 | `@result` | Like `@file:`, for the result of a command: a text argument that is exactly `@result` is replaced by the whole result of the last command the agent called, `@result:3` by the result with that number (`list_command_results` shows the numbers). A generated text goes from one command to the next, or into `write_file` and `append_file`, without the agent writing it out. |
 | `view_image` | Looks at an image file of its workspace (PNG, JPEG, GIF or WebP): the picture is shown to the model in the next message. Only an agent whose model is marked as seeing images (**The model sees images** in the agent) has it. A large image is scaled down before it is sent, a GIF shows its first frame, and only the newest four images stay in front of the model (an older one becomes a note, and the agent can look again). The images come from you (**Upload file**, or [attached to a message](#the-console)); the agent can't make one. |
@@ -297,7 +297,7 @@ these of its own:</p>
 <tbody>
 <tr>
 <td>Files</td>
-<td><code translate="no" v-pre>list_files</code>, <code translate="no" v-pre>read_file</code>, <code translate="no" v-pre>write_file</code>, <code translate="no" v-pre>append_file</code>, <code translate="no" v-pre>replace_in_file</code>, <code translate="no" v-pre>regex_replace_in_file</code>, <code translate="no" v-pre>grep_files</code>, <code translate="no" v-pre>move_file</code>, <code translate="no" v-pre>copy_file</code>, <code translate="no" v-pre>merge_files</code>, <code translate="no" v-pre>delete_file</code> in its own workspace (notes it keeps between runs). Next to the workspace it sees the read-only file <code translate="no" v-pre>/AGENTS.md</code>, your instructions as the run started with them, which it can read again whenever it likes and never change. <code translate="no" v-pre>list_files</code> and <code translate="no" v-pre>grep_files</code> take a name pattern (<code translate="no" v-pre>glob</code>, for example <code translate="no" v-pre>*.md</code> or <code translate="no" v-pre>chapters/*.md</code>), <code translate="no" v-pre>copy_file</code> copies a folder with everything in it (a quick way to keep a version of the notes), <code translate="no" v-pre>merge_files</code> joins several files into one without the text passing through the model (the last name of a path may be a pattern such as <code translate="no" v-pre>/chapters/*.md</code>). <code translate="no" v-pre>list_command_results</code> and <code translate="no" v-pre>save_command_result</code> keep the long result of a command without the agent writing it out again: the last ten results are kept whole (the agent sees a long one cut), and one is saved to a file by its number, the newest when none is given; it then passes the file on as <code translate="no" v-pre>@file:/path</code>.</td>
+<td><code translate="no" v-pre>list_files</code>, <code translate="no" v-pre>read_file</code>, <code translate="no" v-pre>write_file</code>, <code translate="no" v-pre>append_file</code>, <code translate="no" v-pre>replace_in_file</code>, <code translate="no" v-pre>regex_replace_in_file</code>, <code translate="no" v-pre>grep_files</code>, <code translate="no" v-pre>move_file</code>, <code translate="no" v-pre>copy_file</code>, <code translate="no" v-pre>merge_files</code>, <code translate="no" v-pre>unzip_file</code>, <code translate="no" v-pre>delete_file</code> in its own workspace (notes it keeps between runs). Next to the workspace it sees the read-only file <code translate="no" v-pre>/AGENTS.md</code>, your instructions as the run started with them, which it can read again whenever it likes and never change. <code translate="no" v-pre>list_files</code> and <code translate="no" v-pre>grep_files</code> take a name pattern (<code translate="no" v-pre>glob</code>, for example <code translate="no" v-pre>*.md</code> or <code translate="no" v-pre>chapters/*.md</code>), <code translate="no" v-pre>copy_file</code> copies a folder with everything in it (a quick way to keep a version of the notes), <code translate="no" v-pre>merge_files</code> joins several files into one without the text passing through the model (the last name of a path may be a pattern such as <code translate="no" v-pre>/chapters/*.md</code>), <code translate="no" v-pre>unzip_file</code> unpacks a <doc-anchor-trigger to="#unpacking-a-zip-file">zip file</doc-anchor-trigger> of the workspace into a new folder. <code translate="no" v-pre>list_command_results</code> and <code translate="no" v-pre>save_command_result</code> keep the long result of a command without the agent writing it out again: the last ten results are kept whole (the agent sees a long one cut), and one is saved to a file by its number, the newest when none is given; it then passes the file on as <code translate="no" v-pre>@file:/path</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>@file:/path</code></td>
@@ -426,10 +426,30 @@ text file to read it, use the arrows to download a file or the bin to delete it,
 <strong>New folder</strong> creates a folder in the open one and <strong>Upload file</strong> puts a file from your computer there, so you can hand the agent
 a brief, a style guide or a draft. The same rules hold as for the agent&#x27;s own files: names can&#x27;t have <code translate="no" v-pre>\ &lt; &gt; : &quot; | ? *</code>, a trailing dot
 or space, or be too long or too deep, the limits of file size and number of files apply, and an uploaded file must be text (UTF-8),
-because the agent can only read text, or an image (PNG, JPEG, GIF or WebP, recognised by what the file contains, not by its name;
-up to 5 MB, and it counts against the total and the number of files like any file). A file is never replaced by an upload: delete the old one first.
+because the agent can only read text, an image (PNG, JPEG, GIF or WebP, recognised by what the file contains, not by its name;
+up to 5 MB, and it counts against the total and the number of files like any file) or a zip file (up to 10 MB, kept as it is; the agent unpacks it, see <doc-anchor-trigger to="#unpacking-a-zip-file">below</doc-anchor-trigger>). A file is never replaced by an upload: delete the old one first.
 Files can&#x27;t be changed while the agent works, pause it first. The workspace has a limit of size, file size and number of files, which your administrator can set in your <a href="../administration/permissions/#settings-of-a-permission">permission</a>; the line
 under the table says how much is used. The name <code translate="no" v-pre>AGENTS.md</code> at the top is taken by your instructions, which the agent sees there (the file can&#x27;t be written or deleted).</p>
+<h3 id="unpacking-a-zip-file">Unpacking a zip file</h3>
+<p>Upload a zip file in the <strong>Workspace</strong> tab (<strong>Upload file</strong>) when the agent should work on many files at once, for example the chapters of
+a draft, and ask it to unpack it: the agent has the tool <code translate="no" v-pre>unzip_file</code>, which unpacks <code translate="no" v-pre>/uploads/draft.zip</code> into the new folder
+<code translate="no" v-pre>/uploads/draft</code> (or into a folder it is given; the folder must not exist yet). Unpacking is all or nothing and an archive is never trusted:</p>
+<ul>
+<li>
+<p>Only text files (UTF-8), images (PNG, JPEG, GIF, WebP) and zip files are kept. The other entries are left out and named in the answer to the
+agent. A zip file inside is stored, never unpacked on its own.</p>
+</li>
+<li>
+<p>The files must fit what the workspace has room for (size, file size, number of files), or nothing is unpacked.</p>
+</li>
+<li>
+<p>An archive with an entry that leads above the folder (<code translate="no" v-pre>../x</code>) or starts with <code translate="no" v-pre>/</code> is refused whole, and so is one with the same name twice (also
+differing in case), a name that is both a file and a folder, more than 5 000 entries, or an encrypted or damaged one.</p>
+</li>
+<li>
+<p>A zip bomb is refused: an archive that unpacks to more than the workspace can hold, or to more than 100 times its own size.</p>
+</li>
+</ul>
 <h2 id="sub-agents">Sub-agents</h2>
 <p>An agent can hand a job to a <strong>sub-agent</strong>: a helper with a conversation of its own that does one task and answers with a text. It has the same commands and files as the agent and works in the same working copy and workspace (what it changes stays), but it does not know the conversation of the agent, so the agent has to say everything in the task. The point is that what the sub-agent reads and tries stays out of the context of the agent: checking a chapter, auditing the names, drafting a part.</p>
 <p>Set <strong>Most sub-agents</strong> in the <doc-anchor-trigger to="#creating-and-editing-an-agent">agent</doc-anchor-trigger> to how many may work at once. Zero (the default) is none: the agent is not even told they exist.</p>
@@ -706,7 +726,7 @@ editing again after you paused or stopped the run. Other lorebooks are not affec
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (77fc4ed9).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (2670dfb3).</p></div>
             </footer>
         </div>
     </div>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845787827798">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845791316238">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845787827798" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845791316238" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845787827798" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845791316238" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845787827798" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845791316238" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -931,9 +931,42 @@ service per agent), which makes the limits of <code translate="no" v-pre>Workspa
 <p><code translate="no" v-pre>AgentFileToolsImpl</code> implements the functions: <code translate="no" v-pre>list_files</code>, <code translate="no" v-pre>read_file</code> (line ranges, cut at 20 000 characters at a line with the line to go on from),
 <code translate="no" v-pre>write_file</code>, <code translate="no" v-pre>append_file</code>, <code translate="no" v-pre>replace_in_file</code> (the old text must be in the file exactly once; a file with Windows line breaks is matched too),
 <code translate="no" v-pre>regex_replace_in_file</code>, <code translate="no" v-pre>grep_files</code> (at most 100 lines, 1 000 files), <code translate="no" v-pre>move_file</code> (a free target name, the folders above it are
-created; not between mounts), <code translate="no" v-pre>copy_file</code> (a file or a folder to a free name; all or nothing, checked against the file, size, depth and path-length limits before a byte is copied, through a temporary file or folder moved into place; the same mount only), <code translate="no" v-pre>merge_files</code> (up to 100 files, read and joined in Java, one write; a <code translate="no" v-pre>*</code> / <code translate="no" v-pre>?</code> in the last name of a path stands for the files of that folder by name, the target left out) and <code translate="no" v-pre>delete_file</code>. <code translate="no" v-pre>list_command_results</code> and <code translate="no" v-pre>save_command_result</code> work on the results of the commands, see <doc-anchor-trigger to="#references">References</doc-anchor-trigger>. <code translate="no" v-pre>list_files</code> and <code translate="no" v-pre>grep_files</code> take a <code translate="no" v-pre>glob</code> (<code translate="no" v-pre>VirtualGlob</code>: <code translate="no" v-pre>*</code>, <code translate="no" v-pre>**</code>, <code translate="no" v-pre>?</code>, <code translate="no" v-pre>[a-c]</code>, <code translate="no" v-pre>{md,txt}</code>, case-insensitive, matched on virtual paths only; without a <code translate="no" v-pre>/</code> against the name at any depth, with one against the path below the folder). The regular expressions use <code translate="no" v-pre>TextSearch</code> and read the text through
+created; not between mounts), <code translate="no" v-pre>copy_file</code> (a file or a folder to a free name; all or nothing, checked against the file, size, depth and path-length limits before a byte is copied, through a temporary file or folder moved into place; the same mount only), <code translate="no" v-pre>merge_files</code> (up to 100 files, read and joined in Java, one write; a <code translate="no" v-pre>*</code> / <code translate="no" v-pre>?</code> in the last name of a path stands for the files of that folder by name, the target left out), <code translate="no" v-pre>unzip_file</code> (see <doc-anchor-trigger to="#zip-files">Zip files</doc-anchor-trigger>) and <code translate="no" v-pre>delete_file</code>. <code translate="no" v-pre>list_command_results</code> and <code translate="no" v-pre>save_command_result</code> work on the results of the commands, see <doc-anchor-trigger to="#references">References</doc-anchor-trigger>. <code translate="no" v-pre>list_files</code> and <code translate="no" v-pre>grep_files</code> take a <code translate="no" v-pre>glob</code> (<code translate="no" v-pre>VirtualGlob</code>: <code translate="no" v-pre>*</code>, <code translate="no" v-pre>**</code>, <code translate="no" v-pre>?</code>, <code translate="no" v-pre>[a-c]</code>, <code translate="no" v-pre>{md,txt}</code>, case-insensitive, matched on virtual paths only; without a <code translate="no" v-pre>/</code> against the name at any depth, with one against the path below the folder). The regular expressions use <code translate="no" v-pre>TextSearch</code> and read the text through
 a <code translate="no" v-pre>DeadlineCharSequence</code>, which throws after three seconds, because a thread cannot be stopped from outside and a pattern with a back reference backtracks for
 hours.</p>
+<h3 id="zip-files">Zip files</h3>
+<p>The workspace holds three kinds of file: text (UTF-8, no NUL), images (<code translate="no" v-pre>ImageFiles</code>) and <strong>zip files</strong> (<code translate="no" v-pre>ArchiveFiles.isZip</code>: the <code translate="no" v-pre>PK</code> signature). A zip file is
+written by <code translate="no" v-pre>VirtualFileSystem.writeArchive</code> (the upload of the workspace browser does it; the model has no tool that writes one) up to
+<code translate="no" v-pre>WorkspaceLimits.maxArchiveBytes</code> (10 MB by default, or the file limit when that is more), counts like any file, and cannot be read as text
+(<code translate="no" v-pre>readText</code> says to use <code translate="no" v-pre>unzip_file</code>). <code translate="no" v-pre>maxAnyFileBytes()</code> is the most any file may be, which is what <code translate="no" v-pre>WorkspaceMount.read</code> allows.</p>
+<p><code translate="no" v-pre>unzip_file(path, target)</code> is <code translate="no" v-pre>VirtualFileSystem.unzip</code> -&gt; <code translate="no" v-pre>WorkspaceMount.unzip</code>, under the lock of the workspace, all or nothing: the archive is opened with
+<code translate="no" v-pre>java.util.zip.ZipFile</code> (so its central directory is the source of the sizes), <code translate="no" v-pre>ZipExtractor</code> unpacks into a temporary folder next to the archive
+(<code translate="no" v-pre>.marginalia-tmp-</code> prefix, so no folder is made before the archive is known to be good), and the folder is moved to the target, which must not exist.
+<code translate="no" v-pre>ZipExtractor</code> trusts nothing of the archive:</p>
+<ul>
+<li>
+<p>Names: an entry with <code translate="no" v-pre>..</code> or a leading <code translate="no" v-pre>/</code> refuses the whole archive (zip slip). Other names lose their <code translate="no" v-pre>.</code> and empty parts, are normalized (NFC) and
+must pass <code translate="no" v-pre>VirtualPath</code> (an entry that does not is left out and reported; a <code translate="no" v-pre>\</code> is a forbidden character, never a separator); the real path is
+built from the checked names below the temporary folder. A name starting with <code translate="no" v-pre>.marginalia-tmp-</code> is left out. Two names equal in lower case, and a name that is
+both a file and a folder, refuse the archive.</p>
+</li>
+<li>
+<p>Only regular files and folders are made; a link in the archive is an ordinary entry with the target as its bytes, judged as any file.</p>
+</li>
+<li>
+<p>Content: text, images (<code translate="no" v-pre>ImageFiles.check</code>) and zip files are kept within their limits; the rest is left out and named in the answer (the first 20).
+A zip file inside is stored, never unpacked, so there is no recursion.</p>
+</li>
+<li>
+<p>Bombs: at most 5 000 entries; the bytes inflated by all the entries (the ones left out too) must not pass <code translate="no" v-pre>maxTotalBytes</code>; an entry is read to the size it
+declares and refused when it inflates to more; the ratio of inflated to packed bytes is limited to 100 for an entry and for the archive (not looked at
+below 256 KiB); the files and bytes must fit what the workspace has room for.</p>
+</li>
+<li>
+<p>Encrypted and damaged archives give an error without details of the disk.</p>
+</li>
+</ul>
+<p><code translate="no" v-pre>ZipUnpackTest</code> covers it, with the archives made in the test.</p>
 <h2 id="bringing-the-user-in">Bringing the user in</h2>
 <p>Agents work while the user is away, so nothing here depends on an open browser.</p>
 <ul>
@@ -1164,7 +1197,7 @@ older rounds when the context is full (the run pauses instead), stopping a runni
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (77fc4ed9).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (2670dfb3).</p></div>
             </footer>
         </div>
     </div>

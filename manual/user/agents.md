@@ -52,7 +52,7 @@ these of its own:
 
 | Tool | |
 |---|---|
-| Files | `list_files`, `read_file`, `write_file`, `append_file`, `replace_in_file`, `regex_replace_in_file`, `grep_files`, `move_file`, `copy_file`, `merge_files`, `delete_file` in its own workspace (notes it keeps between runs). Next to the workspace it sees the read-only file `/AGENTS.md`, your instructions as the run started with them, which it can read again whenever it likes and never change. `list_files` and `grep_files` take a name pattern (`glob`, for example `*.md` or `chapters/*.md`), `copy_file` copies a folder with everything in it (a quick way to keep a version of the notes), `merge_files` joins several files into one without the text passing through the model (the last name of a path may be a pattern such as `/chapters/*.md`). `list_command_results` and `save_command_result` keep the long result of a command without the agent writing it out again: the last ten results are kept whole (the agent sees a long one cut), and one is saved to a file by its number, the newest when none is given; it then passes the file on as `@file:/path`. |
+| Files | `list_files`, `read_file`, `write_file`, `append_file`, `replace_in_file`, `regex_replace_in_file`, `grep_files`, `move_file`, `copy_file`, `merge_files`, `unzip_file`, `delete_file` in its own workspace (notes it keeps between runs). Next to the workspace it sees the read-only file `/AGENTS.md`, your instructions as the run started with them, which it can read again whenever it likes and never change. `list_files` and `grep_files` take a name pattern (`glob`, for example `*.md` or `chapters/*.md`), `copy_file` copies a folder with everything in it (a quick way to keep a version of the notes), `merge_files` joins several files into one without the text passing through the model (the last name of a path may be a pattern such as `/chapters/*.md`), `unzip_file` unpacks a [zip file](#unpacking-a-zip-file) of the workspace into a new folder. `list_command_results` and `save_command_result` keep the long result of a command without the agent writing it out again: the last ten results are kept whole (the agent sees a long one cut), and one is saved to a file by its number, the newest when none is given; it then passes the file on as `@file:/path`. |
 | `@file:/path` | Not a tool but a way to call one: a text argument of a command that is exactly `@file:/notes/chapter.md` is replaced by the contents of that file of the agent's workspace, so the agent can write a long text to a file once, check it, and pass it to a command (the result shows the short reference in the call, the command gets the text). `write_file` and `append_file` take it as their content too, which copies a file or adds it to another: a long file can be written in parts, each part within the longest answer of the model, and put together this way. |
 | `@result` | Like `@file:`, for the result of a command: a text argument that is exactly `@result` is replaced by the whole result of the last command the agent called, `@result:3` by the result with that number (`list_command_results` shows the numbers). A generated text goes from one command to the next, or into `write_file` and `append_file`, without the agent writing it out. |
 | `view_image` | Looks at an image file of its workspace (PNG, JPEG, GIF or WebP): the picture is shown to the model in the next message. Only an agent whose model is marked as seeing images (**The model sees images** in the agent) has it. A large image is scaled down before it is sent, a GIF shows its first frame, and only the newest four images stay in front of the model (an older one becomes a note, and the agent can look again). The images come from you (**Upload file**, or [attached to a message](#the-console)); the agent can't make one. |
@@ -151,10 +151,23 @@ text file to read it, use the arrows to download a file or the bin to delete it,
 **New folder** creates a folder in the open one and **Upload file** puts a file from your computer there, so you can hand the agent
 a brief, a style guide or a draft. The same rules hold as for the agent's own files: names can't have `\ < > : " | ? *`, a trailing dot
 or space, or be too long or too deep, the limits of file size and number of files apply, and an uploaded file must be text (UTF-8),
-because the agent can only read text, or an image (PNG, JPEG, GIF or WebP, recognised by what the file contains, not by its name;
-up to 5 MB, and it counts against the total and the number of files like any file). A file is never replaced by an upload: delete the old one first.
+because the agent can only read text, an image (PNG, JPEG, GIF or WebP, recognised by what the file contains, not by its name;
+up to 5 MB, and it counts against the total and the number of files like any file) or a zip file (up to 10 MB, kept as it is; the agent unpacks it, see [below](#unpacking-a-zip-file)). A file is never replaced by an upload: delete the old one first.
 Files can't be changed while the agent works, pause it first. The workspace has a limit of size, file size and number of files, which your administrator can set in your [permission](administration/permissions.md#settings-of-a-permission); the line
 under the table says how much is used. The name `AGENTS.md` at the top is taken by your instructions, which the agent sees there (the file can't be written or deleted).
+
+### Unpacking a zip file
+
+Upload a zip file in the **Workspace** tab (**Upload file**) when the agent should work on many files at once, for example the chapters of
+a draft, and ask it to unpack it: the agent has the tool `unzip_file`, which unpacks `/uploads/draft.zip` into the new folder
+`/uploads/draft` (or into a folder it is given; the folder must not exist yet). Unpacking is all or nothing and an archive is never trusted:
+
+- Only text files (UTF-8), images (PNG, JPEG, GIF, WebP) and zip files are kept. The other entries are left out and named in the answer to the
+  agent. A zip file inside is stored, never unpacked on its own.
+- The files must fit what the workspace has room for (size, file size, number of files), or nothing is unpacked.
+- An archive with an entry that leads above the folder (`../x`) or starts with `/` is refused whole, and so is one with the same name twice (also
+  differing in case), a name that is both a file and a folder, more than 5 000 entries, or an encrypted or damaged one.
+- A zip bomb is refused: an archive that unpacks to more than the workspace can hold, or to more than 100 times its own size.
 
 ## Sub-agents
 

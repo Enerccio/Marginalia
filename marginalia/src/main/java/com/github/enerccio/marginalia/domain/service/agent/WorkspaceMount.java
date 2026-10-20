@@ -9,6 +9,7 @@ import java.text.Normalizer;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
@@ -119,8 +120,8 @@ final class WorkspaceMount implements VirtualMount {
         if (attributes.isDirectory()) {
             throw new VirtualFileException(file + " is a folder, not a file");
         }
-        // an image may be larger than a text file, the file system tells them apart after the read
-        long readable = Math.max(limits.maxFileBytes(), limits.maxImageBytes());
+        // an image or a zip file may be larger than a text file, the file system tells them apart after the read
+        long readable = limits.maxAnyFileBytes();
         if (attributes.size() > readable) {
             throw new VirtualFileException("The file " + file + " is larger than the limit of " + readable + " bytes");
         }
@@ -139,6 +140,11 @@ final class WorkspaceMount implements VirtualMount {
     @Override
     public void writeImage(VirtualPath file, byte[] content) {
         write(file, content, false, limits.maxImageBytes());
+    }
+
+    @Override
+    public void writeArchive(VirtualPath file, byte[] content) {
+        write(file, content, false, limits.maxArchiveBytes());
     }
 
     private void write(VirtualPath file, byte[] content, boolean append, long maxFileBytes) {
@@ -262,6 +268,69 @@ final class WorkspaceMount implements VirtualMount {
         } catch (IOException e) {
             throw new VirtualFileException(from + " can't be moved", e);
         } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public UnzipResult unzip(VirtualPath archive, VirtualPath target) {
+        if (archive.isRoot() || target.isRoot()) {
+            throw new VirtualFileException("/ is the folder of the workspace, not a zip file or a place to unpack to");
+        }
+        lock.lock();
+        Path staging = null;
+        try {
+            Path source = resolve(archive, false);
+            BasicFileAttributes attributes = attributes(source);
+            if (attributes == null) {
+                throw new VirtualFileException("There is no file " + archive);
+            }
+            if (attributes.isDirectory()) {
+                throw new VirtualFileException(archive + " is a folder, not a zip file");
+            }
+            if (attributes.size() > limits.maxArchiveBytes()) {
+                throw new VirtualFileException("The file " + archive + " is larger than the limit of " + limits.maxArchiveBytes()
+                        + " bytes");
+            }
+            if (attributes(resolve(target, false)) != null) {
+                throw new VirtualFileException(target + " exists already; choose a folder that does not exist yet, or delete it");
+            }
+            byte[] head = new byte[4];
+            try (InputStream in = Files.newInputStream(source, LinkOption.NOFOLLOW_LINKS)) {
+                if (in.readNBytes(head, 0, 4) < 4 || !ArchiveFiles.isZip(head)) {
+                    throw new VirtualFileException(archive + " is not a zip file");
+                }
+            }
+            WorkspaceUsage usage = usage();
+            // next to the archive, so no folder is made before the archive is known to be good
+            staging = Files.createTempDirectory(source.getParent(), TEMP_PREFIX);
+            UnzipResult result;
+            try (ZipFile zip = new ZipFile(source.toFile())) {
+                result = ZipExtractor.extract(zip, attributes.size(), staging, target, limits,
+                        Math.max(0, limits.maxFiles() - usage.files()), Math.max(0, limits.maxTotalBytes() - usage.bytes()));
+            } catch (ZipException e) {
+                throw new VirtualFileException(archive + " is not a valid zip file or is damaged", e);
+            }
+            if (result.files() == 0 && result.folders() == 0) {
+                throw new VirtualFileException("Nothing could be unpacked from " + archive + (result.skipped() == 0
+                        ? ": it is empty" : ": " + String.join("; ", result.skippedNames())
+                        + (result.skipped() > result.skippedNames().size() ? "; and more" : "")));
+            }
+            Path destination = resolve(target, true);
+            checkNewName(destination.getParent(), target.getName(), target.getDepth() == 1);
+            try {
+                Files.move(staging, destination, StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException e) {
+                Files.move(staging, destination);
+            }
+            staging = null;
+            return result;
+        } catch (IOException e) {
+            throw new VirtualFileException(archive + " can't be unpacked", e);
+        } finally {
+            if (staging != null) {
+                deleteQuietly(staging);
+            }
             lock.unlock();
         }
     }

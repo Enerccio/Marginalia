@@ -168,11 +168,11 @@ public final class VirtualFileSystem {
 
     /**
      * The bytes of a file: a text file of at most {@link WorkspaceLimits#maxFileBytes()}, an image of at most
-     * {@link WorkspaceLimits#maxImageBytes()}.
+     * {@link WorkspaceLimits#maxImageBytes()}, a zip file of at most {@link WorkspaceLimits#maxArchiveBytes()}.
      */
     public byte[] read(VirtualPath file) {
         byte[] bytes = mountFor(file).read(file);
-        if (bytes.length > limits.maxFileBytes() && !ImageFiles.isImage(bytes)) {
+        if (bytes.length > limits.maxFileBytes() && !ImageFiles.isImage(bytes) && !ArchiveFiles.isZip(bytes)) {
             throw new VirtualFileException("The file " + file + " is larger than the limit of " + limits.maxFileBytes() + " bytes");
         }
         return bytes;
@@ -187,6 +187,9 @@ public final class VirtualFileSystem {
         byte[] bytes = read(file);
         if (ImageFiles.isImage(bytes)) {
             throw new VirtualFileException(file + " is an image, not a text file; view_image shows it to you");
+        }
+        if (ArchiveFiles.isZip(bytes)) {
+            throw new VirtualFileException(file + " is a zip file, not a text file; unzip_file unpacks it into a folder");
         }
         return decodeText(bytes, file);
     }
@@ -253,6 +256,36 @@ public final class VirtualFileSystem {
     public void writeImage(VirtualPath file, byte[] content) {
         ImageFiles.check(content, file);
         writableMountFor(file).writeImage(file, content);
+    }
+
+    /**
+     * Creates a zip file or replaces it, the bytes as they are. It counts against the total and the number of files
+     * like any file, the size it may have is {@link WorkspaceLimits#maxArchiveBytes()}.
+     *
+     * @throws VirtualFileException when the bytes don't start like a zip file
+     */
+    public void writeArchive(VirtualPath file, byte[] content) {
+        if (!ArchiveFiles.isZip(content)) {
+            throw new VirtualFileException(file + " is not a zip file");
+        }
+        writableMountFor(file).writeArchive(file, content);
+    }
+
+    /**
+     * Unpacks a zip file of the workspace into a folder that does not exist yet. All or nothing, and the archive is
+     * not trusted: see {@link ZipExtractor} for what is checked, the limits of the workspace hold for what is unpacked.
+     *
+     * @return what was unpacked and what was left out
+     * @throws VirtualFileException when the file is not a zip file, the archive is refused, the target exists, or the
+     *                              paths are not on the same mount that can be changed
+     */
+    public UnzipResult unzip(VirtualPath archive, VirtualPath target) {
+        VirtualMount source = mountFor(archive);
+        VirtualMount destination = writableMountFor(target);
+        if (source != destination) {
+            throw new VirtualFileException("A zip file can't be unpacked between " + archive + " and " + target);
+        }
+        return destination.unzip(archive, target);
     }
 
     /**

@@ -216,6 +216,25 @@ class AgentWorkspaceBrowserTest extends AgentTestBase {
     }
 
     @Test
+    void anUploadedZipFileIsKeptAsItIsForTheAgentToUnpack() throws Exception {
+        AgentWorkspaceBrowser browser = browser();
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        try (java.util.zip.ZipOutputStream zip = new java.util.zip.ZipOutputStream(out)) {
+            zip.putNextEntry(new java.util.zip.ZipEntry("a.md"));
+            zip.write("text".getBytes(StandardCharsets.UTF_8));
+            zip.closeEntry();
+        }
+        byte[] archive = out.toByteArray();
+
+        browser.upload("pack.zip", archive);
+        browser.upload("pack.zip", archive);
+
+        assertThat(names(browser)).containsExactly("pack.zip");
+        assertThat(files.read(VirtualPath.parse("/pack.zip"))).isEqualTo(archive);
+        assertThat(files.unzip(VirtualPath.parse("/pack.zip"), VirtualPath.parse("/pack")).files()).isEqualTo(1);
+    }
+
+    @Test
     void anUploadedImageLandsInTheOpenFolderAndCanBeShownToTheAgent() throws Exception {
         AgentWorkspaceBrowser browser = browser();
         browser.createFolder("refs");
