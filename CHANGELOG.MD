@@ -119,6 +119,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Lore Generator commands did not build against the handle-based lorebook commands.** `generate-lore-entry` and `compact-lore-entry` take the `lorebook` and the `entry` as a handle or a number, like the other lorebook commands.
 - **Agent console, Workspace tab:** the tab no longer scrolls over the file list and the viewer (three scrollbars): the list and the viewer share the height of the tab and scroll by themselves.
 - A book created with **Add Book** is now remembered by the workspace autosave like a book opened from the list (the list did not know about its window).
+- **Lorebook VCS: switching, adding or deleting a revision of an entry no longer closes the opened entries.** Only the row of the changed entry is redrawn instead of reloading the whole lorebook view.
 
 ### Known issues
 
