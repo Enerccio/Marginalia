@@ -10,6 +10,7 @@ The toolbar has two rows, which wrap onto more lines in a narrow window: the fir
 | Button | |
 |---|---|
 | **Lorebook** | Selects the lorebook to edit. |
+| **Only root lorebooks** | Lists only the lorebooks that are not a sub lorebook of another one (the selected lorebook stays in the list). |
 | **Add Lorebook** | Creates a new lorebook named *New Lorebook* and selects it. |
 | **Delete Lorebook** | Deletes the selected lorebook (after confirming). |
 | Import (file icon) | **Import Marginalia Lorebook** or **Import from SillyTavern**, see [Import & export](import-export.md). |
@@ -25,7 +26,7 @@ Below the toolbar are the settings of the selected lorebook:
 | Field | |
 |---|---|
 | **Name** | The name of the lorebook, shown when you pick it for a book or as a sub lorebook. |
-| **Sub Lorebooks** | Other lorebooks whose entries are included with this one, see [below](#sub-lorebooks). |
+| **Sub Lorebooks** | Other lorebooks whose entries are included with this one, see [below](#sub-lorebooks). Click the name of a selected sub lorebook to open it. |
 | **Tags** | Tags of the whole lorebook; they count as tags of each of its entries, see [Tags](entries.md#tags). |
 | **Enabled** | When unchecked, the lorebook contributes nothing - neither its entries nor those of its sub lorebooks. |
 

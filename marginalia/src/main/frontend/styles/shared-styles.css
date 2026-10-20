@@ -365,6 +365,10 @@ vaadin-markdown table {
     cursor: pointer;
 }
 
+.clickable-chips vaadin-multi-select-combo-box-chip {
+    cursor: pointer;
+}
+
 .form-padding-bottom {
     padding-bottom: 16px;
 }

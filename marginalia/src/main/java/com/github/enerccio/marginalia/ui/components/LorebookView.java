@@ -14,6 +14,7 @@ import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.Restorable;
 import com.github.enerccio.marginalia.ui.RestorableState;
@@ -84,6 +85,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
     private boolean pinnedLorebook = false;
 
     private ComboBox<Lorebook> lorebookCombo;
+    private Checkbox rootOnlyCheckbox;
     private Button addLorebookButton;
     private Button deleteLorebookButton;
     private Button importLorebookButton;
@@ -163,6 +165,15 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
+        rootOnlyCheckbox = new Checkbox(loc.getValue(L.LABEL_ONLY_ROOT_LOREBOOKS));
+        rootOnlyCheckbox.setVisible(!pinnedLorebook);
+        rootOnlyCheckbox.addValueChangeListener(event -> {
+            if (event.isFromClient()) {
+                loadLorebooks();
+                fireStateChanged();
+            }
+        });
+
         addLorebookButton = new Button(loc.getValue(L.LABEL_ADD_LOREBOOK), Solid.PLUS_CIRCLE.create(),event -> createNewLorebook());
         addLorebookButton.setThemeName("primary");
         addLorebookButton.setVisible(!pinnedLorebook);
@@ -216,7 +227,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
-        controlsLayout.add(lorebookCombo, addLorebookButton, deleteLorebookButton, importLorebookButton, exportLorebookAnchor, tagLorebooksButton);
+        controlsLayout.add(lorebookCombo, rootOnlyCheckbox, addLorebookButton, deleteLorebookButton, importLorebookButton, exportLorebookAnchor, tagLorebooksButton);
         controlsLayout.setAlignItems(Alignment.END);
         // the buttons are many: in a narrow window (a book, a small screen) they go to the next line instead of off the edge
         controlsLayout.setWrap(true);
@@ -271,6 +282,17 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
                 }
             }
         });
+
+        // a click on a chip of a subbook opens that lorebook
+        subLorebooksCombo.getElement().addEventListener("chip-click", e -> {
+            String label = e.getEventData().get("event.detail.label").asText();
+            subLorebooksCombo.getValue().stream()
+                    .filter(l -> Objects.equals(l.getName(), label))
+                    .findFirst()
+                    .ifPresent(this::openSubbook);
+        }).addEventData("event.detail.label");
+        subLorebooksCombo.addClassName(CssStyles.CLICKABLE_CHIPS);
+        JavascriptLibrary.fireChipClickEvent(subLorebooksCombo.getElement());
 
         tagMultiComboBox = new TagMultiComboBox(loc.getValue(L.LABEL_TAGS));
         tagMultiComboBox.setWidthFull();
@@ -650,11 +672,23 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "lorebooks", type = List.class),
+                    @APILocals(name = "subIds", type = Set.class),
                     @APILocals(name = "e", type = Exception.class)})
     private void loadLorebooks() {
         try {
             List<Lorebook> lorebooks = lorebookService.findAllRegularForUser();
             lorebooks.sort(Comparator.comparing(Lorebook::getName));
+            if (rootOnlyCheckbox.getValue()) {
+                Set<Long> subIds = lorebooks.stream()
+                        .filter(l -> l.getSubbooks() != null)
+                        .flatMap(l -> l.getSubbooks().stream())
+                        .map(BaseEntity::getId)
+                        .collect(Collectors.toSet());
+                // the selected lorebook stays in the list, even when it is not a root
+                lorebooks = lorebooks.stream()
+                        .filter(l -> !subIds.contains(l.getId()) || l.equals(currentLorebook))
+                        .collect(Collectors.toList());
+            }
             lorebookCombo.setItems(lorebooks);
             if (currentLorebook == null && !lorebooks.isEmpty()) {
                 currentLorebook = lorebooks.getFirst();
@@ -666,6 +700,22 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+    }
+
+    /**
+     * Makes the subbook the shown lorebook, the way choosing it in the lorebook list does.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "subbook", type = Lorebook.class)})
+    private void openSubbook(Lorebook subbook) {
+        if (pinnedLorebook || subbook == null) {
+            return;
+        }
+        currentLorebook = subbook;
+        openEntries.clear();
+        loadLorebooks();
+        fireStateChanged();
     }
 
     @PublicAPI(from = "1.1.0",
@@ -990,7 +1040,8 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
     }
 
     /**
-     * The lorebook (unless it is pinned: its owner chooses it) and the entries whose details are opened.
+     * The lorebook (unless it is pinned: its owner chooses it), whether only the root lorebooks are listed and the entries
+     * whose details are opened.
      */
     @PublicAPI(from = "1.3.0",
             returns = @APIReturn(type = JsonObject.class),
@@ -1001,6 +1052,9 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         if (!pinnedLorebook && currentLorebook != null && currentLorebook.getUuid() != null) {
             state.addProperty("lorebook", currentLorebook.getUuid());
         }
+        if (!pinnedLorebook && rootOnlyCheckbox != null && rootOnlyCheckbox.getValue()) {
+            state.addProperty("rootOnly", true);
+        }
         if (!openEntries.isEmpty()) {
             state.add("entries", RestorableState.array(openEntries));
         }
@@ -1008,8 +1062,8 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
     }
 
     /**
-     * Selects the stored lorebook when it still exists (otherwise the lorebook stays as it is) and opens the stored
-     * entries that are still in it.
+     * Selects the stored lorebook when it still exists (otherwise the lorebook stays as it is), sets the list of root
+     * lorebooks only and opens the stored entries that are still in it.
      */
     @PublicAPI(from = "1.3.0",
             returns = @APIReturn(type = void.class),
@@ -1023,6 +1077,9 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             return;
         }
         try {
+            if (!pinnedLorebook) {
+                rootOnlyCheckbox.setValue(RestorableState.bool(self, "rootOnly", false));
+            }
             String lorebookUuid = RestorableState.string(self, "lorebook");
             if (!pinnedLorebook && lorebookUuid != null) {
                 Lorebook stored = lorebookService.findForUser(lorebookUuid);

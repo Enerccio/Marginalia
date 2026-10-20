@@ -566,6 +566,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_DOWNLOAD_JSON, "Download JSON");
         setValue(L.LABEL_COMMAND_BATCH_POLICY, "Batch");
         setValue(L.LABEL_AGENT_BATCH_MODE, "Calls in one answer");
+        setValue(L.LABEL_ONLY_ROOT_LOREBOOKS, "Only root lorebooks");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");

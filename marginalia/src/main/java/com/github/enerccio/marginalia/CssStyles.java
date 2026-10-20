@@ -49,6 +49,7 @@ public final class CssStyles {
     public static final String GAP_S = "gap-s";
     public static final String MARGIN_LEFT_AUTO = "margin-left-auto";
     public static final String CURSOR_POINTER = "cursor-pointer";
+    public static final String CLICKABLE_CHIPS = "clickable-chips";
     public static final String FORM_PADDING_BOTTOM = "form-padding-bottom";
     public static final String PADDING_COMPACT = "padding-compact";
     public static final String PADDING_COMPACT_NARROW = "padding-compact-narrow";

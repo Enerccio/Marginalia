@@ -249,6 +249,23 @@ class WorkspaceStateTest extends MarginaliaTestBase {
     }
 
     @Test
+    void lorebookViewRestoresTheRootOnlyBox() throws Exception {
+        login();
+        lorebook("A first");
+
+        LorebookView view = new LorebookView();
+        view.create();
+        view.refresh();
+        assertThat(view.storeState().has("rootOnly")).isFalse();
+
+        view.restoreState(json("{\"rootOnly\":true}"));
+        assertThat(view.storeState().get("rootOnly").getAsBoolean()).isTrue();
+
+        view.restoreState(json("{}"));
+        assertThat(view.storeState().has("rootOnly")).isFalse();
+    }
+
+    @Test
     void lorebookViewSkipsALorebookThatIsGone() throws Exception {
         login();
         Lorebook kept = lorebook("A kept");
