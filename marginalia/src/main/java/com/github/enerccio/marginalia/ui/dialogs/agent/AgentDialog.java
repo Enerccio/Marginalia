@@ -75,6 +75,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
     private ModelProtocolPicker modelPicker;
     private Checkbox imagesCheckbox;
     private Checkbox useOwnModelCheckbox;
+    private Checkbox oneCallCheckbox;
     private ComboBox<DestructiveCommandMode> destructiveCombo;
     private IntegerField maxRoundsField;
     private IntegerField maxSubagentsField;
@@ -122,7 +123,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
         FormLayout form = new FormLayout();
         form.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1));
         form.setWidthFull();
-        form.add(nameField, enabledCheckbox, manuscriptCombo, modelPicker, imagesCheckbox, useOwnModelCheckbox);
+        form.add(nameField, enabledCheckbox, manuscriptCombo, modelPicker, imagesCheckbox, useOwnModelCheckbox, oneCallCheckbox);
         form.add(destructiveCombo, maxRoundsField, maxSubagentsField, tokenBudgetField, contextLimitField, autoCompactField);
         form.add(systemPromptField, compactionPromptField, instructionsField, sizeLabel, commandsEditor);
         add(form);
@@ -159,6 +160,9 @@ public class AgentDialog extends Dialog implements LLMInteract {
 
         useOwnModelCheckbox = new Checkbox(loc.getValue(L.LABEL_AGENT_USE_OWN_MODEL), true);
         useOwnModelCheckbox.setHelperText(loc.getValue(L.HELP_AGENT_USE_OWN_MODEL));
+
+        oneCallCheckbox = new Checkbox(loc.getValue(L.LABEL_AGENT_ONE_CALL_PER_ROUND));
+        oneCallCheckbox.setHelperText(loc.getValue(L.HELP_AGENT_ONE_CALL_PER_ROUND));
 
         destructiveCombo = new ComboBox<>(loc.getValue(L.LABEL_DESTRUCTIVE_COMMANDS));
         destructiveCombo.setItems(DestructiveCommandMode.values());
@@ -307,6 +311,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
             contextLimitField.setValue(agent.getContextCap());
             autoCompactField.setValue(agent.getAutoCompactPercent());
             useOwnModelCheckbox.setValue(agent.isUsingAgentModel());
+            oneCallCheckbox.setValue(agent.isLimitedToOneCall());
             systemPromptField.setValue(StringUtils.defaultString(agent.getSystemPrompt()));
             compactionPromptField.setValue(StringUtils.defaultString(agent.getCompactionPrompt()));
             instructionsField.setValue(StringUtils.defaultString(agent.getInstructions()));
@@ -342,6 +347,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
             agent.setContextCap(contextLimitField.getValue());
             agent.setAutoCompactPercent(autoCompactField.getValue());
             agent.setUseAgentModel(useOwnModelCheckbox.getValue());
+            agent.setOneCallPerRound(oneCallCheckbox.getValue() ? Boolean.TRUE : null);
             agent.setSystemPrompt(systemPromptField.getValue());
             agent.setCompactionPrompt(compactionPromptField.getValue());
             agent.setInstructions(StringUtils.isBlank(instructionsField.getValue()) ? null : instructionsField.getValue());
@@ -441,6 +447,10 @@ public class AgentDialog extends Dialog implements LLMInteract {
 
     Checkbox getUseOwnModelCheckbox() {
         return useOwnModelCheckbox;
+    }
+
+    Checkbox getOneCallCheckbox() {
+        return oneCallCheckbox;
     }
 
     IntegerField getAutoCompactField() {

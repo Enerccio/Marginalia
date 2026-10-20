@@ -8,7 +8,9 @@ import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -219,7 +221,25 @@ public abstract class ManuscriptReadSupport {
     /** What the caller gave for the parameter as text (a number from a model comes as a number), null when it is not given. */
     protected static String ref(CommandContext context, String name) {
         Object value = context.get(name);
-        return value == null ? null : value.toString().strip();
+        return value == null ? null : handleOf(value.toString().strip());
+    }
+
+    /**
+     * The result of a command passed whole as {@code @result} is a JSON object with the {@code handle} of what the command made or
+     * showed; that handle is what the parameter means. Any other text is as it was given.
+     */
+    private static String handleOf(String text) {
+        if (text.startsWith("{") && text.endsWith("}")) {
+            try {
+                JsonElement handle = JsonParser.parseString(text).getAsJsonObject().get("handle");
+                if (handle != null && handle.isJsonPrimitive()) {
+                    return handle.getAsString().strip();
+                }
+            } catch (RuntimeException e) {
+                // not a result, the text is what it is
+            }
+        }
+        return text;
     }
 
     protected static int limit(Integer limit) {

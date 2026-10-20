@@ -546,6 +546,7 @@ public final class AgentDiagnostics {
     static {
         notice(Defaults.AGENT_UNREADABLE_CALL, "unreadable call");
         notice(Defaults.AGENT_TOO_MANY_CALLS, "too many calls");
+        notice(Defaults.AGENT_ONE_CALL_NOTICE, "one call per round");
         notice(Defaults.AGENT_CONTEXT_WARNING, "context warning");
         notice(Defaults.AGENT_CONTEXT_CRITICAL, "context critical");
         notice(Defaults.AGENT_SUBAGENTS_STILL_WORKING, "sub-agents still work");

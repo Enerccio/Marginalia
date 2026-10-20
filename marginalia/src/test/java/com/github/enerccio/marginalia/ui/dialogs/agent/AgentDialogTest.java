@@ -119,6 +119,8 @@ class AgentDialogTest extends AgentTestBase {
         dialog.getAutoCompactField().setValue(80);
         assertThat(dialog.getUseOwnModelCheckbox().getValue()).as("on for a new agent").isTrue();
         dialog.getUseOwnModelCheckbox().setValue(false);
+        assertThat(dialog.getOneCallCheckbox().getValue()).as("off for a new agent").isFalse();
+        dialog.getOneCallCheckbox().setValue(true);
         dialog.getInstructionsField().setValue("Check the names.");
         dialog.getCommandsEditor().select(AgentCommandPreset.NONE);
         button(dialog, "OK").click();

@@ -227,6 +227,17 @@ class ManuscriptWriteCommandsTest extends GenerationTestBase {
     }
 
     @Test
+    void aWholeResultCanBeGivenWhereAHandleIsExpected() throws Exception {
+        JsonObject added = run("/create-part \"Night fell.\"");
+
+        // what @result gives the next call: the text of the result of the last one
+        JsonObject next = run("/create-part \"Morning came.\" \"" + added.toString().replace("\"", "\\\"") + "\"");
+
+        ChatMessage created = chatMessageService.find(chatMessageService.find(next.get("handle").getAsString()));
+        assertThat(created.getParent().getId()).isEqualTo(chatMessageService.find(added.get("handle").getAsString()));
+    }
+
+    @Test
     void aPartInsertedAfterAPartTakesOverEverythingThatFollowedItWithoutRecreatingAnything() throws Exception {
         JsonObject result = run("/insert-part \"Night fell.\" " + first.getUuid());
 

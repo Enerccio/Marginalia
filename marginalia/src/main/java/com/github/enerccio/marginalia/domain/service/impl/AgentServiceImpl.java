@@ -393,6 +393,7 @@ public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentReposito
         copy.setContextCap(original.getContextCap());
         copy.setAutoCompactPercent(original.getAutoCompactPercent());
         copy.setUseAgentModel(original.getUseAgentModel());
+        copy.setOneCallPerRound(original.getOneCallPerRound());
         Agent saved = save(copy);
         fileSystemService.copyWorkspace(original, saved);
         return saved;

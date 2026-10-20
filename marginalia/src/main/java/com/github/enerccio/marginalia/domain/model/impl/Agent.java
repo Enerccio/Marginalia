@@ -123,6 +123,14 @@ public class Agent extends ExtendableEntity {
     private Boolean useAgentModel;
 
     /**
+     * Whether the runner keeps only the first call of an answer, so the model reads each result before it writes the next call.
+     * Null is off: all the calls of an answer are made (until one fails).
+     */
+    @Transient
+    @ExtendedAttribute
+    private Boolean oneCallPerRound;
+
+    /**
      * How many sub-agents the agent can have working at once; null or zero is none, the agent gets no tools to spawn them.
      * With one, spawning waits for the sub-agent to finish; with more, the call returns a handle at once, until the limit is reached.
      */
@@ -238,6 +246,21 @@ public class Agent extends ExtendableEntity {
      */
     public boolean isUsingAgentModel() {
         return !Boolean.FALSE.equals(useAgentModel);
+    }
+
+    public Boolean getOneCallPerRound() {
+        return oneCallPerRound;
+    }
+
+    public void setOneCallPerRound(Boolean oneCallPerRound) {
+        this.oneCallPerRound = oneCallPerRound;
+    }
+
+    /**
+     * Whether only the first call of an answer is made.
+     */
+    public boolean isLimitedToOneCall() {
+        return Boolean.TRUE.equals(oneCallPerRound);
     }
 
     public Integer getAutoCompactPercent() {
