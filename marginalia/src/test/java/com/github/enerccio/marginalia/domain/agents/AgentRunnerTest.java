@@ -740,7 +740,31 @@ class AgentRunnerTest extends AgentTestBase {
         assertThat(messages.stream().filter(m -> m.getRole() == LLMRole.ASSISTANT && m.hasToolCalls()).findFirst().orElseThrow()
                 .getToolCalls()).hasSize(1);
         assertThat(messages.stream().anyMatch(m -> m.getRole() == LLMRole.USER
-                && String.format(Defaults.AGENT_ONE_CALL_NOTICE, 2).equals(m.getContent()))).isTrue();
+                && String.format(Defaults.AGENT_ONE_CALL_NOTICE, 2, "get-book-info", 1).equals(m.getContent()))).isTrue();
+        assertThat(llm.getCompletionRequests().getFirst().getMessages("system").getFirst()).as("told up front")
+                .contains(Defaults.AGENT_ONE_CALL_RULE);
+    }
+
+    @Test
+    void anAgentThatMayBatchIsToldWhichCommandsAreMadeAloneAndNotAgainstBatching() throws Exception {
+        Agent agent = agentWithASingleCommand(AgentBatchMode.BATCHED);
+        llm.enqueue(MockLLMResponse.text("Done."));
+
+        await(startRun(agent));
+
+        String system = llm.getCompletionRequests().getFirst().getMessages("system").getFirst();
+        assertThat(system).contains(String.format(Defaults.AGENT_SINGLE_CALLS_RULE, "regenerate-summary, request_compaction"))
+                .doesNotContain(Defaults.AGENT_ONE_CALL_RULE);
+    }
+
+    @Test
+    void anAgentThatIgnoresThePoliciesIsToldNothingAboutCalls() throws Exception {
+        Agent agent = agentWithASingleCommand(AgentBatchMode.BATCHED_IGNORE_POLICIES);
+        llm.enqueue(MockLLMResponse.text("Done."));
+
+        await(startRun(agent));
+
+        assertThat(llm.getCompletionRequests().getFirst().getMessages("system").getFirst()).doesNotContain("# Calls");
     }
 
     private Agent agentWithASingleCommand(AgentBatchMode mode) throws Exception {

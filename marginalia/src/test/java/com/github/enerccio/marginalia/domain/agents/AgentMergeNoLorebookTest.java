@@ -67,4 +67,34 @@ class AgentMergeNoLorebookTest extends AgentTestBase {
         assertThat(lorebookEntryService.getEntriesForLorebook(lorebookService.find(merged.getLorebook())))
                 .extracting(LorebookEntry::getName).containsExactly("Lily");
     }
+
+    @Test
+    void aRootWithSubbooksTheAgentMadeIsTakenOverWithTheTree() throws Exception {
+        loginAgentUser();
+        Manuscript book = manuscriptService.save(manuscript());
+        AgentRun run = agentRunService.start(agentService.save(newAgent(book)));
+
+        Manuscript copy = agentRunService.find(run.getId()).getWorkingCopy();
+        Lorebook root = new Lorebook();
+        root.setName("lore");
+        root.setAgentic(copy.isAgentic());
+        root.setSubbooks(new ArrayList<>());
+        copy.setLorebook(lorebookService.save(root));
+        copy = manuscriptService.save(copy);
+        Lorebook places = lorebookService.createSubbook(copy.getLorebook(), "places");
+        Lorebook inns = lorebookService.createSubbook(places, "inns");
+        LorebookEntry entry = new LorebookEntry();
+        entry.setName("Tavern");
+        entry.setPayload("a loud tavern");
+        lorebookEntryService.create(inns, entry);
+
+        run = agentRunService.transition(agentRunService.find(run.getId()), AgentRunStatus.DONE, "report");
+        MergePlan plan = mergeService.plan(run);
+        mergeService.apply(run, new MergeSelection(plan.items().stream().map(Item::id).collect(Collectors.toSet()), Map.of(), false));
+
+        Lorebook merged = lorebookService.find(manuscriptService.find(book.getId()).getLorebook());
+        Lorebook mergedPlaces = lorebookService.getSubbooks(merged).stream().filter(l -> l.getName().equals("places")).findFirst().orElseThrow();
+        Lorebook mergedInns = lorebookService.getSubbooks(mergedPlaces).stream().filter(l -> l.getName().equals("inns")).findFirst().orElseThrow();
+        assertThat(lorebookEntryService.getEntriesForLorebook(mergedInns)).extracting(LorebookEntry::getName).containsExactly("Tavern");
+    }
 }

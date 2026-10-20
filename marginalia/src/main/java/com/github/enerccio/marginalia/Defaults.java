@@ -385,9 +385,24 @@ You are a sub-agent: another agent started you for one task, which is your first
     /**
      * Said to an agent that makes one call per round when its answer had more calls: only the first was made.
      */
-    public static final String AGENT_ONE_CALL_NOTICE = "Notice from the run: your last answer had %d calls. You make one call per "
-            + "answer, so only the first was made and the others were dropped. Make the next call after you have read the result of "
-            + "this one.";
+    public static final String AGENT_ONE_CALL_NOTICE = "Notice from the run: this run lets you make one call per answer. Your last answer had "
+            + "%d calls; only the first, %s, was made. The other %d were NOT made, so nothing they would have done has happened. Make them "
+            + "one at a time, each in an answer of its own, after you have read the result of the one before.";
+
+    /**
+     * Told to an agent that makes one call per answer, in its system message, so it does not write calls that are thrown away (the
+     * time it spends writing them is lost).
+     */
+    public static final String AGENT_ONE_CALL_RULE = "# Calls\n\nIn this run you make one call per answer, although the tool interface lets you "
+            + "write several: only the first call of an answer is made, the others are dropped without being made, and the time you spent "
+            + "writing them is lost. Write exactly one call, then stop and wait for its result. Decide each next step after you have seen "
+            + "the last result.";
+
+    /**
+     * Told to an agent that may batch its calls, in its system message: the commands that are made alone (the name list is joined).
+     */
+    public static final String AGENT_SINGLE_CALLS_RULE = "# Calls\n\nThese are made alone in an answer: %s. Call one of them in an answer of "
+            + "its own, after the calls that must come before it have run; calls written after it in the same answer are not made.";
 
     /**
      * Said to an agent whose answer had a call of a command that is made alone: the calls from it on (or only it, when it came
