@@ -493,6 +493,7 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
             case "filteringMode" -> L.LABEL_FILTERING_MODE;
             case "insertionMode" -> L.LABEL_INSERTION_MODE;
             case "lorebook" -> L.LABEL_LOREBOOK;
+            case MergeDiff.PARENT -> L.LABEL_AGENT_MERGE_FOLLOWS;
             default -> L.LABEL_BOOK;
         };
     }

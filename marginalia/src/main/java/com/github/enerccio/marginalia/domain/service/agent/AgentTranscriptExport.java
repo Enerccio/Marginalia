@@ -77,7 +77,7 @@ public final class AgentTranscriptExport {
     /**
      * The text in a code fence that is longer than any run of backticks in it, so the text can't end the fence.
      */
-    private static String fenced(String text) {
+    static String fenced(String text) {
         int longest = 0;
         int run = 0;
         for (char c : text.toCharArray()) {

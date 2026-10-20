@@ -108,6 +108,32 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
     }
 
     @Override
+    public void reparentChildrenExcept(ChatMessage targetNode, ChatMessage newParent) throws Exception {
+        if (targetNode == null || newParent == null) {
+            return;
+        }
+        entityManager.createQuery(
+                        "UPDATE ChatMessage m SET m.parent = :newParent WHERE m.parent = :targetNode AND m <> :newParent"
+                )
+                .setParameter("newParent", newParent)
+                .setParameter("targetNode", targetNode)
+                .executeUpdate();
+    }
+
+    @Override
+    public void reparentRootsUnder(Manuscript manuscript, ChatMessage newRoot) throws Exception {
+        if (manuscript == null || newRoot == null) {
+            return;
+        }
+        entityManager.createQuery(
+                        "UPDATE ChatMessage m SET m.parent = :newRoot WHERE m.parent IS NULL AND m.parentScript = :manuscript AND m <> :newRoot"
+                )
+                .setParameter("newRoot", newRoot)
+                .setParameter("manuscript", manuscript)
+                .executeUpdate();
+    }
+
+    @Override
     public List<Long> findDescendantIds(ChatMessage message) throws Exception {
         List<Long> descendants = new ArrayList<>();
         if (message == null || message.getId() == null) {

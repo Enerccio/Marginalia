@@ -1,40 +1,14 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
-import com.github.enerccio.marginalia.domain.collections.AgentRunPairKind;
-import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
-import com.github.enerccio.marginalia.domain.collections.FilteringMode;
-import com.github.enerccio.marginalia.domain.collections.InsertionMode;
-import com.github.enerccio.marginalia.domain.collections.Language;
+import com.github.enerccio.marginalia.domain.collections.*;
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
-import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
-import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
-import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
-import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.model.impl.Summary;
-import com.github.enerccio.marginalia.domain.model.impl.Tag;
-import com.github.enerccio.marginalia.domain.service.AgentMergeService;
-import com.github.enerccio.marginalia.domain.service.AgentRunPairService;
-import com.github.enerccio.marginalia.domain.service.AgentRunService;
-import com.github.enerccio.marginalia.domain.service.AgentVirtualFileSystemService;
-import com.github.enerccio.marginalia.domain.service.BackupService;
-import com.github.enerccio.marginalia.domain.service.CheckpointService;
-import com.github.enerccio.marginalia.domain.service.ChatMessageService;
-import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
-import com.github.enerccio.marginalia.domain.service.LorebookService;
-import com.github.enerccio.marginalia.domain.service.ManuscriptService;
-import com.github.enerccio.marginalia.domain.service.SummaryService;
-import com.github.enerccio.marginalia.domain.service.TagRelationService;
-import com.github.enerccio.marginalia.domain.service.TagService;
-import com.github.enerccio.marginalia.domain.service.agent.MergeDiff;
-import com.github.enerccio.marginalia.domain.service.agent.MergePlan;
+import com.github.enerccio.marginalia.domain.model.impl.*;
+import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.agent.*;
 import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Change;
 import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Field;
 import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Item;
 import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Kind;
-import com.github.enerccio.marginalia.domain.service.agent.BaseAdvance;
-import com.github.enerccio.marginalia.domain.service.agent.SyncReport;
-import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.google.gson.JsonObject;
@@ -49,16 +23,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -896,6 +861,11 @@ public class AgentMergeServiceImpl implements AgentMergeService {
                     default -> {
                     }
                 }
+            }
+            if (field(item, MergeDiff.PARENT) != null) {
+                // the agent inserted a part above this one: it follows the new part now (made before, items are in the plan's order)
+                message.setParent(source.getParent() == null ? null : messageOf(targetOf(source.getParent().getUuid())));
+                fields = true;
             }
             if (fields) {
                 message = chatMessageService.save(message);

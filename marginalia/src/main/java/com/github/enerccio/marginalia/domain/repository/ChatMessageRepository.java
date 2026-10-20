@@ -18,6 +18,18 @@ public interface ChatMessageRepository extends ExtendableRepository<ChatMessage>
 
     void reparentChildren(ChatMessage targetNode, ChatMessage newParent) throws Exception;
 
+    /**
+     * Makes the part {@code newParent} the parent of the children of {@code targetNode} (the deleted ones too), except itself:
+     * what a part inserted below {@code targetNode} takes over.
+     */
+    void reparentChildrenExcept(ChatMessage targetNode, ChatMessage newParent) throws Exception;
+
+    /**
+     * Makes the part {@code newRoot} the parent of the other first parts of the manuscript (the roots, the deleted ones too):
+     * what a part inserted before the story takes over.
+     */
+    void reparentRootsUnder(Manuscript manuscript, ChatMessage newRoot) throws Exception;
+
     boolean hasAnyMessages(Manuscript manuscript) throws Exception;
 
     List<Long> getAllMessageIds(Manuscript manuscript) throws Exception;

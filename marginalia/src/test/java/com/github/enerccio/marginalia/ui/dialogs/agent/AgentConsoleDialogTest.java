@@ -137,12 +137,24 @@ class AgentConsoleDialogTest extends AgentTestBase {
             }
 
             @Override
+            public com.github.enerccio.marginalia.domain.service.agent.AgentContext context(AgentRun run) {
+                return new com.github.enerccio.marginalia.domain.service.agent.AgentContext("Agent", run.getStatus(), run.getRounds(),
+                        List.of(new com.github.enerccio.marginalia.domain.service.agent.AgentContext.Part(
+                                        com.github.enerccio.marginalia.domain.service.agent.AgentContext.Kind.SYSTEM_PROMPT, "Prompt of the agent", "Be careful.", 3),
+                                new com.github.enerccio.marginalia.domain.service.agent.AgentContext.Part(
+                                        com.github.enerccio.marginalia.domain.service.agent.AgentContext.Kind.USER, "#1 user", "Start.", 2)),
+                        List.of(), 100, 0);
+            }
+
+            @Override
             public boolean isWorking(AgentRun run) {
                 return false;
             }
         });
         dialog.setOnChange(() -> changed = true);
         dialog.create();
+        // the context tab asks the runner too
+        ReflectionTestUtils.setField(dialog.getContextView(), "agentRunner", ReflectionTestUtils.getField(dialog, "agentRunner"));
         dialog.open();
         return dialog;
     }
@@ -637,7 +649,7 @@ class AgentConsoleDialogTest extends AgentTestBase {
         assertThat(runsOf(dialog)).extracting(AgentRun::getUuid).containsExactly(third.getUuid(), second.getUuid(), first.getUuid());
         // the console itself reads the latest run that was not thrown away
         assertThat(dialog.getStatusLabel().getText()).isEqualTo("Running");
-        assertThat(dialog.getTabs().getTabCount()).isEqualTo(4);
+        assertThat(dialog.getTabs().getTabCount()).isEqualTo(5);
     }
 
     @Test
@@ -890,5 +902,20 @@ class AgentConsoleDialogTest extends AgentTestBase {
                 .filter(details -> "Summary of the earlier work".equals(details.getSummaryText())).findFirst().orElseThrow();
         assertThat(textOf(summary)).contains("Earlier: counted parts.");
         assertThat(textOf(dialog.getTranscriptBox())).as("what was compacted is still there for the user").contains("Working on it.");
+    }
+
+    @Test
+    void theContextTabShowsThePartsOfTheContextWhenItIsPicked() throws Exception {
+        AgentRun run = agentRunService.start(agent);
+        say(run, LLMChatMessage.of(LLMRole.USER, "Start."));
+        AgentConsoleDialog dialog = console();
+        assertThat(dialog.getContextView().getContext()).as("not made before the tab is picked").isNull();
+
+        dialog.getTabs().setSelectedIndex(AgentConsoleDialog.CONTEXT_TAB);
+
+        assertThat(dialog.getContextView().getContext()).isNotNull();
+        assertThat(dialog.getContextView().getGrid().getListDataView().getItems()).extracting(part -> part.title())
+                .containsExactly("Prompt of the agent", "#1 user");
+        assertThat(textOf(dialog.getContextView())).contains("Next request: about 5 of 100 tokens");
     }
 }

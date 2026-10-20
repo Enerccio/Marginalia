@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
 import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.model.AgentModelProfile;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
+import com.github.enerccio.marginalia.domain.model.impl.AgentMessage;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.AgentService.ResolvedProfile;
@@ -163,6 +164,16 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             interrupts.remove(run.getId());
             throw e;
         }
+    }
+
+    @Override
+    public AgentContext context(AgentRun run) throws Exception {
+        AgentRun stored = run == null || run.getUuid() == null ? null : runService.findForUser(run.getUuid());
+        if (stored == null) {
+            throw new IllegalArgumentException("The run does not exist");
+        }
+        // nothing starts: the worker only reads, in the context of the run
+        return new Worker(stored, null).describe();
     }
 
     @Override
@@ -806,25 +817,39 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
 
         // ------------------------------------------------------------------ the loop
 
-        private void work() throws Exception {
+        /**
+         * Reads the run and the definition of its agent: the prompt, the instructions and the model.
+         */
+        private void loadAgent() throws Exception {
             run = runService.find(runId);
             runTools = new RunToolsImpl(progress::render, run.isInteractive());
-            inbox = run.isInteractive() ? inboxes.computeIfAbsent(runId, id -> new Inbox()) : null;
             agent = agentService.findForUser(run.getAgent().getUuid());
             systemPrompt = agentService.getSystemPrompt(agent);
             instructions = agentService.getInstructions(agent);
             profile = agentService.resolveProfile(agent.getMainProfile());
+        }
+
+        /**
+         * What the model of the run is asked with: its service, whether it sees images, the requests it may have in the air and
+         * the sub-agents it may have. A command of the author that does not ask the model needs no profile.
+         */
+        private void loadModel() throws Exception {
+            inference = profile == null ? null : inferenceServices.forAIOrThrow(profile.ai());
+            seesImages = profile != null && profile.profile().isImages();
+            requestSlots = new RequestSlots(runService.getMaxConcurrency(run));
+            maxSubagents = runService.getMaxSubagents(run);
+        }
+
+        private void work() throws Exception {
+            loadAgent();
+            inbox = run.isInteractive() ? inboxes.computeIfAbsent(runId, id -> new Inbox()) : null;
             if (profile == null && initial == null) {
                 pause("The model of the agent is not available");
                 return;
             }
             // the copy writes with the model of the agent or with the one of the book, as the definition of the agent says
             runService.useAgentModel(run);
-            // a command of the author that does not ask the model needs none
-            inference = profile == null ? null : inferenceServices.forAIOrThrow(profile.ai());
-            seesImages = profile != null && profile.profile().isImages();
-            requestSlots = new RequestSlots(runService.getMaxConcurrency(run));
-            maxSubagents = runService.getMaxSubagents(run);
+            loadModel();
 
             List<LLMChatMessage> transcript = new ArrayList<>(messageService.transcript(run));
             if (initial == null) {
@@ -1772,26 +1797,141 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             return result;
         }
 
-        private List<LLMChatMessage> payload(List<LLMChatMessage> transcript) {
-            StringBuilder system = new StringBuilder(StringUtils.defaultString(systemPrompt).strip());
+        /**
+         * A section of the system message.
+         */
+        private record SystemPart(AgentContext.Kind kind, String title, String text) {
+        }
+
+        /**
+         * The sections of the system message of the agent, in order; the message is these joined by a blank line.
+         */
+        private List<SystemPart> systemParts() {
+            List<SystemPart> parts = new ArrayList<>();
+            parts.add(new SystemPart(AgentContext.Kind.SYSTEM_PROMPT, "Prompt of the agent", StringUtils.defaultString(systemPrompt).strip()));
             if (StringUtils.isNotBlank(instructions)) {
-                system.append("\n\n# Instructions of the author\n\n").append(instructions.strip());
+                parts.add(new SystemPart(AgentContext.Kind.INSTRUCTIONS, "Instructions of the author",
+                        "# Instructions of the author\n\n" + instructions.strip()));
             }
-            system.append("\n\n").append(Defaults.AGENT_RUNNER_NOTE.strip());
+            parts.add(new SystemPart(AgentContext.Kind.NOTE, "Note of the runner", Defaults.AGENT_RUNNER_NOTE.strip()));
             if (run.isInteractive()) {
-                system.append("\n\n").append(Defaults.AGENT_INTERACTIVE_NOTE.strip());
+                parts.add(new SystemPart(AgentContext.Kind.NOTE, "Note for a conversation", Defaults.AGENT_INTERACTIVE_NOTE.strip()));
             }
             if (maxSubagents > 0) {
-                system.append("\n\n").append(String.format(Defaults.AGENT_SUBAGENTS_NOTE.strip(), maxSubagents,
-                        maxSubagents == 1 ? Defaults.AGENT_SUBAGENTS_NOTE_ONE : Defaults.AGENT_SUBAGENTS_NOTE_MANY, requestSlots.cap()));
+                parts.add(new SystemPart(AgentContext.Kind.NOTE, "Note about sub-agents", String.format(Defaults.AGENT_SUBAGENTS_NOTE.strip(),
+                        maxSubagents, maxSubagents == 1 ? Defaults.AGENT_SUBAGENTS_NOTE_ONE : Defaults.AGENT_SUBAGENTS_NOTE_MANY, requestSlots.cap())));
             }
             if (progress.contextCap > 0 || progress.responseCap > 0) {
-                system.append("\n\n").append(limitsNote());
+                parts.add(new SystemPart(AgentContext.Kind.NOTE, "Limits of the model", limitsNote()));
             }
+            return parts;
+        }
+
+        private List<LLMChatMessage> payload(List<LLMChatMessage> transcript) {
             List<LLMChatMessage> payload = new ArrayList<>();
-            payload.add(LLMChatMessage.of(LLMRole.SYSTEM, system.toString()));
+            payload.add(LLMChatMessage.of(LLMRole.SYSTEM, systemParts().stream().map(SystemPart::text).collect(Collectors.joining("\n\n"))));
             payload.addAll(withImages(coalesced(transcript)));
             return payload;
+        }
+
+        // ------------------------------------------------------------------ the context, taken apart
+
+        /**
+         * What the model of the run reads with its next request, part by part. Made for a worker that was never started: it loads
+         * the run in the context of the run, builds the tools as the loop does, and writes nothing.
+         */
+        AgentContext describe() throws Exception {
+            attributes = runService.openSession(run);
+            try (InRequestScope _ = new InRequestScope(attributes)) {
+                loadAgent();
+                loadModel();
+                progress.contextCap = runService.getContextCap(run);
+                progress.responseCap = profile == null ? 0 : TokenLimits.responseTokens(profile.ai(), profile.protocol());
+                checkpointTools = new CheckpointToolsImpl(() -> run, checkpointService);
+                List<AgentContext.Part> parts = new ArrayList<>();
+                for (SystemPart part : systemParts()) {
+                    parts.add(new AgentContext.Part(part.kind(), part.title(), part.text(), count(part.text())));
+                }
+                try {
+                    tools = tools();
+                    for (FunctionDefinition definition : tools.getDefinitions()) {
+                        String text = StringUtils.defaultString(definition.getDescription()) + "\n\nParameters:\n"
+                                + definition.getParametersSchema().toPrettyString();
+                        parts.add(new AgentContext.Part(AgentContext.Kind.TOOL, "Tool: " + definition.getName(), text,
+                                count(definition.getName() + " " + StringUtils.defaultString(definition.getDescription()) + " "
+                                        + definition.getParametersSchema())));
+                    }
+                } catch (Exception e) {
+                    log.warn("The tools of agent run {} could not be made for its context: {}", run.getUuid(), e.getMessage(), e);
+                    String note = "The definitions of the tools could not be made: " + messageOf(e);
+                    parts.add(new AgentContext.Part(AgentContext.Kind.TOOL, "Tools", note, 0));
+                }
+                List<AgentMessage> rows = messageService.messages(run);
+                boolean startsWithSummary = rows.stream().filter(row -> !row.isCompacted() && !row.isRewound()).findFirst()
+                        .map(AgentMessage::isSummary).orElse(false);
+                parts.addAll(messageParts(coalesced(messageService.transcript(run)), startsWithSummary));
+                List<AgentContext.Point> history = new ArrayList<>();
+                long reported = 0;
+                for (AgentMessage row : rows) {
+                    if (row.getContextTokens() != null && row.getContextTokens() > 0) {
+                        history.add(new AgentContext.Point(history.size() + 1, row.getContextTokens()));
+                        reported = row.getContextTokens();
+                    }
+                }
+                return new AgentContext(agent.getName(), run.getStatus(), run.getRounds(), parts, history, progress.contextCap, reported);
+            } finally {
+                attributes.close();
+            }
+        }
+
+        private long count(String text) throws Exception {
+            return inference == null ? text.length() / 4 : inference.countTokensApprox(text);
+        }
+
+        /**
+         * The messages of the conversation as the model reads them. An image shows as its name: what the model sees of it is
+         * the picture, which the context does not hold as text.
+         */
+        private List<AgentContext.Part> messageParts(List<LLMChatMessage> conversation, boolean startsWithSummary) throws Exception {
+            List<AgentContext.Part> parts = new ArrayList<>();
+            Map<String, String> callNames = new HashMap<>();
+            boolean first = true;
+            for (int i = 0; i < conversation.size(); i++) {
+                LLMChatMessage message = conversation.get(i);
+                StringBuilder text = new StringBuilder(StringUtils.defaultString(message.getContent()));
+                long tokens = count(text.toString());
+                for (LLMAttachment attachment : message.getAttachments()) {
+                    text.append("\n\n[image: ").append(attachment.getName()).append(']');
+                }
+                String title = "#" + (i + 1) + " " + message.getRole().name().toLowerCase();
+                AgentContext.Kind kind;
+                switch (message.getRole()) {
+                    case ASSISTANT -> {
+                        kind = AgentContext.Kind.ASSISTANT;
+                        List<String> names = new ArrayList<>();
+                        for (LLMToolCall call : message.getToolCalls()) {
+                            callNames.put(call.getId(), call.getName());
+                            names.add(call.getName());
+                            text.append(text.isEmpty() ? "" : "\n\n").append("[call ").append(call.getId()).append("] ").append(call.getName())
+                                    .append('\n').append(StringUtils.defaultString(call.getArguments()));
+                            tokens += count(call.getName() + " " + StringUtils.defaultString(call.getArguments()));
+                        }
+                        title += names.isEmpty() ? "" : " -> " + String.join(", ", names);
+                    }
+                    case TOOL -> {
+                        kind = AgentContext.Kind.RESULT;
+                        title += " result of " + callNames.getOrDefault(message.getToolCallId(), "?");
+                    }
+                    default -> {
+                        // the summary of a compaction is the first message of the conversation, a message of the author
+                        kind = first && startsWithSummary ? AgentContext.Kind.SUMMARY : AgentContext.Kind.USER;
+                        title += kind == AgentContext.Kind.SUMMARY ? " (summary of the compacted rounds)" : "";
+                    }
+                }
+                first = false;
+                parts.add(new AgentContext.Part(kind, title, text.toString(), tokens));
+            }
+            return parts;
         }
 
         /**

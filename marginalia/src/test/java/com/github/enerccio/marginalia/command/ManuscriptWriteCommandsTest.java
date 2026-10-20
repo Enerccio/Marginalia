@@ -227,6 +227,82 @@ class ManuscriptWriteCommandsTest extends GenerationTestBase {
     }
 
     @Test
+    void aPartInsertedAfterAPartTakesOverEverythingThatFollowedItWithoutRecreatingAnything() throws Exception {
+        JsonObject result = run("/insert-part \"Night fell.\" " + first.getUuid());
+
+        ChatMessage inserted = chatMessageService.find(chatMessageService.find(result.get("handle").getAsString()));
+        assertThat(inserted.getParent().getId()).isEqualTo(first.getId());
+        assertThat(inserted.isEdited()).isFalse();
+        assertThat(result.get("position").getAsInt()).isEqualTo(2);
+        assertThat(result.get("continuedBy").getAsInt()).as("both continuations of the part, the branches stay branches").isEqualTo(2);
+        // the parts below were not made again: the same uuids, one place deeper
+        assertThat(reload(second).getParent().getId()).isEqualTo(inserted.getId());
+        assertThat(reload(other).getParent().getId()).isEqualTo(inserted.getId());
+        assertThat(reload(second).getResponse()).isEqualTo("John went home. He slept soundly.");
+        assertThat(chatMessageService.getAllMessages(book())).hasSize(4);
+        assertThat(chatMessageService.getBranchFromLeaf(book().getActiveLeaf())).extracting(ChatMessage::getUuid)
+                .containsExactly(first.getUuid(), inserted.getUuid(), second.getUuid());
+        assertThat(book().getActiveLeaf().getId()).as("the active end stays").isEqualTo(second.getId());
+        assertThat(chatMessageService.getSwipesForMessage(reload(second))).as("the swipes stay swipes").hasSize(2);
+    }
+
+    @Test
+    void aPartInsertedBeforeAPartComesAfterTheOneAboveIt() throws Exception {
+        JsonObject result = run("/insert-part \"Prologue.\" " + first.getUuid() + " true");
+
+        ChatMessage inserted = chatMessageService.find(chatMessageService.find(result.get("handle").getAsString()));
+        assertThat(inserted.getParent()).as("before the first part of the story: a new first part").isNull();
+        assertThat(inserted.getParentScript().getId()).isEqualTo(manuscript.getId());
+        assertThat(reload(first).getParent().getId()).isEqualTo(inserted.getId());
+        assertThat(result.get("position").getAsInt()).isEqualTo(1);
+        assertThat(chatMessageService.getBranchFromLeaf(book().getActiveLeaf())).extracting(ChatMessage::getUuid)
+                .containsExactly(inserted.getUuid(), first.getUuid(), second.getUuid());
+
+        // before a part with a part above it: between the two
+        JsonObject between = run("/insert-part \"Meanwhile.\" " + second.getUuid() + " true");
+        ChatMessage meanwhile = chatMessageService.find(chatMessageService.find(between.get("handle").getAsString()));
+        assertThat(meanwhile.getParent().getId()).isEqualTo(first.getId());
+        assertThat(reload(second).getParent().getId()).isEqualTo(meanwhile.getId());
+        assertThat(reload(other).getParent().getId()).as("the swipes of the part move together").isEqualTo(meanwhile.getId());
+    }
+
+    @Test
+    void aPartInsertedAfterTheEndOfTheActiveBranchIsTheNewEnd() throws Exception {
+        JsonObject result = run("/insert-part \"Night fell.\" " + second.getUuid());
+
+        ChatMessage inserted = chatMessageService.find(chatMessageService.find(result.get("handle").getAsString()));
+        assertThat(inserted.getParent().getId()).isEqualTo(second.getId());
+        assertThat(book().getActiveLeaf().getId()).isEqualTo(inserted.getId());
+        assertThat(result.get("continuedBy").getAsInt()).isZero();
+        assertThat(result.get("position").getAsInt()).isEqualTo(3);
+    }
+
+    @Test
+    void anInsertedPartMakesTheSummariesAboveItOutdatedAndSaysSo() throws Exception {
+        // the summary of the second part covers the first too
+        Summary summary = new Summary();
+        summary.setSummary("Anna met John, who went home.");
+        summary.setSummaryTokens(5L);
+        summary.setSummaryType(SummaryType.SUMMARY);
+        summary = summaryService.save(summary);
+        ChatMessage loaded = chatMessageService.find(second.getId());
+        loaded.setSummary(summary);
+        chatMessageService.save(loaded);
+        run("/revalidate-summaries");
+        assertThat(run("/check-summaries").get("outdated").getAsInt()).isZero();
+
+        JsonObject result = run("/insert-part \"Night fell.\" " + first.getUuid());
+
+        assertThat(result.getAsJsonArray("outdatedSummaries").get(0).getAsJsonObject().get("handle").getAsString()).isEqualTo(second.getUuid());
+    }
+
+    @Test
+    void aPartIsNotInsertedWithoutTextOrWithoutAKnownPart() {
+        assertThatThrownBy(() -> run("/insert-part \" \" " + first.getUuid())).isInstanceOf(ExecutionException.class);
+        assertThatThrownBy(() -> run("/insert-part \"Text.\" 2")).isInstanceOf(ExecutionException.class);
+    }
+
+    @Test
     void theFirstPartOfAnEmptyBookIsMadeWithoutAParent() throws Exception {
         Manuscript empty = manuscriptService.save(newManuscript());
         session.close();

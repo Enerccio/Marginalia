@@ -11,12 +11,14 @@ import java.util.Set;
 
 /**
  * {@code /create-part text [parent [instructions [scene [pov [present]]]]]}, {@code /branch-part part}, {@code /delete-part part},
- * {@code /switch-branch part}: the commands that add, copy and delete the parts of the story and choose the branch. A part is given by
+ * {@code /switch-branch part}, {@code /insert-part text part [before]}: the commands that add, insert, copy and delete the parts of the
+ * story and choose the branch. A part is given by
  * its handle, see {@link ManuscriptWriteSupport}.
  */
 public class PartStructureCommands extends ManuscriptWriteSupport {
 
     static final String CREATE_PART = "create-part";
+    static final String INSERT_PART = "insert-part";
     static final String BRANCH_PART = "branch-part";
     static final String DELETE_PART = "delete-part";
     static final String SWITCH_BRANCH = "switch-branch";
@@ -96,6 +98,29 @@ public class PartStructureCommands extends ManuscriptWriteSupport {
         createPart(context, context.get("text", String.class), ref(context, "parent"), context.get("instructions", String.class), context.get("scene", String.class), context.get("pov", String.class), context.get("present", String.class));
     }
 
+    @Command(commandName = INSERT_PART, humanName = L.LABEL_COMMAND_INSERT_PART,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            description = L.DESC_COMMAND_INSERT_PART, llmDescription = L.DESC_COMMAND_INSERT_PART_LLM,
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "text", type = String.class, description = L.DESC_COMMAND_NEW_TEXT_PARAM),
+                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_INSERT_ANCHOR_PARAM)}),
+            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_INSERT_PART_RETURN))
+    public void insertPart(CommandContext context) throws Exception {
+        insertPart(context, context.get("text", String.class), ref(context, "part"), false);
+    }
+
+    @Command(commandName = INSERT_PART, humanName = L.LABEL_COMMAND_INSERT_PART,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            description = L.DESC_COMMAND_INSERT_PART, llmDescription = L.DESC_COMMAND_INSERT_PART_LLM,
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "text", type = String.class, description = L.DESC_COMMAND_NEW_TEXT_PARAM),
+                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_INSERT_ANCHOR_PARAM),
+                    @CommandParameter(name = "before", type = Boolean.class, description = L.DESC_COMMAND_INSERT_BEFORE_PARAM)}),
+            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_INSERT_PART_RETURN))
+    public void insertPartBefore(CommandContext context) throws Exception {
+        insertPart(context, context.get("text", String.class), ref(context, "part"), Boolean.TRUE.equals(context.get("before", Boolean.class)));
+    }
+
     @Command(commandName = BRANCH_PART, humanName = L.LABEL_COMMAND_BRANCH_PART,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_BRANCH_PART, llmDescription = L.DESC_COMMAND_BRANCH_PART_LLM,
@@ -137,6 +162,31 @@ public class PartStructureCommands extends ManuscriptWriteSupport {
                 : new TurnInput(scene, pov, present, instructions);
         ChatMessage created = chatMessageService.createPart(book.manuscript, parent, text, input);
         answerWith(context, created, null);
+    }
+
+    /**
+     * Inserts the part into the story next to the part {@code handle}: after it, or before it (after the part above it, the first
+     * part of the story when it has none). What followed the place follows the new part, nothing is deleted or made again.
+     */
+    private void insertPart(CommandContext context, String text, String handle, boolean before) throws Exception {
+        Book book = new Book(context);
+        if (text == null || text.isBlank()) {
+            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_PART_TEXT_EMPTY));
+        }
+        ChatMessage anchor = part(book, handle);
+        Book.Located at = book.locate(handle, null);
+        Set<Long> outdated = outdatedHeads(at.path());
+        ChatMessage created = chatMessageService.insertPart(book.manuscript, before ? anchor.getParent() : anchor, text, null);
+
+        Book fresh = new Book(context);
+        Book.Located now = fresh.locate(created.getUuid(), null);
+        JsonObject result = describe(created, now.position());
+        result.addProperty("parts", now.path().size());
+        result.addProperty("continuedBy", fresh.childrenOf(created).size());
+        result.addProperty("insertedBefore", before ? handle : null);
+        reportOutdated(result, now.path(), outdated);
+        changed();
+        answer(context, result);
     }
 
     private void branchPart(CommandContext context, String handle) throws Exception {

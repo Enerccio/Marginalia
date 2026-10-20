@@ -137,6 +137,22 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
     ChatMessage createPart(Manuscript manuscript, ChatMessage parent, String text, TurnInput input) throws Exception;
 
     /**
+     * Inserts a part into the story, between a part and what follows it: the new part becomes the only child of {@code after},
+     * and everything that followed {@code after} (all its continuations, the swipes of the next part with their own
+     * continuations) follows the new part now. No part is deleted or made again, so their uuids, summaries and the data
+     * kept on them stay; every part below the new one is one place deeper. As {@link #createPart}, the text is counted and
+     * the part is not flagged as edited. The active leaf stays where it is, unless {@code after} was the leaf: the new
+     * part is the end of the branch then, as with {@link #createPart}. The summaries of the parts below that covered
+     * {@code after} are outdated, as they describe the story without the new part.
+     *
+     * @param after the part the new one comes after; null for a part before the whole story (the first parts of the story
+     *              follow it then); the book may have no parts, then this is {@link #createPart} of the first part
+     * @param input what the turn the part stands for was made from; null for none
+     * @throws IllegalArgumentException when {@code after} is not a part of the manuscript or the manuscript is not the user's
+     */
+    ChatMessage insertPart(Manuscript manuscript, ChatMessage after, String text, TurnInput input) throws Exception;
+
+    /**
      * @param message  the part as saved
      * @param outdated the summaries that became outdated by the edit, oldest first
      */
