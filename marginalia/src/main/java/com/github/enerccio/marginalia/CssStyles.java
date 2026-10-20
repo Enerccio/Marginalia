@@ -163,6 +163,9 @@ public final class CssStyles {
     public static final String MULTI_TAG_CHIP = "multi-tag-chip";
     public static final String MULTI_TAG_CHIP_MARKED = "multi-tag-chip-marked";
 
+    // --- Mass edit of the entries of a lorebook (ui.dialogs.LorebookMassEditDialog) ---
+    public static final String MASS_EDIT_CONTENT = "mass-edit-content";
+
     // --- Version footer (ui.components.BuildInfoFooter) ---
     public static final String BUILD_INFO_FOOTER = "build-info-footer";
 

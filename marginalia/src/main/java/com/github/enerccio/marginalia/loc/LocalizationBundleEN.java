@@ -567,6 +567,12 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_BATCH_POLICY, "Batch");
         setValue(L.LABEL_AGENT_BATCH_MODE, "Calls in one answer");
         setValue(L.LABEL_ONLY_ROOT_LOREBOOKS, "Only root lorebooks");
+        setValue(L.LABEL_MASS_EDIT, "Mass edit");
+        setValue(L.LABEL_MOVE_TO_LOREBOOK, "Move to lorebook");
+        setValue(L.LABEL_MOVE_CHECKED, "Move checked");
+        setValue(L.LABEL_COUNT_TOKENS_WITH_SUBBOOKS, "Count with subbooks");
+        setValue(L.LABEL_TOKENS_WITH_SUBBOOKS, "With subbooks: ~%d tokens");
+        setValue(L.LABEL_SHOWN_LOREBOOK, "Shown lorebook");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -934,6 +940,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_TAG_REMOVED, "The tag \"%s\" was removed from %d item(s).");
         setValue(L.MSG_TAG_PICK_FIRST, "Pick the tag first.");
         setValue(L.MSG_TAG_CHECK_FIRST, "Check the items first.");
+        setValue(L.MSG_ENTRIES_MOVED, "%d entries were moved to the lorebook \"%s\".");
+        setValue(L.MSG_MOVE_PICK_FIRST, "Check the entries and pick the lorebook to move them to first.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1003,6 +1011,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_DIAGNOSTICS, "What the run did, counted from its transcript: the calls by tool with their errors, results and times, the rounds spent calling one tool after the other, the biggest results, the slowest rounds, the context and the sub-agents. It works for any run, an old one too. Download it as Markdown or JSON to read it in an editor or to give it to somebody.");
         setValue(L.HELP_COMMAND_BATCH_POLICY, "How the command is used among the calls of one answer. Together: it may be called with others. Alone: it is called in an answer of its own, as it is long or costly (for example it makes a call to a model) or its result should be read first. The agent can be set to ignore this.");
         setValue(L.HELP_AGENT_BATCH_MODE, "How many calls of one answer of the agent are made. All together: every call, whatever the batch policies of the commands say (fastest). Together, commands marked Alone by themselves: the calls are made together, but a command marked Alone is made in an answer of its own. One call per answer: only the first call is made and the agent writes the next one after it has read the result (slowest, every call is a round with the thinking of the model, but it can react to each result). An error ends the answer in every mode: the calls after the failed one are not made.");
+        setValue(L.HELP_LOREBOOK_MASS_EDIT, "Every entry of the lorebook and of its subbooks, by order. Change the enabled box, the name, the order and the tags of an entry in place, the text is shortened (open the entry in the lorebook to read or edit it). Move an entry to the lorebook itself or to one of its subbooks with the lorebook box of its row, or move all the checked entries at once with the box at the bottom. Entries of a lorebook an agent works on are grayed out and can't be changed.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

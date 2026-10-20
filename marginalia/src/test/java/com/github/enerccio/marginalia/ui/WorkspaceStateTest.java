@@ -334,6 +334,40 @@ class WorkspaceStateTest extends MarginaliaTestBase {
                 .isEqualTo(json("{\"scene\":\"A tavern\",\"pov\":\"Alice\",\"present\":\"\",\"instructions\":\"Be brief\",\"edited\":true}"));
     }
 
+    /**
+     * The uuid of the lorebook the lorebook tab of the dialog shows when it is not the one of the book, otherwise null.
+     */
+    private static String shownOf(ManuscriptDialog dialog) {
+        JsonObject parts = dialog.storeState().getAsJsonObject("parts");
+        JsonObject lorebookPart = parts == null ? null : parts.getAsJsonObject("lorebook");
+        return lorebookPart == null || !lorebookPart.has("shown") ? null : lorebookPart.get("shown").getAsString();
+    }
+
+    @Test
+    void manuscriptDialogShowsASubbookOfTheLorebookOfTheBook() throws Exception {
+        login();
+        Lorebook root = lorebook("Root");
+        Lorebook sub = lorebook("Sub");
+        lorebookService.addSubbook(root, sub);
+        Manuscript manuscript = manuscript();
+        manuscript.setLorebook(root);
+        manuscript = manuscriptService.save(manuscript);
+        ManuscriptDialog dialog = new ManuscriptDialog(manuscript);
+        dialog.create();
+        // the tabs are loaded when the dialog is opened
+        dialog.open();
+        assertThat(shownOf(dialog)).as("the lorebook of the book is shown by default").isNull();
+
+        dialog.restoreState(json("{\"tab\":\"lorebook\",\"parts\":{\"lorebook\":{\"shown\":\"" + sub.getUuid() + "\"}}}"));
+
+        assertThat(shownOf(dialog)).isEqualTo(sub.getUuid());
+        assertThat(manuscriptService.find(manuscript).getLorebook().getUuid()).as("the book keeps its lorebook").isEqualTo(root.getUuid());
+
+        // a lorebook that is not among the subbooks is not shown
+        dialog.restoreState(json("{\"parts\":{\"lorebook\":{\"shown\":\"" + lorebook("Other").getUuid() + "\"}}}"));
+        assertThat(shownOf(dialog)).isEqualTo(sub.getUuid());
+    }
+
     @Test
     void manuscriptDialogReportsNavigation() throws Exception {
         login();

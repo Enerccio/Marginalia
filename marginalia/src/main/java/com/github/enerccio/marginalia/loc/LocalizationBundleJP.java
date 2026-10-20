@@ -566,7 +566,13 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_DOWNLOAD_JSON, "JSONをダウンロード");
         setValue(L.LABEL_COMMAND_BATCH_POLICY, "バッチ");
         setValue(L.LABEL_AGENT_BATCH_MODE, "1回の回答での呼び出し");
-        setValue(L.LABEL_ONLY_ROOT_LOREBOOKS, "ã«ã¼ãã®ã­ã¢ããã¯ã®ã¿");
+        setValue(L.LABEL_ONLY_ROOT_LOREBOOKS, "ルートのロアブックのみ");
+        setValue(L.LABEL_MASS_EDIT, "一括編集");
+        setValue(L.LABEL_MOVE_TO_LOREBOOK, "ロアブックへ移動");
+        setValue(L.LABEL_MOVE_CHECKED, "チェックしたものを移動");
+        setValue(L.LABEL_COUNT_TOKENS_WITH_SUBBOOKS, "サブブックを含めて計算");
+        setValue(L.LABEL_TOKENS_WITH_SUBBOOKS, "サブブックを含む：約%dトークン");
+        setValue(L.LABEL_SHOWN_LOREBOOK, "表示するロアブック");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -934,6 +940,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_TAG_REMOVED, "タグ「%s」を%d件から外しました。");
         setValue(L.MSG_TAG_PICK_FIRST, "先にタグを選んでください。");
         setValue(L.MSG_TAG_CHECK_FIRST, "先に項目をチェックしてください。");
+        setValue(L.MSG_ENTRIES_MOVED, "%d件のエントリをロアブック「%s」に移動しました。");
+        setValue(L.MSG_MOVE_PICK_FIRST, "先にエントリをチェックし、移動先のロアブックを選んでください。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1003,6 +1011,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_DIAGNOSTICS, "実行の内容を記録から集計したものです。ツールごとの呼び出し数、エラー、結果、時間、同じツールを続けて呼んだラウンド、大きな結果、遅いラウンド、コンテキスト、サブエージェントを表示します。古い実行でも使えます。MarkdownまたはJSONでダウンロードして、エディタで読んだり他の人に渡したりできます。");
         setValue(L.HELP_COMMAND_BATCH_POLICY, "1回の回答に含まれる呼び出しの中での、このコマンドの使われ方です。まとめて：他の呼び出しと一緒に呼べます。単独：時間やコストがかかる（例：モデルを呼び出す）、または結果を先に読むべきため、単独の回答で呼びます。エージェントの設定で無視することもできます。");
         setValue(L.HELP_AGENT_BATCH_MODE, "エージェントの1回の回答の呼び出しをいくつ実行するかを決めます。すべてまとめて：コマンドのバッチポリシーに関係なくすべて実行（最速）。まとめて（「単独」は単独で）：呼び出しはまとめて実行しますが、「単独」のコマンドは単独の回答で実行します。1回の回答につき1回：最初の呼び出しだけを実行し、エージェントは結果を読んでから次を書きます（各呼び出しがモデルの思考を伴う1ラウンドになり最も遅いですが、各結果に対応できます）。どのモードでも、エラーが起きるとその回答は終了し、失敗した呼び出しの後の呼び出しは実行されません。");
+        setValue(L.HELP_LOREBOOK_MASS_EDIT, "ロアブックとそのサブブックのすべてのエントリを順序で表示します。有効のチェック、名前、順序、タグはその場で変更できます。本文は短縮されています（読む・編集するにはロアブックでエントリを開いてください）。行のロアブック欄で、エントリをそのロアブック自身またはサブブックに移動できます。下の欄でチェックしたエントリをまとめて移動することもできます。エージェントが作業中のロアブックのエントリはグレー表示で、変更できません。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

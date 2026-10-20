@@ -1052,6 +1052,18 @@ vaadin-dialog-overlay.phone-dialog::part(overlay) {
     opacity: 0.45;
 }
 
+.mass-edit-content {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    font-size: var(--lumo-font-size-s);
+    color: var(--lumo-secondary-text-color);
+}
+
 .multi-tag-chip {
     display: inline-block;
     margin-right: var(--lumo-space-xs);
