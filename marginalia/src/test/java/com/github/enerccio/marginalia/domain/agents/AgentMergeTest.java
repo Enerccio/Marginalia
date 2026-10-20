@@ -535,6 +535,56 @@ class AgentMergeTest extends AgentTestBase {
     }
 
     @Test
+    void aFieldTheUserDidNotPickIsLeftInTheBook() throws Exception {
+        ChatMessage copied = chatMessageService.find(inCopy("there was a dragon").getId());
+        copied.setResponse("there was a small dragon");
+        copied.setSceneSetting("a cave");
+        chatMessageService.save(copied);
+        MergePlan plan = plan();
+        Item item = item(plan, Kind.MESSAGE, Change.CHANGED, "there was");
+        assertThat(item.fields()).extracting(Field::name).containsExactlyInAnyOrder("response", "sceneSetting");
+
+        mergeService.apply(run, new MergeSelection(Set.of(item.id()), Map.of(), false, Map.of(item.id(), Set.of("sceneSetting"))));
+
+        assertThat(bookTexts()).containsExactly("Once upon a time", "and a castle", "there was a small dragon");
+        assertThat(inBook("there was a small dragon").getSceneSetting()).isNullOrEmpty();
+    }
+
+    @Test
+    void anItemWhoseEveryFieldWasLeftOutIsNotApplied() throws Exception {
+        LorebookEntry dragon = entryOf(copyRoot(), "dragon");
+        dragon.setPayload("a green dragon");
+        dragon.setComment("seen at night");
+        lorebookEntryService.update(dragon);
+        edit(inCopy("there was a dragon"), "there was a small dragon");
+        MergePlan plan = plan();
+        Item entry = item(plan, Kind.ENTRY, Change.CHANGED, "dragon");
+        Item part = item(plan, Kind.MESSAGE, Change.CHANGED, "there was");
+
+        assertThatThrownBy(() -> mergeService.apply(run, new MergeSelection(Set.of(entry.id()), Map.of(), false,
+                Map.of(entry.id(), Set.of("payload", "comment")))))
+                .isInstanceOf(IllegalArgumentException.class);
+        MergeResult result = mergeService.apply(run, new MergeSelection(Set.of(entry.id(), part.id()), Map.of(), false,
+                Map.of(entry.id(), Set.of("payload", "comment"))));
+
+        assertThat(result.total()).isEqualTo(1);
+        assertThat(entryOf(lorebookService.find(manuscriptService.find(book.getId()).getLorebook()), "dragon").getPayload()).isEqualTo("a red dragon");
+        assertThat(bookTexts()).contains("there was a small dragon");
+    }
+
+    @Test
+    void whatTheAgentAddedIsTakenAsAWholeWhateverFieldsAreLeftOut() throws Exception {
+        ChatMessage added = addTo(copy(), inCopy("and a castle"), "and a moat");
+        MergePlan plan = plan();
+        Item item = item(plan, Kind.MESSAGE, Change.ADDED, "and a moat");
+
+        mergeService.apply(run, new MergeSelection(Set.of(item.id()), Map.of(), false, Map.of(item.id(), Set.of("response"))));
+
+        assertThat(bookTexts()).contains("and a moat");
+        assertThat(added.getResponse()).isEqualTo("and a moat");
+    }
+
+    @Test
     void aPartThatNeedsAPartThatIsNotPickedCannotBeAppliedAlone() throws Exception {
         ChatMessage fourth = addTo(copy(), inCopy("and a castle"), "The end.");
         addTo(copy(), fourth, "Or not.");

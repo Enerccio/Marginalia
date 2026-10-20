@@ -813,6 +813,43 @@ vaadin-dialog-overlay.phone-dialog::part(overlay) {
     color: var(--lumo-tertiary-text-color);
 }
 
+/* the difference of two texts, word by word, in the review of an agent run */
+.merge-diff {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    max-height: 16em;
+    overflow: auto;
+    padding: var(--lumo-space-s);
+    border: 1px solid var(--lumo-contrast-10pct);
+    border-radius: var(--lumo-border-radius-m);
+    font-size: var(--lumo-font-size-s);
+}
+
+.merge-diff-added {
+    background: var(--lumo-success-color-10pct);
+    color: var(--lumo-success-text-color);
+}
+
+.merge-diff-removed {
+    background: var(--lumo-error-color-10pct);
+    color: var(--lumo-error-text-color);
+    text-decoration: line-through;
+}
+
+/* a part of the copy of the book of an agent run, read only */
+.agent-copy-part {
+    padding: var(--lumo-space-s) var(--lumo-space-m);
+    border-bottom: 1px solid var(--lumo-contrast-10pct);
+}
+
+.agent-copy-part-head {
+    display: flex;
+    gap: var(--lumo-space-s);
+    align-items: baseline;
+    font-size: var(--lumo-font-size-xs);
+    color: var(--lumo-secondary-text-color);
+}
+
 .help-message-error {
     background: var(--lumo-error-color-10pct);
     color: var(--lumo-error-text-color);

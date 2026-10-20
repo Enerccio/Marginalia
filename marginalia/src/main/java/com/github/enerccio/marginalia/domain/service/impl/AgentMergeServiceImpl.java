@@ -230,6 +230,31 @@ public class AgentMergeServiceImpl implements AgentMergeService {
     private record Applied(AgentRun run, Map<Kind, Integer> counts, List<Skipped> skipped, String backup) {
     }
 
+    /**
+     * The items without the fields the user did not pick; an item the agent changed that has none left is dropped. The place of
+     * a part is not a choice, and what the agent made or deleted is taken or left as a whole.
+     */
+    private static List<Item> withPickedFields(List<Item> chosen, Map<String, Set<String>> skippedFields) {
+        if (skippedFields.isEmpty()) {
+            return chosen;
+        }
+        List<Item> picked = new ArrayList<>();
+        for (Item item : chosen) {
+            Set<String> skippedOfItem = skippedFields.get(item.id());
+            if (item.change() != Change.CHANGED || skippedOfItem == null || skippedOfItem.isEmpty()) {
+                picked.add(item);
+                continue;
+            }
+            List<Field> fields = item.fields().stream()
+                    .filter(field -> MergeDiff.PARENT.equals(field.name()) || !skippedOfItem.contains(field.name())).toList();
+            if (fields.stream().anyMatch(field -> !MergeDiff.PARENT.equals(field.name()))) {
+                picked.add(new Item(item.id(), item.kind(), item.change(), item.sourceUuid(), item.targetUuid(), item.label(),
+                        item.dependsOn(), fields, item.conflict(), item.problem(), item.sharedWith()));
+            }
+        }
+        return picked;
+    }
+
     private Applied applyChanges(AgentRun run, MergeSelection selection) throws Exception {
         Review review = open(run);
         if (selection == null || selection.items().isEmpty()) {
@@ -237,7 +262,7 @@ public class AgentMergeServiceImpl implements AgentMergeService {
         }
         MergePlan plan = plan(review);
         List<Skipped> skipped = new ArrayList<>();
-        List<Item> chosen = applicable(plan, selection.items(), skipped);
+        List<Item> chosen = withPickedFields(applicable(plan, selection.items(), skipped), selection.skippedFields());
         if (chosen.isEmpty()) {
             throw new IllegalArgumentException("Nothing that is picked can be applied");
         }

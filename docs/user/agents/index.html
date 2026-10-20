@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845824933792">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845827180667">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845824933792" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845827180667" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845824933792" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845827180667" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845824933792" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845827180667" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -371,7 +371,7 @@ the state when it goes on), answers the calls of the round that were not made as
 cost is lost; resume as usual.</p>
 <p>While the agent waits for a free place at its model (see <doc-anchor-trigger to="#one-model-several-agents">One model, several agents</doc-anchor-trigger>) it is <em>Running</em>; a <strong>Pause</strong> or <strong>Stop</strong> ends that wait at once.</p>
 <h2 id="the-console">The console</h2>
-<p><strong>Console</strong> opens a window for the latest run of the agent, with five tabs: <strong>Run</strong>, <strong>Runs</strong>, <strong>Workspace</strong>, <strong>Checkpoints</strong> and <strong>Context</strong>.</p>
+<p><strong>Console</strong> opens a window for the latest run of the agent, with six tabs: <strong>Run</strong>, <strong>Runs</strong>, <strong>Workspace</strong>, <strong>Checkpoints</strong>, <strong>Context</strong> and <strong>Book copy</strong>.</p>
 <p><strong>Run</strong> shows the <em>transcript</em>: what you told the agent, what it said (both as <a href="https://commonmark.org/help/">Markdown</a>, so lists, headings and emphasis show as such), and every command or file tool it called, folded to one line with the
 arguments (click it to see them and the result, shown as plain text). When the model sends its <strong>reasoning</strong> (what it thought before it answered), a folded <em>Reasoning</em> block shows it before the answer, and the download has it. Whether you get any depends on the model and the server: it has to report it, and your AI has to have reasoning switched on. Every message has the time it was written at the right of its first line (the time of day, with the date when it was another day; hover for the whole time), so you can tell how long the agent worked and when it stopped. The state of the run, the <strong>context</strong> (how many tokens the last request used of the limit of the model, so you see how close the run is to a pause), the rounds and tokens it used (and the token budget, when there
 is one) stay above it and the box for your message under it, while the transcript scrolls. What the agent waits for is in the transcript where it was written, as a bubble of its own that stays there when the run goes on:</p>
@@ -521,12 +521,21 @@ on the right: the text of your book now and the text that will be written, <stro
 change. What both changed to <strong>different</strong> texts is a <strong>conflict</strong>: it starts unticked, and when you tick it the text you see on the right replaces the text of the book. <strong>Use the book&#x27;s</strong> puts the book&#x27;s text
 into the box (the line then changes nothing for that field), <strong>Use the agent&#x27;s</strong> puts the agent&#x27;s back; or write the result yourself. A line that can&#x27;t be taken over (the part it follows, or the lorebook it
 is in, was deleted from your book) says so and can&#x27;t be ticked.</p>
+<p>Under the texts, <strong>Differences</strong> shows what changes <strong>word by word</strong>: what is only in the book now struck through in red, what is only in the text to apply in green (it follows what you write in the box). For a conflict it also
+shows what the agent changed and what you changed since the run started, each from the book as it was then, so you can see who did what. A line the agent changed in more than one thing (a part whose text and scene setting
+changed, an entry with a new content and note) has a <strong>Take this change</strong> box beside each of them: untick one to apply the line without it, the book keeps its own value of that field. The place of a part in the story goes with the part and has no box,
+and what the agent made or deleted is taken or left as a whole. <strong>Show in the copy</strong> (on a line the agent made or changed) opens the <doc-anchor-trigger to="#the-copy-of-the-book">copy of the book</doc-anchor-trigger> at that part or entry, to read it in its place.</p>
 <p>A lorebook that other books use is marked <strong>Shared</strong>: the change goes to the lorebook itself, so the other books get it too. It starts unticked.</p>
 <p>Applying is done to the book <strong>in place</strong>: the parts keep their addresses, other books keep their links to a lorebook, and what the agent deleted goes to the trash. A <strong>backup of the book as it was</strong> is taken first
 (it is among the backups of the book, with its lorebooks), and the changes are made all together or not at all. <strong>Show the branch the agent ended on</strong> also switches the book to the branch the agent was on, when it is
 among what you applied. The summaries of parts that were edited are outdated as after an edit by hand; the agent&#x27;s own summaries are taken over as they are.</p>
 <p>When the changes are applied the run is <em>Applied</em> and its copy and checkpoints are deleted. <strong>Discard the result</strong> throws the copy away and leaves the book as it is. Until you do one of the two the agent has an unfinished run and
 can&#x27;t start another.</p>
+<h3 id="the-copy-of-the-book">The copy of the book</h3>
+<p>The <strong>Book copy</strong> tab shows the book the agent works on, to read: the <strong>story</strong>, one branch at a time (pick the branch above; each part with its number, the swipe it is among the others after the same part, its words, scene setting,
+point of view and, folded, its instructions and summary), and the <strong>lorebooks</strong> with their entries (pick one to see its content, note, tags and settings). It is not a window of your book: nothing in it can be changed, no backup is
+made of the copy and no extension sees a book open. It is read when you open the tab and when you press <strong>Refresh</strong>, also while the agent works, so it shows what the agent has written so far. It is there while the run has its copy
+(not after the result was applied or discarded).</p>
 <h3 id="the-context">The context</h3>
 <p>The <strong>Context</strong> tab shows what the model reads with its <strong>next request</strong>, taken apart, so you can see where the tokens go and debug an agent that behaves oddly. It is made when you open the tab and when you press <strong>Refresh</strong> (not while the run works: it counts the tokens of every part).</p>
 <ul>
@@ -738,7 +747,7 @@ editing again after you paused or stopped the run. Other lorebooks are not affec
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (3eb7ae53).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (2eab60c2).</p></div>
             </footer>
         </div>
     </div>
