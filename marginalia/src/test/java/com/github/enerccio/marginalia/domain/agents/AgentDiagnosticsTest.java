@@ -298,7 +298,7 @@ class AgentDiagnosticsTest {
         rows.user(Defaults.AGENT_UNREADABLE_CALL);
         rows.user(String.format(Defaults.AGENT_TOO_MANY_CALLS, 4, 3, 1));
         rows.user(String.format(Defaults.AGENT_TOO_MANY_CALLS, 5, 2, 3));
-        rows.user(String.format(Defaults.AGENT_ONE_CALL_NOTICE, 3));
+        rows.user(String.format(Defaults.AGENT_ONE_CALL_NOTICE, 3, "read_file", 2));
         rows.user(String.format(Defaults.AGENT_SINGLE_CALL_NOTICE, "regenerate-summary", 3, 2));
         rows.user("Notice from the run: something else");
         rows.user("Please go on");

@@ -677,6 +677,7 @@ public class AgentMergeServiceImpl implements AgentMergeService {
             Lorebook lorebook = new Lorebook();
             // a lorebook of the working copy is a copy as well, the two kinds can't be mixed
             lorebook.setAgentic(targetBook.isAgentic());
+            lorebook.setSubbooks(new ArrayList<>());
             lorebook.setName(value(item, field(item, "name")));
             Field enabled = field(item, "enabled");
             lorebook.setEnabled(enabled == null || Boolean.parseBoolean(enabled.agent()));

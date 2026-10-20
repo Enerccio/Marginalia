@@ -915,13 +915,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             checkpointTools = new CheckpointToolsImpl(() -> run, checkpointService);
             readOnlyCommands = commandService.getCommands().stream().filter(CommandDefinition::readOnly)
                     .map(CommandDefinition::commandName).collect(Collectors.toSet());
-            singleCalls = commandService.getCommands().stream().filter(definition -> definition.batch() == BatchPolicy.SINGLE)
-                    .map(CommandDefinition::commandName).collect(Collectors.toSet());
             tools = tools();
-            Set<String> alone = new HashSet<>(singleCalls);
-            tools.getDefinitions().stream().filter(definition -> definition.getBatch() == BatchPolicy.SINGLE)
-                    .forEach(definition -> alone.add(definition.getName()));
-            singleCalls = Set.copyOf(alone);
             if (initial == null) {
                 // the sub-agents that were paused go on, and the call of the agent that waited for one waits again
                 restoreSubAgents(true);
@@ -1035,7 +1029,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 String singleName = single < 0 ? null : withoutRepeats(round.calls()).get(single).getName();
                 round = limitCalls(round, mode, singleCalls);
                 String callNotice = round.calls().size() == asked ? null
-                        : mode == AgentBatchMode.NOT_BATCHED && asked - repeats > 1 ? String.format(Defaults.AGENT_ONE_CALL_NOTICE, asked - repeats)
+                        : mode == AgentBatchMode.NOT_BATCHED && asked - repeats > 1 ? String.format(Defaults.AGENT_ONE_CALL_NOTICE, asked - repeats, round.calls().getFirst().getName(), asked - repeats - 1)
                         : singleName != null && round.calls().size() < asked - repeats
                         ? String.format(Defaults.AGENT_SINGLE_CALL_NOTICE, singleName, asked - repeats, round.calls().size())
                         : String.format(Defaults.AGENT_TOO_MANY_CALLS, asked, repeats, round.calls().size());
@@ -1846,8 +1840,22 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     tools = tools.and(inferenceServices.getFunctionRegistry().bind(SubAgentControlTools.class, subAgentTools));
                 }
             }
-            return seesImages ? tools.and(inferenceServices.getFunctionRegistry().bind(ImageTools.class, new ImageToolsImpl(files, shown)))
+            FunctionSet all = seesImages ? tools.and(inferenceServices.getFunctionRegistry().bind(ImageTools.class, new ImageToolsImpl(files, shown)))
                     : tools;
+            singleCalls = singleCallsOf(all);
+            return all;
+        }
+
+        /**
+         * The names of the commands and the tools that are made alone in an answer ({@code BatchPolicy.SINGLE}): a command when any of
+         * its overloads says so.
+         */
+        private Set<String> singleCallsOf(FunctionSet functions) {
+            Set<String> alone = commandService.getCommands().stream().filter(definition -> definition.batch() == BatchPolicy.SINGLE)
+                    .map(CommandDefinition::commandName).collect(Collectors.toCollection(HashSet::new));
+            functions.getDefinitions().stream().filter(definition -> definition.getBatch() == BatchPolicy.SINGLE)
+                    .forEach(definition -> alone.add(definition.getName()));
+            return Set.copyOf(alone);
         }
 
         /**
@@ -2060,7 +2068,28 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             if (progress.contextCap > 0 || progress.responseCap > 0) {
                 parts.add(new SystemPart(AgentContext.Kind.NOTE, "Limits of the model", limitsNote()));
             }
+            String calls = callsNote();
+            if (calls != null) {
+                parts.add(new SystemPart(AgentContext.Kind.NOTE, "Note about calls", calls));
+            }
             return parts;
+        }
+
+        /**
+         * What the agent is told up front about how many calls an answer may have, so it does not write calls that are thrown away;
+         * null for nothing. The same text every round, the start of the request stays what the cache of the server has.
+         */
+        private String callsNote() {
+            AgentBatchMode mode = agent == null ? AgentBatchMode.BATCHED : agent.batchModeOrDefault();
+            if (mode == AgentBatchMode.NOT_BATCHED) {
+                return Defaults.AGENT_ONE_CALL_RULE;
+            }
+            if (mode == AgentBatchMode.BATCHED && tools != null) {
+                String alone = tools.getDefinitions().stream().map(FunctionDefinition::getName).filter(singleCalls::contains).sorted()
+                        .collect(Collectors.joining(", "));
+                return alone.isEmpty() ? null : String.format(Defaults.AGENT_SINGLE_CALLS_RULE, alone);
+            }
+            return null;
         }
 
         private List<LLMChatMessage> payload(List<LLMChatMessage> transcript) {
@@ -2085,11 +2114,20 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 progress.responseCap = profile == null ? 0 : TokenLimits.responseTokens(profile.ai(), profile.protocol());
                 checkpointTools = new CheckpointToolsImpl(() -> run, checkpointService);
                 List<AgentContext.Part> parts = new ArrayList<>();
+                // the tools first: the system message tells about the calls that are made alone
+                Exception toolsFailed = null;
+                try {
+                    tools = tools();
+                } catch (Exception e) {
+                    toolsFailed = e;
+                }
                 for (SystemPart part : systemParts()) {
                     parts.add(new AgentContext.Part(part.kind(), part.title(), part.text(), count(part.text())));
                 }
                 try {
-                    tools = tools();
+                    if (toolsFailed != null) {
+                        throw toolsFailed;
+                    }
                     for (FunctionDefinition definition : tools.getDefinitions()) {
                         String text = StringUtils.defaultString(definition.getDescription()) + "\n\nParameters:\n"
                                 + definition.getParametersSchema().toPrettyString();

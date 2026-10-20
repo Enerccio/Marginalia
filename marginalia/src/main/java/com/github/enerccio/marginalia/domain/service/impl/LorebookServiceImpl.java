@@ -90,7 +90,8 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
     public List<Lorebook> getSubbooks(Lorebook lorebook) throws Exception {
         Lorebook refresh = find(lorebook);
         List<Lorebook> subbooks = new ArrayList<>();
-        for (Lorebook l : refresh.getSubbooks()) {
+        // a lorebook made in this transaction has no list until it is flushed
+        for (Lorebook l : refresh.getSubbooks() == null ? List.<Lorebook>of() : refresh.getSubbooks()) {
             Lorebook subbook = find(l);
             if (subbook != null && !subbook.isDeleted()) {
                 subbooks.add(subbook);
@@ -208,6 +209,7 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
         Lorebook created = new Lorebook();
         created.setName(name.trim());
         created.setEnabled(true);
+        created.setSubbooks(new ArrayList<>());
         created.setAgentic(p.isAgentic());
         created = save(created);
         addSubbook(p, created);
