@@ -84,7 +84,7 @@ While the agent waits for a free place at its model (see [One model, several age
 
 ## The console
 
-**Console** opens a window for the latest run of the agent, with five tabs: **Run**, **Runs**, **Workspace**, **Checkpoints** and **Context**.
+**Console** opens a window for the latest run of the agent, with six tabs: **Run**, **Runs**, **Workspace**, **Checkpoints**, **Context** and **Book copy**.
 
 **Run** shows the *transcript*: what you told the agent, what it said (both as [Markdown](https://commonmark.org/help/), so lists, headings and emphasis show as such), and every command or file tool it called, folded to one line with the
 arguments (click it to see them and the result, shown as plain text). When the model sends its **reasoning** (what it thought before it answered), a folded *Reasoning* block shows it before the answer, and the download has it. Whether you get any depends on the model and the server: it has to report it, and your AI has to have reasoning switched on. Every message has the time it was written at the right of its first line (the time of day, with the date when it was another day; hover for the whole time), so you can tell how long the agent worked and when it stopped. The state of the run, the **context** (how many tokens the last request used of the limit of the model, so you see how close the run is to a pause), the rounds and tokens it used (and the token budget, when there
@@ -262,6 +262,11 @@ change. What both changed to **different** texts is a **conflict**: it starts un
 into the box (the line then changes nothing for that field), **Use the agent's** puts the agent's back; or write the result yourself. A line that can't be taken over (the part it follows, or the lorebook it
 is in, was deleted from your book) says so and can't be ticked.
 
+Under the texts, **Differences** shows what changes **word by word**: what is only in the book now struck through in red, what is only in the text to apply in green (it follows what you write in the box). For a conflict it also
+shows what the agent changed and what you changed since the run started, each from the book as it was then, so you can see who did what. A line the agent changed in more than one thing (a part whose text and scene setting
+changed, an entry with a new content and note) has a **Take this change** box beside each of them: untick one to apply the line without it, the book keeps its own value of that field. The place of a part in the story goes with the part and has no box,
+and what the agent made or deleted is taken or left as a whole. **Show in the copy** (on a line the agent made or changed) opens the [copy of the book](#the-copy-of-the-book) at that part or entry, to read it in its place.
+
 A lorebook that other books use is marked **Shared**: the change goes to the lorebook itself, so the other books get it too. It starts unticked.
 
 Applying is done to the book **in place**: the parts keep their addresses, other books keep their links to a lorebook, and what the agent deleted goes to the trash. A **backup of the book as it was** is taken first
@@ -270,6 +275,13 @@ among what you applied. The summaries of parts that were edited are outdated as 
 
 When the changes are applied the run is *Applied* and its copy and checkpoints are deleted. **Discard the result** throws the copy away and leaves the book as it is. Until you do one of the two the agent has an unfinished run and
 can't start another.
+
+### The copy of the book
+
+The **Book copy** tab shows the book the agent works on, to read: the **story**, one branch at a time (pick the branch above; each part with its number, the swipe it is among the others after the same part, its words, scene setting,
+point of view and, folded, its instructions and summary), and the **lorebooks** with their entries (pick one to see its content, note, tags and settings). It is not a window of your book: nothing in it can be changed, no backup is
+made of the copy and no extension sees a book open. It is read when you open the tab and when you press **Refresh**, also while the agent works, so it shows what the agent has written so far. It is there while the run has its copy
+(not after the result was applied or discarded).
 
 ### The context
 

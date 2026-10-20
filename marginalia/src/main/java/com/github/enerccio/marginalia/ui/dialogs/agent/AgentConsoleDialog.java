@@ -67,6 +67,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     static final int CHECKPOINTS_TAB = 3;
     // the context is made when its tab is picked, not while the run works
     static final int CONTEXT_TAB = 4;
+    static final int COPY_TAB = 5;
     // after a command: the answer of a run that waits comes in a moment, looked for faster for a while
     static final int COMMAND_POLL_MILLIS = 500;
     static final long COMMAND_POLL_FOR_MILLIS = 15_000;
@@ -170,6 +171,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     private AgentCheckpointBrowser checkpointBrowser;
     private AgentRunHistory history;
     private AgentContextView contextView;
+    private AgentCopyView copyView;
     private TabSheet tabs;
     // the run the user picked in the history, null for the latest one that was not thrown away
     private String selectedRunUuid;
@@ -311,8 +313,15 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         contextView.create();
         contextView.addClassName(CssStyles.PADDING_COMPACT);
         tabs.add(loc.getValue(L.LABEL_AGENT_CONTEXT), contextView);
+        copyView = new AgentCopyView(() -> run);
+        copyView.create();
+        copyView.addClassName(CssStyles.PADDING_COMPACT);
+        tabs.add(loc.getValue(L.LABEL_AGENT_BOOK_COPY), copyView);
         tabs.addSelectedChangeListener(event -> {
             checkpointBrowser.refresh();
+            if (tabs.getSelectedIndex() == COPY_TAB) {
+                copyView.refresh();
+            }
             if (tabs.getSelectedIndex() == CONTEXT_TAB) {
                 contextView.refresh();
             }
@@ -1045,6 +1054,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
 
     AgentContextView getContextView() {
         return contextView;
+    }
+
+    AgentCopyView getCopyView() {
+        return copyView;
     }
 
     TabSheet getTabs() {

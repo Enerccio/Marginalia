@@ -124,6 +124,11 @@ public final class CssStyles {
     public static final String HELP_MESSAGE_ERROR = "help-message-error";
     public static final String AGENT_REWOUND = "agent-rewound";
     public static final String AGENT_TIME = "agent-time";
+    public static final String MERGE_DIFF = "merge-diff";
+    public static final String MERGE_DIFF_ADDED = "merge-diff-added";
+    public static final String MERGE_DIFF_REMOVED = "merge-diff-removed";
+    public static final String AGENT_COPY_PART = "agent-copy-part";
+    public static final String AGENT_COPY_PART_HEAD = "agent-copy-part-head";
     public static final String HELP_INPUT = "help-input";
 
     // --- Commands (ui.components.CommandBar, CommandResultView) ---

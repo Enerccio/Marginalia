@@ -15,12 +15,14 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.WordDiffView;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -68,9 +70,13 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
     private Button discardButton;
     // the text the user wrote in place of the agent's, by item id and field name
     private final Map<String, Map<String, String>> edits = new HashMap<>();
+    // the fields of a changed item the user did not tick, by item id and field name
+    private final Map<String, Set<String>> skipped = new HashMap<>();
     // true while the dialog changes the selection itself
     private boolean adjusting;
     private Item focused;
+    // the copy of the agent opened from the detail of an item
+    private Dialog copyDialog;
 
     /**
      * @param onChange called after the changes were applied or the result was discarded, the run is not what it was
@@ -180,6 +186,7 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
             plan = new MergePlan(List.of(), Map.of(), false);
         }
         edits.clear();
+        skipped.clear();
         grid.setItems(plan.items());
         summaryLabel.setText(plan.isEmpty() ? loc.getValue(L.MSG_MERGE_NO_CHANGES) : String.format(loc.getValue(L.MSG_MERGE_SUMMARY),
                 plan.items().size(), count(Kind.MESSAGE), count(Kind.LOREBOOK), count(Kind.ENTRY), count(Kind.BOOK), plan.conflicts()));
@@ -324,9 +331,37 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         if (!item.sharedWith().isEmpty()) {
             detail.add(note(String.format(loc.getValue(L.MSG_MERGE_SHARED), String.join(", ", item.sharedWith())), "contrast"));
         }
+        if (item.sourceUuid() != null && item.kind() != Kind.BOOK) {
+            Button inCopy = new Button(loc.getValue(L.LABEL_SHOW_IN_COPY), Solid.EYE.create(), event -> showInCopy(item));
+            inCopy.addThemeVariants(ButtonVariant.LUMO_SMALL);
+            detail.add(inCopy);
+        }
         for (Field field : item.fields()) {
             detail.add(fieldView(item, field));
         }
+    }
+
+    /**
+     * Opens the copy of the agent to read, at the part or the entry of the item.
+     */
+    void showInCopy(Item item) {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(loc.getValue(L.LABEL_AGENT_BOOK_COPY) + " - " + agentName);
+        dialog.setWidth("1000px");
+        dialog.setMaxWidth("96%");
+        dialog.setHeight("85%");
+        UIUtils.fitPhone(dialog, true);
+        AgentCopyView view = new AgentCopyView(() -> run);
+        view.create();
+        dialog.add(view);
+        dialog.getFooter().add(new Button(loc.getValue(L.LABEL_CLOSE), event -> dialog.close()));
+        dialog.open();
+        if (item.kind() == Kind.MESSAGE) {
+            view.showPart(item.sourceUuid());
+        } else {
+            view.showEntry(item.sourceUuid());
+        }
+        copyDialog = dialog;
     }
 
     private Span note(String text, String theme) {
@@ -350,7 +385,16 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         view.addClassName(CssStyles.GAP_S);
         Span name = new Span(loc.getValue(fieldText(field.name())));
         name.addClassName(CssStyles.TEXT_SEMIBOLD);
-        view.add(name);
+        if (pickable(item, field)) {
+            Checkbox take = new Checkbox(loc.getValue(L.LABEL_MERGE_TAKE_FIELD));
+            take.setValue(!skipped.getOrDefault(item.id(), Set.of()).contains(field.name()));
+            take.addValueChangeListener(event -> take(item, field, event.getValue()));
+            HorizontalLayout head = new HorizontalLayout(name, take);
+            head.setAlignItems(FlexComponent.Alignment.CENTER);
+            view.add(head);
+        } else {
+            view.add(name);
+        }
         if (field.conflict()) {
             view.add(note(loc.getValue(L.ENUM_MERGE_STATE_CONFLICT), "error"));
         }
@@ -366,6 +410,24 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
             }
         }
         return view;
+    }
+
+    /**
+     * Whether the user can leave this field of the item out: the fields of an item the agent changed, when it changed more than
+     * one; where a part stands goes with the part.
+     */
+    private static boolean pickable(Item item, Field field) {
+        return item.change() == Change.CHANGED && item.applicable() && !MergeDiff.PARENT.equals(field.name())
+                && item.fields().stream().filter(other -> !MergeDiff.PARENT.equals(other.name())).count() > 1;
+    }
+
+    private void take(Item item, Field field, boolean taken) {
+        Set<String> fields = skipped.computeIfAbsent(item.id(), id -> new HashSet<>());
+        if (taken) {
+            fields.remove(field.name());
+        } else {
+            fields.add(field.name());
+        }
     }
 
     /**
@@ -388,11 +450,43 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         for (Button button : List.of(useBook, useAgent)) {
             button.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
         }
-        VerticalLayout both = new VerticalLayout(inBook, toApply, new HorizontalLayout(useBook, useAgent));
+        VerticalLayout both = new VerticalLayout(inBook, toApply, new HorizontalLayout(useBook, useAgent), differences(field, toApply));
         both.setPadding(false);
         both.setSpacing(false);
         both.setWidthFull();
         return both;
+    }
+
+    /**
+     * The words that change, word by word: from the book now to the text that is applied (it follows what the user writes), and
+     * for a conflict also what each side did since the run started.
+     */
+    private Component differences(Field field, TextArea toApply) {
+        String same = loc.getValue(L.MSG_MERGE_NO_DIFFERENCE);
+        WordDiffView applied = new WordDiffView(same);
+        applied.show(field.book(), toApply.getValue());
+        toApply.addValueChangeListener(event -> applied.show(field.book(), event.getValue()));
+        VerticalLayout content = new VerticalLayout(heading(L.LABEL_MERGE_DIFF_APPLIED), applied);
+        if (field.conflict()) {
+            WordDiffView agent = new WordDiffView(same);
+            agent.show(field.base(), field.agent());
+            WordDiffView user = new WordDiffView(same);
+            user.show(field.base(), field.book());
+            content.add(heading(L.LABEL_MERGE_DIFF_AGENT), agent, heading(L.LABEL_MERGE_DIFF_USER), user);
+        }
+        content.setPadding(false);
+        content.setSpacing(false);
+        content.addClassName(CssStyles.GAP_S);
+        Details details = new Details(loc.getValue(L.LABEL_MERGE_DIFFERENCES), content);
+        details.setOpened(true);
+        details.setWidthFull();
+        return details;
+    }
+
+    private Span heading(L text) {
+        Span heading = new Span(loc.getValue(text));
+        heading.addClassName(CssStyles.HINT_TEXT);
+        return heading;
     }
 
     private void edit(Item item, Field field, String text) {
@@ -526,7 +620,13 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
             }
         });
         try {
-            MergeResult result = mergeService.apply(run, new MergeSelection(ids, written, branchBox.getValue()));
+            Map<String, Set<String>> left = new HashMap<>();
+            skipped.forEach((id, fields) -> {
+                if (ids.contains(id) && !fields.isEmpty()) {
+                    left.put(id, new HashSet<>(fields));
+                }
+            });
+            MergeResult result = mergeService.apply(run, new MergeSelection(ids, written, branchBox.getValue(), left));
             Notification.success(String.format(loc.getValue(L.MSG_MERGE_APPLIED), result.total()));
             if (!result.skipped().isEmpty()) {
                 Notification.warning(String.format(loc.getValue(L.MSG_MERGE_SKIPPED), result.skipped().size(),
@@ -589,7 +689,15 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         return focused;
     }
 
+    Dialog getCopyDialog() {
+        return copyDialog;
+    }
+
     Map<String, Map<String, String>> getEdits() {
         return edits;
+    }
+
+    Map<String, Set<String>> getSkipped() {
+        return skipped;
     }
 }

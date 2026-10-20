@@ -695,7 +695,7 @@ class AgentConsoleDialogTest extends AgentTestBase {
         assertThat(runsOf(dialog)).extracting(AgentRun::getUuid).containsExactly(third.getUuid(), second.getUuid(), first.getUuid());
         // the console itself reads the latest run that was not thrown away
         assertThat(dialog.getStatusLabel().getText()).isEqualTo("Running");
-        assertThat(dialog.getTabs().getTabCount()).isEqualTo(5);
+        assertThat(dialog.getTabs().getTabCount()).isEqualTo(6);
     }
 
     @Test
@@ -964,5 +964,17 @@ class AgentConsoleDialogTest extends AgentTestBase {
         assertThat(dialog.getContextView().getGrid().getListDataView().getItems()).extracting(part -> part.title())
                 .containsExactly("Prompt of the agent", "#1 user");
         assertThat(textOf(dialog.getContextView())).contains("Next request: about 5 of 100 tokens");
+    }
+
+    @Test
+    void theBookCopyTabShowsTheCopyOfTheRunWhenItIsPicked() throws Exception {
+        startedRun();
+        AgentConsoleDialog dialog = console();
+        assertThat(dialog.getCopyView().getBranchBox().getListDataView().getItemCount()).as("not read before the tab is picked").isZero();
+
+        dialog.getTabs().setSelectedIndex(AgentConsoleDialog.COPY_TAB);
+
+        assertThat(dialog.getCopyView().getNoCopyLabel().isVisible()).isFalse();
+        assertThat(dialog.getCopyView().getLoreGrid()).isNotNull();
     }
 }

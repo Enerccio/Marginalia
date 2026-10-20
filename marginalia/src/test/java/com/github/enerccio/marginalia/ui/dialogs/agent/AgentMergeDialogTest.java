@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.agent;
 
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
@@ -10,8 +11,12 @@ import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Change;
 import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Item;
 import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Kind;
 import com.github.enerccio.marginalia.test.AgentTestBase;
+import com.github.enerccio.marginalia.ui.widgets.WordDiffView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.data.provider.Query;
 import org.junit.jupiter.api.AfterEach;
@@ -195,6 +200,98 @@ class AgentMergeDialogTest extends AgentTestBase {
                 .containsExactlyInAnyOrder("Once upon a time", "there lived a small dragon");
         assertThat(changes.get()).isEqualTo(1);
         assertThat(agentRunService.find(run.getId()).getStatus()).isEqualTo(AgentRunStatus.APPLIED);
+    }
+
+    private static String spansOf(Component view, String className) {
+        return descendants(view).stream().filter(Span.class::isInstance).map(Span.class::cast)
+                .filter(span -> span.getClassNames().contains(className)).map(Span::getText).reduce("", String::concat);
+    }
+
+    @Test
+    void theWordsThatChangeAreShownAndFollowWhatTheUserWrites() throws Exception {
+        edit(copy(), "there was a dragon", "there was a small dragon");
+        finish();
+        edit(book, "there was a dragon", "there lived a dragon");
+        AgentMergeDialog dialog = dialog();
+        Item conflict = row(dialog, Kind.MESSAGE, Change.CHANGED, "there");
+
+        dialog.show(conflict);
+
+        List<WordDiffView> views = descendants(dialog.getDetail()).stream().filter(WordDiffView.class::isInstance).map(WordDiffView.class::cast).toList();
+        // what is applied, what the agent did and what the user did, as it is a conflict
+        assertThat(views).hasSize(3);
+        assertThat(spansOf(views.get(0), CssStyles.MERGE_DIFF_REMOVED)).isEqualTo("lived");
+        assertThat(spansOf(views.get(0), CssStyles.MERGE_DIFF_ADDED)).contains("was").contains("small");
+        assertThat(spansOf(views.get(1), CssStyles.MERGE_DIFF_ADDED)).isEqualTo("small ");
+        assertThat(spansOf(views.get(2), CssStyles.MERGE_DIFF_ADDED)).isEqualTo("lived");
+        TextArea toApply = descendants(dialog.getDetail()).stream().filter(TextArea.class::isInstance).map(TextArea.class::cast)
+                .filter(area -> !area.isReadOnly()).findFirst().orElseThrow();
+
+        toApply.setValue("there lived a dragon");
+
+        assertThat(views.get(0).getChildren().map(c -> ((Span) c).getText()).toList()).containsExactly("No difference.");
+    }
+
+    @Test
+    void aFieldOfAChangedItemCanBeLeftOut() throws Exception {
+        ChatMessage copied = chatMessageService.find(part(copy(), "there was a dragon").getId());
+        copied.setResponse("there was a small dragon");
+        copied.setSceneSetting("a cave");
+        chatMessageService.save(copied);
+        finish();
+        AgentMergeDialog dialog = dialog();
+        Item item = row(dialog, Kind.MESSAGE, Change.CHANGED, "there");
+        dialog.show(item);
+        List<Checkbox> takes = descendants(dialog.getDetail()).stream().filter(Checkbox.class::isInstance).map(Checkbox.class::cast).toList();
+        assertThat(takes).hasSize(2).allMatch(Checkbox::getValue);
+
+        takes.get(1).setValue(false);
+
+        assertThat(dialog.getSkipped().get(item.id())).containsExactly("sceneSetting");
+        dialog.apply();
+        ChatMessage taken = part(book, "there was a small dragon");
+        assertThat(taken.getSceneSetting()).isNullOrEmpty();
+    }
+
+    @Test
+    void anItemWithOneFieldHasNothingToLeaveOut() throws Exception {
+        edit(copy(), "there was a dragon", "there was a small dragon");
+        finish();
+        AgentMergeDialog dialog = dialog();
+
+        dialog.show(row(dialog, Kind.MESSAGE, Change.CHANGED, "there"));
+
+        assertThat(descendants(dialog.getDetail())).noneMatch(Checkbox.class::isInstance);
+    }
+
+    @Test
+    void theDetailOfAnItemOpensTheCopyAtItsPart() throws Exception {
+        add("there was a dragon", "The end.");
+        finish();
+        AgentMergeDialog dialog = dialog();
+        Item added = row(dialog, Kind.MESSAGE, Change.ADDED, "The end");
+        dialog.show(added);
+        Button inCopy = descendants(dialog.getDetail()).stream().filter(Button.class::isInstance).map(Button.class::cast)
+                .filter(button -> "Show in the copy".equals(button.getText())).findFirst().orElseThrow();
+
+        inCopy.click();
+
+        assertThat(dialog.getCopyDialog()).isNotNull();
+        assertThat(dialog.getCopyDialog().isOpened()).isTrue();
+        AgentCopyView view = (AgentCopyView) dialog.getCopyDialog().getChildren().filter(AgentCopyView.class::isInstance).findFirst().orElseThrow();
+        assertThat(view.getCards()).hasSize(3);
+        assertThat(view.getCards()).containsKey(added.sourceUuid());
+    }
+
+    @Test
+    void anItemTheAgentDeletedHasNothingInTheCopyToShow() throws Exception {
+        chatMessageService.deleteNodeAndMigrateChildren(part(copy(), "there was a dragon"), copy(), false);
+        finish();
+        AgentMergeDialog dialog = dialog();
+
+        dialog.show(row(dialog, Kind.MESSAGE, Change.DELETED, "there was"));
+
+        assertThat(descendants(dialog.getDetail())).noneMatch(c -> c instanceof Button button && "Show in the copy".equals(button.getText()));
     }
 
     @Test

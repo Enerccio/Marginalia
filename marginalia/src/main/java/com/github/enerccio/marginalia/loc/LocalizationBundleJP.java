@@ -540,6 +540,14 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_COPY, "コピー");
         setValue(L.LABEL_COMMAND_INSERT_PART, "パートを挿入");
         setValue(L.LABEL_AGENT_MERGE_FOLLOWS, "直前のパート");
+        setValue(L.LABEL_MERGE_TAKE_FIELD, "この変更を取り込む");
+        setValue(L.LABEL_MERGE_DIFFERENCES, "差分");
+        setValue(L.LABEL_MERGE_DIFF_APPLIED, "現在のブック → 適用する内容");
+        setValue(L.LABEL_MERGE_DIFF_AGENT, "実行開始時 → エージェント");
+        setValue(L.LABEL_MERGE_DIFF_USER, "実行開始時 → 現在のブック");
+        setValue(L.LABEL_AGENT_BOOK_COPY, "ブックのコピー");
+        setValue(L.LABEL_SHOW_IN_COPY, "コピーで表示");
+        setValue(L.LABEL_BRANCH, "ブランチ");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -892,6 +900,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_CONTEXT_REPORTED, "モデルは直前の回答時に %d トークンと報告しました。");
         setValue(L.MSG_AGENT_CONTEXT_PICK, "部分を選ぶと、モデルに送られる内容がそのまま表示されます。");
         setValue(L.MSG_AGENT_CONFIRM_ROLLBACK_MESSAGE, "このメッセージより前に戻しますか？作業コピーとワークスペースは、その直前で最も近いチェックポイント %s（ラウンド %s）の状態に戻り、エージェントはそこから先の %s 件のメッセージを忘れます。メッセージは巻き戻し済みとしてトランスクリプトに残ります。");
+        setValue(L.MSG_MERGE_NO_DIFFERENCE, "差分はありません。");
+        setValue(L.MSG_AGENT_COPY_NONE, "この実行にはブックのコピーがありません(終了したか、結果が破棄されました)。");
+        setValue(L.MSG_AGENT_COPY_BRANCH, "ブランチ %s: %s(%s パート)");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -954,6 +965,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_CANCEL_QUEUED, "メッセージまたはコマンドを取り消します。エージェントには渡されません。");
         setValue(L.HELP_AGENT_CONTEXT, "モデルが次のリクエストで読む内容を部分ごとに表示します(システムメッセージ、ツールの定義、会話)。省略はありません。Markdownとしてダウンロードしてエディタで読めます。各部分のトークン数は推定値で、グラフの線はモデルが報告した値です。");
         setValue(L.HELP_AGENT_ROLLBACK_MESSAGE, "会話をこのメッセージより前に戻します。エージェントはこのメッセージとそれ以降を忘れ、作業コピーとワークスペースはその直前で最も近いチェックポイントの状態に戻ります。");
+        setValue(L.HELP_AGENT_COPY, "エージェントが作業しているブックのコピーです(閲覧専用で、ここでは何も変更されません)。ストーリーはブランチごと、ロアブックはエントリーとともに表示されます。このタブを表示したとき、または「更新」を押したときに読み込まれます。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

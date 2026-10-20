@@ -61,12 +61,22 @@ public interface AgentMergeService {
      * @param edits                the text the user wrote in place of the agent's, by item id and field name; only for the fields
      *                             that are {@link MergePlan.Field#editable() editable}
      * @param switchToAgentBranch  whether the book shows the branch the agent ended on, when it is among the applied parts
+     * @param skippedFields        the fields of an item the user did not pick, by item id and field name: the item is applied
+     *                             without them. Only for an item the agent changed ({@link MergePlan.Change#CHANGED}), and not
+     *                             for the place of a part ({@link com.github.enerccio.marginalia.domain.service.agent.MergeDiff#PARENT}),
+     *                             which the part can not be taken over without; an item left with no field is not applied
      */
-    record MergeSelection(Set<String> items, Map<String, Map<String, String>> edits, boolean switchToAgentBranch) {
+    record MergeSelection(Set<String> items, Map<String, Map<String, String>> edits, boolean switchToAgentBranch,
+                          Map<String, Set<String>> skippedFields) {
 
         public MergeSelection {
             items = items == null ? Set.of() : items;
             edits = edits == null ? Map.of() : edits;
+            skippedFields = skippedFields == null ? Map.of() : skippedFields;
+        }
+
+        public MergeSelection(Set<String> items, Map<String, Map<String, String>> edits, boolean switchToAgentBranch) {
+            this(items, edits, switchToAgentBranch, Map.of());
         }
     }
 

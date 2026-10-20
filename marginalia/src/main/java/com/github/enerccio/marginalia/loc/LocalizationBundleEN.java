@@ -540,6 +540,14 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_COPY, "Copy");
         setValue(L.LABEL_COMMAND_INSERT_PART, "Insert a part");
         setValue(L.LABEL_AGENT_MERGE_FOLLOWS, "Follows");
+        setValue(L.LABEL_MERGE_TAKE_FIELD, "Take this change");
+        setValue(L.LABEL_MERGE_DIFFERENCES, "Differences");
+        setValue(L.LABEL_MERGE_DIFF_APPLIED, "Book now → what is applied");
+        setValue(L.LABEL_MERGE_DIFF_AGENT, "When the run started → the agent");
+        setValue(L.LABEL_MERGE_DIFF_USER, "When the run started → book now");
+        setValue(L.LABEL_AGENT_BOOK_COPY, "Book copy");
+        setValue(L.LABEL_SHOW_IN_COPY, "Show in the copy");
+        setValue(L.LABEL_BRANCH, "Branch");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -892,6 +900,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_CONTEXT_REPORTED, "The model reported %d tokens at its last answer.");
         setValue(L.MSG_AGENT_CONTEXT_PICK, "Pick a part to read exactly what the model is sent.");
         setValue(L.MSG_AGENT_CONFIRM_ROLLBACK_MESSAGE, "Go back to before this message? The working copy and the workspace return to checkpoint %s (round %s), the closest one before it, and the agent forgets the %s message(s) from there on. They stay in the transcript, marked as rewound.");
+        setValue(L.MSG_MERGE_NO_DIFFERENCE, "No difference.");
+        setValue(L.MSG_AGENT_COPY_NONE, "This run has no copy of the book (it has ended, or its result was discarded).");
+        setValue(L.MSG_AGENT_COPY_BRANCH, "Branch %s: %s (%s parts)");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -954,6 +965,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_CANCEL_QUEUED, "Takes the message or command back: the agent will not get it.");
         setValue(L.HELP_AGENT_CONTEXT, "What the model reads with its next request, part by part: the system message, the tool definitions and the conversation. Nothing is cut; download it as Markdown to read it in an editor. The token counts of the parts are estimates, the line of the chart is what the model reported.");
         setValue(L.HELP_AGENT_ROLLBACK_MESSAGE, "Go back in the conversation to before this message: the agent forgets it and everything after it, and the working copy and the workspace return to the closest checkpoint before it.");
+        setValue(L.HELP_AGENT_COPY, "The copy of the book the agent works on, to read: nothing here changes it. The story is shown branch by branch, the lorebooks with their entries. It is read when this tab is shown or when you press Refresh.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

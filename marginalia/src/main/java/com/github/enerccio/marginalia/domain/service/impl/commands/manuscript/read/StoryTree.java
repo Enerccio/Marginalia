@@ -7,21 +7,21 @@ import java.util.*;
 /**
  * The parts of the book as a tree, with the numbers of the branches.
  */
-final class StoryTree {
+public final class StoryTree {
 
-    static final Comparator<ChatMessage> CREATED = Comparator
+    public static final Comparator<ChatMessage> CREATED = Comparator
             .comparing(ChatMessage::getCreation, Comparator.nullsFirst(Comparator.naturalOrder()))
             .thenComparing(ChatMessage::getId);
 
-    final Map<Long, ChatMessage> byId = new HashMap<>();
-    final Map<Long, List<ChatMessage>> children = new HashMap<>();
+    public final Map<Long, ChatMessage> byId = new HashMap<>();
+    public final Map<Long, List<ChatMessage>> children = new HashMap<>();
     // the ends of the branches, the oldest first
-    final List<ChatMessage> leaves = new ArrayList<>();
-    final Map<Long, Integer> leafNumbers = new HashMap<>();
-    final Set<Long> activeIds = new HashSet<>();
-    final Long activeLeafId;
+    public final List<ChatMessage> leaves = new ArrayList<>();
+    public final Map<Long, Integer> leafNumbers = new HashMap<>();
+    public final Set<Long> activeIds = new HashSet<>();
+    public final Long activeLeafId;
 
-    StoryTree(List<ChatMessage> all, ChatMessage activeLeaf) {
+    public StoryTree(List<ChatMessage> all, ChatMessage activeLeaf) {
         for (ChatMessage message : all) {
             if (!message.isDeleted()) {
                 byId.put(message.getId(), message);
@@ -48,12 +48,12 @@ final class StoryTree {
         }
     }
 
-    ChatMessage parentOf(ChatMessage message) {
+    public ChatMessage parentOf(ChatMessage message) {
         return message.getParent() == null ? null : byId.get(message.getParent().getId());
     }
 
     /** The root first. */
-    List<ChatMessage> pathTo(ChatMessage message) {
+    public List<ChatMessage> pathTo(ChatMessage message) {
         List<ChatMessage> path = new ArrayList<>();
         for (ChatMessage current = message; current != null; current = parentOf(current)) {
             path.add(current);
@@ -63,7 +63,7 @@ final class StoryTree {
     }
 
     /** The end of the branch that shows the part: the active leaf if the part is on the active branch, else the newest below it. */
-    ChatMessage leafOf(ChatMessage message) {
+    public ChatMessage leafOf(ChatMessage message) {
         if (activeIds.contains(message.getId())) {
             return byId.get(activeLeafId);
         }
@@ -75,16 +75,16 @@ final class StoryTree {
     }
 
     /** The number of a branch that shows the part: the active one if the part is on it, else the newest below it. */
-    int branchOf(ChatMessage message) {
+    public int branchOf(ChatMessage message) {
         return leafNumbers.getOrDefault(leafOf(message).getId(), 0);
     }
 
-    int siblings(ChatMessage message) {
+    public int siblings(ChatMessage message) {
         ChatMessage parent = parentOf(message);
         return parent == null ? roots().size() : children.get(parent.getId()).size();
     }
 
-    List<ChatMessage> roots() {
+    public List<ChatMessage> roots() {
         return byId.values().stream().filter(m -> parentOf(m) == null).sorted(CREATED).toList();
     }
 
