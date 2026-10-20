@@ -548,6 +548,11 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_BOOK_COPY, "ブックのコピー");
         setValue(L.LABEL_SHOW_IN_COPY, "コピーで表示");
         setValue(L.LABEL_BRANCH, "ブランチ");
+        setValue(L.LABEL_AGENT_SUBAGENTS, "サブエージェント");
+        setValue(L.LABEL_AGENT_SUBAGENT, "サブエージェント");
+        setValue(L.LABEL_AGENT_TASK, "タスク");
+        setValue(L.LABEL_AGENT_SUBAGENT_CANCELLED, "キャンセル済み");
+        setValue(L.LABEL_AGENT_SUBAGENT_REWOUND, "エージェントは忘れました");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -903,6 +908,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_MERGE_NO_DIFFERENCE, "差分はありません。");
         setValue(L.MSG_AGENT_COPY_NONE, "この実行にはブックのコピーがありません(終了したか、結果が破棄されました)。");
         setValue(L.MSG_AGENT_COPY_BRANCH, "ブランチ %s: %s(%s パート)");
+        setValue(L.MSG_AGENT_NO_SUBAGENTS, "この実行ではサブエージェントは開始されませんでした。");
+        setValue(L.MSG_AGENT_SUBAGENT_NOT_FOUND, "そのサブエージェントの会話は保存されていません(保存機能より前の実行、または巻き戻しで削除されました)。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -966,6 +973,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_CONTEXT, "モデルが次のリクエストで読む内容を部分ごとに表示します(システムメッセージ、ツールの定義、会話)。省略はありません。Markdownとしてダウンロードしてエディタで読めます。各部分のトークン数は推定値で、グラフの線はモデルが報告した値です。");
         setValue(L.HELP_AGENT_ROLLBACK_MESSAGE, "会話をこのメッセージより前に戻します。エージェントはこのメッセージとそれ以降を忘れ、作業コピーとワークスペースはその直前で最も近いチェックポイントの状態に戻ります。");
         setValue(L.HELP_AGENT_COPY, "エージェントが作業しているブックのコピーです(閲覧専用で、ここでは何も変更されません)。ストーリーはブランチごと、ロアブックはエントリーとともに表示されます。このタブを表示したとき、または「更新」を押したときに読み込まれます。");
+        setValue(L.HELP_AGENT_SUBAGENTS, "この実行のサブエージェントに伝えられた内容、発言、呼び出したコマンド、終了の仕方です。実行中は更新され、過去の実行は「実行」タブで選ぶと読めます。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

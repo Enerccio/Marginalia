@@ -2,7 +2,6 @@ package com.github.enerccio.marginalia.ui.dialogs.agent;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
-import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentMessage;
@@ -10,9 +9,7 @@ import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.AgentApprovalService.PendingApproval;
 import com.github.enerccio.marginalia.domain.service.agent.*;
-import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
-import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
@@ -21,12 +18,9 @@ import com.github.enerccio.marginalia.ui.components.CommandBar;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
@@ -42,12 +36,12 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.server.streams.InMemoryUploadHandler;
 import com.vaadin.flow.shared.Registration;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.text.DateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
@@ -68,16 +62,11 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     // the context is made when its tab is picked, not while the run works
     static final int CONTEXT_TAB = 4;
     static final int COPY_TAB = 5;
+    // the conversations of the sub-agents are read again while their tab is shown, the run may be working
+    static final int SUBAGENTS_TAB = 6;
     // after a command: the answer of a run that waits comes in a moment, looked for faster for a while
     static final int COMMAND_POLL_MILLIS = 500;
     static final long COMMAND_POLL_FOR_MILLIS = 15_000;
-
-    /**
-     * How much of a result of a command is shown; the model got it whole, up to its own cut.
-     */
-    static final int RESULT_LIMIT = 20_000;
-
-    private static final int SUMMARY_LIMIT = 80;
 
     /**
      * Where the images attached to a message are kept in the workspace, for the agent to look at.
@@ -141,10 +130,8 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     // how much of the transcript of the run is shown
     private Long shownRunId;
     private int shown;
-    // the bodies of the folded commands by the id of the call, where their results go when they come
-    private final Map<String, VerticalLayout> callBodies = new HashMap<>();
-    // the calls shown as the report or the question of the agent
-    private final Set<String> specialCalls = new HashSet<>();
+    // puts the messages into the transcript box
+    private AgentTranscriptRenderer renderer;
     // the messages that wait for the agent: their bubbles are the last ones of the transcript, and the ids they show
     private final List<Div> queuedBubbles = new ArrayList<>();
     private List<String> shownQueued = List.of();
@@ -172,6 +159,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     private AgentRunHistory history;
     private AgentContextView contextView;
     private AgentCopyView copyView;
+    private AgentSubAgentsView subAgentsView;
     private TabSheet tabs;
     // the run the user picked in the history, null for the latest one that was not thrown away
     private String selectedRunUuid;
@@ -220,6 +208,8 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         transcriptBox.setPadding(false);
         transcriptBox.setSpacing(false);
         transcriptBox.addClassNames(CssStyles.HELP_MESSAGES, CssStyles.FULL_WIDTH, CssStyles.MIN_HEIGHT_0);
+        renderer = new AgentTranscriptRenderer(loc, transcriptBox);
+        renderer.setOnSubAgent(this::openSubAgent);
 
         messageField = new TextArea();
         messageField.setPlaceholder(loc.getValue(L.ENUM_DOMAIN_MESSAGE));
@@ -317,6 +307,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         copyView.create();
         copyView.addClassName(CssStyles.PADDING_COMPACT);
         tabs.add(loc.getValue(L.LABEL_AGENT_BOOK_COPY), copyView);
+        subAgentsView = new AgentSubAgentsView(() -> run);
+        subAgentsView.create();
+        subAgentsView.addClassName(CssStyles.PADDING_COMPACT);
+        tabs.add(loc.getValue(L.LABEL_AGENT_SUBAGENTS), subAgentsView);
         tabs.addSelectedChangeListener(event -> {
             checkpointBrowser.refresh();
             if (tabs.getSelectedIndex() == COPY_TAB) {
@@ -324,6 +318,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             }
             if (tabs.getSelectedIndex() == CONTEXT_TAB) {
                 contextView.refresh();
+            }
+            if (tabs.getSelectedIndex() == SUBAGENTS_TAB) {
+                subAgentsView.refresh();
             }
         });
         add(tabs);
@@ -407,6 +404,17 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         refreshRun();
     }
 
+    /**
+     * The button of a {@code spawn_agent} call in the transcript: the conversation of the sub-agent it started.
+     */
+    private void openSubAgent(String callId) {
+        if (subAgentsView.showCall(callId)) {
+            tabs.setSelectedIndex(SUBAGENTS_TAB);
+        } else {
+            Notification.warning(loc.getValue(L.MSG_AGENT_SUBAGENT_NOT_FOUND));
+        }
+    }
+
     private boolean isWorking() {
         return run != null && run.getStatus().isActive();
     }
@@ -436,6 +444,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             workspaceBrowser.refresh();
             if (tabs.getSelectedIndex() == CHECKPOINTS_TAB) {
                 checkpointBrowser.refresh();
+            }
+            if (tabs.getSelectedIndex() == SUBAGENTS_TAB) {
+                subAgentsView.refresh();
             }
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -517,9 +528,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         Long runId = run == null ? null : run.getId();
         if (!java.util.Objects.equals(runId, shownRunId)) {
             // another run: start the transcript again
-            transcriptBox.removeAll();
-            callBodies.clear();
-            specialCalls.clear();
+            renderer.clear();
             shown = 0;
             shownRunId = runId;
             rollbackButtons.clear();
@@ -556,7 +565,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         boolean first = shown == 0;
         for (AgentMessage row : messages.subList(Math.min(shown, messages.size()), messages.size())) {
             int before = transcriptBox.getComponentCount();
-            render(row.toChatMessage(), row.getReasoning(), row.isSummary(), row.getCreation());
+            renderer.render(row.toChatMessage(), row.getReasoning(), row.isSummary(), row.getCreation());
             if (row.isRewound()) {
                 // what the agent forgot is still there to read
                 for (int i = before; i < transcriptBox.getComponentCount(); i++) {
@@ -630,92 +639,6 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         });
     }
 
-    private void render(LLMChatMessage message, String reasoning, boolean summary, Date created) {
-        switch (message.getRole()) {
-            case USER -> transcriptBox.add(stamped(summary ? summaryBubble(message.getContent())
-                    : isAuthorCommand(message.getContent()) ? authorCommandBubble(message.getContent())
-                    : bubble(loc.getValue(L.LABEL_YOU), message.getContent(), true), created));
-            case ASSISTANT -> {
-                if (StringUtils.isNotBlank(reasoning)) {
-                    transcriptBox.add(stamped(reasoningBlock(reasoning), created));
-                }
-                if (StringUtils.isNotBlank(message.getContent())) {
-                    transcriptBox.add(stamped(bubble(loc.getValue(L.ENUM_DOMAIN_AGENT), message.getContent(), false), created));
-                }
-                for (LLMToolCall call : message.getToolCalls()) {
-                    Div special = specialCall(call);
-                    if (special == null) {
-                        transcriptBox.add(stamped(callBlock(call), created));
-                    } else {
-                        specialCalls.add(call.getId());
-                        transcriptBox.add(stamped(special, created));
-                    }
-                }
-            }
-            case TOOL -> {
-                VerticalLayout body = callBodies.get(message.getToolCallId());
-                if (specialCalls.contains(message.getToolCallId()) && RunToolsImpl.isAcknowledgement(message.getContent())) {
-                    // the report or the question is shown as itself, its acknowledgement says nothing more
-                    return;
-                }
-                if (body != null) {
-                    body.add(stamped(text(loc.getValue(L.LABEL_RESULT), true), created), text(cut(message.getContent()), false));
-                } else {
-                    transcriptBox.add(stamped(bubble(loc.getValue(L.LABEL_RESULT), cut(message.getContent()), false), created));
-                }
-            }
-            default -> {
-                // the system message is made for every request and not part of the transcript
-            }
-        }
-    }
-
-    /**
-     * Puts the time a message was written at the right of the first line of its block: the time of day, with the date when it was
-     * another day (the whole time is the tooltip).
-     */
-    private static <T extends Component> T stamped(T block, Date created) {
-        if (created == null) {
-            return block;
-        }
-        boolean today = DateUtils.isSameDay(created, new Date());
-        Span time = new Span((today ? DateFormat.getTimeInstance(DateFormat.MEDIUM)
-                : DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM)).format(created));
-        time.addClassName(CssStyles.AGENT_TIME);
-        time.getElement().setAttribute("title", DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM).format(created));
-        block.getElement().insertChild(0, time.getElement());
-        return block;
-    }
-
-    private static boolean isAuthorCommand(String content) {
-        return content != null && content.startsWith(Defaults.AGENT_AUTHOR_COMMAND_NOTE);
-    }
-
-    /**
-     * A command the user ran from the bar: the line and what it answered, not the note the agent reads with it.
-     */
-    private Div authorCommandBubble(String content) {
-        String body = content.substring(Defaults.AGENT_AUTHOR_COMMAND_NOTE.length()).strip();
-        int result = body.indexOf("\n\nResult:\n");
-        String line = (result < 0 ? body : body.substring(0, result)).replaceFirst("^Command:\\s*", "");
-        Div bubble = new Div(text(loc.getValue(L.LABEL_COMMAND) + ": " + line, true));
-        if (result >= 0) {
-            bubble.add(text(cut(body.substring(result + "\n\nResult:\n".length())), false));
-        }
-        bubble.addClassNames(CssStyles.HELP_MESSAGE, CssStyles.HELP_MESSAGE_USER);
-        return bubble;
-    }
-
-    /**
-     * What a compaction left of the earlier work: folded to one line, the summary is long and for looking up.
-     */
-    private Div summaryBubble(String content) {
-        Details details = new Details(loc.getValue(L.LABEL_AGENT_SUMMARY), new Markdown(StringUtils.defaultString(content)));
-        Div block = new Div(details);
-        block.addClassNames(CssStyles.HELP_MESSAGE, CssStyles.HELP_MESSAGE_USER, CssStyles.HELP_MESSAGE_FOLDED);
-        return block;
-    }
-
     /**
      * The author ran a command from the bar: given to the agent as the author's, see {@link AgentRunner#command}.
      */
@@ -750,7 +673,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         L now = message.command() ? L.LABEL_AGENT_RUN_NOW : L.LABEL_AGENT_SEND_NOW;
         force.setTooltipText(loc.getValue(now) + ": " + loc.getValue(message.command() ? L.HELP_AGENT_RUN_NOW : L.HELP_AGENT_SEND_NOW));
         force.setAriaLabel(loc.getValue(now));
-        Div heading = text(loc.getValue(message.command() ? L.LABEL_COMMAND : L.LABEL_YOU) + " ("
+        Div heading = renderer.text(loc.getValue(message.command() ? L.LABEL_COMMAND : L.LABEL_YOU) + " ("
                 + loc.getValue(L.LABEL_AGENT_QUEUED) + ")", true);
         Button cancel = new Button(Solid.TRASH.create(), event -> perform(() -> {
             agentRunner.cancelQueued(run, message.id());
@@ -764,94 +687,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         header.setPadding(false);
         header.setAlignItems(FlexComponent.Alignment.CENTER);
         header.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-        Div bubble = new Div(header, message.command() ? text(StringUtils.defaultString(message.text()), false)
+        Div bubble = new Div(header, message.command() ? renderer.text(StringUtils.defaultString(message.text()), false)
                 : new Markdown(StringUtils.defaultString(message.text())));
         bubble.addClassNames(CssStyles.HELP_MESSAGE, CssStyles.HELP_MESSAGE_USER, CssStyles.HELP_MESSAGE_QUEUED);
         return bubble;
-    }
-
-    private Div bubble(String who, String content, boolean user) {
-        Div bubble = new Div(text(who, true), new Markdown(StringUtils.defaultString(content)));
-        bubble.addClassName(CssStyles.HELP_MESSAGE);
-        if (user) {
-            bubble.addClassName(CssStyles.HELP_MESSAGE_USER);
-        }
-        return bubble;
-    }
-
-    /**
-     * What the model thought before its answer, folded to one line: the reasoning is long and for looking up.
-     */
-    private Div reasoningBlock(String reasoning) {
-        Details details = new Details(loc.getValue(L.LABEL_REASONING), text(reasoning, false));
-        details.addClassName(CssStyles.HINT_TEXT);
-        Div block = new Div(details);
-        block.addClassName(CssStyles.HELP_MESSAGE);
-        return block;
-    }
-
-    /**
-     * The report ({@code finish}) or the question ({@code ask_user}) of the agent as a bubble of its own, where it was
-     * written: it stays in the transcript when the run goes on, unlike the state of the run, which holds only the last.
-     *
-     * @return null for any other call, and for these when the call has no text (it failed, the result says why)
-     */
-    private Div specialCall(LLMToolCall call) {
-        boolean report = "finish".equals(call.getName());
-        if (!report && !"ask_user".equals(call.getName())) {
-            return null;
-        }
-        String text;
-        try {
-            JsonObject arguments = JsonParser.parseString(StringUtils.defaultString(call.getArguments())).getAsJsonObject();
-            if (report) {
-                text = arguments.has("summary") ? arguments.get("summary").getAsString() : null;
-            } else {
-                List<String> options = new ArrayList<>();
-                if (arguments.has("options") && arguments.get("options").isJsonArray()) {
-                    arguments.getAsJsonArray("options").forEach(option -> options.add(option.getAsString()));
-                }
-                text = arguments.has("question") ? RunToolsImpl.questionText(arguments.get("question").getAsString(), options) : null;
-            }
-        } catch (RuntimeException e) {
-            return null;
-        }
-        if (StringUtils.isBlank(text)) {
-            return null;
-        }
-        Div bubble = new Div(text(loc.getValue(report ? L.LABEL_AGENT_REPORT : L.LABEL_AGENT_QUESTION), true), new Markdown(text.strip()));
-        bubble.addClassName(CssStyles.HELP_MESSAGE);
-        return bubble;
-    }
-
-    private Div callBlock(LLMToolCall call) {
-        VerticalLayout body = new VerticalLayout(text(StringUtils.defaultString(call.getArguments()), false));
-        body.setPadding(false);
-        body.setSpacing(false);
-        callBodies.put(call.getId(), body);
-        Details details = new Details(call.getName() + " " + StringUtils.abbreviate(
-                StringUtils.defaultString(call.getArguments()).replaceAll("\\s+", " "), SUMMARY_LIMIT), body);
-        details.addClassName(CssStyles.TEXT_MONOSPACE);
-        Div block = new Div(details);
-        block.addClassName(CssStyles.HELP_MESSAGE);
-        return block;
-    }
-
-    /**
-     * A block of text of a message; the heading (who said it) and the text are blocks, so they are on lines of their own.
-     */
-    private Div text(String content, boolean heading) {
-        Div block = new Div(content);
-        block.addClassNames(CssStyles.PRE_WRAP, CssStyles.WRAP_ANYWHERE);
-        if (heading) {
-            block.addClassNames(CssStyles.TEXT_SEMIBOLD, CssStyles.TEXT_SECONDARY, CssStyles.TEXT_XS);
-        }
-        return block;
-    }
-
-    private static String cut(String content) {
-        String text = StringUtils.defaultString(content);
-        return text.length() > RESULT_LIMIT ? text.substring(0, RESULT_LIMIT) + "\n..." : text;
     }
 
     private void send() {
@@ -1062,6 +901,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
 
     TabSheet getTabs() {
         return tabs;
+    }
+
+    AgentSubAgentsView getSubAgentsView() {
+        return subAgentsView;
     }
 
     AgentWorkspaceBrowser getWorkspaceBrowser() {
