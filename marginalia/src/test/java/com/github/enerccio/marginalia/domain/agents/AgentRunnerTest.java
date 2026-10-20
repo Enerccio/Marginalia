@@ -710,6 +710,39 @@ class AgentRunnerTest extends AgentTestBase {
     }
 
     @Test
+    void aFailedCallEndsTheAnswerAndTheCallsAfterItAreNotMade() throws Exception {
+        Agent agent = agentService.save(readingAgent());
+        llm.enqueue(MockLLMResponse.toolCall("read_file", "{\"path\":\"/nothing.md\"}")
+                .andToolCall("get-book-info", "{}").andToolCall("list_files", "{\"path\":\"/\"}"), MockLLMResponse.text("Done."));
+
+        AgentRun run = await(startRun(agent));
+
+        List<LLMChatMessage> results = transcript(run).stream().filter(m -> m.getRole() == LLMRole.TOOL).toList();
+        assertThat(results).hasSize(3);
+        assertThat(results.get(0).getContent()).startsWith("Error:");
+        assertThat(results.get(1).getContent()).isEqualTo(Defaults.AGENT_AFTER_ERROR_SKIPPED_CALL);
+        assertThat(results.get(2).getContent()).isEqualTo(Defaults.AGENT_AFTER_ERROR_SKIPPED_CALL);
+    }
+
+    @Test
+    void anAgentThatMakesOneCallPerRoundKeepsTheFirstCallAndIsToldSo() throws Exception {
+        Agent agent = readingAgent();
+        agent.setOneCallPerRound(true);
+        agent = agentService.save(agent);
+        llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}").andToolCall("list_files", "{\"path\":\"/\"}"),
+                MockLLMResponse.text("Done."));
+
+        AgentRun run = await(startRun(agent));
+
+        List<LLMChatMessage> messages = transcript(run);
+        assertThat(messages.stream().filter(m -> m.getRole() == LLMRole.TOOL)).hasSize(1);
+        assertThat(messages.stream().filter(m -> m.getRole() == LLMRole.ASSISTANT && m.hasToolCalls()).findFirst().orElseThrow()
+                .getToolCalls()).hasSize(1);
+        assertThat(messages.stream().anyMatch(m -> m.getRole() == LLMRole.USER
+                && String.format(Defaults.AGENT_ONE_CALL_NOTICE, 2).equals(m.getContent()))).isTrue();
+    }
+
+    @Test
     void theTokenBudgetPausesTheRun() throws Exception {
         Agent agent = readingAgent();
         agent.setTokenBudget(100L);

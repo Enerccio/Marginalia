@@ -564,6 +564,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_LOCKED_BY_AGENT, "作業中のエージェントによりロックされています");
         setValue(L.LABEL_AGENT_DIAGNOSTICS, "診断");
         setValue(L.LABEL_DOWNLOAD_JSON, "JSONをダウンロード");
+        setValue(L.LABEL_AGENT_ONE_CALL_PER_ROUND, "1ラウンドに1回の呼び出し");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -993,6 +994,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_COMMAND_TOKENS, "このコマンドの定義(名前、説明、パラメータ)がエージェントのすべてのリクエストに加える量の推定値です。コマンドを絞るほど作業に使える余地が増えます。");
         setValue(L.HELP_MULTI_TAG, "タグを選び(新しいタグは入力して作成)、項目ごとに、または下でチェックしたすべての項目に付ける/外すことができます。そのタグを持つ項目は先頭に並び、タグが強調表示されます。エージェントが作業中の項目はグレー表示になり、変更できません。");
         setValue(L.HELP_AGENT_DIAGNOSTICS, "実行の内容を記録から集計したものです。ツールごとの呼び出し数、エラー、結果、時間、同じツールを続けて呼んだラウンド、大きな結果、遅いラウンド、コンテキスト、サブエージェントを表示します。古い実行でも使えます。MarkdownまたはJSONでダウンロードして、エディタで読んだり他の人に渡したりできます。");
+        setValue(L.HELP_AGENT_ONE_CALL_PER_ROUND, "オフ：エージェントは1回の回答の呼び出しをまとめて書き、結果もまとめて読みます（速いですが、呼び出しは直前の呼び出しの結果を使えません）。オン：回答の最初の呼び出しだけが実行され、エージェントは結果を読んでから次を書きます（各呼び出しが1ラウンドになるため遅くなりますが、結果に応じて対応できます）。どちらの場合も、エラーが起きるとその回答は終了し、失敗した呼び出しの後の呼び出しは実行されません。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

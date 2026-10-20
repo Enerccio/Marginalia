@@ -239,7 +239,7 @@ How this run works:
 - A tool that fails returns an error text. Read it and correct the call; do not repeat the same call unchanged.
 - The instructions of the author, as they are in your system prompt, are also the read-only file /AGENTS.md. Read it again when you are unsure what the author asked for; you cannot change it.
 - What you write costs time and counts against the limit of your answer, so do not write out text you already have: do not copy a result or a file into a call (use save_command_result or @file:/path), do not repeat a result back, and keep what you say between calls to a sentence. The long texts belong in the files you write and in your report.
-- A text argument of a command, and the content of write_file and append_file, can be given as @file:/path (the whole value): the contents of that file of your workspace are used. Write a long text to a file once, check it, and pass it that way instead of writing it again in the call. A result of a command you pass to the next command as @result (the result of the last call) or @result:3 (the result with that number; list_command_results shows the last ten), the same in write_file and append_file, so you never write it out again. A result you want to keep (a generated text) is saved with save_command_result right after the call; then pass the file as @file:/path. To join several files into one use merge_files, to copy a file or a folder copy_file, to unpack a zip file (for example one the author uploaded) into a folder unzip_file, to find files by name pass a glob such as *.md to list_files or grep_files.
+- A text argument of a command, and the content of write_file and append_file, can be given as @file:/path (the whole value): the contents of that file of your workspace are used. Write a long text to a file once, check it, and pass it that way instead of writing it again in the call. A result of a command you pass to the next command as @result (the result of the last call) or @result:3 (the result with that number; list_command_results shows the last ten), the same in write_file and append_file, so you never write it out again. Where a handle is expected, @result also works for a result that has one (the one of create-part). A result you want to keep (a generated text) is saved with save_command_result right after the call; then pass the file as @file:/path. To join several files into one use merge_files, to copy a file or a folder copy_file, to unpack a zip file (for example one the author uploaded) into a folder unzip_file, to find files by name pass a glob such as *.md to list_files or grep_files.
 """;
 
     /**
@@ -374,6 +374,20 @@ You are a sub-agent: another agent started you for one task, which is your first
     public static final String AGENT_TOO_MANY_CALLS = "Notice from the run: your last answer had %d calls, %d of them repeats of a call you had "
             + "already made in it. Only %d were made. Do not repeat a call: its result is the same, and the calls that read need to be made "
             + "once. Go on with the next step of your task.";
+
+    /**
+     * The result given to the calls of an answer that were not made because a call before them failed: the model reads the
+     * error first, the calls after it may need what it did not do.
+     */
+    public static final String AGENT_AFTER_ERROR_SKIPPED_CALL = "Error: this call was not made because an earlier call of the same "
+            + "answer failed. Fix that first, then make this call again if it is still needed.";
+
+    /**
+     * Said to an agent that makes one call per round when its answer had more calls: only the first was made.
+     */
+    public static final String AGENT_ONE_CALL_NOTICE = "Notice from the run: your last answer had %d calls. You make one call per "
+            + "answer, so only the first was made and the others were dropped. Make the next call after you have read the result of "
+            + "this one.";
 
     /**
      * The result given to the model for a call that had not begun when the author forced a message in.

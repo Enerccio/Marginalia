@@ -572,6 +572,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_LOCKED_BY_AGENT, "已被正在处理它的智能体锁定");
         setValue(L.LABEL_AGENT_DIAGNOSTICS, "诊断");
         setValue(L.LABEL_DOWNLOAD_JSON, "下载 JSON");
+        setValue(L.LABEL_AGENT_ONE_CALL_PER_ROUND, "每轮只调用一次");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1001,6 +1002,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_COMMAND_TOKENS, "该命令的定义(名称、说明和参数)为智能体每次请求增加的令牌数(估算)。选择的命令越少,留给工作的空间越多。");
         setValue(L.HELP_MULTI_TAG, "选择一个标签(也可输入新标签),然后逐项应用或移除,或在底部对所有勾选项操作。带有该标签的项目排在最前,并高亮显示该标签。智能体正在处理的项目显示为灰色,无法更改。");
         setValue(L.HELP_AGENT_DIAGNOSTICS, "根据记录统计该运行做了什么:按工具统计的调用数、错误、结果和耗时,连续调用同一工具的轮次,最大的结果,最慢的轮次,上下文以及子智能体。任何运行都可用,包括较早的运行。可下载为 Markdown 或 JSON,以便在编辑器中阅读或交给他人。");
+        setValue(L.HELP_AGENT_ONE_CALL_PER_ROUND, "关闭：智能体一次写出一个回答中的所有调用，并一起读取结果（更快，但调用无法使用前一个调用的结果）。开启：只执行回答中的第一个调用，智能体读完结果后再写下一个（较慢，因为每个调用单独占一轮，但能对每个结果作出反应）。无论如何，出现错误都会结束该回答：失败调用之后的调用不会执行。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

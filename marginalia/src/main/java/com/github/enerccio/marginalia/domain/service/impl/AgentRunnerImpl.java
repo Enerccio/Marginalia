@@ -676,11 +676,14 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
 
     /**
      * What of an answer is made: the repeats of calls that read are dropped, and no more than
-     * {@link Defaults#AGENT_MAX_CALLS_PER_ROUND} calls are kept. The dropped calls are not in the transcript either, so no
+     * {@link Defaults#AGENT_MAX_CALLS_PER_ROUND} calls are kept, one when the agent makes one call per round. The dropped calls are not in the transcript either, so no
      * result is owed for them.
      */
-    private static Round limitCalls(Round round) {
+    private static Round limitCalls(Round round, boolean oneCall) {
         List<LLMToolCall> kept = withoutRepeats(round.calls());
+        if (oneCall && kept.size() > 1) {
+            kept = new ArrayList<>(kept.subList(0, 1));
+        }
         if (kept.size() > Defaults.AGENT_MAX_CALLS_PER_ROUND) {
             kept = new ArrayList<>(kept.subList(0, Defaults.AGENT_MAX_CALLS_PER_ROUND));
         }
@@ -986,8 +989,10 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
 
                 int asked = round.calls().size();
                 int repeats = asked - withoutRepeats(round.calls()).size();
-                round = limitCalls(round);
+                boolean oneCall = agent.isLimitedToOneCall();
+                round = limitCalls(round, oneCall);
                 String callNotice = round.calls().size() == asked ? null
+                        : oneCall && asked - repeats > 1 ? String.format(Defaults.AGENT_ONE_CALL_NOTICE, asked - repeats)
                         : String.format(Defaults.AGENT_TOO_MANY_CALLS, asked, repeats, round.calls().size());
 
                 LLMChatMessage answer = round.calls().isEmpty()
@@ -1026,6 +1031,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 boolean forced = false;
                 boolean paused = false;
                 boolean suspended = false;
+                boolean failed = false;
                 for (int index = 0; index < round.calls().size() && !suspended; index++) {
                     LLMToolCall call = round.calls().get(index);
                     if (paused || interrupts.contains(runId) || stopping()) {
@@ -1037,6 +1043,11 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     if (forced || inbox != null && inbox.isForced()) {
                         forced = true;
                         results.add(LLMChatMessage.ofToolResult(call.getId(), Defaults.AGENT_SKIPPED_CALL));
+                        continue;
+                    }
+                    if (failed) {
+                        // an error ends the answer: what follows may need what the failed call did not do, the model reads the error first
+                        results.add(LLMChatMessage.ofToolResult(call.getId(), Defaults.AGENT_AFTER_ERROR_SKIPPED_CALL));
                         continue;
                     }
                     long began = System.currentTimeMillis();
@@ -1068,6 +1079,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     // stored at once: the console shows the result of a call when it is made, not when the round is over, and a
                     // pause in the middle of a round keeps what the calls before it did
                     append(transcript, LLMChatMessage.ofToolResult(call.getId(), result));
+                    failed = result.startsWith("Error:");
                 }
                 if (suspended) {
                     log.info("Agent run {}: the run was paused while the agent waited for a sub-agent, the rest of the round waits", run.getUuid());
@@ -1092,6 +1104,10 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     log.info("Agent run {}: the rest of the round was thrown away, the author sent a message", run.getUuid());
                     deliverForced(transcript, results);
                     continue;
+                }
+                if (!results.isEmpty()) {
+                    // the calls after a failed one
+                    append(transcript, results.toArray(new LLMChatMessage[0]));
                 }
                 List<VirtualPath> looked = shown.take();
                 if (!looked.isEmpty()) {
@@ -2529,7 +2545,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 }
                 Round round;
                 try {
-                    round = limitCalls(ask(inference, profile, subPayload(conversation), subTools, waiter));
+                    round = limitCalls(ask(inference, profile, subPayload(conversation), subTools, waiter), agent.isLimitedToOneCall());
                     unreadable = 0;
                 } catch (SubStopped e) {
                     throw e;
@@ -2573,11 +2589,20 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 } finally {
                     changeLock.unlock();
                 }
+                boolean failed = false;
                 for (LLMToolCall call : round.calls()) {
+                    if (failed) {
+                        // an error ends the answer, as for the agent
+                        LLMChatMessage skipped = LLMChatMessage.ofToolResult(call.getId(), Defaults.AGENT_AFTER_ERROR_SKIPPED_CALL);
+                        storeSub(sub, List.of(skipped));
+                        conversation.add(skipped);
+                        continue;
+                    }
                     try {
                         checkSub(sub);
                         long began = System.currentTimeMillis();
                         String result = callSub(call, sub);
+                        failed = result.startsWith("Error:");
                         log.info("Agent run {}: sub-agent {} {} {} in {} ms ({} characters)", runId, sub.handle(), call.getName(),
                                 result.startsWith("Error:") ? "failed" : "done", System.currentTimeMillis() - began, result.length());
                         LLMChatMessage answer = LLMChatMessage.ofToolResult(call.getId(), result);
