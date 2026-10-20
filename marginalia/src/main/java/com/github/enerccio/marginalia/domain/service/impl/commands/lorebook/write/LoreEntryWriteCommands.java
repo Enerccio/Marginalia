@@ -371,7 +371,8 @@ public class LoreEntryWriteCommands extends LorebookWriteSupport {
     private void createLoreEntry(CommandContext context, String name, String payload, String lorebook, String comment,
                                  Boolean enabled, Integer order, String keys, String filteringMode, String insertionMode,
                                  String tags) throws Exception {
-        Lore lore = new Lore(new Book(context));
+        Book book = new Book(context);
+        Lore lore = lorebook == null ? loreToAddTo(book) : new Lore(book);
         Lorebook target = lorebook == null ? lore.book(null) : book(lore, lorebook);
         LorebookEntry fields = new LorebookEntry();
         fields.setName(name);

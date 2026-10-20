@@ -1,8 +1,9 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.write;
 
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
-import com.github.enerccio.marginalia.domain.service.TagService;
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService.EntryProblem;
+import com.github.enerccio.marginalia.domain.service.TagService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.read.LorebookReadSupport;
 import com.github.enerccio.marginalia.loc.L;
@@ -26,6 +27,25 @@ public abstract class LorebookWriteSupport extends LorebookReadSupport {
 
     @Autowired
     protected TagService tagService;
+
+    /**
+     * The lorebooks of the book for a command that adds something. A book that has no lorebook gets its root first, named
+     * like the book: the lore of such a book can only be started from here, nothing else makes the root.
+     */
+    protected Lore loreToAddTo(Book book) throws Exception {
+        Manuscript manuscript = book.manuscript;
+        Lorebook root = manuscript.getLorebook() == null ? null : lorebookService.find(manuscript.getLorebook());
+        if (root == null || root.isDeleted()) {
+            Lorebook created = new Lorebook();
+            created.setName(manuscript.getName());
+            created.setEnabled(true);
+            created.setAgentic(manuscript.isAgentic());
+            created.setSubbooks(new ArrayList<>());
+            manuscript.setLorebook(lorebookService.save(created));
+            manuscriptService.save(manuscript);
+        }
+        return new Lore(book);
+    }
 
     /**
      * The lorebook of the book with that handle. A number is refused, see the class description.

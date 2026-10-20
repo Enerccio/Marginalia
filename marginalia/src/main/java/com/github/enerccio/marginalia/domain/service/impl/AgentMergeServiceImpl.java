@@ -490,6 +490,7 @@ public class AgentMergeServiceImpl implements AgentMergeService {
                     relinkSubbooks(item);
                 }
             }
+            adoptRoot();
             each(chosen, Kind.ENTRY, Change.ADDED, this::createEntry);
             each(chosen, Kind.ENTRY, Change.CHANGED, this::changeEntry);
             each(chosen, Kind.ENTRY, Change.DELETED, this::deleteEntry);
@@ -685,6 +686,27 @@ public class AgentMergeServiceImpl implements AgentMergeService {
             Field tags = field(item, "tags");
             if (tags != null) {
                 retag(lorebook, tags, false);
+            }
+        }
+
+        /**
+         * A book that has no lorebook takes the root of the source as its own, the lorebooks of the source were made
+         * without anything above them. Otherwise they would be in no book at all.
+         */
+        private void adoptRoot() throws Exception {
+            Lorebook current = targetBook.getLorebook() == null ? null : lorebookService.find(targetBook.getLorebook());
+            if (current != null && !current.isDeleted() || sourceBook.getLorebook() == null) {
+                return;
+            }
+            String root = sourceBook.getLorebook().getUuid();
+            for (Item item : chosen) {
+                Lorebook made = item.kind() == Kind.LOREBOOK && item.change() == Change.ADDED && root.equals(item.sourceUuid())
+                        ? createdLorebooks.get(keyOf(item)) : null;
+                if (made != null) {
+                    targetBook.setLorebook(made);
+                    manuscriptService.save(targetBook);
+                    reload();
+                }
             }
         }
 

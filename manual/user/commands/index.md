@@ -193,12 +193,12 @@ describes): the answer lists them and says what to do, `/revalidate-summaries` i
 | `/set-book-info [name] [description] [pov] [tense] [style] [language]` | Changes the descriptive settings of the book; only the values you give. |
 | `/set-book-prompts [template] [userPrompt] [summaryPrompt] [metaSummaryPrompt]` | Replaces the prompt templates of the book. Each is checked first. `DESTRUCTIVE`: a bad template spoils every later generation. |
 | `/set-book-tags [add] [remove]` | Adds and takes off tags of the book (comma separated). |
-| `/create-lore-entry <name> <payload> [lorebook] [comment] [enabled] [order] [keys] [filteringMode] [insertionMode] [tags]` | Adds an entry to a lorebook (the root when none is given). A problem of the template or of the regular expression is saved and reported. |
+| `/create-lore-entry <name> <payload> [lorebook] [comment] [enabled] [order] [keys] [filteringMode] [insertionMode] [tags]` | Adds an entry to a lorebook (the root when none is given; a book that has no lorebook gets one, named like the book). A problem of the template or of the regular expression is saved and reported. |
 | `/update-lore-entry <entry> [name] [payload] [comment] [enabled] [order] [keys] [filteringMode] [insertionMode]` | Changes the fields you give. |
 | `/delete-lore-entry <entry>` | Deletes an entry. Asks first. |
 | `/move-lore-entry <entry> <lorebook>` | Moves an entry to another lorebook of the book. |
 | `/set-lore-entry-tags <entry> [add] [remove] [addNegative] [removeNegative]` | Changes the tags and negative tags of an entry (comma separated). |
-| `/create-lorebook <name> [parent]` | Makes a lorebook that is a subbook of `parent` (the root when none is given). |
+| `/create-lorebook <name> [parent]` | Makes a lorebook that is a subbook of `parent` (the root when none is given; a book that has no lorebook gets one first). |
 | `/set-lorebook <lorebook> [name] [enabled]` | Renames a lorebook or switches it on or off. |
 | `/add-subbook <lorebook> <subbook>`, `/remove-subbook <lorebook> <subbook>` | Changes which lorebooks a lorebook contains; a lorebook can't contain itself. |
 | `/delete-lorebook <lorebook>` | Deletes a lorebook with its entries (not the root). Asks first. |
