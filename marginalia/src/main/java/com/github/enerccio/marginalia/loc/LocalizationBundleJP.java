@@ -1180,10 +1180,10 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_LORE_PAYLOAD_PARAM, "エントリのテキスト（Handlebars テンプレート）。エントリが使われるときプロンプトに入ります");
         setValue(L.DESC_COMMAND_LORE_COMMENT_PARAM, "作者向けのエントリのメモ。プロンプトには入りません");
         setValue(L.DESC_COMMAND_LORE_ENABLED_PARAM, "エントリを使うかどうか。省略時は true");
-        setValue(L.DESC_COMMAND_LORE_ORDER_PARAM, "使われるエントリの中での順序。小さいほど先。省略時は 100");
+        setValue(L.DESC_COMMAND_LORE_ORDER_PARAM, "すべてのロアブックの使われるエントリの中での順序。小さいほど先で、同じ順序なら作成日時順。省略時は 100。他のエントリの順序は get-lore-entry と list-lore-entries で分かります");
         setValue(L.DESC_COMMAND_LORE_KEYS_PARAM, "エントリが使われるきっかけとなる、ターンのテキスト中の単語または正規表現。常に使うエントリは空");
         setValue(L.DESC_COMMAND_LORE_FILTERING_MODE_PARAM, "キーの照合方法：TEXT（単語）または REGEX。省略時は TEXT");
-        setValue(L.DESC_COMMAND_LORE_INSERTION_MODE_PARAM, "テキストを入れる場所：IN_LORE_BLOCK（ロアと一緒）または BEFORE_USER_PROMPT。省略時は IN_LORE_BLOCK");
+        setValue(L.DESC_COMMAND_LORE_INSERTION_MODE_PARAM, "テキストを入れる場所：IN_LORE_BLOCK（ロアブロック内、エントリの順）または BEFORE_USER_PROMPT（リクエストの直前。モデルが最も注目する場所で、そのパートに直接影響させたい内容に、控えめに使う）。省略時は IN_LORE_BLOCK");
         setValue(L.DESC_COMMAND_LORE_TAGS_PARAM, "エントリのタグ（カンマ区切り）。そのうちのいずれかを持つ本でのみエントリが使われます");
         setValue(L.DESC_COMMAND_LORE_TAGS_ADD_PARAM, "エントリに追加するタグ（カンマ区切り）");
         setValue(L.DESC_COMMAND_LORE_TAGS_REMOVE_PARAM, "エントリから外すタグ（カンマ区切り）");
@@ -1194,10 +1194,10 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_PARENT_LOREBOOK_PARAM, "新しいロアブックをサブブックとして持つロアブックのハンドル。省略するとルートのロアブック");
         setValue(L.DESC_COMMAND_SUBBOOK_PARAM, "サブブックになる（またはならなくなる）ロアブックのハンドル");
         setValue(L.DESC_COMMAND_CREATE_LORE_ENTRY, "ロアブックにエントリを追加します。パラメータ：name、payload、lorebook（ハンドル）、comment、enabled、order、keys、filteringMode、insertionMode、tags。");
-        setValue(L.DESC_COMMAND_CREATE_LORE_ENTRY_LLM, "本のロアブックに新しいエントリを追加します（`lorebook` を省略するとルートのロアブック）。`payload` はプロンプトに入るテキスト（Handlebars テンプレート）です。`keys` のないエントリは常に使われ、あるエントリはキー（単語、filteringMode が REGEX なら正規表現）がターンのテキストにあるときに使われます。テンプレートや正規表現の問題があっても保存は止まらず、応答に報告されます。update-lore-entry で直してください。本を変更します。エントリのハンドルを返します。");
+        setValue(L.DESC_COMMAND_CREATE_LORE_ENTRY_LLM, "本のロアブックに新しいエントリを追加します（`lorebook` を省略するとルートのロアブック）。`payload` はプロンプトに入るテキスト（Handlebars テンプレート）です。`keys` のないエントリは常に使われ、あるエントリはキー（単語、filteringMode が REGEX なら正規表現）がターンのテキストにあるときに使われます。テンプレートや正規表現の問題があっても保存は止まらず、応答に報告されます。update-lore-entry で直してください。`order`（小さいほど先、省略時は 100）で使われるエントリの中での前後を決めます。他のエントリの `order` は list-lore-entries で読み、その間に入れてください。`insertionMode` を BEFORE_USER_PROMPT にすると、テキストはロアブロックではなくリクエストの直前に入ります。本を変更します。エントリのハンドルを返します。");
         setValue(L.DESC_COMMAND_CREATE_LORE_ENTRY_RETURN, "エントリ（handle、name）と、テキストやフィルタに問題があればその内容を含む JSON");
         setValue(L.DESC_COMMAND_UPDATE_LORE_ENTRY, "ロアブックのエントリの項目を変更します。パラメータ：entry（ハンドル）、name、payload、comment、enabled、order、keys、filteringMode、insertionMode。");
-        setValue(L.DESC_COMMAND_UPDATE_LORE_ENTRY_LLM, "指定したハンドルのエントリを変更します。指定した項目だけが変更されます。長いテキストの一部を変えるには、get-lore-entry で読んで、新しい `payload` 全体を渡してください。テンプレートや正規表現の問題があっても保存は止まらず、応答に報告されます。タグの変更は set-lore-entry-tags、移動は move-lore-entry を使います。本を変更します。");
+        setValue(L.DESC_COMMAND_UPDATE_LORE_ENTRY_LLM, "指定したハンドルのエントリを変更します。指定した項目だけが変更されます。長いテキストの一部を変えるには、get-lore-entry で読んで、新しい `payload` 全体を渡してください。テンプレートや正規表現の問題があっても保存は止まらず、応答に報告されます。`order` と `insertionMode` はプロンプト内でのエントリの位置を変えます（create-lore-entry を参照）。タグの変更は set-lore-entry-tags、移動は move-lore-entry を使います。本を変更します。");
         setValue(L.DESC_COMMAND_UPDATE_LORE_ENTRY_RETURN, "エントリ（handle、name）と、テキストやフィルタに問題があればその内容を含む JSON");
         setValue(L.DESC_COMMAND_DELETE_LORE_ENTRY, "ロアブックのエントリを削除します。パラメータ：entry（ハンドル）。");
         setValue(L.DESC_COMMAND_DELETE_LORE_ENTRY_LLM, "指定したハンドルのエントリをロアブックから削除します。ロアブック内でそれ以降のエントリの番号は変わりますが、ハンドルは変わりません。本を変更します。ユーザーには確認が求められ、エージェントは破壊的コマンドのモードに従います。");

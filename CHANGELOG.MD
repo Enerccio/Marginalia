@@ -97,6 +97,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- **Agents: the lore commands explain how to place an entry.** The descriptions the model reads for `create-lore-entry` and `update-lore-entry`, and for their `order` and `insertionMode` parameters, now say what the two do: `order` ranks the entry among the used entries of all the lorebooks (lower first, 100 when omitted, `list-lore-entries` shows the others) and `BEFORE_USER_PROMPT` puts the text right before the request instead of in the lore block. Text only, no signature changed (English, Japanese, Chinese plugin).
 - **Agents: a queued message or command can be taken back.** The dashed bubble of a message (or command) that waits for the agent has a **trash** button next to **Send now**: the agent will not get it. New `AgentRunner.cancelQueued(run, id)` (a class that implements `AgentRunner` has to add it), key `HELP_AGENT_CANCEL_QUEUED` (English, Japanese, Chinese plugin).
 - **Agents: a message to a conversation that works is read by the next request.** It used to wait for the end of the turn (a reply in text, `finish` or `ask_user`), which in a long run with many tool calls could be much later. Now the worker takes the queued messages at the top of every iteration of the loop, so the next request to the model contains them; commands still wait for the end of the turn, and **Send now** still drops the round in the air. Internal: `Inbox.takeMessages`, `Worker.deliverQueuedMessages`.
 
