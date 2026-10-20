@@ -891,6 +891,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_CONTEXT_SIZE_NO_CAP, "次のリクエスト: 約 %d トークン(推定)");
         setValue(L.MSG_AGENT_CONTEXT_REPORTED, "モデルは直前の回答時に %d トークンと報告しました。");
         setValue(L.MSG_AGENT_CONTEXT_PICK, "部分を選ぶと、モデルに送られる内容がそのまま表示されます。");
+        setValue(L.MSG_AGENT_CONFIRM_ROLLBACK_MESSAGE, "このメッセージより前に戻しますか？作業コピーとワークスペースは、その直前で最も近いチェックポイント %s（ラウンド %s）の状態に戻り、エージェントはそこから先の %s 件のメッセージを忘れます。メッセージは巻き戻し済みとしてトランスクリプトに残ります。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -952,6 +953,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_MAX_SUBAGENTS, "エージェントが同時に動かせるサブエージェントの数。0または空欄は使用しない設定で、起動用のツールは渡されません。1の場合、サブエージェントの起動はその完了まで待ちます。2以上の場合は上限に達するまで即座に戻り、達すると1つが終わるまで待ちます。サブエージェントは別のサブエージェントを起動できず、そのリクエストはすべて実行の予算に含まれます。");
         setValue(L.HELP_AGENT_CANCEL_QUEUED, "メッセージまたはコマンドを取り消します。エージェントには渡されません。");
         setValue(L.HELP_AGENT_CONTEXT, "モデルが次のリクエストで読む内容を部分ごとに表示します(システムメッセージ、ツールの定義、会話)。省略はありません。Markdownとしてダウンロードしてエディタで読めます。各部分のトークン数は推定値で、グラフの線はモデルが報告した値です。");
+        setValue(L.HELP_AGENT_ROLLBACK_MESSAGE, "会話をこのメッセージより前に戻します。エージェントはこのメッセージとそれ以降を忘れ、作業コピーとワークスペースはその直前で最も近いチェックポイントの状態に戻ります。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

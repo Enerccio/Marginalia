@@ -891,6 +891,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_CONTEXT_SIZE_NO_CAP, "Next request: about %d tokens (estimated)");
         setValue(L.MSG_AGENT_CONTEXT_REPORTED, "The model reported %d tokens at its last answer.");
         setValue(L.MSG_AGENT_CONTEXT_PICK, "Pick a part to read exactly what the model is sent.");
+        setValue(L.MSG_AGENT_CONFIRM_ROLLBACK_MESSAGE, "Go back to before this message? The working copy and the workspace return to checkpoint %s (round %s), the closest one before it, and the agent forgets the %s message(s) from there on. They stay in the transcript, marked as rewound.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -952,6 +953,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_MAX_SUBAGENTS, "How many sub-agents the agent can have working at once. Zero or empty is none: the agent gets no tools to start them. With one, starting a sub-agent waits until it is done; with more, the call returns at once until the limit is reached, then waits for one to end. Sub-agents can not start sub-agents, and the requests of all of them count in the budgets of the run.");
         setValue(L.HELP_AGENT_CANCEL_QUEUED, "Takes the message or command back: the agent will not get it.");
         setValue(L.HELP_AGENT_CONTEXT, "What the model reads with its next request, part by part: the system message, the tool definitions and the conversation. Nothing is cut; download it as Markdown to read it in an editor. The token counts of the parts are estimates, the line of the chart is what the model reported.");
+        setValue(L.HELP_AGENT_ROLLBACK_MESSAGE, "Go back in the conversation to before this message: the agent forgets it and everything after it, and the working copy and the workspace return to the closest checkpoint before it.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

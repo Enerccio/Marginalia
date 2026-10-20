@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.AgentApprovalService.PendingApproval;
 import com.github.enerccio.marginalia.domain.service.agent.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -96,6 +97,11 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             AgentRunStatus.WAITING_APPROVAL, AgentRunStatus.PAUSING, AgentRunStatus.PAUSED, AgentRunStatus.STOPPED_KEPT,
             AgentRunStatus.DONE);
 
+    // the conversation goes back to before a message only while nothing works on the run: a run that waits for the author is
+    // paused for it
+    private static final Set<AgentRunStatus> ROLLBACK = Set.of(AgentRunStatus.IDLE, AgentRunStatus.PAUSED,
+            AgentRunStatus.STOPPED_KEPT);
+
     // a conversation in these statuses takes a message that waits for the agent to be ready to read it
     private static final Set<AgentRunStatus> QUEUEING = Set.of(AgentRunStatus.RUNNING, AgentRunStatus.WAITING_APPROVAL,
             AgentRunStatus.PAUSING);
@@ -121,6 +127,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     @Autowired
     private AgentApprovalService agentApprovalService;
 
+    @Autowired
+    private CheckpointService checkpointService;
+
     private final Agent agent;
     private Runnable onChange;
 
@@ -136,6 +145,8 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     // the messages that wait for the agent: their bubbles are the last ones of the transcript, and the ids they show
     private final List<Div> queuedBubbles = new ArrayList<>();
     private List<String> shownQueued = List.of();
+    // the buttons that take the conversation back to before a message, enabled while the run waits or is paused
+    private final List<Button> rollbackButtons = new ArrayList<>();
 
     private Span statusLabel;
     private Span usageLabel;
@@ -464,6 +475,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         finishButton.setEnabled(status == AgentRunStatus.IDLE);
         reviewButton.setVisible(status != null && (status == AgentRunStatus.DONE || status == AgentRunStatus.STOPPED_KEPT) && run.getWorkingCopy() != null);
         stopButton.setEnabled(status != null && STOPPABLE.contains(status));
+        rollbackButtons.forEach(button -> showRollbackButton(button, status));
     }
 
     /**
@@ -499,6 +511,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             specialCalls.clear();
             shown = 0;
             shownRunId = runId;
+            rollbackButtons.clear();
             queuedBubbles.clear();
             shownQueued = List.of();
         }
@@ -538,6 +551,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
                 for (int i = before; i < transcriptBox.getComponentCount(); i++) {
                     transcriptBox.getComponentAt(i).getElement().getClassList().add(CssStyles.AGENT_REWOUND);
                 }
+            } else if (row.toChatMessage().getRole() == LLMRole.USER && !row.isSummary()
+                    && transcriptBox.getComponentCount() > before && transcriptBox.getComponentAt(before) instanceof Div bubble) {
+                bubble.add(rollbackButton(row));
             }
         }
         shown = messages.size();
@@ -546,6 +562,61 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         } else {
             JavascriptLibrary.scrollToBottomIfAtBottom(transcriptBox.getElement());
         }
+    }
+
+    /**
+     * The button under a message of the author that takes the conversation back to before it, see
+     * {@link CheckpointService#rewindToMessage}.
+     */
+    private Button rollbackButton(AgentMessage row) {
+        Button button = new Button(loc.getValue(L.LABEL_REWIND), Solid.BACKWARD_STEP.create(), event -> rollBack(row.getUuid()));
+        button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+        rollbackButtons.add(button);
+        showRollbackButton(button, run == null ? null : run.getStatus());
+        return button;
+    }
+
+    private void showRollbackButton(Button button, AgentRunStatus status) {
+        boolean possible = status != null && ROLLBACK.contains(status);
+        button.setEnabled(possible);
+        button.setTooltipText(loc.getValue(possible ? L.HELP_AGENT_ROLLBACK_MESSAGE
+                : status != null && status.isActive() ? L.MSG_AGENT_CHECKPOINT_BUSY : L.MSG_AGENT_REWIND_PAUSE_FIRST));
+    }
+
+    /**
+     * Asks, then goes back to before the message: the checkpoint it goes to and what the agent forgets are shown first. A run
+     * that waits for the author is paused for it.
+     */
+    private void rollBack(String messageUuid) {
+        AgentRun current = run;
+        if (current == null) {
+            return;
+        }
+        try {
+            CheckpointService.RewindPlan plan = checkpointService.planRewindToMessage(current, messageUuid);
+            ConfirmDialog.open(String.format(loc.getValue(L.MSG_AGENT_CONFIRM_ROLLBACK_MESSAGE), plan.checkpoint().id(),
+                    plan.checkpoint().round(), plan.forgotten()), () -> rollBackNow(messageUuid), () -> {});
+        } catch (CheckpointService.CheckpointException e) {
+            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    void rollBackNow(String messageUuid) {
+        perform(() -> {
+            try {
+                AgentRun target = run.getStatus() == AgentRunStatus.IDLE ? agentRunService.pause(run) : run;
+                CheckpointService.Rewound result = checkpointService.rewindToMessage(target, messageUuid);
+                Notification.success(String.format(loc.getValue(L.MSG_AGENT_CHECKPOINT_REWOUND), result.restored().checkpoint().id(),
+                        result.forgotten(), result.restored().removedFiles().size()));
+            } catch (CheckpointService.CheckpointException e) {
+                Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+            }
+            // the rows that were shown are marked now: the transcript is made again
+            shownRunId = null;
+            return null;
+        });
     }
 
     private void render(LLMChatMessage message, String reasoning, boolean summary) {
@@ -923,6 +994,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
 
     Button getStopButton() {
         return stopButton;
+    }
+
+    List<Button> getRollbackButtons() {
+        return rollbackButtons;
     }
 
     List<Div> getQueuedBubbles() {
