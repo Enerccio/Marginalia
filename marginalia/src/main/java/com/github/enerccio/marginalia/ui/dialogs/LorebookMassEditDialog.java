@@ -3,6 +3,8 @@ package com.github.enerccio.marginalia.ui.dialogs;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
+import com.github.enerccio.marginalia.domain.collections.FilteringMode;
+import com.github.enerccio.marginalia.domain.collections.InsertionMode;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.service.AgentRunService;
@@ -37,7 +39,8 @@ import java.util.*;
 
 /**
  * Edits all the entries of a lorebook at once: the entries of the lorebook and of its subbooks (however deep) in one grid,
- * by their order. The enabled box, the name, the order and the tags of an entry are changed in place, the text is only
+ * by their order, a row on one line, the grid scrolls. The enabled box, the name, the order, the tags, the filtering, the
+ * insertion mode, the negative tags and the note of an entry are changed in place, the text is only
  * shown, shortened; the lorebook an entry is in is a box in its row, which moves it to the lorebook itself or to one of its
  * subbooks. The entries that are checked can be moved together. A lorebook is locked while an agent works on a book that
  * uses it: its entries are shown grayed out, nothing can be done with them, and nothing can be moved into it.
@@ -49,6 +52,10 @@ public class LorebookMassEditDialog extends Dialog {
      * How many characters of the text of an entry the grid shows.
      */
     static final int CONTENT_PREVIEW_LENGTH = 300;
+
+    private static final String COMBO_COLUMN_SIZE = "200px";
+    private static final String TEXT_COLUMN_SIZE = "220px";
+    private static final String CONTENT_COLUMN_SIZE = "400px";
 
     /**
      * One entry of the grid, with the lorebook it is in, whether that lorebook is locked and whether it is checked.
@@ -154,7 +161,17 @@ public class LorebookMassEditDialog extends Dialog {
                 .setWidth(UIConstants.TOOL_COLUMN_SIZE_LARGE);
         grid.addComponentColumn(this::bookBox).setHeader(loc.getValue(L.LABEL_LOREBOOK)).setFlexGrow(2);
         grid.addComponentColumn(this::tagsBox).setHeader(loc.getValue(L.LABEL_TAGS)).setFlexGrow(2);
-        grid.addComponentColumn(this::contentCell).setHeader(loc.getValue(L.LABEL_CONTENT)).setFlexGrow(4);
+        grid.addComponentColumn(this::filteringModeBox).setHeader(loc.getValue(L.LABEL_FILTERING_MODE)).setFlexGrow(0)
+                .setWidth(COMBO_COLUMN_SIZE);
+        grid.addComponentColumn(this::filteringField).setHeader(loc.getValue(L.LABEL_FILTERING)).setFlexGrow(1)
+                .setWidth(TEXT_COLUMN_SIZE);
+        grid.addComponentColumn(this::insertionModeBox).setHeader(loc.getValue(L.LABEL_INSERTION_MODE)).setFlexGrow(0)
+                .setWidth(COMBO_COLUMN_SIZE);
+        grid.addComponentColumn(this::negativeTagsBox).setHeader(loc.getValue(L.LABEL_NEGATIVE_TAGS)).setFlexGrow(2);
+        grid.addComponentColumn(this::noteField).setHeader(loc.getValue(L.LABEL_NOTE)).setFlexGrow(1)
+                .setWidth(TEXT_COLUMN_SIZE);
+        grid.addComponentColumn(this::contentCell).setHeader(loc.getValue(L.LABEL_CONTENT)).setFlexGrow(4)
+                .setWidth(CONTENT_COLUMN_SIZE);
 
         targetBox = new ComboBox<>(loc.getValue(L.LABEL_MOVE_TO_LOREBOOK));
         targetBox.setItemLabelGenerator(book -> StringUtils.defaultString(book.getName()));
@@ -329,6 +346,74 @@ public class LorebookMassEditDialog extends Dialog {
         box.setForEntity(row.entry);
         box.setEnabled(!row.locked);
         return dimmed(box, row);
+    }
+
+    private ComboBox<FilteringMode> filteringModeBox(Row row) {
+        ComboBox<FilteringMode> box = new ComboBox<>();
+        box.setWidthFull();
+        box.setItems(FilteringMode.values());
+        box.setItemLabelGenerator(mode -> loc.getValue(loc.getFilteringMode(mode)));
+        box.setValue(row.entry.getFilteringMode());
+        box.setEnabled(!row.locked);
+        box.addValueChangeListener(event -> {
+            if (event.isFromClient()) {
+                row.entry.setFilteringMode(event.getValue());
+                save(row);
+            }
+        });
+        return dimmed(box, row);
+    }
+
+    private TextField filteringField(Row row) {
+        TextField field = new TextField();
+        field.setWidthFull();
+        field.setValue(StringUtils.defaultString(row.entry.getFiltering()));
+        field.setReadOnly(row.locked);
+        field.addValueChangeListener(event -> {
+            if (event.isFromClient()) {
+                row.entry.setFiltering(event.getValue());
+                save(row);
+            }
+        });
+        return dimmed(field, row);
+    }
+
+    private ComboBox<InsertionMode> insertionModeBox(Row row) {
+        ComboBox<InsertionMode> box = new ComboBox<>();
+        box.setWidthFull();
+        box.setItems(InsertionMode.values());
+        box.setItemLabelGenerator(mode -> loc.getValue(loc.getInsertionMode(mode)));
+        box.setValue(row.entry.getInsertionMode());
+        box.setEnabled(!row.locked);
+        box.addValueChangeListener(event -> {
+            if (event.isFromClient()) {
+                row.entry.setInsertionMode(event.getValue());
+                save(row);
+            }
+        });
+        return dimmed(box, row);
+    }
+
+    private TagMultiComboBox negativeTagsBox(Row row) {
+        TagMultiComboBox box = new TagMultiComboBox(null, true);
+        box.setWidthFull();
+        box.setForEntity(row.entry, true);
+        box.setEnabled(!row.locked);
+        return dimmed(box, row);
+    }
+
+    private TextField noteField(Row row) {
+        TextField field = new TextField();
+        field.setWidthFull();
+        field.setValue(StringUtils.defaultString(row.entry.getComment()));
+        field.setReadOnly(row.locked);
+        field.addValueChangeListener(event -> {
+            if (event.isFromClient()) {
+                row.entry.setComment(event.getValue());
+                save(row);
+            }
+        });
+        return dimmed(field, row);
     }
 
     private Div contentCell(Row row) {
