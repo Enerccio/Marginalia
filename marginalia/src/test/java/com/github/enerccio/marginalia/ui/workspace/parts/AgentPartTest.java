@@ -236,6 +236,9 @@ class AgentPartTest extends AgentTestBase {
         assertThat(has(actions, "Pause now")).isFalse();
 
         button(actions, "Resume").click();
+        // the note is optional: the dialog resumes without one
+        assertThat(agentRunService.findUnfinished(agent).getStatus()).isEqualTo(AgentRunStatus.PAUSED);
+        ComponentTree.button(part.getLastDialog(), "Resume").click();
         assertThat(agentRunService.findUnfinished(agent).getStatus()).isEqualTo(AgentRunStatus.RUNNING);
         assertThat(takenUp).hasSize(2).allSatisfy(taken -> assertThat(taken.getUuid()).isEqualTo(run.getUuid()));
 

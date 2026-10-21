@@ -31,7 +31,7 @@ The buttons at the end of a row depend on the run:
 | Button | |
 |---|---|
 | **Start** | Opens a menu. **Start immediately**: the agent works on its task (its instructions) on its own and you hear of it when it asks or finishes. **Start in console**: opens the [console](#the-console) and tells the agent not to work yet but to ask you at once what you want it to do; the run is then a [conversation](#a-run) that goes on until you press **Finish**. |
-| **Resume** | Goes on with a paused or stopped run (shown instead of **Start**). |
+| **Resume** | Goes on with a paused or stopped run (shown instead of **Start**). It asks for an optional note to the agent, see [Resuming a run](#resuming-a-run). |
 | **Pause** | Pauses a run that works or waits for you. |
 | **Pause now** | Shown while the agent works: pauses it without waiting for the round to end, see [Pause and Stop](#a-run). |
 | **Console** | Opens the [console](#the-console) of the agent. |
@@ -259,7 +259,11 @@ A paused or kept run does not hold the lock on your book, so you can edit the bo
 - What you changed and the agent deleted stays deleted, and what you deleted and the agent changed stays in the copy; the review shows both.
 
 Nothing needs a click: the sync is part of resuming, and it takes a moment (a few seconds when you changed hundreds of items). The state of the copy before it is saved as an automatic [checkpoint](#checkpoints). The agent is told what happened, by the names it knows
-the items by, in a message when it goes on ("While the run was paused the user changed the book..."), and can ask again with `get_sync_report`. To tell it something more, write to the run as usual.
+the items by, in a message when it goes on ("While the run was paused the user changed the book..."), and can ask again with `get_sync_report`.
+
+**A conflict does not go away by itself.** Every resume compares the copy with the book again, so a conflict is reported again, and the agent is told of it again, each time you resume, until you resolve it: by changing your side of the book (to the agent's text, or back to what it was), or in the review.
+
+**A note with the resume.** **Resume** opens a small window with a field *Note for the agent (optional)*. What you write there is the first thing the agent reads when it goes on, after the report of the changes you made to the book. It is meant for a change of direction ("leave the lorebook alone", "start with chapter 3") and, unlike a message to a conversation, it works for every run, also one that does not wait for your messages. Leave it empty to resume as before.
 
 ## Reviewing the result
 

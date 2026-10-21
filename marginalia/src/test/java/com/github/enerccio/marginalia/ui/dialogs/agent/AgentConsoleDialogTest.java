@@ -477,6 +477,8 @@ class AgentConsoleDialogTest extends AgentTestBase {
         assertThat(changed).isTrue();
 
         dialog.getResumeButton().click();
+        assertThat(dialog.getLastDialog()).isInstanceOf(AgentResumeDialog.class);
+        ((AgentResumeDialog) dialog.getLastDialog()).getResumeButton().click();
 
         assertThat(agentRunService.find(run.getId()).getStatus()).isEqualTo(AgentRunStatus.RUNNING);
         assertThat(takenUp).extracting(AgentRun::getId).containsExactly(run.getId());

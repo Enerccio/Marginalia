@@ -125,6 +125,24 @@ class AgentCloneAndStopDialogTest extends AgentTestBase {
     }
 
     @Test
+    void theResumeDialogPassesTheNoteStrippedAndEmptyWhenThereIsNone() {
+        List<String> notes = new ArrayList<>();
+        AgentResumeDialog dialog = new AgentResumeDialog(notes::add);
+        dialog.create();
+        dialog.open();
+        dialog.getNoteField().setValue("  Start with chapter 3.  ");
+        dialog.getResumeButton().click();
+        assertThat(dialog.isOpened()).isFalse();
+
+        AgentResumeDialog second = new AgentResumeDialog(notes::add);
+        second.create();
+        second.open();
+        second.getResumeButton().click();
+
+        assertThat(notes).containsExactly("Start with chapter 3.", "");
+    }
+
+    @Test
     void aLockedBookIsRefusedAndAFreeOneIsNot() throws Exception {
         Agent agent = agent();
         AgentLockCheck check = new AgentLockCheck();

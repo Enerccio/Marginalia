@@ -1684,15 +1684,26 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
          * The transcript as the loop can go on with it: the start of a new run, the end of an interrupted round.
          */
         private void prepare(List<LLMChatMessage> transcript) throws Exception {
+            String note = fileSystemService.takeResumeNote(run);
             if (transcript.isEmpty()) {
-                append(transcript, LLMChatMessage.of(LLMRole.USER, Defaults.DEFAULT_AGENT_START_MESSAGE));
+                append(transcript, LLMChatMessage.of(LLMRole.USER, note == null ? Defaults.DEFAULT_AGENT_START_MESSAGE
+                        : Defaults.DEFAULT_AGENT_START_MESSAGE + "\n\n" + note.strip()));
                 return;
             }
             repairCalls(transcript);
             // the user changed the book while the run was paused: the model hears what came into its copy and what did not
             String sync = fileSystemService.takePendingSync(run);
-            if (sync != null) {
-                append(transcript, LLMChatMessage.of(LLMRole.USER, sync + "\n\n" + Defaults.DEFAULT_AGENT_RESUME_MESSAGE));
+            if (sync != null || note != null) {
+                // the report first, then what the author wrote with the resume, then the way on: also for a run that is not a conversation
+                List<String> told = new ArrayList<>();
+                if (sync != null) {
+                    told.add(sync.strip());
+                }
+                if (note != null) {
+                    told.add(Defaults.AGENT_RESUME_NOTE + "\n" + note.strip());
+                }
+                told.add(Defaults.DEFAULT_AGENT_RESUME_MESSAGE);
+                append(transcript, LLMChatMessage.of(LLMRole.USER, String.join("\n\n", told)));
                 return;
             }
             LLMChatMessage last = transcript.getLast();

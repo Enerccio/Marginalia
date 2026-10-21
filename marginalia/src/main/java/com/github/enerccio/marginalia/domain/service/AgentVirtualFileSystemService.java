@@ -144,6 +144,21 @@ public interface AgentVirtualFileSystemService {
     String takePendingSync(AgentRun run);
 
     /**
+     * Keeps the note the author wrote with a resume, in the folder of the base, when the transaction commits, until the model is told
+     * ({@link #takeResumeNote}); a note that was not told yet is kept and the new one follows it. It is a file, so it survives a restart
+     * and does not need the queue of a conversation: an autonomous run has the note too.
+     *
+     * @throws IllegalArgumentException when the run is not a run of the user
+     */
+    void writeResumeNote(AgentRun run, String note) throws Exception;
+
+    /**
+     * The note of the author with the last resume that the model was not told of yet, and marks it as told; null when there is none.
+     * No check of the owner: the runner asks for the run it works.
+     */
+    String takeResumeNote(AgentRun run);
+
+    /**
      * Deletes the base snapshot of a run that has let go of its working copy, nothing is compared with it any more. The
      * file goes when the transaction commits.
      */

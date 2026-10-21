@@ -245,7 +245,12 @@ has `maxAgents` agents (the deleted ones don't count); `canCreate()` is the same
   `WAITING_APPROVAL`) is paused at once; a `RUNNING` one goes to `PAUSING` / `STOPPING` and the runner finishes the change at its next stable
   point, unless **no worker is registered** for it (`workerStarted(run)` / `workerFinished(run)`, the runner's to call, a set of run ids in
   memory), then the service takes the second step itself, so nothing waits for a runner that does not exist. `stop` of a run that is paused,
-  kept or done changes it at once; discarding deletes the working copy. `resume` checks what `start` checks (except the one-unfinished-run rule,
+  kept or done changes it at once; discarding deletes the working copy. `resume(run, note)` also keeps an optional note of the author for the model
+  (`AgentVirtualFileSystemService.writeResumeNote`, a file `resume-note.txt` in the folder of the base, written after the commit like the sync report; a second
+  note before the first was read follows it): the runner reads it in `Worker.prepare` (`takeResumeNote`), once, and sends it in the same message as the sync report
+  (the report, `Defaults.AGENT_RESUME_NOTE` + the note, `DEFAULT_AGENT_RESUME_MESSAGE`); a run without a transcript gets it after the start message. It is a file
+  and not the `Inbox` so that a run that is not a conversation (no inbox) and a restart in between lose nothing. The conflicts of the sync are not stored: the base
+  moves only for what was taken over, so the next `sync` finds them again and the report names them again on every resume. `resume` checks what `start` checks (except the one-unfinished-run rule,
   the run is that run). All three take the status of the `run` the caller has and fail with an `IllegalStateException` when it is out of date.
 - **Attention.** `AgentRunStatus.needsAttention(reason)` says which statuses the user should hear of (`IDLE`, `WAITING_APPROVAL`, `DONE`, `FAILED`, a `PAUSED` with a
   reason); every status change writes it into the column `agent_runs.attention` in the same SQL update as the status (`JpaAgentRunRepository.statusUpdate`), so it is

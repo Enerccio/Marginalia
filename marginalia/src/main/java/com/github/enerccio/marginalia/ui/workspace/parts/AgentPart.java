@@ -321,7 +321,13 @@ public class AgentPart implements WorkspaceComponent {
             startControl = startBar;
         } else {
             Button resumeButton = button(Solid.PLAY, L.LABEL_RESUME, () -> {
-                agentRunner.run(agentRunService.resume(run));
+                AgentResumeDialog dialog = new AgentResumeDialog(note -> perform(() -> {
+                    agentRunner.run(agentRunService.resume(run, note));
+                    return null;
+                }));
+                dialog.create();
+                dialog.open();
+                lastDialog = dialog;
                 return null;
             });
             resumeButton.setVisible(status.isResumable());

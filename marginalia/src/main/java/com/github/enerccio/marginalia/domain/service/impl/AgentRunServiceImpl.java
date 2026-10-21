@@ -173,6 +173,12 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
     @Override
     @CommonTx
     public AgentRun resume(AgentRun run) throws Exception {
+        return resume(run, null);
+    }
+
+    @Override
+    @CommonTx
+    public AgentRun resume(AgentRun run, String note) throws Exception {
         if (run == null || run.getId() == null) {
             throw new IllegalArgumentException("The run does not exist");
         }
@@ -194,6 +200,11 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
         } else if (current != null) {
             // the book may have changed while the run was away: the copy takes over what the agent did not change too
             mergeService.sync(current);
+        }
+        if (StringUtils.isNotBlank(note)) {
+            // only that there is a note, what the author writes is the story's business
+            log.info("Agent run {}: the author resumes it with a note of {} characters", run.getUuid(), note.strip().length());
+            fileSystemService.writeResumeNote(run, note);
         }
         return transition(run, AgentRunStatus.RUNNING, null);
     }

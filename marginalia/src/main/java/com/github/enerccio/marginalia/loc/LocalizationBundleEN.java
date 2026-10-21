@@ -588,6 +588,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_COMMANDS_SAME, "Same as the agent");
         setValue(L.LABEL_AGENT_COMMANDS_NONE, "No commands");
         setValue(L.LABEL_AGENT_TEXT_ONLY, "Text only");
+        setValue(L.LABEL_AGENT_RESUME_NOTE, "Note for the agent (optional)");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1044,6 +1045,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_SELF_SUBAGENT, "Off: the agent can start sub-agents only on the other models of the list. With no other model the agent gets no tools for sub-agents.");
         setValue(L.HELP_AGENT_MODEL_COMMANDS, "Off: a sub-agent on this model has the commands of the agent. On: only the ticked commands, and of those only the ones the agent is allowed. The tools for files are not commands, a sub-agent always has them.");
         setValue(L.HELP_AGENT_MODEL_TOOLS, "Off: the model only answers with text, it gets no commands and no tools.");
+        setValue(L.HELP_AGENT_RESUME_NOTE, "The agent reads this first when it goes on, after the report of the changes you made to the book, if there are any. It works for every run, also one that does not wait for your messages.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

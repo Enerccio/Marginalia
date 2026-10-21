@@ -240,6 +240,37 @@ class AgentSyncTest extends AgentTestBase {
     }
 
     @Test
+    void aConflictIsToldAgainOnEveryResumeUntilItIsResolved() throws Exception {
+        edit(inCopy("there was a dragon"), "there was a small dragon");
+        pause();
+        edit(inBook("there was a dragon"), "there lived a dragon");
+        resume();
+        assertThat(fileSystemService.takePendingSync(run)).contains("the user changed it too (text)");
+
+        pauseAndResume();
+
+        assertThat(report()).as("nothing changed meanwhile, the conflict is still there").contains("Not taken over, your version is kept")
+                .contains("the user changed it too (text)");
+        assertThat(fileSystemService.takePendingSync(run)).as("and the model is told again").contains("the user changed it too (text)");
+
+        // the user takes the agent's version into the book: nothing conflicts any more
+        pause();
+        edit(inBook("there lived a dragon"), "there was a small dragon");
+        resume();
+
+        assertThat(report()).isNull();
+    }
+
+    @Test
+    void theNoteOfAResumeIsToldOnceAndAnotherOneFollowsTheFirst() throws Exception {
+        assertThat(fileSystemService.takeResumeNote(run)).isNull();
+        fileSystemService.writeResumeNote(run, "  Look at the castle first.  ");
+        fileSystemService.writeResumeNote(run, "And leave the dragon.");
+        assertThat(fileSystemService.takeResumeNote(run)).isEqualTo("Look at the castle first.\n\nAnd leave the dragon.");
+        assertThat(fileSystemService.takeResumeNote(run)).as("told once").isNull();
+    }
+
+    @Test
     void theFieldsOfAPartAreSyncedOneByOne() throws Exception {
         edit(inCopy("there was a dragon"), "there was a small dragon");
         pause();

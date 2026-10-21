@@ -588,6 +588,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_COMMANDS_SAME, "エージェントと同じ");
         setValue(L.LABEL_AGENT_COMMANDS_NONE, "コマンドなし");
         setValue(L.LABEL_AGENT_TEXT_ONLY, "テキストのみ");
+        setValue(L.LABEL_AGENT_RESUME_NOTE, "エージェントへのメモ（任意）");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1044,6 +1045,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_SELF_SUBAGENT, "オフ：エージェントは一覧のほかのモデルでのみサブエージェントを起動できます。ほかのモデルがない場合、サブエージェント用のツールは渡されません。");
         setValue(L.HELP_AGENT_MODEL_COMMANDS, "オフ：このモデルのサブエージェントはエージェントと同じコマンドを使います。オン：チェックしたコマンドのみ、その中でもエージェントに許可されたものだけです。ファイルのツールはコマンドではなく、サブエージェントは常に使えます。");
         setValue(L.HELP_AGENT_MODEL_TOOLS, "オフ：モデルはテキストでの回答のみで、コマンドもツールも渡されません。");
+        setValue(L.HELP_AGENT_RESUME_NOTE, "エージェントは再開時にまずこれを読みます。本に加えた変更の報告がある場合は、その後です。メッセージを待たない実行でも使えます。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");
