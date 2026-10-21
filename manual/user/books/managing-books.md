@@ -29,7 +29,22 @@ The row below the headers filters the list:
 
 The refresh button at the end of the filter row reloads the list.
 
-Each row has two buttons: the pen opens the book, the trash button deletes it.
+Each row has three buttons: the pen opens the book, the clone button makes a copy of it and the trash button deletes it.
+
+### Cloning a book
+
+The clone button asks for the **Name** of the new book (the name of the original with *(Copy)* by default) and has the
+check box **Only current branch**, checked by default. The new book is a separate book that gets:
+
+- the settings of the book (description, language, prompts, point of view, tense, style, backup settings), the data
+  that extensions keep in the book, and the tags;
+- the same **Model**, **Protocol** and **lorebook**. The lorebook is *linked*, not copied: a change of it shows in both
+  books;
+- the story with its own copy of the parts, their summaries and pictures. With **Only current branch** only the parts from
+  the beginning to the end of the [active branch](branches-and-story-tree.md) are copied; without it all the branches
+  are.
+
+The clone is not published, even if the original is. The original is not changed.
 
 ### Tagging many books at once
 

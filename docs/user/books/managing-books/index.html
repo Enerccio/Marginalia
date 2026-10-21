@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845922330825">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845922886868">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845922330825" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845922886868" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845922330825" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845922886868" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845922330825" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845922886868" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -225,7 +225,26 @@ the list is sorted by all of them in order.</p>
 </li>
 </ul>
 <p>The refresh button at the end of the filter row reloads the list.</p>
-<p>Each row has two buttons: the pen opens the book, the trash button deletes it.</p>
+<p>Each row has three buttons: the pen opens the book, the clone button makes a copy of it and the trash button deletes it.</p>
+<h3 id="cloning-a-book">Cloning a book</h3>
+<p>The clone button asks for the <strong>Name</strong> of the new book (the name of the original with <em>(Copy)</em> by default) and has the
+check box <strong>Only current branch</strong>, checked by default. The new book is a separate book that gets:</p>
+<ul>
+<li>
+<p>the settings of the book (description, language, prompts, point of view, tense, style, backup settings), the data
+that extensions keep in the book, and the tags;</p>
+</li>
+<li>
+<p>the same <strong>Model</strong>, <strong>Protocol</strong> and <strong>lorebook</strong>. The lorebook is <em>linked</em>, not copied: a change of it shows in both
+books;</p>
+</li>
+<li>
+<p>the story with its own copy of the parts, their summaries and pictures. With <strong>Only current branch</strong> only the parts from
+the beginning to the end of the <a href="../branches-and-story-tree/">active branch</a> are copied; without it all the branches
+are.</p>
+</li>
+</ul>
+<p>The clone is not published, even if the original is. The original is not changed.</p>
 <h3 id="tagging-many-books-at-once">Tagging many books at once</h3>
 <p><strong>Tag books</strong> (next to <strong>Add Book</strong>) opens a window that puts one tag on many books, or takes it off them, without opening
 each. Pick the <strong>Tag</strong> (or type a new one and press Enter) and the list shows every book with its tags; the books that have
@@ -374,7 +393,7 @@ where they are.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (3c390225).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (bf01940b).</p></div>
             </footer>
         </div>
     </div>
