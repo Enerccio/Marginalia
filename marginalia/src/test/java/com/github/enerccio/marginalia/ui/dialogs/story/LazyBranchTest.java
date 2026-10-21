@@ -9,7 +9,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Which parts of a branch the story (tail) and the reader (head) have loaded, no UI involved.
+ * Which parts of a branch the story (tail) and the reader (head) have loaded while the window slides, no UI involved.
  */
 class LazyBranchTest {
 
@@ -36,32 +36,80 @@ class LazyBranchTest {
         assertThat(window.total()).isEqualTo(10);
         assertThat(window.hasEarlier()).isTrue();
         assertThat(window.hasLater()).isFalse();
+        assertThat(window.atTail()).isTrue();
     }
 
     @Test
-    void tailLoadsEarlierChunksUntilTheStart() {
+    void scrollingUpLoadsHalfOfTheWindowAndDropsTheSameFromTheEnd() {
         LazyBranch window = LazyBranch.tail(branch(10), 4);
 
-        assertThat(ids(window.loadEarlier())).containsExactly(3L, 4L, 5L, 6L);
-        assertThat(window.offset()).isEqualTo(2);
+        assertThat(ids(window.loadEarlier())).containsExactly(5L, 6L);
+        assertThat(ids(window.trimLater())).containsExactly(9L, 10L);
+        assertThat(ids(window.loaded())).containsExactly(5L, 6L, 7L, 8L);
+        assertThat(window.offset()).isEqualTo(4);
+        assertThat(window.hasLater()).isTrue();
+        assertThat(window.atTail()).isFalse();
+
+        assertThat(ids(window.loadEarlier())).containsExactly(3L, 4L);
+        assertThat(ids(window.trimLater())).containsExactly(7L, 8L);
         assertThat(ids(window.loadEarlier())).containsExactly(1L, 2L);
-        assertThat(window.offset()).isZero();
+        assertThat(ids(window.trimLater())).containsExactly(5L, 6L);
+        assertThat(ids(window.loaded())).containsExactly(1L, 2L, 3L, 4L);
         assertThat(window.hasEarlier()).isFalse();
         assertThat(window.loadEarlier()).isEmpty();
-        assertThat(ids(window.loaded())).hasSize(10);
+        assertThat(window.trimLater()).isEmpty();
     }
 
     @Test
-    void headStartsWithTheFirstPartsAndLoadsLater() {
+    void scrollingBackDownLoadsTheDroppedPartsAgain() {
+        LazyBranch window = LazyBranch.tail(branch(10), 4);
+        window.loadEarlier();
+        window.trimLater();
+
+        assertThat(ids(window.loadLater())).containsExactly(9L, 10L);
+        assertThat(ids(window.trimEarlier())).containsExactly(5L, 6L);
+        assertThat(ids(window.loaded())).containsExactly(7L, 8L, 9L, 10L);
+        assertThat(window.atTail()).isTrue();
+        assertThat(window.loadLater()).isEmpty();
+    }
+
+    @Test
+    void headStartsWithTheFirstPartsAndSlidesLater() {
         LazyBranch window = LazyBranch.head(branch(10), 4);
 
         assertThat(ids(window.loaded())).containsExactly(1L, 2L, 3L, 4L);
         assertThat(window.hasEarlier()).isFalse();
         assertThat(window.hasLater()).isTrue();
-        assertThat(ids(window.loadLater())).containsExactly(5L, 6L, 7L, 8L);
+        assertThat(ids(window.loadLater())).containsExactly(5L, 6L);
+        assertThat(ids(window.trimEarlier())).containsExactly(1L, 2L);
+        assertThat(ids(window.loadLater())).containsExactly(7L, 8L);
+        assertThat(ids(window.trimEarlier())).containsExactly(3L, 4L);
         assertThat(ids(window.loadLater())).containsExactly(9L, 10L);
+        assertThat(ids(window.trimEarlier())).containsExactly(5L, 6L);
         assertThat(window.hasLater()).isFalse();
-        assertThat(window.loadLater()).isEmpty();
+        assertThat(ids(window.loaded())).containsExactly(7L, 8L, 9L, 10L);
+    }
+
+    @Test
+    void theWindowKeepsGrowingUntilItIsTrimmed() {
+        LazyBranch window = LazyBranch.tail(branch(10), 4);
+
+        window.loadEarlier();
+        window.loadEarlier();
+        assertThat(ids(window.loaded())).hasSize(8).startsWith(3L).endsWith(10L);
+
+        assertThat(ids(window.trimLater())).containsExactly(7L, 8L, 9L, 10L);
+        assertThat(ids(window.loaded())).containsExactly(3L, 4L, 5L, 6L);
+    }
+
+    @Test
+    void aWindowOfOnePartSlidesByOne() {
+        LazyBranch window = LazyBranch.tail(branch(3), 1);
+
+        assertThat(ids(window.loaded())).containsExactly(3L);
+        assertThat(ids(window.loadEarlier())).containsExactly(2L);
+        assertThat(ids(window.trimLater())).containsExactly(3L);
+        assertThat(ids(window.loaded())).containsExactly(2L);
     }
 
     @Test
@@ -92,30 +140,63 @@ class LazyBranchTest {
     }
 
     @Test
-    void loadsEarlierThroughAPart() {
-        LazyBranch window = LazyBranch.tail(branch(20), 5);
+    void centersOnAPartThatIsNotLoaded() {
+        LazyBranch window = LazyBranch.tail(branch(20), 6);
 
-        // part 4 is at index 3, the window starts at index 15: three chunks of five are needed
-        assertThat(ids(window.loadEarlierThrough(4L))).hasSize(15).startsWith(1L).endsWith(15L);
-        assertThat(window.offset()).isZero();
-        assertThat(window.loadEarlierThrough(4L)).isEmpty();
+        assertThat(window.centerOn(4L)).isTrue();
+        assertThat(ids(window.loaded())).containsExactly(1L, 2L, 3L, 4L, 5L, 6L);
+
+        assertThat(window.centerOn(12L)).isTrue();
+        assertThat(ids(window.loaded())).containsExactly(9L, 10L, 11L, 12L, 13L, 14L);
+        assertThat(window.offset()).isEqualTo(8);
+        assertThat(window.isLoaded(12L)).isTrue();
+        assertThat(window.isLoaded(1L)).isFalse();
     }
 
     @Test
-    void loadsEarlierThroughAPartInOneChunk() {
-        LazyBranch window = LazyBranch.tail(branch(20), 5);
+    void centeringNearTheEndStopsAtTheEnd() {
+        LazyBranch window = LazyBranch.head(branch(20), 6);
 
-        assertThat(ids(window.loadEarlierThrough(12L))).containsExactly(11L, 12L, 13L, 14L, 15L);
-        assertThat(window.offset()).isEqualTo(10);
+        assertThat(window.centerOn(19L)).isTrue();
+        assertThat(ids(window.loaded())).containsExactly(15L, 16L, 17L, 18L, 19L, 20L);
+        assertThat(window.atTail()).isTrue();
     }
 
     @Test
-    void loadingThroughALoadedOrUnknownPartChangesNothing() {
+    void centeringOnALoadedOrUnknownPartChangesNothing() {
         LazyBranch window = LazyBranch.tail(branch(20), 5);
 
-        assertThat(window.loadEarlierThrough(20L)).isEmpty();
-        assertThat(window.loadEarlierThrough(999L)).isEmpty();
-        assertThat(window.loadEarlierThrough(null)).isEmpty();
+        assertThat(window.centerOn(20L)).isFalse();
+        assertThat(window.centerOn(999L)).isFalse();
+        assertThat(window.centerOn(null)).isFalse();
         assertThat(window.offset()).isEqualTo(15);
+    }
+
+    @Test
+    void movesBackToTheTail() {
+        LazyBranch window = LazyBranch.tail(branch(20), 5);
+        window.centerOn(2L);
+
+        window.moveToTail();
+
+        assertThat(ids(window.loaded())).containsExactly(16L, 17L, 18L, 19L, 20L);
+        assertThat(window.atTail()).isTrue();
+    }
+
+    @Test
+    void refreshReplacesThePartByTheNewInstance() {
+        LazyBranch window = LazyBranch.tail(branch(5), 5);
+        ChatMessage edited = new ChatMessage();
+        edited.setId(3L);
+        edited.setResponse("edited");
+
+        window.refresh(edited);
+        window.refresh(null);
+        ChatMessage unknown = new ChatMessage();
+        unknown.setId(99L);
+        window.refresh(unknown);
+
+        assertThat(window.loaded().get(2)).isSameAs(edited);
+        assertThat(window.loaded()).hasSize(5);
     }
 }

@@ -24,8 +24,11 @@ The divider between the sidebar and the parts can be dragged. Marginalia remembe
 and returns to it when you open the book again.
 
 The story always opens at the bottom, at the newest part. A long book is not drawn all at once: only the last parts are
-loaded, and the earlier ones are added above as you scroll up, without moving the part you are reading. How many parts are
-loaded at a time is the **Parts loaded at once in the story** setting of your [account](../account.md) (empty loads all of them).
+loaded, and the earlier ones are added above as you scroll up, without moving the part you are reading. The parts at the
+other end are dropped again, so no more than the **Parts loaded at once in the story** setting of your
+[account](../account.md) stay loaded (empty loads all of them). If you scroll faster than the parts arrive, a *Loading
+earlier parts* (or *later parts*) mark at the edge says that there is more. Clicking a part in the outline, or finding one
+with the search, loads the parts around it, and starting a new part brings you back to the end of the story.
 
 ### The lorebook tab
 

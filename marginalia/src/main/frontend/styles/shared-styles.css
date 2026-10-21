@@ -559,11 +559,28 @@ vaadin-markdown.agent-report td {
 .story-scroll-panel {
     padding: 8px;
     overscroll-behavior: contain;
+    /* the lazy loading keeps the visible part in place itself, see JavascriptLibrary.restoreAnchor */
+    overflow-anchor: none;
+}
+
+.lazy-load-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--lumo-space-xs);
+    padding: var(--lumo-space-m);
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-s);
+}
+
+.lazy-load-indicator vaadin-progress-bar {
+    width: 10em;
 }
 
 .reader-scroll-panel {
     padding: 12px;
     overscroll-behavior: contain;
+    overflow-anchor: none;
 }
 
 .reader-content {

@@ -80,6 +80,7 @@ public final class CssStyles {
     public static final String TAB_DOCK_DRAGGING = "tab-dock-dragging";
     public static final String STORY_SCROLL_PANEL = "story-scroll-panel";
     public static final String READER_SCROLL_PANEL = "reader-scroll-panel";
+    public static final String LAZY_LOAD_INDICATOR = "lazy-load-indicator";
     public static final String READER_CONTENT = "reader-content";
     public static final String FLOATING_BACK_BUTTON = "floating-back-button";
 

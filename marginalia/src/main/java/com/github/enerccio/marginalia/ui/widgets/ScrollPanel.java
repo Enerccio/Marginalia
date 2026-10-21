@@ -6,6 +6,8 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
 public class ScrollPanel extends VerticalLayout {
     private VerticalLayout content;
+    private Component header;
+    private Component footer;
 
     public ScrollPanel(){
         super();
@@ -29,6 +31,33 @@ public class ScrollPanel extends VerticalLayout {
 
     public VerticalLayout getContent(){
         return content;
+    }
+
+    /**
+     * Puts the component before the content, inside the scrolled area (a "loading earlier parts" indicator).
+     * {@link #removeAll()} leaves it there.
+     */
+    public void setHeader(Component header) {
+        if (this.header != null) {
+            super.remove(this.header);
+        }
+        this.header = header;
+        if (header != null) {
+            super.addComponentAsFirst(header);
+        }
+    }
+
+    /**
+     * Puts the component after the content, inside the scrolled area. {@link #removeAll()} leaves it there.
+     */
+    public void setFooter(Component footer) {
+        if (this.footer != null) {
+            super.remove(this.footer);
+        }
+        this.footer = footer;
+        if (footer != null) {
+            super.add(footer);
+        }
     }
 
     @Override
