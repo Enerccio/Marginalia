@@ -936,6 +936,35 @@ vaadin-dialog-overlay.agent-console-phone .help-message-user {
     color: var(--lumo-secondary-text-color);
 }
 
+/* the plan of an agent run, in the popover of the console */
+.agent-plan {
+    max-width: min(420px, 85vw);
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.agent-plan-item {
+    display: flex;
+    gap: var(--lumo-space-s);
+    align-items: baseline;
+    padding: var(--lumo-space-xs) 0;
+}
+
+.agent-plan-done {
+    color: var(--lumo-secondary-text-color);
+    text-decoration: line-through;
+}
+
+.agent-plan-active {
+    font-weight: 600;
+}
+
+/* the count of the agents that wait for the user, in the top bar of the phone while the drawer is closed */
+.agent-attention-cue {
+    margin-inline-start: auto;
+    margin-inline-end: var(--lumo-space-s);
+}
+
 .help-message-error {
     background: var(--lumo-error-color-10pct);
     color: var(--lumo-error-text-color);

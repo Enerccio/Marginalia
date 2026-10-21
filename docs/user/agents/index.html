@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845919947397">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845922330825">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845919947397" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845922330825" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845919947397" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845922330825" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845919947397" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845922330825" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -274,15 +274,15 @@ Every round is saved, so a run can be paused and go on later, even after the ser
 these of its own:</p>
 <retype-table copy-text="| Tool | |
 |---|---|
-| Files | `list_files`, `read_file`, `write_file`, `append_file`, `replace_in_file`, `regex_replace_in_file`, `grep_files`, `move_file`, `copy_file`, `merge_files`, `unzip_file`, `delete_file` in its own workspace (notes it keeps between runs). Next to the workspace it sees the read-only file `/AGENTS.md`, your instructions as the run started with them, which it can read again whenever it likes and never change. `list_files` and `grep_files` take a name pattern (`glob`, for example `*.md` or `chapters/*.md`), `copy_file` copies a folder with everything in it (a quick way to keep a version of the notes), `merge_files` joins several files into one without the text passing through the model (the last name of a path may be a pattern such as `/chapters/*.md`), `unzip_file` unpacks a [zip file](#unpacking-a-zip-file) of the workspace into a new folder. `list_command_results` and `save_command_result` keep the long result of a command without the agent writing it out again: the last ten results are kept whole (the agent sees a long one cut), and one is saved to a file by its number, the newest when none is given; it then passes the file on as `@file:/path`. |
+| Files | `list_files`, `read_file`, `write_file`, `append_file`, `replace_in_file`, `regex_replace_in_file`, `grep_files`, `move_file`, `copy_file`, `merge_files`, `unzip_file`, `delete_file` in its own workspace (notes it keeps between runs). Next to the workspace it sees the read-only file `/AGENTS.md`, your instructions as the run started with them, which it can read again whenever it likes and never change. `list_files` and `grep_files` take a name pattern (`glob`, for example `*.md` or `chapters/*.md`), `copy_file` copies a folder with everything in it (a quick way to keep a version of the notes), `merge_files` joins several files into one without the text passing through the model (the last name of a path may be a pattern such as `/chapters/*.md`), `unzip_file` unpacks a [zip file](#unpacking-a-zip-file) of the workspace into a new folder. `replace_in_file` and `regex_replace_in_file` take a **folder** as the path too: they change every occurrence in all the text files below it (only the files whose name matches `glob`, when given) and report `path: n replacements` for each file. That is a **dry run** (nothing is written, the report says what would change) unless the agent passes `dry_run` false; it is all or nothing (when one file can't be written, none is changed) and refused, with nothing changed, when more than `max_files` (100 unless the agent says more) files would change. A single file can be a dry run too. `list_command_results` and `save_command_result` keep the long result of a command without the agent writing it out again: the last ten results are kept whole (the agent sees a long one cut), and one is saved to a file by its number, the newest when none is given; it then passes the file on as `@file:/path`. |
 | `@file:/path` | Not a tool but a way to call one: a text argument of a command that is exactly `@file:/notes/chapter.md` is replaced by the contents of that file of the agent's workspace, so the agent can write a long text to a file once, check it, and pass it to a command (the result shows the short reference in the call, the command gets the text). `write_file` and `append_file` take it as their content too, which copies a file or adds it to another: a long file can be written in parts, each part within the longest answer of the model, and put together this way. |
 | `@result` | Like `@file:`, for the result of a command: a text argument that is exactly `@result` is replaced by the whole result of the last command the agent called, `@result:3` by the result with that number (`list_command_results` shows the numbers). A generated text goes from one command to the next, or into `write_file` and `append_file`, without the agent writing it out. |
 | `search_manual`, `read_manual_page` | Look something up in the Marginalia user manual (the same pages the help assistant reads): how a prompt template or a macro works, what a lorebook setting does. Read only; every agent has them. |
 | `view_image` | Looks at an image file of its workspace (PNG, JPEG, GIF or WebP): the picture is shown to the model in the next message. Only an agent whose model is marked as seeing images (**The model sees images** in the agent) has it. A large image is scaled down before it is sent, a GIF shows its first frame, and only the newest four images stay in front of the model (an older one becomes a note, and the agent can look again). The images come from you (**Upload file**, or [attached to a message](#the-console)); the agent can't make one. |
 | Images for commands | A command that sends pictures to a model of its own, such as [`generate-lore-entry`](extensions/lore-generator.md#commands), takes an `images` parameter: a list of paths of image files of the workspace (at most 8). It is the model of the command, not the agent's, that has to see them, so the agent can pass images even when its own model does not see images. |
 | `update_plan` | Its to-do list. |
-| `get_run_status` | How many rounds and tokens it has used, how much context, and the longest answer it can write. The agent is also told these limits of its model in its prompt, so it writes a long text in parts. |
-| `checkpoint`, `checkpoint_list`, `checkpoint_restore`, `checkpoint_delete` | Its [checkpoints](#checkpoints): saves a restore point of the working copy and its workspace (with a label), lists them, goes back to one (when the round ends) and deletes one it does not need. |
+| `get_run_status` | How many rounds and tokens it has used, how much context, and the longest answer it can write; its plan; and its sub-agents: a line for each with its state, round, tokens, what it did last and its task. The agent is also told these limits of its model in its prompt, so it writes a long text in parts. |
+| `checkpoint`, `checkpoint_list`, `checkpoint_diff`, `checkpoint_restore`, `checkpoint_delete` | Its [checkpoints](#checkpoints): saves a restore point of the working copy and its workspace (with a label), lists them, shows what changed since one (the settings, parts, lorebooks and entries of the book that were added, changed or deleted, and the files of the workspace; with a path only that file or folder, and for a text file the sentences that differ), goes back to one (when the round ends) and deletes one it does not need. |
 | `get_sync_report` | Only after a resume that took over changes of yours: lists again what you changed in the book while the run was paused and what of it came into the agent's copy, see [Resuming a run](#resuming-a-run). |
 | `request_compaction` | Compacts its own context: when the round ends it writes the summary of its earlier work, as with `/compact`. It is told to save its notes to a file first. See [Context filling up](#running-a-command-yourself). |
 | `ask_user` | A question for you. The run waits (*Waiting for you*). |
@@ -298,7 +298,7 @@ these of its own:</p>
 <tbody>
 <tr>
 <td>Files</td>
-<td><code translate="no" v-pre>list_files</code>, <code translate="no" v-pre>read_file</code>, <code translate="no" v-pre>write_file</code>, <code translate="no" v-pre>append_file</code>, <code translate="no" v-pre>replace_in_file</code>, <code translate="no" v-pre>regex_replace_in_file</code>, <code translate="no" v-pre>grep_files</code>, <code translate="no" v-pre>move_file</code>, <code translate="no" v-pre>copy_file</code>, <code translate="no" v-pre>merge_files</code>, <code translate="no" v-pre>unzip_file</code>, <code translate="no" v-pre>delete_file</code> in its own workspace (notes it keeps between runs). Next to the workspace it sees the read-only file <code translate="no" v-pre>/AGENTS.md</code>, your instructions as the run started with them, which it can read again whenever it likes and never change. <code translate="no" v-pre>list_files</code> and <code translate="no" v-pre>grep_files</code> take a name pattern (<code translate="no" v-pre>glob</code>, for example <code translate="no" v-pre>*.md</code> or <code translate="no" v-pre>chapters/*.md</code>), <code translate="no" v-pre>copy_file</code> copies a folder with everything in it (a quick way to keep a version of the notes), <code translate="no" v-pre>merge_files</code> joins several files into one without the text passing through the model (the last name of a path may be a pattern such as <code translate="no" v-pre>/chapters/*.md</code>), <code translate="no" v-pre>unzip_file</code> unpacks a <doc-anchor-trigger to="#unpacking-a-zip-file">zip file</doc-anchor-trigger> of the workspace into a new folder. <code translate="no" v-pre>list_command_results</code> and <code translate="no" v-pre>save_command_result</code> keep the long result of a command without the agent writing it out again: the last ten results are kept whole (the agent sees a long one cut), and one is saved to a file by its number, the newest when none is given; it then passes the file on as <code translate="no" v-pre>@file:/path</code>.</td>
+<td><code translate="no" v-pre>list_files</code>, <code translate="no" v-pre>read_file</code>, <code translate="no" v-pre>write_file</code>, <code translate="no" v-pre>append_file</code>, <code translate="no" v-pre>replace_in_file</code>, <code translate="no" v-pre>regex_replace_in_file</code>, <code translate="no" v-pre>grep_files</code>, <code translate="no" v-pre>move_file</code>, <code translate="no" v-pre>copy_file</code>, <code translate="no" v-pre>merge_files</code>, <code translate="no" v-pre>unzip_file</code>, <code translate="no" v-pre>delete_file</code> in its own workspace (notes it keeps between runs). Next to the workspace it sees the read-only file <code translate="no" v-pre>/AGENTS.md</code>, your instructions as the run started with them, which it can read again whenever it likes and never change. <code translate="no" v-pre>list_files</code> and <code translate="no" v-pre>grep_files</code> take a name pattern (<code translate="no" v-pre>glob</code>, for example <code translate="no" v-pre>*.md</code> or <code translate="no" v-pre>chapters/*.md</code>), <code translate="no" v-pre>copy_file</code> copies a folder with everything in it (a quick way to keep a version of the notes), <code translate="no" v-pre>merge_files</code> joins several files into one without the text passing through the model (the last name of a path may be a pattern such as <code translate="no" v-pre>/chapters/*.md</code>), <code translate="no" v-pre>unzip_file</code> unpacks a <doc-anchor-trigger to="#unpacking-a-zip-file">zip file</doc-anchor-trigger> of the workspace into a new folder. <code translate="no" v-pre>replace_in_file</code> and <code translate="no" v-pre>regex_replace_in_file</code> take a <strong>folder</strong> as the path too: they change every occurrence in all the text files below it (only the files whose name matches <code translate="no" v-pre>glob</code>, when given) and report <code translate="no" v-pre>path: n replacements</code> for each file. That is a <strong>dry run</strong> (nothing is written, the report says what would change) unless the agent passes <code translate="no" v-pre>dry_run</code> false; it is all or nothing (when one file can&#x27;t be written, none is changed) and refused, with nothing changed, when more than <code translate="no" v-pre>max_files</code> (100 unless the agent says more) files would change. A single file can be a dry run too. <code translate="no" v-pre>list_command_results</code> and <code translate="no" v-pre>save_command_result</code> keep the long result of a command without the agent writing it out again: the last ten results are kept whole (the agent sees a long one cut), and one is saved to a file by its number, the newest when none is given; it then passes the file on as <code translate="no" v-pre>@file:/path</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>@file:/path</code></td>
@@ -326,11 +326,11 @@ these of its own:</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>get_run_status</code></td>
-<td>How many rounds and tokens it has used, how much context, and the longest answer it can write. The agent is also told these limits of its model in its prompt, so it writes a long text in parts.</td>
+<td>How many rounds and tokens it has used, how much context, and the longest answer it can write; its plan; and its sub-agents: a line for each with its state, round, tokens, what it did last and its task. The agent is also told these limits of its model in its prompt, so it writes a long text in parts.</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>checkpoint</code>, <code translate="no" v-pre>checkpoint_list</code>, <code translate="no" v-pre>checkpoint_restore</code>, <code translate="no" v-pre>checkpoint_delete</code></td>
-<td>Its <doc-anchor-trigger to="#checkpoints">checkpoints</doc-anchor-trigger>: saves a restore point of the working copy and its workspace (with a label), lists them, goes back to one (when the round ends) and deletes one it does not need.</td>
+<td><code translate="no" v-pre>checkpoint</code>, <code translate="no" v-pre>checkpoint_list</code>, <code translate="no" v-pre>checkpoint_diff</code>, <code translate="no" v-pre>checkpoint_restore</code>, <code translate="no" v-pre>checkpoint_delete</code></td>
+<td>Its <doc-anchor-trigger to="#checkpoints">checkpoints</doc-anchor-trigger>: saves a restore point of the working copy and its workspace (with a label), lists them, shows what changed since one (the settings, parts, lorebooks and entries of the book that were added, changed or deleted, and the files of the workspace; with a path only that file or folder, and for a text file the sentences that differ), goes back to one (when the round ends) and deletes one it does not need.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>get_sync_report</code></td>
@@ -386,6 +386,7 @@ is one) stay above it and the box for your message under it, while the transcrip
 <li>a <strong>Question of the agent</strong>, when the run is <em>Waiting for you</em>; write the answer in the box and press <strong>Send</strong> (or <strong>Ctrl+Enter</strong>), and the agent goes on;</li>
 <li>a <strong>Report of the agent</strong>, when it called <code translate="no" v-pre>finish</code>.</li>
 </ul>
+<p>The line above the transcript shows the state of the run and its numbers: the rounds, the size of the context against its cap, the <strong>Reply limit</strong> (the most tokens the model of the agent can write in one answer; a call that needs more is cut off, so the agent writes long texts in parts) and the tokens in total. When the agent has made a plan (<code translate="no" v-pre>update_plan</code>), a <strong>Plan</strong> button with the steps done out of all (<strong>Plan 2/5</strong>) appears there; it opens the steps in a popover, each with a mark for <em>Done</em>, <em>In progress</em> or <em>To do</em>.</p>
 <p>In a conversation you can also write while the agent <strong>works</strong>. The message is <strong>queued</strong>: it appears as a dashed bubble at the end of the transcript and the agent
 reads it as soon as the round it is in is over: the request to the model that is on its way and the calls it made finish first, and the next request already contains
 your message (several queued messages go together as one). When it should not wait even for that, press the
@@ -784,10 +785,24 @@ the line under the instructions adds up the ticked ones: the whole set is about 
 <h2 id="on-a-phone">On a phone</h2>
 <p>The phone layout has an <strong>Agents</strong> tab in the drawer, for users who may use agents, with the count of the agents that need you beside its name. Each agent is a card with its name, its state and the buttons of the table (they wrap onto more lines). The windows - the console, the review, the agent&#x27;s settings - fill the screen, and the review shows the table above the detail of the item. Everything works as on the desktop, only smaller. The console is laid out for a thumb:</p>
 <ul>
-<li><strong>Tabs are icons</strong> (run, runs, workspace, checkpoints, context, book copy, sub-agents, diagnostics); the title of the window names the one that is open.</li>
-<li><strong>Pause, Pause now, Resume, Finish and Stop are icon buttons at the bottom, and only the ones that can be used now are shown</strong>; <strong>Review changes</strong> keeps its words, it is what a finished run waits for. <strong>Refresh</strong> and <strong>Close</strong> are icons in the header.</li>
-<li><strong>The message box is one line</strong> with the <strong>Send</strong> and <strong>Attach image</strong> icons beside it. The <strong>command line</strong> (the terminal icon) is hidden until you open it, so the keyboard does not cover the transcript for nothing. The messages of the transcript use the whole width.</li>
-<li><strong>Tables are lists of cards</strong>: a run, a checkpoint, a command of the agent&#x27;s settings, an item of the review each show their name and state with the details under it and their buttons below, in place of columns. The files of the workspace show their size under the name, and the toolbar of the workspace is icons. The context table keeps the number, name and tokens; the type and share of a part are under the text of the part you pick.</li>
+<li>
+<p><strong>Tabs are icons</strong> (run, runs, workspace, checkpoints, context, book copy, sub-agents, diagnostics); the title of the window names the one that is open.</p>
+</li>
+<li>
+<p><strong>Pause, Pause now, Resume, Finish and Stop are icon buttons at the bottom, and only the ones that can be used now are shown</strong>; <strong>Review changes</strong> keeps its words, it is what a finished run waits for. <strong>Refresh</strong> and <strong>Close</strong> are icons in the header.</p>
+</li>
+<li>
+<p><strong>The message box is one line</strong> with the <strong>Send</strong> and <strong>Attach image</strong> icons beside it. The <strong>command line</strong> (the terminal icon) is hidden until you open it, so the keyboard does not cover the transcript for nothing. The messages of the transcript use the whole width.</p>
+</li>
+<li>
+<p><strong>Tables are lists of cards</strong>: a run, a checkpoint, a command of the agent&#x27;s settings, an item of the review each show their name and state with the details under it and their buttons below, in place of columns. The files of the workspace show their size under the name, and the toolbar of the workspace is icons. The context table keeps the number, name and tokens; the type and share of a part are under the text of the part you pick.</p>
+</li>
+<li>
+<p><strong>The top bar shows who waits for you.</strong> While the drawer is closed, a red number in the top bar (next to the title of the open part) counts the agents that need you, as the badge on the <strong>Agents</strong> tab does in the drawer; tap it to go to the <strong>Agents</strong> tab. It is hidden when nobody waits, while the drawer is open and in the Agents tab itself.</p>
+</li>
+<li>
+<p><strong>Swipe between the parts.</strong> A swipe sideways over the content goes to the next part of the drawer (swipe to the left) or the previous one (to the right). It does nothing with the drawer open or while the application locks the navigation, and a touch that starts in a text field, a table or anything that scrolls sideways is left to it.</p>
+</li>
 </ul>
 <p>For long work with the transcript or the review a larger screen is still more comfortable.</p>
 <h2 id="cloning">Cloning</h2>
@@ -839,7 +854,7 @@ editing again after you paused or stopped the run. Other lorebooks are not affec
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (0583babc).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (3c390225).</p></div>
             </footer>
         </div>
     </div>

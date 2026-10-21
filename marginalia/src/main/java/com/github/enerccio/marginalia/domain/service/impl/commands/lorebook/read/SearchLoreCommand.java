@@ -41,7 +41,7 @@ public class SearchLoreCommand extends LorebookReadSupport {
             description = L.DESC_COMMAND_SEARCH_LORE, llmDescription = L.DESC_COMMAND_SEARCH_LORE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "query", type = String.class, description = L.DESC_COMMAND_LORE_QUERY_PARAM),
-                    @CommandParameter(name = "regex", type = Boolean.class, description = L.DESC_COMMAND_REGEX_PARAM)}),
+                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_REGEX_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SEARCH_LORE_RETURN))
     public void searchLoreRegex(CommandContext context) throws Exception {
         searchLore(context, context.get("query", String.class), context.get("regex", Boolean.class), null);
@@ -52,8 +52,8 @@ public class SearchLoreCommand extends LorebookReadSupport {
             description = L.DESC_COMMAND_SEARCH_LORE, llmDescription = L.DESC_COMMAND_SEARCH_LORE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "query", type = String.class, description = L.DESC_COMMAND_LORE_QUERY_PARAM),
-                    @CommandParameter(name = "regex", type = Boolean.class, description = L.DESC_COMMAND_REGEX_PARAM),
-                    @CommandParameter(name = "limit", type = Integer.class, description = L.DESC_COMMAND_LIMIT_PARAM)}),
+                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_REGEX_PARAM),
+                    @CommandParameter(name = "limit", type = Integer.class, optional = true, defaultValue = "50", min = "1", max = "200", description = L.DESC_COMMAND_LIMIT_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SEARCH_LORE_RETURN))
     public void searchLoreLimit(CommandContext context) throws Exception {
         searchLore(context, context.get("query", String.class), context.get("regex", Boolean.class), context.get("limit", Integer.class));

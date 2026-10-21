@@ -85,6 +85,17 @@ public final class CheckpointToolsImpl implements CheckpointTools {
     }
 
     @Override
+    public void diff(FunctionContinuation<String> done, String id, String path) {
+        try {
+            done.complete(CheckpointText.difference(service.diff(run.get(), id, path)));
+        } catch (CheckpointException | VirtualFileException e) {
+            done.fail(e.getMessage());
+        } catch (Exception e) {
+            done.fail("The checkpoint could not be compared: " + e.getMessage());
+        }
+    }
+
+    @Override
     public void delete(FunctionContinuation<String> done, String id) {
         try {
             Info info = service.delete(run.get(), id, true);

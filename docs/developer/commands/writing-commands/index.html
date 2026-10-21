@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845919947397">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845922330825">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845919947397" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845922330825" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845919947397" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845922330825" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845919947397" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845919947397" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845922330825" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845922330825" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -229,9 +229,11 @@ the arguments are truly free-form. A declared signature that fits always wins ov
 </li>
 <li>
 <p>A parameter can say more for an agent (it is the schema of the function, see <a href="../../agents/#commands-as-functions">Commands as functions</a>):
-<code translate="no" v-pre>optional = true</code> (it may be left out), <code translate="no" v-pre>defaultValue = &quot;0&quot;</code> (text, converted to the type) and <code translate="no" v-pre>allowed = {&quot;short&quot;, &quot;long&quot;}</code> (an enum type needs
-none, its constants are the values). Without <code translate="no" v-pre>optional</code> a parameter is required when every form of the command has it, so with a ladder of forms
-that each add a parameter only the first ones are required. The command line ignores all three.</p>
+<code translate="no" v-pre>optional = true</code> (it may be left out), <code translate="no" v-pre>defaultValue = &quot;0&quot;</code> (text, converted to the type), <code translate="no" v-pre>allowed = {&quot;short&quot;, &quot;long&quot;}</code> (an enum type needs
+none, its constants are the values) and, for a number, <code translate="no" v-pre>min = &quot;1&quot;</code> and <code translate="no" v-pre>max = &quot;200&quot;</code> (text too; they are the <code translate="no" v-pre>minimum</code> and <code translate="no" v-pre>maximum</code> of the schema, and a value outside them
+is refused with a message that names the limit - say them when the command would clamp or fail on such a value). Give a parameter a <code translate="no" v-pre>defaultValue</code> when the command reads it as a primitive or
+would fail on <code translate="no" v-pre>null</code>: the form an agent calls is the shortest one that has all the arguments it passed, so a parameter it left out of a longer form is <code translate="no" v-pre>null</code> unless it has a default. Without <code translate="no" v-pre>optional</code> a parameter is required when every form of the command has it, so with a ladder of forms
+that each add a parameter only the first ones are required. The command line ignores all of them.</p>
 </li>
 <li>
 <p>A parameter of the type <code translate="no" v-pre>LLMAttachment[]</code> takes <strong>images</strong> for the model the command talks to (the Lore Generator&#x27;s <code translate="no" v-pre>generate-lore-entry</code> has one, <code translate="no" v-pre>images</code>).
@@ -500,7 +502,7 @@ only after the answer. <code translate="no" v-pre>/search-replace-parts</code> a
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (0583babc).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (3c390225).</p></div>
             </footer>
         </div>
     </div>

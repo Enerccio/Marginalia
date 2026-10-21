@@ -24,10 +24,13 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.markdown.Markdown;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.popover.Popover;
+import com.vaadin.flow.component.popover.PopoverPosition;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.tabs.TabSheetVariant;
@@ -156,6 +159,14 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
 
     private Span statusLabel;
     private Span usageLabel;
+    // the plan of the agent: a button in the header that opens it, shown while the agent has one
+    private Button planButton;
+    private Popover planPopover;
+    private VerticalLayout planBox;
+    // what the plan is made from now, to build it again only when it changed
+    private String shownPlanKey = "";
+    // what the plan was read for, it is read again when one of them changes (not at every look at the run)
+    private String planReadFor = "";
     private VerticalLayout transcriptBox;
     private TextArea messageField;
     private Button sendButton;
@@ -225,7 +236,19 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         statusLabel.addClassName(CssStyles.TEXT_SEMIBOLD);
         usageLabel = new Span();
         usageLabel.addClassNames(CssStyles.HINT_TEXT);
-        HorizontalLayout statusRow = new HorizontalLayout(statusLabel, usageLabel);
+        planBox = new VerticalLayout();
+        planBox.setPadding(false);
+        planBox.setSpacing(false);
+        planBox.addClassName(CssStyles.AGENT_PLAN);
+        planButton = new Button(loc.getValue(L.LABEL_AGENT_PLAN), Solid.LIST_CHECK.create());
+        planButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+        planButton.setVisible(false);
+        planPopover = new Popover(planBox);
+        planPopover.setTarget(planButton);
+        planPopover.setPosition(PopoverPosition.BOTTOM_START);
+        planPopover.setOpenOnClick(true);
+        planPopover.setAriaLabel(loc.getValue(L.LABEL_AGENT_PLAN));
+        HorizontalLayout statusRow = new HorizontalLayout(statusLabel, planButton, usageLabel);
         statusRow.setWidthFull();
         statusRow.setPadding(false);
         statusRow.setWrap(true);
@@ -588,14 +611,17 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             long budget = agentRunService.getTokenBudget(run);
             long context = agentMessageService.getContextTokens(run);
             long contextCap = agentRunService.getContextCap(run);
+            long replyCap = agentRunService.getResponseCap(run);
             // which run this is, there can be many in the history
             UIUtils.setTextIfChanged(usageLabel, (run.getStartedAt() == null ? "" : java.text.DateFormat.getDateTimeInstance(
                     java.text.DateFormat.SHORT, java.text.DateFormat.SHORT).format(run.getStartedAt()) + "   ")
                     + loc.getValue(L.LABEL_ROUNDS) + ": " + run.getRounds() + "   "
                     + loc.getValue(L.LABEL_TOKEN_CONTEXT) + ": " + context + (contextCap > 0 ? " / " + contextCap : "") + "   "
+                    + (replyCap > 0 ? loc.getValue(L.LABEL_AGENT_REPLY_LIMIT) + ": " + replyCap + "   " : "")
                     + loc.getValue(L.LABEL_TOKENS_TOTAL) + ": " + run.getTotalTokens()
                     + (budget > 0 ? " / " + budget : ""));
         }
+        showPlan();
         AgentRunStatus status = run == null ? null : run.getStatus();
         boolean queueing = run != null && run.isInteractive() && QUEUEING.contains(status);
         boolean writable = status == AgentRunStatus.IDLE || queueing;
@@ -612,6 +638,54 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         reviewButton.setVisible(status != null && (status == AgentRunStatus.DONE || status == AgentRunStatus.STOPPED_KEPT) && run.getWorkingCopy() != null);
         usable(stopButton, status != null && STOPPABLE.contains(status));
         rollbackButtons.forEach(button -> showRollbackButton(button, status));
+    }
+
+    /**
+     * The plan of the agent in the popover of the header. It is read again when the run, its round or its status changes (the agent
+     * writes it between rounds), and the popover is built again only when the plan itself changed.
+     */
+    private void showPlan() throws Exception {
+        String readFor = run == null ? "" : run.getUuid() + ":" + run.getRounds() + ":" + run.getStatus();
+        if (readFor.equals(planReadFor)) {
+            return;
+        }
+        planReadFor = readFor;
+        List<RunTools.PlanItem> plan = run == null ? List.of() : agentRunService.getPlan(run);
+        planButton.setVisible(!plan.isEmpty());
+        String key = RunToolsImpl.render(plan);
+        if (key.equals(shownPlanKey)) {
+            return;
+        }
+        shownPlanKey = key;
+        planBox.removeAll();
+        if (plan.isEmpty()) {
+            planPopover.close();
+            planBox.add(new Span(loc.getValue(L.MSG_AGENT_NO_PLAN)));
+            return;
+        }
+        long done = plan.stream().filter(item -> "done".equals(item.status())).count();
+        planButton.setText(loc.getValue(L.LABEL_AGENT_PLAN) + " " + done + "/" + plan.size());
+        for (RunTools.PlanItem item : plan) {
+            planBox.add(planItem(item));
+        }
+    }
+
+    private Div planItem(RunTools.PlanItem item) {
+        boolean done = "done".equals(item.status());
+        boolean active = "in_progress".equals(item.status());
+        Icon icon = (done ? Solid.CHECK : active ? Solid.ARROW_RIGHT : Solid.MINUS).create();
+        icon.getElement().setAttribute("aria-label", loc.getValue(done ? L.ENUM_AGENT_PLAN_DONE
+                : active ? L.ENUM_AGENT_PLAN_IN_PROGRESS : L.ENUM_AGENT_PLAN_PENDING));
+        icon.getElement().setAttribute("title", icon.getElement().getAttribute("aria-label"));
+        Span text = new Span(item.text());
+        if (done) {
+            text.addClassName(CssStyles.AGENT_PLAN_DONE);
+        } else if (active) {
+            text.addClassName(CssStyles.AGENT_PLAN_ACTIVE);
+        }
+        Div row = new Div(icon, text);
+        row.addClassName(CssStyles.AGENT_PLAN_ITEM);
+        return row;
     }
 
     /**
@@ -991,6 +1065,18 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
 
     Span getUsageLabel() {
         return usageLabel;
+    }
+
+    Button getPlanButton() {
+        return planButton;
+    }
+
+    Popover getPlanPopover() {
+        return planPopover;
+    }
+
+    VerticalLayout getPlanBox() {
+        return planBox;
     }
 
     AgentApprovalDialog getApprovalDialog() {

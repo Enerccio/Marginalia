@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.service.AgentService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.RestorableState;
@@ -24,6 +25,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
@@ -86,6 +88,12 @@ public class PhoneWorkspace implements Workspace {
     private DrawerToggle drawerToggle;
     private Span title;
     private Tabs tabs;
+    // the tab of the agents, null for a user who may not use them
+    private Tab agentsTab;
+    // the count of the agents that wait for the user in the top bar, shown while the drawer (which has the same count) is closed
+    private Button attentionCue;
+    private Span attentionCount;
+    private int agentsWaiting;
     private WorkspaceComponent activeComponent;
     private Button changePasswordButton;
     private Button logoutButton;
@@ -126,6 +134,11 @@ public class PhoneWorkspace implements Workspace {
             show(tabToComponent.get(selected), tabToContent.get(selected), tabToTitle.get(selected));
             autosave();
         });
+
+        // a swipe sideways over the content goes to the next or the previous part
+        JavascriptLibrary.fireSwipeEvents(layout.getElement());
+        layout.getElement().addEventListener("swipe", event -> swipeTab(event.getEventData().get("event.detail").asString()))
+                .addEventData("event.detail");
 
         VerticalLayout drawer = new VerticalLayout();
         drawer.setSizeFull();
@@ -226,11 +239,65 @@ public class PhoneWorkspace implements Workspace {
         }
         agentPart = new AgentPart(this, true);
         Tab tab = new Tab(new Span(loc.getValue(L.LABEL_AGENTS)), agentPart.getAttentionBadge());
+        agentsTab = tab;
         tabs.add(tab);
         tabToComponent.put(tab, agentPart);
         tabToContent.put(tab, agentPart.create());
         tabToTitle.put(tab, loc.getValue(L.LABEL_AGENTS));
         partsByKey.put("agents", agentPart);
+
+        // the badge is in the drawer, which is closed most of the time: the top bar has the count too
+        attentionCount = new Span();
+        attentionCount.getElement().getThemeList().add("badge error pill small");
+        attentionCue = new Button(attentionCount, event -> {
+            if (!navigationLocked) {
+                tabs.setSelectedTab(agentsTab);
+            }
+        });
+        attentionCue.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+        attentionCue.addClassName(CssStyles.AGENT_ATTENTION_CUE);
+        attentionCue.setTooltipText(loc.getValue(L.LABEL_AGENTS_WAITING));
+        attentionCue.setAriaLabel(loc.getValue(L.LABEL_AGENTS_WAITING));
+        attentionCue.setVisible(false);
+        layout.addToNavbar(attentionCue);
+        layout.getElement().addPropertyChangeListener("drawerOpened", "drawer-opened-changed", event -> showAttentionCue());
+        agentPart.addAttentionListener(waiting -> {
+            agentsWaiting = waiting;
+            showAttentionCue();
+        });
+    }
+
+    /**
+     * The cue in the top bar: the count of the agents that wait, while there are some, the drawer is closed and the user is not
+     * in the tab of the agents already.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
+    private void showAttentionCue() {
+        if (attentionCue == null) {
+            return;
+        }
+        attentionCount.setText(String.valueOf(agentsWaiting));
+        attentionCue.setVisible(agentsWaiting > 0 && !layout.isDrawerOpened() && activeComponent != agentPart);
+    }
+
+    /**
+     * Goes to the part next to the open one in the drawer, to the left (swiping to the left) or to the right (swiping to the
+     * right); nothing happens at the ends, with the drawer open or while the navigation is locked.
+     *
+     * @param direction {@code left} or {@code right}, the way the finger moved
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "direction", type = String.class)})
+    private void swipeTab(String direction) {
+        if (navigationLocked || layout.isDrawerOpened() || tabs.getSelectedIndex() < 0) {
+            return;
+        }
+        int index = tabs.getSelectedIndex() + ("left".equals(direction) ? 1 : "right".equals(direction) ? -1 : 0);
+        if (index >= 0 && index < tabs.getTabCount() && index != tabs.getSelectedIndex()) {
+            tabs.setSelectedIndex(index);
+        }
     }
 
     @PublicAPI(from = "1.1.0",
@@ -252,6 +319,7 @@ public class PhoneWorkspace implements Workspace {
         title.setText(name);
         layout.setDrawerOpened(false);
         activeComponent = part;
+        showAttentionCue();
         try {
             part.onTabSwitched();
         } catch (Exception ex) {

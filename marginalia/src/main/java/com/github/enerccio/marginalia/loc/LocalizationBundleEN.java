@@ -606,6 +606,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_JSON_TAKE_RESULT, "Take the result");
         setValue(L.LABEL_JSON_START_OVER, "Start over");
         setValue(L.LABEL_JSON_APPLY_TEXT, "Use this text");
+        setValue(L.LABEL_AGENT_REPLY_LIMIT, "Reply limit");
+        setValue(L.LABEL_AGENT_PLAN, "Plan");
+        setValue(L.LABEL_AGENTS_WAITING, "Agents waiting for you");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -712,6 +715,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_JSON_CHOICE_BOOK, "Book's");
         setValue(L.ENUM_JSON_CHOICE_BASE, "From the start");
         setValue(L.ENUM_JSON_CHOICE_NONE, "Left out");
+        setValue(L.ENUM_AGENT_PLAN_PENDING, "To do");
+        setValue(L.ENUM_AGENT_PLAN_IN_PROGRESS, "In progress");
+        setValue(L.ENUM_AGENT_PLAN_DONE, "Done");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -1008,6 +1014,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_JSON_NOT_JSON, "This data is not JSON, it can only be edited as text.");
         setValue(L.MSG_JSON_RESULT_CONFLICTS, "%d conflicts in the data, the agent's version is taken where you do not decide.");
         setValue(L.MSG_JSON_MATCH_PICK, "Which element is the same as %s?");
+        setValue(L.MSG_AGENT_NO_PLAN, "The agent has not made a plan.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

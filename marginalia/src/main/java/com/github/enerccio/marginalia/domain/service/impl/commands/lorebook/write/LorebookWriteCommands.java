@@ -67,7 +67,7 @@ public class LorebookWriteCommands extends LorebookWriteSupport {
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_LOREBOOK_HANDLE_PARAM),
                     @CommandParameter(name = "name", type = String.class, description = L.DESC_COMMAND_LOREBOOK_NAME_PARAM),
-                    @CommandParameter(name = "enabled", type = Boolean.class, description = L.DESC_COMMAND_LOREBOOK_ENABLED_PARAM)}),
+                    @CommandParameter(name = "enabled", type = Boolean.class, optional = true, description = L.DESC_COMMAND_LOREBOOK_ENABLED_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_LOREBOOK_RETURN))
     public void setLorebookEnabled(CommandContext context) throws Exception {
         setLorebook(context, ref(context, "lorebook"), context.get("name", String.class), context.get("enabled", Boolean.class));

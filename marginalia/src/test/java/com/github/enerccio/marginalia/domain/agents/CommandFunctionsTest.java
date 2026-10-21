@@ -126,6 +126,17 @@ class CommandFunctionsTest {
         }
     }
 
+    public static class Ranged {
+        @Command(commandName = "page", humanNameText = "Page", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+                signature = @CommandParameterSignature({
+                        @CommandParameter(name = "size", type = Integer.class, optional = true, defaultValue = "50", min = "1", max = "200"),
+                        @CommandParameter(name = "ratio", type = Double.class, optional = true, min = "0.5"),
+                        @CommandParameter(name = "text", type = String.class, optional = true, min = "5")}))
+        public void page(CommandContext context) {
+            context.setReturn("size=" + context.get("size") + " ratio=" + context.get("ratio"));
+        }
+    }
+
     public static class Destructive {
         final AtomicInteger runs = new AtomicInteger();
 
@@ -340,6 +351,29 @@ class CommandFunctionsTest {
 
         assertThat(failure(functions("get.part"), name, "{\"part\":1,\"mode\":\"huge\"}").getMessage())
                 .isEqualTo("Parameter 'mode' must be one of [short, long]");
+    }
+
+    @Test
+    void theRangeOfANumberIsInTheSchemaAndKeptByTheCall() throws Exception {
+        commands.registerCommands(new Ranged());
+        String name = CommandFunctions.functionName("page");
+        FunctionSet set = functions("page");
+
+        JsonNode properties = definition(set, name).getParametersSchema().get("properties");
+
+        assertThat(properties.get("size").get("minimum").asInt()).isEqualTo(1);
+        assertThat(properties.get("size").get("maximum").asInt()).isEqualTo(200);
+        assertThat(properties.get("size").get("default").asInt()).isEqualTo(50);
+        assertThat(properties.get("ratio").get("minimum").asDouble()).isEqualTo(0.5);
+        assertThat(properties.get("ratio").has("maximum")).isFalse();
+        assertThat(properties.get("text").has("minimum")).as("a limit is for numbers").isFalse();
+        assertThat(definition(set, name).getParametersSchema().has("required")).isFalse();
+        assertThat(failure(set, name, "{\"size\":0}").getMessage()).isEqualTo("Parameter 'size' must be at least 1, not 0");
+        assertThat(failure(set, name, "{\"size\":201}").getMessage()).isEqualTo("Parameter 'size' must be at most 200, not 201");
+        assertThat(failure(set, name, "{\"ratio\":0.25}").getMessage()).isEqualTo("Parameter 'ratio' must be at least 0.5, not 0.25");
+        assertThat(failure(set, name, "{\"size\":\"500\"}").getMessage()).as("a number written as a text").contains("at most 200");
+        assertThat(call(set, name, "{\"size\":1}")).isEqualTo("size=1 ratio=null");
+        assertThat(call(set, name, "{}")).as("the default of the form that has it").contains("size=50");
     }
 
     @Test

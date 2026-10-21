@@ -179,6 +179,41 @@ public final class SubAgents {
         return (int) subs.values().stream().filter(sub -> !sub.state.isFinished()).count();
     }
 
+    // the sub-agents the status of the run lists one by one, the rest is counted
+    public static final int MAX_DESCRIBED = 20;
+    private static final int TASK_PREVIEW = 100;
+
+    /**
+     * What {@code get_run_status} tells about the sub-agents: how many work, and a line for each with what it is doing (the working
+     * ones first, then the ones that ended).
+     */
+    public synchronized String describe() {
+        StringBuilder text = new StringBuilder("Sub-agents: ").append(live()).append(" working of at most ").append(max);
+        List<Sub> ordered = new ArrayList<>(subs.values());
+        ordered.sort(java.util.Comparator.comparing(sub -> sub.state.isFinished()));
+        int shown = 0;
+        for (Sub sub : ordered) {
+            if (shown++ == MAX_DESCRIBED) {
+                text.append("\n- and ").append(ordered.size() - MAX_DESCRIBED).append(" more");
+                break;
+            }
+            text.append("\n- ").append(sub.handle).append(sub.profile == null || sub.profile.isBlank() ? "" : " (" + sub.profile + ")")
+                    .append(": ").append(sub.state.name().toLowerCase(java.util.Locale.ROOT));
+            if (!sub.state.isFinished() || sub.state == State.SUSPENDED) {
+                text.append(", round ").append(sub.rounds).append(", ").append(sub.tokens).append(" tokens");
+                if (sub.lastAction != null && !sub.lastAction.isBlank()) {
+                    text.append(", last: ").append(sub.lastAction);
+                }
+            }
+            if (sub.cancelRequested && !sub.state.isFinished()) {
+                text.append(", asked to stop");
+            }
+            String task = sub.task == null ? "" : sub.task.strip().replaceAll("\\s+", " ");
+            text.append(" - ").append(task.length() > TASK_PREVIEW ? task.substring(0, TASK_PREVIEW) + "..." : task);
+        }
+        return text.toString();
+    }
+
     /**
      * Makes a sub-agent that no call is known to have started, see {@link #create(String, String)}.
      */

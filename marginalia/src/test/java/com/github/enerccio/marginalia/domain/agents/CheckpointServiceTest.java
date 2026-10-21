@@ -8,16 +8,16 @@ import com.github.enerccio.marginalia.domain.security.permissions.PermissionType
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.CheckpointService.CheckpointException;
 import com.github.enerccio.marginalia.domain.service.CheckpointService.CheckpointFullException;
-import com.github.enerccio.marginalia.domain.service.agent.CheckpointStore;
+import com.github.enerccio.marginalia.domain.service.agent.*;
 import com.github.enerccio.marginalia.domain.service.agent.CheckpointStore.Info;
 import com.github.enerccio.marginalia.domain.service.agent.CheckpointStore.Kind;
-import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
-import com.github.enerccio.marginalia.domain.service.agent.VirtualFileSystem;
+import com.github.enerccio.marginalia.domain.service.function.FunctionContinuation;
 import com.github.enerccio.marginalia.domain.service.impl.CheckpointServiceImpl;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
 import com.github.enerccio.marginalia.test.AgentTestBase;
+import com.github.enerccio.marginalia.utils.TextDiff;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,6 +117,37 @@ class CheckpointServiceTest extends AgentTestBase {
     private void write(String path, String text) throws Exception {
         VirtualFileSystem fs = files();
         fs.writeText(fs.parse(path), text, false);
+    }
+
+    private static final class Answer implements FunctionContinuation<String> {
+        String result;
+        String error;
+
+        @Override
+        public void complete(String value) {
+            result = value;
+        }
+
+        @Override
+        public void fail(String message) {
+            error = message;
+        }
+
+        @Override
+        public void fail(Throwable throwable) {
+            error = throwable.getMessage();
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return false;
+        }
+    }
+
+    private static Answer answer(java.util.function.Consumer<FunctionContinuation<String>> call) {
+        Answer answer = new Answer();
+        call.accept(answer);
+        return answer;
     }
 
     private CheckpointStore store() throws Exception {
@@ -600,6 +631,109 @@ class CheckpointServiceTest extends AgentTestBase {
 
         assertThatThrownBy(() -> checkpointService.rewind(agentRunService.find(run.getId()), checkpoint.id()))
                 .isInstanceOf(CheckpointException.class).hasMessageContaining("paused or stopped");
+    }
+
+    // --- comparing ---
+
+    @Test
+    void aStateThatDidNotChangeDiffersInNothing() throws Exception {
+        write("/notes.txt", "same");
+        Info checkpoint = checkpointService.ensureStart(run);
+
+        CheckpointService.Difference diff = checkpointService.diff(run, checkpoint.id(), null);
+
+        assertThat(diff.book().items()).isEmpty();
+        assertThat(diff.files()).isEmpty();
+        assertThat(CheckpointText.difference(diff)).contains("Book: no change.").contains("Workspace: no change.").endsWith("Nothing differs.");
+    }
+
+    @Test
+    void theBookAndTheWorkspaceAreComparedWithTheCheckpoint() throws Exception {
+        write("/notes.txt", "before");
+        write("/gone.txt", "bye");
+        write("/kept.txt", "the same");
+        Info checkpoint = checkpointService.ensureStart(run);
+        edit("there was a dragon", "there was a knight");
+        add("there was a knight", "and the end");
+        write("/notes.txt", "after, and longer");
+        write("/new.txt", "fresh");
+        files().delete(files().parse("/gone.txt"), false);
+
+        CheckpointService.Difference diff = checkpointService.diff(run, "1", null);
+
+        assertThat(diff.checkpoint()).isEqualTo(checkpoint);
+        assertThat(diff.book().items()).extracting(MergePlan.Item::kind, MergePlan.Item::change)
+                .containsExactlyInAnyOrder(org.assertj.core.groups.Tuple.tuple(MergePlan.Kind.MESSAGE, MergePlan.Change.ADDED),
+                        org.assertj.core.groups.Tuple.tuple(MergePlan.Kind.MESSAGE, MergePlan.Change.CHANGED));
+        assertThat(diff.files()).extracting(CheckpointService.FileChange::path, CheckpointService.FileChange::change)
+                .containsExactly(org.assertj.core.groups.Tuple.tuple("/gone.txt", MergePlan.Change.DELETED),
+                        org.assertj.core.groups.Tuple.tuple("/new.txt", MergePlan.Change.ADDED),
+                        org.assertj.core.groups.Tuple.tuple("/notes.txt", MergePlan.Change.CHANGED));
+        assertThat(diff.lines()).isNull();
+        String text = CheckpointText.difference(diff);
+        assertThat(text).contains("1 part added", "1 part changed", "1 file added, 1 file changed, 1 file deleted")
+                .contains("- changed part \"2: there was a knight\" (response)").contains("- added part \"3: and the end\"")
+                .contains("- deleted /gone.txt (3 B)").contains("- added /new.txt (5 B)").contains("- changed /notes.txt (6 B -> 17 B)")
+                .doesNotContain("kept.txt");
+    }
+
+    @Test
+    void aPathLimitsTheComparisonToTheWorkspaceAndShowsTheSentencesOfAFile() throws Exception {
+        write("/notes/plot.md", "The hero left. The villain stayed.");
+        write("/notes/other.md", "one");
+        checkpointService.ensureStart(run);
+        write("/notes/plot.md", "The hero left. The villain fled. A dragon came.");
+        write("/notes/other.md", "two");
+        edit("there was a dragon", "there was a knight");
+
+        CheckpointService.Difference file = checkpointService.diff(run, "1", "/notes/plot.md");
+        CheckpointService.Difference folder = checkpointService.diff(run, "1", "/notes");
+
+        assertThat(file.book()).as("the book is not compared for a path").isNull();
+        assertThat(file.files()).extracting(CheckpointService.FileChange::path).containsExactly("/notes/plot.md");
+        assertThat(file.lines().changes()).extracting(TextDiff.Change::added, TextDiff.Change::text)
+                .containsExactly(org.assertj.core.groups.Tuple.tuple(false, "The villain stayed."),
+                        org.assertj.core.groups.Tuple.tuple(true, "The villain fled."),
+                        org.assertj.core.groups.Tuple.tuple(true, "A dragon came."));
+        assertThat(CheckpointText.difference(file)).contains("- 2: The villain stayed.").contains("+ 2: The villain fled.")
+                .contains("+ 3: A dragon came.").doesNotContain("Book:");
+        assertThat(folder.files()).hasSize(2);
+        assertThat(folder.lines()).as("a folder has no sentences").isNull();
+        assertThatThrownBy(() -> checkpointService.diff(run, "1", "/nothing/here")).isInstanceOf(CheckpointException.class)
+                .hasMessageContaining("There is no /nothing/here");
+        assertThatThrownBy(() -> checkpointService.diff(run, "9", null)).isInstanceOf(CheckpointException.class)
+                .hasMessageContaining("There is no checkpoint 9");
+    }
+
+    @Test
+    void theItemsAreStillTheSameAfterARestoreMadeANewCopy() throws Exception {
+        checkpointService.ensureStart(run);
+        add("there was a dragon", "and the end");
+        Info later = checkpointService.makeManual(run, "with an end").checkpoint();
+        checkpointService.restore(run, "1");
+
+        CheckpointService.Difference diff = checkpointService.diff(run, later.id(), null);
+
+        // the book has the end part no more, and nothing else is different although the copy is another book
+        assertThat(diff.book().items()).extracting(MergePlan.Item::change, MergePlan.Item::kind)
+                .containsExactly(org.assertj.core.groups.Tuple.tuple(MergePlan.Change.DELETED, MergePlan.Kind.MESSAGE));
+        assertThat(diff.book().items().getFirst().label()).contains("and the end");
+    }
+
+    @Test
+    void theCheckpointToolShowsTheDifferenceAndSaysWhatIsWrong() throws Exception {
+        write("/notes.txt", "before");
+        checkpointService.ensureStart(run);
+        write("/notes.txt", "after");
+        CheckpointToolsImpl tools = new CheckpointToolsImpl(() -> run, checkpointService);
+
+        String shown = answer(done -> tools.diff(done, "0001", null)).result;
+        String missing = answer(done -> tools.diff(done, "7", null)).error;
+        String lost = answer(done -> tools.diff(done, "1", "/lost.md")).error;
+
+        assertThat(shown).startsWith("Checkpoint 0001 start").contains("- changed /notes.txt (6 B -> 5 B)");
+        assertThat(missing).contains("There is no checkpoint 7");
+        assertThat(lost).contains("There is no /lost.md");
     }
 
     @Test

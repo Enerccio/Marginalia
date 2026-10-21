@@ -42,7 +42,7 @@ public class FindOccurrencesCommand extends ManuscriptReadSupport {
             description = L.DESC_COMMAND_FIND_OCCURRENCES, llmDescription = L.DESC_COMMAND_FIND_OCCURRENCES_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "terms", type = Object.class, description = L.DESC_COMMAND_TERMS_PARAM),
-                    @CommandParameter(name = "regex", type = Boolean.class, description = L.DESC_COMMAND_REGEX_PARAM)}),
+                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_REGEX_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_FIND_OCCURRENCES_RETURN))
     public void findOccurrencesRegex(CommandContext context) throws Exception {
         findOccurrences(context, context.get("terms", Object.class), context.get("regex", Boolean.class), null, null, null, null);
@@ -53,8 +53,8 @@ public class FindOccurrencesCommand extends ManuscriptReadSupport {
             description = L.DESC_COMMAND_FIND_OCCURRENCES, llmDescription = L.DESC_COMMAND_FIND_OCCURRENCES_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "terms", type = Object.class, description = L.DESC_COMMAND_TERMS_PARAM),
-                    @CommandParameter(name = "regex", type = Boolean.class, description = L.DESC_COMMAND_REGEX_PARAM),
-                    @CommandParameter(name = "caseSensitive", type = Boolean.class, description = L.DESC_COMMAND_FIND_CASE_SENSITIVE_PARAM)}),
+                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_REGEX_PARAM),
+                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_FIND_CASE_SENSITIVE_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_FIND_OCCURRENCES_RETURN))
     public void findOccurrencesCaseSensitive(CommandContext context) throws Exception {
         findOccurrences(context, context.get("terms", Object.class), context.get("regex", Boolean.class), context.get("caseSensitive", Boolean.class), null, null, null);
@@ -65,9 +65,9 @@ public class FindOccurrencesCommand extends ManuscriptReadSupport {
             description = L.DESC_COMMAND_FIND_OCCURRENCES, llmDescription = L.DESC_COMMAND_FIND_OCCURRENCES_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "terms", type = Object.class, description = L.DESC_COMMAND_TERMS_PARAM),
-                    @CommandParameter(name = "regex", type = Boolean.class, description = L.DESC_COMMAND_REGEX_PARAM),
-                    @CommandParameter(name = "caseSensitive", type = Boolean.class, description = L.DESC_COMMAND_FIND_CASE_SENSITIVE_PARAM),
-                    @CommandParameter(name = "summaries", type = Boolean.class, description = L.DESC_COMMAND_FIND_SUMMARIES_PARAM)}),
+                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_REGEX_PARAM),
+                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_FIND_CASE_SENSITIVE_PARAM),
+                    @CommandParameter(name = "summaries", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_FIND_SUMMARIES_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_FIND_OCCURRENCES_RETURN))
     public void findOccurrencesSummaries(CommandContext context) throws Exception {
         findOccurrences(context, context.get("terms", Object.class), context.get("regex", Boolean.class), context.get("caseSensitive", Boolean.class), context.get("summaries", Boolean.class), null, null);
@@ -78,10 +78,10 @@ public class FindOccurrencesCommand extends ManuscriptReadSupport {
             description = L.DESC_COMMAND_FIND_OCCURRENCES, llmDescription = L.DESC_COMMAND_FIND_OCCURRENCES_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "terms", type = Object.class, description = L.DESC_COMMAND_TERMS_PARAM),
-                    @CommandParameter(name = "regex", type = Boolean.class, description = L.DESC_COMMAND_REGEX_PARAM),
-                    @CommandParameter(name = "caseSensitive", type = Boolean.class, description = L.DESC_COMMAND_FIND_CASE_SENSITIVE_PARAM),
-                    @CommandParameter(name = "summaries", type = Boolean.class, description = L.DESC_COMMAND_FIND_SUMMARIES_PARAM),
-                    @CommandParameter(name = "allBranches", type = Boolean.class, description = L.DESC_COMMAND_ALL_BRANCHES_PARAM)}),
+                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_REGEX_PARAM),
+                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_FIND_CASE_SENSITIVE_PARAM),
+                    @CommandParameter(name = "summaries", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_FIND_SUMMARIES_PARAM),
+                    @CommandParameter(name = "allBranches", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_ALL_BRANCHES_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_FIND_OCCURRENCES_RETURN))
     public void findOccurrencesAllBranches(CommandContext context) throws Exception {
         findOccurrences(context, context.get("terms", Object.class), context.get("regex", Boolean.class), context.get("caseSensitive", Boolean.class), context.get("summaries", Boolean.class), context.get("allBranches", Boolean.class), null);
@@ -92,11 +92,11 @@ public class FindOccurrencesCommand extends ManuscriptReadSupport {
             description = L.DESC_COMMAND_FIND_OCCURRENCES, llmDescription = L.DESC_COMMAND_FIND_OCCURRENCES_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "terms", type = Object.class, description = L.DESC_COMMAND_TERMS_PARAM),
-                    @CommandParameter(name = "regex", type = Boolean.class, description = L.DESC_COMMAND_REGEX_PARAM),
-                    @CommandParameter(name = "caseSensitive", type = Boolean.class, description = L.DESC_COMMAND_FIND_CASE_SENSITIVE_PARAM),
-                    @CommandParameter(name = "summaries", type = Boolean.class, description = L.DESC_COMMAND_FIND_SUMMARIES_PARAM),
-                    @CommandParameter(name = "allBranches", type = Boolean.class, description = L.DESC_COMMAND_ALL_BRANCHES_PARAM),
-                    @CommandParameter(name = "limit", type = Integer.class, description = L.DESC_COMMAND_LIMIT_PARAM)}),
+                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_REGEX_PARAM),
+                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_FIND_CASE_SENSITIVE_PARAM),
+                    @CommandParameter(name = "summaries", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_FIND_SUMMARIES_PARAM),
+                    @CommandParameter(name = "allBranches", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_ALL_BRANCHES_PARAM),
+                    @CommandParameter(name = "limit", type = Integer.class, optional = true, defaultValue = "50", min = "1", max = "200", description = L.DESC_COMMAND_LIMIT_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_FIND_OCCURRENCES_RETURN))
     public void findOccurrencesLimit(CommandContext context) throws Exception {
         findOccurrences(context, context.get("terms", Object.class), context.get("regex", Boolean.class), context.get("caseSensitive", Boolean.class), context.get("summaries", Boolean.class), context.get("allBranches", Boolean.class), context.get("limit", Integer.class));

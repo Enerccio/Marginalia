@@ -788,6 +788,79 @@ class AgentConsoleDialogTest extends AgentTestBase {
     }
 
     @Test
+    void theLongestReplyOfTheModelIsInTheHeader() throws Exception {
+        startedRun();
+
+        AgentConsoleDialog dialog = console();
+
+        // the protocol of the model of the test allows 300 tokens of reply
+        assertThat(dialog.getUsageLabel().getText()).contains("Context size: 0").contains("Reply limit: 300   Tokens in total");
+    }
+
+    @Test
+    void theHeaderHasNoPlanUntilTheAgentMakesOne() throws Exception {
+        startedRun();
+
+        AgentConsoleDialog dialog = console();
+
+        assertThat(dialog.getPlanButton().isVisible()).isFalse();
+    }
+
+    @Test
+    void thePlanOfTheAgentOpensFromAButtonInTheHeader() throws Exception {
+        AgentRun run = startedRun();
+        fileSystemService.writePlan(run, "[{\"text\":\"Read the book\",\"status\":\"done\"},"
+                + "{\"text\":\"Rename the dragon\",\"status\":\"in_progress\"},{\"text\":\"Write the report\",\"status\":\"pending\"}]");
+
+        AgentConsoleDialog dialog = console();
+
+        assertThat(dialog.getPlanButton().isVisible()).isTrue();
+        assertThat(dialog.getPlanButton().getText()).isEqualTo("Plan 1/3");
+        assertThat(dialog.getPlanPopover().getTarget()).isSameAs(dialog.getPlanButton());
+        assertThat(dialog.getPlanPopover().isOpenOnClick()).isTrue();
+        List<Component> rows = dialog.getPlanBox().getChildren().toList();
+        assertThat(rows).hasSize(3);
+        assertThat(rows.get(0).getChildren().skip(1).findFirst().orElseThrow().getElement().getText()).isEqualTo("Read the book");
+        assertThat(rows.get(0).getChildren().skip(1).findFirst().orElseThrow().getElement().getClassList()).contains(CssStyles.AGENT_PLAN_DONE);
+        assertThat(rows.get(1).getChildren().skip(1).findFirst().orElseThrow().getElement().getClassList()).contains(CssStyles.AGENT_PLAN_ACTIVE);
+        assertThat(rows.get(2).getChildren().skip(1).findFirst().orElseThrow().getElement().getClassList())
+                .doesNotContain(CssStyles.AGENT_PLAN_DONE, CssStyles.AGENT_PLAN_ACTIVE);
+        assertThat(rows.get(1).getChildren().findFirst().orElseThrow().getElement().getAttribute("title")).isEqualTo("In progress");
+    }
+
+    @Test
+    void thePlanIsReadAgainWhenTheRunGoesOnAndOnlyThen() throws Exception {
+        AgentRun run = startedRun();
+        fileSystemService.writePlan(run, "[{\"text\":\"First\",\"status\":\"pending\"}]");
+        AgentConsoleDialog dialog = console();
+        assertThat(dialog.getPlanButton().getText()).isEqualTo("Plan 0/1");
+        Component box = dialog.getPlanBox().getChildren().findFirst().orElseThrow();
+
+        fileSystemService.writePlan(run, "[{\"text\":\"First\",\"status\":\"done\"},{\"text\":\"Second\",\"status\":\"pending\"}]");
+        dialog.refreshRun();
+        assertThat(dialog.getPlanButton().getText()).as("the run did not go on, no new look").isEqualTo("Plan 0/1");
+        assertThat(dialog.getPlanBox().getChildren().findFirst().orElseThrow()).isSameAs(box);
+
+        agentRunService.addUsage(run, 10, 5);
+        dialog.refreshRun();
+        assertThat(dialog.getPlanButton().getText()).isEqualTo("Plan 1/2");
+        assertThat(dialog.getPlanBox().getChildren().count()).isEqualTo(2);
+    }
+
+    @Test
+    void thePlanIsTheOneOfTheLastCallWhenNothingWasKept() throws Exception {
+        AgentRun run = startedRun();
+        say(run, LLMChatMessage.ofToolCalls(null, List.of(LLMToolCall.of("p1", "update_plan",
+                        "{\"items\":[{\"text\":\"Only step\",\"status\":\"in progress\"}]}"))),
+                LLMChatMessage.ofToolResult("p1", "Plan saved."));
+
+        AgentConsoleDialog dialog = console();
+
+        assertThat(dialog.getPlanButton().isVisible()).isTrue();
+        assertThat(dialog.getPlanButton().getText()).isEqualTo("Plan 0/1");
+    }
+
+    @Test
     void theMessageBoxSendsWithCtrlEnter() throws Exception {
         AgentRun run = startedRun();
         agentRunService.transition(run, AgentRunStatus.IDLE, "Which one?");

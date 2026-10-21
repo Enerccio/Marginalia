@@ -70,7 +70,7 @@ public class LoreEntryWriteCommands extends LorebookWriteSupport {
                     @CommandParameter(name = "payload", type = String.class, description = L.DESC_COMMAND_LORE_PAYLOAD_PARAM),
                     @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_TARGET_LOREBOOK_PARAM),
                     @CommandParameter(name = "comment", type = String.class, description = L.DESC_COMMAND_LORE_COMMENT_PARAM),
-                    @CommandParameter(name = "enabled", type = Boolean.class, description = L.DESC_COMMAND_LORE_ENABLED_PARAM)}),
+                    @CommandParameter(name = "enabled", type = Boolean.class, optional = true, defaultValue = "true", description = L.DESC_COMMAND_LORE_ENABLED_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_CREATE_LORE_ENTRY_RETURN))
     public void createLoreEntryEnabled(CommandContext context) throws Exception {
         createLoreEntry(context, context.get("name", String.class), context.get("payload", String.class), ref(context, "lorebook"), context.get("comment", String.class), context.get("enabled", Boolean.class), null, null, null, null, null);
@@ -84,8 +84,8 @@ public class LoreEntryWriteCommands extends LorebookWriteSupport {
                     @CommandParameter(name = "payload", type = String.class, description = L.DESC_COMMAND_LORE_PAYLOAD_PARAM),
                     @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_TARGET_LOREBOOK_PARAM),
                     @CommandParameter(name = "comment", type = String.class, description = L.DESC_COMMAND_LORE_COMMENT_PARAM),
-                    @CommandParameter(name = "enabled", type = Boolean.class, description = L.DESC_COMMAND_LORE_ENABLED_PARAM),
-                    @CommandParameter(name = "order", type = Integer.class, description = L.DESC_COMMAND_LORE_ORDER_PARAM)}),
+                    @CommandParameter(name = "enabled", type = Boolean.class, optional = true, defaultValue = "true", description = L.DESC_COMMAND_LORE_ENABLED_PARAM),
+                    @CommandParameter(name = "order", type = Integer.class, optional = true, description = L.DESC_COMMAND_LORE_ORDER_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_CREATE_LORE_ENTRY_RETURN))
     public void createLoreEntryOrder(CommandContext context) throws Exception {
         createLoreEntry(context, context.get("name", String.class), context.get("payload", String.class), ref(context, "lorebook"), context.get("comment", String.class), context.get("enabled", Boolean.class), context.get("order", Integer.class), null, null, null, null);
@@ -99,8 +99,8 @@ public class LoreEntryWriteCommands extends LorebookWriteSupport {
                     @CommandParameter(name = "payload", type = String.class, description = L.DESC_COMMAND_LORE_PAYLOAD_PARAM),
                     @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_TARGET_LOREBOOK_PARAM),
                     @CommandParameter(name = "comment", type = String.class, description = L.DESC_COMMAND_LORE_COMMENT_PARAM),
-                    @CommandParameter(name = "enabled", type = Boolean.class, description = L.DESC_COMMAND_LORE_ENABLED_PARAM),
-                    @CommandParameter(name = "order", type = Integer.class, description = L.DESC_COMMAND_LORE_ORDER_PARAM),
+                    @CommandParameter(name = "enabled", type = Boolean.class, optional = true, defaultValue = "true", description = L.DESC_COMMAND_LORE_ENABLED_PARAM),
+                    @CommandParameter(name = "order", type = Integer.class, optional = true, description = L.DESC_COMMAND_LORE_ORDER_PARAM),
                     @CommandParameter(name = "keys", type = String.class, description = L.DESC_COMMAND_LORE_KEYS_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_CREATE_LORE_ENTRY_RETURN))
     public void createLoreEntryKeys(CommandContext context) throws Exception {
@@ -115,8 +115,8 @@ public class LoreEntryWriteCommands extends LorebookWriteSupport {
                     @CommandParameter(name = "payload", type = String.class, description = L.DESC_COMMAND_LORE_PAYLOAD_PARAM),
                     @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_TARGET_LOREBOOK_PARAM),
                     @CommandParameter(name = "comment", type = String.class, description = L.DESC_COMMAND_LORE_COMMENT_PARAM),
-                    @CommandParameter(name = "enabled", type = Boolean.class, description = L.DESC_COMMAND_LORE_ENABLED_PARAM),
-                    @CommandParameter(name = "order", type = Integer.class, description = L.DESC_COMMAND_LORE_ORDER_PARAM),
+                    @CommandParameter(name = "enabled", type = Boolean.class, optional = true, defaultValue = "true", description = L.DESC_COMMAND_LORE_ENABLED_PARAM),
+                    @CommandParameter(name = "order", type = Integer.class, optional = true, description = L.DESC_COMMAND_LORE_ORDER_PARAM),
                     @CommandParameter(name = "keys", type = String.class, description = L.DESC_COMMAND_LORE_KEYS_PARAM),
                     @CommandParameter(name = "filteringMode", type = String.class, description = L.DESC_COMMAND_LORE_FILTERING_MODE_PARAM, allowed = {"KEYWORDS_OR", "KEYWORDS_AND", "TEXT", "REGEX"})}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_CREATE_LORE_ENTRY_RETURN))
@@ -132,8 +132,8 @@ public class LoreEntryWriteCommands extends LorebookWriteSupport {
                     @CommandParameter(name = "payload", type = String.class, description = L.DESC_COMMAND_LORE_PAYLOAD_PARAM),
                     @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_TARGET_LOREBOOK_PARAM),
                     @CommandParameter(name = "comment", type = String.class, description = L.DESC_COMMAND_LORE_COMMENT_PARAM),
-                    @CommandParameter(name = "enabled", type = Boolean.class, description = L.DESC_COMMAND_LORE_ENABLED_PARAM),
-                    @CommandParameter(name = "order", type = Integer.class, description = L.DESC_COMMAND_LORE_ORDER_PARAM),
+                    @CommandParameter(name = "enabled", type = Boolean.class, optional = true, defaultValue = "true", description = L.DESC_COMMAND_LORE_ENABLED_PARAM),
+                    @CommandParameter(name = "order", type = Integer.class, optional = true, description = L.DESC_COMMAND_LORE_ORDER_PARAM),
                     @CommandParameter(name = "keys", type = String.class, description = L.DESC_COMMAND_LORE_KEYS_PARAM),
                     @CommandParameter(name = "filteringMode", type = String.class, description = L.DESC_COMMAND_LORE_FILTERING_MODE_PARAM, allowed = {"KEYWORDS_OR", "KEYWORDS_AND", "TEXT", "REGEX"}),
                     @CommandParameter(name = "insertionMode", type = String.class, description = L.DESC_COMMAND_LORE_INSERTION_MODE_PARAM, allowed = {"IN_LORE_BLOCK", "BEFORE_USER_PROMPT"})}),
@@ -150,8 +150,8 @@ public class LoreEntryWriteCommands extends LorebookWriteSupport {
                     @CommandParameter(name = "payload", type = String.class, description = L.DESC_COMMAND_LORE_PAYLOAD_PARAM),
                     @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_TARGET_LOREBOOK_PARAM),
                     @CommandParameter(name = "comment", type = String.class, description = L.DESC_COMMAND_LORE_COMMENT_PARAM),
-                    @CommandParameter(name = "enabled", type = Boolean.class, description = L.DESC_COMMAND_LORE_ENABLED_PARAM),
-                    @CommandParameter(name = "order", type = Integer.class, description = L.DESC_COMMAND_LORE_ORDER_PARAM),
+                    @CommandParameter(name = "enabled", type = Boolean.class, optional = true, defaultValue = "true", description = L.DESC_COMMAND_LORE_ENABLED_PARAM),
+                    @CommandParameter(name = "order", type = Integer.class, optional = true, description = L.DESC_COMMAND_LORE_ORDER_PARAM),
                     @CommandParameter(name = "keys", type = String.class, description = L.DESC_COMMAND_LORE_KEYS_PARAM),
                     @CommandParameter(name = "filteringMode", type = String.class, description = L.DESC_COMMAND_LORE_FILTERING_MODE_PARAM, allowed = {"KEYWORDS_OR", "KEYWORDS_AND", "TEXT", "REGEX"}),
                     @CommandParameter(name = "insertionMode", type = String.class, description = L.DESC_COMMAND_LORE_INSERTION_MODE_PARAM, allowed = {"IN_LORE_BLOCK", "BEFORE_USER_PROMPT"}),
@@ -215,7 +215,7 @@ public class LoreEntryWriteCommands extends LorebookWriteSupport {
                     @CommandParameter(name = "name", type = String.class, description = L.DESC_COMMAND_LORE_NAME_PARAM),
                     @CommandParameter(name = "payload", type = String.class, description = L.DESC_COMMAND_LORE_PAYLOAD_PARAM),
                     @CommandParameter(name = "comment", type = String.class, description = L.DESC_COMMAND_LORE_COMMENT_PARAM),
-                    @CommandParameter(name = "enabled", type = Boolean.class, description = L.DESC_COMMAND_LORE_ENABLED_PARAM)}),
+                    @CommandParameter(name = "enabled", type = Boolean.class, optional = true, description = L.DESC_COMMAND_LORE_ENABLED_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_UPDATE_LORE_ENTRY_RETURN))
     public void updateLoreEntryEnabled(CommandContext context) throws Exception {
         updateLoreEntry(context, ref(context, "entry"), context.get("name", String.class), context.get("payload", String.class), context.get("comment", String.class), context.get("enabled", Boolean.class), null, null, null, null);
@@ -229,8 +229,8 @@ public class LoreEntryWriteCommands extends LorebookWriteSupport {
                     @CommandParameter(name = "name", type = String.class, description = L.DESC_COMMAND_LORE_NAME_PARAM),
                     @CommandParameter(name = "payload", type = String.class, description = L.DESC_COMMAND_LORE_PAYLOAD_PARAM),
                     @CommandParameter(name = "comment", type = String.class, description = L.DESC_COMMAND_LORE_COMMENT_PARAM),
-                    @CommandParameter(name = "enabled", type = Boolean.class, description = L.DESC_COMMAND_LORE_ENABLED_PARAM),
-                    @CommandParameter(name = "order", type = Integer.class, description = L.DESC_COMMAND_LORE_ORDER_PARAM)}),
+                    @CommandParameter(name = "enabled", type = Boolean.class, optional = true, description = L.DESC_COMMAND_LORE_ENABLED_PARAM),
+                    @CommandParameter(name = "order", type = Integer.class, optional = true, description = L.DESC_COMMAND_LORE_ORDER_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_UPDATE_LORE_ENTRY_RETURN))
     public void updateLoreEntryOrder(CommandContext context) throws Exception {
         updateLoreEntry(context, ref(context, "entry"), context.get("name", String.class), context.get("payload", String.class), context.get("comment", String.class), context.get("enabled", Boolean.class), context.get("order", Integer.class), null, null, null);
@@ -244,8 +244,8 @@ public class LoreEntryWriteCommands extends LorebookWriteSupport {
                     @CommandParameter(name = "name", type = String.class, description = L.DESC_COMMAND_LORE_NAME_PARAM),
                     @CommandParameter(name = "payload", type = String.class, description = L.DESC_COMMAND_LORE_PAYLOAD_PARAM),
                     @CommandParameter(name = "comment", type = String.class, description = L.DESC_COMMAND_LORE_COMMENT_PARAM),
-                    @CommandParameter(name = "enabled", type = Boolean.class, description = L.DESC_COMMAND_LORE_ENABLED_PARAM),
-                    @CommandParameter(name = "order", type = Integer.class, description = L.DESC_COMMAND_LORE_ORDER_PARAM),
+                    @CommandParameter(name = "enabled", type = Boolean.class, optional = true, description = L.DESC_COMMAND_LORE_ENABLED_PARAM),
+                    @CommandParameter(name = "order", type = Integer.class, optional = true, description = L.DESC_COMMAND_LORE_ORDER_PARAM),
                     @CommandParameter(name = "keys", type = String.class, description = L.DESC_COMMAND_LORE_KEYS_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_UPDATE_LORE_ENTRY_RETURN))
     public void updateLoreEntryKeys(CommandContext context) throws Exception {
@@ -260,8 +260,8 @@ public class LoreEntryWriteCommands extends LorebookWriteSupport {
                     @CommandParameter(name = "name", type = String.class, description = L.DESC_COMMAND_LORE_NAME_PARAM),
                     @CommandParameter(name = "payload", type = String.class, description = L.DESC_COMMAND_LORE_PAYLOAD_PARAM),
                     @CommandParameter(name = "comment", type = String.class, description = L.DESC_COMMAND_LORE_COMMENT_PARAM),
-                    @CommandParameter(name = "enabled", type = Boolean.class, description = L.DESC_COMMAND_LORE_ENABLED_PARAM),
-                    @CommandParameter(name = "order", type = Integer.class, description = L.DESC_COMMAND_LORE_ORDER_PARAM),
+                    @CommandParameter(name = "enabled", type = Boolean.class, optional = true, description = L.DESC_COMMAND_LORE_ENABLED_PARAM),
+                    @CommandParameter(name = "order", type = Integer.class, optional = true, description = L.DESC_COMMAND_LORE_ORDER_PARAM),
                     @CommandParameter(name = "keys", type = String.class, description = L.DESC_COMMAND_LORE_KEYS_PARAM),
                     @CommandParameter(name = "filteringMode", type = String.class, description = L.DESC_COMMAND_LORE_FILTERING_MODE_PARAM, allowed = {"KEYWORDS_OR", "KEYWORDS_AND", "TEXT", "REGEX"})}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_UPDATE_LORE_ENTRY_RETURN))
@@ -277,8 +277,8 @@ public class LoreEntryWriteCommands extends LorebookWriteSupport {
                     @CommandParameter(name = "name", type = String.class, description = L.DESC_COMMAND_LORE_NAME_PARAM),
                     @CommandParameter(name = "payload", type = String.class, description = L.DESC_COMMAND_LORE_PAYLOAD_PARAM),
                     @CommandParameter(name = "comment", type = String.class, description = L.DESC_COMMAND_LORE_COMMENT_PARAM),
-                    @CommandParameter(name = "enabled", type = Boolean.class, description = L.DESC_COMMAND_LORE_ENABLED_PARAM),
-                    @CommandParameter(name = "order", type = Integer.class, description = L.DESC_COMMAND_LORE_ORDER_PARAM),
+                    @CommandParameter(name = "enabled", type = Boolean.class, optional = true, description = L.DESC_COMMAND_LORE_ENABLED_PARAM),
+                    @CommandParameter(name = "order", type = Integer.class, optional = true, description = L.DESC_COMMAND_LORE_ORDER_PARAM),
                     @CommandParameter(name = "keys", type = String.class, description = L.DESC_COMMAND_LORE_KEYS_PARAM),
                     @CommandParameter(name = "filteringMode", type = String.class, description = L.DESC_COMMAND_LORE_FILTERING_MODE_PARAM, allowed = {"KEYWORDS_OR", "KEYWORDS_AND", "TEXT", "REGEX"}),
                     @CommandParameter(name = "insertionMode", type = String.class, description = L.DESC_COMMAND_LORE_INSERTION_MODE_PARAM, allowed = {"IN_LORE_BLOCK", "BEFORE_USER_PROMPT"})}),

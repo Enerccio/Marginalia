@@ -30,7 +30,7 @@ public class ListBranchesCommand extends ManuscriptReadSupport {
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_LIST_BRANCHES, llmDescription = L.DESC_COMMAND_LIST_BRANCHES_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "offset", type = Integer.class, description = L.DESC_COMMAND_OFFSET_PARAM)}),
+                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0", description = L.DESC_COMMAND_OFFSET_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_BRANCHES_RETURN))
     public void listBranchesOffset(CommandContext context) throws Exception {
         listBranches(context, context.get("offset", Integer.class), null);
@@ -40,8 +40,8 @@ public class ListBranchesCommand extends ManuscriptReadSupport {
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_LIST_BRANCHES, llmDescription = L.DESC_COMMAND_LIST_BRANCHES_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "offset", type = Integer.class, description = L.DESC_COMMAND_OFFSET_PARAM),
-                    @CommandParameter(name = "limit", type = Integer.class, description = L.DESC_COMMAND_LIMIT_PARAM)}),
+                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0", description = L.DESC_COMMAND_OFFSET_PARAM),
+                    @CommandParameter(name = "limit", type = Integer.class, optional = true, defaultValue = "50", min = "1", max = "200", description = L.DESC_COMMAND_LIMIT_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_BRANCHES_RETURN))
     public void listBranchesLimit(CommandContext context) throws Exception {
         listBranches(context, context.get("offset", Integer.class), context.get("limit", Integer.class));

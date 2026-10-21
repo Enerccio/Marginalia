@@ -50,6 +50,29 @@ class CommandFunctionsAgentTest extends AgentTestBase {
     }
 
     @Test
+    void theOlderCommandsDeclareTheirRangesAndDefaults() throws Exception {
+        FunctionSet set = CommandFunctions.create(commandService, List.of("list-parts", "get-part", "find-occurrences", "search-replace-parts",
+                "search-replace-lore-entries", "update-lore-entry"), DestructiveCommandMode.AUTO, localization::getValue, null);
+        java.util.function.Function<String, com.fasterxml.jackson.databind.JsonNode> properties = name -> set.getDefinitions().stream()
+                .filter(definition -> definition.getName().equals(name)).findFirst().orElseThrow().getParametersSchema().get("properties");
+
+        assertThat(properties.apply("list-parts").get("limit").get("minimum").asInt()).isEqualTo(1);
+        assertThat(properties.apply("list-parts").get("limit").get("maximum").asInt()).isEqualTo(200);
+        assertThat(properties.apply("list-parts").get("limit").get("default").asInt()).isEqualTo(50);
+        assertThat(properties.apply("list-parts").get("offset").get("minimum").asInt()).isEqualTo(0);
+        assertThat(properties.apply("get-part").get("length").get("maximum").asInt()).isEqualTo(20_000);
+        assertThat(properties.apply("find-occurrences").get("caseSensitive").get("default").asBoolean()).isFalse();
+        assertThat(properties.apply("search-replace-parts").get("caseSensitive").get("default").asBoolean()).isTrue();
+        assertThat(properties.apply("search-replace-parts").get("maxHits").get("minimum").asInt()).isEqualTo(1);
+        assertThat(properties.apply("search-replace-lore-entries").get("dryRun").get("default").asBoolean()).isFalse();
+        assertThat(properties.apply("update-lore-entry").get("enabled").has("default")).as("an update leaves what it is not told").isFalse();
+        // the model that leaves out what it does not care about is not refused
+        assertThat(set.getDefinitions().stream().filter(d -> d.getName().equals("search-replace-parts")).findFirst().orElseThrow()
+                .getParametersSchema().get("required")).extracting(com.fasterxml.jackson.databind.JsonNode::asText)
+                .containsExactlyInAnyOrder("search", "replace");
+    }
+
+    @Test
     void aCallOnAThreadOfTheRunReadsTheBookOfTheRun() throws Exception {
         loginAgentUser();
         Agent agent = agent();

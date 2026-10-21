@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.bound.AgentRequestAttributes;
 import com.github.enerccio.marginalia.bound.AgentSession;
 import com.github.enerccio.marginalia.bound.AgenticSessionPoint;
 import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
+import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
@@ -14,9 +15,13 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.AgentService.AgentGrant;
 import com.github.enerccio.marginalia.domain.service.AgentService.ResolvedProfile;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService.AgenticCopy;
+import com.github.enerccio.marginalia.domain.service.agent.RunTools.PlanItem;
 import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -491,6 +496,40 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
         Agent agent = stored.getAgent();
         ResolvedProfile resolved = agent.getMainProfile() == null ? null : agentService.resolveProfile(agent.getMainProfile());
         return AgentService.contextCap(agent, resolved);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public long getResponseCap(AgentRun run) throws Exception {
+        AgentRun stored = run == null || run.getId() == null ? null : find(run.getId());
+        if (stored == null || stored.getAgent().getMainProfile() == null) {
+            return 0;
+        }
+        ResolvedProfile resolved = agentService.resolveProfile(stored.getAgent().getMainProfile());
+        return resolved == null ? 0 : TokenLimits.responseTokens(resolved.ai(), resolved.protocol());
+    }
+
+    @Override
+    public List<PlanItem> getPlan(AgentRun run) throws Exception {
+        AgentRun stored = run == null || run.getId() == null ? null : find(run.getId());
+        if (stored == null) {
+            return List.of();
+        }
+        String json = fileSystemService.readPlan(stored);
+        if (json != null) {
+            try {
+                List<PlanItem> plan = new ArrayList<>();
+                for (JsonElement item : JsonParser.parseString(json).getAsJsonArray()) {
+                    JsonObject object = item.getAsJsonObject();
+                    plan.add(new PlanItem(object.get("text").getAsString(),
+                            object.has("status") ? object.get("status").getAsString() : "pending"));
+                }
+                return plan;
+            } catch (RuntimeException e) {
+                log.warn("Agent run {}: the kept plan can't be read: {}", stored.getUuid(), e.getMessage());
+            }
+        }
+        return AgentRunnerImpl.planOf(messageService.transcript(stored));
     }
 
     @Override

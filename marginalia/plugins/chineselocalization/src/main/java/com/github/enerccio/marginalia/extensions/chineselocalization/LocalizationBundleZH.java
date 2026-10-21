@@ -614,6 +614,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_JSON_TAKE_RESULT, "采用结果");
         setValue(L.LABEL_JSON_START_OVER, "重新开始");
         setValue(L.LABEL_JSON_APPLY_TEXT, "使用此文本");
+        setValue(L.LABEL_AGENT_REPLY_LIMIT, "回复上限");
+        setValue(L.LABEL_AGENT_PLAN, "计划");
+        setValue(L.LABEL_AGENTS_WAITING, "等待您处理的智能体");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -720,6 +723,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_JSON_CHOICE_BOOK, "书籍的");
         setValue(L.ENUM_JSON_CHOICE_BASE, "开始时的");
         setValue(L.ENUM_JSON_CHOICE_NONE, "不保留");
+        setValue(L.ENUM_AGENT_PLAN_PENDING, "待办");
+        setValue(L.ENUM_AGENT_PLAN_IN_PROGRESS, "进行中");
+        setValue(L.ENUM_AGENT_PLAN_DONE, "已完成");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -1016,6 +1022,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_JSON_NOT_JSON, "此数据不是 JSON,只能作为文本编辑。");
         setValue(L.MSG_JSON_RESULT_CONFLICTS, "数据中有 %d 个冲突,未决定之处将采用智能体的内容。");
         setValue(L.MSG_JSON_MATCH_PICK, "哪个元素与 %s 相同?");
+        setValue(L.MSG_AGENT_NO_PLAN, "智能体还没有制定计划。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

@@ -2258,7 +2258,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 subCage = cage;
                 SubAgents pool = new SubAgents(maxSubagents);
                 subAgents = pool;
-                progress.subAgents = () -> "Sub-agents: " + pool.live() + " working of at most " + maxSubagents;
+                progress.subAgents = pool::describe;
                 SubAgentToolsImpl subAgentTools = new SubAgentToolsImpl(pool, (sub, message) -> startSub(pool, sub, message), () -> currentCallId,
                         () -> resumedCallId, this::subProfile);
                 tools = tools.and(inferenceServices.getFunctionRegistry().bind(SubAgentTools.class, subAgentTools));

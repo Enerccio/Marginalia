@@ -2,6 +2,8 @@ package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.service.agent.CheckpointStore.Info;
+import com.github.enerccio.marginalia.domain.service.agent.MergePlan;
+import com.github.enerccio.marginalia.utils.TextDiff;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -205,6 +207,38 @@ public interface CheckpointService {
      *                             it, or the run is not paused or stopped
      */
     Rewound rewindToMessage(AgentRun run, String messageUuid) throws Exception;
+
+    /**
+     * A file of the workspace that is not the same in the checkpoint and now.
+     *
+     * @param change  ADDED: only there now, DELETED: only in the checkpoint
+     * @param before  its size in the checkpoint; 0 for an added file
+     * @param after   its size now; 0 for a deleted file
+     */
+    record FileChange(String path, MergePlan.Change change, long before, long after) {
+    }
+
+    /**
+     * What differs between a checkpoint and the run now.
+     *
+     * @param checkpoint the checkpoint
+     * @param book       the changes of the working copy since (null when only a path of the workspace was compared)
+     * @param files      the files of the workspace that differ, by path
+     * @param lines      the sentences that differ in the one text file the path names; null for no file or one that is not text, or
+     *                   too large to compare
+     */
+    record Difference(Info checkpoint, MergePlan book, List<FileChange> files, TextDiff.Result lines) {
+    }
+
+    /**
+     * Compares a checkpoint with the run now: what changed in the working copy (the settings, parts, lorebooks and entries) and in
+     * the workspace.
+     *
+     * @param path a file or a folder of the workspace: only this is compared, and a changed text file is compared sentence by
+     *             sentence; null compares the book and the whole workspace
+     * @throws CheckpointException when there is no such checkpoint or no such path
+     */
+    Difference diff(AgentRun run, String id, String path) throws Exception;
 
     /**
      * The archive of a checkpoint, to download.

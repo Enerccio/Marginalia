@@ -41,7 +41,7 @@ public class ShowPromptCommand extends ManuscriptReadSupport {
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
                     @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM),
-                    @CommandParameter(name = "offset", type = Integer.class, description = L.DESC_COMMAND_OFFSET_PARAM)}),
+                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0", description = L.DESC_COMMAND_OFFSET_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SHOW_PROMPT_RETURN))
     public void showPromptOffset(CommandContext context) throws Exception {
         showPrompt(context, ref(context, "part"), ref(context, "branch"), context.get("offset", Integer.class), null);
@@ -53,8 +53,8 @@ public class ShowPromptCommand extends ManuscriptReadSupport {
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
                     @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM),
-                    @CommandParameter(name = "offset", type = Integer.class, description = L.DESC_COMMAND_OFFSET_PARAM),
-                    @CommandParameter(name = "length", type = Integer.class, description = L.DESC_COMMAND_LENGTH_PARAM)}),
+                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0", description = L.DESC_COMMAND_OFFSET_PARAM),
+                    @CommandParameter(name = "length", type = Integer.class, optional = true, defaultValue = "6000", min = "1", max = "20000", description = L.DESC_COMMAND_LENGTH_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SHOW_PROMPT_RETURN))
     public void showPromptLength(CommandContext context) throws Exception {
         showPrompt(context, ref(context, "part"), ref(context, "branch"), context.get("offset", Integer.class), context.get("length", Integer.class));

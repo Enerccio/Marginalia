@@ -62,9 +62,11 @@ Rules to remember:
   the arguments are truly free-form. A declared signature that fits always wins over the any-form.
 - An argument of type `Object.class` is "any" and also accepts a list of objects, passed as one argument.
 - A parameter can say more for an agent (it is the schema of the function, see [Commands as functions](../agents.md#commands-as-functions)):
-  `optional = true` (it may be left out), `defaultValue = "0"` (text, converted to the type) and `allowed = {"short", "long"}` (an enum type needs
-  none, its constants are the values). Without `optional` a parameter is required when every form of the command has it, so with a ladder of forms
-  that each add a parameter only the first ones are required. The command line ignores all three.
+  `optional = true` (it may be left out), `defaultValue = "0"` (text, converted to the type), `allowed = {"short", "long"}` (an enum type needs
+  none, its constants are the values) and, for a number, `min = "1"` and `max = "200"` (text too; they are the `minimum` and `maximum` of the schema, and a value outside them
+  is refused with a message that names the limit - say them when the command would clamp or fail on such a value). Give a parameter a `defaultValue` when the command reads it as a primitive or
+  would fail on `null`: the form an agent calls is the shortest one that has all the arguments it passed, so a parameter it left out of a longer form is `null` unless it has a default. Without `optional` a parameter is required when every form of the command has it, so with a ladder of forms
+  that each add a parameter only the first ones are required. The command line ignores all of them.
 - A parameter of the type `LLMAttachment[]` takes **images** for the model the command talks to (the Lore Generator's `generate-lore-entry` has one, `images`).
   An agent passes paths of image files of its workspace and the command gets the attachments (see [Images](../agents.md#images)); the command line can't
   convert text to attachments, so keep such a parameter in a form of its own at the end of the ladder, `optional = true`.

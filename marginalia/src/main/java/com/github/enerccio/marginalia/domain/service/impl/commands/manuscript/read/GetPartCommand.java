@@ -45,7 +45,7 @@ public class GetPartCommand extends ManuscriptReadSupport {
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
                     @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM),
-                    @CommandParameter(name = "offset", type = Integer.class, description = L.DESC_COMMAND_OFFSET_PARAM)}),
+                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0", description = L.DESC_COMMAND_OFFSET_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_PART_RETURN))
     public void getPartOffset(CommandContext context) throws Exception {
         getPart(context, ref(context, "part"), ref(context, "branch"), context.get("offset", Integer.class), null, null);
@@ -57,8 +57,8 @@ public class GetPartCommand extends ManuscriptReadSupport {
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
                     @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM),
-                    @CommandParameter(name = "offset", type = Integer.class, description = L.DESC_COMMAND_OFFSET_PARAM),
-                    @CommandParameter(name = "length", type = Integer.class, description = L.DESC_COMMAND_LENGTH_PARAM)}),
+                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0", description = L.DESC_COMMAND_OFFSET_PARAM),
+                    @CommandParameter(name = "length", type = Integer.class, optional = true, defaultValue = "6000", min = "1", max = "20000", description = L.DESC_COMMAND_LENGTH_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_PART_RETURN))
     public void getPartLength(CommandContext context) throws Exception {
         getPart(context, ref(context, "part"), ref(context, "branch"), context.get("offset", Integer.class), context.get("length", Integer.class), null);
@@ -70,8 +70,8 @@ public class GetPartCommand extends ManuscriptReadSupport {
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
                     @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM),
-                    @CommandParameter(name = "offset", type = Integer.class, description = L.DESC_COMMAND_OFFSET_PARAM),
-                    @CommandParameter(name = "length", type = Integer.class, description = L.DESC_COMMAND_LENGTH_PARAM),
+                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0", description = L.DESC_COMMAND_OFFSET_PARAM),
+                    @CommandParameter(name = "length", type = Integer.class, optional = true, defaultValue = "6000", min = "1", max = "20000", description = L.DESC_COMMAND_LENGTH_PARAM),
                     @CommandParameter(name = "field", type = String.class, description = L.DESC_COMMAND_FIELD_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_PART_RETURN))
     public void getPartField(CommandContext context) throws Exception {
