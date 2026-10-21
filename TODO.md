@@ -397,22 +397,9 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
 
 ### Development
 
-67. **Test speed on other machines (the Mac).** The suite takes about 7 minutes on three JVMs (about 19 on one) on the
-    Intel Core i7-10700K desktop; the table with that machine is in `manual/developer/testing.md` (Surefire settings), and
-    the old claim of about 35 s of test time in `CLAUDE.md` came from the Mac, before the agent tests existed. To add the
-    Mac as another row:
-    1. From `marginalia/`, with nothing heavy running and the tests compiled, run `mvn test -Dtest.forks=1` and then
-       `mvn test` (the default is 3 JVMs). Write down the `Total time` line of Maven for each, and that every test passed
-       (about 2,560).
-    2. Optional, the memory column: while the second run goes, add up the memory of the `surefirebooter` JVMs (Activity
-       Monitor, filter `java`; on Linux `ps -eo rss,cmd | grep surefirebooter`). Those three JVMs peaked at 6.5 GB on
-       the desktop, which matters on a laptop with 16 GB; if it does, try `-Dtest.forks=2` and note its time.
-    3. Describe the machine in the row: `sysctl -n machdep.cpu.brand_string hw.ncpu hw.memsize` (cores and memory),
-       `java -version`, the disk if it is not the internal SSD.
-    4. Add the row to the table in `manual/developer/testing.md`, run `tools/retype_build.sh`, and change the sentence
-       about the length of the suite in the testing notes of `CLAUDE.md` if the Mac is far from 7 minutes.
-    Open questions for that run: is the default of 3 JVMs right for a laptop (`forkCount` takes a factor of the cores,
-    e.g. `0.25C`), and do all tests pass there (the WorkspacePartsLLMTest style of mistake, a test that counts on
-    the database being empty, only shows when the classes share a JVM in another order). Still unmeasured ideas: cache the
-    encoding that `JavaTokkitStrategy` loads for every test (about 8% of the samples of one profile) and the cost of a
-    context rebuilt by `@DirtiesContext` in a warm JVM.
+67. ~~**Test speed on other machines (the Mac).**~~ ✅ Measured 2026-10-21 on the Apple M4 (10 cores, 16 GB, JDK 26):
+    2:20 min on one JVM, 1:27 min on the default 3 JVMs, 1.8 GB peak for the 3 JVMs, all 2,558 tests passed (so no test
+    counts on an empty database or on the order of the classes there). The row is in `manual/developer/testing.md`.
+    Still unmeasured: `-Dtest.forks=2` or `0.25C` on a laptop (not needed with 1.8 GB), caching the encoding that
+    `JavaTokkitStrategy` loads for every test (about 8% of the samples of one profile) and the cost of a context rebuilt
+    by `@DirtiesContext` in a warm JVM.
