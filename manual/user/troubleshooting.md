@@ -41,7 +41,7 @@ extension (see [below](#extensions)).
 Change the left side of the port mapping in `docker-compose.yml`, e.g. `"8081:8080"`, and open port 8081.
 
 **Marginalia is slow or stops with "OutOfMemoryError".**
-Raise the memory: `-Xmx1g` (or more) in `JAVA_TOOL_OPTIONS` in `docker-compose.yml`.
+Raise the memory: `-Xmx2g` (or more) in `JAVA_TOOL_OPTIONS` in `docker-compose.yml`.
 
 ## Logging in
 
