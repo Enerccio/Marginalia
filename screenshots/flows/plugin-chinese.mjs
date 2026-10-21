@@ -10,9 +10,7 @@ await main(async ({ page }) => {
   await idle(page, 2500);
   await snap(page, '_zh-workspace');
   // the first row of the table: open the book (pen)
-  const cell = page.locator('vaadin-grid-cell-content').filter({ hasText: 'Harry Potter and Half' }).first();
-  const box = await cell.boundingBox();
-  await page.mouse.click(1804, box.y + box.height / 2);
+  await page.locator('vaadin-grid vaadin-button:has(vaadin-icon[icon$=":pencil"])').first().click();
   await sleep(2500);
   await page.locator('vaadin-dialog[opened]').first().getByRole('tab').nth(3).click();   // the Story tab (4th)
   await idle(page, 1500);

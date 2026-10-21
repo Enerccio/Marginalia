@@ -69,6 +69,8 @@ async function chat(req, res, body) {
   ctx.isSummary = /summar/i.test(ctx.system.slice(0, 600)) && !ctx.last.includes('Write the next section');
   log.push({ at: new Date().toISOString(), model: body.model, stream: ctx.stream, wantsJson: ctx.wantsJson, messages: flat });
   log = log.slice(-60);
+  // the tools of an agent request (names and parameters) are what a flow has to call: the last set is kept for reading
+  if (ctx.hasTools) fs.writeFileSync(path.join(path.dirname(logFile), 'last-tools.json'), JSON.stringify(body.tools.map(t => t.function ?? t), null, 1));
   fs.appendFileSync(logFile, JSON.stringify(log[log.length - 1]) + '\n');
 
   let answer = queue.shift();
