@@ -609,6 +609,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_REPLY_LIMIT, "返信の上限");
         setValue(L.LABEL_AGENT_PLAN, "計画");
         setValue(L.LABEL_AGENTS_WAITING, "対応を待っているエージェント");
+        setValue(L.LABEL_CLONE_BOOK, "本を複製");
+        setValue(L.LABEL_ONLY_CURRENT_BRANCH, "現在の分岐のみ");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");

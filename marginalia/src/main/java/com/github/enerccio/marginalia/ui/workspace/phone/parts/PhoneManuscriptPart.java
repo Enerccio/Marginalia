@@ -18,6 +18,7 @@ import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
+import com.github.enerccio.marginalia.ui.dialogs.ManuscriptCloneDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptWindow;
 import com.github.enerccio.marginalia.ui.dialogs.agent.AgentLockCheck;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
@@ -241,6 +242,7 @@ public class PhoneManuscriptPart implements ManuscriptSection {
                     @APILocals(name = "tagsSpan", type = Span.class),
                     @APILocals(name = "modificationSpan", type = Span.class),
                     @APILocals(name = "editButton", type = Button.class),
+                    @APILocals(name = "cloneButton", type = Button.class),
                     @APILocals(name = "deleteButton", type = Button.class),
                     @APILocals(name = "actions", type = HorizontalLayout.class),
                     @APILocals(name = "item", type = HorizontalLayout.class)})
@@ -276,6 +278,14 @@ public class PhoneManuscriptPart implements ManuscriptSection {
             }
         });
 
+        Button cloneButton = new Button(Solid.CLONE.create(), _ -> {
+            ManuscriptCloneDialog dialog = new ManuscriptCloneDialog(wrapper.getManuscript());
+            dialog.setOnClone(_ -> refreshGrid());
+            dialog.create();
+            dialog.open();
+        });
+        cloneButton.setTooltipText(loc.getValue(L.LABEL_CLONE_BOOK));
+
         Button deleteButton = new Button(Solid.TRASH.create(), _ ->
                 ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
                     try {
@@ -287,7 +297,7 @@ public class PhoneManuscriptPart implements ManuscriptSection {
                 }));
         deleteButton.setThemeName("error tertiary");
 
-        HorizontalLayout actions = new HorizontalLayout(editButton, deleteButton);
+        HorizontalLayout actions = new HorizontalLayout(editButton, cloneButton, deleteButton);
         actions.setSpacing(false);
         actions.addClassName(CssStyles.FLEX_SHRINK_0);
 

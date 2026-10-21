@@ -617,6 +617,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_REPLY_LIMIT, "回复上限");
         setValue(L.LABEL_AGENT_PLAN, "计划");
         setValue(L.LABEL_AGENTS_WAITING, "等待您处理的智能体");
+        setValue(L.LABEL_CLONE_BOOK, "克隆书籍");
+        setValue(L.LABEL_ONLY_CURRENT_BRANCH, "仅当前分支");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");

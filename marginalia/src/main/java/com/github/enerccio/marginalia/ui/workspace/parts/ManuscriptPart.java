@@ -18,10 +18,7 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.RestorableState;
-import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
-import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
-import com.github.enerccio.marginalia.ui.dialogs.ManuscriptWindow;
-import com.github.enerccio.marginalia.ui.dialogs.MultiTagDialog;
+import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.dialogs.agent.AgentLockCheck;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableItem;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableProviderBase;
@@ -201,6 +198,9 @@ public class ManuscriptPart implements ManuscriptSection {
                 }
             });
 
+            Button cloneButton = new Button(Solid.CLONE.create(), _ -> openCloneDialog(manuscriptWrapper.getManuscript()));
+            cloneButton.setTooltipText(loc.getValue(L.LABEL_CLONE_BOOK));
+
             Button deleteButton = new Button(Solid.TRASH.create(), _ ->
                     ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
                         try {
@@ -212,9 +212,9 @@ public class ManuscriptPart implements ManuscriptSection {
                     }));
             deleteButton.setThemeName("error tertiary");
 
-            actions.add(editButton, deleteButton);
+            actions.add(editButton, cloneButton, deleteButton);
             return actions;
-        }).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE_HUGE);
+        }).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE_TRIPLE);
 
         grid.sort(List.of(new GridSortOrder<>(modificationColumn, SortDirection.DESCENDING)));
         sorters.add(new GridSortOrder<>(modificationColumn, SortDirection.DESCENDING));
@@ -269,6 +269,20 @@ public class ManuscriptPart implements ManuscriptSection {
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+    }
+
+    /**
+     * Opens the dialog that makes a new book of the book; the list shows the new book when it is closed.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)},
+            locals = {@APILocals(name = "dialog", type = ManuscriptCloneDialog.class)})
+    private void openCloneDialog(Manuscript manuscript) {
+        ManuscriptCloneDialog dialog = new ManuscriptCloneDialog(manuscript);
+        dialog.setOnClone(_ -> refreshGrid());
+        dialog.create();
+        dialog.open();
     }
 
     /**

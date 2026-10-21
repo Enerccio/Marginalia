@@ -609,6 +609,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_REPLY_LIMIT, "Reply limit");
         setValue(L.LABEL_AGENT_PLAN, "Plan");
         setValue(L.LABEL_AGENTS_WAITING, "Agents waiting for you");
+        setValue(L.LABEL_CLONE_BOOK, "Clone book");
+        setValue(L.LABEL_ONLY_CURRENT_BRANCH, "Only current branch");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
