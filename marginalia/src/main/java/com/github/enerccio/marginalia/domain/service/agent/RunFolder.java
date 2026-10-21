@@ -29,6 +29,10 @@ public final class RunFolder {
     public static final String SYNC_PENDING = "sync-pending";
     /** The note of the author with a resume, until the model has read it. */
     public static final String RESUME_NOTE = "resume-note.txt";
+    /** The id of the call of the agent that began to change something, until its result is stored. */
+    public static final String CALL_MARKER = "call-began";
+    /** What the author wrote to a conversation while it worked and the agent did not read yet. */
+    public static final String QUEUE = "queue.json";
 
     private final Path run;
     private final Path workspace;

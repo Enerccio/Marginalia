@@ -2,11 +2,7 @@ package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
-import com.github.enerccio.marginalia.domain.service.agent.CommandResults;
-import com.github.enerccio.marginalia.domain.service.agent.RunFolder;
-import com.github.enerccio.marginalia.domain.service.agent.VirtualFileSystem;
-import com.github.enerccio.marginalia.domain.service.agent.WorkspaceLimits;
-import com.github.enerccio.marginalia.domain.service.agent.WorkspaceUsage;
+import com.github.enerccio.marginalia.domain.service.agent.*;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.google.gson.JsonObject;
 
@@ -151,6 +147,30 @@ public interface AgentVirtualFileSystemService {
      * @throws IllegalArgumentException when the run is not a run of the user
      */
     void writeResumeNote(AgentRun run, String note) throws Exception;
+
+    /**
+     * Keeps the id of the call of the agent that is about to change something (the working copy or the workspace), at once; null
+     * says that no call began (it waits for the author's approval, or for its turn). After a restart the runner finds the call
+     * without a result: when this is its id, the call may have been done in part and the agent is told so; else it was not
+     * started, and it is made again. No check of the owner: the runner writes it for the run it works.
+     */
+    void writeCallMarker(AgentRun run, String callId);
+
+    /**
+     * The id {@link #writeCallMarker} kept; null when there is none.
+     */
+    String readCallMarker(AgentRun run);
+
+    /**
+     * Keeps what the author wrote to a conversation while it worked (the queue of messages and commands, as the runner writes
+     * it), at once, so a restart does not lose it. Null removes it. No check of the owner.
+     */
+    void writeQueue(AgentRun run, String json);
+
+    /**
+     * What {@link #writeQueue} kept; null when there is none.
+     */
+    String readQueue(AgentRun run);
 
     /**
      * The note of the author with the last resume that the model was not told of yet, and marks it as told; null when there is none.

@@ -25,6 +25,8 @@ public class AgentApprovalServiceImpl implements AgentApprovalService {
 
     // by the id of the run, then the id of the approval
     private final Map<Long, Map<String, Entry>> pending = new ConcurrentHashMap<>();
+    // the runs whose approvals were withdrawn by rejectAll and not decided by the user, see takeWithdrawn
+    private final Set<Long> withdrawn = ConcurrentHashMap.newKeySet();
 
     @Override
     public CompletableFuture<Boolean> request(AgentRun run, String command, Map<String, Object> arguments) {
@@ -32,6 +34,7 @@ public class AgentApprovalServiceImpl implements AgentApprovalService {
             throw new IllegalArgumentException("The run does not exist");
         }
         Long runId = run.getId();
+        withdrawn.remove(runId);
         PendingApproval approval = new PendingApproval(UUID.randomUUID().toString(), command,
                 new LinkedHashMap<>(arguments == null ? Map.of() : arguments), new Date());
         CompletableFuture<Boolean> decision = new CompletableFuture<>();
@@ -84,11 +87,20 @@ public class AgentApprovalServiceImpl implements AgentApprovalService {
         }
         int rejected = 0;
         for (Entry entry : new ArrayList<>(entries.values())) {
+            if (!entry.decision().isDone()) {
+                // before the decision is made: whoever waits for it asks right after
+                withdrawn.add(runId);
+            }
             if (entry.decision().complete(false)) {
                 rejected++;
             }
         }
         return rejected;
+    }
+
+    @Override
+    public boolean takeWithdrawn(Long runId) {
+        return runId != null && withdrawn.remove(runId);
     }
 
     private Long owned(AgentRun run) throws Exception {
