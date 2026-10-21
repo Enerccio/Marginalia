@@ -431,8 +431,9 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.5.4</version>
         <configuration>
-          <!-- RuntimeInstrumentationTest installs the ByteBuddy agent into the test JVM -->
-          <argLine>-XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true</argLine>
+          <!-- RuntimeInstrumentationTest installs the ByteBuddy agent into the test JVM. The headless flags keep AWT
+               (ImageIO/Graphics2D in the image tests) from putting a Java icon in the macOS Dock and stealing focus -->
+          <argLine>-XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true -Djava.awt.headless=true -Dapple.awt.UIElement=true</argLine>
           <systemPropertyVariables>
             <marginalia.test.home>${project.build.directory}/test-home</marginalia.test.home>
           </systemPropertyVariables>
