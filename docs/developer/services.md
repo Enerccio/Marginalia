@@ -188,6 +188,7 @@ with `java.util.zip`.
 | Service | Responsible for |
 |---|---|
 | `LorebookService` | `findAllRegularForUser` / `findAllAgenticForUser` (the lorebooks without or only the working copies of agents; `findAllForUser` returns both), `fillEntries` (loads entries with their effective tags for generation and the editor), `getSubbooks`, `delete(book, false)` also soft deletes the entries and tags of the lorebook, export / import in Marginalia's format (`exportLorebook`, `importLorebook`, `marshalLorebooks`, `analyzeImport`, `importLorebooks`), SillyTavern import (`importFromSillytavern`, via `SillyTavernEntryConverter`),  `addSubbook`, `removeSubbook`, `setSubbooks` and `createSubbook` change the subbooks of a lorebook with the cycle check (`LorebookCycleException`, `wouldCycle`); `marshalLorebooks(root, true)` marshals the entries with their uuids and `copyLorebooks(lorebooks, pairs)` reports which copy is which original. `save` and `delete` refuse a lorebook locked by an agent (`LorebookLockedException`, see [Agents](agents.md#the-working-copy-and-the-lock)). |
+| `LorebookActivationService` | Which entries a generation uses and why (`Reason`: constant, filter matched, disabled, negative tag, missing tag, filter not matched): the rules of the generation step that puts the lore into the prompt, shared with `/preview-lore-activation` so that the two agree. |
 | `LorebookEntryService` | `getEntriesForLorebook`; `delete(entry, false)` also deletes the tags of the entry. `create(lorebook, fields)` and `update(entry)` save an entry and return the problems of its payload template and regular expression as data (`EntrySaved`, `EntryProblem`; a broken entry is saved all the same), `validate(entry)`, `deleteEntry(lorebook, entry)` checks the entry is one of the lorebook; `save` and `delete` refuse an entry of a locked lorebook. |
 | `TagService` | The user's tags: `searchTagsForUser`, `countTagsForUser` (for lazy combo boxes), `getOrCreateForUser(value)`, and for the Tags tab of the settings `findUsageForUser` (every tag with the number of its relations, `TagUsage`), `findRenameConflict`, `rename` (refuses a value another tag already has) and `merge(source, target)` (moves the relations of `source` to `target`, then deletes `source`). The tags are looked up by uuid among the current user's, so a foreign tag is ignored. |
 | `TagRelationService` | Attaching tags to any entity (`createRelation`, `removeRelation`, with `negative` for negative tags) and querying both ways (`getTagsForObject`, `getTagsForObjects` for the tags of many objects in one query, `getObjectIdsForTag`, `getObjectsForTag`); `deleteForTag` and `deleteForObject` delete the relations of a deleted tag or tagged object; `moveRelations(from, to)` re-points the relations of a tag to another one (a relation the object already has with `to` is deleted instead) and `countRelationsByTag` counts the relations of each tag of the user. |
@@ -267,6 +268,19 @@ functions rejects a non-empty `FunctionSet` with `UnsupportedOperationException`
 `AgentService`, `AgentRunService`, `AgentMessageService`, `AgentRunner`, `AgentApprovalService`, `AgentAttentionService` and `AgentVirtualFileSystemService`
 (with `CommandFunctions`, the adapter that makes the commands tools of an agent) are described on their own page, [Agents](agents.md): the life of a run,
 the services, the runner, the tools and the files of an agent.
+
+| Service | Responsible for |
+|---|---|
+| `AgentCopyService` | Read only view of the hidden working copy of a run (the *Book copy* tab): the branches of its story, the parts of one, its lorebooks, as they are now. Nothing here changes the copy; it has no window, no backup is made of it and no plugin sees it open. |
+| `AgentMergeService` | The review of a finished or kept run: compares the copy with the book it was made from and with the book as it is now, lists the changes and conflicts, applies the picked ones in place (with a backup first, never by restoring a backup). The merge of the JSON data of extensions is in `domain.service.agent.jsonmerge`. |
+| `AgentRunPairService` | Which item of the working copy is which item of the original (`AgentRunPair`, with the handle the agent knows it by): written when the copy is made, read by the merge, the restore of a checkpoint and the handles. |
+| `CheckpointService` | The restore points of a run (the copy and the workspace as a ZIP): save, list, restore, rewind, delete, the quota. |
+| `AgentWebhookService` | The message to a URL when an agent needs the user (ntfy, Gotify, Discord), and the test message. |
+| `AIGate` | The cap of requests on the way to one AI at once (`AI.maxConcurrentRequests`), for the runs of agents: `acquire` returns a `Permit`, the requests above the cap wait in order. Not applied to what the user generates by hand. |
+
+A book an agent works on is locked: an attempt to change it (or its lorebooks) fails with `ManuscriptLockedException` /
+`LorebookLockedException`, which name the agent; `AgentLockCheck` is the UI side of it. The commands the agent calls run in the working copy, so
+they are not affected.
 
 ### Permissions
 

@@ -354,7 +354,8 @@ generation current on the worker thread.
 An [agent](agents.md) run is not started by a request at all: `AgentRunner` works it in a background worker of its own
 (a thread pool, one round of the model at a time) and sets up the request context from the run, not from a browser:
 `AgentRequestAttributes` make the `user` bean resolve to the owner of the agent and the session point an
-`AgenticSessionPoint` (the working copy is the open book, the language is the one of the run). Anything that shows on
+`AgenticSessionPoint` (the working copy is the open book, the language is the one of the run). What a run keeps of its session is the
+`AgentSession` record (the uuid of the owner and the language), made up again at every start and resume. Anything that shows on
 the screen of the owner goes through `ui.access` like any other background work, see
 [the request context of a run](agents.md#the-request-context-of-a-run).
 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845941245931">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845941351641">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845941245931" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845941351641" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845941245931" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845941351641" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845941245931" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845941245931" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845941351641" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845941351641" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -468,6 +468,7 @@ with <code translate="no" v-pre>java.util.zip</code>.</p>
 <retype-table copy-text="| Service | Responsible for |
 |---|---|
 | `LorebookService` | `findAllRegularForUser` / `findAllAgenticForUser` (the lorebooks without or only the working copies of agents; `findAllForUser` returns both), `fillEntries` (loads entries with their effective tags for generation and the editor), `getSubbooks`, `delete(book, false)` also soft deletes the entries and tags of the lorebook, export / import in Marginalia's format (`exportLorebook`, `importLorebook`, `marshalLorebooks`, `analyzeImport`, `importLorebooks`), SillyTavern import (`importFromSillytavern`, via `SillyTavernEntryConverter`),  `addSubbook`, `removeSubbook`, `setSubbooks` and `createSubbook` change the subbooks of a lorebook with the cycle check (`LorebookCycleException`, `wouldCycle`); `marshalLorebooks(root, true)` marshals the entries with their uuids and `copyLorebooks(lorebooks, pairs)` reports which copy is which original. `save` and `delete` refuse a lorebook locked by an agent (`LorebookLockedException`, see [Agents](agents.md#the-working-copy-and-the-lock)). |
+| `LorebookActivationService` | Which entries a generation uses and why (`Reason`: constant, filter matched, disabled, negative tag, missing tag, filter not matched): the rules of the generation step that puts the lore into the prompt, shared with `/preview-lore-activation` so that the two agree. |
 | `LorebookEntryService` | `getEntriesForLorebook`; `delete(entry, false)` also deletes the tags of the entry. `create(lorebook, fields)` and `update(entry)` save an entry and return the problems of its payload template and regular expression as data (`EntrySaved`, `EntryProblem`; a broken entry is saved all the same), `validate(entry)`, `deleteEntry(lorebook, entry)` checks the entry is one of the lorebook; `save` and `delete` refuse an entry of a locked lorebook. |
 | `TagService` | The user's tags: `searchTagsForUser`, `countTagsForUser` (for lazy combo boxes), `getOrCreateForUser(value)`, and for the Tags tab of the settings `findUsageForUser` (every tag with the number of its relations, `TagUsage`), `findRenameConflict`, `rename` (refuses a value another tag already has) and `merge(source, target)` (moves the relations of `source` to `target`, then deletes `source`). The tags are looked up by uuid among the current user's, so a foreign tag is ignored. |
 | `TagRelationService` | Attaching tags to any entity (`createRelation`, `removeRelation`, with `negative` for negative tags) and querying both ways (`getTagsForObject`, `getTagsForObjects` for the tags of many objects in one query, `getObjectIdsForTag`, `getObjectsForTag`); `deleteForTag` and `deleteForObject` delete the relations of a deleted tag or tagged object; `moveRelations(from, to)` re-points the relations of a tag to another one (a relation the object already has with `to` is deleted instead) and `countRelationsByTag` counts the relations of each tag of the user. |">
@@ -483,6 +484,10 @@ with <code translate="no" v-pre>java.util.zip</code>.</p>
 <tr>
 <td><code translate="no" v-pre>LorebookService</code></td>
 <td><code translate="no" v-pre>findAllRegularForUser</code> / <code translate="no" v-pre>findAllAgenticForUser</code> (the lorebooks without or only the working copies of agents; <code translate="no" v-pre>findAllForUser</code> returns both), <code translate="no" v-pre>fillEntries</code> (loads entries with their effective tags for generation and the editor), <code translate="no" v-pre>getSubbooks</code>, <code translate="no" v-pre>delete(book, false)</code> also soft deletes the entries and tags of the lorebook, export / import in Marginalia&#x27;s format (<code translate="no" v-pre>exportLorebook</code>, <code translate="no" v-pre>importLorebook</code>, <code translate="no" v-pre>marshalLorebooks</code>, <code translate="no" v-pre>analyzeImport</code>, <code translate="no" v-pre>importLorebooks</code>), SillyTavern import (<code translate="no" v-pre>importFromSillytavern</code>, via <code translate="no" v-pre>SillyTavernEntryConverter</code>),  <code translate="no" v-pre>addSubbook</code>, <code translate="no" v-pre>removeSubbook</code>, <code translate="no" v-pre>setSubbooks</code> and <code translate="no" v-pre>createSubbook</code> change the subbooks of a lorebook with the cycle check (<code translate="no" v-pre>LorebookCycleException</code>, <code translate="no" v-pre>wouldCycle</code>); <code translate="no" v-pre>marshalLorebooks(root, true)</code> marshals the entries with their uuids and <code translate="no" v-pre>copyLorebooks(lorebooks, pairs)</code> reports which copy is which original. <code translate="no" v-pre>save</code> and <code translate="no" v-pre>delete</code> refuse a lorebook locked by an agent (<code translate="no" v-pre>LorebookLockedException</code>, see <a href="../agents/#the-working-copy-and-the-lock">Agents</a>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>LorebookActivationService</code></td>
+<td>Which entries a generation uses and why (<code translate="no" v-pre>Reason</code>: constant, filter matched, disabled, negative tag, missing tag, filter not matched): the rules of the generation step that puts the lore into the prompt, shared with <code translate="no" v-pre>/preview-lore-activation</code> so that the two agree.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>LorebookEntryService</code></td>
@@ -675,6 +680,54 @@ functions rejects a non-empty <code translate="no" v-pre>FunctionSet</code> with
 <p><code translate="no" v-pre>AgentService</code>, <code translate="no" v-pre>AgentRunService</code>, <code translate="no" v-pre>AgentMessageService</code>, <code translate="no" v-pre>AgentRunner</code>, <code translate="no" v-pre>AgentApprovalService</code>, <code translate="no" v-pre>AgentAttentionService</code> and <code translate="no" v-pre>AgentVirtualFileSystemService</code>
 (with <code translate="no" v-pre>CommandFunctions</code>, the adapter that makes the commands tools of an agent) are described on their own page, <a href="../agents/">Agents</a>: the life of a run,
 the services, the runner, the tools and the files of an agent.</p>
+<retype-table copy-text="| Service | Responsible for |
+|---|---|
+| `AgentCopyService` | Read only view of the hidden working copy of a run (the *Book copy* tab): the branches of its story, the parts of one, its lorebooks, as they are now. Nothing here changes the copy; it has no window, no backup is made of it and no plugin sees it open. |
+| `AgentMergeService` | The review of a finished or kept run: compares the copy with the book it was made from and with the book as it is now, lists the changes and conflicts, applies the picked ones in place (with a backup first, never by restoring a backup). The merge of the JSON data of extensions is in `domain.service.agent.jsonmerge`. |
+| `AgentRunPairService` | Which item of the working copy is which item of the original (`AgentRunPair`, with the handle the agent knows it by): written when the copy is made, read by the merge, the restore of a checkpoint and the handles. |
+| `CheckpointService` | The restore points of a run (the copy and the workspace as a ZIP): save, list, restore, rewind, delete, the quota. |
+| `AgentWebhookService` | The message to a URL when an agent needs the user (ntfy, Gotify, Discord), and the test message. |
+| `AIGate` | The cap of requests on the way to one AI at once (`AI.maxConcurrentRequests`), for the runs of agents: `acquire` returns a `Permit`, the requests above the cap wait in order. Not applied to what the user generates by hand. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Service</th>
+<th>Responsible for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>AgentCopyService</code></td>
+<td>Read only view of the hidden working copy of a run (the <em>Book copy</em> tab): the branches of its story, the parts of one, its lorebooks, as they are now. Nothing here changes the copy; it has no window, no backup is made of it and no plugin sees it open.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AgentMergeService</code></td>
+<td>The review of a finished or kept run: compares the copy with the book it was made from and with the book as it is now, lists the changes and conflicts, applies the picked ones in place (with a backup first, never by restoring a backup). The merge of the JSON data of extensions is in <code translate="no" v-pre>domain.service.agent.jsonmerge</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AgentRunPairService</code></td>
+<td>Which item of the working copy is which item of the original (<code translate="no" v-pre>AgentRunPair</code>, with the handle the agent knows it by): written when the copy is made, read by the merge, the restore of a checkpoint and the handles.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>CheckpointService</code></td>
+<td>The restore points of a run (the copy and the workspace as a ZIP): save, list, restore, rewind, delete, the quota.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AgentWebhookService</code></td>
+<td>The message to a URL when an agent needs the user (ntfy, Gotify, Discord), and the test message.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AIGate</code></td>
+<td>The cap of requests on the way to one AI at once (<code translate="no" v-pre>AI.maxConcurrentRequests</code>), for the runs of agents: <code translate="no" v-pre>acquire</code> returns a <code translate="no" v-pre>Permit</code>, the requests above the cap wait in order. Not applied to what the user generates by hand.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>A book an agent works on is locked: an attempt to change it (or its lorebooks) fails with <code translate="no" v-pre>ManuscriptLockedException</code> /
+<code translate="no" v-pre>LorebookLockedException</code>, which name the agent; <code translate="no" v-pre>AgentLockCheck</code> is the UI side of it. The commands the agent calls run in the working copy, so
+they are not affected.</p>
 <h3 id="permissions">Permissions</h3>
 <p><code translate="no" v-pre>PermissionService</code> (<code translate="no" v-pre>domain.security.service</code>) answers what an administrator allowed a user to do, see
 <a href="../domain-model/#permission-what-a-user-was-allowed"><code translate="no" v-pre>Permission</code></a>. <code translate="no" v-pre>checkPermissions(user, type)</code> is false when the user has no
@@ -943,7 +996,7 @@ call. See
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (43d4f852).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (ae5583ec).</p></div>
             </footer>
         </div>
     </div>

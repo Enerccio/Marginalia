@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845941245931">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845941351641">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845941245931" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845941351641" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845941245931" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845941351641" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845941245931" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845941245931" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845941351641" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845941351641" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -1027,7 +1027,7 @@ runs before and after that method and can read its arguments and local variables
 | Workspace | `Workspace`, `DesktopWorkspace`, `PhoneWorkspace`, `ManuscriptPart`, `PhoneManuscriptPart`, `PhoneLorebookPart`, `PhoneProtocolPart`, `PhoneAIPart`, `PhoneSettingsPart`, `PhoneTrashPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `ResourcesPart`, `TrashPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
 | Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), the shared story helpers (`StoryCards`, `StoryGenerationListener`, `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics`, `StoryBackup`, `StorySupport`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart`, `SummariesDialog` (and its `SummaryContent`), `SummaryDialog`, `ImagesDialog`; the phone twins of the tabs (`PhoneManuscriptStoryPart` and its `ChatMessageCard`, `PhoneManuscriptInfoPart`, `PhoneManuscriptPromptPart`, `PhoneManuscriptLorebookPart`, `PhoneManuscriptTreePart`, `PhoneManuscriptBackupPart`), see [the phone twins](plugins/extendable.md#the-phone-twins) |
 | Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `TokenUsageDialog`, `UsageDialog`, `ExportDialog`, `PhoneManuscriptDialog`, `PhoneSummariesDialog`, `LorebookView`, `PhoneLorebookView`, `TreantTree`, `MessageImages`, `TagMultiComboBox`, `ChartJs`, `TrashGrid`, `PhoneTrashGrid` |
-| Agents (since 1.4.0) | The tab `AgentPart` and the admin panel `AgentSettingsPanel`; the screens of `ui.dialogs.agent`: `AgentDialog`, `AgentCommandsEditor`, `AgentModelsEditor`, `AgentModelDialog`, `AgentCloneDialog`, `AgentStopDialog`, `AgentResumeDialog`, `AgentApprovalDialog`, `AgentLockCheck`, `AgentConsoleDialog` with its tabs (`AgentRunHistory`, `AgentWorkspaceBrowser`, `AgentCheckpointBrowser`, `AgentContextView`, `AgentCopyView`, `AgentSubAgentsView`, `AgentDiagnosticsView`, `AgentFindingsView`, `AgentTranscriptRenderer`), the review `AgentMergeDialog` and `JsonMergeDialog`, and `WordDiffView` |
+| Agents (since 1.4.0) | The tab `AgentPart` and the admin panel `AgentSettingsPanel`; the screens of `ui.dialogs.agent`: `AgentDialog`, `AgentCommandsEditor` (with `AgentCommandPreset`, the roles of its Selection box), `AgentModelsEditor`, `AgentModelDialog`, `AgentCloneDialog`, `AgentStopDialog`, `AgentResumeDialog`, `AgentApprovalDialog`, `AgentLockCheck`, `AgentCard` (an agent on a phone), `AgentConsoleDialog` with its tabs (`AgentRunHistory`, `AgentWorkspaceBrowser`, `AgentCheckpointBrowser`, `AgentContextView`, `AgentCopyView`, `AgentSubAgentsView`, `AgentDiagnosticsView`, `AgentFindingsView`, `AgentTranscriptRenderer`), the review `AgentMergeDialog` and `JsonMergeDialog`, and `WordDiffView` |
 | Commands, search and other new dialogs (since 1.4.0) | `CommandBar`, `CommandResultView`, `CommandProgressDialog`; `SearchReplaceDialog` with `ManuscriptSearchReplaceDialog` and `LorebookSearchReplaceDialog`; `ManuscriptCloneDialog`, `ArchiveUploadDialog`, `ArchiveEntryNamesDialog`, `ArchiveImportRunner`, `NewBookAction`; `MultiTagDialog`, `LorebookMassEditDialog`, `LorebookPreview`; `PermissionsDialog`, `HelperPermissionComponent`, `AgentsPermissionComponent`; `HelpAssistantWidget`, `HelpAssistantPanel`; `Reset` (route `/reset`) |
 | Also | `TagsView`, `AILimitsDialog`, `AILimitEditDialog`, `AILimitInfoDialog`, `ExtensionLogDialog`, `InvalidExtensionsWarning`, `TextInputDialog`, `ListSelectDialog`, `ThreadAccessDialog`, `GraphView`, `LanguageSelector`, `ModelProtocolPicker`, `TabDock` |
 | Routes | `LoginCheckRoute` (login, saved logins), `Main` (creates the `DesktopWorkspace` or `PhoneWorkspace` in `proceedWithLogin`), `Viewer` |">
@@ -1054,7 +1054,7 @@ runs before and after that method and can read its arguments and local variables
 </tr>
 <tr>
 <td>Agents (since 1.4.0)</td>
-<td>The tab <code translate="no" v-pre>AgentPart</code> and the admin panel <code translate="no" v-pre>AgentSettingsPanel</code>; the screens of <code translate="no" v-pre>ui.dialogs.agent</code>: <code translate="no" v-pre>AgentDialog</code>, <code translate="no" v-pre>AgentCommandsEditor</code>, <code translate="no" v-pre>AgentModelsEditor</code>, <code translate="no" v-pre>AgentModelDialog</code>, <code translate="no" v-pre>AgentCloneDialog</code>, <code translate="no" v-pre>AgentStopDialog</code>, <code translate="no" v-pre>AgentResumeDialog</code>, <code translate="no" v-pre>AgentApprovalDialog</code>, <code translate="no" v-pre>AgentLockCheck</code>, <code translate="no" v-pre>AgentConsoleDialog</code> with its tabs (<code translate="no" v-pre>AgentRunHistory</code>, <code translate="no" v-pre>AgentWorkspaceBrowser</code>, <code translate="no" v-pre>AgentCheckpointBrowser</code>, <code translate="no" v-pre>AgentContextView</code>, <code translate="no" v-pre>AgentCopyView</code>, <code translate="no" v-pre>AgentSubAgentsView</code>, <code translate="no" v-pre>AgentDiagnosticsView</code>, <code translate="no" v-pre>AgentFindingsView</code>, <code translate="no" v-pre>AgentTranscriptRenderer</code>), the review <code translate="no" v-pre>AgentMergeDialog</code> and <code translate="no" v-pre>JsonMergeDialog</code>, and <code translate="no" v-pre>WordDiffView</code></td>
+<td>The tab <code translate="no" v-pre>AgentPart</code> and the admin panel <code translate="no" v-pre>AgentSettingsPanel</code>; the screens of <code translate="no" v-pre>ui.dialogs.agent</code>: <code translate="no" v-pre>AgentDialog</code>, <code translate="no" v-pre>AgentCommandsEditor</code> (with <code translate="no" v-pre>AgentCommandPreset</code>, the roles of its Selection box), <code translate="no" v-pre>AgentModelsEditor</code>, <code translate="no" v-pre>AgentModelDialog</code>, <code translate="no" v-pre>AgentCloneDialog</code>, <code translate="no" v-pre>AgentStopDialog</code>, <code translate="no" v-pre>AgentResumeDialog</code>, <code translate="no" v-pre>AgentApprovalDialog</code>, <code translate="no" v-pre>AgentLockCheck</code>, <code translate="no" v-pre>AgentCard</code> (an agent on a phone), <code translate="no" v-pre>AgentConsoleDialog</code> with its tabs (<code translate="no" v-pre>AgentRunHistory</code>, <code translate="no" v-pre>AgentWorkspaceBrowser</code>, <code translate="no" v-pre>AgentCheckpointBrowser</code>, <code translate="no" v-pre>AgentContextView</code>, <code translate="no" v-pre>AgentCopyView</code>, <code translate="no" v-pre>AgentSubAgentsView</code>, <code translate="no" v-pre>AgentDiagnosticsView</code>, <code translate="no" v-pre>AgentFindingsView</code>, <code translate="no" v-pre>AgentTranscriptRenderer</code>), the review <code translate="no" v-pre>AgentMergeDialog</code> and <code translate="no" v-pre>JsonMergeDialog</code>, and <code translate="no" v-pre>WordDiffView</code></td>
 </tr>
 <tr>
 <td>Commands, search and other new dialogs (since 1.4.0)</td>
@@ -1336,7 +1336,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (43d4f852).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (ae5583ec).</p></div>
             </footer>
         </div>
     </div>
