@@ -67,12 +67,13 @@ flowchart TB
 - `AppShellConfig` (`AppShellConfigurator`) sets up the page once: `@Push`, Lumo stylesheet, `@ColorScheme(DARK)`,
   full-viewport body, `shared-styles.css`, page title, PWA metadata.
 - `MarginaliaServlet` is the `VaadinServlet` mapped to `/*` (with `asyncSupported` for push).
-- There are two routes, both extending `LoginCheckRoute`:
+- There are three routes, all extending `LoginCheckRoute`:
 
   | Route | Class | Shows |
   |---|---|---|
   | `/` | `Main` | The workspace. |
   | `/view`, `/view/<uuid>` | `Viewer` | The reader: a list of the user's own books, and a book's active branch as text (own or published books, by link). |
+  | `/reset` | `Reset` | No page: after the login it empties `UserSetting.workspaceState` and sends the browser to `/`, the way back into a workspace whose restored state freezes the browser. It builds no workspace. |
 
 `LoginCheckRoute` runs in the route's constructor (`showLogin()`):
 
