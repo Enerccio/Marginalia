@@ -479,10 +479,7 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
         }
         Agent agent = stored.getAgent();
         ResolvedProfile resolved = agent.getMainProfile() == null ? null : agentService.resolveProfile(agent.getMainProfile());
-        return java.util.stream.Stream.of(agent.getContextCap(),
-                        resolved == null ? null : resolved.profile().getContextCap(),
-                        resolved == null ? null : resolved.ai().getMaxContext())
-                .filter(java.util.Objects::nonNull).mapToLong(Integer::longValue).filter(cap -> cap > 0).min().orElse(0);
+        return AgentService.contextCap(agent, resolved);
     }
 
     @Override

@@ -138,6 +138,14 @@ public class Agent extends ExtendableEntity {
     @ExtendedAttribute
     private Integer maxSubagents;
 
+    /**
+     * Whether the agent may start a sub-agent on its own model (the main profile). Off, it can delegate only to the other models
+     * of the agent. Null is on.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Boolean allowSelfSubagent;
+
     public String getName() {
         return name;
     }
@@ -269,6 +277,21 @@ public class Agent extends ExtendableEntity {
 
     public void setAutoCompactPercent(Integer autoCompactPercent) {
         this.autoCompactPercent = autoCompactPercent;
+    }
+
+    public Boolean getAllowSelfSubagent() {
+        return allowSelfSubagent;
+    }
+
+    public void setAllowSelfSubagent(Boolean allowSelfSubagent) {
+        this.allowSelfSubagent = allowSelfSubagent;
+    }
+
+    /**
+     * Whether a sub-agent may run on the main model of the agent (the default).
+     */
+    public boolean isSelfSubagentAllowed() {
+        return !Boolean.FALSE.equals(allowSelfSubagent);
     }
 
     public Integer getMaxSubagents() {

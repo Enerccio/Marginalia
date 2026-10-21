@@ -2,10 +2,12 @@ package com.github.enerccio.marginalia.domain.agents;
 
 import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
 import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
+import com.github.enerccio.marginalia.domain.model.AgentModelProfile;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
+import com.github.enerccio.marginalia.domain.service.AgentApprovalService;
 import com.github.enerccio.marginalia.domain.service.AgentMessageService;
 import com.github.enerccio.marginalia.domain.service.AgentRunner;
 import com.github.enerccio.marginalia.domain.service.AgentService;
@@ -43,6 +45,12 @@ class AgentSubagentsTest extends AgentTestBase {
 
     @Autowired
     private AgentMessageService messageService;
+
+    @Autowired
+    private AgentApprovalService approvalService;
+
+    @Autowired
+    private com.github.enerccio.marginalia.domain.service.AgentVirtualFileSystemService fileSystemService;
 
     // the user of the test: one per test, the agents are theirs
     private User user;
@@ -361,6 +369,267 @@ class AgentSubagentsTest extends AgentTestBase {
                 .map(LLMChatMessage::getContent).toList();
         assertThat(users).anyMatch(text -> text.contains("1 sub-agent(s) still work") && text.contains("sub1"));
         assertThat(users.stream().filter(text -> text.contains("still work"))).hasSize(1);
+    }
+
+    /**
+     * An agent with a second model: the protocol answers with at most {@code reply} tokens, which the sub-agent on it is told.
+     */
+    private Agent agentWithAuditor(int reply, java.util.function.Consumer<AgentModelProfile> auditorSetup) throws Exception {
+        Agent agent = agentWith(2);
+        agent.setAllowedCommands(List.of("get-book-info", "list-parts"));
+        AgentModelProfile auditor = profile("auditor");
+        var protocol = protocolService.findForUser(auditor.getProtocolUuid());
+        protocol.setReplyTokens(reply);
+        protocolService.save(protocol);
+        auditor.setDescription("a cheap model for reading");
+        auditorSetup.accept(auditor);
+        agent.getModelProfiles().add(auditor);
+        return agentService.save(agent);
+    }
+
+    @Test
+    void theModelsForSubagentsAreListedForTheAgent() throws Exception {
+        Agent agent = agentWithAuditor(111, auditor -> auditor.setCommands(List.of("get-book-info", "write-everything")));
+        llm.reply("Nothing to do.");
+
+        await(startRun(agent));
+
+        String system = llm.lastCompletionRequest().getMessages("system").getFirst();
+        assertThat(system).contains("Models for sub-agents").contains("overseer (your own model, the default when profile is left out)")
+                .contains("auditor: a cheap model for reading [commands: get-book-info]");
+    }
+
+    @Test
+    void aSubagentRunsOnTheModelItWasAskedForWithItsCommandsOnly() throws Exception {
+        Agent agent = agentWithAuditor(111, auditor -> auditor.setCommands(List.of("get-book-info")));
+        script("Looked.", MockLLMResponse.toolCall("spawn_agent", "{\"task\":\"read\",\"profile\":\"Auditor\"}"),
+                MockLLMResponse.toolCall("await_agent", "{\"handle\":\"sub1\"}"));
+
+        AgentRun run = await(startRun(agent));
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.DONE);
+        MockLLMRequest sub = llm.getCompletionRequests().stream().filter(AgentSubagentsTest::isSub).findFirst().orElseThrow();
+        assertThat(sub.getMessages("system").getFirst()).contains("at most 111 tokens");
+        assertThat(tools(sub)).contains("get-book-info", "read_file").doesNotContain("list-parts");
+        MockLLMRequest first = llm.getCompletionRequests().getFirst();
+        assertThat(tools(first)).as("the agent keeps its own").contains("get-book-info", "list-parts");
+        assertThat(first.getMessages("system").getFirst()).doesNotContain("at most 111 tokens");
+
+        assertThat(messageService.threads(run)).singleElement().satisfies(thread -> {
+            assertThat(thread.profile()).isEqualTo("auditor");
+            assertThat(thread.rows().stream().map(row -> row.getTelemetry()).filter(java.util.Objects::nonNull))
+                    .allMatch(telemetry -> telemetry.contains("\"profile\":\"auditor\""));
+        });
+        List<String> results = messageService.transcript(run).stream().filter(message -> message.getRole() == LLMRole.TOOL)
+                .map(LLMChatMessage::getContent).toList();
+        assertThat(results.get(1)).contains("sub1 on auditor");
+    }
+
+    @Test
+    void aModelThatIsNotThereIsAnErrorWithTheModels() throws Exception {
+        Agent agent = agentWithAuditor(111, auditor -> {
+        });
+        script("never", MockLLMResponse.toolCall("spawn_agent", "{\"task\":\"read\",\"profile\":\"poet\"}"));
+
+        AgentRun run = await(startRun(agent));
+
+        String result = messageService.transcript(run).stream().filter(message -> message.getRole() == LLMRole.TOOL).findFirst().orElseThrow().getContent();
+        assertThat(result).contains("There is no model poet").contains("auditor").contains("leave it out for your own");
+        assertThat(messageService.threads(run)).isEmpty();
+    }
+
+    @Test
+    void withoutTheOwnModelASubagentNeedsAnotherOne() throws Exception {
+        Agent agent = agentWithAuditor(111, auditor -> {
+        });
+        agent.setAllowSelfSubagent(false);
+        agentService.save(agent);
+        script("never", MockLLMResponse.toolCall("spawn_agent", "{\"task\":\"read\"}"),
+                MockLLMResponse.toolCall("spawn_agent", "{\"task\":\"read\",\"profile\":\"overseer\"}"));
+
+        AgentRun run = await(startRun(agent));
+
+        List<String> results = messageService.transcript(run).stream().filter(message -> message.getRole() == LLMRole.TOOL)
+                .map(LLMChatMessage::getContent).toList();
+        assertThat(results.get(0)).contains("You may not start a sub-agent on your own model").contains("auditor");
+        assertThat(results.get(1)).contains("You may not start a sub-agent on your own model");
+        assertThat(llm.getCompletionRequests().getFirst().getMessages("system").getFirst())
+                .contains("overseer (your own model): you may not start a sub-agent on it.");
+    }
+
+    @Test
+    void anAgentWithNothingToChooseAndNoOwnModelIsOfferedNoSpawn() throws Exception {
+        Agent agent = agentWith(2);
+        agent.setAllowSelfSubagent(false);
+        agentService.save(agent);
+        llm.reply("Nothing to do.");
+
+        await(startRun(agent));
+
+        assertThat(tools(llm.lastCompletionRequest())).doesNotContain("spawn_agent");
+    }
+
+    @Test
+    void theOwnModelOfTheAgentHasItsCommandsToo() throws Exception {
+        Agent agent = agentWith(1);
+        agent.setAllowedCommands(List.of("get-book-info", "list-parts"));
+        agent.getMainProfile().setCommands(List.of("list-parts"));
+        agentService.save(agent);
+        script("Looked.", MockLLMResponse.toolCall("spawn_agent", "{\"task\":\"read\"}"));
+
+        await(startRun(agent));
+
+        MockLLMRequest sub = llm.getCompletionRequests().stream().filter(AgentSubagentsTest::isSub).findFirst().orElseThrow();
+        assertThat(tools(sub)).contains("list-parts").doesNotContain("get-book-info");
+        assertThat(llm.getCompletionRequests().getFirst().getMessages("system").getFirst()).contains("Models for sub-agents")
+                .contains("[commands: list-parts]");
+    }
+
+    @Test
+    void aModelWithoutToolsAnswersWithTextOnly() throws Exception {
+        Agent agent = agentWithAuditor(111, auditor -> auditor.setTools(false));
+        script("Words.", MockLLMResponse.toolCall("spawn_agent", "{\"task\":\"say\",\"profile\":\"auditor\"}"));
+
+        await(startRun(agent));
+
+        MockLLMRequest sub = llm.getCompletionRequests().stream().filter(AgentSubagentsTest::isSub).findFirst().orElseThrow();
+        assertThat(sub.getBody().has("tools") ? tools(sub) : List.of()).isEmpty();
+    }
+
+    @Test
+    void cloningAnAgentKeepsWhatItsModelsAndSubagentsNeed() throws Exception {
+        Agent agent = agentWithAuditor(111, auditor -> auditor.setCommands(List.of("get-book-info")));
+        agent.setAllowSelfSubagent(false);
+        agentService.save(agent);
+
+        Agent copy = agentService.cloneAgent(agent, "copy", manuscript());
+
+        assertThat(copy.getMaxSubagents()).isEqualTo(2);
+        assertThat(copy.isSelfSubagentAllowed()).isFalse();
+        assertThat(copy.getModelProfiles().get(1).getCommands()).containsExactly("get-book-info");
+    }
+
+    private Agent askingAgent() throws Exception {
+        Agent agent = agentWith(1);
+        agent.setAllowedCommands(List.of("search-replace-parts"));
+        agent.setDestructiveMode(DestructiveCommandMode.ASK);
+        return agentService.save(agent);
+    }
+
+    private void awaitApproval(AgentRun run) throws Exception {
+        long end = System.currentTimeMillis() + 20_000;
+        while (agentRunService.find(run.getId()).getStatus() != AgentRunStatus.WAITING_APPROVAL && System.currentTimeMillis() < end) {
+            Thread.sleep(25);
+        }
+        assertThat(agentRunService.find(run.getId()).getStatus()).isEqualTo(AgentRunStatus.WAITING_APPROVAL);
+    }
+
+    private void scriptDestructiveSub() {
+        AtomicInteger subRequests = new AtomicInteger();
+        llm.respondWith(request -> {
+            if (isSub(request)) {
+                return subRequests.incrementAndGet() == 1 ? MockLLMResponse.toolCall("search-replace-parts", "{\"search\":\"zzz\",\"replace\":\"y\"}")
+                        : MockLLMResponse.text("Handled.");
+            }
+            return request.getMessages("tool").isEmpty() ? MockLLMResponse.toolCall("spawn_agent", "{\"task\":\"replace\"}")
+                    : MockLLMResponse.toolCall("finish", "{\"summary\":\"done\"}");
+        });
+    }
+
+    @Test
+    void aDestructiveCallOfASubagentWaitsForTheUserInTheQueueOfTheRun() throws Exception {
+        Agent agent = askingAgent();
+        scriptDestructiveSub();
+
+        AgentRun run = startRun(agent);
+        awaitApproval(run);
+
+        assertThat(approvalService.pending(run)).singleElement().satisfies(approval -> assertThat(approval.command()).isEqualTo("search-replace-parts"));
+        assertThat(messageService.threads(run).getFirst().conversation()).as("the sub-agent waits at its call").hasSize(2);
+        approvalService.decide(run, approvalService.pending(run).getFirst().id(), true);
+        run = await(run, Set.of(AgentRunStatus.DONE));
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.DONE);
+        assertThat(messageService.threads(run).getFirst().result()).isEqualTo("Handled.");
+    }
+
+    @Test
+    void aRefusedCallOfASubagentIsAnErrorForIt() throws Exception {
+        Agent agent = askingAgent();
+        scriptDestructiveSub();
+
+        AgentRun run = startRun(agent);
+        awaitApproval(run);
+        approvalService.decide(run, approvalService.pending(run).getFirst().id(), false);
+        run = await(run, Set.of(AgentRunStatus.DONE));
+
+        assertThat(messageService.threads(run).getFirst().conversation().stream().filter(message -> message.getRole() == LLMRole.TOOL).findFirst()
+                .orElseThrow().getContent()).startsWith("Error:");
+    }
+
+    @Test
+    void pausingWhileASubagentWaitsForAnApprovalRefusesItAndPausesTheRun() throws Exception {
+        Agent agent = askingAgent();
+        scriptDestructiveSub();
+
+        AgentRun run = startRun(agent);
+        awaitApproval(run);
+        agentRunService.pause(agentRunService.find(run.getId()));
+        run = await(run, Set.of(AgentRunStatus.PAUSED));
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.PAUSED);
+        assertThat(approvalService.pending(run)).isEmpty();
+    }
+
+    private String workspaceFile(Agent agent, String path) throws Exception {
+        return fileSystemService.openWorkspace(agent).readText(com.github.enerccio.marginalia.domain.service.agent.VirtualPath.parse(path));
+    }
+
+    @Test
+    void aSubagentWritesInItsFolderAndItsAnswerIsSavedThere() throws Exception {
+        Agent agent = agentWith(1);
+        AtomicInteger subRequests = new AtomicInteger();
+        llm.respondWith(request -> {
+            if (isSub(request)) {
+                return switch (subRequests.incrementAndGet()) {
+                    case 1 -> MockLLMResponse.toolCall("write_file", "{\"path\":\"/tmp/sub1/notes.md\",\"content\":\"found\"}");
+                    case 2 -> MockLLMResponse.toolCall("write_file", "{\"path\":\"/elsewhere.md\",\"content\":\"no\"}");
+                    default -> MockLLMResponse.text("The long answer. ".repeat(600));
+                };
+            }
+            return request.getMessages("tool").isEmpty() ? MockLLMResponse.toolCall("spawn_agent", "{\"task\":\"write\"}")
+                    : MockLLMResponse.toolCall("finish", "{\"summary\":\"done\"}");
+        });
+
+        AgentRun run = await(startRun(agent));
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.DONE);
+        assertThat(workspaceFile(agent, "/tmp/sub1/notes.md")).isEqualTo("found");
+        assertThat(workspaceFile(agent, "/tmp/sub1/result.md")).startsWith("The long answer.").hasSize("The long answer. ".repeat(600).strip().length());
+        List<LLMChatMessage> conversation = messageService.threads(run).getFirst().conversation();
+        assertThat(conversation.stream().filter(message -> message.getRole() == LLMRole.TOOL).map(LLMChatMessage::getContent).toList())
+                .satisfies(results -> {
+                    assertThat(results.get(0)).doesNotStartWith("Error");
+                    assertThat(results.get(1)).startsWith("Error").contains("read only for you").contains("/tmp/sub1");
+                });
+        assertThat(llm.getCompletionRequests().stream().filter(AgentSubagentsTest::isSub).findFirst().orElseThrow().getMessages("system").getFirst())
+                .contains("Your folder: /tmp/sub1");
+        // the agent is told where all of it is
+        String result = messageService.transcript(run).stream().filter(message -> message.getRole() == LLMRole.TOOL).findFirst().orElseThrow().getContent();
+        assertThat(result).contains("cut off").contains("/tmp/sub1/result.md");
+    }
+
+    @Test
+    void whatAnEarlierRunLeftInTheFolderOfASubagentIsGone() throws Exception {
+        Agent agent = agentWith(1);
+        script("Done.", MockLLMResponse.toolCall("spawn_agent", "{\"task\":\"first\"}"));
+        com.github.enerccio.marginalia.domain.service.agent.VirtualFileSystem files = fileSystemService.openWorkspace(agent);
+        files.writeText(com.github.enerccio.marginalia.domain.service.agent.VirtualPath.parse("/tmp/sub1/stale.md"), "old", false);
+
+        await(startRun(agent));
+
+        assertThat(files.stat(com.github.enerccio.marginalia.domain.service.agent.VirtualPath.parse("/tmp/sub1/stale.md"))).isNull();
+        assertThat(files.stat(com.github.enerccio.marginalia.domain.service.agent.VirtualPath.parse("/tmp/sub1/result.md"))).isNotNull();
     }
 
     @Test

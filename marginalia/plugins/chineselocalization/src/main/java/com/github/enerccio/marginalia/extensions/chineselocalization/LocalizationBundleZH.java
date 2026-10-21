@@ -586,6 +586,16 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_ARCHIVE_FILE, "压缩包中的文件");
         setValue(L.LABEL_STORY_PARTS_LIMIT, "故事中一次加载的段落数");
         setValue(L.LABEL_ATTRIBUTES, "数据");
+        setValue(L.LABEL_AGENT_MODELS, "子代理使用的模型");
+        setValue(L.LABEL_AGENT_SELF_SUBAGENT, "子代理可以使用主模型");
+        setValue(L.LABEL_AGENT_ADD_MODEL, "添加模型");
+        setValue(L.LABEL_AGENT_MAIN_MODEL, "主模型");
+        setValue(L.LABEL_AGENT_LIMIT_COMMANDS, "限制命令");
+        setValue(L.LABEL_AGENT_MODEL_TOOLS, "可以使用命令和工具");
+        setValue(L.LABEL_AGENT_COMMANDS, "命令");
+        setValue(L.LABEL_AGENT_COMMANDS_SAME, "与代理相同");
+        setValue(L.LABEL_AGENT_COMMANDS_NONE, "没有命令");
+        setValue(L.LABEL_AGENT_TEXT_ONLY, "仅文本");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -966,6 +976,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_IMPORTING_ARCHIVE, "正在从压缩包导入");
         setValue(L.MSG_LOADING_EARLIER_PARTS, "正在加载更早的段落…");
         setValue(L.MSG_LOADING_LATER_PARTS, "正在加载后面的段落…");
+        setValue(L.MSG_AGENT_COMMANDS_COUNT, "%d 个命令");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1037,6 +1048,10 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_BATCH_MODE, "决定智能体一次回答中有多少个调用会被执行。全部一起：无论命令的批处理策略如何，全部执行（最快）。一起（标记为“单独”的命令单独执行）：调用一起执行，但标记为“单独”的命令在单独的回答中执行。每次回答只调用一次：只执行第一个调用，智能体读完结果后再写下一个（最慢，每个调用都是带模型思考的一轮，但能对每个结果作出反应）。在所有模式下，出现错误都会结束该回答：失败调用之后的调用不会执行。");
         setValue(L.HELP_LOREBOOK_MASS_EDIT, "按顺序列出世界书及其子世界书的所有条目。可以直接修改条目的启用框、名称、顺序和标签，正文已被缩短（要阅读或编辑请在世界书中打开该条目）。用每行的世界书框可将条目移动到该世界书本身或其子世界书，也可以用底部的框一次移动所有已勾选的条目。智能体正在处理的世界书的条目显示为灰色，无法更改。");
         setValue(L.HELP_STORY_PARTS_LIMIT, "故事视图和阅读器最多只保持加载书中这么多段落：故事视图从最后的段落开始，阅读器从此浏览器上次读到的位置开始（没有则从最前的段落开始）。滚动时会加载前后的段落，离得远的段落会再次卸载。留空则一次加载全部段落。");
+        setValue(L.HELP_AGENT_MODELS, "代理可以用来启动子代理的其他模型：代理根据角色和说明，通过 spawn_agent 的 profile 来选择。每个模型可使用的命令最多是代理被允许的命令。");
+        setValue(L.HELP_AGENT_SELF_SUBAGENT, "关闭：代理只能在列表中的其他模型上启动子代理。没有其他模型时，代理不会获得子代理相关的工具。");
+        setValue(L.HELP_AGENT_MODEL_COMMANDS, "关闭：该模型上的子代理使用与代理相同的命令。开启：只使用勾选的命令，并且只限于代理被允许的命令。文件工具不是命令，子代理始终可用。");
+        setValue(L.HELP_AGENT_MODEL_TOOLS, "关闭：该模型只用文本回答，不提供任何命令和工具。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

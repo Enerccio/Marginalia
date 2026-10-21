@@ -30,13 +30,42 @@ public final class VirtualFileSystem {
      */
     public static final String INSTRUCTIONS = "AGENTS.md";
 
+    /**
+     * The folder of the workspace for the scratch files of the sub-agents, one folder for each of them.
+     */
+    public static final String SUBAGENTS = "tmp";
+
     private final WorkspaceMount workspace;
     private final Map<VirtualPath, VirtualMount> mounts = new LinkedHashMap<>();
     private final WorkspaceLimits limits;
+    // when not null, the only folder that can be changed (the rest reads as usual)
+    private final VirtualPath writeScope;
 
     private VirtualFileSystem(WorkspaceMount workspace, WorkspaceLimits limits) {
+        this(workspace, limits, null);
+    }
+
+    private VirtualFileSystem(WorkspaceMount workspace, WorkspaceLimits limits, VirtualPath writeScope) {
         this.workspace = workspace;
         this.limits = limits;
+        this.writeScope = writeScope;
+    }
+
+    /**
+     * The same files with one change: only the folder (and what is below it) can be changed, everything else reads as before and is
+     * read only. For a sub-agent, which writes in a folder of its own.
+     */
+    public VirtualFileSystem scopedTo(VirtualPath folder) {
+        VirtualFileSystem scoped = new VirtualFileSystem(workspace, limits, folder);
+        scoped.mounts.putAll(mounts);
+        return scoped;
+    }
+
+    /**
+     * The folder this file system can change, null when it can change the whole workspace.
+     */
+    public VirtualPath getWriteScope() {
+        return writeScope;
     }
 
     /**
@@ -97,6 +126,9 @@ public final class VirtualFileSystem {
         VirtualMount mount = mountFor(path);
         if (!mount.isWritable()) {
             throw new VirtualFileException(path + " is read only");
+        }
+        if (writeScope != null && !path.startsWith(writeScope)) {
+            throw new VirtualFileException(path + " is read only for you, you can change only " + writeScope + " and what is in it");
         }
         return mount;
     }
@@ -362,6 +394,7 @@ public final class VirtualFileSystem {
      * Deletes everything in the workspace.
      */
     public void clearWorkspace() {
+        refuseWhenScoped();
         workspace.clear();
     }
 
@@ -374,6 +407,7 @@ public final class VirtualFileSystem {
      * @throws VirtualFileException when something to keep is not in the workspace
      */
     public Cleared clearWorkspace(List<String> keep) {
+        refuseWhenScoped();
         List<VirtualPath> kept = new ArrayList<>();
         List<VirtualEntry> everything = null;
         for (String item : keep) {
@@ -451,6 +485,7 @@ public final class VirtualFileSystem {
      * @return the files that were in the workspace and are gone, as paths
      */
     public List<String> restoreWorkspace(java.util.zip.ZipFile zip, String prefix, long maxBytes) {
+        refuseWhenScoped();
         return workspace.replaceFrom(zip, prefix, maxBytes);
     }
 
@@ -458,7 +493,14 @@ public final class VirtualFileSystem {
      * Copies the workspace of another file system into this one.
      */
     public void copyWorkspaceFrom(VirtualFileSystem other) {
+        refuseWhenScoped();
         workspace.copyFrom(other.workspace);
+    }
+
+    private void refuseWhenScoped() {
+        if (writeScope != null) {
+            throw new VirtualFileException("The workspace can't be replaced from " + writeScope);
+        }
     }
 
 }

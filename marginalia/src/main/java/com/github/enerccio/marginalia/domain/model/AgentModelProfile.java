@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.domain.model;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -18,6 +20,7 @@ public class AgentModelProfile {
     private boolean images;
     private Integer contextCap;
     private Integer concurrency;
+    private List<String> commands;
 
     public AgentModelProfile() {
     }
@@ -67,7 +70,7 @@ public class AgentModelProfile {
     }
 
     /**
-     * Whether the model can call commands. A profile without tools is only used for single text requests.
+     * Whether the model can call commands. A profile without tools is only used for single text requests: a sub-agent on it has no tools at all.
      */
     public boolean isTools() {
         return tools;
@@ -111,16 +114,44 @@ public class AgentModelProfile {
         this.concurrency = concurrency;
     }
 
+    /**
+     * The commands a sub-agent that runs on this profile may use, at most the ones the agent is allowed: null is all of them
+     * (what the agent can), an empty list none. The profile of the overseer is the one of the sub-agents that run on the same
+     * model as it does. The file tools of the workspace are not commands, every sub-agent has them.
+     */
+    public List<String> getCommands() {
+        return commands;
+    }
+
+    public void setCommands(List<String> commands) {
+        this.commands = commands == null ? null : new ArrayList<>(commands);
+    }
+
+    /**
+     * A copy of the profile to edit without touching it.
+     */
+    public AgentModelProfile copy() {
+        AgentModelProfile copy = new AgentModelProfile(role, aiUuid, protocolUuid);
+        copy.setDescription(description);
+        copy.setTools(tools);
+        copy.setImages(images);
+        copy.setContextCap(contextCap);
+        copy.setConcurrency(concurrency);
+        copy.setCommands(commands);
+        return copy;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof AgentModelProfile that)) return false;
         return tools == that.tools && images == that.images && Objects.equals(role, that.role) && Objects.equals(aiUuid, that.aiUuid)
                 && Objects.equals(protocolUuid, that.protocolUuid) && Objects.equals(description, that.description)
-                && Objects.equals(contextCap, that.contextCap) && Objects.equals(concurrency, that.concurrency);
+                && Objects.equals(contextCap, that.contextCap) && Objects.equals(concurrency, that.concurrency)
+                && Objects.equals(commands, that.commands);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(role, aiUuid, protocolUuid, description, tools, images, contextCap, concurrency);
+        return Objects.hash(role, aiUuid, protocolUuid, description, tools, images, contextCap, concurrency, commands);
     }
 }

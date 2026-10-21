@@ -56,6 +56,14 @@ public class AgentMessage extends ExtendableEntity {
     private String threadCall;
 
     /**
+     * On the first row of the conversation of a sub-agent: the role of the model profile of the agent it runs on, null for the
+     * main profile.
+     */
+    @Transient
+    @ExtendedAttribute
+    private String threadProfile;
+
+    /**
      * On the last row of the conversation of a sub-agent that is over: how it ended ({@code DONE}, {@code FAILED},
      * {@code CANCELLED}); the text of the row is its answer or the reason. A conversation without such a row was only
      * paused, and goes on when the run does.
@@ -135,6 +143,14 @@ public class AgentMessage extends ExtendableEntity {
 
     public void setThreadCall(String threadCall) {
         this.threadCall = threadCall;
+    }
+
+    public String getThreadProfile() {
+        return threadProfile;
+    }
+
+    public void setThreadProfile(String threadProfile) {
+        this.threadProfile = threadProfile;
     }
 
     public String getThreadEnd() {

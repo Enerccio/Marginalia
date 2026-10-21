@@ -142,6 +142,12 @@ public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage,
     @Override
     @CommonTx
     public AgentMessage startThread(AgentRun run, String handle, String task, String callId, LLMChatMessage first) throws Exception {
+        return startThread(run, handle, task, callId, null, first);
+    }
+
+    @Override
+    @CommonTx
+    public AgentMessage startThread(AgentRun run, String handle, String task, String callId, String profile, LLMChatMessage first) throws Exception {
         AgentRun stored = ownRun(run);
         AgentMessage message = new AgentMessage();
         message.setRun(stored);
@@ -150,6 +156,7 @@ public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage,
         message.setChatMessage(first);
         message.setThreadTask(task);
         message.setThreadCall(callId);
+        message.setThreadProfile(profile);
         return save(message);
     }
 
@@ -237,7 +244,7 @@ public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage,
             rows.sort((a, b) -> Integer.compare(a.getOrdinal(), b.getOrdinal()));
             AgentMessage first = rows.getFirst();
             AgentMessage last = rows.getLast();
-            threads.add(new SubThread(entry.getKey(), first.getThreadTask(), first.getThreadCall(),
+            threads.add(new SubThread(entry.getKey(), first.getThreadTask(), first.getThreadCall(), first.getThreadProfile(),
                     last.getThreadEnd(), last.getThreadEnd() == null ? null : last.toChatMessage().getContent(),
                     first.isRewound(), rows));
         }

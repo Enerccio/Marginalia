@@ -578,6 +578,16 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_ARCHIVE_FILE, "File in the archive");
         setValue(L.LABEL_STORY_PARTS_LIMIT, "Parts loaded at once in the story");
         setValue(L.LABEL_ATTRIBUTES, "Data");
+        setValue(L.LABEL_AGENT_MODELS, "Models for sub-agents");
+        setValue(L.LABEL_AGENT_SELF_SUBAGENT, "Sub-agents may run on the main model");
+        setValue(L.LABEL_AGENT_ADD_MODEL, "Add a model");
+        setValue(L.LABEL_AGENT_MAIN_MODEL, "Main model");
+        setValue(L.LABEL_AGENT_LIMIT_COMMANDS, "Limit the commands");
+        setValue(L.LABEL_AGENT_MODEL_TOOLS, "Can use commands and tools");
+        setValue(L.LABEL_AGENT_COMMANDS, "Commands");
+        setValue(L.LABEL_AGENT_COMMANDS_SAME, "Same as the agent");
+        setValue(L.LABEL_AGENT_COMMANDS_NONE, "No commands");
+        setValue(L.LABEL_AGENT_TEXT_ONLY, "Text only");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -958,6 +968,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_IMPORTING_ARCHIVE, "Importing from archive");
         setValue(L.MSG_LOADING_EARLIER_PARTS, "Loading earlier parts…");
         setValue(L.MSG_LOADING_LATER_PARTS, "Loading later parts…");
+        setValue(L.MSG_AGENT_COMMANDS_COUNT, "%d commands");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1029,6 +1040,10 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_BATCH_MODE, "How many calls of one answer of the agent are made. All together: every call, whatever the batch policies of the commands say (fastest). Together, commands marked Alone by themselves: the calls are made together, but a command marked Alone is made in an answer of its own. One call per answer: only the first call is made and the agent writes the next one after it has read the result (slowest, every call is a round with the thinking of the model, but it can react to each result). An error ends the answer in every mode: the calls after the failed one are not made.");
         setValue(L.HELP_LOREBOOK_MASS_EDIT, "Every entry of the lorebook and of its subbooks, by order. Change the enabled box, the name, the order and the tags of an entry in place, the text is shortened (open the entry in the lorebook to read or edit it). Move an entry to the lorebook itself or to one of its subbooks with the lorebook box of its row, or move all the checked entries at once with the box at the bottom. Entries of a lorebook an agent works on are grayed out and can't be changed.");
         setValue(L.HELP_STORY_PARTS_LIMIT, "The story and the reader keep only this many parts of the book loaded: the story starts with the last ones, the reader where you stopped reading last time in this browser (or the first ones). The parts before and after are loaded as you scroll, and the ones far from where you are are dropped again. Empty loads all the parts at once.");
+        setValue(L.HELP_AGENT_MODELS, "Other models the agent can start a sub-agent on: it chooses one with the profile of spawn_agent, reading the role and the description. The commands of each model are at most the ones the agent is allowed.");
+        setValue(L.HELP_AGENT_SELF_SUBAGENT, "Off: the agent can start sub-agents only on the other models of the list. With no other model the agent gets no tools for sub-agents.");
+        setValue(L.HELP_AGENT_MODEL_COMMANDS, "Off: a sub-agent on this model has the commands of the agent. On: only the ticked commands, and of those only the ones the agent is allowed. The tools for files are not commands, a sub-agent always has them.");
+        setValue(L.HELP_AGENT_MODEL_TOOLS, "Off: the model only answers with text, it gets no commands and no tools.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

@@ -578,6 +578,16 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_ARCHIVE_FILE, "アーカイブ内のファイル");
         setValue(L.LABEL_STORY_PARTS_LIMIT, "ストーリーで一度に読み込むパート数");
         setValue(L.LABEL_ATTRIBUTES, "データ");
+        setValue(L.LABEL_AGENT_MODELS, "サブエージェント用のモデル");
+        setValue(L.LABEL_AGENT_SELF_SUBAGENT, "サブエージェントをメインモデルで実行してよい");
+        setValue(L.LABEL_AGENT_ADD_MODEL, "モデルを追加");
+        setValue(L.LABEL_AGENT_MAIN_MODEL, "メインモデル");
+        setValue(L.LABEL_AGENT_LIMIT_COMMANDS, "コマンドを制限する");
+        setValue(L.LABEL_AGENT_MODEL_TOOLS, "コマンドとツールを使える");
+        setValue(L.LABEL_AGENT_COMMANDS, "コマンド");
+        setValue(L.LABEL_AGENT_COMMANDS_SAME, "エージェントと同じ");
+        setValue(L.LABEL_AGENT_COMMANDS_NONE, "コマンドなし");
+        setValue(L.LABEL_AGENT_TEXT_ONLY, "テキストのみ");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -958,6 +968,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_IMPORTING_ARCHIVE, "アーカイブからインポート中");
         setValue(L.MSG_LOADING_EARLIER_PARTS, "前のパートを読み込み中…");
         setValue(L.MSG_LOADING_LATER_PARTS, "次のパートを読み込み中…");
+        setValue(L.MSG_AGENT_COMMANDS_COUNT, "%d個のコマンド");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1029,6 +1040,10 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_BATCH_MODE, "エージェントの1回の回答の呼び出しをいくつ実行するかを決めます。すべてまとめて：コマンドのバッチポリシーに関係なくすべて実行（最速）。まとめて（「単独」は単独で）：呼び出しはまとめて実行しますが、「単独」のコマンドは単独の回答で実行します。1回の回答につき1回：最初の呼び出しだけを実行し、エージェントは結果を読んでから次を書きます（各呼び出しがモデルの思考を伴う1ラウンドになり最も遅いですが、各結果に対応できます）。どのモードでも、エラーが起きるとその回答は終了し、失敗した呼び出しの後の呼び出しは実行されません。");
         setValue(L.HELP_LOREBOOK_MASS_EDIT, "ロアブックとそのサブブックのすべてのエントリを順序で表示します。有効のチェック、名前、順序、タグはその場で変更できます。本文は短縮されています（読む・編集するにはロアブックでエントリを開いてください）。行のロアブック欄で、エントリをそのロアブック自身またはサブブックに移動できます。下の欄でチェックしたエントリをまとめて移動することもできます。エージェントが作業中のロアブックのエントリはグレー表示で、変更できません。");
         setValue(L.HELP_STORY_PARTS_LIMIT, "ストーリーとリーダーは、本のパートをこの数までしか読み込みません。ストーリーは末尾のパートから始まり、リーダーはこのブラウザーで前回読むのをやめた位置（なければ先頭のパート）から始まります。スクロールすると前後のパートを読み込み、離れたパートは再び破棄されます。空欄の場合はすべてのパートを一度に読み込みます。");
+        setValue(L.HELP_AGENT_MODELS, "エージェントがサブエージェントを起動できるその他のモデルです。エージェントは役割と説明を読み、spawn_agent の profile で選びます。各モデルのコマンドは、エージェントに許可されたコマンドの範囲内です。");
+        setValue(L.HELP_AGENT_SELF_SUBAGENT, "オフ：エージェントは一覧のほかのモデルでのみサブエージェントを起動できます。ほかのモデルがない場合、サブエージェント用のツールは渡されません。");
+        setValue(L.HELP_AGENT_MODEL_COMMANDS, "オフ：このモデルのサブエージェントはエージェントと同じコマンドを使います。オン：チェックしたコマンドのみ、その中でもエージェントに許可されたものだけです。ファイルのツールはコマンドではなく、サブエージェントは常に使えます。");
+        setValue(L.HELP_AGENT_MODEL_TOOLS, "オフ：モデルはテキストでの回答のみで、コマンドもツールも渡されません。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

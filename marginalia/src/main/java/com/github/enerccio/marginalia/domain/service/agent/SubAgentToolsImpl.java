@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -34,14 +35,20 @@ public final class SubAgentToolsImpl implements SubAgentTools, SubAgentControlTo
     private final BiConsumer<Sub, String> starter;
     private final Supplier<String> callId;
     private final Supplier<String> resumedCall;
+    private final Function<String, String> profiles;
 
     /**
      * @param starter     starts the loop of the sub-agent with its first message; a failure of it ends the sub-agent
      * @param callId      the id of the call of the agent that is being made, null when it is not known
      * @param resumedCall the id of the call that is made again because the run was paused while it waited, null for any other
      *                    (a model may use an id again in another round, so only the call the runner says is a resumed one is)
+     * @param profiles    the role of the profile a sub-agent may run on for the role the model asked for (null when it left it out):
+     *                    null for the main profile, the role as the agent spells it for another; throws an
+     *                    {@code IllegalArgumentException} with the text for the model when the agent may not use it
      */
-    public SubAgentToolsImpl(SubAgents agents, BiConsumer<Sub, String> starter, Supplier<String> callId, Supplier<String> resumedCall) {
+    public SubAgentToolsImpl(SubAgents agents, BiConsumer<Sub, String> starter, Supplier<String> callId, Supplier<String> resumedCall,
+                             Function<String, String> profiles) {
+        this.profiles = profiles;
         this.agents = agents;
         this.starter = starter;
         this.callId = callId;
@@ -49,9 +56,16 @@ public final class SubAgentToolsImpl implements SubAgentTools, SubAgentControlTo
     }
 
     @Override
-    public void spawn(FunctionContinuation<String> done, String task, String context) {
+    public void spawn(FunctionContinuation<String> done, String task, String context, String profile) {
         if (StringUtils.isBlank(task)) {
             done.fail("The task is empty: say what the sub-agent has to do");
+            return;
+        }
+        String role;
+        try {
+            role = profiles.apply(StringUtils.trimToNull(profile));
+        } catch (IllegalArgumentException e) {
+            done.fail(e.getMessage());
             return;
         }
         Sub started = agents.findByCall(resumedCall.get());
@@ -61,12 +75,12 @@ public final class SubAgentToolsImpl implements SubAgentTools, SubAgentControlTo
             return;
         }
         // a call made while the limit is reached (the one before it was cut off) waits for a place first
-        if (!agents.whenSlotFree(() -> spawn(done, task, context))) {
+        if (!agents.whenSlotFree(() -> spawn(done, task, context, profile))) {
             return;
         }
         Sub sub;
         try {
-            sub = agents.create(task.strip(), callId.get());
+            sub = agents.create(task.strip(), callId.get(), role);
         } catch (IllegalStateException e) {
             done.fail(e.getMessage());
             return;
@@ -190,7 +204,7 @@ public final class SubAgentToolsImpl implements SubAgentTools, SubAgentControlTo
      * One line about a sub-agent: its state and what it did.
      */
     static String line(Sub sub) {
-        return sub.handle() + ": " + (sub.state() == State.SUSPENDED ? "paused" : sub.state().name().toLowerCase()) + ", " + sub.rounds() + " round(s), " + sub.tokens() + " tokens"
+        return sub.handle() + (sub.profile() == null ? "" : " on " + sub.profile()) + ": " + (sub.state() == State.SUSPENDED ? "paused" : sub.state().name().toLowerCase()) + ", " + sub.rounds() + " round(s), " + sub.tokens() + " tokens"
                 + (sub.lastAction() == null || sub.state().isFinished() ? "" : ", last: " + sub.lastAction())
                 + ", task: " + StringUtils.abbreviate(sub.task().replaceAll("\\s+", " "), 120);
     }
@@ -199,13 +213,14 @@ public final class SubAgentToolsImpl implements SubAgentTools, SubAgentControlTo
      * The answer of a sub-agent that is over, or the reason it did not give one.
      */
     static String report(Sub sub) {
-        String head = sub.handle() + " (" + sub.rounds() + " round(s), " + sub.tokens() + " tokens) ";
+        String head = sub.handle() + (sub.profile() == null ? "" : " on " + sub.profile()) + " (" + sub.rounds() + " round(s), " + sub.tokens() + " tokens) ";
         String text = StringUtils.defaultString(sub.result());
         return switch (sub.state()) {
             case SUSPENDED -> SUSPENDED;
             case DONE -> head + "is done. Its answer:\n" + (text.length() > Defaults.AGENT_SUBAGENT_RESULT_CHARS
                     ? text.substring(0, Defaults.AGENT_SUBAGENT_RESULT_CHARS) + "\n[The answer is cut off here, it had " + text.length()
-                    + " characters. Ask the next sub-agent to write long results to a file of the workspace.]" : text);
+                    + " characters. " + (sub.resultFile() != null ? "All of it is in the file " + sub.resultFile() + ", read it with read_file."
+                    : "Ask the next sub-agent to write long results to a file of its folder " + sub.folder() + ".") + "]" : text);
             case FAILED -> head + "failed: " + text + " What it changed before stays in the book.";
             case CANCELLED -> head + "was stopped: " + text + " What it changed before stays in the book.";
             case RUNNING -> head + "is still working.";
