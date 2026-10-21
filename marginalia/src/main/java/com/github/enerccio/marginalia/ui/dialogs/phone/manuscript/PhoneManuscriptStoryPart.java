@@ -23,6 +23,7 @@ import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialogPart
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneSummariesDialog;
 import com.github.enerccio.marginalia.ui.dialogs.search.ManuscriptSearchReplaceDialog;
 import com.github.enerccio.marginalia.ui.dialogs.story.*;
+import com.github.enerccio.marginalia.ui.widgets.LazyContextMenu;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
 import com.github.enerccio.marginalia.utils.MarkdownArchive;
@@ -691,6 +692,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         private final Button menuBtn;
         private final Button infoBtn;
         private ContextMenu hamburgerMenu;
+        private boolean menuItemsCreated;
         private MenuItem editItem;
         private MenuItem regenerateItem;
         private MenuItem swipeItem;
@@ -742,7 +744,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
             infoBtn.setThemeName("tertiary icon small");
             UIUtils.addTooltip(infoBtn, loc.getValue(L.LABEL_NODE_METADATA));
 
-            createMenuItems();
+            createHamburgerMenu();
             createInfoPopover();
 
             headerBar.add(menuBtn, infoBtn);
@@ -801,14 +803,39 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
             infoPopover.add(content);
         }
 
+        /**
+         * Creates the empty menu of the card. The items are added when the menu is opened for the first time, see
+         * {@link #prepareMenu()}.
+         */
+        @PublicAPI(from = "1.4.0",
+                returns = @APIReturn(type = void.class))
+        private void createHamburgerMenu() {
+            hamburgerMenu = new LazyContextMenu(menuBtn, this::prepareMenu);
+            hamburgerMenu.setOpenOnClick(true);
+        }
+
+        /**
+         * Runs each time the menu is about to open: creates the items the first time, then refreshes the ones that
+         * depend on the part.
+         */
+        @PublicAPI(from = "1.4.0",
+                returns = @APIReturn(type = void.class))
+        private void prepareMenu() {
+            if (!menuItemsCreated) {
+                menuItemsCreated = true;
+                createMenuItems();
+            }
+            refreshSummaryMenuItems();
+        }
+
+        /**
+         * Adds the items to {@code hamburgerMenu}. Called when the menu is opened for the first time, not when the
+         * card is created, so the cards of a long story stay cheap.
+         */
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class))
         private void createMenuItems() {
-            hamburgerMenu = new ContextMenu();
-            hamburgerMenu.setTarget(menuBtn);
-            hamburgerMenu.setOpenOnClick(true);
-
-            editItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_EDIT), event -> toggleEdit());
+            editItem = hamburgerMenu.addItem(loc.getValue(editing ? L.LABEL_SAVE : L.LABEL_EDIT), event -> toggleEdit());
 
             regenerateItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_REGENERATE), event -> regenerate());
             regenerateItem.setVisible(this.isLast);
@@ -839,12 +866,6 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                     }
                 });
             });
-
-            hamburgerMenu.addOpenedChangeListener(event -> {
-                if (event.isOpened()) {
-                    refreshSummaryMenuItems();
-                }
-            });
         }
 
         @PublicAPI(from = "1.1.0",
@@ -868,6 +889,10 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                     }
                 }
             } catch (Exception ignored) {}
+
+            if (summaryItem == null) {
+                return;
+            }
 
             boolean hasSummary = (message != null && message.getSummary() != null);
             if (hasSummary) {
@@ -981,7 +1006,9 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                 responseTextArea.setValue(StringUtils.defaultString(message.getResponse()));
                 responseMarkdown.setVisible(false);
                 responseTextArea.setVisible(true);
-                editItem.setText(loc.getValue(L.LABEL_SAVE));
+                if (editItem != null) {
+                    editItem.setText(loc.getValue(L.LABEL_SAVE));
+                }
             }
         }
 
@@ -998,7 +1025,9 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                     responseTextArea.setVisible(false);
                     responseMarkdown.setVisible(true);
                     editing = false;
-                    editItem.setText(loc.getValue(L.LABEL_EDIT));
+                    if (editItem != null) {
+                        editItem.setText(loc.getValue(L.LABEL_EDIT));
+                    }
                     updateMetrics(message);
                 } catch (Exception e) {
                     UIUtils.internalServerError(loc, e);
