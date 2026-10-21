@@ -175,6 +175,18 @@ public interface AgentRunner {
     AgentRun pauseNow(AgentRun run) throws Exception;
 
     /**
+     * Pauses every run that works, for the stop of the server: the requests and calls that go on are given up as with
+     * {@link #pauseNow}, a call that waits for the approval of the author stays without a result (a resume asks again), and the
+     * workers pause their runs at their next stable point. Waits for them, but not longer than the time given: what is still
+     * working then is cut off when the server stops and paused by the next start.
+     *
+     * @return how many runs still worked at the end
+     */
+    default int parkAll(long maxMillis) {
+        return 0;
+    }
+
+    /**
      * What the model of the run reads with its next request, taken apart for the user to look at and to debug a run: the
      * sections of the system message, the definition of every tool and every message of the conversation, each with its
      * text and its tokens (estimated). The system message and the tools are made as the next request makes them (a changed

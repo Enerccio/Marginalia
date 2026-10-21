@@ -1046,7 +1046,7 @@ class AgentRunnerTest extends AgentTestBase {
     }
 
     @Test
-    void aCallInterruptedBeforeItsResultGetsAnAnswerOnTheNextWork() throws Exception {
+    void aCallThatOnlyReadsAndHasNoResultIsMadeAgainOnTheNextWork() throws Exception {
         Agent agent = readingAgent();
         AgentRun run = agentRunService.start(agent);
         // what the transcript of a server that died between the calls and their results looks like
@@ -1059,7 +1059,50 @@ class AgentRunnerTest extends AgentTestBase {
 
         assertThat(run.getStatus()).isEqualTo(AgentRunStatus.IDLE);
         MockLLMRequest request = llm.lastCompletionRequest();
-        assertThat(request.getMessages("tool").getFirst()).startsWith("Error: this call was interrupted");
+        assertThat(request.getMessages("tool").getFirst()).doesNotStartWith("Error:");
+    }
+
+    @Test
+    void aCallThatHadBegunToChangeSomethingIsAnsweredAsInterruptedAndTheOnesAfterItAsSkipped() throws Exception {
+        Agent agent = readingAgent();
+        AgentRun run = agentRunService.start(agent);
+        messageService.append(run, List.of(LLMChatMessage.of(LLMRole.USER, "Start"),
+                LLMChatMessage.ofToolCalls(null, List.of(
+                        LLMToolCall.of("call_x", "write_file", "{\"path\":\"/notes/a.md\",\"content\":\"one\"}"),
+                        LLMToolCall.of("call_y", "write_file", "{\"path\":\"/notes/b.md\",\"content\":\"two\"}")))));
+        fileSystemService.writeCallMarker(run, "call_x");
+        llm.reply("I will check.");
+
+        runner.run(run);
+        run = await(run);
+
+        List<String> results = transcript(run).stream().filter(m -> m.getRole() == LLMRole.TOOL).map(LLMChatMessage::getContent).toList();
+        assertThat(results).hasSize(2);
+        assertThat(results.get(0)).startsWith("Error: this call was interrupted");
+        assertThat(results.get(1)).startsWith("Error: this call was not made because an earlier call");
+        assertThat(fileSystemService.open(run).stat(VirtualPath.parse("/notes/b.md"))).isNull();
+    }
+
+    @Test
+    void aCallThatDidNotBeginIsMadeAgainWhenTheRunGoesOn() throws Exception {
+        Agent agent = readingAgent();
+        AgentRun run = agentRunService.start(agent);
+        // the server died while the call waited for its turn or for the approval of the author: the marker says nothing began
+        messageService.append(run, List.of(LLMChatMessage.of(LLMRole.USER, "Start"),
+                LLMChatMessage.ofToolCalls(null, List.of(
+                        LLMToolCall.of("call_x", "write_file", "{\"path\":\"/notes/a.md\",\"content\":\"one\"}"),
+                        LLMToolCall.of("call_y", "write_file", "{\"path\":\"/notes/b.md\",\"content\":\"two\"}")))));
+        llm.reply("Both are written.");
+
+        runner.run(run);
+        run = await(run);
+
+        List<String> results = transcript(run).stream().filter(m -> m.getRole() == LLMRole.TOOL).map(LLMChatMessage::getContent).toList();
+        assertThat(results).hasSize(2).noneMatch(r -> r.startsWith("Error"));
+        assertThat(fileSystemService.open(run).readText(VirtualPath.parse("/notes/a.md"))).isEqualTo("one");
+        assertThat(fileSystemService.open(run).readText(VirtualPath.parse("/notes/b.md"))).isEqualTo("two");
+        // the model is asked once, after the results, in the order of the calls
+        assertThat(llm.getCompletionRequests()).hasSize(1);
     }
 
     @Test
@@ -1674,6 +1717,75 @@ class AgentRunnerTest extends AgentTestBase {
         run = await(run);
 
         assertThat(transcript(run).getLast().getContent()).contains("Command: /get-book-info too many arguments").contains("Result:\nError:");
+    }
+
+    @Test
+    void whatTheAuthorQueuedIsKeptInTheFolderOfTheRunUntilItIsRead() throws Exception {
+        Agent agent = readingAgent();
+        CountDownLatch gate = new CountDownLatch(1);
+        llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}").waitFor(gate, Duration.ofSeconds(20)),
+                MockLLMResponse.text("Counted."), MockLLMResponse.text("never asked"));
+        AgentRun run = startConversation(agent);
+        llm.awaitCompletionRequests(1, Duration.ofSeconds(10));
+
+        runner.send(agentRunService.find(run.getId()), "Also count the chapters.");
+        runner.command(agentRunService.find(run.getId()), "/get-book-info");
+
+        assertThat(fileSystemService.readQueue(run)).contains("Also count the chapters.").contains("/get-book-info");
+        gate.countDown();
+        run = await(run);
+
+        assertThat(fileSystemService.readQueue(run)).as("read, nothing to keep").isNull();
+    }
+
+    @Test
+    void aQueueTheServerLeftBehindIsShownAndReadWhenTheRunGoesOn() throws Exception {
+        Agent agent = readingAgent();
+        // no worker has run in this process, as after a restart: the run is paused, nothing is in memory
+        AgentRun run = agentRunService.pause(agentRunService.start(agent, true));
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.PAUSED);
+        // what the file of a run that was working when the server died looks like
+        fileSystemService.writeQueue(run, "[{\"id\":\"a\",\"text\":\"Also count the chapters.\"},{\"id\":\"b\",\"command\":\"/get-book-info\"}]");
+
+        assertThat(runner.queued(run)).extracting(AgentRunner.QueuedMessage::text).containsExactly("Also count the chapters.", "/get-book-info");
+        assertThat(runner.cancelQueued(run, "b")).isTrue();
+        assertThat(fileSystemService.readQueue(run)).as("the change is kept").doesNotContain("get-book-info");
+        llm.reply("Counted.");
+        runner.run(agentRunService.resume(run));
+        run = await(run);
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.IDLE);
+        assertThat(llm.lastCompletionRequest().getMessages("user")).anyMatch(m -> m.contains("Also count the chapters."));
+        assertThat(runner.queued(run)).isEmpty();
+        assertThat(fileSystemService.readQueue(run)).isNull();
+    }
+
+    @Test
+    void theStopOfTheServerPausesTheRunsThatWorkAndAResumeGoesOn() throws Exception {
+        Agent agent = readingAgent();
+        CountDownLatch gate = new CountDownLatch(1);
+        llm.enqueue(MockLLMResponse.text("Never read.").waitFor(gate, Duration.ofSeconds(20)));
+        AgentRun run = startConversation(agent);
+        llm.awaitCompletionRequests(1, Duration.ofSeconds(10));
+        runner.send(agentRunService.find(run.getId()), "One more thing.");
+
+        int left = runner.parkAll(10_000);
+        gate.countDown();
+
+        assertThat(left).isZero();
+        run = agentRunService.find(run.getId());
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.PAUSED);
+        assertThat(run.getStatusReason()).isEqualTo("The server was stopped");
+        assertThat(runner.isWorking(run)).isFalse();
+        assertThat(transcript(run)).as("the answer that was not finished is not stored").hasSize(1);
+        assertThat(runner.queued(run)).extracting(AgentRunner.QueuedMessage::text).containsExactly("One more thing.");
+
+        llm.reply("Done, and the one more thing too.");
+        runner.run(agentRunService.resume(run));
+        run = await(run);
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.IDLE);
+        assertThat(llm.lastCompletionRequest().getMessages("user")).anyMatch(m -> m.contains("One more thing."));
     }
 
     @Test

@@ -60,4 +60,11 @@ public interface AgentApprovalService {
      */
     int rejectAll(Long runId);
 
+    /**
+     * Whether approvals of the run were withdrawn ({@link #rejectAll}: the run was paused, stopped or thrown away) and not
+     * decided by the user, since the last approval was requested; asking clears it. The runner tells the two apart: a
+     * command the user denied is answered, one that was withdrawn is made again when the run goes on.
+     */
+    boolean takeWithdrawn(Long runId);
+
 }

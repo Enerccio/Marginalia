@@ -329,6 +329,59 @@ public class AgentVirtualFileSystemServiceImpl implements AgentVirtualFileSystem
     }
 
     @Override
+    public void writeCallMarker(AgentRun run, String callId) {
+        writeRunFile(run, RunFolder.CALL_MARKER, callId);
+    }
+
+    @Override
+    public String readCallMarker(AgentRun run) {
+        return readRunFile(run, RunFolder.CALL_MARKER);
+    }
+
+    @Override
+    public void writeQueue(AgentRun run, String json) {
+        writeRunFile(run, RunFolder.QUEUE, json);
+    }
+
+    @Override
+    public String readQueue(AgentRun run) {
+        return readRunFile(run, RunFolder.QUEUE);
+    }
+
+    /**
+     * A small file of the run, written at once (not when the transaction ends: the runner keeps state in them that it needs
+     * when the server dies); null removes it. A failure is logged, the run goes on without the file.
+     */
+    private void writeRunFile(AgentRun run, String name, String content) {
+        if (run == null || run.getUuid() == null) {
+            return;
+        }
+        Path file = RunFolder.runOf(home(), run.getUuid()).resolve(RunFolder.BASE).resolve(name);
+        try {
+            if (content == null) {
+                Files.deleteIfExists(file);
+            } else {
+                writeAtomically(file, content);
+            }
+        } catch (IOException | UncheckedIOException e) {
+            log.warn("Agent run {}: {} can't be written: {}", run.getUuid(), name, e.getMessage());
+        }
+    }
+
+    private String readRunFile(AgentRun run, String name) {
+        if (run == null || run.getUuid() == null) {
+            return null;
+        }
+        Path file = RunFolder.runOf(home(), run.getUuid()).resolve(RunFolder.BASE).resolve(name);
+        try {
+            return Files.isRegularFile(file) ? Files.readString(file, StandardCharsets.UTF_8) : null;
+        } catch (IOException e) {
+            log.warn("Agent run {}: {} can't be read: {}", run.getUuid(), name, e.getMessage());
+            return null;
+        }
+    }
+
+    @Override
     public void writeResumeNote(AgentRun run, String note) throws Exception {
         AgentRun stored = ownRun(run);
         Path file = RunFolder.runOf(home(), stored.getUuid()).resolve(RunFolder.BASE).resolve(RunFolder.RESUME_NOTE);

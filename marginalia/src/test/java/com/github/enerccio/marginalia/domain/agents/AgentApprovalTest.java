@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.AgentMessageService;
 import com.github.enerccio.marginalia.domain.service.AgentRunner;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
 import com.github.enerccio.marginalia.test.AgentTestBase;
 import com.github.enerccio.marginalia.test.llm.MockLLMResponse;
 import org.junit.jupiter.api.Test;
@@ -123,8 +124,52 @@ class AgentApprovalTest extends AgentTestBase {
         awaitStatus(run, AgentRunStatus.PAUSED, true);
 
         assertThat(approvals.hasPending(run.getId())).isFalse();
-        assertThat(resultOfTheCall(run)).contains("did not approve");
+        // the author did not refuse: the call has no result and a resume asks again
+        assertThat(messageService.transcript(run)).noneMatch(m -> m.getRole() == LLMRole.TOOL);
         assertThat(llm.getCompletionRequests()).as("the paused run asks nothing more").hasSize(1);
+    }
+
+    @Test
+    void aResumeAsksAgainForTheCommandThePauseWithdrew() throws Exception {
+        Agent agent = askingAgent();
+        llm.enqueue(MockLLMResponse.toolCall("search-replace-parts", CALL), MockLLMResponse.text("Done."));
+
+        AgentRun run = startRun(agent);
+        awaitStatus(run, AgentRunStatus.WAITING_APPROVAL, false);
+        agentRunService.pause(agentRunService.find(run.getId()));
+        awaitStatus(run, AgentRunStatus.PAUSED, true);
+
+        runner.run(agentRunService.resume(agentRunService.find(run.getId())));
+        awaitStatus(run, AgentRunStatus.WAITING_APPROVAL, false);
+        PendingApproval pending = theOnlyPending(run);
+        assertThat(pending.command()).isEqualTo("search-replace-parts");
+        assertThat(llm.getCompletionRequests()).as("the model is not asked the same again").hasSize(1);
+
+        approvals.decide(run, pending.id(), true);
+        awaitStatus(run, AgentRunStatus.IDLE, true);
+
+        assertThat(resultOfTheCall(run)).doesNotContain("did not approve");
+        assertThat(llm.getCompletionRequests()).hasSize(2);
+    }
+
+    @Test
+    void aServerThatDiedWhileTheCommandWaitedAsksAgainAndACommandThatHadBegunIsNotRepeated() throws Exception {
+        Agent agent = askingAgent();
+        AgentRun run = agentRunService.start(agent);
+        // the transcript of a server that died while the author had not decided: the call has no result, nothing began
+        messageService.append(run, List.of(LLMChatMessage.of(LLMRole.USER, "Start"),
+                LLMChatMessage.ofToolCalls(null, List.of(LLMToolCall.of("call_x", "search-replace-parts", CALL)))));
+        agentRunService.pause(run);
+        llm.reply("Done.");
+
+        runner.run(agentRunService.resume(agentRunService.find(run.getId())));
+        awaitStatus(run, AgentRunStatus.WAITING_APPROVAL, false);
+
+        assertThat(theOnlyPending(run).command()).isEqualTo("search-replace-parts");
+        assertThat(llm.getCompletionRequests()).as("the model is not asked, the call is made").isEmpty();
+        approvals.decide(run, theOnlyPending(run).id(), true);
+        awaitStatus(run, AgentRunStatus.IDLE, true);
+        assertThat(resultOfTheCall(run)).doesNotStartWith("Error");
     }
 
     @Test
