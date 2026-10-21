@@ -27,6 +27,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.server.streams.DownloadResponse;
 import com.vaadin.flow.server.streams.InputStreamDownloadCallback;
 import com.vaadin.flow.server.streams.InputStreamDownloadHandler;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -63,6 +64,8 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
     private final Runnable rewound;
 
     private Grid<Info> grid;
+    // a phone shows a checkpoint as a card, see AgentCard
+    private boolean phone = UIUtils.isPhone();
     private Span usageLabel;
     private Span emptyLabel;
     private Button saveButton;
@@ -114,15 +117,19 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
         grid = new Grid<>();
         grid.setWidthFull();
         grid.addThemeVariants(GridVariant.LUMO_COMPACT);
-        grid.addColumn(Info::id).setHeader(loc.getValue(L.LABEL_NAME)).setFlexGrow(0).setWidth("80px");
-        grid.addColumn(info -> loc.getValue(kindText(info))).setHeader(loc.getValue(L.LABEL_TYPE)).setFlexGrow(1);
-        grid.addColumn(Info::round).setHeader(loc.getValue(L.LABEL_ROUNDS)).setFlexGrow(0).setWidth("80px");
-        grid.addColumn(Info::label).setHeader(loc.getValue(L.LABEL_CHECKPOINT_LABEL)).setFlexGrow(3);
-        grid.addColumn(info -> CheckpointText.bytes(info.bytes())).setHeader(loc.getValue(L.LABEL_SIZE)).setFlexGrow(1);
-        grid.addColumn(info -> DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
-                        .format(Instant.ofEpochMilli(info.created()).atZone(ZoneId.systemDefault())))
-                .setHeader(loc.getValue(L.LABEL_CREATED)).setFlexGrow(2);
-        grid.addComponentColumn(this::actions).setHeader("").setFlexGrow(0).setWidth("210px");
+        if (phone) {
+            grid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES);
+            grid.setAllRowsVisible(true);
+            grid.addComponentColumn(this::card).setHeader(loc.getValue(L.LABEL_AGENT_CHECKPOINTS));
+        } else {
+            grid.addColumn(Info::id).setHeader(loc.getValue(L.LABEL_NAME)).setFlexGrow(0).setWidth("80px");
+            grid.addColumn(info -> loc.getValue(kindText(info))).setHeader(loc.getValue(L.LABEL_TYPE)).setFlexGrow(1);
+            grid.addColumn(Info::round).setHeader(loc.getValue(L.LABEL_ROUNDS)).setFlexGrow(0).setWidth("80px");
+            grid.addColumn(Info::label).setHeader(loc.getValue(L.LABEL_CHECKPOINT_LABEL)).setFlexGrow(3);
+            grid.addColumn(info -> CheckpointText.bytes(info.bytes())).setHeader(loc.getValue(L.LABEL_SIZE)).setFlexGrow(1);
+            grid.addColumn(AgentCheckpointBrowser::created).setHeader(loc.getValue(L.LABEL_CREATED)).setFlexGrow(2);
+            grid.addComponentColumn(this::actions).setHeader("").setFlexGrow(0).setWidth("210px");
+        }
 
         usageLabel = new Span();
         usageLabel.addClassNames(CssStyles.HINT_TEXT);
@@ -131,6 +138,25 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
 
         add(help, toolbar, grid, emptyLabel, usageLabel);
         refresh();
+    }
+
+    private static String created(Info info) {
+        return DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
+                .format(Instant.ofEpochMilli(info.created()).atZone(ZoneId.systemDefault()));
+    }
+
+    /**
+     * Whether to show the checkpoints as cards: the default is the screen of the user, set it before {@link #create()}.
+     */
+    void setPhone(boolean phone) {
+        this.phone = phone;
+    }
+
+    // package visible for the tests, like the actions
+    Component card(Info info) {
+        return AgentCard.of(info.id() + " - " + loc.getValue(kindText(info)), created(info), List.of(
+                loc.getValue(L.LABEL_ROUNDS) + ": " + info.round() + "   " + loc.getValue(L.LABEL_SIZE) + ": "
+                        + CheckpointText.bytes(info.bytes()), StringUtils.defaultString(info.label())), actions(info));
     }
 
     private static L kindText(Info info) {

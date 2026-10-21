@@ -307,7 +307,8 @@ public class UIUtils {
             return false;
         }
         com.vaadin.flow.component.page.ExtendedClientDetails details = ui.getPage().getExtendedClientDetails();
-        return details != null && details.getBodyClientWidth() < PHONE_MAX_WIDTH_PX;
+        // the width is 0 or less while the browser has not told it
+        return details != null && details.getBodyClientWidth() > 0 && details.getBodyClientWidth() < PHONE_MAX_WIDTH_PX;
     }
 
     /**

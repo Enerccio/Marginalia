@@ -84,7 +84,11 @@ class AgentConsoleDialogTest extends AgentTestBase {
     }
 
     private AgentConsoleDialog console() {
-        AgentConsoleDialog dialog = new AgentConsoleDialog(agent);
+        return console(false);
+    }
+
+    private AgentConsoleDialog console(boolean phone) {
+        AgentConsoleDialog dialog = new AgentConsoleDialog(agent, phone);
         ReflectionTestUtils.setField(dialog, "agentRunner", new AgentRunner() {
             @Override
             public void run(AgentRun run) {
@@ -1011,5 +1015,114 @@ class AgentConsoleDialogTest extends AgentTestBase {
         dialog.getTabs().setSelectedIndex(AgentConsoleDialog.SUBAGENTS_TAB);
 
         assertThat(dialog.getSubAgentsView().getPicker().getListDataView().getItemCount()).isEqualTo(1);
+    }
+
+    // the phone console
+
+    private static List<Button> buttonsOf(Component component) {
+        return ComponentTree.all(component, Button.class).toList();
+    }
+
+    @Test
+    void thePhoneConsoleHasIconTabsAndTheTitleNamesTheOpenOne() throws Exception {
+        startedRun();
+        AgentConsoleDialog dialog = console(true);
+
+        assertThat(dialog.getTabs().getTabCount()).isEqualTo(8);
+        assertThat(dialog.getTabs().getTabAt(0).getLabel()).as("an icon, no words").isEmpty();
+        assertThat(dialog.getTabs().getTabAt(0).getElement().getAttribute("aria-label")).isEqualTo("Run");
+        assertThat(dialog.getHeaderTitle()).isEqualTo(agent.getName() + " - Run");
+
+        dialog.getTabs().setSelectedIndex(1);
+
+        assertThat(dialog.getHeaderTitle()).isEqualTo(agent.getName() + " - Runs");
+    }
+
+    @Test
+    void theDesktopConsoleKeepsItsTabsWithWordsAndItsButtonsWithTheirTexts() throws Exception {
+        startedRun();
+        AgentConsoleDialog dialog = console();
+
+        assertThat(dialog.getTabs().getTabAt(0).getLabel()).isEqualTo("Run");
+        assertThat(dialog.getPauseButton().getText()).isEqualTo("Pause");
+        assertThat(dialog.getResumeButton().isVisible()).as("disabled, not hidden").isTrue();
+        assertThat(dialog.getResumeButton().isEnabled()).isFalse();
+    }
+
+    @Test
+    void thePhoneConsoleShowsOnlyTheControlsThatCanBeUsedNow() throws Exception {
+        AgentRun run = startedRun();
+        AgentConsoleDialog dialog = console(true);
+
+        assertThat(dialog.getPauseButton().isVisible()).isTrue();
+        assertThat(dialog.getPauseButton().getText()).as("an icon with a label for the screen reader").isEmpty();
+        assertThat(dialog.getPauseButton().getAriaLabel()).contains("Pause");
+        assertThat(dialog.getStopButton().isVisible()).isTrue();
+        assertThat(dialog.getResumeButton().isVisible()).isFalse();
+        assertThat(dialog.getFinishButton().isVisible()).isFalse();
+
+        agentRunService.pause(run);
+        dialog.refreshRun();
+
+        assertThat(dialog.getPauseButton().isVisible()).isFalse();
+        assertThat(dialog.getResumeButton().isVisible()).isTrue();
+    }
+
+    @Test
+    void thePhoneConsoleHasRefreshAndCloseAsIcons() throws Exception {
+        startedRun();
+        AgentConsoleDialog dialog = console(true);
+
+        assertThat(dialog.getCloseButton().getText()).isEmpty();
+        assertThat(dialog.getCloseButton().getAriaLabel()).contains("Close");
+        assertThat(dialog.getRefreshButton().getAriaLabel()).contains("Refresh");
+        assertThat(dialog.getCloseButton().getParent()).as("in the header, not in the footer's row").isPresent();
+        assertThat(dialog.getCloseButton().getParent().orElseThrow()).isNotInstanceOf(com.vaadin.flow.component.orderedlayout.HorizontalLayout.class);
+    }
+
+    @Test
+    void thePhoneConsoleKeepsTheCommandLineHiddenUntilItsButtonOpensIt() throws Exception {
+        AgentRun run = agentRunService.start(agent, true);
+        say(run, LLMChatMessage.of(LLMRole.USER, "Start."));
+        AgentConsoleDialog dialog = console(true);
+
+        assertThat(dialog.getCommandRow().isVisible()).isFalse();
+        assertThat(dialog.getMessageField().getMinRows()).isEqualTo(1);
+        assertThat(dialog.getSendButton().getText()).isEmpty();
+        assertThat(dialog.getSendButton().getAriaLabel()).contains("Send");
+
+        dialog.getCommandButton().click();
+        assertThat(dialog.getCommandRow().isVisible()).isTrue();
+        dialog.getCommandButton().click();
+        assertThat(dialog.getCommandRow().isVisible()).isFalse();
+    }
+
+    @Test
+    void theDesktopConsoleShowsTheCommandLineAlways() throws Exception {
+        startedRun();
+        AgentConsoleDialog dialog = console();
+
+        assertThat(dialog.getCommandRow().isVisible()).isTrue();
+        assertThat(dialog.getSendButton().getText()).isEqualTo("Send");
+    }
+
+    @Test
+    void thePhoneHistoryIsOneCardForARunWithItsStateAndButtons() throws Exception {
+        AgentRun failed = startedRun();
+        agentRunService.transition(failed, AgentRunStatus.FAILED, "the model broke");
+        AgentConsoleDialog dialog = console(true);
+
+        assertThat(dialog.getHistory().getGrid().getColumns()).hasSize(1);
+        Component card = dialog.getHistory().card(agentRunService.find(failed.getId()));
+        assertThat(textOf(card)).contains("Failed", "Rounds: 0", "the model broke");
+        assertThat(buttonsOf(card)).as("open, download, delete").hasSize(3);
+    }
+
+    @Test
+    void theDesktopHistoryKeepsItsColumns() throws Exception {
+        startedRun();
+        AgentConsoleDialog dialog = console();
+
+        assertThat(dialog.getHistory().getGrid().getColumns()).hasSize(6);
     }
 }

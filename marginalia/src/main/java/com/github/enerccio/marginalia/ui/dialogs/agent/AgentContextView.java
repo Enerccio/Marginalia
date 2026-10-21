@@ -72,6 +72,8 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
     // the place of each part in the context, for the table
     private final Map<AgentContext.Part, Integer> numbers = new IdentityHashMap<>();
     private Span emptyLabel;
+    // a phone has the table of the parts without the type and the share, they are in the viewer under it
+    private boolean phone = UIUtils.isPhone();
 
     /**
      * @param runSupplier the run the console looks at now, null when there is none
@@ -113,11 +115,15 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
         grid.setWidthFull();
         grid.setHeight("420px");
         grid.setMinHeight("420px");
-        grid.addColumn(part -> numbers.get(part)).setHeader("#").setFlexGrow(0).setWidth("70px");
-        grid.addColumn(part -> kindName(part.kind())).setHeader(loc.getValue(L.LABEL_TYPE)).setFlexGrow(1);
+        grid.addColumn(part -> numbers.get(part)).setHeader("#").setFlexGrow(0).setWidth(phone ? "50px" : "70px");
+        if (!phone) {
+            grid.addColumn(part -> kindName(part.kind())).setHeader(loc.getValue(L.LABEL_TYPE)).setFlexGrow(1);
+        }
         grid.addColumn(AgentContext.Part::title).setHeader(loc.getValue(L.LABEL_NAME)).setFlexGrow(3);
         grid.addColumn(AgentContext.Part::tokens).setHeader(loc.getValue(L.LABEL_TOKENS)).setFlexGrow(1);
-        grid.addColumn(this::share).setHeader(loc.getValue(L.LABEL_AGENT_CONTEXT_SHARE)).setFlexGrow(1);
+        if (!phone) {
+            grid.addColumn(this::share).setHeader(loc.getValue(L.LABEL_AGENT_CONTEXT_SHARE)).setFlexGrow(1);
+        }
         grid.addSelectionListener(event -> show(event.getFirstSelectedItem().orElse(null)));
 
         viewer = new TextArea();
@@ -195,6 +201,15 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
 
     private void show(AgentContext.Part part) {
         viewer.setValue(part == null ? "" : part.text());
+        // the columns a phone has no room for
+        viewer.setHelperText(!phone || part == null ? null : kindName(part.kind()) + ", " + share(part));
+    }
+
+    /**
+     * Whether to make the view of a phone: the default is the screen of the user, set it before {@link #create()}.
+     */
+    void setPhone(boolean phone) {
+        this.phone = phone;
     }
 
     private String share(AgentContext.Part part) {

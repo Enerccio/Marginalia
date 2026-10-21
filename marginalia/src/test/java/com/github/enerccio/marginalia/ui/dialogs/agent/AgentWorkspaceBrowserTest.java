@@ -56,6 +56,20 @@ class AgentWorkspaceBrowserTest extends AgentTestBase {
         return browser;
     }
 
+    @Test
+    void aPhoneShowsTheSizeUnderTheNameAndTheToolbarAsIcons() {
+        write("/notes.txt", "hello");
+        AgentWorkspaceBrowser browser = new AgentWorkspaceBrowser(agent, busy::get);
+        browser.setPhone(true);
+        browser.create();
+
+        assertThat(browser.getGrid().getColumns()).as("name and buttons, the size is under the name").hasSize(2);
+        assertThat(com.github.enerccio.marginalia.test.ComponentTree.all(browser.nameCell(entry(browser, "notes.txt")),
+                com.vaadin.flow.component.html.Span.class).map(s -> s.getElement().getText()).toList()).contains("notes.txt", "5 bytes");
+        assertThat(com.github.enerccio.marginalia.test.ComponentTree.all(browser, com.vaadin.flow.component.button.Button.class)
+                .filter(b -> b.getAriaLabel().filter("Up"::equals).isPresent()).findFirst().orElseThrow().getText()).isEmpty();
+    }
+
     private void write(String path, String text) {
         files.writeText(VirtualPath.parse(path), text, false);
     }

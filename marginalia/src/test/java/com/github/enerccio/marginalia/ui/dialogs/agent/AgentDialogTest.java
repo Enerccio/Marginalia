@@ -429,6 +429,18 @@ class AgentDialogTest extends AgentTestBase {
     }
 
     @Test
+    void aPhoneShowsACommandAsACardWithItsBoxAndItsBatchPolicy() throws Exception {
+        AgentCommandsEditor editor = new AgentCommandsEditor(true);
+
+        assertThat(editor.getGrid().getColumns()).hasSize(1);
+        var row = editor.getGrid().getListDataView().getItems().findFirst().orElseThrow();
+        var card = editor.card(row);
+        assertThat(com.github.enerccio.marginalia.test.ComponentTree.all(card, com.vaadin.flow.component.checkbox.Checkbox.class).toList()).hasSize(1);
+        assertThat(com.github.enerccio.marginalia.test.ComponentTree.all(card, com.vaadin.flow.component.html.Span.class)
+                .map(s -> s.getElement().getText()).toList()).anyMatch(text -> text.contains("Batch"));
+    }
+
+    @Test
     void theGridShowsTheBatchPolicyOfEachCommandAndItsColumnsCanBeResized() throws Exception {
         manuscript();
         AgentDialog dialog = dialog(null);

@@ -72,6 +72,20 @@ public interface LorebookService extends ExtendableService<Lorebook, LorebookRep
 
     Lorebook importFromSillytavern(String json, String name) throws Exception;
 
+    /**
+     * Makes a new, enabled lorebook from the {@code .md} files of a zip archive: one entry for each file, in the order of
+     * the file names (numbers inside names compare as numbers). The entries are disabled, as an entry without a filter
+     * would be sent with every prompt. Other files, folders and hidden files of the archive are left out. See
+     * {@link com.github.enerccio.marginalia.utils.MarkdownArchive}.
+     *
+     * @param archive the zip file
+     * @param name    the name of the lorebook, usually the name of the uploaded file (a {@code .zip} ending is cut off)
+     * @param names   the names of the entries in the order of the files, null for none; a missing or blank one is taken from
+     *                the {@code names.txt} of the archive, else from the first heading of the file or its file name
+     * @throws IllegalArgumentException when the data is not a zip archive or has no {@code .md} file
+     */
+    Lorebook importFromArchive(byte[] archive, String name, List<String> names) throws Exception;
+
     String exportLorebook(Lorebook lorebook) throws Exception;
 
     Lorebook importLorebook(String json, String name) throws Exception;

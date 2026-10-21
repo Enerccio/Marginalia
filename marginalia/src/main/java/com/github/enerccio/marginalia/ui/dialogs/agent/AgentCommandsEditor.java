@@ -9,11 +9,14 @@ import com.github.enerccio.marginalia.domain.service.function.FunctionDefinition
 import com.github.enerccio.marginalia.domain.traits.BatchPolicy;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.utils.UIUtils;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +58,14 @@ public class AgentCommandsEditor extends VerticalLayout {
     private boolean loading;
 
     public AgentCommandsEditor() {
+        this(UIUtils.isPhone());
+    }
+
+    /**
+     * @param phone whether to make the table of a phone: a command is a card (the box with its name, what it does, its
+     *              batch policy and size, its description) in place of a row of six columns
+     */
+    public AgentCommandsEditor(boolean phone) {
         presetCombo = new ComboBox<>(loc.getValue(L.LABEL_COMMAND_SELECTION));
         presetCombo.setItems(AgentCommandPreset.values());
         presetCombo.setItemLabelGenerator(preset -> loc.getValue(preset.getLabel()));
@@ -69,32 +80,54 @@ public class AgentCommandsEditor extends VerticalLayout {
 
         grid = new Grid<>(Row.class, false);
         grid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES);
-        grid.setHeight("280px");
-        grid.addComponentColumn(row -> {
-            Checkbox checkbox = new Checkbox(selected.contains(row.name()));
-            checkbox.addValueChangeListener(event -> {
-                if (event.getValue()) {
-                    selected.add(row.name());
-                } else {
-                    selected.remove(row.name());
-                }
-                presetCombo.setValue(currentPreset());
-                changed();
-            });
-            return checkbox;
-        }).setHeader(loc.getValue(L.LABEL_ENABLED)).setFlexGrow(0).setWidth("100px").setResizable(true);
-        grid.addColumn(Row::humanName).setHeader(loc.getValue(L.LABEL_COMMAND)).setFlexGrow(2).setResizable(true);
-        grid.addColumn(Row::effect).setHeader(loc.getValue(L.LABEL_COMMAND_EFFECT)).setFlexGrow(1).setResizable(true);
-        grid.addColumn(Row::batch).setHeader(loc.getValue(L.LABEL_COMMAND_BATCH_POLICY)).setFlexGrow(0).setWidth("110px")
-                .setResizable(true).setTooltipGenerator(row -> loc.getValue(L.HELP_COMMAND_BATCH_POLICY));
-        grid.addColumn(Row::tokens).setHeader(loc.getValue(L.LABEL_TOKENS)).setTextAlign(ColumnTextAlign.END).setFlexGrow(0)
-                .setWidth("100px").setResizable(true).setTooltipGenerator(row -> loc.getValue(L.HELP_AGENT_COMMAND_TOKENS));
-        grid.addColumn(Row::description).setHeader(loc.getValue(L.LABEL_DESCRIPTION)).setFlexGrow(4).setResizable(true);
+        if (phone) {
+            grid.setHeight("420px");
+            grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
+            grid.addComponentColumn(this::card).setHeader(loc.getValue(L.LABEL_COMMAND));
+        } else {
+            grid.setHeight("280px");
+            grid.addComponentColumn(row -> checkbox(row, null)).setHeader(loc.getValue(L.LABEL_ENABLED)).setFlexGrow(0)
+                    .setWidth("100px").setResizable(true);
+            grid.addColumn(Row::humanName).setHeader(loc.getValue(L.LABEL_COMMAND)).setFlexGrow(2).setResizable(true);
+            grid.addColumn(Row::effect).setHeader(loc.getValue(L.LABEL_COMMAND_EFFECT)).setFlexGrow(1).setResizable(true);
+            grid.addColumn(Row::batch).setHeader(loc.getValue(L.LABEL_COMMAND_BATCH_POLICY)).setFlexGrow(0).setWidth("110px")
+                    .setResizable(true).setTooltipGenerator(row -> loc.getValue(L.HELP_COMMAND_BATCH_POLICY));
+            grid.addColumn(Row::tokens).setHeader(loc.getValue(L.LABEL_TOKENS)).setTextAlign(ColumnTextAlign.END).setFlexGrow(0)
+                    .setWidth("100px").setResizable(true).setTooltipGenerator(row -> loc.getValue(L.HELP_AGENT_COMMAND_TOKENS));
+            grid.addColumn(Row::description).setHeader(loc.getValue(L.LABEL_DESCRIPTION)).setFlexGrow(4).setResizable(true);
+        }
 
         setPadding(false);
         setSpacing(false);
         add(presetCombo, grid);
         loadCommands();
+    }
+
+    private Checkbox checkbox(Row row, String label) {
+        Checkbox checkbox = label == null ? new Checkbox(selected.contains(row.name())) : new Checkbox(label, selected.contains(row.name()));
+        checkbox.addValueChangeListener(event -> {
+            if (event.getValue()) {
+                selected.add(row.name());
+            } else {
+                selected.remove(row.name());
+            }
+            presetCombo.setValue(currentPreset());
+            changed();
+        });
+        return checkbox;
+    }
+
+    // package visible for the tests
+    Component card(Row row) {
+        VerticalLayout card = AgentCard.of(row.humanName(), "", List.of(
+                row.effect() + "   " + loc.getValue(L.LABEL_COMMAND_BATCH_POLICY) + ": " + row.batch() + "   "
+                        + loc.getValue(L.LABEL_TOKENS) + ": " + row.tokens(), row.description()), null);
+        HorizontalLayout line = new HorizontalLayout(checkbox(row, null), card);
+        line.setWidthFull();
+        line.setPadding(false);
+        line.setSpacing(true);
+        line.expand(card);
+        return line;
     }
 
     private void loadCommands() {

@@ -18,11 +18,10 @@ import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.Restorable;
 import com.github.enerccio.marginalia.ui.RestorableState;
-import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
-import com.github.enerccio.marginalia.ui.dialogs.LorebookMassEditDialog;
-import com.github.enerccio.marginalia.ui.dialogs.MultiTagDialog;
+import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.dialogs.search.LorebookSearchReplaceDialog;
 import com.github.enerccio.marginalia.ui.widgets.*;
+import com.github.enerccio.marginalia.utils.MarkdownArchive;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
@@ -200,6 +199,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
                 openImportDialog(loc.getValue(L.LABEL_IMPORT_LOREBOOK), lorebookService::importLorebook));
         importMenu.addItem(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN), event ->
                 openImportDialog(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN), lorebookService::importFromSillytavern));
+        importMenu.addItem(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE), event -> openArchiveImportDialog());
 
         exportLorebookAnchor = new Anchor(new InputStreamDownloadHandler((InputStreamDownloadCallback) downloadEvent -> {
             try {
@@ -380,13 +380,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
 
                 Lorebook importedLorebook = importer.importLorebook(jsonContent, fileName);
                 dialog.close();
-
-                this.currentLorebook = importedLorebook;
-                if (!pinnedLorebook) {
-                    loadLorebooks();
-                } else {
-                    updateSelectedLorebook();
-                }
+                showImported(importedLorebook);
             } catch (IllegalArgumentException | JsonParseException e) {
                 Notification.warning(loc.getValue(L.MSG_INVALID_LOREBOOK_FILE));
             } catch (Exception e) {
@@ -403,6 +397,35 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         dialog.add(dialogLayout);
         dialog.getFooter().add(cancelButton);
         dialog.open();
+    }
+
+    /**
+     * Asks for a zip archive of {@code .md} files, shows the names the entries would get to change, and makes a lorebook of
+     * it, see {@link LorebookService#importFromArchive}.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
+    private void openArchiveImportDialog() {
+        ArchiveUploadDialog.show(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE), loc.getValue(L.MSG_IMPORT_FROM_ARCHIVE),
+                (archive, fileName) -> ArchiveEntryNamesDialog.show(MarkdownArchive.read(archive), names -> {
+                    try {
+                        showImported(lorebookService.importFromArchive(archive, fileName, names));
+                    } catch (Exception e) {
+                        UIUtils.internalServerError(loc, e);
+                    }
+                }));
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "importedLorebook", type = Lorebook.class)})
+    private void showImported(Lorebook importedLorebook) {
+        this.currentLorebook = importedLorebook;
+        if (!pinnedLorebook) {
+            loadLorebooks();
+        } else {
+            updateSelectedLorebook();
+        }
     }
 
     @PublicAPI(from = "1.1.0",

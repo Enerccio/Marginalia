@@ -105,6 +105,7 @@ public class PhoneManuscriptPart implements ManuscriptSection {
             locals = {@APILocals(name = "mainLayout", type = VerticalLayout.class),
                     @APILocals(name = "addBookButton", type = Button.class),
                     @APILocals(name = "refreshButton", type = Button.class),
+                    @APILocals(name = "importArchiveButton", type = Button.class),
                     @APILocals(name = "headerLayout", type = HorizontalLayout.class),
                     @APILocals(name = "filtersLayout", type = VerticalLayout.class),
                     @APILocals(name = "nameFilter", type = TextField.class),
@@ -124,7 +125,10 @@ public class PhoneManuscriptPart implements ManuscriptSection {
 
         Button refreshButton = new Button(Solid.REFRESH.create(), event -> refreshGrid());
 
-        HorizontalLayout headerLayout = new HorizontalLayout(addBookButton, refreshButton);
+        Button importArchiveButton = new Button(Solid.FILE_IMPORT.create(), event -> new NewBookAction(this::openManuscript).runFromArchive());
+        importArchiveButton.setTooltipText(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE));
+
+        HorizontalLayout headerLayout = new HorizontalLayout(addBookButton, importArchiveButton, refreshButton);
         headerLayout.setWidthFull();
         headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         headerLayout.setFlexGrow(1, addBookButton);

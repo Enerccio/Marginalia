@@ -116,10 +116,15 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
         grid.setSizeFull();
         grid.addThemeVariants(GridVariant.LUMO_COMPACT);
-        grid.addColumn(item -> loc.getValue(kindText(item.kind()))).setHeader(loc.getValue(L.LABEL_TYPE)).setFlexGrow(0).setWidth("110px");
-        grid.addColumn(item -> loc.getValue(changeText(item.change()))).setHeader(loc.getValue(L.LABEL_STATE)).setFlexGrow(0).setWidth("100px");
-        grid.addColumn(Item::label).setHeader(loc.getValue(L.LABEL_NAME)).setFlexGrow(1);
-        grid.addComponentColumn(this::states).setHeader("").setFlexGrow(0).setWidth("170px");
+        if (UIUtils.isPhone()) {
+            // next to the check box four columns leave no room for the name: an item is a card, its kind and change under it
+            grid.addComponentColumn(this::card).setHeader(loc.getValue(L.LABEL_NAME));
+        } else {
+            grid.addColumn(item -> loc.getValue(kindText(item.kind()))).setHeader(loc.getValue(L.LABEL_TYPE)).setFlexGrow(0).setWidth("110px");
+            grid.addColumn(item -> loc.getValue(changeText(item.change()))).setHeader(loc.getValue(L.LABEL_STATE)).setFlexGrow(0).setWidth("100px");
+            grid.addColumn(Item::label).setHeader(loc.getValue(L.LABEL_NAME)).setFlexGrow(1);
+            grid.addComponentColumn(this::states).setHeader("").setFlexGrow(0).setWidth("170px");
+        }
         grid.addItemClickListener(event -> show(event.getItem()));
         grid.asMultiSelect().addSelectionListener(event -> {
             if (!adjusting) {
@@ -285,6 +290,12 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
             case CHANGED -> L.ENUM_MERGE_CHANGE_CHANGED;
             case DELETED -> L.ENUM_MERGE_CHANGE_DELETED;
         };
+    }
+
+    private Component card(Item item) {
+        HorizontalLayout badges = (HorizontalLayout) states(item);
+        return AgentCard.of(item.label(), "", List.of(loc.getValue(kindText(item.kind())) + " - " + loc.getValue(changeText(item.change()))),
+                badges.getComponentCount() == 0 ? null : badges);
     }
 
     private Component states(Item item) {

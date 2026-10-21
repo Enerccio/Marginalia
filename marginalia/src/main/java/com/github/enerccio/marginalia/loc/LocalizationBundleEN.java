@@ -573,6 +573,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_COUNT_TOKENS_WITH_SUBBOOKS, "Count with subbooks");
         setValue(L.LABEL_TOKENS_WITH_SUBBOOKS, "With subbooks: ~%d tokens");
         setValue(L.LABEL_SHOWN_LOREBOOK, "Shown lorebook");
+        setValue(L.LABEL_IMPORT_FROM_ARCHIVE, "Import from archive");
+        setValue(L.LABEL_ENTRY_NAMES, "Entry names");
+        setValue(L.LABEL_ARCHIVE_FILE, "File in the archive");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -942,6 +945,12 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_TAG_CHECK_FIRST, "Check the items first.");
         setValue(L.MSG_ENTRIES_MOVED, "%d entries were moved to the lorebook \"%s\".");
         setValue(L.MSG_MOVE_PICK_FIRST, "Check the entries and pick the lorebook to move them to first.");
+        setValue(L.MSG_INVALID_ARCHIVE, "The archive has to be a zip file with at least one .md file.");
+        setValue(L.MSG_IMPORT_FROM_ARCHIVE, "Upload a zip archive of .md files. Each file becomes a disabled entry of a new lorebook, in the order of the file names.");
+        setValue(L.MSG_IMPORT_ARCHIVE_TO_BOOK, "Upload a zip archive of .md files. Each file becomes a part of the story, in the order of the file names, after the last part.");
+        setValue(L.MSG_IMPORT_ARCHIVE_NEW_BOOK, "Upload a zip archive of .md files. Each file becomes a part of a new book named after the archive, in the order of the file names.");
+        setValue(L.MSG_ARCHIVE_ENTRY_NAMES, "Check the names of the entries. A names.txt in the archive (one name on a line, in the order of the files) fills them in; a name you leave empty is the first heading of the file or its file name.");
+        setValue(L.MSG_ARCHIVE_PARTS_ADDED, "%d parts added.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

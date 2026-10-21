@@ -90,6 +90,20 @@ vaadin-markdown table {
     max-width: 100%;
 }
 
+/* The report of the diagnostics of an agent run (ui.dialogs.agent.AgentDiagnosticsView) has wide tables: their cells keep their words
+   whole and the table scrolls sideways, breaking the words anywhere made the columns one letter wide on a phone */
+vaadin-markdown.agent-report table {
+    display: block;
+    overflow-x: auto;
+}
+
+vaadin-markdown.agent-report th,
+vaadin-markdown.agent-report td {
+    white-space: nowrap;
+    word-break: normal;
+    overflow-wrap: normal;
+}
+
 /* A message card of the story */
 .chat-message {
     margin-bottom: 8px;
@@ -801,6 +815,26 @@ vaadin-dialog-overlay.phone-dialog::part(overlay) {
 .help-message-folded {
     align-self: stretch;
     white-space: normal;
+}
+
+/* the console of an agent on a phone (ui.dialogs.agent.AgentConsoleDialog): the tabs and the transcript get the whole screen,
+   the message of the author does not leave a gap at its left */
+vaadin-dialog-overlay.agent-console-phone::part(content) {
+    padding: 0;
+}
+
+vaadin-dialog-overlay.agent-console-phone .help-messages {
+    padding: var(--lumo-space-xs);
+}
+
+vaadin-dialog-overlay.agent-console-phone .help-message-user {
+    margin-left: var(--lumo-space-s);
+}
+
+/* a row of a table of the agent console on a phone: what the columns say, one under the other */
+.agent-card {
+    min-width: 0;
+    padding: var(--lumo-space-xs) 0;
 }
 
 /* what a rewind of an agent run took out of the memory of the agent: still there to read */
