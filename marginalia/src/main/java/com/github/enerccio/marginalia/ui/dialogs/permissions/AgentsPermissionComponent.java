@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.permissions;
 
 import com.github.enerccio.marginalia.domain.security.model.Permission;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.Component;
@@ -19,6 +20,7 @@ import java.util.List;
  * (five agents, one run, one request at a time, no limit of tokens or of copies, the limits of the application for the files).
  */
 @Configurable
+@Extendable
 public class AgentsPermissionComponent implements PermissionUIComponent {
 
     @Autowired
@@ -38,6 +40,8 @@ public class AgentsPermissionComponent implements PermissionUIComponent {
     private boolean loading;
 
     // texts need the injected localization, which is there only after the constructor
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void build() {
         if (layout != null) {
             return;
@@ -56,6 +60,11 @@ public class AgentsPermissionComponent implements PermissionUIComponent {
         layout.setPadding(false);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = IntegerField.class),
+            parameters = {@APIParameter(name = "label", type = L.class),
+                    @APIParameter(name = "help", type = L.class)},
+            locals = {@APILocals(name = "field", type = IntegerField.class)})
     private IntegerField field(L label, L help) {
         IntegerField field = new IntegerField(loc.getValue(label));
         field.setMin(0);
@@ -66,6 +75,8 @@ public class AgentsPermissionComponent implements PermissionUIComponent {
         return field;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void changed() {
         // not an edit while the model is put into the component
         if (!loading) {
@@ -73,12 +84,18 @@ public class AgentsPermissionComponent implements PermissionUIComponent {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class))
     @Override
     public Component getComponent() {
         build();
         return layout;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "permission", type = Permission.class)},
+            locals = {@APILocals(name = "budget", type = Long.class)})
     @Override
     public void model2component(Permission permission) {
         build();
@@ -99,6 +116,9 @@ public class AgentsPermissionComponent implements PermissionUIComponent {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "permission", type = Permission.class)})
     @Override
     public void component2model(Permission permission) {
         build();
@@ -113,6 +133,9 @@ public class AgentsPermissionComponent implements PermissionUIComponent {
         permission.setAgentsMaxCheckpointMb(maxCheckpointMb.getValue());
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "runnable", type = Runnable.class)})
     @Override
     public void onChange(Runnable runnable) {
         listeners.add(runnable);

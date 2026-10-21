@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.workspace.parts;
 
+import com.flowingcode.vaadin.addons.fontawesome.FontAwesome;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.Defaults;
@@ -12,6 +13,7 @@ import com.github.enerccio.marginalia.domain.service.AgentAttentionService.Notic
 import com.github.enerccio.marginalia.domain.service.AgentRunService;
 import com.github.enerccio.marginalia.domain.service.AgentRunner;
 import com.github.enerccio.marginalia.domain.service.AgentService;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -52,6 +54,7 @@ import java.util.function.IntConsumer;
  * stop the run, to edit, clone and delete the agent. The workspace shows it only to users who may use agents.
  */
 @Configurable
+@Extendable
 public class AgentPart implements WorkspaceComponent {
 
     /**
@@ -136,6 +139,8 @@ public class AgentPart implements WorkspaceComponent {
      * The count of the agents that ask something, wait for a message, finished or failed, for the header of the tab:
      * hidden when none does. Updated when an agent changes, in every open UI of the user.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Span.class))
     public Span getAttentionBadge() {
         return attentionBadge;
     }
@@ -143,15 +148,25 @@ public class AgentPart implements WorkspaceComponent {
     /**
      * Asks to be told the count of the agents that wait for the user, now and whenever it is read again.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "listener", type = IntConsumer.class)})
     public void addAttentionListener(IntConsumer listener) {
         attentionListeners.add(listener);
         listener.accept(waiting);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class))
     public String getName() {
         return loc.getValue(L.LABEL_AGENTS);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "mainLayout", type = VerticalLayout.class),
+                    @APILocals(name = "headerLayout", type = HorizontalLayout.class),
+                    @APILocals(name = "titleSpan", type = Span.class)})
     @Override
     public Component create() throws Exception {
         VerticalLayout mainLayout = new VerticalLayout();
@@ -203,6 +218,11 @@ public class AgentPart implements WorkspaceComponent {
      * Hears of the agents that need the user from now on, in this UI. The runs work while the user is away; what
      * happened then is stored with the run and counted by {@link #refreshGrid}.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "ui", type = UI.class),
+                    @APILocals(name = "attributes", type = RequestAttributes.class),
+                    @APILocals(name = "cancel", type = Runnable.class)})
     private void subscribeToAttention() {
         UI ui = UI.getCurrent();
         if (ui == null || unsubscribe != null) {
@@ -229,6 +249,13 @@ public class AgentPart implements WorkspaceComponent {
      * An agent of the user changed: the table and the count are read again, and when it needs the user, a notice
      * says so with a button that opens its console.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "notice", type = AgentAttentionService.Notice.class)},
+            locals = {@APILocals(name = "toast", type = com.vaadin.flow.component.notification.Notification.class),
+                    @APILocals(name = "open", type = Button.class),
+                    @APILocals(name = "close", type = Button.class),
+                    @APILocals(name = "content", type = HorizontalLayout.class)})
     void onAttention(Notice notice) {
         refreshGrid();
         // the user is looking at that agent already, the console shows it
@@ -250,6 +277,10 @@ public class AgentPart implements WorkspaceComponent {
         toast.open();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "notice", type = AgentAttentionService.Notice.class)},
+            locals = {@APILocals(name = "reason", type = String.class)})
     String noticeText(Notice notice) {
         String reason = notice.reason() == null ? "" : notice.reason();
         return switch (notice.status()) {
@@ -261,6 +292,11 @@ public class AgentPart implements WorkspaceComponent {
         };
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "agentUuid", type = String.class)},
+            locals = {@APILocals(name = "agent", type = Agent.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void openConsole(String agentUuid) {
         try {
             Agent agent = agentService.findForUser(agentUuid);
@@ -272,6 +308,10 @@ public class AgentPart implements WorkspaceComponent {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "agent", type = Agent.class)},
+            locals = {@APILocals(name = "dialog", type = AgentConsoleDialog.class)})
     private void openConsole(Agent agent) {
         AgentConsoleDialog dialog = new AgentConsoleDialog(agent);
         console = dialog;
@@ -281,6 +321,10 @@ public class AgentPart implements WorkspaceComponent {
         lastDialog = dialog;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "agent", type = Agent.class)},
+            locals = {@APILocals(name = "run", type = AgentRun.class)})
     String statusText(Agent agent) {
         AgentRun run = runs.get(agent.getUuid());
         if (run != null) {
@@ -292,6 +336,15 @@ public class AgentPart implements WorkspaceComponent {
     /**
      * An agent on the phone: its name and state above, the buttons below them, wrapping onto more lines when they do not fit.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "agent", type = Agent.class)},
+            locals = {@APILocals(name = "name", type = Span.class),
+                    @APILocals(name = "state", type = Span.class),
+                    @APILocals(name = "title", type = HorizontalLayout.class),
+                    @APILocals(name = "actions", type = Component.class),
+                    @APILocals(name = "row", type = HorizontalLayout.class),
+                    @APILocals(name = "card", type = VerticalLayout.class)})
     private Component createCard(Agent agent) {
         Span name = new Span(agent.getName());
         name.addClassNames(CssStyles.TEXT_SEMIBOLD, CssStyles.WRAP_ANYWHERE);
@@ -314,6 +367,24 @@ public class AgentPart implements WorkspaceComponent {
         return card;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "agent", type = Agent.class)},
+            locals = {@APILocals(name = "run", type = AgentRun.class),
+                    @APILocals(name = "status", type = AgentRunStatus.class),
+                    @APILocals(name = "startControl", type = Component.class),
+                    @APILocals(name = "startBar", type = MenuBar.class),
+                    @APILocals(name = "startItem", type = MenuItem.class),
+                    @APILocals(name = "resumeButton", type = Button.class),
+                    @APILocals(name = "pauseButton", type = Button.class),
+                    @APILocals(name = "pauseNowButton", type = Button.class),
+                    @APILocals(name = "stopButton", type = Button.class),
+                    @APILocals(name = "reviewButton", type = Button.class),
+                    @APILocals(name = "consoleButton", type = Button.class),
+                    @APILocals(name = "editButton", type = Button.class),
+                    @APILocals(name = "cloneButton", type = Button.class),
+                    @APILocals(name = "deleteButton", type = Button.class),
+                    @APILocals(name = "actions", type = HorizontalLayout.class)})
     private Component createActions(Agent agent) {
         AgentRun run = runs.get(agent.getUuid());
         AgentRunStatus status = run == null ? null : run.getStatus();
@@ -408,6 +479,11 @@ public class AgentPart implements WorkspaceComponent {
     /**
      * Opens the review of the result of the run.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "agent", type = Agent.class),
+                    @APIParameter(name = "run", type = AgentRun.class)},
+            locals = {@APILocals(name = "dialog", type = AgentMergeDialog.class)})
     void openReview(Agent agent, AgentRun run) {
         AgentMergeDialog dialog = new AgentMergeDialog(agent.getName(), run, this::refreshGrid);
         dialog.create();
@@ -418,6 +494,9 @@ public class AgentPart implements WorkspaceComponent {
     /**
      * Starts a run and lets it work: it does its task and the author hears of it when it asks or finishes.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "agent", type = Agent.class)})
     void startImmediately(Agent agent) {
         perform(() -> {
             agentRunner.run(agentRunService.start(agent));
@@ -428,6 +507,9 @@ public class AgentPart implements WorkspaceComponent {
     /**
      * Starts a run, opens its console, and tells the agent to ask the author what they want before it does anything.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "agent", type = Agent.class)})
     void startInConsole(Agent agent) {
         if (perform(() -> {
             agentRunner.run(agentRunService.start(agent, true), Defaults.AGENT_CONSOLE_START_MESSAGE);
@@ -440,6 +522,12 @@ public class AgentPart implements WorkspaceComponent {
     /**
      * A button that does something to a run; the answer of the service decides what the table shows next.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class),
+            parameters = {@APIParameter(name = "icon", type = FontAwesome.Solid.class),
+                    @APIParameter(name = "tooltip", type = L.class),
+                    @APIParameter(name = "action", type = Callable.class)},
+            locals = {@APILocals(name = "button", type = Button.class)})
     private Button button(Solid icon, L tooltip, Callable<?> action) {
         Button button = new Button(icon.create(), event -> perform(action));
         button.setTooltipText(loc.getValue(tooltip));
@@ -449,6 +537,11 @@ public class AgentPart implements WorkspaceComponent {
     /**
      * @return whether the action was done; the table shows what the run is like now either way
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "action", type = Callable.class)},
+            locals = {@APILocals(name = "e", type = RuntimeException.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private boolean perform(Callable<?> action) {
         boolean done = false;
         try {
@@ -485,11 +578,19 @@ public class AgentPart implements WorkspaceComponent {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void refresh() throws Exception {
         refreshGrid();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "agents", type = List.class),
+                    @APILocals(name = "agent", type = Agent.class),
+                    @APILocals(name = "run", type = AgentRun.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void refreshGrid() {
         if (grid == null) {
             return;
@@ -517,39 +618,55 @@ public class AgentPart implements WorkspaceComponent {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class))
     @Override
     public String getLLMState() {
         return WorkspaceLLMSupport.describeTable("agents", grid, addAgentButton);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Map.class))
     @Override
     public Map<String, LLMInteraction> getInteraction() {
         return LLMInteract.dialogButtons(addAgentButton);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabSwitched() throws Exception {
         refresh();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabClosed() throws Exception {
     }
 
     // for the tests of the tab
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Grid.class))
     Grid<Agent> getGrid() {
         return grid;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = MenuItem.class))
     MenuItem getLastStartItem() {
         return lastStartItem;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Dialog.class))
     Dialog getLastDialog() {
         return lastDialog;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getAddAgentButton() {
         return addAgentButton;
     }

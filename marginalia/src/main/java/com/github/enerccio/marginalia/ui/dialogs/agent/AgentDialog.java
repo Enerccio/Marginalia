@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Language;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -44,6 +45,7 @@ import java.util.Objects;
  * table of {@link AgentModelsEditor}.
  */
 @Configurable
+@Extendable
 public class AgentDialog extends Dialog implements LLMInteract {
 
     /**
@@ -108,14 +110,24 @@ public class AgentDialog extends Dialog implements LLMInteract {
         this(null);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "onSave", type = Runnable.class)})
     public void setOnSave(Runnable onSave) {
         this.onSave = onSave;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = boolean.class))
     private boolean isEdit() {
         return source != null && source.getId() != null;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "form", type = FormLayout.class),
+                    @APILocals(name = "cancelButton", type = Button.class),
+                    @APILocals(name = "footer", type = HorizontalLayout.class)})
     public void create() {
         setHeaderTitle(loc.getValue(isEdit() ? L.LABEL_EDIT_AGENT : L.LABEL_NEW_AGENT));
         setWidth("1100px");
@@ -148,6 +160,8 @@ public class AgentDialog extends Dialog implements LLMInteract {
         showSize();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void createFields() {
         nameField = new TextField(loc.getValue(L.LABEL_NAME));
         nameField.setRequiredIndicatorVisible(true);
@@ -254,6 +268,9 @@ public class AgentDialog extends Dialog implements LLMInteract {
      * What the prompt, the instructions and the ticked commands add to every request, in tokens: an estimate, the notes of the
      * runner and the tools for files and for the run come on top.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private void showSize() {
         try {
             long prompt = tokenizerService.countTokensApprox(StringUtils.defaultIfBlank(systemPromptField.getValue(), defaultPrompt));
@@ -265,6 +282,11 @@ public class AgentDialog extends Dialog implements LLMInteract {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = IntegerField.class),
+            parameters = {@APIParameter(name = "label", type = L.class),
+                    @APIParameter(name = "help", type = L.class)},
+            locals = {@APILocals(name = "field", type = IntegerField.class)})
     private IntegerField positiveField(L label, L help) {
         IntegerField field = new IntegerField(loc.getValue(label));
         field.setMin(1);
@@ -277,6 +299,9 @@ public class AgentDialog extends Dialog implements LLMInteract {
     /**
      * The default a blank prompt follows is the placeholder, and the popover fills it into the field.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "defaultCompaction", type = String.class)})
     private void showDefaultPrompt() throws Exception {
         defaultPrompt = StringUtils.defaultString(agentService.getDefaultSystemPrompt());
         systemPromptField.setPlaceholder(defaultPrompt);
@@ -290,6 +315,15 @@ public class AgentDialog extends Dialog implements LLMInteract {
                 compactionPromptField.getPopover(), null, defaultCompaction));
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "agent", type = Agent.class),
+                    @APILocals(name = "books", type = List.class),
+                    @APILocals(name = "manuscript", type = Manuscript.class),
+                    @APILocals(name = "main", type = AgentModelProfile.class),
+                    @APILocals(name = "ai", type = AI.class),
+                    @APILocals(name = "protocol", type = Protocol.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void load() {
         try {
             showDefaultPrompt();
@@ -354,6 +388,11 @@ public class AgentDialog extends Dialog implements LLMInteract {
      * Selects the language of the agent. One whose bundle is gone (an extension that is not loaded) stays in the list, marked, so
      * saving the agent does not change it silently.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "code", type = String.class)},
+            locals = {@APILocals(name = "languages", type = List.class),
+                    @APILocals(name = "stored", type = Language.class)})
     private void showLanguage(String code) {
         List<Language> languages = new ArrayList<>(loc.getAvailableLanguages());
         Language stored = code == null ? Language.EN : Language.of(code);
@@ -364,11 +403,19 @@ public class AgentDialog extends Dialog implements LLMInteract {
         languageCombo.setValue(stored);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "language", type = Language.class)})
     private String languageLabel(Language language) {
         return loc.getAvailableLanguages().contains(language) ? loc.getDisplayName(language)
                 : String.format(loc.getValue(L.MSG_AGENT_LANGUAGE_UNAVAILABLE), language.code());
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "agent", type = Agent.class),
+                    @APILocals(name = "e", type = RuntimeException.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void save() {
         if (StringUtils.isBlank(nameField.getValue()) || manuscriptCombo.getValue() == null
                 || (modelPicker.getAi() == null) != (modelPicker.getProtocol() == null)
@@ -421,6 +468,12 @@ public class AgentDialog extends Dialog implements LLMInteract {
      * Puts the chosen model into the main profile, the other profiles stay. Neither an AI nor a protocol removes the
      * main profile.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "agent", type = Agent.class)},
+            locals = {@APILocals(name = "profiles", type = List.class),
+                    @APILocals(name = "ai", type = AI.class),
+                    @APILocals(name = "protocol", type = Protocol.class)})
     private void applyMainProfile(Agent agent) {
         List<AgentModelProfile> profiles = new ArrayList<>(agent.getModelProfiles());
         AI ai = modelPicker.getAi();
@@ -447,90 +500,134 @@ public class AgentDialog extends Dialog implements LLMInteract {
 
     // for the tests of the dialog
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TextField.class))
     TextField getNameField() {
         return nameField;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Checkbox.class))
     Checkbox getEnabledCheckbox() {
         return enabledCheckbox;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = ComboBox.class))
     ComboBox<Manuscript> getManuscriptCombo() {
         return manuscriptCombo;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = ModelProtocolPicker.class))
     ModelProtocolPicker getModelPicker() {
         return modelPicker;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Checkbox.class))
     Checkbox getImagesCheckbox() {
         return imagesCheckbox;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = ComboBox.class))
     ComboBox<DestructiveCommandMode> getDestructiveCombo() {
         return destructiveCombo;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = IntegerField.class))
     IntegerField getMaxSubagentsField() {
         return maxSubagentsField;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = IntegerField.class))
     IntegerField getMaxRoundsField() {
         return maxRoundsField;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = IntegerField.class))
     IntegerField getTokenBudgetField() {
         return tokenBudgetField;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = IntegerField.class))
     IntegerField getContextLimitField() {
         return contextLimitField;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TextAreaPopoverComponent.class))
     TextAreaPopoverComponent getSystemPromptField() {
         return systemPromptField;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TextAreaPopoverComponent.class))
     TextAreaPopoverComponent getCompactionPromptField() {
         return compactionPromptField;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Checkbox.class))
     Checkbox getUseOwnModelCheckbox() {
         return useOwnModelCheckbox;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = ComboBox.class))
     ComboBox<Language> getLanguageCombo() {
         return languageCombo;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = ComboBox.class))
     ComboBox<AgentBatchMode> getBatchModeCombo() {
         return batchModeCombo;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = IntegerField.class))
     IntegerField getAutoCompactField() {
         return autoCompactField;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TextArea.class))
     TextArea getInstructionsField() {
         return instructionsField;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = AgentModelsEditor.class))
     AgentModelsEditor getModelsEditor() {
         return modelsEditor;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = AgentCommandsEditor.class))
     AgentCommandsEditor getCommandsEditor() {
         return commandsEditor;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Span.class))
     Span getSizeLabel() {
         return sizeLabel;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getSaveButton() {
         return saveButton;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     void clickSave() {
         saveButton.click();
     }

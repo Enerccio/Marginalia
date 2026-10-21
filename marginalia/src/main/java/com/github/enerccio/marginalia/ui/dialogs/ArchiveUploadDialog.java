@@ -1,5 +1,9 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.domain.traits.APILocals;
+import com.github.enerccio.marginalia.domain.traits.APIReturn;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -20,6 +24,7 @@ import org.springframework.beans.factory.annotation.Configurable;
  * {@link IllegalArgumentException}, the user is warned and the dialog stays open.
  */
 @Configurable
+@Extendable
 public class ArchiveUploadDialog extends Dialog {
 
     /**
@@ -54,6 +59,11 @@ public class ArchiveUploadDialog extends Dialog {
         dialog.open();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "uploadHandler", type = InMemoryUploadHandler.class),
+                    @APILocals(name = "upload", type = Upload.class),
+                    @APILocals(name = "layout", type = VerticalLayout.class)})
     private void create() {
         setHeaderTitle(title);
         setWidth("450px");

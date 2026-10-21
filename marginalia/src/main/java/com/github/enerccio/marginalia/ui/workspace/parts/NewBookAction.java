@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ArchiveImportRunner;
@@ -23,6 +24,7 @@ import org.springframework.beans.factory.annotation.Configurable;
  * lists of the desktop and phone workspaces, each opens its own kind of window.
  */
 @Configurable
+@Extendable
 public class NewBookAction {
 
     @Autowired
@@ -57,6 +59,9 @@ public class NewBookAction {
         this.opener = opener;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = TextInputDialog.class)})
     public void run() {
         TextInputDialog dialog = new TextInputDialog.Builder(loc.getValue(L.LABEL_NEW_BOOK), name -> {
             try {
@@ -72,6 +77,8 @@ public class NewBookAction {
      * Asks for a zip archive of {@code .md} files and opens a new book named after it, with a part for each file, see
      * {@link ArchiveImportService#appendParts}.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     public void runFromArchive() {
         ArchiveUploadDialog.show(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE), loc.getValue(L.MSG_IMPORT_ARCHIVE_NEW_BOOK),
                 (archive, fileName) -> {
@@ -84,6 +91,15 @@ public class NewBookAction {
                 });
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Manuscript.class),
+            parameters = {@APIParameter(name = "name", type = String.class)},
+            locals = {@APILocals(name = "manuscript", type = Manuscript.class),
+                    @APILocals(name = "userSetting", type = UserSetting.class),
+                    @APILocals(name = "defaultModelId", type = Long.class),
+                    @APILocals(name = "ai", type = AI.class),
+                    @APILocals(name = "defaultProtocolId", type = Long.class),
+                    @APILocals(name = "protocol", type = Protocol.class)})
     private Manuscript createBook(String name) throws Exception {
         Manuscript manuscript = new Manuscript();
         manuscript.setName(name);

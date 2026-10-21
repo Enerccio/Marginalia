@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.HelpAssistantService;
 import com.github.enerccio.marginalia.domain.service.HelpAssistantService.Settings;
 import com.github.enerccio.marginalia.domain.service.manual.HelpPrompts;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -30,6 +31,7 @@ import java.util.Objects;
  * and, for a shared model, whether the users' limits apply to it.
  */
 @Configurable
+@Extendable
 public class HelpAssistantPanel implements LLMInteract {
 
     @Autowired
@@ -46,6 +48,11 @@ public class HelpAssistantPanel implements LLMInteract {
     private TextArea adminPrompt;
     private TextArea userPrompt;
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "layout", type = VerticalLayout.class),
+                    @APILocals(name = "description", type = Span.class),
+                    @APILocals(name = "save", type = Button.class)})
     public Component create() throws Exception {
         VerticalLayout layout = new VerticalLayout();
         layout.setSizeFull();
@@ -73,6 +80,10 @@ public class HelpAssistantPanel implements LLMInteract {
         return layout;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TextArea.class),
+            parameters = {@APIParameter(name = "label", type = L.class)},
+            locals = {@APILocals(name = "area", type = TextArea.class)})
     private TextArea promptArea(L label) {
         TextArea area = new TextArea(loc.getValue(label));
         area.setHelperText(loc.getValue(L.HELP_ASSISTANT_PROMPT));
@@ -82,6 +93,12 @@ public class HelpAssistantPanel implements LLMInteract {
         return area;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = HorizontalLayout.class),
+            parameters = {@APIParameter(name = "area", type = TextArea.class),
+                    @APIParameter(name = "administrator", type = boolean.class)},
+            locals = {@APILocals(name = "reset", type = Button.class),
+                    @APILocals(name = "row", type = HorizontalLayout.class)})
     private HorizontalLayout promptRow(TextArea area, boolean administrator) {
         Button reset = new Button(loc.getValue(L.LABEL_RESET_TO_DEFAULT),
                 e -> area.setValue(HelpPrompts.defaultPrompt(administrator)));
@@ -93,6 +110,10 @@ public class HelpAssistantPanel implements LLMInteract {
         return row;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "models", type = List.class),
+                    @APILocals(name = "settings", type = HelpAssistantService.Settings.class)})
     private void load() throws Exception {
         // the assistant uses the administrator's own models, not the ones other administrators share
         List<AI> models = aiService.findAllForUser().stream().filter(aiService::isOwnedByCurrentUser).toList();
@@ -106,6 +127,10 @@ public class HelpAssistantPanel implements LLMInteract {
         userPrompt.setValue(settings.userPrompt() == null ? HelpPrompts.USER : settings.userPrompt());
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "ai", type = AI.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void save() {
         AI ai = aiCombo.getValue();
         try {

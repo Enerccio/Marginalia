@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.AgentMessage;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.service.AgentMessageService;
 import com.github.enerccio.marginalia.domain.service.AgentMessageService.SubThread;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
@@ -33,6 +34,7 @@ import java.util.function.Supplier;
  * console polls).
  */
 @Configurable
+@Extendable
 public class AgentSubAgentsView extends VerticalLayout implements LLMInteract {
 
     private static final int TASK_LIMIT = 60;
@@ -68,6 +70,11 @@ public class AgentSubAgentsView extends VerticalLayout implements LLMInteract {
         this.runSupplier = runSupplier;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "help", type = Span.class),
+                    @APILocals(name = "refreshButton", type = Button.class),
+                    @APILocals(name = "header", type = HorizontalLayout.class)})
     public void create() {
         setSizeFull();
         setPadding(false);
@@ -120,6 +127,14 @@ public class AgentSubAgentsView extends VerticalLayout implements LLMInteract {
     /**
      * Reads the conversations of the run again: the list of the sub-agents, and the part of the shown one that is new.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "run", type = AgentRun.class),
+                    @APILocals(name = "threads", type = List.class),
+                    @APILocals(name = "e", type = IllegalArgumentException.class),
+                    @APILocals(name = "e", type = Exception.class),
+                    @APILocals(name = "signature", type = String.class),
+                    @APILocals(name = "selected", type = AgentMessageService.SubThread.class)})
     public void refresh() {
         if (picker == null) {
             return;
@@ -169,6 +184,12 @@ public class AgentSubAgentsView extends VerticalLayout implements LLMInteract {
      *
      * @return false when none is stored for the call
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "callId", type = String.class)},
+            locals = {@APILocals(name = "run", type = AgentRun.class),
+                    @APILocals(name = "thread", type = AgentMessageService.SubThread.class),
+                    @APILocals(name = "e", type = Exception.class)})
     public boolean showCall(String callId) {
         refresh();
         AgentRun run = runSupplier.get();
@@ -195,11 +216,19 @@ public class AgentSubAgentsView extends VerticalLayout implements LLMInteract {
         return false;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void showEmpty() {
         emptyLabel.setVisible(true);
         content.setVisible(false);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "run", type = AgentRun.class),
+                    @APIParameter(name = "threads", type = List.class)},
+            locals = {@APILocals(name = "signature", type = StringBuilder.class),
+                    @APILocals(name = "thread", type = AgentMessageService.SubThread.class)})
     private String signature(AgentRun run, List<SubThread> threads) {
         StringBuilder signature = new StringBuilder(run.getStatus().name()).append(';');
         for (SubThread thread : threads) {
@@ -208,12 +237,19 @@ public class AgentSubAgentsView extends VerticalLayout implements LLMInteract {
         return signature.toString();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "thread", type = AgentMessageService.SubThread.class)})
     private String label(SubThread thread) {
         return thread.handle() + (thread.profile() == null ? "" : " [" + thread.profile() + "]") + " - " + state(thread, runSupplier.get()) + " - "
                 + StringUtils.abbreviate(StringUtils.defaultString(thread.task()).replaceAll("\\s+", " "), TASK_LIMIT)
                 + (thread.rewound() ? " (" + loc.getValue(L.LABEL_AGENT_SUBAGENT_REWOUND) + ")" : "");
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "thread", type = AgentMessageService.SubThread.class),
+                    @APIParameter(name = "run", type = AgentRun.class)})
     private String state(SubThread thread, AgentRun run) {
         if (thread.isOver()) {
             return endLabel(thread.end());
@@ -225,6 +261,11 @@ public class AgentSubAgentsView extends VerticalLayout implements LLMInteract {
     /**
      * Shows the sub-agent: its line, and the rows of its conversation that are not shown yet.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "thread", type = AgentMessageService.SubThread.class)},
+            locals = {@APILocals(name = "rows", type = List.class),
+                    @APILocals(name = "row", type = AgentMessage.class)})
     private void show(SubThread thread) {
         boolean another = !thread.handle().equals(shownHandle);
         if (another) {
@@ -264,6 +305,9 @@ public class AgentSubAgentsView extends VerticalLayout implements LLMInteract {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "end", type = String.class)})
     private String endLabel(String end) {
         return switch (end) {
             case "DONE" -> loc.getValue(L.ENUM_AGENT_RUN_DONE);
@@ -275,18 +319,26 @@ public class AgentSubAgentsView extends VerticalLayout implements LLMInteract {
 
     // for the tests of the view
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Span.class))
     Span getEmptyLabel() {
         return emptyLabel;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = ComboBox.class))
     ComboBox<SubThread> getPicker() {
         return picker;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Div.class))
     Div getInfo() {
         return info;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = VerticalLayout.class))
     VerticalLayout getTranscriptBox() {
         return transcriptBox;
     }

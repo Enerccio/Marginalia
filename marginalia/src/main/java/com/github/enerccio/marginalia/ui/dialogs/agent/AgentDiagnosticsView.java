@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.service.AgentRunner;
 import com.github.enerccio.marginalia.domain.service.agent.AgentDiagnostics;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
@@ -36,6 +37,7 @@ import java.util.function.Supplier;
  * to download as Markdown or JSON. It is made when the tab is shown and when <b>Refresh</b> is pressed, not while the run works.
  */
 @Configurable
+@Extendable
 public class AgentDiagnosticsView extends VerticalLayout implements LLMInteract {
 
     @Autowired
@@ -61,6 +63,11 @@ public class AgentDiagnosticsView extends VerticalLayout implements LLMInteract 
         this.runSupplier = runSupplier;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "help", type = Span.class),
+                    @APILocals(name = "refreshButton", type = Button.class),
+                    @APILocals(name = "header", type = HorizontalLayout.class)})
     public void create() {
         setSizeFull();
         setPadding(false);
@@ -96,6 +103,11 @@ public class AgentDiagnosticsView extends VerticalLayout implements LLMInteract 
     /**
      * Counts the run again and shows the report.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "run", type = AgentRun.class),
+                    @APILocals(name = "e", type = RuntimeException.class),
+                    @APILocals(name = "e", type = Exception.class)})
     public void refresh() {
         if (report == null) {
             return;
@@ -124,6 +136,8 @@ public class AgentDiagnosticsView extends VerticalLayout implements LLMInteract 
         downloadJsonButton.setEnabled(true);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void showEmpty() {
         emptyLabel.setVisible(true);
         report.setContent("");
@@ -132,6 +146,8 @@ public class AgentDiagnosticsView extends VerticalLayout implements LLMInteract 
         downloadJsonButton.setEnabled(false);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void copy() {
         if (diagnostics == null) {
             return;
@@ -140,6 +156,13 @@ public class AgentDiagnosticsView extends VerticalLayout implements LLMInteract 
         Notification.success(loc.getValue(L.MSG_COPIED_TO_CLIPBOARD));
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Anchor.class),
+            parameters = {@APIParameter(name = "button", type = Button.class),
+                    @APIParameter(name = "format", type = Function.class),
+                    @APIParameter(name = "fileName", type = String.class),
+                    @APIParameter(name = "mimeType", type = String.class)},
+            locals = {@APILocals(name = "anchor", type = Anchor.class)})
     private Anchor downloadAnchor(Button button, Function<AgentDiagnostics.Report, String> format, String fileName, String mimeType) {
         Anchor anchor = new Anchor(new InputStreamDownloadHandler((InputStreamDownloadCallback) downloadEvent -> {
             if (diagnostics == null) {
@@ -155,10 +178,14 @@ public class AgentDiagnosticsView extends VerticalLayout implements LLMInteract 
 
     // for the tests
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = AgentDiagnostics.Report.class))
     AgentDiagnostics.Report getDiagnostics() {
         return diagnostics;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getCopyButton() {
         return copyButton;
     }

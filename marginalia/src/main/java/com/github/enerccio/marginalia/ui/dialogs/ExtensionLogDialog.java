@@ -1,11 +1,15 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
+import com.github.enerccio.marginalia.domain.traits.APILocals;
+import com.github.enerccio.marginalia.domain.traits.APIReturn;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -20,6 +24,7 @@ import org.springframework.beans.factory.annotation.Configurable;
  * refresh and clear.
  */
 @Configurable
+@Extendable
 public class ExtensionLogDialog extends Dialog implements LLMInteract {
 
     private static final int MAX_BYTES = 256 * 1024;
@@ -62,6 +67,9 @@ public class ExtensionLogDialog extends Dialog implements LLMInteract {
         getFooter().add(refresh, clear, close);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private void load() {
         try {
             text.setValue(osgiService.readLog(bundle, MAX_BYTES));
@@ -72,6 +80,9 @@ public class ExtensionLogDialog extends Dialog implements LLMInteract {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private void clear() {
         try {
             osgiService.clearLog(bundle);

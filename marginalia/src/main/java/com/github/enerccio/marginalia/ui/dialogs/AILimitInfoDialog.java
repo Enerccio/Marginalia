@@ -1,6 +1,5 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.collections.LimitStrategy;
@@ -8,8 +7,13 @@ import com.github.enerccio.marginalia.domain.components.AILimit;
 import com.github.enerccio.marginalia.domain.components.LimitStatus;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.service.AILimitService;
+import com.github.enerccio.marginalia.domain.traits.APILocals;
+import com.github.enerccio.marginalia.domain.traits.APIReturn;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -27,6 +31,7 @@ import java.util.List;
  * What the current user used of a shared AI and what the administrator limited them to.
  */
 @Configurable
+@Extendable
 public class AILimitInfoDialog extends Dialog implements LLMInteract {
 
     private record Row(String name, long used, Long limit, boolean hard) {}
@@ -57,6 +62,13 @@ public class AILimitInfoDialog extends Dialog implements LLMInteract {
         getFooter().add(close);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "status", type = LimitStatus.class),
+                    @APILocals(name = "limit", type = AILimit.class),
+                    @APILocals(name = "grid", type = Grid.class),
+                    @APILocals(name = "reset", type = Span.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void load() {
         removeAll();
         try {

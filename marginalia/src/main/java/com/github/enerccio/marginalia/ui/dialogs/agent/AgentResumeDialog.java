@@ -1,5 +1,9 @@
 package com.github.enerccio.marginalia.ui.dialogs.agent;
 
+import com.github.enerccio.marginalia.domain.traits.APILocals;
+import com.github.enerccio.marginalia.domain.traits.APIReturn;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -19,6 +23,7 @@ import java.util.function.Consumer;
  * is kept with the run, so it works for every run, also for one that is not a conversation.
  */
 @Configurable
+@Extendable
 public class AgentResumeDialog extends Dialog implements LLMInteract {
 
     @Autowired
@@ -35,6 +40,10 @@ public class AgentResumeDialog extends Dialog implements LLMInteract {
         this.onResume = onResume;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "cancelButton", type = Button.class),
+                    @APILocals(name = "footer", type = HorizontalLayout.class)})
     public void create() {
         setHeaderTitle(loc.getValue(L.LABEL_RESUME));
         setWidth("520px");
@@ -60,10 +69,14 @@ public class AgentResumeDialog extends Dialog implements LLMInteract {
 
     // for the tests of the dialog
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TextArea.class))
     TextArea getNoteField() {
         return noteField;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getResumeButton() {
         return resumeButton;
     }

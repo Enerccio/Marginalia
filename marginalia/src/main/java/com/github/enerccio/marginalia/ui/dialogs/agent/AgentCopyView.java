@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.service.AgentCopyService.CopyBranch
 import com.github.enerccio.marginalia.domain.service.AgentCopyService.CopyEntry;
 import com.github.enerccio.marginalia.domain.service.AgentCopyService.CopyLorebook;
 import com.github.enerccio.marginalia.domain.service.AgentCopyService.CopyPart;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
@@ -47,6 +48,7 @@ import java.util.function.Supplier;
  * pressed, not while the run works.
  */
 @Configurable
+@Extendable
 public class AgentCopyView extends VerticalLayout implements LLMInteract {
 
     @Autowired
@@ -93,6 +95,13 @@ public class AgentCopyView extends VerticalLayout implements LLMInteract {
         this.runSupplier = runSupplier;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "help", type = Span.class),
+                    @APILocals(name = "refreshButton", type = Button.class),
+                    @APILocals(name = "story", type = VerticalLayout.class),
+                    @APILocals(name = "lore", type = SplitLayout.class),
+                    @APILocals(name = "header", type = HorizontalLayout.class)})
     public void create() {
         setSizeFull();
         setPadding(false);
@@ -175,6 +184,9 @@ public class AgentCopyView extends VerticalLayout implements LLMInteract {
         showContent(false);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "hasCopy", type = boolean.class)})
     private void showContent(boolean hasCopy) {
         noCopyLabel.setVisible(!hasCopy);
         content.setVisible(hasCopy);
@@ -183,6 +195,15 @@ public class AgentCopyView extends VerticalLayout implements LLMInteract {
     /**
      * Reads the copy again and shows it; keeps the branch and the entry that are shown when they are still there.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "run", type = AgentRun.class),
+                    @APILocals(name = "branches", type = List.class),
+                    @APILocals(name = "shown", type = AgentCopyService.CopyBranch.class),
+                    @APILocals(name = "uuid", type = String.class),
+                    @APILocals(name = "e", type = IllegalStateException.class),
+                    @APILocals(name = "e", type = IllegalArgumentException.class),
+                    @APILocals(name = "e", type = Exception.class)})
     public void refresh() {
         if (tabs == null) {
             return;
@@ -223,12 +244,24 @@ public class AgentCopyView extends VerticalLayout implements LLMInteract {
      *
      * @param partUuid the uuid of a part of the copy
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "partUuid", type = String.class)})
     public void showPart(String partUuid) {
         focusedPart = partUuid;
         tabs.setSelectedIndex(0);
         refresh();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "partUuid", type = String.class)},
+            locals = {@APILocals(name = "run", type = AgentRun.class),
+                    @APILocals(name = "parts", type = List.class),
+                    @APILocals(name = "part", type = AgentCopyService.CopyPart.class),
+                    @APILocals(name = "card", type = Component.class),
+                    @APILocals(name = "leaf", type = String.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void showBranch(String partUuid) {
         AgentRun run = runSupplier.get();
         try {
@@ -259,6 +292,13 @@ public class AgentCopyView extends VerticalLayout implements LLMInteract {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "part", type = AgentCopyService.CopyPart.class)},
+            locals = {@APILocals(name = "card", type = Div.class),
+                    @APILocals(name = "head", type = Div.class),
+                    @APILocals(name = "facts", type = List.class),
+                    @APILocals(name = "line", type = Span.class)})
     private Component card(CopyPart part) {
         Div card = new Div();
         card.addClassName(CssStyles.AGENT_COPY_PART);
@@ -287,6 +327,11 @@ public class AgentCopyView extends VerticalLayout implements LLMInteract {
         return card;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "facts", type = List.class),
+                    @APIParameter(name = "label", type = L.class),
+                    @APIParameter(name = "value", type = String.class)})
     private void fact(List<String> facts, L label, String value) {
         if (StringUtils.isNotBlank(value)) {
             facts.add(loc.getValue(label) + ": " + value.strip());
@@ -300,12 +345,23 @@ public class AgentCopyView extends VerticalLayout implements LLMInteract {
      *
      * @param uuid the uuid of an entry or a lorebook of the copy
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "uuid", type = String.class)})
     public void showEntry(String uuid) {
         focusedEntry = uuid;
         tabs.setSelectedIndex(1);
         refresh();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "run", type = AgentRun.class)},
+            locals = {@APILocals(name = "rows", type = List.class),
+                    @APILocals(name = "book", type = AgentCopyService.CopyLorebook.class),
+                    @APILocals(name = "entry", type = AgentCopyService.CopyEntry.class),
+                    @APILocals(name = "keep", type = String.class),
+                    @APILocals(name = "selected", type = AgentCopyView.Row.class)})
     private void showLorebooks(AgentRun run) throws Exception {
         List<Row> rows = new ArrayList<>();
         for (CopyLorebook book : copyService.lorebooks(run)) {
@@ -324,6 +380,11 @@ public class AgentCopyView extends VerticalLayout implements LLMInteract {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "row", type = AgentCopyView.Row.class)},
+            locals = {@APILocals(name = "book", type = AgentCopyService.CopyLorebook.class),
+                    @APILocals(name = "entry", type = AgentCopyService.CopyEntry.class)})
     private void showRow(Row row) {
         loreDetail.removeAll();
         if (row == null) {
@@ -345,21 +406,38 @@ public class AgentCopyView extends VerticalLayout implements LLMInteract {
                 area(L.LABEL_CONTENT, entry.payload()), area(L.LABEL_NOTE, entry.comment()));
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "value", type = boolean.class)})
     private String yes(boolean value) {
         return loc.getValue(value ? L.LABEL_YES : L.LABEL_NO);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Span.class),
+            parameters = {@APIParameter(name = "text", type = String.class)},
+            locals = {@APILocals(name = "title", type = Span.class)})
     private Span title(String text) {
         Span title = new Span(text);
         title.addClassName(CssStyles.TEXT_SEMIBOLD);
         return title;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "label", type = L.class),
+                    @APIParameter(name = "value", type = String.class)},
+            locals = {@APILocals(name = "line", type = Span.class)})
     private Component line(L label, String value) {
         Span line = new Span(loc.getValue(label) + ": " + value);
         return line;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TextArea.class),
+            parameters = {@APIParameter(name = "label", type = L.class),
+                    @APIParameter(name = "value", type = String.class)},
+            locals = {@APILocals(name = "area", type = TextArea.class)})
     private TextArea area(L label, String value) {
         TextArea area = new TextArea(loc.getValue(label));
         area.setReadOnly(true);
@@ -372,30 +450,44 @@ public class AgentCopyView extends VerticalLayout implements LLMInteract {
 
     // for the tests of the view
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = VerticalLayout.class))
     VerticalLayout getPartsBox() {
         return partsBox;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = ComboBox.class))
     ComboBox<CopyBranch> getBranchBox() {
         return branchBox;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Grid.class))
     Grid<Row> getLoreGrid() {
         return loreGrid;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = VerticalLayout.class))
     VerticalLayout getLoreDetail() {
         return loreDetail;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TabSheet.class))
     TabSheet getTabs() {
         return tabs;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Span.class))
     Span getNoCopyLabel() {
         return noCopyLabel;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Map.class))
     Map<String, Component> getCards() {
         return cards;
     }

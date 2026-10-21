@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.service.search.replace.TaskProgress;
 import com.github.enerccio.marginalia.domain.service.search.replace.TextHit;
 import com.github.enerccio.marginalia.domain.service.search.replace.TextSearch;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -54,6 +55,7 @@ import java.util.concurrent.CancellationException;
  * The table lists every found object, which opens to the matches in it.
  */
 @Configurable(preConstruction = true)
+@Extendable
 public abstract class SearchReplaceDialog extends ThreadAccessDialog {
 
     private static final Logger log = LoggerFactory.getLogger(SearchReplaceDialog.class);
@@ -178,6 +180,8 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
     /**
      * Header of the second column of the table, what the second text of an {@link SearchReplaceItem} is.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class))
     protected String getIdColumnHeader() {
         return loc.getValue(L.LABEL_ID);
     }
@@ -186,6 +190,8 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
      * Options of the search that are specific to the objects searched, shown with the regex option. They are locked
      * with the other inputs while the dialog works.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = List.class))
     protected List<Component> createOptions() {
         return List.of();
     }
@@ -201,10 +207,15 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
     /**
      * Runs after a replace, with the UI lock: the owner shows the changed objects again.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "action", type = Runnable.class)})
     public void onReplaced(Runnable action) {
         this.onReplaced = action;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = SearchReplaceDialog.State.class))
     public State getState() {
         return state;
     }
@@ -212,6 +223,17 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
     /**
      * Builds the dialog, the subclass calls it at the end of its constructor (the options need its fields).
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "field", type = TextField.class),
+                    @APILocals(name = "options", type = Component.class),
+                    @APILocals(name = "inputArea", type = Component.class),
+                    @APILocals(name = "fields", type = VerticalLayout.class),
+                    @APILocals(name = "buttons", type = Div.class),
+                    @APILocals(name = "area", type = VerticalLayout.class),
+                    @APILocals(name = "area", type = Div.class),
+                    @APILocals(name = "progressRow", type = HorizontalLayout.class),
+                    @APILocals(name = "layout", type = VerticalLayout.class)})
     protected void create() {
         setHeaderTitle(getTitle());
         setWidth(phone ? "96vw" : "min(1200px, 95vw)");
@@ -326,6 +348,12 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
     /**
      * The options below the fields: next to each other on the desktop, below each other on the phone.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "options", type = List.class),
+                    @APILocals(name = "option", type = Component.class),
+                    @APILocals(name = "layout", type = VerticalLayout.class),
+                    @APILocals(name = "layout", type = HorizontalLayout.class)})
     private Component createOptionsLayout() {
         List<Component> options = new ArrayList<>();
         options.add(regexBox);
@@ -349,6 +377,9 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
         return layout;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TreeGrid.class),
+            locals = {@APILocals(name = "treeGrid", type = TreeGrid.class)})
     private TreeGrid<Row> createGrid() {
         TreeGrid<Row> treeGrid = new TreeGrid<>();
         treeGrid.setSizeFull();
@@ -369,6 +400,11 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
         return treeGrid;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "row", type = SearchReplaceDialog.Row.class)},
+            locals = {@APILocals(name = "title", type = Span.class),
+                    @APILocals(name = "cell", type = VerticalLayout.class)})
     private Component phoneCell(Row row) {
         Span title = new Span(row.item.type() + " · " + row.item.id());
         title.addClassName(row.hit == null ? CssStyles.TEXT_SEMIBOLD : CssStyles.TEXT_SECONDARY);
@@ -394,6 +430,13 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
      * The text around a match, with the match, or with what replaces it, highlighted. The matched and the replacing
      * text are shown in whole only when short.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "hit", type = TextHit.class),
+                    @APIParameter(name = "replacement", type = boolean.class)},
+            locals = {@APILocals(name = "text", type = String.class),
+                    @APILocals(name = "middle", type = Span.class),
+                    @APILocals(name = "div", type = Div.class)})
     private Component context(TextHit hit, boolean replacement) {
         String text = oneLine(replacement ? hit.replacement() : hit.match());
         boolean tooLong = text.length() > MAX_SHOWN_TEXT;
@@ -411,6 +454,9 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
         return text.replaceAll("\\s+", " ");
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "newState", type = SearchReplaceDialog.State.class)})
     private void setState(State newState) {
         state = newState;
         boolean input = newState == State.INPUT;
@@ -434,6 +480,11 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "searcher", type = SearchReplaceDialog.Searcher.class),
+                    @APILocals(name = "e", type = TextSearch.InvalidSearchException.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void onSearchButton() {
         if (state == State.PREPARED) {
             // start over, nothing of the found is kept
@@ -491,6 +542,13 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
         run();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "result", type = SearchReplaceDialog.SearchResult.class)},
+            locals = {@APILocals(name = "roots", type = List.class),
+                    @APILocals(name = "item", type = SearchReplaceDialog.SearchReplaceItem.class),
+                    @APILocals(name = "children", type = List.class),
+                    @APILocals(name = "hit", type = TextHit.class)})
     private void searchDone(SearchResult result) {
         if (result.items().isEmpty()) {
             Notification.success(loc.getValue(L.MSG_SEARCH_NOTHING_FOUND));
@@ -513,6 +571,8 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
         setState(State.PREPARED);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void onReplaceButton() {
         if (state != State.PREPARED || prepared == null) {
             return;
@@ -527,10 +587,17 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
     /**
      * Asks the user whether to go on with the replace in spite of the warning of the search.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "warning", type = String.class),
+                    @APIParameter(name = "yes", type = Runnable.class)})
     protected void confirm(String warning, Runnable yes) {
         ConfirmDialog.show(warning, yes);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "replacer", type = SearchReplaceDialog.Replacer.class)})
     private void replace() {
         Replacer replacer = prepared.replacer();
         setState(State.REPLACING);
@@ -561,15 +628,21 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
         run();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void clearGrid() {
         grid.setItems(List.<Row>of(), row -> row.children);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void resetProgress() {
         progressBar.setIndeterminate(false);
         progressBar.setValue(0);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     @Override
     protected void runInThread() {
         task.run();

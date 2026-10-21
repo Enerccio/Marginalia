@@ -1,6 +1,5 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.collections.LimitStrategy;
@@ -8,8 +7,10 @@ import com.github.enerccio.marginalia.domain.components.AILimit;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.service.AILimitService;
 import com.github.enerccio.marginalia.domain.service.AILimitService.Entry;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -26,6 +27,7 @@ import java.util.List;
  * The limits an administrator set for the users of a shared AI. Users that are not in the table are not limited.
  */
 @Configurable
+@Extendable
 public class AILimitsDialog extends Dialog implements LLMInteract {
 
     @Autowired
@@ -61,6 +63,8 @@ public class AILimitsDialog extends Dialog implements LLMInteract {
         getFooter().add(close, addButton);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void createColumns() {
         grid.removeAllColumns();
         grid.addColumn(entry -> entry.user().getLogin())
@@ -98,12 +102,20 @@ public class AILimitsDialog extends Dialog implements LLMInteract {
         }).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE_HUGE);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "entry", type = AILimitService.Entry.class)},
+            locals = {@APILocals(name = "dialog", type = AILimitEditDialog.class)})
     private void editLimit(Entry entry) {
         AILimitEditDialog dialog = new AILimitEditDialog(ai, entry);
         dialog.setOnSave(this::load);
         dialog.open();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "entries", type = List.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void load() {
         try {
             List<Entry> entries = limitService.findLimits(ai);
@@ -119,6 +131,9 @@ public class AILimitsDialog extends Dialog implements LLMInteract {
         return limit.getStrategy() == LimitStrategy.TOKEN_LIMIT;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "limit", type = Long.class)})
     private String format(Long limit) {
         return limit == null ? loc.getValue(L.LABEL_UNLIMITED) : NumberFormat.getIntegerInstance().format(limit);
     }

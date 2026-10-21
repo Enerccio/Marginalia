@@ -1,6 +1,5 @@
 package com.github.enerccio.marginalia.ui.components;
 
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
@@ -8,8 +7,10 @@ import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -39,6 +40,7 @@ import java.util.function.Consumer;
  * The owner calls {@link #refresh} whenever the lore may have changed.
  */
 @Configurable
+@Extendable
 public class LorebookPreview extends VerticalLayout implements LLMInteract {
 
     /**
@@ -69,6 +71,8 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
      * Builds the components (the injected services are there only after the constructor), call it once before
      * {@link #refresh}.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = LorebookPreview.class))
     public LorebookPreview create() {
         setSizeFull();
         setPadding(false);
@@ -103,6 +107,15 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
      *
      * @param lorebook the lorebook of the story, {@code null} when it has none
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "lorebook", type = Lorebook.class)},
+            locals = {@APILocals(name = "root", type = Lorebook.class),
+                    @APILocals(name = "data", type = TreeData.class),
+                    @APILocals(name = "uuids", type = Set.class),
+                    @APILocals(name = "book", type = Lorebook.class),
+                    @APILocals(name = "bookRow", type = LorebookPreview.Row.class),
+                    @APILocals(name = "e", type = Exception.class)})
     public void refresh(Lorebook lorebook) {
         lastLorebook = lorebook;
         try {
@@ -145,6 +158,11 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "data", type = TreeData.class),
+                    @APIParameter(name = "row", type = LorebookPreview.Row.class),
+                    @APIParameter(name = "uuids", type = Set.class)})
     private void collect(TreeData<Row> data, Row row, Set<String> uuids) {
         if (row.entry() != null) {
             uuids.add(row.entry().getUuid());
@@ -152,10 +170,19 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
         data.getChildren(row).forEach(child -> collect(data, child, uuids));
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "data", type = TreeData.class),
+                    @APIParameter(name = "action", type = Consumer.class)})
     private void forEachEntry(TreeData<Row> data, Consumer<Row> action) {
         data.getRootItems().forEach(row -> forEachEntry(data, row, action));
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "data", type = TreeData.class),
+                    @APIParameter(name = "row", type = LorebookPreview.Row.class),
+                    @APIParameter(name = "action", type = Consumer.class)})
     private void forEachEntry(TreeData<Row> data, Row row, Consumer<Row> action) {
         if (row.entry() != null) {
             action.accept(row);
@@ -166,6 +193,13 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
     /**
      * The lorebook and all the lorebooks below it, each once, the nearest first (the order the generation finds them).
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = List.class),
+            parameters = {@APIParameter(name = "root", type = Lorebook.class)},
+            locals = {@APILocals(name = "books", type = List.class),
+                    @APILocals(name = "seen", type = Set.class),
+                    @APILocals(name = "queue", type = Queue.class),
+                    @APILocals(name = "book", type = Lorebook.class)})
     private List<Lorebook> collectBooks(Lorebook root) throws Exception {
         List<Lorebook> books = new ArrayList<>();
         Set<Long> seen = new HashSet<>();
@@ -182,6 +216,11 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
         return books;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = List.class),
+            parameters = {@APIParameter(name = "book", type = Lorebook.class)},
+            locals = {@APILocals(name = "rows", type = List.class),
+                    @APILocals(name = "entry", type = LorebookEntry.class)})
     private List<Row> entriesOf(Lorebook book) throws Exception {
         List<Row> rows = new ArrayList<>();
         for (LorebookEntry entry : lorebookEntryService.getEntriesForLorebook(book)) {
@@ -190,6 +229,12 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
         return rows;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = HorizontalLayout.class),
+            parameters = {@APIParameter(name = "row", type = LorebookPreview.Row.class)},
+            locals = {@APILocals(name = "name", type = Span.class),
+                    @APILocals(name = "layout", type = HorizontalLayout.class),
+                    @APILocals(name = "toggle", type = Button.class)})
     private HorizontalLayout createRow(Row row) {
         boolean isBook = row.entry() == null;
         boolean enabled = isBook ? row.book().isEnabled() : row.entry().isEnabled();
@@ -220,6 +265,9 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
      *
      * @return whether they are open now
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "row", type = LorebookPreview.Row.class)})
     boolean toggleDetails(Row row) {
         boolean open = !grid.isDetailsVisible(row);
         grid.setDetailsVisible(row, open);
@@ -231,6 +279,14 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
         return open;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = VerticalLayout.class),
+            parameters = {@APIParameter(name = "row", type = LorebookPreview.Row.class)},
+            locals = {@APILocals(name = "details", type = VerticalLayout.class),
+                    @APILocals(name = "entry", type = LorebookEntry.class),
+                    @APILocals(name = "activation", type = Span.class),
+                    @APILocals(name = "contentLabel", type = Span.class),
+                    @APILocals(name = "content", type = Markdown.class)})
     private VerticalLayout createDetails(Row row) {
         VerticalLayout details = new VerticalLayout();
         details.setWidthFull();
@@ -265,6 +321,13 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
     /**
      * A "label: value" line, empty when there is no value.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Span.class),
+            parameters = {@APIParameter(name = "label", type = L.class),
+                    @APIParameter(name = "value", type = String.class)},
+            locals = {@APILocals(name = "span", type = Span.class),
+                    @APILocals(name = "labelSpan", type = Span.class),
+                    @APILocals(name = "valueSpan", type = Span.class)})
     private Span infoSpan(L label, String value) {
         Span span = new Span();
         span.addClassNames(CssStyles.WHITE_SPACE_NORMAL, CssStyles.WRAP_ANYWHERE);

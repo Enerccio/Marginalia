@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.AgentService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -29,6 +30,7 @@ import java.util.List;
  * have is limited by the administrator, so the service may refuse.
  */
 @Configurable
+@Extendable
 public class AgentCloneDialog extends Dialog implements LLMInteract {
 
     @Autowired
@@ -50,10 +52,21 @@ public class AgentCloneDialog extends Dialog implements LLMInteract {
         this.source = source;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "onSave", type = Runnable.class)})
     public void setOnSave(Runnable onSave) {
         this.onSave = onSave;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "content", type = VerticalLayout.class),
+                    @APILocals(name = "cancelButton", type = Button.class),
+                    @APILocals(name = "footer", type = HorizontalLayout.class),
+                    @APILocals(name = "books", type = List.class),
+                    @APILocals(name = "manuscript", type = Manuscript.class),
+                    @APILocals(name = "e", type = Exception.class)})
     public void create() {
         setHeaderTitle(loc.getValue(L.LABEL_CLONE_AGENT));
         setWidth("460px");
@@ -104,6 +117,10 @@ public class AgentCloneDialog extends Dialog implements LLMInteract {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = RuntimeException.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void cloneAgent() {
         if (StringUtils.isBlank(nameField.getValue()) || manuscriptCombo.getValue() == null) {
             Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE));
@@ -126,14 +143,20 @@ public class AgentCloneDialog extends Dialog implements LLMInteract {
 
     // for the tests of the dialog
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TextField.class))
     TextField getNameField() {
         return nameField;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = ComboBox.class))
     ComboBox<Manuscript> getManuscriptCombo() {
         return manuscriptCombo;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getCloneButton() {
         return cloneButton;
     }

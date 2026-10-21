@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
 import com.github.enerccio.marginalia.domain.service.AILimitService;
 import com.github.enerccio.marginalia.domain.service.AILimitService.Entry;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
  * Adds the limit of a user of a shared AI or changes one. The user of an existing limit can not be changed.
  */
 @Configurable
+@Extendable
 public class AILimitEditDialog extends Dialog implements LLMInteract {
 
     @Autowired
@@ -91,6 +93,9 @@ public class AILimitEditDialog extends Dialog implements LLMInteract {
         });
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "onSave", type = Runnable.class)})
     void setOnSave(Runnable onSave) {
         this.onSave = onSave;
     }
@@ -103,6 +108,12 @@ public class AILimitEditDialog extends Dialog implements LLMInteract {
         return field;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "limited", type = Set.class),
+                    @APILocals(name = "users", type = List.class),
+                    @APILocals(name = "e", type = Exception.class),
+                    @APILocals(name = "limit", type = AILimit.class)})
     private void createFields() {
         userCombo.setLabel(loc.getValue(L.LABEL_USER));
         userCombo.setItemLabelGenerator(User::getLogin);
@@ -151,6 +162,8 @@ public class AILimitEditDialog extends Dialog implements LLMInteract {
         updateVisibility();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void updateVisibility() {
         boolean tokens = strategyCombo.getValue() == LimitStrategy.TOKEN_LIMIT;
         resetCombo.setVisible(tokens);
@@ -161,6 +174,12 @@ public class AILimitEditDialog extends Dialog implements LLMInteract {
         help.setVisible(tokens);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "user", type = User.class),
+                    @APILocals(name = "limit", type = AILimit.class),
+                    @APILocals(name = "problem", type = AILimit.Problem.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void save() {
         User user = userCombo.getValue();
         if (user == null) {

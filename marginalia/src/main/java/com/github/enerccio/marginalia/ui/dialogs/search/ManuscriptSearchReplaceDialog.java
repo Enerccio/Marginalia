@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.service.ManuscriptReplaceService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptReplaceService.Kind;
 import com.github.enerccio.marginalia.domain.service.ManuscriptReplaceService.Options;
 import com.github.enerccio.marginalia.domain.service.ManuscriptReplaceService.Plan;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -19,6 +20,7 @@ import java.util.List;
  * optionally revalidates all the summaries of the book afterwards. For the desktop and, with {@code phone} set, for the phone.
  */
 @Configurable(preConstruction = true)
+@Extendable
 public class ManuscriptSearchReplaceDialog extends SearchReplaceDialog {
 
     @Autowired
@@ -36,11 +38,15 @@ public class ManuscriptSearchReplaceDialog extends SearchReplaceDialog {
         create();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class))
     @Override
     protected String getTitle() {
         return loc.getValue(L.LABEL_SEARCH_AND_REPLACE);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = List.class))
     @Override
     protected List<Component> createOptions() {
         summariesBox = new Checkbox(loc.getValue(L.LABEL_SEARCH_IN_SUMMARIES), true);
@@ -49,6 +55,10 @@ public class ManuscriptSearchReplaceDialog extends SearchReplaceDialog {
         return List.of(summariesBox, allBranchesBox, revalidateBox);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = SearchReplaceDialog.Searcher.class),
+            parameters = {@APIParameter(name = "request", type = SearchReplaceDialog.SearchRequest.class)},
+            locals = {@APILocals(name = "options", type = ManuscriptReplaceService.Options.class)})
     @Override
     protected Searcher createSearcher(SearchRequest request) {
         Options options = new Options(request.search(), request.replacement(), request.regex(), request.caseSensitive(),

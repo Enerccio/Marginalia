@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.service.AgentMessageService;
 import com.github.enerccio.marginalia.domain.service.AgentRunService;
 import com.github.enerccio.marginalia.domain.service.agent.AgentTranscriptExport;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -43,6 +44,7 @@ import java.util.function.Consumer;
  * to the trash. A run that is going on can't be deleted, it is stopped first.
  */
 @Configurable
+@Extendable
 public class AgentRunHistory extends VerticalLayout implements LLMInteract {
 
     private static final int RESULT_LIMIT = 100;
@@ -78,6 +80,8 @@ public class AgentRunHistory extends VerticalLayout implements LLMInteract {
         this.onDeleted = onDeleted;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     public void create() {
         setSizeFull();
         setPadding(false);
@@ -108,24 +112,39 @@ public class AgentRunHistory extends VerticalLayout implements LLMInteract {
     /**
      * Whether to show the runs as cards: the default is the screen of the user, set it before {@link #create()}.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "phone", type = boolean.class)})
     void setPhone(boolean phone) {
         this.phone = phone;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "run", type = AgentRun.class)})
     private String started(AgentRun run) {
         return run.getStartedAt() == null ? ""
                 : DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(run.getStartedAt());
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "run", type = AgentRun.class)})
     private String statusText(AgentRun run) {
         return loc.getValue(loc.getAgentRunStatus(run.getStatus()));
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "run", type = AgentRun.class)})
     private String result(AgentRun run) {
         return StringUtils.abbreviate(StringUtils.defaultString(run.getStatusReason()).replaceAll("\\s+", " "), RESULT_LIMIT);
     }
 
     // package visible for the tests, like the actions
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "run", type = AgentRun.class)})
     Component card(AgentRun run) {
         return AgentCard.of(started(run), statusText(run), List.of(loc.getValue(L.LABEL_ROUNDS) + ": " + run.getRounds() + "   "
                 + loc.getValue(L.LABEL_TOKENS) + ": " + run.getTotalTokens(), result(run)), actions(run));
@@ -134,6 +153,11 @@ public class AgentRunHistory extends VerticalLayout implements LLMInteract {
     /**
      * Shows these runs, the latest first.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "runs", type = List.class)},
+            locals = {@APILocals(name = "now", type = StringBuilder.class),
+                    @APILocals(name = "run", type = AgentRun.class)})
     public void setRuns(List<AgentRun> runs) {
         if (grid == null) {
             return;
@@ -151,6 +175,13 @@ public class AgentRunHistory extends VerticalLayout implements LLMInteract {
     }
 
     // package visible: the cells of a grid are made only when it is on a page, the tests ask for them
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "run", type = AgentRun.class)},
+            locals = {@APILocals(name = "viewButton", type = Button.class),
+                    @APILocals(name = "downloadButton", type = Button.class),
+                    @APILocals(name = "deleteButton", type = Button.class),
+                    @APILocals(name = "actions", type = HorizontalLayout.class)})
     Component actions(AgentRun run) {
         Button viewButton = new Button(Solid.EYE.create(), event -> view(run));
         viewButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
@@ -172,6 +203,11 @@ public class AgentRunHistory extends VerticalLayout implements LLMInteract {
         return actions;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Anchor.class),
+            parameters = {@APIParameter(name = "run", type = AgentRun.class),
+                    @APIParameter(name = "button", type = Button.class)},
+            locals = {@APILocals(name = "anchor", type = Anchor.class)})
     private Anchor downloadAnchor(AgentRun run, Button button) {
         Anchor anchor = new Anchor(new InputStreamDownloadHandler((InputStreamDownloadCallback) downloadEvent -> {
             try {
@@ -186,10 +222,16 @@ public class AgentRunHistory extends VerticalLayout implements LLMInteract {
         return anchor;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "run", type = AgentRun.class)})
     void view(AgentRun run) {
         onView.accept(run);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "run", type = AgentRun.class)})
     String export(AgentRun run) throws Exception {
         return AgentTranscriptExport.export(agent.getName(), run, agentMessageService.messages(run), agentMessageService.threads(run),
                 agentRunService.getFindings(run));
@@ -200,6 +242,11 @@ public class AgentRunHistory extends VerticalLayout implements LLMInteract {
                 : new SimpleDateFormat("yyyyMMdd-HHmm").format(run.getStartedAt())) + ".md";
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "run", type = AgentRun.class)},
+            locals = {@APILocals(name = "e", type = RuntimeException.class),
+                    @APILocals(name = "e", type = Exception.class)})
     void delete(AgentRun run) {
         try {
             agentRunService.delete(run, false);
@@ -213,6 +260,8 @@ public class AgentRunHistory extends VerticalLayout implements LLMInteract {
 
     // for the tests of the history
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Grid.class))
     Grid<AgentRun> getGrid() {
         return grid;
     }

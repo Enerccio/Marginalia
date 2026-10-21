@@ -5,8 +5,10 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.service.CheckpointService;
 import com.github.enerccio.marginalia.domain.service.CheckpointService.CheckpointException;
+import com.github.enerccio.marginalia.domain.service.agent.CheckpointStore;
 import com.github.enerccio.marginalia.domain.service.agent.CheckpointStore.Info;
 import com.github.enerccio.marginalia.domain.service.agent.CheckpointText;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -50,6 +52,7 @@ import java.util.function.Supplier;
  * checkpoint tools. Saving and restoring change the copy, so they wait until the agent does not work.
  */
 @Configurable
+@Extendable
 public class AgentCheckpointBrowser extends VerticalLayout implements LLMInteract {
 
     @Autowired
@@ -94,6 +97,12 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
         this.rewound = rewound;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "help", type = Span.class),
+                    @APILocals(name = "refreshButton", type = Button.class),
+                    @APILocals(name = "button", type = Button.class),
+                    @APILocals(name = "toolbar", type = HorizontalLayout.class)})
     public void create() {
         setSizeFull();
         setPadding(false);
@@ -148,11 +157,17 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
     /**
      * Whether to show the checkpoints as cards: the default is the screen of the user, set it before {@link #create()}.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "phone", type = boolean.class)})
     void setPhone(boolean phone) {
         this.phone = phone;
     }
 
     // package visible for the tests, like the actions
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "info", type = CheckpointStore.Info.class)})
     Component card(Info info) {
         return AgentCard.of(info.id() + " - " + loc.getValue(kindText(info)), created(info), List.of(
                 loc.getValue(L.LABEL_ROUNDS) + ": " + info.round() + "   " + loc.getValue(L.LABEL_SIZE) + ": "
@@ -167,6 +182,16 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
         };
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "info", type = CheckpointStore.Info.class)},
+            locals = {@APILocals(name = "restoreButton", type = Button.class),
+                    @APILocals(name = "current", type = AgentRun.class),
+                    @APILocals(name = "rewindButton", type = Button.class),
+                    @APILocals(name = "downloadButton", type = Button.class),
+                    @APILocals(name = "download", type = Anchor.class),
+                    @APILocals(name = "deleteButton", type = Button.class),
+                    @APILocals(name = "actions", type = HorizontalLayout.class)})
     private Component actions(Info info) {
         boolean working = busy.getAsBoolean();
         Button restoreButton = new Button(Solid.ROTATE_LEFT.create(), event ->
@@ -211,6 +236,12 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
         return actions;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "label", type = String.class)},
+            locals = {@APILocals(name = "info", type = CheckpointStore.Info.class),
+                    @APILocals(name = "e", type = CheckpointService.CheckpointException.class),
+                    @APILocals(name = "e", type = Exception.class)})
     void save(String label) {
         if (isBusy()) {
             return;
@@ -226,6 +257,12 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
         refresh();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "info", type = CheckpointStore.Info.class)},
+            locals = {@APILocals(name = "result", type = CheckpointService.Restored.class),
+                    @APILocals(name = "e", type = CheckpointService.CheckpointException.class),
+                    @APILocals(name = "e", type = Exception.class)})
     void restore(Info info) {
         if (isBusy()) {
             return;
@@ -242,6 +279,12 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
         refresh();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "info", type = CheckpointStore.Info.class)},
+            locals = {@APILocals(name = "result", type = CheckpointService.Rewound.class),
+                    @APILocals(name = "e", type = RuntimeException.class),
+                    @APILocals(name = "e", type = Exception.class)})
     void rewind(Info info) {
         if (isBusy()) {
             return;
@@ -259,6 +302,11 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
         refresh();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "info", type = CheckpointStore.Info.class)},
+            locals = {@APILocals(name = "e", type = CheckpointService.CheckpointException.class),
+                    @APILocals(name = "e", type = Exception.class)})
     void delete(Info info) {
         try {
             checkpointService.delete(run.get(), info.id(), false);
@@ -270,6 +318,8 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
         refresh();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = boolean.class))
     private boolean isBusy() {
         if (busy.getAsBoolean()) {
             Notification.warning(loc.getValue(L.MSG_AGENT_CHECKPOINT_BUSY));
@@ -282,6 +332,13 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
     /**
      * Reads the checkpoints again, and the buttons that depend on whether the agent works and has a working copy.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "current", type = AgentRun.class),
+                    @APILocals(name = "infos", type = List.class),
+                    @APILocals(name = "shown", type = String.class),
+                    @APILocals(name = "usage", type = CheckpointService.Usage.class),
+                    @APILocals(name = "e", type = Exception.class)})
     public void refresh() {
         if (grid == null) {
             return;
@@ -314,18 +371,26 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
 
     // for the tests of the browser
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Grid.class))
     Grid<Info> getGrid() {
         return grid;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Set.class))
     Set<String> getRewindable() {
         return rewindable;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getSaveButton() {
         return saveButton;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Span.class))
     Span getUsageLabel() {
         return usageLabel;
     }

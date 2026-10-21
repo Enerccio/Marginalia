@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.service.agent.jsonmerge.JsonMergeNo
 import com.github.enerccio.marginalia.domain.service.agent.jsonmerge.JsonMergeNode.Choice;
 import com.github.enerccio.marginalia.domain.service.agent.jsonmerge.JsonMergeNode.Side;
 import com.github.enerccio.marginalia.domain.service.agent.jsonmerge.JsonText;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -12,6 +13,7 @@ import com.github.enerccio.marginalia.ui.widgets.WordDiffView;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonElement;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -49,6 +51,7 @@ import java.util.stream.Stream;
  * The places are made when they are opened (see {@link JsonMergeNode}). The data is shown pretty printed.
  */
 @Configurable
+@Extendable
 public class JsonMergeDialog extends Dialog {
 
     @Autowired
@@ -109,6 +112,13 @@ public class JsonMergeDialog extends Dialog {
         this.onTake = onTake;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "hint", type = Span.class),
+                    @APILocals(name = "top", type = HorizontalLayout.class),
+                    @APILocals(name = "content", type = VerticalLayout.class),
+                    @APILocals(name = "cancel", type = Button.class),
+                    @APILocals(name = "footer", type = HorizontalLayout.class)})
     public void create() {
         setHeaderTitle(loc.getValue(L.LABEL_JSON_MERGE) + " - " + title);
         setWidth("1500px");
@@ -178,6 +188,10 @@ public class JsonMergeDialog extends Dialog {
 
     // --- the tree
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = VerticalLayout.class),
+            locals = {@APILocals(name = "toolbar", type = HorizontalLayout.class),
+                    @APILocals(name = "layout", type = VerticalLayout.class)})
     private VerticalLayout createTree() {
         agentButton = small(L.LABEL_USE_AGENT_VERSION, event -> choose(Choice.AGENT));
         bookButton = small(L.LABEL_USE_BOOK_VERSION, event -> choose(Choice.BOOK));
@@ -220,6 +234,10 @@ public class JsonMergeDialog extends Dialog {
         return layout;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "side", type = JsonMergeNode.Side.class),
+                    @APIParameter(name = "header", type = L.class)})
     private void addVersionColumn(Side side, L header) {
         grid.addComponentColumn(node -> versionCell(node, side)).setHeader(loc.getValue(header)).setFlexGrow(1).setResizable(true);
     }
@@ -227,6 +245,11 @@ public class JsonMergeDialog extends Dialog {
     /**
      * The places shown under a place: those that changed, or all of them.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = List.class),
+            parameters = {@APIParameter(name = "parent", type = JsonMergeNode.class)},
+            locals = {@APILocals(name = "all", type = List.class),
+                    @APILocals(name = "changed", type = List.class)})
     private List<JsonMergeNode> visibleChildren(JsonMergeNode parent) {
         if (parent == null) {
             return List.of(level);
@@ -274,6 +297,11 @@ public class JsonMergeDialog extends Dialog {
         return text.length() > 80 ? text.substring(0, 80) + "…" : text;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Span.class),
+            parameters = {@APIParameter(name = "value", type = JsonElement.class)},
+            locals = {@APILocals(name = "cell", type = Span.class),
+                    @APILocals(name = "full", type = String.class)})
     private Span cell(JsonElement value) {
         Span cell = new Span(preview(value));
         cell.addClassName(CssStyles.JSON_MERGE_CELL);
@@ -286,6 +314,11 @@ public class JsonMergeDialog extends Dialog {
         return cell;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "node", type = JsonMergeNode.class),
+                    @APIParameter(name = "side", type = JsonMergeNode.Side.class)},
+            locals = {@APILocals(name = "cell", type = Span.class)})
     private Component versionCell(JsonMergeNode node, Side side) {
         Span cell = cell(node.get(side));
         boolean changed = side == Side.AGENT ? node.agentChanged() : side == Side.BOOK && node.bookChanged();
@@ -296,10 +329,17 @@ public class JsonMergeDialog extends Dialog {
         return cell;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "node", type = JsonMergeNode.class)})
     private Component resultCell(JsonMergeNode node) {
         return cell(node.effectiveResult());
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "node", type = JsonMergeNode.class)},
+            locals = {@APILocals(name = "choice", type = Span.class)})
     private Component choiceCell(JsonMergeNode node) {
         Span choice = new Span(loc.getValue(choiceText(node.effectiveChoice())));
         if (node.isOverruled()) {
@@ -310,6 +350,10 @@ public class JsonMergeDialog extends Dialog {
         return choice;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Span.class),
+            parameters = {@APIParameter(name = "node", type = JsonMergeNode.class)},
+            locals = {@APILocals(name = "badge", type = Span.class)})
     Span statusBadge(JsonMergeNode node) {
         Span badge = new Span(loc.getValue(statusText(node.status())));
         badge.getElement().getThemeList().add("badge small " + switch (node.status()) {
@@ -342,16 +386,26 @@ public class JsonMergeDialog extends Dialog {
         };
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class),
+            parameters = {@APIParameter(name = "label", type = L.class),
+                    @APIParameter(name = "listener", type = ComponentEventListener.class)},
+            locals = {@APILocals(name = "button", type = Button.class)})
     private Button small(L label, com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>> listener) {
         Button button = new Button(loc.getValue(label), listener);
         button.addThemeVariants(ButtonVariant.LUMO_SMALL);
         return button;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = JsonMergeNode.class))
     private JsonMergeNode selected() {
         return grid.asSingleSelect().getValue() == null ? level : grid.asSingleSelect().getValue();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "node", type = JsonMergeNode.class)})
     private void updateButtons() {
         JsonMergeNode node = selected();
         mergedButton.setEnabled(node.container() != null && node.choice() != Choice.MERGED);
@@ -362,11 +416,21 @@ public class JsonMergeDialog extends Dialog {
 
     // --- what the user does with a place
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "choice", type = JsonMergeNode.Choice.class)})
     private void choose(Choice choice) {
         selected().choose(choice);
         changed();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "node", type = JsonMergeNode.class)},
+            locals = {@APILocals(name = "candidates", type = List.class),
+                    @APILocals(name = "pick", type = Dialog.class),
+                    @APILocals(name = "select", type = Select.class),
+                    @APILocals(name = "ok", type = Button.class)})
     private void match(JsonMergeNode node) {
         List<JsonMergeNode> candidates = node.matchCandidates();
         if (candidates.isEmpty()) {
@@ -401,6 +465,10 @@ public class JsonMergeDialog extends Dialog {
     /**
      * Which versions have the element, in words.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "node", type = JsonMergeNode.class)},
+            locals = {@APILocals(name = "sides", type = List.class)})
     private String sidesOf(JsonMergeNode node) {
         List<String> sides = new ArrayList<>();
         if (node.get(Side.AGENT) != null) {
@@ -415,6 +483,10 @@ public class JsonMergeDialog extends Dialog {
         return String.join(" + ", sides);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "node", type = JsonMergeNode.class)},
+            locals = {@APILocals(name = "parts", type = List.class)})
     private void split(JsonMergeNode node) {
         List<JsonMergeNode> parts = node.split();
         changed();
@@ -426,6 +498,9 @@ public class JsonMergeDialog extends Dialog {
     /**
      * Works with the place alone: the tree starts at it and the text is its data.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "node", type = JsonMergeNode.class)})
     private void open(JsonMergeNode node) {
         if (node == null || node == level || !commitText()) {
             return;
@@ -434,6 +509,8 @@ public class JsonMergeDialog extends Dialog {
         refreshAll();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void startOver() {
         // what was written in the text is given up with the rest
         root.reset();
@@ -441,6 +518,9 @@ public class JsonMergeDialog extends Dialog {
         refreshAll();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "result", type = String.class)})
     private void take() {
         if (!commitText()) {
             return;
@@ -452,6 +532,9 @@ public class JsonMergeDialog extends Dialog {
 
     // --- showing it
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "action", type = Runnable.class)})
     private void setAdjusting(Runnable action) {
         boolean before = adjusting;
         adjusting = true;
@@ -465,6 +548,11 @@ public class JsonMergeDialog extends Dialog {
     /**
      * Everything is shown again: the level changed or the document did.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "path", type = List.class),
+                    @APILocals(name = "node", type = JsonMergeNode.class),
+                    @APILocals(name = "button", type = Button.class)})
     private void refreshAll() {
         breadcrumb.removeAll();
         List<JsonMergeNode> path = level.path();
@@ -483,12 +571,16 @@ public class JsonMergeDialog extends Dialog {
         updateStatus();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void refreshTree() {
         provider.refreshAll();
         grid.expand(level);
         updateButtons();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void updateStatus() {
         statusLabel.setText(String.format(loc.getValue(L.MSG_JSON_MERGE_STATUS), root.conflicts(), root.unresolved()));
     }
@@ -496,6 +588,8 @@ public class JsonMergeDialog extends Dialog {
     /**
      * Something was decided or changed: what is shown follows.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void changed() {
         provider.refreshAll();
         updateStatus();
@@ -505,6 +599,8 @@ public class JsonMergeDialog extends Dialog {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void showSelectedTab() {
         boolean text = tabs.getSelectedTab() == textTab;
         treeContent.setVisible(!text);
@@ -518,6 +614,11 @@ public class JsonMergeDialog extends Dialog {
 
     // --- the text
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = VerticalLayout.class),
+            locals = {@APILocals(name = "applyText", type = Button.class),
+                    @APILocals(name = "selects", type = HorizontalLayout.class),
+                    @APILocals(name = "layout", type = VerticalLayout.class)})
     private VerticalLayout createText() {
         viewSelect = new Select<>();
         viewSelect.setLabel(loc.getValue(L.LABEL_JSON_SHOW));
@@ -579,6 +680,9 @@ public class JsonMergeDialog extends Dialog {
         return layout;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "view", type = JsonMergeDialog.View.class)})
     private String viewText(View view) {
         return loc.getValue(switch (view) {
             case AGENT -> L.LABEL_JSON_AGENT_DATA;
@@ -588,6 +692,9 @@ public class JsonMergeDialog extends Dialog {
         });
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "view", type = JsonMergeDialog.View.class)})
     private String textOf(View view) {
         return switch (view) {
             case AGENT -> level.agentText();
@@ -597,6 +704,8 @@ public class JsonMergeDialog extends Dialog {
         };
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void refreshText() {
         setAdjusting(() -> {
             viewSelect.setValue(shownView);
@@ -611,6 +720,9 @@ public class JsonMergeDialog extends Dialog {
     /**
      * Says whether the text is JSON, as it is written.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = JsonText.InvalidJsonException.class)})
     private void checkText() {
         textArea.setInvalid(false);
         textStatus.removeClassNames(CssStyles.TEXT_ERROR, CssStyles.TEXT_SUCCESS);
@@ -630,6 +742,9 @@ public class JsonMergeDialog extends Dialog {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "against", type = JsonMergeDialog.View.class)})
     private void updateDiff() {
         View against = diffSelect.getValue();
         diffView.setVisible(against != null);
@@ -642,6 +757,11 @@ public class JsonMergeDialog extends Dialog {
      * Takes the text the user wrote as the data of the agent in the open place, when it is JSON; else says what is wrong and nothing
      * changes. True when there is nothing left to take or it was taken.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = boolean.class),
+            locals = {@APILocals(name = "text", type = String.class),
+                    @APILocals(name = "written", type = JsonElement.class),
+                    @APILocals(name = "e", type = JsonText.InvalidJsonException.class)})
     boolean commitText() {
         if (textArea == null || shownView != View.AGENT) {
             return true;
@@ -663,46 +783,68 @@ public class JsonMergeDialog extends Dialog {
 
     // for the tests of the dialog
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = JsonMergeNode.class))
     JsonMergeNode getLevel() {
         return level;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TreeGrid.class))
     TreeGrid<JsonMergeNode> getGrid() {
         return grid;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TextArea.class))
     TextArea getTextArea() {
         return textArea;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Tabs.class))
     Tabs getTabs() {
         return tabs;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Tab.class))
     Tab getTextTab() {
         return textTab;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Checkbox.class))
     Checkbox getOnlyChanges() {
         return onlyChanges;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Span.class))
     Span getStatusLabel() {
         return statusLabel;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Select.class))
     Select<View> getViewSelect() {
         return viewSelect;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getTakeButton() {
         return takeButton;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getStartOverButton() {
         return startOverButton;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = HorizontalLayout.class))
     HorizontalLayout getBreadcrumb() {
         return breadcrumb;
     }

@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.service.agent.RunToolsImpl;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.google.gson.JsonObject;
@@ -31,6 +32,7 @@ import java.util.function.Consumer;
  * the question of the agent as bubbles of their own. The console uses it for the transcript of the run, the tab of the
  * sub-agents for each of their conversations.
  */
+@Extendable
 class AgentTranscriptRenderer {
 
     /**
@@ -61,6 +63,8 @@ class AgentTranscriptRenderer {
         this.assistantLabel = loc.getValue(L.ENUM_DOMAIN_AGENT);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = VerticalLayout.class))
     VerticalLayout getBox() {
         return box;
     }
@@ -68,6 +72,10 @@ class AgentTranscriptRenderer {
     /**
      * Who the messages of the user and of the model are shown as; the conversation of a sub-agent is not with the author.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "userLabel", type = String.class),
+                    @APIParameter(name = "assistantLabel", type = String.class)})
     void setLabels(String userLabel, String assistantLabel) {
         this.userLabel = userLabel;
         this.assistantLabel = assistantLabel;
@@ -76,6 +84,9 @@ class AgentTranscriptRenderer {
     /**
      * The calls of {@code spawn_agent} get a button that tells this the id of the call.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "onSubAgent", type = Consumer.class)})
     void setOnSubAgent(Consumer<String> onSubAgent) {
         this.onSubAgent = onSubAgent;
     }
@@ -83,12 +94,23 @@ class AgentTranscriptRenderer {
     /**
      * Removes what was shown, the commands that wait for a result too.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     void clear() {
         box.removeAll();
         callBodies.clear();
         specialCalls.clear();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "message", type = LLMChatMessage.class),
+                    @APIParameter(name = "reasoning", type = String.class),
+                    @APIParameter(name = "summary", type = boolean.class),
+                    @APIParameter(name = "created", type = Date.class)},
+            locals = {@APILocals(name = "call", type = LLMToolCall.class),
+                    @APILocals(name = "special", type = Div.class),
+                    @APILocals(name = "body", type = VerticalLayout.class)})
     void render(LLMChatMessage message, String reasoning, boolean summary, Date created) {
         switch (message.getRole()) {
             case USER -> box.add(stamped(summary ? summaryBubble(message.getContent())
@@ -153,6 +175,12 @@ class AgentTranscriptRenderer {
     /**
      * A command the user ran from the bar: the line and what it answered, not the note the agent reads with it.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Div.class),
+            parameters = {@APIParameter(name = "content", type = String.class)},
+            locals = {@APILocals(name = "body", type = String.class),
+                    @APILocals(name = "line", type = String.class),
+                    @APILocals(name = "bubble", type = Div.class)})
     private Div authorCommandBubble(String content) {
         String body = content.substring(Defaults.AGENT_AUTHOR_COMMAND_NOTE.length()).strip();
         int result = body.indexOf("\n\nResult:\n");
@@ -168,6 +196,11 @@ class AgentTranscriptRenderer {
     /**
      * What a compaction left of the earlier work: folded to one line, the summary is long and for looking up.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Div.class),
+            parameters = {@APIParameter(name = "content", type = String.class)},
+            locals = {@APILocals(name = "details", type = Details.class),
+                    @APILocals(name = "block", type = Div.class)})
     private Div summaryBubble(String content) {
         Details details = new Details(loc.getValue(L.LABEL_AGENT_SUMMARY), new Markdown(StringUtils.defaultString(content)));
         Div block = new Div(details);
@@ -175,6 +208,12 @@ class AgentTranscriptRenderer {
         return block;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Div.class),
+            parameters = {@APIParameter(name = "who", type = String.class),
+                    @APIParameter(name = "content", type = String.class),
+                    @APIParameter(name = "user", type = boolean.class)},
+            locals = {@APILocals(name = "bubble", type = Div.class)})
     Div bubble(String who, String content, boolean user) {
         Div bubble = new Div(text(who, true), new Markdown(StringUtils.defaultString(content)));
         bubble.addClassName(CssStyles.HELP_MESSAGE);
@@ -187,6 +226,11 @@ class AgentTranscriptRenderer {
     /**
      * What the model thought before its answer, folded to one line: the reasoning is long and for looking up.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Div.class),
+            parameters = {@APIParameter(name = "reasoning", type = String.class)},
+            locals = {@APILocals(name = "details", type = Details.class),
+                    @APILocals(name = "block", type = Div.class)})
     private Div reasoningBlock(String reasoning) {
         Details details = new Details(loc.getValue(L.LABEL_REASONING), text(reasoning, false));
         details.addClassName(CssStyles.HINT_TEXT);
@@ -201,6 +245,14 @@ class AgentTranscriptRenderer {
      *
      * @return null for any other call, and for these when the call has no text (it failed, the result says why)
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Div.class),
+            parameters = {@APIParameter(name = "call", type = LLMToolCall.class)},
+            locals = {@APILocals(name = "text", type = String.class),
+                    @APILocals(name = "arguments", type = JsonObject.class),
+                    @APILocals(name = "options", type = List.class),
+                    @APILocals(name = "e", type = RuntimeException.class),
+                    @APILocals(name = "bubble", type = Div.class)})
     private Div specialCall(LLMToolCall call) {
         boolean report = "finish".equals(call.getName());
         if (!report && !"ask_user".equals(call.getName())) {
@@ -229,6 +281,13 @@ class AgentTranscriptRenderer {
         return bubble;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Div.class),
+            parameters = {@APIParameter(name = "call", type = LLMToolCall.class)},
+            locals = {@APILocals(name = "body", type = VerticalLayout.class),
+                    @APILocals(name = "details", type = Details.class),
+                    @APILocals(name = "block", type = Div.class),
+                    @APILocals(name = "open", type = Button.class)})
     private Div callBlock(LLMToolCall call) {
         VerticalLayout body = new VerticalLayout(text(StringUtils.defaultString(call.getArguments()), false));
         body.setPadding(false);
@@ -250,6 +309,11 @@ class AgentTranscriptRenderer {
     /**
      * A block of text of a message; the heading (who said it) and the text are blocks, so they are on lines of their own.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Div.class),
+            parameters = {@APIParameter(name = "content", type = String.class),
+                    @APIParameter(name = "heading", type = boolean.class)},
+            locals = {@APILocals(name = "block", type = Div.class)})
     Div text(String content, boolean heading) {
         Div block = new Div(content);
         block.addClassNames(CssStyles.PRE_WRAP, CssStyles.WRAP_ANYWHERE);

@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.service.AgentRunService;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -46,6 +47,7 @@ import java.util.*;
  * uses it: its entries are shown grayed out, nothing can be done with them, and nothing can be moved into it.
  */
 @Configurable
+@Extendable
 public class LorebookMassEditDialog extends Dialog {
 
     /**
@@ -125,6 +127,14 @@ public class LorebookMassEditDialog extends Dialog {
         this.onChange = onChange;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "hint", type = Span.class),
+                    @APILocals(name = "refresh", type = Button.class),
+                    @APILocals(name = "close", type = Button.class),
+                    @APILocals(name = "moveLayout", type = HorizontalLayout.class),
+                    @APILocals(name = "footer", type = HorizontalLayout.class),
+                    @APILocals(name = "content", type = VerticalLayout.class)})
     public void create() {
         setHeaderTitle(loc.getValue(L.LABEL_MASS_EDIT) + ": " + StringUtils.defaultString(root.getName()));
         setWidth("1400px");
@@ -210,6 +220,17 @@ public class LorebookMassEditDialog extends Dialog {
     /**
      * Reads the lorebooks, the locks and the entries again. The checks stay.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "loadedBooks", type = List.class),
+                    @APILocals(name = "locked", type = Set.class),
+                    @APILocals(name = "book", type = Lorebook.class),
+                    @APILocals(name = "checked", type = Set.class),
+                    @APILocals(name = "loaded", type = List.class),
+                    @APILocals(name = "entry", type = LorebookEntry.class),
+                    @APILocals(name = "row", type = LorebookMassEditDialog.Row.class),
+                    @APILocals(name = "targets", type = List.class),
+                    @APILocals(name = "e", type = Exception.class)})
     public void load() {
         try {
             List<Lorebook> loadedBooks = lorebookService.getLorebookTree(root);
@@ -251,6 +272,9 @@ public class LorebookMassEditDialog extends Dialog {
     /**
      * By the order of the entries, the ones with the same order by lorebook, then by name.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "byBook", type = Comparator.class)})
     private void sort() {
         Comparator<Row> byBook = Comparator.comparingInt(row -> indexOf(row.book));
         rows.sort(Comparator.comparingInt((Row row) -> row.entry.getOrder())
@@ -259,6 +283,9 @@ public class LorebookMassEditDialog extends Dialog {
         grid.setItems(rows);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = int.class),
+            parameters = {@APIParameter(name = "book", type = Lorebook.class)})
     private int indexOf(Lorebook book) {
         for (int i = 0; i < books.size(); i++) {
             if (Objects.equals(books.get(i).getId(), book.getId())) {
@@ -268,6 +295,10 @@ public class LorebookMassEditDialog extends Dialog {
         return books.size();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Checkbox.class),
+            parameters = {@APIParameter(name = "row", type = LorebookMassEditDialog.Row.class)},
+            locals = {@APILocals(name = "box", type = Checkbox.class)})
     private Checkbox checkbox(Row row) {
         Checkbox box = new Checkbox(row.checked);
         box.setEnabled(!row.locked);
@@ -279,6 +310,10 @@ public class LorebookMassEditDialog extends Dialog {
         return box;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Checkbox.class),
+            parameters = {@APIParameter(name = "row", type = LorebookMassEditDialog.Row.class)},
+            locals = {@APILocals(name = "box", type = Checkbox.class)})
     private Checkbox enabledBox(Row row) {
         Checkbox box = new Checkbox(row.entry.isEnabled());
         box.setEnabled(!row.locked);
@@ -291,6 +326,10 @@ public class LorebookMassEditDialog extends Dialog {
         return dimmed(box, row);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TextField.class),
+            parameters = {@APIParameter(name = "row", type = LorebookMassEditDialog.Row.class)},
+            locals = {@APILocals(name = "field", type = TextField.class)})
     private TextField nameField(Row row) {
         TextField field = new TextField();
         field.setWidthFull();
@@ -305,6 +344,10 @@ public class LorebookMassEditDialog extends Dialog {
         return dimmed(field, row);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = IntegerField.class),
+            parameters = {@APIParameter(name = "row", type = LorebookMassEditDialog.Row.class)},
+            locals = {@APILocals(name = "field", type = IntegerField.class)})
     private IntegerField orderField(Row row) {
         IntegerField field = new IntegerField();
         field.setWidth("100px");
@@ -322,6 +365,11 @@ public class LorebookMassEditDialog extends Dialog {
         return dimmed(field, row);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = ComboBox.class),
+            parameters = {@APIParameter(name = "row", type = LorebookMassEditDialog.Row.class)},
+            locals = {@APILocals(name = "box", type = ComboBox.class),
+                    @APILocals(name = "items", type = List.class)})
     private ComboBox<Lorebook> bookBox(Row row) {
         ComboBox<Lorebook> box = new ComboBox<>();
         box.setWidthFull();
@@ -340,6 +388,10 @@ public class LorebookMassEditDialog extends Dialog {
         return dimmed(box, row);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TagMultiComboBox.class),
+            parameters = {@APIParameter(name = "row", type = LorebookMassEditDialog.Row.class)},
+            locals = {@APILocals(name = "box", type = TagMultiComboBox.class)})
     private TagMultiComboBox tagsBox(Row row) {
         TagMultiComboBox box = new TagMultiComboBox();
         box.setWidthFull();
@@ -348,6 +400,10 @@ public class LorebookMassEditDialog extends Dialog {
         return dimmed(box, row);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = ComboBox.class),
+            parameters = {@APIParameter(name = "row", type = LorebookMassEditDialog.Row.class)},
+            locals = {@APILocals(name = "box", type = ComboBox.class)})
     private ComboBox<FilteringMode> filteringModeBox(Row row) {
         ComboBox<FilteringMode> box = new ComboBox<>();
         box.setWidthFull();
@@ -364,6 +420,10 @@ public class LorebookMassEditDialog extends Dialog {
         return dimmed(box, row);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TextField.class),
+            parameters = {@APIParameter(name = "row", type = LorebookMassEditDialog.Row.class)},
+            locals = {@APILocals(name = "field", type = TextField.class)})
     private TextField filteringField(Row row) {
         TextField field = new TextField();
         field.setWidthFull();
@@ -378,6 +438,10 @@ public class LorebookMassEditDialog extends Dialog {
         return dimmed(field, row);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = ComboBox.class),
+            parameters = {@APIParameter(name = "row", type = LorebookMassEditDialog.Row.class)},
+            locals = {@APILocals(name = "box", type = ComboBox.class)})
     private ComboBox<InsertionMode> insertionModeBox(Row row) {
         ComboBox<InsertionMode> box = new ComboBox<>();
         box.setWidthFull();
@@ -394,6 +458,10 @@ public class LorebookMassEditDialog extends Dialog {
         return dimmed(box, row);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TagMultiComboBox.class),
+            parameters = {@APIParameter(name = "row", type = LorebookMassEditDialog.Row.class)},
+            locals = {@APILocals(name = "box", type = TagMultiComboBox.class)})
     private TagMultiComboBox negativeTagsBox(Row row) {
         TagMultiComboBox box = new TagMultiComboBox(null, true);
         box.setWidthFull();
@@ -402,6 +470,10 @@ public class LorebookMassEditDialog extends Dialog {
         return dimmed(box, row);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TextField.class),
+            parameters = {@APIParameter(name = "row", type = LorebookMassEditDialog.Row.class)},
+            locals = {@APILocals(name = "field", type = TextField.class)})
     private TextField noteField(Row row) {
         TextField field = new TextField();
         field.setWidthFull();
@@ -416,6 +488,11 @@ public class LorebookMassEditDialog extends Dialog {
         return dimmed(field, row);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Div.class),
+            parameters = {@APIParameter(name = "row", type = LorebookMassEditDialog.Row.class)},
+            locals = {@APILocals(name = "text", type = String.class),
+                    @APILocals(name = "cell", type = Div.class)})
     private Div contentCell(Row row) {
         String text = StringUtils.defaultString(row.entry.getPayload());
         Div cell = new Div(new Span(StringUtils.abbreviate(text, CONTENT_PREVIEW_LENGTH)));
@@ -426,6 +503,10 @@ public class LorebookMassEditDialog extends Dialog {
     /**
      * An entry of a locked lorebook is shown grayed out.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "component", type = Component.class),
+                    @APIParameter(name = "row", type = LorebookMassEditDialog.Row.class)})
     private <T extends Component> T dimmed(T component, Row row) {
         if (row.locked) {
             component.addClassName(CssStyles.MULTI_TAG_LOCKED);
@@ -434,6 +515,8 @@ public class LorebookMassEditDialog extends Dialog {
         return component;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void updateButtons() {
         if (moveChecked != null) {
             moveChecked.setEnabled(targetBox.getValue() != null && rows.stream().anyMatch(row -> row.checked && !row.locked));
@@ -444,6 +527,10 @@ public class LorebookMassEditDialog extends Dialog {
      * Saves the changed fields of the entry; false when it could not be saved (the lorebook was locked meanwhile), the
      * grid is then read again from the database.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "row", type = LorebookMassEditDialog.Row.class)},
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private boolean save(Row row) {
         try {
             lorebookEntryService.save(row.entry);
@@ -456,6 +543,10 @@ public class LorebookMassEditDialog extends Dialog {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "target", type = Lorebook.class),
+                    @APILocals(name = "checked", type = List.class)})
     private void moveChecked() {
         Lorebook target = targetBox.getValue();
         List<Row> checked = rows.stream().filter(row -> row.checked).toList();
@@ -470,6 +561,12 @@ public class LorebookMassEditDialog extends Dialog {
      * Moves the entries to the lorebook. The ones that are in it already, and the ones of a lorebook an agent works on by
      * now, stay; a lorebook an agent works on by now takes nothing.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "targets", type = List.class),
+                    @APIParameter(name = "target", type = Lorebook.class)},
+            locals = {@APILocals(name = "row", type = LorebookMassEditDialog.Row.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void move(List<Row> targets, Lorebook target) {
         int moved = 0;
         try {
@@ -490,6 +587,8 @@ public class LorebookMassEditDialog extends Dialog {
         reload();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void reload() {
         load();
         updateButtons();
@@ -497,35 +596,57 @@ public class LorebookMassEditDialog extends Dialog {
 
     // for the tests of the dialog
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Grid.class))
     Grid<Row> getGrid() {
         return grid;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = List.class))
     List<Row> getRows() {
         return rows;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = List.class))
     List<Lorebook> getBooks() {
         return books;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = ComboBox.class))
     ComboBox<Lorebook> getTargetBox() {
         return targetBox;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getMoveChecked() {
         return moveChecked;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "row", type = LorebookMassEditDialog.Row.class),
+                    @APIParameter(name = "checked", type = boolean.class)})
     void check(Row row, boolean checked) {
         row.checked = checked;
         updateButtons();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "row", type = LorebookMassEditDialog.Row.class),
+                    @APIParameter(name = "target", type = Lorebook.class)})
     void moveTo(Row row, Lorebook target) {
         move(List.of(row), target);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "row", type = LorebookMassEditDialog.Row.class),
+                    @APIParameter(name = "order", type = int.class)})
     void setOrder(Row row, int order) {
         row.entry.setOrder(order);
         if (save(row)) {
