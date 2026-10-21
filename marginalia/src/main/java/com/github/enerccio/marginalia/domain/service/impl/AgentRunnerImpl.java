@@ -26,6 +26,8 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAtta
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
+import com.github.enerccio.marginalia.domain.service.manual.ManualTools;
+import com.github.enerccio.marginalia.domain.service.manual.ManualToolsImpl;
 import com.github.enerccio.marginalia.domain.traits.BatchPolicy;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
@@ -124,6 +126,10 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
 
     @Autowired
     private Localization localization;
+
+    @Autowired
+    @Lazy
+    private ManualService manualService;
 
     @Autowired
     private AgentApprovalService approvalService;
@@ -1859,7 +1865,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         }
 
         /**
-         * The commands and the file tools, with the results of the commands kept for the tool that saves one to a file.
+         * The commands, the file tools and the read-only manual, with the results of the commands kept for the tool that
+         * saves one to a file.
          */
         private FunctionSet coreTools(VirtualFileSystem files, CommandCage cage) {
             // what the commands return, whole, for the tool that saves it to a file
@@ -1868,7 +1875,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             return CommandFunctions.forAgent(commandService, agent, l -> localization.getValue(l), this::approve,
                             path -> files.readText(VirtualPath.parse(path)), commandResults,
                             path -> files.readImage(VirtualPath.parse(path)).toAttachment(path), cage)
-                    .and(fileSystemService.getFileTools(files, commandResults));
+                    .and(fileSystemService.getFileTools(files, commandResults))
+                    .and(inferenceServices.getFunctionRegistry().bind(ManualTools.class, new ManualToolsImpl(manualService)));
         }
 
         /**

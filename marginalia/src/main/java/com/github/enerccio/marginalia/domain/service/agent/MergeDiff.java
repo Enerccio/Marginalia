@@ -305,6 +305,11 @@ public final class MergeDiff {
                     props.put(field, text(extended, field));
                 }
             }
+            if (extended != null) {
+                // what extensions (and the template variables of the generation) keep in the attributes of the part, one field per key
+                extended.keySet().stream().filter(field -> field.startsWith(ATTRIBUTES)).sorted()
+                        .forEach(field -> props.put(field, translate(extended.get(field).toString(), toOriginal)));
+            }
             JsonObject summary = object(message, "summary");
             if (summary != null) {
                 JsonObject content = object(summary, "extendedContent");
@@ -560,7 +565,7 @@ public final class MergeDiff {
                 }
                 continue;
             }
-            List<Field> fields = compareAll(MESSAGE_FIELDS, base, props, current);
+            List<Field> fields = compareAll(messageFields(base, props, current), base, props, current);
             // a part inserted above it: the part follows the new part now, the rest of its branch with it
             String parent = props.get(PARENT);
             boolean insertedAbove = parent != null && !parent.equals(base.get(PARENT)) && isNewPart(context, parent);
@@ -584,7 +589,7 @@ public final class MergeDiff {
             String parent = e.getValue().get("parent");
             boolean newParent = isNewPart(context, parent);
             items.add(new Item(ID_MESSAGE + key, Kind.MESSAGE, Change.ADDED, context.sourceUuid(key), null, messageLabel(context.changed, key),
-                    newParent ? ID_MESSAGE + parent : null, oneSided(MESSAGE_FIELDS, e.getValue(), true, null), false,
+                    newParent ? ID_MESSAGE + parent : null, oneSided(messageFields(e.getValue()), e.getValue(), true, null), false,
                     parent.isEmpty() || newParent || context.other.messages.containsKey(parent) ? null : MergePlan.PROBLEM_NEEDS_PARENT, List.of()));
         }
         items.addAll(changed);
@@ -595,10 +600,27 @@ public final class MergeDiff {
                 continue;
             }
             deleted.add(new Item(ID_MESSAGE + key, Kind.MESSAGE, Change.DELETED, null, context.targetUuid(key), messageLabel(context.base, key), null,
-                    oneSided(MESSAGE_FIELDS, e.getValue(), false, current), !same(MESSAGE_FIELDS, e.getValue(), current), null, List.of()));
+                    oneSided(messageFields(e.getValue()), e.getValue(), false, current), !same(messageFields(e.getValue(), current), e.getValue(), current),
+                    null, List.of()));
         }
         items.addAll(deleted);
         return items;
+    }
+
+    /**
+     * The fields of a part: its texts, and a field for each key of the data in its attributes that any of the given versions has.
+     */
+    @SafeVarargs
+    private static List<String> messageFields(Map<String, String>... versions) {
+        Set<String> attributes = new TreeSet<>();
+        for (Map<String, String> version : versions) {
+            if (version != null) {
+                version.keySet().stream().filter(name -> name.startsWith(ATTRIBUTES)).forEach(attributes::add);
+            }
+        }
+        List<String> fields = new ArrayList<>(MESSAGE_FIELDS);
+        fields.addAll(attributes);
+        return fields;
     }
 
     private static String messageLabel(View view, String key) {

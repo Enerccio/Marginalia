@@ -394,7 +394,9 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         view.setPadding(false);
         view.setSpacing(false);
         view.addClassName(CssStyles.GAP_S);
-        Span name = new Span(loc.getValue(fieldText(field.name())));
+        Span name = new Span(field.name().startsWith(MergeDiff.ATTRIBUTES)
+                ? loc.getValue(L.LABEL_ATTRIBUTES) + ": " + field.name().substring(MergeDiff.ATTRIBUTES.length())
+                : loc.getValue(fieldText(field.name())));
         name.addClassName(CssStyles.TEXT_SEMIBOLD);
         if (pickable(item, field)) {
             Checkbox take = new Checkbox(loc.getValue(L.LABEL_MERGE_TAKE_FIELD));

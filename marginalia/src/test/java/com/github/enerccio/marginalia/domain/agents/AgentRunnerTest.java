@@ -274,7 +274,22 @@ class AgentRunnerTest extends AgentTestBase {
         String system = request.getMessages("system").getFirst();
         assertThat(system).startsWith("You are a test agent.").contains("Count the parts.").contains("finish");
         assertThat(request.getBody().getAsJsonArray("tools").toString())
-                .contains("get-book-info", "read_file", "finish", "ask_user", "update_plan", "get_run_status");
+                .contains("get-book-info", "read_file", "finish", "ask_user", "update_plan", "get_run_status",
+                        "search_manual", "read_manual_page");
+    }
+
+    @Test
+    void theAgentCanReadTheManual() throws Exception {
+        Agent agent = readingAgent();
+        llm.enqueue(MockLLMResponse.toolCall("search_manual", "{\"query\":\"lorebook\"}"),
+                MockLLMResponse.toolCall("finish", "{\"summary\":\"Read it\"}"));
+
+        AgentRun run = await(startRun(agent));
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.DONE);
+        List<LLMChatMessage> transcript = transcript(run);
+        assertThat(transcript.get(1).getToolCalls()).extracting(LLMToolCall::getName).containsExactly("search_manual");
+        assertThat(transcript.get(2).getContent()).doesNotStartWith("Error").containsIgnoringCase("lorebook");
     }
 
     @Test

@@ -577,6 +577,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_ENTRY_NAMES, "Entry names");
         setValue(L.LABEL_ARCHIVE_FILE, "File in the archive");
         setValue(L.LABEL_STORY_PARTS_LIMIT, "Parts loaded at once in the story");
+        setValue(L.LABEL_ATTRIBUTES, "Data");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");

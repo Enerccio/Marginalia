@@ -244,6 +244,40 @@ class AgentMergeTest extends AgentTestBase {
         assertThat(item.fields()).extracting(Field::name).containsExactly("sceneSetting");
     }
 
+    private void setData(ChatMessage message, String json) throws Exception {
+        ChatMessage stored = chatMessageService.find(message.getId());
+        stored.getAttributes().add("templateVariables", JsonParser.parseString(json));
+        chatMessageService.save(stored);
+    }
+
+    private String dataOf(ChatMessage message) throws Exception {
+        return chatMessageService.find(message.getId()).getAttributes().get("templateVariables").toString();
+    }
+
+    @Test
+    void theDataInTheAttributesOfAPartIsAFieldOfItsChange() throws Exception {
+        setData(inCopy("there was a dragon"), "{\"mood\":\"dark\"}");
+
+        Item item = item(plan(), Kind.MESSAGE, Change.CHANGED, "there was");
+
+        assertThat(item.fields()).extracting(Field::name).containsExactly("attributes_templateVariables");
+        assertThat(field(item, "attributes_templateVariables").base()).isEmpty();
+        assertThat(field(item, "attributes_templateVariables").agent()).isEqualTo("{\"mood\":\"dark\"}");
+        assertThat(item.conflict()).isFalse();
+    }
+
+    @Test
+    void bothChangingTheDataOfAPartToDifferentValuesIsAConflict() throws Exception {
+        setData(inCopy("there was a dragon"), "{\"mood\":\"dark\"}");
+        finish();
+        setData(inBook("there was a dragon"), "{\"mood\":\"light\"}");
+
+        Item item = item(plan(), Kind.MESSAGE, Change.CHANGED, "there was");
+
+        assertThat(item.conflict()).isTrue();
+        assertThat(field(item, "attributes_templateVariables").book()).isEqualTo("{\"mood\":\"light\"}");
+    }
+
     @Test
     void aPartInsertedInTheMiddleIsAnAddedPartAndTheMovedPartFollowsItWithoutBeingMadeAgain() throws Exception {
         chatMessageService.insertPart(copy(), inCopy("Once upon a time"), "Then came night.", null);
@@ -466,6 +500,29 @@ class AgentMergeTest extends AgentTestBase {
         assertThat(result.skipped()).isEmpty();
         assertThat(result.backup()).as("the book was saved first").isNotNull();
         assertThat(new File(result.backup())).exists();
+    }
+
+    @Test
+    void theDataInTheAttributesOfAChangedPartIsTakenOver() throws Exception {
+        setData(inCopy("there was a dragon"), "{\"mood\":\"dark\"}");
+        edit(inCopy("and a castle"), "and a keep");
+        MergePlan plan = plan();
+
+        applyAll(plan);
+
+        assertThat(dataOf(inBook("there was a dragon"))).isEqualTo("{\"mood\":\"dark\"}");
+        assertThat(bookTexts()).contains("and a keep");
+    }
+
+    @Test
+    void aPartTheAgentMadeComesWithTheDataInItsAttributes() throws Exception {
+        ChatMessage fourth = addTo(copy(), inCopy("and a castle"), "The end.");
+        setData(fourth, "{\"mood\":\"dark\"}");
+        MergePlan plan = plan();
+
+        applyAll(plan);
+
+        assertThat(dataOf(inBook("The end."))).isEqualTo("{\"mood\":\"dark\"}");
     }
 
     @Test

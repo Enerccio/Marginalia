@@ -585,6 +585,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_ENTRY_NAMES, "条目名称");
         setValue(L.LABEL_ARCHIVE_FILE, "压缩包中的文件");
         setValue(L.LABEL_STORY_PARTS_LIMIT, "故事中一次加载的段落数");
+        setValue(L.LABEL_ATTRIBUTES, "数据");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");

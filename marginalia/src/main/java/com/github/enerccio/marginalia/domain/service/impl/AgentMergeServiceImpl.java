@@ -907,6 +907,10 @@ public class AgentMergeServiceImpl implements AgentMergeService {
                         fields = true;
                     }
                     default -> {
+                        if (field.name().startsWith(MergeDiff.ATTRIBUTES)) {
+                            setAttribute(message, field.name(), edited);
+                            fields = true;
+                        }
                     }
                 }
             }
@@ -928,6 +932,18 @@ public class AgentMergeServiceImpl implements AgentMergeService {
                 } else {
                     writeSummary(message, source.getSummary(), value(item, summary));
                 }
+            }
+        }
+
+        /**
+         * Puts the data of one key of the attributes of the part (the JSON of the field), removes it when the other side has none.
+         */
+        private void setAttribute(ChatMessage message, String field, String json) {
+            String name = field.substring(MergeDiff.ATTRIBUTES.length());
+            if (StringUtils.isBlank(json)) {
+                message.getAttributes().remove(name);
+            } else {
+                message.getAttributes().add(name, JsonParser.parseString(json));
             }
         }
 
