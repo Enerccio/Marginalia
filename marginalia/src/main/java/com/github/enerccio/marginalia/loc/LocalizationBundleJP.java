@@ -683,6 +683,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_AGENT_BATCH_IGNORE_POLICIES, "すべてまとめて（バッチポリシーを無視）");
         setValue(L.ENUM_AGENT_BATCH_BATCHED, "まとめて（「単独」のコマンドは単独で）");
         setValue(L.ENUM_AGENT_BATCH_NOT_BATCHED, "1回の回答につき1回の呼び出し");
+        setValue(L.ENUM_FILTERING_MODE_KEYWORDS_OR, "キーワード（いずれか）");
+        setValue(L.ENUM_FILTERING_MODE_KEYWORDS_AND, "キーワード（すべて）");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -1201,7 +1203,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_LIST_LOREBOOKS_LLM, "この本のロアブックを一覧表示します。ルートのロアブックとそのサブブックのツリーについて、番号（ルートは 1）、名前、有効かどうか、エントリ数（有効なエントリ数も）、タグ、サブブックの番号を返します。ユーザーの他のロアブックにはアクセスできません。ロアブックとエントリはハンドル（推奨）または番号で指定します。ロアブックはこの番号、エントリはロアブック内の番号です。読み取りのみ。各行には \"handle\" もあります。追加や削除で変わらず、本を変更するコマンドが受け取るのはこれです。");
         setValue(L.DESC_COMMAND_LIST_LOREBOOKS_RETURN, "ロアブックを含む JSON：番号、名前、有効、エントリ数、有効エントリ数、タグ、サブブック");
         setValue(L.DESC_COMMAND_LIST_LORE_ENTRIES, "ロアブックのエントリを、設定とプレビューとともに一覧表示します。");
-        setValue(L.DESC_COMMAND_LIST_LORE_ENTRIES_LLM, "ロアブックのエントリを一覧表示します（list-lorebooks のロアブック番号を指定しない場合はルートのロアブック）。ロアブック内のエントリ番号、名前、有効かどうか、順序、挿入モード、フィルタリングモード（TEXT のキーまたは REGEX）、タグ、本文の長さ、短いプレビューを返します。フィルタを指定すると、名前またはタグにそのテキストを含むエントリのみ残りますが、番号はロアブック全体のままです。ページング：offset と limit。エントリはロアブック内の番号（最初は 1）で指定します。読み取りのみ。オプションは位置引数で、省略可能、記載順です。各行には \"handle\" もあります。追加や削除で変わらず、本を変更するコマンドが受け取るのはこれです。");
+        setValue(L.DESC_COMMAND_LIST_LORE_ENTRIES_LLM, "ロアブックのエントリを一覧表示します（list-lorebooks のロアブック番号を指定しない場合はルートのロアブック）。ロアブック内のエントリ番号、名前、有効かどうか、順序、挿入モード、フィルタリングモード（KEYWORDS_OR / KEYWORDS_AND のキー、TEXT、または REGEX）、タグ、本文の長さ、短いプレビューを返します。フィルタを指定すると、名前またはタグにそのテキストを含むエントリのみ残りますが、番号はロアブック全体のままです。ページング：offset と limit。エントリはロアブック内の番号（最初は 1）で指定します。読み取りのみ。オプションは位置引数で、省略可能、記載順です。各行には \"handle\" もあります。追加や削除で変わらず、本を変更するコマンドが受け取るのはこれです。");
         setValue(L.DESC_COMMAND_LIST_LORE_ENTRIES_RETURN, "ページのエントリを含む JSON：エントリ、名前、有効、順序、挿入、フィルタリング、タグ、本文の長さ、プレビュー");
         setValue(L.DESC_COMMAND_GET_LORE_ENTRY, "ロアブックのエントリ 1 件を、設定と本文とともに表示します。");
         setValue(L.DESC_COMMAND_GET_LORE_ENTRY_LLM, "ロアブックのエントリ 1 件を読み取ります（list-lorebooks のロアブック番号を指定しない場合はルートのロアブック）。名前、有効かどうか、順序、挿入モード、フィルタリングモードとキー（有効にするテキストまたは正規表現）、タグと否定タグ、コメント、オフセットと全長付きの本文の一部（長い本文は offset と length でページ送り）を返します。エントリはハンドル、またはロアブック内の番号（最初は 1、list-lore-entries を参照）で指定します。読み取りのみ。オプションは位置引数で、省略可能、記載順です。各行には \"handle\" もあります。追加や削除で変わらず、本を変更するコマンドが受け取るのはこれです。");
@@ -1291,8 +1293,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_LORE_COMMENT_PARAM, "作者向けのエントリのメモ。プロンプトには入りません");
         setValue(L.DESC_COMMAND_LORE_ENABLED_PARAM, "エントリを使うかどうか。省略時は true");
         setValue(L.DESC_COMMAND_LORE_ORDER_PARAM, "すべてのロアブックの使われるエントリの中での順序。小さいほど先で、同じ順序なら作成日時順。省略時は 100。他のエントリの順序は get-lore-entry と list-lore-entries で分かります");
-        setValue(L.DESC_COMMAND_LORE_KEYS_PARAM, "エントリが使われるきっかけとなる、ターンのテキスト中の単語または正規表現。常に使うエントリは空");
-        setValue(L.DESC_COMMAND_LORE_FILTERING_MODE_PARAM, "キーの照合方法：TEXT（単語）または REGEX。省略時は TEXT");
+        setValue(L.DESC_COMMAND_LORE_KEYS_PARAM, "エントリが使われるきっかけとなる、ターンのテキスト中の単語（「Name, Lastname」のようにカンマ区切りのリスト）または正規表現。常に使うエントリは空");
+        setValue(L.DESC_COMMAND_LORE_FILTERING_MODE_PARAM, "キーの照合方法：KEYWORDS_OR（キーはカンマ区切りのリストで、どれかがテキストにあれば使われる）、KEYWORDS_AND（すべてがテキストにある必要がある）、TEXT（キー全体を1つのテキストとして扱う）または REGEX。作成時に省略すると KEYWORDS_OR、更新時は変更なし");
         setValue(L.DESC_COMMAND_LORE_INSERTION_MODE_PARAM, "テキストを入れる場所：IN_LORE_BLOCK（ロアブロック内、エントリの順）または BEFORE_USER_PROMPT（リクエストの直前。モデルが最も注目する場所で、そのパートに直接影響させたい内容に、控えめに使う）。省略時は IN_LORE_BLOCK");
         setValue(L.DESC_COMMAND_LORE_TAGS_PARAM, "エントリのタグ（カンマ区切り）。そのうちのいずれかを持つ本でのみエントリが使われます");
         setValue(L.DESC_COMMAND_LORE_TAGS_ADD_PARAM, "エントリに追加するタグ（カンマ区切り）");
@@ -1304,7 +1306,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_PARENT_LOREBOOK_PARAM, "新しいロアブックをサブブックとして持つロアブックのハンドル。省略するとルートのロアブック");
         setValue(L.DESC_COMMAND_SUBBOOK_PARAM, "サブブックになる（またはならなくなる）ロアブックのハンドル");
         setValue(L.DESC_COMMAND_CREATE_LORE_ENTRY, "ロアブックにエントリを追加します。パラメータ：name、payload、lorebook（ハンドル）、comment、enabled、order、keys、filteringMode、insertionMode、tags。");
-        setValue(L.DESC_COMMAND_CREATE_LORE_ENTRY_LLM, "本のロアブックに新しいエントリを追加します（`lorebook` を省略するとルートのロアブック）。`payload` はプロンプトに入るテキスト（Handlebars テンプレート）です。`keys` のないエントリは常に使われ、あるエントリはキー（単語、filteringMode が REGEX なら正規表現）がターンのテキストにあるときに使われます。テンプレートや正規表現の問題があっても保存は止まらず、応答に報告されます。update-lore-entry で直してください。`order`（小さいほど先、省略時は 100）で使われるエントリの中での前後を決めます。他のエントリの `order` は list-lore-entries で読み、その間に入れてください。`insertionMode` を BEFORE_USER_PROMPT にすると、テキストはロアブロックではなくリクエストの直前に入ります。本を変更します。エントリのハンドルを返します。");
+        setValue(L.DESC_COMMAND_CREATE_LORE_ENTRY_LLM, "本のロアブックに新しいエントリを追加します（`lorebook` を省略するとルートのロアブック）。`payload` はプロンプトに入るテキスト（Handlebars テンプレート）です。`keys` のないエントリは常に使われ、あるエントリはキーがターンのテキストにあるときに使われます。`keys` はカンマ区切りの単語のリスト（例：\"Anna, Novak\"）で、そのどれかがあるとき（filteringMode が KEYWORDS_OR、既定）またはすべてがあるとき（KEYWORDS_AND）に使われます。TEXT は `keys` 全体を1つのテキストとして、REGEX は正規表現として扱います。テンプレートや正規表現の問題があっても保存は止まらず、応答に報告されます。update-lore-entry で直してください。`order`（小さいほど先、省略時は 100）で使われるエントリの中での前後を決めます。他のエントリの `order` は list-lore-entries で読み、その間に入れてください。`insertionMode` を BEFORE_USER_PROMPT にすると、テキストはロアブロックではなくリクエストの直前に入ります。本を変更します。エントリのハンドルを返します。");
         setValue(L.DESC_COMMAND_CREATE_LORE_ENTRY_RETURN, "エントリ（handle、name）と、テキストやフィルタに問題があればその内容を含む JSON");
         setValue(L.DESC_COMMAND_UPDATE_LORE_ENTRY, "ロアブックのエントリの項目を変更します。パラメータ：entry（ハンドル）、name、payload、comment、enabled、order、keys、filteringMode、insertionMode。");
         setValue(L.DESC_COMMAND_UPDATE_LORE_ENTRY_LLM, "指定したハンドルのエントリを変更します。指定した項目だけが変更されます。長いテキストの一部を変えるには、get-lore-entry で読んで、新しい `payload` 全体を渡してください。テンプレートや正規表現の問題があっても保存は止まらず、応答に報告されます。`order` と `insertionMode` はプロンプト内でのエントリの位置を変えます（create-lore-entry を参照）。タグの変更は set-lore-entry-tags、移動は move-lore-entry を使います。本を変更します。");

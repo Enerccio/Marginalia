@@ -369,7 +369,7 @@ the `nextSummaryUuid` of the restored meta summaries (also inside `replacedSumma
 | `name`, `enabled`, `ordinal` | columns | `ordinal` orders the entries in the prompt. |
 | `payload` | JSON | The lore text (a template). |
 | `comment` | JSON | Note for the author, never sent. |
-| `filtering`, `filteringMode` | JSON | Activation filter: text to find, or a regular expression (`FilteringMode.TEXT` / `REGEX`). |
+| `filtering`, `filteringMode` | JSON | Activation filter: keywords separated by commas, a text to find, or a regular expression (`FilteringMode.KEYWORDS_OR` / `KEYWORDS_AND` / `TEXT` / `REGEX`). |
 | `insertionMode` | JSON | `IN_LORE_BLOCK` or `BEFORE_USER_PROMPT`. |
 | `cachedTags`, `cachedNegativeTags` | transient | Filled by `fillEntries`: the entry's tags plus the tags of its lorebook, and the entry's negative tags. |
 

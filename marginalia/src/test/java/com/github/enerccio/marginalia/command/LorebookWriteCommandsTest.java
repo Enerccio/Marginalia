@@ -182,6 +182,7 @@ class LorebookWriteCommandsTest extends GenerationTestBase {
         assertThat(created.get("lorebook").getAsInt()).isEqualTo(1);
         assertThat(created.get("entry").getAsInt()).isEqualTo(3);
         assertThat(created.getAsJsonArray("problems")).isEmpty();
+        assertThat(dragons.getFilteringMode()).isEqualTo(FilteringMode.KEYWORDS_OR);
 
         JsonObject full = run("/create-lore-entry Tavern \"A tavern.\" " + places.getUuid() + " \"note\" false 50 \"tavern|inn\" REGEX BEFORE_USER_PROMPT \"town, fantasy\"");
         LorebookEntry tavern = lorebookEntryService.find(lorebookEntryService.find(full.get("handle").getAsString()));
