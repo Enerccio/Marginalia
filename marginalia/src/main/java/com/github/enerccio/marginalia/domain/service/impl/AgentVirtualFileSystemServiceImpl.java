@@ -398,15 +398,33 @@ public class AgentVirtualFileSystemServiceImpl implements AgentVirtualFileSystem
         return readRunFile(run, RunFolder.PLAN);
     }
 
+    @Override
+    public void writeFindings(AgentRun run, String json) {
+        writeFile(run, RunFolder.FINDINGS, json, false);
+    }
+
+    @Override
+    public String readFindings(AgentRun run) {
+        return readFile(run, RunFolder.FINDINGS, false);
+    }
+
     /**
      * A small file of the run, written at once (not when the transaction ends: the runner keeps state in them that it needs
      * when the server dies); null removes it. A failure is logged, the run goes on without the file.
      */
     private void writeRunFile(AgentRun run, String name, String content) {
+        writeFile(run, name, content, true);
+    }
+
+    /**
+     * @param inBase whether the file is in the base folder (it goes with the working copy) or in the folder of the run
+     */
+    private void writeFile(AgentRun run, String name, String content, boolean inBase) {
         if (run == null || run.getUuid() == null) {
             return;
         }
-        Path file = RunFolder.runOf(home(), run.getUuid()).resolve(RunFolder.BASE).resolve(name);
+        Path folder = RunFolder.runOf(home(), run.getUuid());
+        Path file = (inBase ? folder.resolve(RunFolder.BASE) : folder).resolve(name);
         try {
             if (content == null) {
                 Files.deleteIfExists(file);
@@ -419,10 +437,15 @@ public class AgentVirtualFileSystemServiceImpl implements AgentVirtualFileSystem
     }
 
     private String readRunFile(AgentRun run, String name) {
+        return readFile(run, name, true);
+    }
+
+    private String readFile(AgentRun run, String name, boolean inBase) {
         if (run == null || run.getUuid() == null) {
             return null;
         }
-        Path file = RunFolder.runOf(home(), run.getUuid()).resolve(RunFolder.BASE).resolve(name);
+        Path folder = RunFolder.runOf(home(), run.getUuid());
+        Path file = (inBase ? folder.resolve(RunFolder.BASE) : folder).resolve(name);
         try {
             return Files.isRegularFile(file) ? Files.readString(file, StandardCharsets.UTF_8) : null;
         } catch (IOException e) {

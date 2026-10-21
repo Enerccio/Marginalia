@@ -216,6 +216,17 @@ public interface AgentVirtualFileSystemService {
     String readPlan(AgentRun run);
 
     /**
+     * Keeps the findings of the agent (JSON, as {@code AgentFindings.toJson} writes it), at once. Null removes it. The file is in the
+     * folder of the run and outlives the working copy. No check of the owner: the runner writes it for the run it works.
+     */
+    void writeFindings(AgentRun run, String json);
+
+    /**
+     * What {@link #writeFindings} kept; null when there is none. No check of the owner: the caller has looked the run up.
+     */
+    String readFindings(AgentRun run);
+
+    /**
      * The note of the author with the last resume that the model was not told of yet, and marks it as told; null when there is none.
      * No check of the owner: the runner asks for the run it works.
      */

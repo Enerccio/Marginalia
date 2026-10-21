@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.AgentService.ResolvedProfile;
 import com.github.enerccio.marginalia.domain.service.InferenceService.RoundUsage;
 import com.github.enerccio.marginalia.domain.service.agent.*;
+import com.github.enerccio.marginalia.domain.service.agent.RunTools.Finding;
 import com.github.enerccio.marginalia.domain.service.agent.RunTools.PlanItem;
 import com.github.enerccio.marginalia.domain.service.agent.SubAgents.State;
 import com.github.enerccio.marginalia.domain.service.agent.SubAgents.Sub;
@@ -70,7 +71,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
     private static final int MAX_REASON = 2_000;
 
     // the tools that change neither the working copy nor the workspace; every other call may, and a round of them needs a checkpoint first
-    private static final Set<String> NO_CHANGE_TOOLS = Set.of("finish", "ask_user", "update_plan", "get_run_status", "request_compaction",
+    private static final Set<String> NO_CHANGE_TOOLS = Set.of("finish", "ask_user", "report", "update_plan", "get_run_status", "request_compaction",
             "checkpoint", "checkpoint_list", "checkpoint_restore", "checkpoint_delete", "get_sync_report", "view_image", "list_files", "read_file",
             "grep_files", "list_command_results");
     // the tools that start, wait for and stop sub-agents: they change nothing themselves (and are not dropped as repeats: two spawns of one task are two)
@@ -769,6 +770,29 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         return planOf(transcript);
     }
 
+    /**
+     * Keeps the findings of the run at every change (a file of the run folder, which outlives the working copy).
+     */
+    private void storeFindings(AgentRun run, List<Finding> items) {
+        try {
+            fileSystemService.writeFindings(run, AgentFindings.toJson(items));
+        } catch (Exception e) {
+            log.warn("Agent run {}: the findings can't be kept: {}", run.getUuid(), e.getMessage());
+        }
+    }
+
+    /**
+     * The findings the run reported before; none when there is no file or it can't be read (the next one starts the list again).
+     */
+    private List<Finding> loadFindings(AgentRun run) {
+        try {
+            return AgentFindings.fromJson(fileSystemService.readFindings(run));
+        } catch (Exception e) {
+            log.warn("Agent run {}: the kept findings can't be read: {}", run.getUuid(), e.getMessage());
+            return List.of();
+        }
+    }
+
     private static List<Map<String, Object>> queuedToJson(List<Queued> items) {
         List<Map<String, Object>> stored = new ArrayList<>();
         for (Queued item : items) {
@@ -1184,6 +1208,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             run = runService.find(runId);
             runTools = new RunToolsImpl(progress::render, run.isInteractive());
             runTools.onPlanChange(items -> storePlan(run, items));
+            runTools.onFindingsChange(items -> storeFindings(run, items));
             agent = agentService.findForUser(run.getAgent().getUuid());
             systemPrompt = agentService.getSystemPrompt(agent);
             instructions = agentService.getInstructions(agent);
@@ -1214,6 +1239,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
 
             List<LLMChatMessage> transcript = new ArrayList<>(messageService.transcript(run));
             runTools.restorePlan(loadPlan(run, transcript));
+            runTools.restoreFindings(loadFindings(run));
             mainResults = loadResults(run);
             checkpointTools = new CheckpointToolsImpl(() -> run, checkpointService);
             readOnlyCommands = commandService.getCommands().stream().filter(CommandDefinition::readOnly)
@@ -1934,6 +1960,10 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             }
             if (!runTools.getPlan().isEmpty()) {
                 message.append("\n\nYour plan when this summary was written:\n").append(RunToolsImpl.render(runTools.getPlan()));
+            }
+            if (!runTools.getFindings().isEmpty()) {
+                message.append("\n\nThe findings you reported so far (do not report them again):\n")
+                        .append(AgentFindings.render(runTools.getFindings(), 120));
             }
             LLMChatMessage summary = LLMChatMessage.of(LLMRole.USER, message.toString());
             long summaryTokens = inference.countTokensApprox(summary.getContent());

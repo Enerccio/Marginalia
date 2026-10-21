@@ -959,6 +959,38 @@ vaadin-dialog-overlay.agent-console-phone .help-message-user {
     font-weight: 600;
 }
 
+/* the findings an agent reported: the popover of the console and the section of the review */
+.agent-findings {
+    max-width: min(560px, 85vw);
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+/* in the review, above the table of the changes, which needs the room */
+.agent-findings-compact {
+    max-width: none;
+    max-height: 25vh;
+}
+
+.agent-finding {
+    display: flex;
+    gap: var(--lumo-space-s);
+    align-items: baseline;
+    padding: var(--lumo-space-xs) 0;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.agent-finding-warning {
+    color: var(--lumo-warning-text-color);
+    font-weight: 600;
+}
+
+.agent-finding-problem {
+    color: var(--lumo-error-text-color);
+    font-weight: 600;
+}
+
 /* the count of the agents that wait for the user, in the top bar of the phone while the drawer is closed */
 .agent-attention-cue {
     margin-inline-start: auto;

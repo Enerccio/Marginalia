@@ -848,6 +848,41 @@ class AgentConsoleDialogTest extends AgentTestBase {
     }
 
     @Test
+    void theHeaderHasNoFindingsUntilTheAgentReportsOne() throws Exception {
+        startedRun();
+
+        AgentConsoleDialog dialog = console();
+
+        assertThat(dialog.getFindingsButton().isVisible()).isFalse();
+    }
+
+    @Test
+    void theFindingsOfTheAgentOpenFromAButtonInTheHeaderAndAreReadAgainWhenTheRunGoesOn() throws Exception {
+        AgentRun run = startedRun();
+        fileSystemService.writeFindings(run, "[{\"number\":1,\"severity\":\"problem\",\"text\":\"Kira has green eyes in part 3\",\"time\":\"\"},"
+                + "{\"number\":2,\"severity\":\"note\",\"text\":\"The tone shifts\",\"time\":\"\"}]");
+
+        AgentConsoleDialog dialog = console();
+
+        assertThat(dialog.getFindingsButton().isVisible()).isTrue();
+        assertThat(dialog.getFindingsButton().getText()).isEqualTo("Findings 2");
+        List<Component> rows = dialog.getFindingsView().getChildren().toList();
+        assertThat(rows).hasSize(2);
+        assertThat(rows.get(0).getChildren().map(c -> c.getElement().getText()).toList()).containsExactly("1.", "Problem", "Kira has green eyes in part 3");
+        assertThat(rows.get(0).getChildren().skip(1).findFirst().orElseThrow().getElement().getClassList()).contains(CssStyles.AGENT_FINDING_PROBLEM);
+        assertThat(rows.get(1).getChildren().skip(1).findFirst().orElseThrow().getElement().getText()).isEqualTo("Note");
+
+        fileSystemService.writeFindings(run, "[{\"number\":1,\"severity\":\"warning\",\"text\":\"Only one\",\"time\":\"\"}]");
+        dialog.refreshRun();
+        assertThat(dialog.getFindingsButton().getText()).as("the run did not go on, no new look").isEqualTo("Findings 2");
+
+        agentRunService.addUsage(run, 10, 5);
+        dialog.refreshRun();
+        assertThat(dialog.getFindingsButton().getText()).isEqualTo("Findings 1");
+        assertThat(dialog.getFindingsView().getChildren().count()).isEqualTo(1);
+    }
+
+    @Test
     void thePlanIsTheOneOfTheLastCallWhenNothingWasKept() throws Exception {
         AgentRun run = startedRun();
         say(run, LLMChatMessage.ofToolCalls(null, List.of(LLMToolCall.of("p1", "update_plan",

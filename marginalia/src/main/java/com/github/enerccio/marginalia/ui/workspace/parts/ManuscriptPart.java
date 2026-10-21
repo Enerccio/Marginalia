@@ -214,7 +214,7 @@ public class ManuscriptPart implements ManuscriptSection {
 
             actions.add(editButton, cloneButton, deleteButton);
             return actions;
-        }).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE_TRIPLE);
+        }).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE_GIANT);
 
         grid.sort(List.of(new GridSortOrder<>(modificationColumn, SortDirection.DESCENDING)));
         sorters.add(new GridSortOrder<>(modificationColumn, SortDirection.DESCENDING));

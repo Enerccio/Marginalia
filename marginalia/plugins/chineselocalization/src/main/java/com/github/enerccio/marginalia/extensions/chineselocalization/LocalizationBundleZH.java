@@ -619,6 +619,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_AGENTS_WAITING, "等待您处理的智能体");
         setValue(L.LABEL_CLONE_BOOK, "克隆书籍");
         setValue(L.LABEL_ONLY_CURRENT_BRANCH, "仅当前分支");
+        setValue(L.LABEL_AGENT_FINDINGS, "发现");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -728,6 +729,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_AGENT_PLAN_PENDING, "待办");
         setValue(L.ENUM_AGENT_PLAN_IN_PROGRESS, "进行中");
         setValue(L.ENUM_AGENT_PLAN_DONE, "已完成");
+        setValue(L.ENUM_AGENT_FINDING_WARNING, "警告");
+        setValue(L.ENUM_AGENT_FINDING_PROBLEM, "问题");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");

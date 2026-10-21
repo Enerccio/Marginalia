@@ -67,6 +67,12 @@ public interface AgentRunService extends ExtendableService<AgentRun, AgentRunRep
     List<com.github.enerccio.marginalia.domain.service.agent.RunTools.PlanItem> getPlan(AgentRun run) throws Exception;
 
     /**
+     * The findings the agent reported with {@code report}, in the order it made them; empty for none. They are kept in the folder of the
+     * run, so they are there after the working copy is gone.
+     */
+    List<com.github.enerccio.marginalia.domain.service.agent.RunTools.Finding> getFindings(AgentRun run) throws Exception;
+
+    /**
      * Sets the model the working copy of the run writes with: the AI and the protocol of the main model profile of the agent when
      * the agent uses its own model ({@code Agent.useAgentModel}, the default), else the AI and the protocol the book has now. Done
      * every time a worker starts, so a profile or a flag the author changed in the meantime is used. The two are not merged back

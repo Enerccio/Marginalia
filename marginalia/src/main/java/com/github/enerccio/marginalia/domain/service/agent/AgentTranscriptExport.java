@@ -49,6 +49,14 @@ public final class AgentTranscriptExport {
      * @param threads the conversations of the sub-agents, the ones the agent went back over are left out
      */
     public static String export(String agentName, AgentRun run, List<AgentMessage> rows, List<AgentMessageService.SubThread> threads) {
+        return export(agentName, run, rows, threads, List.of());
+    }
+
+    /**
+     * As above, with the findings the agent reported (a section after the conversations, before the final report).
+     */
+    public static String export(String agentName, AgentRun run, List<AgentMessage> rows, List<AgentMessageService.SubThread> threads,
+                                List<RunTools.Finding> findings) {
         StringBuilder md = header(agentName, run);
         render(md, rows, "##");
         for (AgentMessageService.SubThread thread : threads) {
@@ -64,6 +72,7 @@ public final class AgentTranscriptExport {
                 md.append("### ").append(thread.end()).append("\n\n").append(StringUtils.defaultString(thread.result()).strip()).append("\n\n");
             }
         }
+        md.append(AgentFindings.toMarkdown(findings));
         return footer(md, run);
     }
 

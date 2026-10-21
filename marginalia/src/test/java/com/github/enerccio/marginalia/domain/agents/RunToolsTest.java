@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.domain.agents;
 
+import com.github.enerccio.marginalia.domain.service.agent.AgentFindings;
+import com.github.enerccio.marginalia.domain.service.agent.RunTools.Finding;
 import com.github.enerccio.marginalia.domain.service.agent.RunTools.PlanItem;
 import com.github.enerccio.marginalia.domain.service.agent.RunToolsImpl;
 import com.github.enerccio.marginalia.domain.service.function.FunctionContinuation;
@@ -125,6 +127,72 @@ class RunToolsTest {
         tools.getRunStatus(answer);
 
         assertThat(answer.result).isEqualTo("Rounds: 3\n\nPlan:\n1. [ ] Read");
+    }
+
+    @Test
+    void reportKeepsAFindingWithANormalizedSeverityAndGoesOn() {
+        List<List<Finding>> stored = new ArrayList<>();
+        tools.onFindingsChange(stored::add);
+
+        Answer first = new Answer();
+        tools.report(first, "  Kira has green eyes in part 3  ", "ERROR");
+        Answer second = new Answer();
+        tools.report(second, "The tone shifts", null);
+        Answer third = new Answer();
+        tools.report(third, "Maybe a typo", "warn");
+
+        assertThat(tools.getFindings()).extracting(Finding::number).containsExactly(1, 2, 3);
+        assertThat(tools.getFindings()).extracting(Finding::severity).containsExactly("problem", "note", "warning");
+        assertThat(tools.getFindings().getFirst().text()).isEqualTo("Kira has green eyes in part 3");
+        assertThat(tools.getFindings().getFirst().time()).isNotBlank();
+        assertThat(first.result).contains("Finding 1").contains("Go on");
+        assertThat(tools.getSummary()).as("a finding does not end the run").isNull();
+        assertThat(stored).hasSize(3);
+        assertThat(stored.getLast()).hasSize(3);
+    }
+
+    @Test
+    void reportNeedsATextAndIsLimited() {
+        Answer blank = new Answer();
+        tools.report(blank, " ", "note");
+        assertThat(blank.failure).contains("finding");
+        assertThat(tools.getFindings()).isEmpty();
+
+        for (int i = 0; i < AgentFindings.MAX_FINDINGS; i++) {
+            tools.report(new Answer(), "finding " + i, null);
+        }
+        Answer over = new Answer();
+        tools.report(over, "one more", null);
+        assertThat(over.failure).contains("most");
+        assertThat(tools.getFindings()).hasSize(AgentFindings.MAX_FINDINGS);
+
+        RunToolsImpl other = new RunToolsImpl(() -> "");
+        other.report(new Answer(), "x".repeat(AgentFindings.MAX_TEXT_LENGTH + 500), null);
+        assertThat(other.getFindings().getFirst().text()).hasSize(AgentFindings.MAX_TEXT_LENGTH);
+    }
+
+    @Test
+    void theStatusListsTheFindingsAndARestoredListGoesOn() {
+        tools.restoreFindings(List.of(new Finding(1, "problem", "Old finding", "2026-10-21T10:00:00Z")));
+        tools.report(new Answer(), "New finding", "warning");
+        Answer answer = new Answer();
+
+        tools.getRunStatus(answer);
+
+        assertThat(answer.result).isEqualTo("Rounds: 3\n\nFindings you reported:\n1. [problem] Old finding\n2. [warning] New finding");
+    }
+
+    @Test
+    void findingsRoundTripThroughTheFile() {
+        List<Finding> findings = List.of(new Finding(1, "problem", "A \"quoted\"\nline", "2026-10-21T10:00:00Z"),
+                new Finding(2, "note", "Second", "2026-10-21T10:01:00Z"));
+
+        assertThat(AgentFindings.fromJson(AgentFindings.toJson(findings))).isEqualTo(findings);
+        assertThat(AgentFindings.fromJson(null)).isEmpty();
+        assertThat(AgentFindings.fromJson("[{\"text\":\"\"},{\"text\":\"kept\",\"severity\":\"bug\"}]"))
+                .containsExactly(new Finding(1, "problem", "kept", ""));
+        assertThat(AgentFindings.toMarkdown(findings)).startsWith("## Findings").contains("1. **problem** A \"quoted\"\n   line");
+        assertThat(AgentFindings.toMarkdown(List.of())).isEmpty();
     }
 
     @Test

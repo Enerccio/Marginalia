@@ -154,7 +154,7 @@ class AgentSubagentsTest extends AgentTestBase {
         assertThat(sub.getMessages("user")).contains("Count the parts.");
         assertThat(sub.getMessages("system").getFirst()).startsWith("You are a test agent.").contains("Check the book.");
         assertThat(tools(sub)).contains("get-book-info", "read_file").doesNotContain("spawn_agent", "await_agent", "finish", "ask_user", "checkpoint",
-                "update_plan");
+                "update_plan", "report");
         // the request of the sub-agent counts in the budgets of the run
         assertThat(run.getRounds()).isEqualTo(3);
     }

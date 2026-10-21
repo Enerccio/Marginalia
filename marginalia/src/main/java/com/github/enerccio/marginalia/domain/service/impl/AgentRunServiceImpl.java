@@ -15,6 +15,8 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.AgentService.AgentGrant;
 import com.github.enerccio.marginalia.domain.service.AgentService.ResolvedProfile;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService.AgenticCopy;
+import com.github.enerccio.marginalia.domain.service.agent.AgentFindings;
+import com.github.enerccio.marginalia.domain.service.agent.RunTools.Finding;
 import com.github.enerccio.marginalia.domain.service.agent.RunTools.PlanItem;
 import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
@@ -530,6 +532,20 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
             }
         }
         return AgentRunnerImpl.planOf(messageService.transcript(stored));
+    }
+
+    @Override
+    public List<Finding> getFindings(AgentRun run) throws Exception {
+        AgentRun stored = run == null || run.getId() == null ? null : find(run.getId());
+        if (stored == null) {
+            return List.of();
+        }
+        try {
+            return AgentFindings.fromJson(fileSystemService.readFindings(stored));
+        } catch (RuntimeException e) {
+            log.warn("Agent run {}: the kept findings can't be read: {}", stored.getUuid(), e.getMessage());
+            return List.of();
+        }
     }
 
     @Override

@@ -3,6 +3,8 @@ package com.github.enerccio.marginalia.domain.service.agent;
 import com.github.enerccio.marginalia.domain.service.function.FunctionContinuation;
 import org.apache.commons.lang3.StringUtils;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -28,6 +30,9 @@ public final class RunToolsImpl implements RunTools {
     private volatile String compaction;
     private volatile List<PlanItem> plan = List.of();
     private volatile Consumer<List<PlanItem>> planStore = items -> {
+    };
+    private volatile List<Finding> findings = List.of();
+    private volatile Consumer<List<Finding>> findingsStore = items -> {
     };
 
     /**
@@ -129,6 +134,44 @@ public final class RunToolsImpl implements RunTools {
         this.plan = items == null ? List.of() : List.copyOf(items);
     }
 
+    public List<Finding> getFindings() {
+        return findings;
+    }
+
+    /**
+     * Called with all the findings after every {@code report} that was accepted, for the runner to keep them in the folder of the run.
+     * Restored findings are not stored again.
+     */
+    public void onFindingsChange(Consumer<List<Finding>> store) {
+        this.findingsStore = store == null ? items -> {
+        } : store;
+    }
+
+    /**
+     * The findings the run had before it was paused (kept by {@link #onFindingsChange}).
+     */
+    public void restoreFindings(List<Finding> items) {
+        this.findings = items == null ? List.of() : List.copyOf(items);
+    }
+
+    @Override
+    public synchronized void report(FunctionContinuation<String> done, String text, String severity) {
+        if (StringUtils.isBlank(text)) {
+            done.fail("Write the finding in text: what you found, where, and why it matters");
+            return;
+        }
+        if (findings.size() >= AgentFindings.MAX_FINDINGS) {
+            done.fail("You reported " + findings.size() + " findings, the most there can be. Put the rest in your final report or in a file");
+            return;
+        }
+        List<Finding> all = new ArrayList<>(findings);
+        all.add(new Finding(all.size() + 1, AgentFindings.severityOf(severity),
+                StringUtils.abbreviate(text.strip(), AgentFindings.MAX_TEXT_LENGTH), Instant.now().truncatedTo(ChronoUnit.SECONDS).toString()));
+        this.findings = List.copyOf(all);
+        findingsStore.accept(findings);
+        done.complete("Finding " + all.size() + " recorded for the author. Go on with your task.");
+    }
+
     @Override
     public void finish(FunctionContinuation<String> done, String summary) {
         if (StringUtils.isBlank(summary)) {
@@ -181,7 +224,13 @@ public final class RunToolsImpl implements RunTools {
     @Override
     public void getRunStatus(FunctionContinuation<String> done) {
         String text = status.get();
-        done.complete(plan.isEmpty() ? text : text + "\n\nPlan:\n" + render(plan));
+        if (!plan.isEmpty()) {
+            text += "\n\nPlan:\n" + render(plan);
+        }
+        if (!findings.isEmpty()) {
+            text += "\n\nFindings you reported:\n" + AgentFindings.render(findings, 120);
+        }
+        done.complete(text);
     }
 
     /**

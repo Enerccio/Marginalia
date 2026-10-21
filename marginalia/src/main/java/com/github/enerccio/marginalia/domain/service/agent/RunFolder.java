@@ -41,6 +41,11 @@ public final class RunFolder {
     public static final String DELIVERY = "delivery.json";
     /** The to-do list of the agent (the last {@code update_plan}), kept at every change so a restart and a compaction do not lose it. */
     public static final String PLAN = "plan.json";
+    /**
+     * The findings the agent reported with {@code report}. A file of the run folder itself, not of the base: it stays after the working
+     * copy is released, for the history of the runs and the export, and goes with the folder.
+     */
+    public static final String FINDINGS = "findings.json";
 
     private final Path run;
     private final Path workspace;
