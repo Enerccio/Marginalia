@@ -41,7 +41,7 @@ public class ProgressBarDialog extends ThreadAccessDialog {
 
     public void create() {
         setWidth("450px");
-        setHeight("150px");
+        setHeight("160px");
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
         setModality(ModalityMode.STRICT);

@@ -138,7 +138,7 @@ All application code is in `com.github.enerccio.marginalia` (`marginalia/src/mai
 
 | Package | Layer | Contents |
 |---|---|---|
-| `ui.main` | UI | Servlet, app shell, the two routes: `Main` (`/`) and `Viewer` (`/view`), login handling (`LoginCheckRoute`). |
+| `ui.main` | UI | Servlet, app shell, the routes: `Main` (`/`), `Viewer` (`/view`) and `Reset` (`/reset`, clears the saved workspace state), login handling (`LoginCheckRoute`). |
 | `ui.workspace`, `ui.workspace.parts` | UI | The workspace after login and its tabs: books, lorebooks, settings, protocols, inference providers, admin. |
 | `ui.dialogs`, `ui.dialogs.manuscript` | UI | Dialogs; the book window (`ManuscriptDialog`) and its tabs: story, tree, about, prompts, lorebook, backups. |
 | `ui.components`, `ui.widgets` | UI | Reusable components (lorebook editor, story tree, the help assistant's button and chat) and small widgets. |

@@ -72,6 +72,13 @@ Behind a reverse proxy, the proxy must forward WebSockets and allow long request
 [Server (Docker)](getting-started/docker-server.md#https-and-reverse-proxy). With the desktop app, the app was probably
 quit; start it again.
 
+**The workspace freezes the browser when it opens.**
+Marginalia opens again what you had open when you left, so a very long book (for example one imported from an
+archive) can freeze the page before you can change anything. Open `/reset` on your Marginalia address (for example
+`https://marginalia.example.com/reset`) and log in: the saved state of the workspace (open books, selected tabs,
+filters) is forgotten and you land in an empty workspace. Then set **Parts loaded at once in the story** in your
+[account](account.md) before you open the book again.
+
 ## Models and generation
 
 **"Failed to download model list".**
