@@ -19,8 +19,11 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
 import com.github.enerccio.marginalia.test.AgentTestBase;
 import com.github.enerccio.marginalia.test.TestImages;
+import com.github.enerccio.marginalia.test.commands.HelloWorldCommands;
 import com.github.enerccio.marginalia.test.llm.MockLLMRequest;
 import com.github.enerccio.marginalia.test.llm.MockLLMResponse;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -43,6 +46,22 @@ class AgentRunnerTest extends AgentTestBase {
 
     @Autowired
     private AgentRunner runner;
+
+    @Autowired
+    private CommandService commandService;
+
+    private final HelloWorldCommands helloWorld = new HelloWorldCommands();
+
+    /** The command that takes ten seconds and stops when it is told to; the application has no such command. */
+    @BeforeEach
+    void registerTestCommands() {
+        commandService.registerCommands(helloWorld);
+    }
+
+    @AfterEach
+    void unregisterTestCommands() {
+        commandService.unregisterCommands(helloWorld);
+    }
 
     @Autowired
     private AIGate aiGate;

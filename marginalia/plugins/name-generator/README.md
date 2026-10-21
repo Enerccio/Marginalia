@@ -13,7 +13,7 @@ Gives the model functions to get names instead of inventing them, from Markov ch
 
 ## Commands
 
-The same names for the command bar and for agents (`NameGeneratorCommands`, both `NON_DESTRUCTIVE`): `/list-name-categories` (a JSON array) and `/generate-names category count [min_length [max_length]]` (a JSON array of names, same limits as the function).
+The same names for the command bar and for agents (`NameGeneratorCommands`, both `NON_DESTRUCTIVE`): `/list-name-categories [filter]` (a JSON array with a category on each line; `filter` is the start of the name of the categories to list, not case sensitive, since there are over a thousand of them) and `/generate-names category count [min_length [max_length]]` (a JSON array of names, same limits as the function).
 
 ## For developers
 

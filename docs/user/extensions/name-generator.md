@@ -30,7 +30,7 @@ which can use them in their own prompts (for example for `/generate-lore-entry` 
 
 | Command | What it does |
 |---|---|
-| `/list-name-categories` | Lists the categories as a JSON array. |
+| `/list-name-categories [<filter>]` | Lists the categories as a JSON array; with a filter only those whose name starts with it (not case sensitive). |
 | `/generate-names category count [min_length [max_length]]` | Makes up to 100 names of the category and returns them as a JSON array. Different names each time. |
 
 Both only read.

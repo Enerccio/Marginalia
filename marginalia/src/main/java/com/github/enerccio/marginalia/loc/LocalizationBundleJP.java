@@ -375,8 +375,6 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_REPLACE_TEXT_PLACEHOLDER, "[置換文字列]");
         setValue(L.LABEL_REVALIDATE_ALL_SUMMARIES, "すべての要約を再検証");
         setValue(L.LABEL_CASE_SENSITIVE, "大文字と小文字を区別");
-        setValue(L.LABEL_COMMAND_HELLO_WORLD, "ハローワールド");
-        setValue(L.LABEL_COMMAND_HELLO_WORLD_ASYNC, "ハローワールド（非同期）");
         setValue(L.LABEL_COMMAND_TAKE_BACKUP, "バックアップを作成");
         setValue(L.LABEL_COMMAND_SEARCH_REPLACE_STORY, "ストーリー内を検索して置換");
         setValue(L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK, "ロアブック内を検索して置換");
@@ -764,7 +762,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ERROR_LIMIT_TOTAL_UNREACHABLE, "送信トークンと生成トークンの上限の合計が合計の上限に満たないため、合計の上限には到達しません。");
         setValue(L.ERROR_LIMIT_USER_REQUIRED, "ユーザーを選択してください。");
         setValue(L.ERROR_INFERENCE_EXTENSION_UNAVAILABLE, "この AI を提供する拡張機能が読み込まれていません。管理 → 拡張機能 で読み込むか、別の AI を選択してください。");
-        setValue(L.ERROR_COMMAND_NEEDS_SLASH, "コマンドは /hello-world のようにスラッシュで始まります");
+        setValue(L.ERROR_COMMAND_NEEDS_SLASH, "コマンドは /take-backup のようにスラッシュで始まります");
         setValue(L.ERROR_COMMAND_UNKNOWN, "コマンド %s はありません");
         setValue(L.ERROR_COMMAND_ARGUMENTS, "コマンド %s はこれらの引数を受け付けません");
         setValue(L.ERROR_COMMAND_FAILED, "コマンド %s は失敗しました：%s");
@@ -1162,13 +1160,6 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_MACRO_VARIABLE_SHORTHAND, "変数の省略記法：. はローカル、$ はグローバル。演算子：= ++ -- += -= || ?? ||= ??= == != > >= < <=");
         setValue(L.DESC_MACRO_COMMENT, "コメント。出力からは取り除かれます。");
         setValue(L.DESC_TEMPLATE_SUMMARY_BLOCKS, "統合される要約（古い順）。");
-        setValue(L.DESC_COMMAND_HELLO_WORLD, "渡された内容をそのまま返します。何も渡されない場合は挨拶を返します。");
-        setValue(L.DESC_COMMAND_HELLO_WORLD_LLM, "引数をそのまま返します。引数がない場合は「Hello world」を返します。副作用はありません。");
-        setValue(L.DESC_COMMAND_HELLO_WORLD_ASYNC, "hello-world と同じですが、ワーカースレッドで10秒後に応答します。停止できます。");
-        setValue(L.DESC_COMMAND_HELLO_WORLD_ASYNC_LLM, "10秒後に引数をそのまま返します。引数がない場合は「Hello world」を返します。非同期で、副作用はありません。");
-        setValue(L.DESC_COMMAND_HELLO_WORLD_MESSAGE_PARAM, "何でも指定できます。そのまま返されます");
-        setValue(L.DESC_COMMAND_HELLO_WORLD_GREETING_RETURN, "挨拶（Hello world）");
-        setValue(L.DESC_COMMAND_HELLO_WORLD_ECHO_RETURN, "引数");
         setValue(L.DESC_COMMAND_TAKE_BACKUP, "開いている本のバックアップを作成します。バックアップは本の「バックアップ」タブに表示されます。");
         setValue(L.DESC_COMMAND_TAKE_BACKUP_RETURN, "バックアップされた内容：本の名前と、メッセージ数および画像数");
         setValue(L.DESC_COMMAND_SEARCH_PARAM, "検索するテキスト（regex 指定時は正規表現）");
@@ -1377,13 +1368,13 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_SET_LOREBOOK_LLM, "本のロアブックの名前、または使うかどうかを変更します。無効なロアブックのエントリは使われません。指定した値だけが変更されます。本を変更します。");
         setValue(L.DESC_COMMAND_SET_LOREBOOK_RETURN, "ロアブック（handle、number、name、enabled）を含む JSON");
         setValue(L.DESC_COMMAND_ADD_SUBBOOK, "本のロアブックを別のロアブックのサブブックにします。パラメータ：lorebook（ハンドル）、subbook（ハンドル）。");
-        setValue(L.DESC_COMMAND_ADD_SUBBOOK_LLM, "ロアブック `subbook` をロアブック `lorebook` のサブブックにします。そのエントリはロアブックが使われる場所で使われます。どちらもこの本のロアブックである必要があり、ロアブックは直接またはサブブックを通じて自分自身を含むことはできません（拒否されます）。本を変更します。");
+        setValue(L.DESC_COMMAND_ADD_SUBBOOK_LLM, "ロアブック `subbook` をロアブック `lorebook` のサブブックにします。そのエントリはロアブックが使われる場所で使われます。どちらもこの本のロアブックである必要があり、ロアブックは直接またはサブブックを通じて自分自身を含むことはできません（拒否されます）。この実行の前の段階で削除された、または親から外されたロアブックは、ハンドルで `subbook` として指定でき、追加するとエントリとともに元に戻ります。本を変更します。");
         setValue(L.DESC_COMMAND_ADD_SUBBOOK_RETURN, "ロアブックとそのサブブックを含む JSON");
         setValue(L.DESC_COMMAND_REMOVE_SUBBOOK, "ロアブックを別のロアブックのサブブックから外します。パラメータ：lorebook（ハンドル）、subbook（ハンドル）。");
-        setValue(L.DESC_COMMAND_REMOVE_SUBBOOK_LLM, "ロアブック `subbook` をロアブック `lorebook` のサブブックから外します。サブブックでなければ何も起きません。ロアブックは削除されませんが、他のロアブックのサブブックでなくなると、そのエントリは本で使われなくなります（この実行ではもう指定できません）。本を変更します。");
+        setValue(L.DESC_COMMAND_REMOVE_SUBBOOK_LLM, "ロアブック `subbook` をロアブック `lorebook` のサブブックから外します。サブブックでなければ何も起きません。ロアブックは削除されませんが、他のロアブックのサブブックでなくなると、そのエントリは本で使われなくなりますハンドルで指定して add-subbook で再び追加できます）。本を変更します。");
         setValue(L.DESC_COMMAND_REMOVE_SUBBOOK_RETURN, "ロアブックとそのサブブックを含む JSON");
         setValue(L.DESC_COMMAND_DELETE_LOREBOOK, "ロアブックをそのエントリごと削除します。パラメータ：lorebook（ハンドル）。");
-        setValue(L.DESC_COMMAND_DELETE_LOREBOOK_LLM, "本のロアブックをすべてのエントリとともに削除し、それをサブブックとして持っていたロアブックから外します。本のルートのロアブックは削除できません。本を変更します。ユーザーには確認が求められ、エージェントは破壊的コマンドのモードに従います。");
+        setValue(L.DESC_COMMAND_DELETE_LOREBOOK_LLM, "本のロアブックをすべてのエントリとともに削除し、それをサブブックとして持っていたロアブックから外します。削除済みの印が付くだけで、そのハンドルを指定した add-subbook でエントリとともに元に戻せます。本のルートのロアブックは削除できません。本を変更します。ユーザーには確認が求められ、エージェントは破壊的コマンドのモードに従います。");
         setValue(L.DESC_COMMAND_DELETE_LOREBOOK_RETURN, "削除したロアブックのハンドルと名前、エントリ数を含む JSON");
         setValue(L.DESC_COMMAND_MAX_HITS_PARAM, "一致がこの数より多い場合は置換を拒否します。省略すると制限なし");
         setValue(L.DESC_COMMAND_DRY_RUN_PARAM, "一致を数えて数件を表示するだけで、何も変更しません。省略時は false");

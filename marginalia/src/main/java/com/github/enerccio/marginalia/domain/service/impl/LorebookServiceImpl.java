@@ -43,6 +43,10 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
     @Lazy
     private AgentRunService agentRunService;
 
+    @Autowired
+    @Lazy
+    private TrashService trashService;
+
     /**
      * The lorebooks of a book an agent works on can't be changed, see {@link AgentRunService#checkNotLocked(Lorebook)}.
      */
@@ -187,6 +191,25 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             p = save(p);
         }
         return p;
+    }
+
+    @Override
+    @CommonTx
+    public Lorebook restore(Lorebook lorebook) throws Exception {
+        Lorebook stored = lorebook == null || lorebook.getId() == null ? null : (Lorebook) Hibernate.unproxy(find(lorebook.getId()));
+        if (stored == null || stored.getOwner() == null || !stored.getOwner().getId().equals(currentUser.getId())) {
+            throw new IllegalArgumentException("The lorebook does not exist");
+        }
+        if (!stored.isDeleted()) {
+            return stored;
+        }
+        agentRunService.checkNotLocked(stored);
+        TrashService.RestoreResult result = trashService.restore(List.of(new CleanupService.EntityKey(Lorebook.class, stored.getId())));
+        if (!result.getBlocked().isEmpty()) {
+            throw new IllegalStateException("The lorebook can't be restored, it depends on " + result.getBlocked().values().stream()
+                    .flatMap(List::stream).map(TrashService.Blocker::label).distinct().collect(Collectors.joining(", ")));
+        }
+        return (Lorebook) Hibernate.unproxy(find(stored.getId()));
     }
 
     @Override

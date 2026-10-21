@@ -49,8 +49,6 @@ class BuiltInCommandTextsTest extends MarginaliaTestBase {
     @Test
     void theBuiltInCommandsSayWhatTheyDoToTheData() {
         Map<String, CommandDataSeverity> expected = new HashMap<>(Map.of(
-                "hello-world", CommandDataSeverity.NON_DESTRUCTIVE,
-                "hello-world-async", CommandDataSeverity.NON_DESTRUCTIVE,
                 "take-backup", CommandDataSeverity.NON_DESTRUCTIVE,
                 "search-replace-parts", CommandDataSeverity.DESTRUCTIVE,
                 "search-replace-lore-entries", CommandDataSeverity.DESTRUCTIVE));

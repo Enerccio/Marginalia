@@ -375,8 +375,6 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_REPLACE_TEXT_PLACEHOLDER, "[replace text]");
         setValue(L.LABEL_REVALIDATE_ALL_SUMMARIES, "Revalidate all summaries");
         setValue(L.LABEL_CASE_SENSITIVE, "Case sensitive");
-        setValue(L.LABEL_COMMAND_HELLO_WORLD, "Hello world");
-        setValue(L.LABEL_COMMAND_HELLO_WORLD_ASYNC, "Hello world (async)");
         setValue(L.LABEL_COMMAND_TAKE_BACKUP, "Take backup");
         setValue(L.LABEL_COMMAND_SEARCH_REPLACE_STORY, "Search and replace in the story");
         setValue(L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK, "Search and replace in the lorebook");
@@ -764,7 +762,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_LIMIT_TOTAL_UNREACHABLE, "The limits of tokens sent and tokens generated add up to less than the limit in total, so the total would never be reached.");
         setValue(L.ERROR_LIMIT_USER_REQUIRED, "Choose a user.");
         setValue(L.ERROR_INFERENCE_EXTENSION_UNAVAILABLE, "The extension that provides this AI is not loaded. Load it in Admin → Extensions or pick another AI.");
-        setValue(L.ERROR_COMMAND_NEEDS_SLASH, "A command starts with a slash, like /hello-world");
+        setValue(L.ERROR_COMMAND_NEEDS_SLASH, "A command starts with a slash, like /take-backup");
         setValue(L.ERROR_COMMAND_UNKNOWN, "There is no command %s");
         setValue(L.ERROR_COMMAND_ARGUMENTS, "The command %s does not take these arguments");
         setValue(L.ERROR_COMMAND_FAILED, "The command %s failed: %s");
@@ -1162,13 +1160,6 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.DESC_MACRO_VARIABLE_SHORTHAND, "Variable shorthands: . for local, $ for global. Operators: = ++ -- += -= || ?? ||= ??= == != > >= < <=");
         setValue(L.DESC_MACRO_COMMENT, "Comment, removed from the output.");
         setValue(L.DESC_TEMPLATE_SUMMARY_BLOCKS, "The summaries being merged, oldest first.");
-        setValue(L.DESC_COMMAND_HELLO_WORLD, "Returns what it is given, or a greeting when it is given nothing.");
-        setValue(L.DESC_COMMAND_HELLO_WORLD_LLM, "Echoes the argument back. Without an argument answers 'Hello world'. Has no side effects.");
-        setValue(L.DESC_COMMAND_HELLO_WORLD_ASYNC, "Like hello-world, but answers after 10 seconds, on a worker thread. Can be stopped.");
-        setValue(L.DESC_COMMAND_HELLO_WORLD_ASYNC_LLM, "Echoes the argument back after 10 seconds, without an argument answers 'Hello world'. Asynchronous, no side effects.");
-        setValue(L.DESC_COMMAND_HELLO_WORLD_MESSAGE_PARAM, "Anything, it is returned as it is");
-        setValue(L.DESC_COMMAND_HELLO_WORLD_GREETING_RETURN, "The greeting, Hello world");
-        setValue(L.DESC_COMMAND_HELLO_WORLD_ECHO_RETURN, "The argument");
         setValue(L.DESC_COMMAND_TAKE_BACKUP, "Takes a backup of the book that is open. The backup is listed in the Backups tab of the book.");
         setValue(L.DESC_COMMAND_TAKE_BACKUP_RETURN, "What was backed up: the name of the book and how many messages and images it has");
         setValue(L.DESC_COMMAND_SEARCH_PARAM, "The text to find (a regular expression with regex)");
@@ -1377,13 +1368,13 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_SET_LOREBOOK_LLM, "Changes the name of a lorebook of the book, or whether it is used: the entries of a disabled lorebook are not used. Only the values that are given are changed. Changes the book.");
         setValue(L.DESC_COMMAND_SET_LOREBOOK_RETURN, "JSON with the lorebook (handle, number, name, enabled)");
         setValue(L.DESC_COMMAND_ADD_SUBBOOK, "Makes a lorebook of the book a subbook of another. Parameters: lorebook (handle), subbook (handle).");
-        setValue(L.DESC_COMMAND_ADD_SUBBOOK_LLM, "Makes the lorebook `subbook` a subbook of the lorebook `lorebook`, so its entries are used wherever the lorebook is. Both have to be lorebooks of this book; a lorebook can't contain itself, directly or through its subbooks (that is refused). Changes the book.");
+        setValue(L.DESC_COMMAND_ADD_SUBBOOK_LLM, "Makes the lorebook `subbook` a subbook of the lorebook `lorebook`, so its entries are used wherever the lorebook is. Both have to be lorebooks of this book; a lorebook can't contain itself, directly or through its subbooks (that is refused). A lorebook that was deleted or taken out of its parent earlier in this run can be named by its handle as `subbook`: adding it brings it back, with its entries. Changes the book.");
         setValue(L.DESC_COMMAND_ADD_SUBBOOK_RETURN, "JSON with the lorebook and its subbooks");
         setValue(L.DESC_COMMAND_REMOVE_SUBBOOK, "Stops a lorebook being a subbook of another. Parameters: lorebook (handle), subbook (handle).");
-        setValue(L.DESC_COMMAND_REMOVE_SUBBOOK_LLM, "Takes the lorebook `subbook` out of the subbooks of the lorebook `lorebook`; nothing happens when it is not one. The lorebook is not deleted, but when no other lorebook has it as a subbook, its entries are not used in the book any more (and it can't be addressed in this run any more). Changes the book.");
+        setValue(L.DESC_COMMAND_REMOVE_SUBBOOK_LLM, "Takes the lorebook `subbook` out of the subbooks of the lorebook `lorebook`; nothing happens when it is not one. The lorebook is not deleted, but when no other lorebook has it as a subbook, its entries are not used in the book any more, but you can still name it by its handle and add it again with add-subbook. Changes the book.");
         setValue(L.DESC_COMMAND_REMOVE_SUBBOOK_RETURN, "JSON with the lorebook and its subbooks");
         setValue(L.DESC_COMMAND_DELETE_LOREBOOK, "Deletes a lorebook with its entries. Parameters: lorebook (handle).");
-        setValue(L.DESC_COMMAND_DELETE_LOREBOOK_LLM, "Deletes a lorebook of the book with all its entries, and takes it out of the subbooks of the lorebooks that had it. The root lorebook of the book can't be deleted. Changes the book; the user is asked to confirm, an agent is covered by its destructive mode.");
+        setValue(L.DESC_COMMAND_DELETE_LOREBOOK_LLM, "Deletes a lorebook of the book with all its entries, and takes it out of the subbooks of the lorebooks that had it. It is only marked as deleted: add-subbook with its handle brings it back with its entries. The root lorebook of the book can't be deleted. Changes the book; the user is asked to confirm, an agent is covered by its destructive mode.");
         setValue(L.DESC_COMMAND_DELETE_LOREBOOK_RETURN, "JSON with the handle and the name of the deleted lorebook and how many entries it had");
         setValue(L.DESC_COMMAND_MAX_HITS_PARAM, "Refuse to replace when there are more matches than this; no limit when omitted");
         setValue(L.DESC_COMMAND_DRY_RUN_PARAM, "Only count the matches and show a few of them, change nothing; false when omitted");

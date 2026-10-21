@@ -119,7 +119,7 @@ for agents (the help shows it); the service does not check the value against it.
 A caller can cancel the future (the **Stop** button of the progress window does). Then `isTerminated()` becomes true, the
 worker thread is interrupted, and a command that has not started yet does not start. A long-running `async` command must
 cooperate: look at `isTerminated()` (and the interrupt flag) between the steps of its work and return at once. What it
-sets afterwards is ignored. `/hello-world-async` (`HelloWorldCommands`) is the model of such a loop.
+sets afterwards is ignored. `/hello-world-async` of `HelloWorldCommands` (a suite of the tests, `src/test/java`, not part of the application) is the model of such a loop.
 
 ### Uninterruptable runs
 
@@ -151,7 +151,7 @@ ignored. `/take-backup` (`BackupCommands`) is an example.
 | Value             | Means                                                                                                      |
 |-------------------|------------------------------------------------------------------------------------------------------------|
 | `DESTRUCTIVE`     | The command changes or removes data that exists (replaces text, deletes, overwrites). **The default.**     |
-| `NON_DESTRUCTIVE` | The command only reads data or adds new data; whatever exists stays as it is (`/take-backup`, `/hello-world`). |
+| `NON_DESTRUCTIVE` | The command only reads data or adds new data; whatever exists stays as it is (`/take-backup`). |
 
 The default is the safe assumption: a command that does not say is treated as destructive, so a command that only reads or
 adds declares `NON_DESTRUCTIVE`. All forms of a command have the same severity (`registerCommands` throws
@@ -181,7 +181,7 @@ name another object already holds. It returns the `CommandDefinition`s. Register
 service does not know which bundle a suite came from: **an extension unregisters its suites in `onExtensionUnload`**.
 Runs in progress are not interrupted by unregistering.
 
-The application registers its own suites in `CommandServiceImpl.afterPropertiesSet` (`HelloWorldCommands`, `BackupCommands`, the two search and replace commands and the [commands that read the book](#commands-that-read-the-book)).
+The application registers its own suites in `CommandServiceImpl.afterPropertiesSet` (`BackupCommands`, the two search and replace commands and the [commands that read the book](#commands-that-read-the-book)).
 
 ## Statelessness
 
@@ -209,6 +209,12 @@ the ones of the book of the scope: the parts of the book, the lorebook of the bo
 anything else (the original book of a copy, another book, a lorebook the book does not use, a deleted item) is refused with an
 `IllegalArgumentException` as if it did not exist, so a command that takes an item as an argument can't be aimed outside of the book by what
 it is given. A command that takes an item does it through the scope and not through `findForUser` or `find(id)`.
+
+One exception: `resolveUnusedLorebook(uuid)` also finds a lorebook of the working copy that the book does not use any more, because a command deleted it
+(`LorebookService.delete` only marks it, with its entries and tags) or took it out of its parent. It is for `/add-subbook`, which brings such a lorebook
+back (`LorebookService.restore`, the restore of the trash); the cage is that the lorebook is one of the copy (`agentic`, of the owner of the run) and that the
+run has a **handle** for it, so an agent can only name what it was shown. The scope of the user at the command bar answers like `resolveLorebook`; the user
+restores from the trash.
 
 `CommandUtils` (package `utils`) reads the session of the caller – also on the worker thread of an `async` command, which
 gets the request attributes – and returns `null` when there is nothing to return (no session, no workspace yet, no book

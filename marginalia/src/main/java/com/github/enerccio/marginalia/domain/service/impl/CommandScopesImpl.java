@@ -39,6 +39,10 @@ public class CommandScopesImpl implements CommandScopes {
     @Lazy
     private AgentService agentService;
 
+    @Autowired
+    @Lazy
+    private AgentRunPairService agentRunPairService;
+
     @Override
     public CommandScope session() {
         return new SessionScope();
@@ -166,6 +170,20 @@ public class CommandScopesImpl implements CommandScopes {
         @Override
         public AgentRun getRun() {
             return run;
+        }
+
+        @Override
+        public Lorebook resolveUnusedLorebook(String uuid) throws Exception {
+            Long id = uuid == null ? null : lorebookService.find(uuid);
+            Lorebook lorebook = id == null ? null : lorebookService.find(id);
+            AgentRun current = agentRunService.find(run.getId());
+            // the cage of a lorebook that the book does not use: one of this copy (the run has a handle for it) and of this user
+            if (lorebook == null || current == null || !lorebook.isAgentic() || lorebook.getOwner() == null || current.getOwner() == null
+                    || !lorebook.getOwner().getId().equals(current.getOwner().getId())
+                    || agentRunPairService.findHandle(current, uuid).isEmpty()) {
+                throw new IllegalArgumentException("The lorebook does not exist");
+            }
+            return lorebook;
         }
 
         @Override

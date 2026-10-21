@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845923840949">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845926496712">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845923840949" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845926496712" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845923840949" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845926496712" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845923840949" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845926496712" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -226,9 +226,9 @@ are typing now highlighted and its description,</p>
 three ways:</p>
 <retype-table copy-text="| You type                     | The command gets                | Why                                        |
 |------------------------------|---------------------------------|--------------------------------------------|
-| `/hello-world two\ words`    | one argument, `two words`       | `\ ` (backslash, space) is a space         |
-| `/hello-world &quot;two words&quot;`   | one argument, `two words`       | double quotes keep everything inside together |
-| `/hello-world say\ &quot;hi&quot;`     | one argument, `say hi`          | quotes can start in the middle of an argument |">
+| `/search-parts two\ words`   | one argument, `two words`       | `\ ` (backslash, space) is a space         |
+| `/search-parts &quot;two words&quot;`  | one argument, `two words`       | double quotes keep everything inside together |
+| `/search-parts say\ &quot;hi&quot;`    | one argument, `say hi`          | quotes can start in the middle of an argument |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -240,17 +240,17 @@ three ways:</p>
 </thead>
 <tbody>
 <tr>
-<td><code translate="no" v-pre>/hello-world two\ words</code></td>
+<td><code translate="no" v-pre>/search-parts two\ words</code></td>
 <td>one argument, <code translate="no" v-pre>two words</code></td>
 <td><code translate="no" v-pre>\ </code> (backslash, space) is a space</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>/hello-world &quot;two words&quot;</code></td>
+<td><code translate="no" v-pre>/search-parts &quot;two words&quot;</code></td>
 <td>one argument, <code translate="no" v-pre>two words</code></td>
 <td>double quotes keep everything inside together</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>/hello-world say\ &quot;hi&quot;</code></td>
+<td><code translate="no" v-pre>/search-parts say\ &quot;hi&quot;</code></td>
 <td>one argument, <code translate="no" v-pre>say hi</code></td>
 <td>quotes can start in the middle of an argument</td>
 </tr>
@@ -294,7 +294,7 @@ never close it, everything to the end of the line belongs to that argument.</p>
 <p>Arguments are text. A command that wants a number, a yes/no or one of a few options converts the text itself; if the text does
 not fit, the command is not run and a notification says so.</p>
 <h2 id="forms-of-a-command">Forms of a command</h2>
-<p>One command can take different arguments: <code translate="no" v-pre>/hello-world</code> with nothing, and <code translate="no" v-pre>/hello-world something</code> with one argument
+<p>One command can take different arguments: <code translate="no" v-pre>/list-parts</code> with nothing, and <code translate="no" v-pre>/list-parts 2</code> with one argument
 are two <strong>forms</strong> of the same command. Marginalia picks the form by the number of arguments you typed and by what they
 look like. If no form fits, a notification says that the command does not take these arguments, and the help shows the
 forms it does have.</p>
@@ -310,8 +310,7 @@ no window.</p>
 <h2 id="commands-that-take-time">Commands that take time</h2>
 <p>Most commands answer at once. A command that needs time shows a window with an animated bar and a <strong>Stop</strong> button, and
 the story is locked until the command is done. Under the bar the command can say what it is doing now and, in smaller
-letters, the detail of the step. <strong>Stop</strong> cancels the command; it should return immediately. You can try it with
-<code translate="no" v-pre>/hello-world-async</code>.</p>
+letters, the detail of the step. <strong>Stop</strong> cancels the command; it should return immediately. The commands that have the model write, like <code translate="no" v-pre>/next</code>, are of this kind.</p>
 <figure class="content-center">
     <img src="../../images/command-running.png" alt="The window of a command that is running" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1500" height="520" />
     <figcaption class="caption">The window of a command that is running</figcaption>
@@ -343,9 +342,6 @@ changes the book; <strong>No</strong> leaves everything as it was. The question 
 <h2 id="commands-that-come-with-marginalia">Commands that come with Marginalia</h2>
 <retype-table copy-text="| Command                              | What it does                                                                       |
 |--------------------------------------|------------------------------------------------------------------------------------|
-| `/hello-world`                       | Returns *Hello world*. (This and the two below are examples to try the command line.) |
-| `/hello-world &lt;message&gt;`             | Returns the message it was given.                                                  |
-| `/hello-world-async [&lt;message&gt;]`     | The same, but after 10 seconds; shows the **Stop** window while it waits.          |
 | `/search-replace-parts &lt;search&gt; &lt;replace&gt; [regex] [caseSensitive] [summaries] [allBranches] [revalidateSummaries] [maxHits] [dryRun]` | Search and replace in the story of the open book, like the **Search and replace** window of the story tab. The options are `true`/`false`, in this order, and each one you leave out has the default of that window ([regex](../regular-expressions.md) no, case sensitive yes, summaries yes, all branches no, revalidate yes); to set one, give those before it too. `maxHits` refuses a replace that finds more matches than that, and with `dryRun` `true` nothing is changed: the answer counts the matches and shows a few, which is how an agent looks before it replaces. There is no preview: after the search you are asked whether to replace the number of matches found, and only **Yes** changes the book. The replace cannot be stopped. |
 | `/search-replace-lore-entries &lt;search&gt; &lt;replace&gt; [regex] [caseSensitive] [maxHits] [dryRun]` | The same for the entries (name, text and comment) of the lorebook of the open book. |
 | `/take-backup`                       | Takes a backup of the book that is open; it appears in the **Backups** tab of the book. Says no book is open when there is none. |
@@ -378,18 +374,6 @@ changes the book; <strong>No</strong> leaves everything as it was. The question 
 </tr>
 </thead>
 <tbody>
-<tr>
-<td><code translate="no" v-pre>/hello-world</code></td>
-<td>Returns <em>Hello world</em>. (This and the two below are examples to try the command line.)</td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>/hello-world &lt;message&gt;</code></td>
-<td>Returns the message it was given.</td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>/hello-world-async [&lt;message&gt;]</code></td>
-<td>The same, but after 10 seconds; shows the <strong>Stop</strong> window while it waits.</td>
-</tr>
 <tr>
 <td><code translate="no" v-pre>/search-replace-parts &lt;search&gt; &lt;replace&gt; [regex] [caseSensitive] [summaries] [allBranches] [revalidateSummaries] [maxHits] [dryRun]</code></td>
 <td>Search and replace in the story of the open book, like the <strong>Search and replace</strong> window of the story tab. The options are <code translate="no" v-pre>true</code>/<code translate="no" v-pre>false</code>, in this order, and each one you leave out has the default of that window (<a href="../regular-expressions/">regex</a> no, case sensitive yes, summaries yes, all branches no, revalidate yes); to set one, give those before it too. <code translate="no" v-pre>maxHits</code> refuses a replace that finds more matches than that, and with <code translate="no" v-pre>dryRun</code> <code translate="no" v-pre>true</code> nothing is changed: the answer counts the matches and shows a few, which is how an agent looks before it replaces. There is no preview: after the search you are asked whether to replace the number of matches found, and only <strong>Yes</strong> changes the book. The replace cannot be stopped.</td>
@@ -535,7 +519,7 @@ describes): the answer lists them and says what to do, <code translate="no" v-pr
 | `/set-lore-entry-tags &lt;entry&gt; [add] [remove] [addNegative] [removeNegative]` | Changes the tags and negative tags of an entry (comma separated). |
 | `/create-lorebook &lt;name&gt; [parent]` | Makes a lorebook that is a subbook of `parent` (the root when none is given; a book that has no lorebook gets one first). |
 | `/set-lorebook &lt;lorebook&gt; [name] [enabled]` | Renames a lorebook or switches it on or off. |
-| `/add-subbook &lt;lorebook&gt; &lt;subbook&gt;`, `/remove-subbook &lt;lorebook&gt; &lt;subbook&gt;` | Changes which lorebooks a lorebook contains; a lorebook can't contain itself. |
+| `/add-subbook &lt;lorebook&gt; &lt;subbook&gt;`, `/remove-subbook &lt;lorebook&gt; &lt;subbook&gt;` | Changes which lorebooks a lorebook contains; a lorebook can't contain itself. For an [agent](../agents.md), `/add-subbook` also brings back a lorebook it deleted or took out of its parent earlier (it names it by the handle it had), with its entries. |
 | `/delete-lorebook &lt;lorebook&gt;` | Deletes a lorebook with its entries (not the root). Asks first. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -656,7 +640,7 @@ describes): the answer lists them and says what to do, <code translate="no" v-pr
 </tr>
 <tr>
 <td><code translate="no" v-pre>/add-subbook &lt;lorebook&gt; &lt;subbook&gt;</code>, <code translate="no" v-pre>/remove-subbook &lt;lorebook&gt; &lt;subbook&gt;</code></td>
-<td>Changes which lorebooks a lorebook contains; a lorebook can&#x27;t contain itself.</td>
+<td>Changes which lorebooks a lorebook contains; a lorebook can&#x27;t contain itself. For an <a href="../agents/">agent</a>, <code translate="no" v-pre>/add-subbook</code> also brings back a lorebook it deleted or took out of its parent earlier (it names it by the handle it had), with its entries.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>/delete-lorebook &lt;lorebook&gt;</code></td>
@@ -674,7 +658,7 @@ describes): the answer lists them and says what to do, <code translate="no" v-pr
 | `/list-lore-templates [&lt;template&gt;]` | [Lore Generator](../extensions/lore-generator.md) | Your saved generation prompts, or the text of one. |
 | `/generate-lore-entry [&lt;prompt&gt; ...]` | [Lore Generator](../extensions/lore-generator.md) | Generates the text of a lore entry with the lore of the lorebook and returns it. Stores nothing. |
 | `/compact-lore-entry &lt;text&gt; [...]` | [Lore Generator](../extensions/lore-generator.md) | Compacts a generated text into a dense lore entry text and returns it. Stores nothing. |
-| `/list-name-categories`, `/generate-names &lt;category&gt; &lt;count&gt; [...]` | [Name generator](../extensions/name-generator.md) | The categories of made up names, and names of one of them. |
+| `/list-name-categories [&lt;filter&gt;]`, `/generate-names &lt;category&gt; &lt;count&gt; [...]` | [Name generator](../extensions/name-generator.md) | The categories of made up names, and names of one of them. |
 | `/list-real-name-lists`, `/pick-real-names &lt;list&gt; &lt;count&gt;` | [Name provider](../extensions/name-provider.md) | The lists of real names, and names picked from one of them. |
 | `/get-arc-outline [&lt;arc&gt; [&lt;notes&gt;]]` | [Arc Outline](../extensions/arc-outline.md) | The arcs and chapters of the outline. |
 | `/add-arc`, `/update-arc`, `/move-arc`, `/delete-arc` | [Arc Outline](../extensions/arc-outline.md) | Add, change, move and delete an arc (`&lt;arc&gt;` is its number). |
@@ -709,7 +693,7 @@ describes): the answer lists them and says what to do, <code translate="no" v-pr
 <td>Compacts a generated text into a dense lore entry text and returns it. Stores nothing.</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>/list-name-categories</code>, <code translate="no" v-pre>/generate-names &lt;category&gt; &lt;count&gt; [...]</code></td>
+<td><code translate="no" v-pre>/list-name-categories [&lt;filter&gt;]</code>, <code translate="no" v-pre>/generate-names &lt;category&gt; &lt;count&gt; [...]</code></td>
 <td><a href="../extensions/name-generator/">Name generator</a></td>
 <td>The categories of made up names, and names of one of them.</td>
 </tr>
@@ -802,7 +786,7 @@ Character Tracker also change the outline and the characters of the open book; o
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (d7a36b76).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (089c15ed).</p></div>
             </footer>
         </div>
     </div>

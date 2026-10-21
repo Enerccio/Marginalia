@@ -992,7 +992,7 @@ class AgentConsoleDialogTest extends AgentTestBase {
         // the bar offers what the runner says, with /compact among them as a command of its own
         List<com.github.enerccio.marginalia.domain.service.command.CommandDefinition> offered = ReflectionTestUtils
                 .invokeMethod(dialog.getCommandBar(), "definitions");
-        assertThat(offered).extracting(d -> d.commandName()).contains("compact", "get-book-info").doesNotContain("hello-world");
+        assertThat(offered).extracting(d -> d.commandName()).contains("compact", "get-book-info").doesNotContain("take-backup");
 
         ReflectionTestUtils.invokeMethod(dialog.getCommandBar(), "run", "/compact the names");
 
@@ -1023,7 +1023,7 @@ class AgentConsoleDialogTest extends AgentTestBase {
         say(run, LLMChatMessage.of(LLMRole.USER, "Start."));
         AgentConsoleDialog dialog = console();
 
-        ReflectionTestUtils.invokeMethod(dialog.getCommandBar(), "run", "/hello-world");
+        ReflectionTestUtils.invokeMethod(dialog.getCommandBar(), "run", "/take-backup");
 
         assertThat(commandLines).isEmpty();
     }

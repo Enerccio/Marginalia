@@ -11,12 +11,12 @@ import java.lang.annotation.Target;
  * number, each convertible to the type of its parameter; the closest types win, see
  * {@link com.github.enerccio.marginalia.domain.service.CommandService}).
  * <pre>
- * &#64;Command(commandName = "hello-world", humanNameText = "Hello world", signature = &#64;CommandParameterSignature)
- * public void hello(CommandContext context) { ... }   // no arguments
+ * &#64;Command(commandName = "echo", humanNameText = "Echo", signature = &#64;CommandParameterSignature)
+ * public void echo(CommandContext context) { ... }   // no arguments
  *
- * &#64;Command(commandName = "hello-world", humanNameText = "Hello world",
+ * &#64;Command(commandName = "echo", humanNameText = "Echo",
  *          signature = &#64;CommandParameterSignature(&#64;CommandParameter(name = "message")))
- * public void hello1(CommandContext context) { ... }  // one argument
+ * public void echo1(CommandContext context) { ... }  // one argument
  * </pre>
  * An empty signature is a command without arguments. A command that does not declare a signature at all takes
  * {@link #any() any} arguments.

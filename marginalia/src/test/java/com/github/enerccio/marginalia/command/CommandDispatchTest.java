@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.traits.Command;
 import com.github.enerccio.marginalia.domain.traits.CommandParameter;
 import com.github.enerccio.marginalia.domain.traits.CommandParameterSignature;
 import com.github.enerccio.marginalia.domain.traits.CommandReturn;
+import com.github.enerccio.marginalia.test.commands.HelloWorldCommands;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -198,8 +199,8 @@ class CommandDispatchTest {
     }
 
     @Test
-    void theCommandsOfTheApplicationAreRegisteredAtStartup() throws Exception {
-        commands.afterPropertiesSet();
+    void anOverloadedCommandIsToldApartByTheNumberOfArguments() throws Exception {
+        commands.registerCommands(new HelloWorldCommands());
 
         assertThat(commands.getCommands("hello-world")).hasSize(2);
         assertThat(result(commands.executeLine("/hello-world"))).isEqualTo("Hello world");
@@ -212,7 +213,7 @@ class CommandDispatchTest {
 
     @Test
     void theAsynchronousHelloWorldIsStoppedByCancellingTheFuture() throws Exception {
-        commands.afterPropertiesSet();
+        commands.registerCommands(new HelloWorldCommands());
 
         assertThat(commands.getCommands("hello-world-async")).hasSize(2).allMatch(CommandDefinition::async);
         CompletableFuture<Object> future = commands.executeLine("/hello-world-async hi");
@@ -226,6 +227,15 @@ class CommandDispatchTest {
         // nothing is waiting for the 10 seconds: the worker was interrupted and is free for the next command
         assertThat(result(commands.executeLine("/hello-world ok"))).isEqualTo("ok");
         assertThat(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start)).isLessThan(5_000);
+    }
+
+    @Test
+    void theCommandsOfTheApplicationAreRegisteredAtStartup() {
+        commands.afterPropertiesSet();
+
+        assertThat(commands.getCommands("take-backup")).isNotEmpty();
+        assertThat(commands.getCommands("get-book-info")).isNotEmpty();
+        assertThat(commands.getCommands("hello-world")).isEmpty();
     }
 
     // ---- stopping a run

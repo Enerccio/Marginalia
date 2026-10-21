@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845923840949">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845926496712">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845923840949" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845926496712" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845923840949" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845926496712" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845923840949" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845926496712" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -389,7 +389,7 @@ for agents (the help shows it); the service does not check the value against it.
 <p>A caller can cancel the future (the <strong>Stop</strong> button of the progress window does). Then <code translate="no" v-pre>isTerminated()</code> becomes true, the
 worker thread is interrupted, and a command that has not started yet does not start. A long-running <code translate="no" v-pre>async</code> command must
 cooperate: look at <code translate="no" v-pre>isTerminated()</code> (and the interrupt flag) between the steps of its work and return at once. What it
-sets afterwards is ignored. <code translate="no" v-pre>/hello-world-async</code> (<code translate="no" v-pre>HelloWorldCommands</code>) is the model of such a loop.</p>
+sets afterwards is ignored. <code translate="no" v-pre>/hello-world-async</code> of <code translate="no" v-pre>HelloWorldCommands</code> (a suite of the tests, <code translate="no" v-pre>src/test/java</code>, not part of the application) is the model of such a loop.</p>
 <h3 id="uninterruptable-runs">Uninterruptable runs</h3>
 <p>Some work can&#x27;t be abandoned half way, a change that is being written to the database. A command declares that with
 <code translate="no" v-pre>context.setUninterruptable(true)</code> just before it, and <code translate="no" v-pre>false</code> after it: meanwhile <code translate="no" v-pre>CommandRun.cancel</code> does nothing (it
@@ -413,7 +413,7 @@ ignored. <code translate="no" v-pre>/take-backup</code> (<code translate="no" v-
 <retype-table copy-text="| Value             | Means                                                                                                      |
 |-------------------|------------------------------------------------------------------------------------------------------------|
 | `DESTRUCTIVE`     | The command changes or removes data that exists (replaces text, deletes, overwrites). **The default.**     |
-| `NON_DESTRUCTIVE` | The command only reads data or adds new data; whatever exists stays as it is (`/take-backup`, `/hello-world`). |">
+| `NON_DESTRUCTIVE` | The command only reads data or adds new data; whatever exists stays as it is (`/take-backup`). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -429,7 +429,7 @@ ignored. <code translate="no" v-pre>/take-backup</code> (<code translate="no" v-
 </tr>
 <tr>
 <td><code translate="no" v-pre>NON_DESTRUCTIVE</code></td>
-<td>The command only reads data or adds new data; whatever exists stays as it is (<code translate="no" v-pre>/take-backup</code>, <code translate="no" v-pre>/hello-world</code>).</td>
+<td>The command only reads data or adds new data; whatever exists stays as it is (<code translate="no" v-pre>/take-backup</code>).</td>
 </tr>
 </tbody>
 </table>
@@ -458,7 +458,7 @@ name another object already holds. It returns the <code translate="no" v-pre>Com
 <p><code translate="no" v-pre>unregisterCommands(Object suite)</code> removes the suite, <code translate="no" v-pre>unregisterCommand(String)</code> one command with all its forms. The
 service does not know which bundle a suite came from: <strong>an extension unregisters its suites in <code translate="no" v-pre>onExtensionUnload</code></strong>.
 Runs in progress are not interrupted by unregistering.</p>
-<p>The application registers its own suites in <code translate="no" v-pre>CommandServiceImpl.afterPropertiesSet</code> (<code translate="no" v-pre>HelloWorldCommands</code>, <code translate="no" v-pre>BackupCommands</code>, the two search and replace commands and the <doc-anchor-trigger to="#commands-that-read-the-book">commands that read the book</doc-anchor-trigger>).</p>
+<p>The application registers its own suites in <code translate="no" v-pre>CommandServiceImpl.afterPropertiesSet</code> (<code translate="no" v-pre>BackupCommands</code>, the two search and replace commands and the <doc-anchor-trigger to="#commands-that-read-the-book">commands that read the book</doc-anchor-trigger>).</p>
 <h2 id="statelessness">Statelessness</h2>
 <p>A suite is one object shared by all users and runs in parallel, so it must be <strong>stateless</strong>: no fields that hold what a
 run or a user did. What a command needs to know about the current state it reads when it runs:</p>
@@ -481,6 +481,11 @@ the ones of the book of the scope: the parts of the book, the lorebook of the bo
 anything else (the original book of a copy, another book, a lorebook the book does not use, a deleted item) is refused with an
 <code translate="no" v-pre>IllegalArgumentException</code> as if it did not exist, so a command that takes an item as an argument can&#x27;t be aimed outside of the book by what
 it is given. A command that takes an item does it through the scope and not through <code translate="no" v-pre>findForUser</code> or <code translate="no" v-pre>find(id)</code>.</p>
+<p>One exception: <code translate="no" v-pre>resolveUnusedLorebook(uuid)</code> also finds a lorebook of the working copy that the book does not use any more, because a command deleted it
+(<code translate="no" v-pre>LorebookService.delete</code> only marks it, with its entries and tags) or took it out of its parent. It is for <code translate="no" v-pre>/add-subbook</code>, which brings such a lorebook
+back (<code translate="no" v-pre>LorebookService.restore</code>, the restore of the trash); the cage is that the lorebook is one of the copy (<code translate="no" v-pre>agentic</code>, of the owner of the run) and that the
+run has a <strong>handle</strong> for it, so an agent can only name what it was shown. The scope of the user at the command bar answers like <code translate="no" v-pre>resolveLorebook</code>; the user
+restores from the trash.</p>
 <p><code translate="no" v-pre>CommandUtils</code> (package <code translate="no" v-pre>utils</code>) reads the session of the caller – also on the worker thread of an <code translate="no" v-pre>async</code> command, which
 gets the request attributes – and returns <code translate="no" v-pre>null</code> when there is nothing to return (no session, no workspace yet, no book
 open), so a command checks its results. The book-related methods only delegate to the <code translate="no" v-pre>SessionPoint</code>, which knows where the
@@ -680,7 +685,7 @@ change nothing).</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (d7a36b76).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (089c15ed).</p></div>
             </footer>
         </div>
     </div>

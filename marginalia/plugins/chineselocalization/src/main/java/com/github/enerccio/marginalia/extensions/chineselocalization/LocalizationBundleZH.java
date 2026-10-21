@@ -383,8 +383,6 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_REPLACE_TEXT_PLACEHOLDER, "[替换内容]");
         setValue(L.LABEL_REVALIDATE_ALL_SUMMARIES, "重新验证所有摘要");
         setValue(L.LABEL_CASE_SENSITIVE, "区分大小写");
-        setValue(L.LABEL_COMMAND_HELLO_WORLD, "你好，世界");
-        setValue(L.LABEL_COMMAND_HELLO_WORLD_ASYNC, "你好，世界（异步）");
         setValue(L.LABEL_COMMAND_TAKE_BACKUP, "创建备份");
         setValue(L.LABEL_COMMAND_SEARCH_REPLACE_STORY, "在故事中查找并替换");
         setValue(L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK, "在世界书中查找并替换");
@@ -772,7 +770,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ERROR_LIMIT_TOTAL_UNREACHABLE, "发送令牌与生成令牌的上限之和小于总上限，总上限永远不会达到。");
         setValue(L.ERROR_LIMIT_USER_REQUIRED, "请选择用户。");
         setValue(L.ERROR_INFERENCE_EXTENSION_UNAVAILABLE, "提供此 AI 的扩展未加载。请在“管理 → 扩展”中加载它，或选择其他 AI。");
-        setValue(L.ERROR_COMMAND_NEEDS_SLASH, "命令以斜杠开头，例如 /hello-world");
+        setValue(L.ERROR_COMMAND_NEEDS_SLASH, "命令以斜杠开头，例如 /take-backup");
         setValue(L.ERROR_COMMAND_UNKNOWN, "没有命令 %s");
         setValue(L.ERROR_COMMAND_ARGUMENTS, "命令 %s 不接受这些参数");
         setValue(L.ERROR_COMMAND_FAILED, "命令 %s 失败：%s");
@@ -1170,13 +1168,6 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_MACRO_VARIABLE_SHORTHAND, "变量简写：. 表示局部，$ 表示全局。运算符：= ++ -- += -= || ?? ||= ??= == != > >= < <=");
         setValue(L.DESC_MACRO_COMMENT, "注释，不会出现在输出中。");
         setValue(L.DESC_TEMPLATE_SUMMARY_BLOCKS, "正在合并的摘要，最早的在前。");
-        setValue(L.DESC_COMMAND_HELLO_WORLD, "原样返回收到的内容；没有参数时返回问候语。");
-        setValue(L.DESC_COMMAND_HELLO_WORLD_LLM, "原样返回参数；没有参数时返回“Hello world”。没有副作用。");
-        setValue(L.DESC_COMMAND_HELLO_WORLD_ASYNC, "与 hello-world 相同，但在工作线程中等待 10 秒后才应答。可以停止。");
-        setValue(L.DESC_COMMAND_HELLO_WORLD_ASYNC_LLM, "10 秒后原样返回参数，没有参数时返回“Hello world”。异步，没有副作用。");
-        setValue(L.DESC_COMMAND_HELLO_WORLD_MESSAGE_PARAM, "任意内容，将原样返回");
-        setValue(L.DESC_COMMAND_HELLO_WORLD_GREETING_RETURN, "问候语 Hello world");
-        setValue(L.DESC_COMMAND_HELLO_WORLD_ECHO_RETURN, "参数");
         setValue(L.DESC_COMMAND_TAKE_BACKUP, "为当前打开的书创建备份。备份会显示在该书的“备份”选项卡中。");
         setValue(L.DESC_COMMAND_TAKE_BACKUP_RETURN, "备份的内容：书名以及其消息和图片的数量");
         setValue(L.DESC_COMMAND_SEARCH_PARAM, "要查找的文本（使用 regex 时为正则表达式）");
@@ -1385,13 +1376,13 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_SET_LOREBOOK_LLM, "更改书的某个世界书的名称，或是否使用：被停用的世界书的条目不会被使用。只更改给出的值。会更改书。");
         setValue(L.DESC_COMMAND_SET_LOREBOOK_RETURN, "包含世界书（handle、number、name、enabled）的 JSON");
         setValue(L.DESC_COMMAND_ADD_SUBBOOK, "使书的一个世界书成为另一个世界书的子书。参数：lorebook（句柄）、subbook（句柄）。");
-        setValue(L.DESC_COMMAND_ADD_SUBBOOK_LLM, "使世界书 `subbook` 成为世界书 `lorebook` 的子书，这样它的条目在该世界书被使用的地方都会使用。两者都必须是本书的世界书；世界书不能直接或通过子书包含自身（会被拒绝）。会更改书。");
+        setValue(L.DESC_COMMAND_ADD_SUBBOOK_LLM, "使世界书 `subbook` 成为世界书 `lorebook` 的子书，这样它的条目在该世界书被使用的地方都会使用。两者都必须是本书的世界书；世界书不能直接或通过子书包含自身（会被拒绝）。在本次运行中较早被删除或从其父级移除的世界书，可以用句柄作为 `subbook` 指定：重新添加会连同条目一起恢复。会更改书。");
         setValue(L.DESC_COMMAND_ADD_SUBBOOK_RETURN, "包含该世界书及其子书的 JSON");
         setValue(L.DESC_COMMAND_REMOVE_SUBBOOK, "使世界书不再是另一个世界书的子书。参数：lorebook（句柄）、subbook（句柄）。");
-        setValue(L.DESC_COMMAND_REMOVE_SUBBOOK_LLM, "把世界书 `subbook` 从世界书 `lorebook` 的子书中移除；若它不是子书则什么也不会发生。该世界书不会被删除，但如果没有其他世界书把它作为子书，它的条目将不再在书中使用（并且在本次运行中也无法再被引用）。会更改书。");
+        setValue(L.DESC_COMMAND_REMOVE_SUBBOOK_LLM, "把世界书 `subbook` 从世界书 `lorebook` 的子书中移除；若它不是子书则什么也不会发生。该世界书不会被删除，但如果没有其他世界书把它作为子书，它的条目将不再在书中使用，但仍可用句柄指定它，并用 add-subbook 重新添加。会更改书。");
         setValue(L.DESC_COMMAND_REMOVE_SUBBOOK_RETURN, "包含该世界书及其子书的 JSON");
         setValue(L.DESC_COMMAND_DELETE_LOREBOOK, "删除世界书及其所有条目。参数：lorebook（句柄）。");
-        setValue(L.DESC_COMMAND_DELETE_LOREBOOK_LLM, "删除书的某个世界书及其所有条目，并把它从包含它的世界书的子书中移除。书的根世界书不能删除。会更改书；用户需要确认，代理遵循其破坏性命令模式。");
+        setValue(L.DESC_COMMAND_DELETE_LOREBOOK_LLM, "删除书的某个世界书及其所有条目，并把它从包含它的世界书的子书中移除。它只是被标记为已删除：用它的句柄调用 add-subbook 可连同条目一起恢复。书的根世界书不能删除。会更改书；用户需要确认，代理遵循其破坏性命令模式。");
         setValue(L.DESC_COMMAND_DELETE_LOREBOOK_RETURN, "包含被删除世界书的句柄、名称及其条目数量的 JSON");
         setValue(L.DESC_COMMAND_MAX_HITS_PARAM, "匹配数超过此值时拒绝替换；省略时不限制");
         setValue(L.DESC_COMMAND_DRY_RUN_PARAM, "只统计匹配数并显示少量匹配，不做任何更改；省略时为 false");

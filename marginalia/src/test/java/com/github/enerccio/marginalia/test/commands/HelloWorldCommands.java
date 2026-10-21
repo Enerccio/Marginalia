@@ -1,15 +1,10 @@
-package com.github.enerccio.marginalia.domain.service.impl.commands;
+package com.github.enerccio.marginalia.test.commands;
 
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
-import com.github.enerccio.marginalia.domain.traits.Command;
-import com.github.enerccio.marginalia.domain.traits.CommandDataSeverity;
-import com.github.enerccio.marginalia.domain.traits.CommandParameter;
-import com.github.enerccio.marginalia.domain.traits.CommandParameterSignature;
-import com.github.enerccio.marginalia.domain.traits.CommandReturn;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.domain.traits.*;
 
 /**
- * The first commands of the application, and the example of an overloaded one: {@code /hello-world} answers a greeting,
+ * Commands for tests (not registered by the application): an overloaded one, {@code /hello-world} answers a greeting,
  * {@code /hello-world something} answers {@code something}. {@code /hello-world-async} does the same after
  * {@value #ASYNC_DELAY_MILLIS} ms, on a worker thread: the example of an asynchronous command that waits in a loop and
  * leaves it at once when it is stopped.
@@ -22,42 +17,42 @@ public class HelloWorldCommands {
     /** How often the asynchronous variant looks whether it was stopped. */
     private static final long ASYNC_POLL_MILLIS = 50;
 
-    @Command(commandName = "hello-world", humanName = L.LABEL_COMMAND_HELLO_WORLD, description = L.DESC_COMMAND_HELLO_WORLD,
+    @Command(commandName = "hello-world", humanNameText = "Hello world", descriptionText = "Returns what it is given, or a greeting when it is given nothing.",
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            llmDescription = L.DESC_COMMAND_HELLO_WORLD_LLM,
+            llmDescriptionText = "Echoes the argument back. Without an argument answers 'Hello world'. Has no side effects.",
             signature = @CommandParameterSignature,
-            returns = @CommandReturn(name = "message", type = Object.class, description = L.DESC_COMMAND_HELLO_WORLD_GREETING_RETURN))
+            returns = @CommandReturn(name = "message", type = Object.class, descriptionText = "The greeting, Hello world"))
     public void greet(CommandContext context) {
         context.setReturn("Hello world");
     }
 
-    @Command(commandName = "hello-world", humanName = L.LABEL_COMMAND_HELLO_WORLD, description = L.DESC_COMMAND_HELLO_WORLD,
+    @Command(commandName = "hello-world", humanNameText = "Hello world", descriptionText = "Returns what it is given, or a greeting when it is given nothing.",
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            llmDescription = L.DESC_COMMAND_HELLO_WORLD_LLM,
+            llmDescriptionText = "Echoes the argument back. Without an argument answers 'Hello world'. Has no side effects.",
             signature = @CommandParameterSignature(
-                    @CommandParameter(name = "message", description = L.DESC_COMMAND_HELLO_WORLD_MESSAGE_PARAM)),
-            returns = @CommandReturn(name = "message", type = Object.class, description = L.DESC_COMMAND_HELLO_WORLD_ECHO_RETURN))
+                    @CommandParameter(name = "message", descriptionText = "Anything, it is returned as it is")),
+            returns = @CommandReturn(name = "message", type = Object.class, descriptionText = "The argument"))
     public void echo(CommandContext context) {
         context.setReturn(context.get("message"));
     }
 
-    @Command(commandName = "hello-world-async", humanName = L.LABEL_COMMAND_HELLO_WORLD_ASYNC, async = true,
+    @Command(commandName = "hello-world-async", humanNameText = "Hello world (async)", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_HELLO_WORLD_ASYNC, llmDescription = L.DESC_COMMAND_HELLO_WORLD_ASYNC_LLM,
+            descriptionText = "Like hello-world, but answers after 10 seconds, on a worker thread. Can be stopped.", llmDescriptionText = "Echoes the argument back after 10 seconds, without an argument answers 'Hello world'. Asynchronous, no side effects.",
             signature = @CommandParameterSignature,
-            returns = @CommandReturn(name = "message", type = Object.class, description = L.DESC_COMMAND_HELLO_WORLD_GREETING_RETURN))
+            returns = @CommandReturn(name = "message", type = Object.class, descriptionText = "The greeting, Hello world"))
     public void greetLater(CommandContext context) {
         if (waitUnlessStopped(context)) {
             context.setReturn("Hello world");
         }
     }
 
-    @Command(commandName = "hello-world-async", humanName = L.LABEL_COMMAND_HELLO_WORLD_ASYNC, async = true,
+    @Command(commandName = "hello-world-async", humanNameText = "Hello world (async)", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_HELLO_WORLD_ASYNC, llmDescription = L.DESC_COMMAND_HELLO_WORLD_ASYNC_LLM,
+            descriptionText = "Like hello-world, but answers after 10 seconds, on a worker thread. Can be stopped.", llmDescriptionText = "Echoes the argument back after 10 seconds, without an argument answers 'Hello world'. Asynchronous, no side effects.",
             signature = @CommandParameterSignature(
-                    @CommandParameter(name = "message", description = L.DESC_COMMAND_HELLO_WORLD_MESSAGE_PARAM)),
-            returns = @CommandReturn(name = "message", type = Object.class, description = L.DESC_COMMAND_HELLO_WORLD_ECHO_RETURN))
+                    @CommandParameter(name = "message", descriptionText = "Anything, it is returned as it is")),
+            returns = @CommandReturn(name = "message", type = Object.class, descriptionText = "The argument"))
     public void echoLater(CommandContext context) {
         if (waitUnlessStopped(context)) {
             context.setReturn(context.get("message"));

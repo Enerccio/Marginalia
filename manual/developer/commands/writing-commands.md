@@ -195,7 +195,7 @@ does, the call is ignored.
 Add the suite in `CommandServiceImpl.afterPropertiesSet`:
 
 ```java
-registerCommands(new HelloWorldCommands());
+registerCommands(new BackupCommands());
 ```
 
 The application's suites are plain objects, not Spring beans, and are created with `new`; one that needs services is

@@ -4,7 +4,6 @@ import com.github.enerccio.marginalia.domain.service.CommandScopes;
 import com.github.enerccio.marginalia.domain.service.CommandService;
 import com.github.enerccio.marginalia.domain.service.command.*;
 import com.github.enerccio.marginalia.domain.service.impl.commands.BackupCommands;
-import com.github.enerccio.marginalia.domain.service.impl.commands.HelloWorldCommands;
 import com.github.enerccio.marginalia.domain.service.impl.commands.SearchReplaceChatMessageCommand;
 import com.github.enerccio.marginalia.domain.service.impl.commands.SearchReplaceLoreEntryCommand;
 import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.read.*;
@@ -73,7 +72,6 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
 
     @Override
     public void afterPropertiesSet() {
-        registerCommands(new HelloWorldCommands());
         registerCommands(new BackupCommands());
         registerCommands(new SearchReplaceChatMessageCommand());
         registerCommands(new SearchReplaceLoreEntryCommand());

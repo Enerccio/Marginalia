@@ -131,7 +131,13 @@ public class LorebookWriteCommands extends LorebookWriteSupport {
 
     private void addSubbook(CommandContext context, String handle, String subbook) throws Exception {
         Lore lore = new Lore(new Book(context));
-        answerBook(context, lorebookService.addSubbook(book(lore, handle), book(lore, subbook)));
+        Lorebook parent = book(lore, handle);
+        // a lorebook that was deleted or taken out of its parent can still be named, and is brought back by being added again
+        Lorebook sub = lore.bookOrUnused(subbook);
+        if (sub.isDeleted()) {
+            sub = lorebookService.restore(sub);
+        }
+        answerBook(context, lorebookService.addSubbook(parent, sub));
     }
 
     private void removeSubbook(CommandContext context, String handle, String subbook) throws Exception {

@@ -84,6 +84,15 @@ public class NameTables {
         return categories.values().stream().map(Category::title).sorted().toList();
     }
 
+    /**
+     * The categories whose title starts with the text, ignoring the case and the spaces around it, in the order of
+     * {@link #categories()}; all of them for a blank text.
+     */
+    public List<String> categories(String prefix) {
+        String start = prefix == null ? "" : prefix.strip().toLowerCase(Locale.ROOT);
+        return categories().stream().filter(title -> title.toLowerCase(Locale.ROOT).startsWith(start)).toList();
+    }
+
     public boolean has(String category) {
         return category != null && categories.containsKey(category.strip());
     }
