@@ -598,6 +598,22 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_TEXT_ONLY, "仅文本");
         setValue(L.LABEL_AGENT_RESUME_NOTE, "给智能体的备注（可选）");
         setValue(L.LABEL_AGENT_LANGUAGE, "代理的语言");
+        setValue(L.LABEL_JSON_MERGE, "合并JSON数据");
+        setValue(L.LABEL_TREE, "树");
+        setValue(L.LABEL_TEXT, "文本");
+        setValue(L.LABEL_JSON_ONLY_CHANGES, "仅显示有更改的");
+        setValue(L.LABEL_JSON_PLACE, "位置");
+        setValue(L.LABEL_JSON_USE_BASE, "使用运行开始时的内容");
+        setValue(L.LABEL_JSON_LEAVE_OUT, "不保留");
+        setValue(L.LABEL_JSON_PUT_TOGETHER, "由内部合成");
+        setValue(L.LABEL_JSON_MATCH_WITH, "匹配到…");
+        setValue(L.LABEL_JSON_SPLIT, "拆分");
+        setValue(L.LABEL_JSON_SHOW, "显示");
+        setValue(L.LABEL_JSON_AGENT_DATA, "智能体的数据(可编辑)");
+        setValue(L.LABEL_JSON_COMPARE_WITH, "显示与以下内容的差异");
+        setValue(L.LABEL_JSON_TAKE_RESULT, "采用结果");
+        setValue(L.LABEL_JSON_START_OVER, "重新开始");
+        setValue(L.LABEL_JSON_APPLY_TEXT, "使用此文本");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -694,6 +710,16 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_AGENT_BATCH_NOT_BATCHED, "每次回答只调用一次");
         setValue(L.ENUM_FILTERING_MODE_KEYWORDS_OR, "关键词（任一）");
         setValue(L.ENUM_FILTERING_MODE_KEYWORDS_AND, "关键词（全部）");
+        setValue(L.ENUM_JSON_STATUS_UNCHANGED, "未更改");
+        setValue(L.ENUM_JSON_STATUS_AGENT, "智能体已更改");
+        setValue(L.ENUM_JSON_STATUS_BOOK, "书籍已更改");
+        setValue(L.ENUM_JSON_STATUS_BOTH, "双方已更改");
+        setValue(L.ENUM_JSON_STATUS_SAME, "相同更改");
+        setValue(L.ENUM_JSON_CHOICE_MERGED, "由内部合成");
+        setValue(L.ENUM_JSON_CHOICE_AGENT, "智能体的");
+        setValue(L.ENUM_JSON_CHOICE_BOOK, "书籍的");
+        setValue(L.ENUM_JSON_CHOICE_BASE, "开始时的");
+        setValue(L.ENUM_JSON_CHOICE_NONE, "不保留");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -982,6 +1008,14 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_LOADING_LATER_PARTS, "正在加载后面的段落…");
         setValue(L.MSG_AGENT_COMMANDS_COUNT, "%d 个命令");
         setValue(L.MSG_AGENT_LANGUAGE_UNAVAILABLE, "%s（不可用，使用英语）");
+        setValue(L.MSG_JSON_MERGE_STATUS, "%d 个冲突,%d 个未决定");
+        setValue(L.MSG_JSON_VALID, "JSON 有效。");
+        setValue(L.MSG_JSON_INVALID, "JSON 无效:%s");
+        setValue(L.MSG_JSON_FIX_FIRST, "文本不是有效的 JSON,请先修正:%s");
+        setValue(L.MSG_JSON_NO_MATCH, "没有可与此元素匹配的其他元素。");
+        setValue(L.MSG_JSON_NOT_JSON, "此数据不是 JSON,只能作为文本编辑。");
+        setValue(L.MSG_JSON_RESULT_CONFLICTS, "数据中有 %d 个冲突,未决定之处将采用智能体的内容。");
+        setValue(L.MSG_JSON_MATCH_PICK, "哪个元素与 %s 相同?");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1059,6 +1093,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_MODEL_TOOLS, "关闭：该模型只用文本回答，不提供任何命令和工具。");
         setValue(L.HELP_AGENT_RESUME_NOTE, "智能体继续工作时会先读到这条备注，如果你修改过书，则在修改报告之后。对不等待消息的运行同样有效。");
         setValue(L.HELP_AGENT_LANGUAGE, "代理读到的所有文本（命令的说明、结果和错误）所用的语言。它与书的语言无关：无论如何设置，代理都用书的语言写书。命令及其参数在所有语言中都是英文，因此英语最可靠，尤其是对小模型。列表中是已安装的语言；一次运行保持它开始时的语言。");
+        setValue(L.HELP_JSON_MERGE, "将智能体、书籍当前和运行开始时的数据叠放在一起。选择一个位置,可以采用其中一方的数据、不保留,或由其内部的各个位置合成。只有一方更改的内容采用该方的,双方都更改的内容按位置合并;双方对同一位置做了不同的更改即为冲突,在您决定之前采用智能体的内容。打开某个位置即可只处理它。列表中的元素按其内容匹配(相同的数据、相同的 id 或名称、相似的元素);猜错时,可拆分元素或与另一个元素匹配。在文本视图中可以手动编写已打开位置的智能体数据,返回树视图时会进行检查。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

@@ -132,6 +132,12 @@ public final class CssStyles {
     public static final String MERGE_DIFF = "merge-diff";
     public static final String MERGE_DIFF_ADDED = "merge-diff-added";
     public static final String MERGE_DIFF_REMOVED = "merge-diff-removed";
+    public static final String JSON_MERGE_CELL = "json-merge-cell";
+    public static final String JSON_MERGE_CELL_AGENT = "json-merge-cell-agent";
+    public static final String JSON_MERGE_CELL_BOOK = "json-merge-cell-book";
+    public static final String JSON_MERGE_CELL_CONFLICT = "json-merge-cell-conflict";
+    public static final String JSON_MERGE_ABSENT = "json-merge-absent";
+    public static final String JSON_MERGE_TEXT = "json-merge-text";
     public static final String AGENT_COPY_PART = "agent-copy-part";
     public static final String AGENT_COPY_PART_HEAD = "agent-copy-part-head";
     public static final String HELP_INPUT = "help-input";

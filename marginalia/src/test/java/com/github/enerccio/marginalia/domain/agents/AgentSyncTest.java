@@ -7,28 +7,24 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.AgentMergeService.MergeResult;
 import com.github.enerccio.marginalia.domain.service.AgentMergeService.MergeSelection;
 import com.github.enerccio.marginalia.domain.service.agent.CheckpointStore;
-import com.github.enerccio.marginalia.domain.service.agent.MergeDiff;
-import com.github.enerccio.marginalia.domain.service.agent.SyncToolsImpl;
 import com.github.enerccio.marginalia.domain.service.agent.MergePlan;
 import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Change;
 import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Field;
 import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Item;
 import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Kind;
+import com.github.enerccio.marginalia.domain.service.agent.SyncToolsImpl;
 import com.github.enerccio.marginalia.test.AgentTestBase;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * The sync of a resume: the changes the user made to the book while the run was paused come into the working copy, the changes the
@@ -390,6 +386,72 @@ class AgentSyncTest extends AgentTestBase {
         assertThat(copied.getAttributes().get("arcs").toString()).isEqualTo("{\"acts\":3}");
         assertThat(tagRelationService.getTagsForObject(copied)).extracting(Tag::getValue).containsExactly("fantasy");
         assertThat(plan().isEmpty()).isTrue();
+    }
+
+    // --- the data of the attributes is merged place by place
+
+    private void setEntryData(LorebookEntry entry, String json) throws Exception {
+        LorebookEntry stored = lorebookEntryService.find(entry.getId());
+        stored.getAttributes().add("tracker", JsonParser.parseString(json));
+        lorebookEntryService.save(stored);
+    }
+
+    private String entryData(LorebookEntry entry) throws Exception {
+        return lorebookEntryService.find(entry.getId()).getAttributes().get("tracker").toString();
+    }
+
+    private void setData(ChatMessage message, String json) throws Exception {
+        ChatMessage stored = chatMessageService.find(message.getId());
+        stored.getAttributes().add("templateVariables", JsonParser.parseString(json));
+        chatMessageService.save(stored);
+    }
+
+    private String dataOf(ChatMessage message) throws Exception {
+        return chatMessageService.find(message.getId()).getAttributes().get("templateVariables").toString();
+    }
+
+    @Test
+    void theDataOfAnEntryBothChangedInOtherPlacesComesIntoTheCopyNextToTheAgentsAndTheReviewShowsTheAgentsAlone() throws Exception {
+        setEntryData(entryOf(copyRoot(), "dragon"), "{\"seen\":3}");
+        pause();
+        setEntryData(entryOf(root, "dragon"), "{\"color\":\"red\"}");
+
+        resume();
+
+        assertThat(entryData(entryOf(copyRoot(), "dragon"))).isEqualTo("{\"color\":\"red\",\"seen\":3}");
+        assertThat(report()).doesNotContain("Not taken over");
+        MergePlan plan = plan();
+        Item item = item(plan, Kind.ENTRY, Change.CHANGED, "dragon");
+        assertThat(item.conflict()).isFalse();
+        assertThat(field(item, "attributes_tracker").base()).isEqualTo("{\"color\":\"red\"}");
+
+        applyAll(plan);
+
+        assertThat(entryData(entryOf(root, "dragon"))).isEqualTo("{\"color\":\"red\",\"seen\":3}");
+    }
+
+    @Test
+    void theDataOfAnEntryTheUserChangedAloneComesIntoTheCopy() throws Exception {
+        pause();
+        setEntryData(entryOf(root, "castle"), "{\"color\":\"grey\"}");
+
+        resume();
+
+        assertThat(entryData(entryOf(copyRoot(), "castle"))).isEqualTo("{\"color\":\"grey\"}");
+        assertThat(plan().isEmpty()).as("copy and book agree").isTrue();
+    }
+
+    @Test
+    void theDataOfAPartBothChangedTheSameKeyIsAConflictTheCopyKeepsTheAgents() throws Exception {
+        setData(inCopy("there was a dragon"), "{\"mood\":\"dark\",\"a\":1}");
+        pause();
+        setData(inBook("there was a dragon"), "{\"mood\":\"light\",\"b\":2}");
+
+        resume();
+
+        assertThat(report()).contains("Not taken over");
+        assertThat(dataOf(inCopy("there was a dragon"))).isEqualTo("{\"mood\":\"dark\",\"a\":1}");
+        assertThat(item(plan(), Kind.MESSAGE, Change.CHANGED, "there was").conflict()).isTrue();
     }
 
     // --- telling the agent

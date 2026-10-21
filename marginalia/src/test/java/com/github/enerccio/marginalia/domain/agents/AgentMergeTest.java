@@ -782,4 +782,170 @@ class AgentMergeTest extends AgentTestBase {
 
         assertThatThrownBy(() -> mergeService.plan(run)).isInstanceOf(IllegalArgumentException.class);
     }
+
+    // --- the data of the attributes is JSON, merged place by place
+
+    private void setEntryData(LorebookEntry entry, String json) throws Exception {
+        LorebookEntry stored = lorebookEntryService.find(entry.getId());
+        stored.getAttributes().add("tracker", JsonParser.parseString(json));
+        lorebookEntryService.save(stored);
+    }
+
+    private String entryData(LorebookEntry entry) throws Exception {
+        return lorebookEntryService.find(entry.getId()).getAttributes().get("tracker").toString();
+    }
+
+    private void setLorebookData(Lorebook lorebook, String json) throws Exception {
+        Lorebook stored = lorebookService.find(lorebook.getId());
+        stored.getAttributes().add("tracker", JsonParser.parseString(json));
+        lorebookService.save(stored);
+    }
+
+    @Test
+    void differentKeysOfTheSameDataAreMergedAndNotAConflict() throws Exception {
+        setData(inCopy("there was a dragon"), "{\"mood\":\"dark\"}");
+        finish();
+        setData(inBook("there was a dragon"), "{\"pace\":\"fast\"}");
+        MergePlan plan = plan();
+
+        Item item = item(plan, Kind.MESSAGE, Change.CHANGED, "there was");
+        Field data = field(item, "attributes_templateVariables");
+        assertThat(data.type()).isEqualTo(MergePlan.Type.JSON);
+        assertThat(data.editable()).isTrue();
+        assertThat(data.conflict()).isFalse();
+        assertThat(item.conflict()).isFalse();
+
+        applyAll(plan);
+
+        assertThat(dataOf(inBook("there was a dragon"))).isEqualTo("{\"mood\":\"dark\",\"pace\":\"fast\"}");
+    }
+
+    @Test
+    void theKeysOfTheDataDoNotMatterForWhetherItChanged() throws Exception {
+        setData(inCopy("there was a dragon"), "{\"b\":1,\"a\":2}");
+        finish();
+        setData(inBook("there was a dragon"), "{\"a\":2,\"b\":1}");
+
+        assertThat(plan().isEmpty()).isTrue();
+    }
+
+    @Test
+    void aConflictOfTheDataIsDecidedByTheTextTheUserWrote() throws Exception {
+        setData(inCopy("there was a dragon"), "{\"mood\":\"dark\"}");
+        finish();
+        setData(inBook("there was a dragon"), "{\"mood\":\"light\"}");
+        MergePlan plan = plan();
+        Item item = item(plan, Kind.MESSAGE, Change.CHANGED, "there was");
+        assertThat(item.conflict()).isTrue();
+
+        mergeService.apply(run, new MergeSelection(Set.of(item.id()), Map.of(item.id(), Map.of("attributes_templateVariables",
+                "{\"mood\":\"grey\"}")), false));
+
+        assertThat(dataOf(inBook("there was a dragon"))).isEqualTo("{\"mood\":\"grey\"}");
+    }
+
+    @Test
+    void aConflictOfTheDataTakenWithoutADecisionIsTheAgents() throws Exception {
+        setData(inCopy("there was a dragon"), "{\"mood\":\"dark\",\"a\":1}");
+        finish();
+        setData(inBook("there was a dragon"), "{\"mood\":\"light\",\"b\":2}");
+
+        applyAll(plan());
+
+        assertThat(dataOf(inBook("there was a dragon"))).isEqualTo("{\"a\":1,\"b\":2,\"mood\":\"dark\"}");
+    }
+
+    @Test
+    void textThatIsNotJsonIsRefusedAndNothingIsApplied() throws Exception {
+        setData(inCopy("there was a dragon"), "{\"mood\":\"dark\"}");
+        edit(inCopy("and a castle"), "and a keep");
+        MergePlan plan = plan();
+        Item item = item(plan, Kind.MESSAGE, Change.CHANGED, "there was");
+
+        assertThatThrownBy(() -> mergeService.apply(run, new MergeSelection(
+                plan.items().stream().map(Item::id).collect(Collectors.toSet()),
+                Map.of(item.id(), Map.of("attributes_templateVariables", "{mood: dark")), false)))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        assertThat(bookTexts()).doesNotContain("and a keep");
+        assertThat(chatMessageService.find(inBook("there was a dragon").getId()).getAttributes().has("templateVariables")).isFalse();
+    }
+
+    @Test
+    void theDataInTheAttributesOfAnEntryAndOfALorebookIsAFieldOfTheirChange() throws Exception {
+        setEntryData(entryOf(copyRoot(), "dragon"), "{\"seen\":3}");
+        setLorebookData(subbook(copyRoot(), "places"), "{\"kind\":\"map\"}");
+
+        MergePlan plan = plan();
+
+        Item entry = item(plan, Kind.ENTRY, Change.CHANGED, "dragon");
+        assertThat(entry.fields()).extracting(Field::name).containsExactly("attributes_tracker");
+        assertThat(field(entry, "attributes_tracker").type()).isEqualTo(MergePlan.Type.JSON);
+        assertThat(field(entry, "attributes_tracker").agent()).isEqualTo("{\"seen\":3}");
+        Item lorebook = item(plan, Kind.LOREBOOK, Change.CHANGED, "places");
+        assertThat(lorebook.fields()).extracting(Field::name).containsExactly("attributes_tracker");
+    }
+
+    @Test
+    void theDataInTheAttributesOfAnEntryAndOfALorebookIsTakenOver() throws Exception {
+        setEntryData(entryOf(copyRoot(), "dragon"), "{\"seen\":3}");
+        setLorebookData(subbook(copyRoot(), "places"), "{\"kind\":\"map\"}");
+        MergePlan plan = plan();
+
+        applyAll(plan);
+
+        assertThat(entryData(entryOf(root, "dragon"))).isEqualTo("{\"seen\":3}");
+        assertThat(lorebookService.find(places.getId()).getAttributes().get("tracker").toString()).isEqualTo("{\"kind\":\"map\"}");
+    }
+
+    @Test
+    void theDataOfAnEntryBothChangedIsMergedPlaceByPlace() throws Exception {
+        setEntryData(entryOf(copyRoot(), "dragon"), "{\"seen\":3}");
+        finish();
+        setEntryData(entryOf(root, "dragon"), "{\"color\":\"red\"}");
+        MergePlan plan = plan();
+        Item item = item(plan, Kind.ENTRY, Change.CHANGED, "dragon");
+        assertThat(item.conflict()).isFalse();
+
+        applyAll(plan);
+
+        assertThat(entryData(entryOf(root, "dragon"))).isEqualTo("{\"color\":\"red\",\"seen\":3}");
+    }
+
+    @Test
+    void anEntryTheAgentMadeComesWithTheDataInItsAttributes() throws Exception {
+        LorebookEntry made = entry(copyRoot(), "wizard", "an old wizard");
+        setEntryData(made, "{\"seen\":1}");
+        MergePlan plan = plan();
+
+        applyAll(plan);
+
+        assertThat(entryData(entryOf(root, "wizard"))).isEqualTo("{\"seen\":1}");
+    }
+
+    @Test
+    void aLorebookTheAgentMadeComesWithTheDataInItsAttributes() throws Exception {
+        Lorebook made = lorebookService.createSubbook(copyRoot(), "monsters");
+        setLorebookData(made, "{\"kind\":\"bestiary\"}");
+        MergePlan plan = plan();
+
+        applyAll(plan);
+
+        Lorebook taken = lorebookService.getSubbooks(lorebookService.find(root.getId())).stream()
+                .filter(l -> "monsters".equals(l.getName())).findFirst().orElseThrow();
+        assertThat(taken.getAttributes().get("tracker").toString()).isEqualTo("{\"kind\":\"bestiary\"}");
+    }
+
+    @Test
+    void theAttributesOfLorebooksAndEntriesGoThroughTheCopyOfTheTree() throws Exception {
+        setEntryData(entryOf(copyRoot(), "dragon"), "{\"seen\":3}");
+        setLorebookData(copyRoot(), "{\"kind\":\"main\"}");
+
+        com.google.gson.JsonArray marshalled = lorebookService.marshalLorebooks(copyRoot(), true);
+        Lorebook again = lorebookService.copyLorebooks(marshalled).get(lorebookService.find(copyRoot().getId()).getUuid());
+
+        assertThat(again.getAttributes().get("tracker").toString()).isEqualTo("{\"kind\":\"main\"}");
+        assertThat(entryData(entryOf(again, "dragon"))).isEqualTo("{\"seen\":3}");
+        assertThat(entryOf(again, "castle").getAttributes().size()).as("no data, no attributes").isZero();
+    }
 }

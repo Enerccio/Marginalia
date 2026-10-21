@@ -590,6 +590,22 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_TEXT_ONLY, "Text only");
         setValue(L.LABEL_AGENT_RESUME_NOTE, "Note for the agent (optional)");
         setValue(L.LABEL_AGENT_LANGUAGE, "Language of the agent");
+        setValue(L.LABEL_JSON_MERGE, "Merge JSON data");
+        setValue(L.LABEL_TREE, "Tree");
+        setValue(L.LABEL_TEXT, "Text");
+        setValue(L.LABEL_JSON_ONLY_CHANGES, "Only what changed");
+        setValue(L.LABEL_JSON_PLACE, "Place");
+        setValue(L.LABEL_JSON_USE_BASE, "Use the one from the start of the run");
+        setValue(L.LABEL_JSON_LEAVE_OUT, "Leave out");
+        setValue(L.LABEL_JSON_PUT_TOGETHER, "Put together from inside");
+        setValue(L.LABEL_JSON_MATCH_WITH, "Match with…");
+        setValue(L.LABEL_JSON_SPLIT, "Split");
+        setValue(L.LABEL_JSON_SHOW, "Show");
+        setValue(L.LABEL_JSON_AGENT_DATA, "The agent's data (you can edit it)");
+        setValue(L.LABEL_JSON_COMPARE_WITH, "Show the difference to");
+        setValue(L.LABEL_JSON_TAKE_RESULT, "Take the result");
+        setValue(L.LABEL_JSON_START_OVER, "Start over");
+        setValue(L.LABEL_JSON_APPLY_TEXT, "Use this text");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -686,6 +702,16 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_AGENT_BATCH_NOT_BATCHED, "One call per answer");
         setValue(L.ENUM_FILTERING_MODE_KEYWORDS_OR, "Keywords (any)");
         setValue(L.ENUM_FILTERING_MODE_KEYWORDS_AND, "Keywords (all)");
+        setValue(L.ENUM_JSON_STATUS_UNCHANGED, "Unchanged");
+        setValue(L.ENUM_JSON_STATUS_AGENT, "Agent changed");
+        setValue(L.ENUM_JSON_STATUS_BOOK, "Book changed");
+        setValue(L.ENUM_JSON_STATUS_BOTH, "Both changed");
+        setValue(L.ENUM_JSON_STATUS_SAME, "Same change");
+        setValue(L.ENUM_JSON_CHOICE_MERGED, "From inside");
+        setValue(L.ENUM_JSON_CHOICE_AGENT, "Agent's");
+        setValue(L.ENUM_JSON_CHOICE_BOOK, "Book's");
+        setValue(L.ENUM_JSON_CHOICE_BASE, "From the start");
+        setValue(L.ENUM_JSON_CHOICE_NONE, "Left out");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -974,6 +1000,14 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_LOADING_LATER_PARTS, "Loading later parts…");
         setValue(L.MSG_AGENT_COMMANDS_COUNT, "%d commands");
         setValue(L.MSG_AGENT_LANGUAGE_UNAVAILABLE, "%s (not available, English is used)");
+        setValue(L.MSG_JSON_MERGE_STATUS, "%d conflicts, %d not decided");
+        setValue(L.MSG_JSON_VALID, "Valid JSON.");
+        setValue(L.MSG_JSON_INVALID, "Not valid JSON: %s");
+        setValue(L.MSG_JSON_FIX_FIRST, "The text is not valid JSON, fix it first: %s");
+        setValue(L.MSG_JSON_NO_MATCH, "No other element can be matched with this one.");
+        setValue(L.MSG_JSON_NOT_JSON, "This data is not JSON, it can only be edited as text.");
+        setValue(L.MSG_JSON_RESULT_CONFLICTS, "%d conflicts in the data, the agent's version is taken where you do not decide.");
+        setValue(L.MSG_JSON_MATCH_PICK, "Which element is the same as %s?");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1051,6 +1085,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_MODEL_TOOLS, "Off: the model only answers with text, it gets no commands and no tools.");
         setValue(L.HELP_AGENT_RESUME_NOTE, "The agent reads this first when it goes on, after the report of the changes you made to the book, if there are any. It works for every run, also one that does not wait for your messages.");
         setValue(L.HELP_AGENT_LANGUAGE, "The language of everything the agent reads: the descriptions of its commands, their results and errors. It has nothing to do with the language of the book: the agent writes the book in the language of the book whatever it is set to. Commands and their parameters are in English in every language, so English is the most reliable choice, especially for small models. The list holds the languages that are installed; a run keeps the language it was started with.");
+        setValue(L.HELP_JSON_MERGE, "The data of the agent, of the book now and of the start of the run laid over each other. Select a place and take the data of one of them, leave it out, or put it together from the places inside it. What only one side changed is taken from it, what both changed is put together place by place, and a place both changed in the same way is a conflict: the agent's version is taken until you decide. Open a place to work only with it. The elements of a list are matched by what they are (the same data, the same id or name, the ones that look alike); when the guess is wrong, split an element or match it with another. In the text view you can write the agent's data of the open place by hand; it is checked when you go back to the tree.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

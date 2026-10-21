@@ -590,6 +590,22 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_TEXT_ONLY, "テキストのみ");
         setValue(L.LABEL_AGENT_RESUME_NOTE, "エージェントへのメモ（任意）");
         setValue(L.LABEL_AGENT_LANGUAGE, "エージェントの言語");
+        setValue(L.LABEL_JSON_MERGE, "JSONデータを統合");
+        setValue(L.LABEL_TREE, "ツリー");
+        setValue(L.LABEL_TEXT, "テキスト");
+        setValue(L.LABEL_JSON_ONLY_CHANGES, "変更のみ");
+        setValue(L.LABEL_JSON_PLACE, "場所");
+        setValue(L.LABEL_JSON_USE_BASE, "実行開始時のものを使う");
+        setValue(L.LABEL_JSON_LEAVE_OUT, "除外する");
+        setValue(L.LABEL_JSON_PUT_TOGETHER, "内部から組み立てる");
+        setValue(L.LABEL_JSON_MATCH_WITH, "対応付ける…");
+        setValue(L.LABEL_JSON_SPLIT, "分割");
+        setValue(L.LABEL_JSON_SHOW, "表示");
+        setValue(L.LABEL_JSON_AGENT_DATA, "エージェントのデータ(編集可)");
+        setValue(L.LABEL_JSON_COMPARE_WITH, "差分の比較対象");
+        setValue(L.LABEL_JSON_TAKE_RESULT, "結果を採用");
+        setValue(L.LABEL_JSON_START_OVER, "最初からやり直す");
+        setValue(L.LABEL_JSON_APPLY_TEXT, "このテキストを使う");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -686,6 +702,16 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_AGENT_BATCH_NOT_BATCHED, "1回の回答につき1回の呼び出し");
         setValue(L.ENUM_FILTERING_MODE_KEYWORDS_OR, "キーワード（いずれか）");
         setValue(L.ENUM_FILTERING_MODE_KEYWORDS_AND, "キーワード（すべて）");
+        setValue(L.ENUM_JSON_STATUS_UNCHANGED, "変更なし");
+        setValue(L.ENUM_JSON_STATUS_AGENT, "エージェントが変更");
+        setValue(L.ENUM_JSON_STATUS_BOOK, "ブックが変更");
+        setValue(L.ENUM_JSON_STATUS_BOTH, "両方が変更");
+        setValue(L.ENUM_JSON_STATUS_SAME, "同じ変更");
+        setValue(L.ENUM_JSON_CHOICE_MERGED, "内部から");
+        setValue(L.ENUM_JSON_CHOICE_AGENT, "エージェント");
+        setValue(L.ENUM_JSON_CHOICE_BOOK, "ブック");
+        setValue(L.ENUM_JSON_CHOICE_BASE, "開始時");
+        setValue(L.ENUM_JSON_CHOICE_NONE, "除外");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -974,6 +1000,14 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_LOADING_LATER_PARTS, "次のパートを読み込み中…");
         setValue(L.MSG_AGENT_COMMANDS_COUNT, "%d個のコマンド");
         setValue(L.MSG_AGENT_LANGUAGE_UNAVAILABLE, "%s（利用できないため英語を使用）");
+        setValue(L.MSG_JSON_MERGE_STATUS, "競合 %d 件、未決定 %d 件");
+        setValue(L.MSG_JSON_VALID, "有効なJSONです。");
+        setValue(L.MSG_JSON_INVALID, "JSONとして無効です: %s");
+        setValue(L.MSG_JSON_FIX_FIRST, "テキストが有効なJSONではありません。先に修正してください: %s");
+        setValue(L.MSG_JSON_NO_MATCH, "対応付けられる他の要素がありません。");
+        setValue(L.MSG_JSON_NOT_JSON, "このデータはJSONではないため、テキストとしてのみ編集できます。");
+        setValue(L.MSG_JSON_RESULT_CONFLICTS, "データに競合が %d 件あります。決定しない箇所はエージェントの内容が採用されます。");
+        setValue(L.MSG_JSON_MATCH_PICK, "%s と同じ要素はどれですか?");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1051,6 +1085,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_MODEL_TOOLS, "オフ：モデルはテキストでの回答のみで、コマンドもツールも渡されません。");
         setValue(L.HELP_AGENT_RESUME_NOTE, "エージェントは再開時にまずこれを読みます。本に加えた変更の報告がある場合は、その後です。メッセージを待たない実行でも使えます。");
         setValue(L.HELP_AGENT_LANGUAGE, "エージェントが読むすべてのテキスト（コマンドの説明、結果、エラー）の言語です。本の言語とは関係ありません。エージェントはこの設定に関わらず、本の言語で本文を書きます。コマンドとそのパラメータはどの言語でも英語なので、特に小さなモデルでは英語がもっとも確実です。一覧にはインストールされている言語が表示されます。実行は開始時の言語を保持します。");
+        setValue(L.HELP_JSON_MERGE, "エージェント、現在のブック、実行開始時のデータを重ねて表示します。場所を選んで、そのいずれかのデータを採用する、除外する、または内部の各場所から組み立てることができます。片方だけが変更した内容はそちらから採用され、両方が変更した場合は場所ごとに統合されます。同じ場所を両方が異なる内容に変更した場合は競合となり、決定するまでエージェントの内容が採用されます。場所を開くと、その場所だけを扱えます。リストの要素は内容(同じデータ、同じIDや名前、似ているもの)で対応付けられます。推測が違っていたら、要素を分割するか別の要素と対応付けてください。テキスト表示では、開いている場所のエージェントのデータを手で編集でき、ツリーに戻るときに検証されます。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

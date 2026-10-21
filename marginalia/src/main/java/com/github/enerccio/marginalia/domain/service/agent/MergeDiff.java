@@ -1,6 +1,8 @@
 package com.github.enerccio.marginalia.domain.service.agent;
 
 import com.github.enerccio.marginalia.domain.service.agent.MergePlan.*;
+import com.github.enerccio.marginalia.domain.service.agent.jsonmerge.JsonMerge;
+import com.github.enerccio.marginalia.domain.service.agent.jsonmerge.JsonText;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -189,6 +191,29 @@ public final class MergeDiff {
         return element.isJsonPrimitive() ? element.getAsString() : element.toString();
     }
 
+    /**
+     * The data kept in an attribute as the compact text that is compared, with the uuids of the copy replaced by the uuids of the
+     * book; the text of what is not JSON.
+     */
+    private static String json(JsonElement value, Map<String, String> toOriginal) {
+        String text = translate(value.toString(), toOriginal);
+        try {
+            return JsonText.compact(JsonText.parse(text));
+        } catch (JsonText.InvalidJsonException e) {
+            return text;
+        }
+    }
+
+    /**
+     * The fields for the data extensions keep in the {@code attributes} of a lorebook or an entry, one for each key.
+     */
+    private static void readAttributes(JsonObject marshalled, Map<String, String> props, Map<String, String> toOriginal) {
+        JsonObject attributes = object(marshalled, "attributes");
+        if (attributes != null) {
+            attributes.keySet().stream().sorted().forEach(key -> props.put(ATTRIBUTES + key, json(attributes.get(key), toOriginal)));
+        }
+    }
+
     private static JsonObject object(JsonObject object, String name) {
         JsonElement element = object == null ? null : object.get(name);
         return element != null && element.isJsonObject() ? element.getAsJsonObject() : null;
@@ -223,7 +248,7 @@ public final class MergeDiff {
             for (String field : extended.keySet()) {
                 if (field.startsWith(ATTRIBUTES)) {
                     // the JSON of the value, a plugin keeps whatever it likes there
-                    view.book.put(field, translate(extended.get(field).toString(), toOriginal));
+                    view.book.put(field, json(extended.get(field), toOriginal));
                 }
             }
         }
@@ -256,6 +281,7 @@ public final class MergeDiff {
                 }
             }
             props.put("subbooks", String.join("\n", subbooks));
+            readAttributes(bookObject, props, toOriginal);
             view.lorebooks.put(bookKey, props);
 
             JsonArray entries = array(bookObject, "entries");
@@ -278,6 +304,7 @@ public final class MergeDiff {
                 }
                 entryProps.put("tags", set(array(entry, "tags")));
                 entryProps.put("negativeTags", set(array(entry, "negativeTags")));
+                readAttributes(entry, entryProps, toOriginal);
                 view.entries.put(entryKey, entryProps);
             }
         }
@@ -308,7 +335,7 @@ public final class MergeDiff {
             if (extended != null) {
                 // what extensions (and the template variables of the generation) keep in the attributes of the part, one field per key
                 extended.keySet().stream().filter(field -> field.startsWith(ATTRIBUTES)).sorted()
-                        .forEach(field -> props.put(field, translate(extended.get(field).toString(), toOriginal)));
+                        .forEach(field -> props.put(field, json(extended.get(field), toOriginal)));
             }
             JsonObject summary = object(message, "summary");
             if (summary != null) {
@@ -337,6 +364,9 @@ public final class MergeDiff {
         if (SETS.contains(name)) {
             return Type.SET;
         }
+        if (name.startsWith(ATTRIBUTES)) {
+            return Type.JSON;
+        }
         return name.equals("lorebook") || name.equals(PARENT) ? Type.REF : Type.TEXT;
     }
 
@@ -349,7 +379,7 @@ public final class MergeDiff {
     }
 
     private static boolean editable(String name) {
-        return EDITABLE.contains(name);
+        return EDITABLE.contains(name) || name.startsWith(ATTRIBUTES);
     }
 
     /**
@@ -363,7 +393,8 @@ public final class MergeDiff {
             return null;
         }
         Type type = typeOf(name);
-        boolean conflict = type != Type.SET && !o.equals(b);
+        // JSON is in conflict where both changed the same place, not where both changed the data
+        boolean conflict = type == Type.JSON ? JsonMerge.conflicts(b, c, o) : type != Type.SET && !o.equals(b);
         return new Field(name, type, shown(base, name), shown(copy, name), shown(current, name), conflict, editable(name));
     }
 
@@ -455,11 +486,11 @@ public final class MergeDiff {
             if (base == null) {
                 if (current == null) {
                     added.add(new Item(ID_LOREBOOK + key, Kind.LOREBOOK, Change.ADDED, context.sourceUuid(key), null, props.get("name"),
-                            null, oneSided(LOREBOOK_FIELDS, props, true, null), false, null, List.of()));
+                            null, oneSided(lorebookFields(props), props, true, null), false, null, List.of()));
                 }
                 continue;
             }
-            List<Field> fields = compareAll(LOREBOOK_FIELDS, base, props, current);
+            List<Field> fields = compareAll(lorebookFields(base, props, current), base, props, current);
             if (!fields.isEmpty()) {
                 changed.add(new Item(ID_LOREBOOK + key, Kind.LOREBOOK, Change.CHANGED, context.sourceUuid(key), context.targetUuid(key), props.get("name"), null,
                         fields, fields.stream().anyMatch(Field::conflict), current == null ? MergePlan.PROBLEM_GONE : null, List.of()));
@@ -471,9 +502,9 @@ public final class MergeDiff {
             if (context.changed.lorebooks.containsKey(key) || current == null) {
                 continue;
             }
-            boolean conflict = !same(LOREBOOK_FIELDS, e.getValue(), current) || !entriesOf(context.base, key).equals(entriesOf(context.other, key));
+            boolean conflict = !same(lorebookFields(e.getValue(), current), e.getValue(), current) || !entriesOf(context.base, key).equals(entriesOf(context.other, key));
             deleted.add(new Item(ID_LOREBOOK + key, Kind.LOREBOOK, Change.DELETED, null, context.targetUuid(key), e.getValue().get("name"), null,
-                    oneSided(LOREBOOK_FIELDS, e.getValue(), false, current), conflict, null, List.of()));
+                    oneSided(lorebookFields(e.getValue()), e.getValue(), false, current), conflict, null, List.of()));
         }
         List<Item> items = new ArrayList<>(added);
         items.addAll(changed);
@@ -505,12 +536,12 @@ public final class MergeDiff {
                     String lorebook = props.get("lorebook");
                     boolean newBook = isNew(context, lorebook);
                     added.add(new Item(ID_ENTRY + key, Kind.ENTRY, Change.ADDED, context.sourceUuid(key), null, entryLabel(context, props), newBook ? ID_LOREBOOK + lorebook : null,
-                            oneSided(ENTRY_FIELDS, props, true, null), false,
+                            oneSided(entryFields(props), props, true, null), false,
                             newBook || context.other.lorebooks.containsKey(lorebook) ? null : MergePlan.PROBLEM_NEEDS_LOREBOOK, List.of()));
                 }
                 continue;
             }
-            List<Field> fields = compareAll(ENTRY_FIELDS, base, props, current);
+            List<Field> fields = compareAll(entryFields(base, props, current), base, props, current);
             if (!fields.isEmpty()) {
                 changed.add(new Item(ID_ENTRY + key, Kind.ENTRY, Change.CHANGED, context.sourceUuid(key), context.targetUuid(key), entryLabel(context, props), null,
                         fields, fields.stream().anyMatch(Field::conflict), current == null ? MergePlan.PROBLEM_GONE : null, List.of()));
@@ -523,7 +554,7 @@ public final class MergeDiff {
                 continue;
             }
             deleted.add(new Item(ID_ENTRY + key, Kind.ENTRY, Change.DELETED, null, context.targetUuid(key), entryLabel(context, e.getValue()), null,
-                    oneSided(ENTRY_FIELDS, e.getValue(), false, current), !same(ENTRY_FIELDS, e.getValue(), current), null, List.of()));
+                    oneSided(entryFields(e.getValue()), e.getValue(), false, current), !same(entryFields(e.getValue(), current), e.getValue(), current), null, List.of()));
         }
         List<Item> items = new ArrayList<>(added);
         items.addAll(changed);
@@ -612,13 +643,28 @@ public final class MergeDiff {
      */
     @SafeVarargs
     private static List<String> messageFields(Map<String, String>... versions) {
+        return withAttributes(MESSAGE_FIELDS, versions);
+    }
+
+    @SafeVarargs
+    private static List<String> lorebookFields(Map<String, String>... versions) {
+        return withAttributes(LOREBOOK_FIELDS, versions);
+    }
+
+    @SafeVarargs
+    private static List<String> entryFields(Map<String, String>... versions) {
+        return withAttributes(ENTRY_FIELDS, versions);
+    }
+
+    @SafeVarargs
+    private static List<String> withAttributes(List<String> fixed, Map<String, String>... versions) {
         Set<String> attributes = new TreeSet<>();
         for (Map<String, String> version : versions) {
             if (version != null) {
                 version.keySet().stream().filter(name -> name.startsWith(ATTRIBUTES)).forEach(attributes::add);
             }
         }
-        List<String> fields = new ArrayList<>(MESSAGE_FIELDS);
+        List<String> fields = new ArrayList<>(fixed);
         fields.addAll(attributes);
         return fields;
     }
