@@ -405,6 +405,45 @@ class LorebookActivationTest extends GenerationTestBase {
     }
 
     @Test
+    void keywordsOrFilter() throws Exception {
+        Lorebook book = lorebook("world");
+        entry(book, "varro", e -> {
+            e.setFiltering(" Captain ,Varro,, ");
+            e.setFilteringMode(FilteringMode.KEYWORDS_OR);
+        });
+        Manuscript manuscript = book(book);
+
+        assertThat(activate(manuscript, "the CAPTAIN arrives").activated()).containsExactly("varro");
+        assertThat(activate(manuscript, "Varro waits").activated()).containsExactly("varro");
+        assertThat(activate(manuscript, "a sailor").activated()).isEmpty();
+    }
+
+    @Test
+    void keywordsAndFilter() throws Exception {
+        Lorebook book = lorebook("world");
+        entry(book, "varro", e -> {
+            e.setFiltering("Captain, Varro");
+            e.setFilteringMode(FilteringMode.KEYWORDS_AND);
+        });
+        Manuscript manuscript = book(book);
+
+        assertThat(activate(manuscript, "Captain Varro arrives").activated()).containsExactly("varro");
+        assertThat(activate(manuscript, "Varro, the captain").activated()).containsExactly("varro");
+        assertThat(activate(manuscript, "The captain arrives").activated()).isEmpty();
+    }
+
+    @Test
+    void keywordsFilterWithoutKeywordsNeverMatches() throws Exception {
+        Lorebook book = lorebook("world");
+        entry(book, "empty", e -> {
+            e.setFiltering(" , ");
+            e.setFilteringMode(FilteringMode.KEYWORDS_OR);
+        });
+
+        assertThat(activate(book(book), "anything, at all").activated()).isEmpty();
+    }
+
+    @Test
     void regexFilter() throws Exception {
         Lorebook book = lorebook("world");
         entry(book, "royalty", e -> {

@@ -691,6 +691,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_AGENT_BATCH_IGNORE_POLICIES, "全部一起（忽略批处理策略）");
         setValue(L.ENUM_AGENT_BATCH_BATCHED, "一起（标记为“单独”的命令单独执行）");
         setValue(L.ENUM_AGENT_BATCH_NOT_BATCHED, "每次回答只调用一次");
+        setValue(L.ENUM_FILTERING_MODE_KEYWORDS_OR, "关键词（任一）");
+        setValue(L.ENUM_FILTERING_MODE_KEYWORDS_AND, "关键词（全部）");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -1209,7 +1211,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_LIST_LOREBOOKS_LLM, "列出本书的世界书：根世界书及其子世界书树，每个都有编号（根为 1）、名称、是否启用、条目数（及启用的条目数）、标签和子世界书的编号。无法访问用户的其他世界书。世界书和条目通过句柄（建议使用）或编号指定：世界书用此编号，条目用其在世界书中的编号。只读。每一行还有它的 \"handle\"：它不会随增删而变化，修改书的命令使用的就是它。");
         setValue(L.DESC_COMMAND_LIST_LOREBOOKS_RETURN, "包含世界书的 JSON：编号、名称、是否启用、条目数、启用条目数、标签、子世界书");
         setValue(L.DESC_COMMAND_LIST_LORE_ENTRIES, "列出世界书的条目及其设置和预览。");
-        setValue(L.DESC_COMMAND_LIST_LORE_ENTRIES_LLM, "列出世界书的条目（除非给出 list-lorebooks 的世界书编号，否则为根世界书）：条目在世界书中的编号、名称、是否启用、顺序、插入模式、过滤模式（TEXT 关键词或 REGEX）、标签、正文长度和简短预览。过滤文本保留名称或标签包含它的条目；编号仍是整个世界书中的编号。分页：offset 和 limit。条目用其在世界书中的编号指定（第一个为 1）。只读。选项为位置参数，可省略，按所列顺序。每一行还有它的 \"handle\"：它不会随增删而变化，修改书的命令使用的就是它。");
+        setValue(L.DESC_COMMAND_LIST_LORE_ENTRIES_LLM, "列出世界书的条目（除非给出 list-lorebooks 的世界书编号，否则为根世界书）：条目在世界书中的编号、名称、是否启用、顺序、插入模式、过滤模式（KEYWORDS_OR / KEYWORDS_AND 关键词、TEXT 或 REGEX）、标签、正文长度和简短预览。过滤文本保留名称或标签包含它的条目；编号仍是整个世界书中的编号。分页：offset 和 limit。条目用其在世界书中的编号指定（第一个为 1）。只读。选项为位置参数，可省略，按所列顺序。每一行还有它的 \"handle\"：它不会随增删而变化，修改书的命令使用的就是它。");
         setValue(L.DESC_COMMAND_LIST_LORE_ENTRIES_RETURN, "包含本页条目的 JSON：条目、名称、是否启用、顺序、插入、过滤、标签、正文长度、预览");
         setValue(L.DESC_COMMAND_GET_LORE_ENTRY, "显示一个世界书条目及其设置和正文。");
         setValue(L.DESC_COMMAND_GET_LORE_ENTRY_LLM, "读取世界书的一个条目（除非给出 list-lorebooks 的世界书编号，否则为根世界书）：名称、是否启用、顺序、插入模式、过滤模式及其关键词（激活它的文本或正则表达式）、标签和否定标签、备注，以及带偏移量和总长度的正文片段（用 offset 和 length 翻阅长文本）。条目通过句柄，或其在世界书中的编号来指定（第一个为 1，见 list-lore-entries）。只读。选项为位置参数，可省略，按所列顺序。每一行还有它的 \"handle\"：它不会随增删而变化，修改书的命令使用的就是它。");
@@ -1299,8 +1301,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_LORE_COMMENT_PARAM, "给作者的条目备注，不会放入提示");
         setValue(L.DESC_COMMAND_LORE_ENABLED_PARAM, "条目是否启用，省略时为 true");
         setValue(L.DESC_COMMAND_LORE_ORDER_PARAM, "条目在所有世界书已使用条目中的顺序：越小越靠前，顺序相同则按创建时间；省略时为 100。get-lore-entry 和 list-lore-entries 会显示其他条目的顺序");
-        setValue(L.DESC_COMMAND_LORE_KEYS_PARAM, "使条目被采用的回合文本中的词或正则表达式；始终使用的条目留空");
-        setValue(L.DESC_COMMAND_LORE_FILTERING_MODE_PARAM, "关键字的匹配方式：TEXT（词）或 REGEX；省略时为 TEXT");
+        setValue(L.DESC_COMMAND_LORE_KEYS_PARAM, "使条目被采用的回合文本中的词（用逗号分隔的列表，如 \"Name, Lastname\"）或正则表达式；始终使用的条目留空");
+        setValue(L.DESC_COMMAND_LORE_FILTERING_MODE_PARAM, "关键字的匹配方式：KEYWORDS_OR（关键字是用逗号分隔的列表，其中任何一个出现在文本中即使用条目）、KEYWORDS_AND（必须全部出现在文本中）、TEXT（整个关键字作为一段文本）或 REGEX；创建时省略为 KEYWORDS_OR，更新时保持不变");
         setValue(L.DESC_COMMAND_LORE_INSERTION_MODE_PARAM, "文本放置的位置：IN_LORE_BLOCK（在世界书块中，按条目顺序）或 BEFORE_USER_PROMPT（紧接在请求之前，模型最关注的位置；用于必须影响这一部分的内容，请少用）；省略时为 IN_LORE_BLOCK");
         setValue(L.DESC_COMMAND_LORE_TAGS_PARAM, "条目的标签，用逗号分隔：只有带有其中之一的书才会使用该条目");
         setValue(L.DESC_COMMAND_LORE_TAGS_ADD_PARAM, "要添加到条目的标签，用逗号分隔");
@@ -1312,7 +1314,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_PARENT_LOREBOOK_PARAM, "接收新世界书作为子书的世界书句柄；省略时为根世界书");
         setValue(L.DESC_COMMAND_SUBBOOK_PARAM, "成为（或不再是）子书的世界书句柄");
         setValue(L.DESC_COMMAND_CREATE_LORE_ENTRY, "向世界书添加条目。参数：name、payload、lorebook（句柄）、comment、enabled、order、keys、filteringMode、insertionMode、tags。");
-        setValue(L.DESC_COMMAND_CREATE_LORE_ENTRY_LLM, "向书的世界书添加新条目（省略 `lorebook` 时为根世界书）。`payload` 是放入提示的文本，是一个 Handlebars 模板。没有 `keys` 的条目始终被使用，否则当关键字（词，filteringMode 为 REGEX 时为正则表达式）出现在回合文本中时才使用。模板或正则表达式的问题不会阻止保存，会在回复中报告：请用 update-lore-entry 修正。`order`（越小越靠前，省略时为 100）决定条目在已使用条目中的先后：用 list-lore-entries 读取其他条目的 `order`，即可把它放在它们之间。`insertionMode` 为 BEFORE_USER_PROMPT 时，文本不在世界书块中，而是紧接在请求之前。会更改书。返回条目的句柄。");
+        setValue(L.DESC_COMMAND_CREATE_LORE_ENTRY_LLM, "向书的世界书添加新条目（省略 `lorebook` 时为根世界书）。`payload` 是放入提示的文本，是一个 Handlebars 模板。没有 `keys` 的条目始终被使用，否则当关键字出现在回合文本中时才使用：`keys` 是用逗号分隔的词列表（例如 \"Anna, Novak\"），其中任何一个出现时（filteringMode 为 KEYWORDS_OR，默认）或全部出现时（KEYWORDS_AND）使用该条目；TEXT 把整个 `keys` 作为一段文本，REGEX 作为正则表达式。模板或正则表达式的问题不会阻止保存，会在回复中报告：请用 update-lore-entry 修正。`order`（越小越靠前，省略时为 100）决定条目在已使用条目中的先后：用 list-lore-entries 读取其他条目的 `order`，即可把它放在它们之间。`insertionMode` 为 BEFORE_USER_PROMPT 时，文本不在世界书块中，而是紧接在请求之前。会更改书。返回条目的句柄。");
         setValue(L.DESC_COMMAND_CREATE_LORE_ENTRY_RETURN, "包含条目（handle、name）及其文本或过滤器问题（如有）的 JSON");
         setValue(L.DESC_COMMAND_UPDATE_LORE_ENTRY, "更改世界书条目的字段。参数：entry（句柄）、name、payload、comment、enabled、order、keys、filteringMode、insertionMode。");
         setValue(L.DESC_COMMAND_UPDATE_LORE_ENTRY_LLM, "更改给定句柄的条目：只更改给出的字段。要修改长文本的一部分，请先用 get-lore-entry 读取，再给出完整的新 `payload`。模板或正则表达式的问题不会阻止保存，会在回复中报告。`order` 和 `insertionMode` 会改变条目在提示中的位置（见 create-lore-entry）。更改标签请用 set-lore-entry-tags，移动请用 move-lore-entry。会更改书。");

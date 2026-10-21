@@ -38,7 +38,7 @@ The ⌄ button opens the details:
 | Field | |
 |---|---|
 | **Content** | The text that goes into the prompt. A [template](#templates-in-entries): it can use variables and macros. |
-| **Filtering Mode** | **Text** or **Regex**, how *Filtering Text/Pattern* is matched. |
+| **Filtering Mode** | **Keywords (any)**, **Keywords (all)**, **Text** or **Regex**, how *Filtering Text/Pattern* is matched. |
 | **Filtering Text/Pattern** | The filter, see [Filters](#filters). Empty means no filter. |
 | **Insertion Mode** | **In Lore Block** or **Before User Prompt**, see [Order and insertion](#order-and-insertion). |
 | **Negative Tags (Exclusion)** | Tags that switch the entry off, see [Tags](#tags). |
@@ -87,6 +87,8 @@ A filter activates the entry only when the **request for the part** mentions it.
 
 | Mode | Matches when |
 |---|---|
+| **Keywords (any)** | The filter is a list of keywords separated by commas (`Varro, Ostra`); the request contains at least one of them, ignoring case. Spaces around a keyword are ignored. |
+| **Keywords (all)** | The same list, but the request must contain every keyword. |
 | **Text** | The text appears anywhere in the request, ignoring upper and lower case. `varro` matches *Captain Varro*. |
 | **Regex** | The [regular expression](../regular-expressions.md#in-a-lorebook-entry-filter) matches anywhere in the request, ignoring case, across lines. |
 

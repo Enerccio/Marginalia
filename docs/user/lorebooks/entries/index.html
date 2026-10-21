@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845915892678">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845916247042">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845915892678" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845916247042" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845915892678" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845916247042" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845915892678" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845915892678" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845916247042" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845916247042" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -242,7 +242,7 @@ can use <code translate="no" v-pre>(?i)</code> to ignore the case). Entries that
 <retype-table copy-text="| Field | |
 |---|---|
 | **Content** | The text that goes into the prompt. A [template](#templates-in-entries): it can use variables and macros. |
-| **Filtering Mode** | **Text** or **Regex**, how *Filtering Text/Pattern* is matched. |
+| **Filtering Mode** | **Keywords (any)**, **Keywords (all)**, **Text** or **Regex**, how *Filtering Text/Pattern* is matched. |
 | **Filtering Text/Pattern** | The filter, see [Filters](#filters). Empty means no filter. |
 | **Insertion Mode** | **In Lore Block** or **Before User Prompt**, see [Order and insertion](#order-and-insertion). |
 | **Negative Tags (Exclusion)** | Tags that switch the entry off, see [Tags](#tags). |
@@ -262,7 +262,7 @@ can use <code translate="no" v-pre>(?i)</code> to ignore the case). Entries that
 </tr>
 <tr>
 <td><strong>Filtering Mode</strong></td>
-<td><strong>Text</strong> or <strong>Regex</strong>, how <em>Filtering Text/Pattern</em> is matched.</td>
+<td><strong>Keywords (any)</strong>, <strong>Keywords (all)</strong>, <strong>Text</strong> or <strong>Regex</strong>, how <em>Filtering Text/Pattern</em> is matched.</td>
 </tr>
 <tr>
 <td><strong>Filtering Text/Pattern</strong></td>
@@ -357,6 +357,8 @@ from files can carry them). They then count as tags of each of its entries.</p>
 <em>Present Characters</em> and <em>Instructions</em> you entered, inside the wording of the user prompt template.</p>
 <retype-table copy-text="| Mode | Matches when |
 |---|---|
+| **Keywords (any)** | The filter is a list of keywords separated by commas (`Varro, Ostra`); the request contains at least one of them, ignoring case. Spaces around a keyword are ignored. |
+| **Keywords (all)** | The same list, but the request must contain every keyword. |
 | **Text** | The text appears anywhere in the request, ignoring upper and lower case. `varro` matches *Captain Varro*. |
 | **Regex** | The [regular expression](../regular-expressions.md#in-a-lorebook-entry-filter) matches anywhere in the request, ignoring case, across lines. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -368,6 +370,14 @@ from files can carry them). They then count as tags of each of its entries.</p>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><strong>Keywords (any)</strong></td>
+<td>The filter is a list of keywords separated by commas (<code translate="no" v-pre>Varro, Ostra</code>); the request contains at least one of them, ignoring case. Spaces around a keyword are ignored.</td>
+</tr>
+<tr>
+<td><strong>Keywords (all)</strong></td>
+<td>The same list, but the request must contain every keyword.</td>
+</tr>
 <tr>
 <td><strong>Text</strong></td>
 <td>The text appears anywhere in the request, ignoring upper and lower case. <code translate="no" v-pre>varro</code> matches <em>Captain Varro</em>.</td>
@@ -524,7 +534,7 @@ between books.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (1a5ae04b).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (bfd976c0).</p></div>
             </footer>
         </div>
     </div>

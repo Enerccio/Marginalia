@@ -118,6 +118,16 @@ public class LorebookActivationServiceImpl implements LorebookActivationService 
         if (entry.getFilteringMode() == FilteringMode.TEXT) {
             return Strings.CI.contains(content, entry.getFiltering());
         }
+        if (entry.getFilteringMode() == FilteringMode.KEYWORDS_OR || entry.getFilteringMode() == FilteringMode.KEYWORDS_AND) {
+            List<String> keywords = Arrays.stream(Objects.toString(entry.getFiltering(), "").split(","))
+                    .map(String::strip).filter(StringUtils::isNotEmpty).toList();
+            if (keywords.isEmpty()) {
+                return false;
+            }
+            return entry.getFilteringMode() == FilteringMode.KEYWORDS_OR
+                    ? keywords.stream().anyMatch(keyword -> Strings.CI.contains(content, keyword))
+                    : keywords.stream().allMatch(keyword -> Strings.CI.contains(content, keyword));
+        }
         try {
             Pattern pattern = Pattern.compile(
                     entry.getFiltering(),

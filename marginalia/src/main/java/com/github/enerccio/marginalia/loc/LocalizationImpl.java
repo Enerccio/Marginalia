@@ -122,6 +122,8 @@ public class LocalizationImpl implements Localization, InitializingBean {
 
         filteringModes.put(FilteringMode.TEXT, L.ENUM_FILTERING_MODE_TEXT);
         filteringModes.put(FilteringMode.REGEX, L.ENUM_FILTERING_MODE_REGEX);
+        filteringModes.put(FilteringMode.KEYWORDS_OR, L.ENUM_FILTERING_MODE_KEYWORDS_OR);
+        filteringModes.put(FilteringMode.KEYWORDS_AND, L.ENUM_FILTERING_MODE_KEYWORDS_AND);
 
         insertionModes.put(InsertionMode.IN_LORE_BLOCK, L.ENUM_INSERTION_MODE_IN_LORE_BLOCK);
         insertionModes.put(InsertionMode.BEFORE_USER_PROMPT, L.ENUM_INSERTION_MODE_BEFORE_USER_PROMPT);

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845915892678">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845916247042">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845915892678" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845916247042" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845915892678" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845916247042" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845915892678" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845916247042" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -528,7 +528,7 @@ describes): the answer lists them and says what to do, <code translate="no" v-pr
 | `/set-book-info [name] [description] [pov] [tense] [style] [language]` | Changes the descriptive settings of the book; only the values you give. |
 | `/set-book-prompts [template] [userPrompt] [summaryPrompt] [metaSummaryPrompt]` | Replaces the prompt templates of the book. Each is checked first. `DESTRUCTIVE`: a bad template spoils every later generation. |
 | `/set-book-tags [add] [remove]` | Adds and takes off tags of the book (comma separated). |
-| `/create-lore-entry &lt;name&gt; &lt;payload&gt; [lorebook] [comment] [enabled] [order] [keys] [filteringMode] [insertionMode] [tags]` | Adds an entry to a lorebook (the root when none is given; a book that has no lorebook gets one, named like the book). A problem of the template or of the regular expression is saved and reported. |
+| `/create-lore-entry &lt;name&gt; &lt;payload&gt; [lorebook] [comment] [enabled] [order] [keys] [filteringMode] [insertionMode] [tags]` | Adds an entry to a lorebook (the root when none is given; a book that has no lorebook gets one, named like the book). `keys` is a list of keywords separated by commas; `filteringMode` is `KEYWORDS_OR` (default), `KEYWORDS_AND`, `TEXT` or `REGEX`. A problem of the template or of the regular expression is saved and reported. |
 | `/update-lore-entry &lt;entry&gt; [name] [payload] [comment] [enabled] [order] [keys] [filteringMode] [insertionMode]` | Changes the fields you give. |
 | `/delete-lore-entry &lt;entry&gt;` | Deletes an entry. Asks first. |
 | `/move-lore-entry &lt;entry&gt; &lt;lorebook&gt;` | Moves an entry to another lorebook of the book. |
@@ -628,7 +628,7 @@ describes): the answer lists them and says what to do, <code translate="no" v-pr
 </tr>
 <tr>
 <td><code translate="no" v-pre>/create-lore-entry &lt;name&gt; &lt;payload&gt; [lorebook] [comment] [enabled] [order] [keys] [filteringMode] [insertionMode] [tags]</code></td>
-<td>Adds an entry to a lorebook (the root when none is given; a book that has no lorebook gets one, named like the book). A problem of the template or of the regular expression is saved and reported.</td>
+<td>Adds an entry to a lorebook (the root when none is given; a book that has no lorebook gets one, named like the book). <code translate="no" v-pre>keys</code> is a list of keywords separated by commas; <code translate="no" v-pre>filteringMode</code> is <code translate="no" v-pre>KEYWORDS_OR</code> (default), <code translate="no" v-pre>KEYWORDS_AND</code>, <code translate="no" v-pre>TEXT</code> or <code translate="no" v-pre>REGEX</code>. A problem of the template or of the regular expression is saved and reported.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>/update-lore-entry &lt;entry&gt; [name] [payload] [comment] [enabled] [order] [keys] [filteringMode] [insertionMode]</code></td>
@@ -802,7 +802,7 @@ Character Tracker also change the outline and the characters of the open book; o
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (1a5ae04b).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (bfd976c0).</p></div>
             </footer>
         </div>
     </div>
