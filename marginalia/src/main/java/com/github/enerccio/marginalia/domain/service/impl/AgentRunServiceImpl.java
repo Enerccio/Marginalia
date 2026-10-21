@@ -112,7 +112,7 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
         run.setStatus(AgentRunStatus.RUNNING);
         run.setInteractive(interactive);
         run.setStartedAt(new Date());
-        run.setLanguage(stored.getManuscript().getLanguage());
+        run.setLanguage(stored.getLanguage());
         AgentRun started = save(run);
         storeCopyRecords(started, copy);
         log.info("Agent run {} started: agent \"{}\" of user {}, {}", started.getUuid(), stored.getName(), currentUser.getId(),

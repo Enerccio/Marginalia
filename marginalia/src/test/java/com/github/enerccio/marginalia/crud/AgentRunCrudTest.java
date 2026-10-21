@@ -1,7 +1,6 @@
 package com.github.enerccio.marginalia.crud;
 
 import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
-import com.github.enerccio.marginalia.domain.collections.Language;
 import com.github.enerccio.marginalia.domain.model.AgentModelProfile;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
@@ -58,7 +57,7 @@ class AgentRunCrudTest extends ExtendableCrudContract<AgentRun> {
         run.setPrefillTokens(120);
         run.setGeneratedTokens(30);
         run.setRounds(2);
-        run.setLanguage(Language.JAPANESE);
+        run.setLanguage("ja");
         return run;
     }
 
@@ -74,12 +73,12 @@ class AgentRunCrudTest extends ExtendableCrudContract<AgentRun> {
         assertThat(loaded.getGeneratedTokens()).isEqualTo(30);
         assertThat(loaded.getTotalTokens()).isEqualTo(150);
         assertThat(loaded.getRounds()).isEqualTo(2);
-        assertThat(loaded.getLanguage()).isEqualTo(Language.JAPANESE);
+        assertThat(loaded.getLanguage()).isEqualTo("ja");
     }
 
     @Override
     protected void modify(AgentRun entity) {
-        entity.setLanguage(Language.ENGLISH);
+        entity.setLanguage("en");
         // the status and the counters are not written by a save, only the service changes them
         entity.setStatus(AgentRunStatus.APPLIED);
         entity.setPrefillTokens(1);
@@ -87,7 +86,7 @@ class AgentRunCrudTest extends ExtendableCrudContract<AgentRun> {
 
     @Override
     protected void assertModified(AgentRun loaded) {
-        assertThat(loaded.getLanguage()).isEqualTo(Language.ENGLISH);
+        assertThat(loaded.getLanguage()).isEqualTo("en");
         assertThat(loaded.getStatus()).isEqualTo(AgentRunStatus.PAUSED);
         assertThat(loaded.getPrefillTokens()).isEqualTo(120);
     }

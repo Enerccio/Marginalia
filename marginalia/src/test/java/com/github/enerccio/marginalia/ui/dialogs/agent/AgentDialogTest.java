@@ -16,6 +16,7 @@ import com.github.enerccio.marginalia.domain.service.CommandService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.service.command.CommandDefinition;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.Language;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.test.AgentTestBase;
 import com.vaadin.flow.component.UI;
@@ -127,6 +128,8 @@ class AgentDialogTest extends AgentTestBase {
         dialog.getUseOwnModelCheckbox().setValue(false);
         assertThat(dialog.getBatchModeCombo().getValue()).as("batched for a new agent").isEqualTo(AgentBatchMode.BATCHED);
         dialog.getBatchModeCombo().setValue(AgentBatchMode.NOT_BATCHED);
+        assertThat(dialog.getLanguageCombo().getValue()).as("English for a new agent").isEqualTo(Language.EN);
+        dialog.getLanguageCombo().setValue(Language.of("ja"));
         dialog.getInstructionsField().setValue("Check the names.");
         dialog.getCommandsEditor().select(AgentCommandPreset.NONE);
         button(dialog, "OK").click();
@@ -144,6 +147,7 @@ class AgentDialogTest extends AgentTestBase {
         assertThat(agent.getAutoCompactPercent()).isEqualTo(80);
         assertThat(agent.isUsingAgentModel()).isFalse();
         assertThat(agent.getBatchMode()).isEqualTo(AgentBatchMode.NOT_BATCHED);
+        assertThat(agent.getLanguage()).isEqualTo("ja");
         assertThat(agent.getInstructions()).isEqualTo("Check the names.");
         assertThat(agent.getSystemPrompt()).as("blank: it follows the default").isBlank();
         assertThat(agent.getAllowedCommands()).isEmpty();
@@ -168,6 +172,24 @@ class AgentDialogTest extends AgentTestBase {
         edit.getImagesCheckbox().setValue(false);
         button(edit, "OK").click();
         assertThat(agentService.findForManuscript(book).getMainProfile().isImages()).isFalse();
+    }
+
+    @Test
+    void aLanguageThatIsNotInstalledStaysUntilTheAuthorChangesIt() throws Exception {
+        Manuscript book = manuscript();
+        Agent agent = newAgent(book);
+        agent.setLanguage("cs");
+        Agent saved = agentService.save(agent);
+
+        AgentDialog edit = dialog(saved);
+        assertThat(edit.getLanguageCombo().getValue()).isEqualTo(Language.of("cs"));
+        button(edit, "OK").click();
+        assertThat(agentService.findForManuscript(book).getLanguage()).as("saving does not change it").isEqualTo("cs");
+
+        AgentDialog change = dialog(agentService.findForManuscript(book));
+        change.getLanguageCombo().setValue(Language.EN);
+        button(change, "OK").click();
+        assertThat(agentService.findForManuscript(book).getLanguage()).as("English is not stored").isNull();
     }
 
     @Test

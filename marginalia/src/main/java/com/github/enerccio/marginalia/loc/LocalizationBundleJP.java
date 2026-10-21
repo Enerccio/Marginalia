@@ -589,6 +589,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_COMMANDS_NONE, "コマンドなし");
         setValue(L.LABEL_AGENT_TEXT_ONLY, "テキストのみ");
         setValue(L.LABEL_AGENT_RESUME_NOTE, "エージェントへのメモ（任意）");
+        setValue(L.LABEL_AGENT_LANGUAGE, "エージェントの言語");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -972,6 +973,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_LOADING_EARLIER_PARTS, "前のパートを読み込み中…");
         setValue(L.MSG_LOADING_LATER_PARTS, "次のパートを読み込み中…");
         setValue(L.MSG_AGENT_COMMANDS_COUNT, "%d個のコマンド");
+        setValue(L.MSG_AGENT_LANGUAGE_UNAVAILABLE, "%s（利用できないため英語を使用）");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1048,6 +1050,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_MODEL_COMMANDS, "オフ：このモデルのサブエージェントはエージェントと同じコマンドを使います。オン：チェックしたコマンドのみ、その中でもエージェントに許可されたものだけです。ファイルのツールはコマンドではなく、サブエージェントは常に使えます。");
         setValue(L.HELP_AGENT_MODEL_TOOLS, "オフ：モデルはテキストでの回答のみで、コマンドもツールも渡されません。");
         setValue(L.HELP_AGENT_RESUME_NOTE, "エージェントは再開時にまずこれを読みます。本に加えた変更の報告がある場合は、その後です。メッセージを待たない実行でも使えます。");
+        setValue(L.HELP_AGENT_LANGUAGE, "エージェントが読むすべてのテキスト（コマンドの説明、結果、エラー）の言語です。本の言語とは関係ありません。エージェントはこの設定に関わらず、本の言語で本文を書きます。コマンドとそのパラメータはどの言語でも英語なので、特に小さなモデルでは英語がもっとも確実です。一覧にはインストールされている言語が表示されます。実行は開始時の言語を保持します。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");
