@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.model.impl.AgentMessage;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.service.AgentMessageService;
 import com.github.enerccio.marginalia.domain.service.agent.AgentTranscriptExport;
+import com.github.enerccio.marginalia.domain.service.agent.RunTools;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
@@ -103,5 +104,16 @@ class AgentTranscriptExportTest {
                 .contains("### DONE\n\nnames are fine")
                 .doesNotContain("sub2");
         assertThat(md.indexOf("## You")).isLessThan(md.indexOf("## Sub-agent sub1"));
+    }
+
+    @Test
+    void theFindingsOfTheAgentAreASectionBeforeTheFinalReport() {
+        String md = AgentTranscriptExport.export("Checker", run(AgentRunStatus.DONE, "All is well."), List.of(),  List.of(),
+                List.of(new RunTools.Finding(1, "problem", "Kira has green eyes in part 3", "2026-10-21T10:00:00Z"),
+                        new RunTools.Finding(2, "note", "The tone shifts", "2026-10-21T10:01:00Z")));
+
+        assertThat(md).contains("## Findings\n\n1. **problem** Kira has green eyes in part 3\n\n2. **note** The tone shifts");
+        assertThat(md.indexOf("## Findings")).isLessThan(md.indexOf("All is well."));
+        assertThat(AgentTranscriptExport.export("Checker", run(AgentRunStatus.DONE, null), List.of(), List.of())).doesNotContain("Findings");
     }
 }

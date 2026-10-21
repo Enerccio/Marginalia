@@ -191,7 +191,8 @@ public class AgentRunHistory extends VerticalLayout implements LLMInteract {
     }
 
     String export(AgentRun run) throws Exception {
-        return AgentTranscriptExport.export(agent.getName(), run, agentMessageService.messages(run), agentMessageService.threads(run));
+        return AgentTranscriptExport.export(agent.getName(), run, agentMessageService.messages(run), agentMessageService.threads(run),
+                agentRunService.getFindings(run));
     }
 
     static String fileName(AgentRun run) {

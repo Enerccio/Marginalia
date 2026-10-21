@@ -611,6 +611,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_AGENTS_WAITING, "Agents waiting for you");
         setValue(L.LABEL_CLONE_BOOK, "Clone book");
         setValue(L.LABEL_ONLY_CURRENT_BRANCH, "Only current branch");
+        setValue(L.LABEL_AGENT_FINDINGS, "Findings");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -720,6 +721,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_AGENT_PLAN_PENDING, "To do");
         setValue(L.ENUM_AGENT_PLAN_IN_PROGRESS, "In progress");
         setValue(L.ENUM_AGENT_PLAN_DONE, "Done");
+        setValue(L.ENUM_AGENT_FINDING_WARNING, "Warning");
+        setValue(L.ENUM_AGENT_FINDING_PROBLEM, "Problem");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");

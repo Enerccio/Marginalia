@@ -23,11 +23,32 @@ public interface RunTools {
     record PlanItem(String text, String status) {
     }
 
+    /**
+     * One finding of {@link #report}.
+     *
+     * @param number   the place in the list of the run, from 1
+     * @param severity {@code note}, {@code warning} or {@code problem}
+     * @param text     what the agent found
+     * @param time     when it was reported (ISO, UTC), empty when not known
+     */
+    record Finding(int number, String severity, String text, String time) {
+    }
+
     @LLMFunction(name = "finish", description = "Ends your work when the task is done. Call it once, with your report "
             + "for the author: what you did, what you found, what you changed and what the author should check. "
             + "Nothing is done after this call, so finish your notes and checks first.")
     void finish(FunctionContinuation<String> done,
                 @LLMParam(description = "Your report for the author") String summary);
+
+    @LLMFunction(name = "report", description = "Records a finding for the author and goes on: something you found that "
+            + "the author should know about (a contradiction, an error, a doubt, a thing you could not decide). The author reads "
+            + "the findings in the console and in the review of the run, apart from your final report. It does not stop you and "
+            + "asks nothing. One finding per call, complete enough to be understood without the rest of your work: say where it is "
+            + "(the number of the part, the name of the entry) and quote the words it is about. Report each finding once; "
+            + "`get_run_status` lists the ones you made.")
+    void report(FunctionContinuation<String> done,
+                @LLMParam(description = "The finding: what, where and why it matters") String text,
+                @LLMParam(description = "note (default), warning or problem", required = false) String severity);
 
     @LLMFunction(name = "ask_user", description = "Asks the author a question and waits for the answer. Use it only "
             + "when the answer is the author's decision and you can not find it out yourself with your tools. The run "

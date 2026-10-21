@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.AgentRunService;
 import com.github.enerccio.marginalia.domain.service.agent.MergeDiff;
 import com.github.enerccio.marginalia.domain.service.agent.MergePlan;
 import com.github.enerccio.marginalia.domain.service.agent.MergePlan.*;
+import com.github.enerccio.marginalia.domain.service.agent.RunTools;
 import com.github.enerccio.marginalia.domain.service.agent.jsonmerge.JsonMerge;
 import com.github.enerccio.marginalia.domain.service.agent.jsonmerge.JsonMergeNode;
 import com.github.enerccio.marginalia.domain.service.agent.jsonmerge.JsonText;
@@ -68,6 +69,7 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
     private Span summaryLabel;
     private Span hintLabel;
     private Checkbox branchBox;
+    private Details findingsDetails;
     private VerticalLayout detail;
     private Button applyButton;
     private Button discardButton;
@@ -155,7 +157,12 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         }
         split.addClassName(CssStyles.MIN_HEIGHT_0);
 
-        VerticalLayout content = new VerticalLayout(summaryLabel, hintLabel, toolbar, split);
+        VerticalLayout content = new VerticalLayout(summaryLabel, hintLabel);
+        Details findings = findingsSection();
+        if (findings != null) {
+            content.add(findings);
+        }
+        content.add(toolbar, split);
         content.setSizeFull();
         content.setPadding(false);
         content.setSpacing(false);
@@ -176,6 +183,30 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         getFooter().add(footer);
 
         load();
+    }
+
+    /**
+     * What the agent reported with {@code report}, above the changes; null when it reported nothing.
+     */
+    private Details findingsSection() {
+        List<RunTools.Finding> findings;
+        try {
+            findings = agentRunService.getFindings(run);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+            return null;
+        }
+        if (findings.isEmpty()) {
+            return null;
+        }
+        AgentFindingsView view = new AgentFindingsView(loc);
+        view.setFindings(findings);
+        view.addClassName(CssStyles.AGENT_FINDINGS_COMPACT);
+        Details details = new Details(loc.getValue(L.LABEL_AGENT_FINDINGS) + " (" + findings.size() + ")", view);
+        details.setOpened(true);
+        details.setWidthFull();
+        findingsDetails = details;
+        return details;
     }
 
     private Button small(L label, com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>> listener) {
@@ -780,6 +811,10 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
 
     Checkbox getBranchBox() {
         return branchBox;
+    }
+
+    Details getFindingsDetails() {
+        return findingsDetails;
     }
 
     Span getSummaryLabel() {

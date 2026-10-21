@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.agent.CheckpointStore.Info;
 import com.github.enerccio.marginalia.domain.service.agent.CheckpointStore.Kind;
 import com.github.enerccio.marginalia.domain.service.agent.ImageFiles;
+import com.github.enerccio.marginalia.domain.service.agent.RunTools;
 import com.github.enerccio.marginalia.domain.service.agent.VirtualFileSystem;
 import com.github.enerccio.marginalia.domain.service.agent.VirtualPath;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
@@ -2018,6 +2019,43 @@ class AgentRunnerTest extends AgentTestBase {
 
         List<String> results = transcript(run).stream().filter(m -> m.getRole() == LLMRole.TOOL).map(LLMChatMessage::getContent).toList();
         assertThat(results.getLast()).contains("Plan:").contains("1. [x] Count parts").contains("2. [~] Count lore");
+    }
+
+    @Test
+    void theFindingsOfTheAgentAreKeptInTheRunFolderAndSurviveACompactionAResumeAndTheCopy() throws Exception {
+        Agent agent = readingAgent();
+        agent.setMaxRounds(2);
+        agent = agentService.save(agent);
+        llm.enqueue(MockLLMResponse.toolCall("report", "{\"text\":\"Kira has green eyes in part 3\",\"severity\":\"problem\"}"),
+                MockLLMResponse.toolCall("report", "{\"text\":\"The tone shifts in part 5\"}"),
+                MockLLMResponse.text("The summary."), MockLLMResponse.toolCall("get_run_status", "{}"), MockLLMResponse.text("Going on."));
+        AgentRun run = await(startRun(agent));
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.PAUSED);
+        assertThat(llm.getCompletionRequests().getFirst().getBody().getAsJsonArray("tools").toString()).contains("\"report\"");
+
+        // a finding does not end the run, it is in a file of the run folder (not of the base) and the console reads it
+        List<String> results = transcript(run).stream().filter(m -> m.getRole() == LLMRole.TOOL).map(LLMChatMessage::getContent).toList();
+        assertThat(results).first().asString().contains("Finding 1");
+        assertThat(fileSystemService.readFindings(run)).contains("green eyes").contains("tone shifts");
+        assertThat(agentRunService.getFindings(run)).extracting(RunTools.Finding::severity).containsExactly("problem", "note");
+
+        runner.command(agentRunService.find(run.getId()), "/compact");
+        run = await(run, Set.of(AgentRunStatus.PAUSED));
+        assertThat(transcript(run).getFirst().getContent()).contains("The findings you reported so far").contains("[problem] Kira has green eyes");
+
+        agent.setMaxRounds(null);
+        agentService.save(agent);
+        runner.run(agentRunService.resume(run));
+        run = await(run);
+        List<String> after = transcript(run).stream().filter(m -> m.getRole() == LLMRole.TOOL).map(LLMChatMessage::getContent).toList();
+        assertThat(after.getLast()).contains("Findings you reported:").contains("1. [problem] Kira has green eyes")
+                .contains("2. [note] The tone shifts");
+
+        // the working copy goes, the findings stay with the run
+        run = agentRunService.stop(agentRunService.pause(agentRunService.find(run.getId())), false);
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.STOPPED_DISCARDED);
+        assertThat(agentRunService.find(run.getId()).getWorkingCopy()).isNull();
+        assertThat(agentRunService.getFindings(run)).hasSize(2);
     }
 
     @Test

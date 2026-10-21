@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845922886868">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845923840949">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845922886868" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845923840949" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845922886868" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845923840949" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845922886868" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845923840949" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -281,6 +281,7 @@ these of its own:</p>
 | `view_image` | Looks at an image file of its workspace (PNG, JPEG, GIF or WebP): the picture is shown to the model in the next message. Only an agent whose model is marked as seeing images (**The model sees images** in the agent) has it. A large image is scaled down before it is sent, a GIF shows its first frame, and only the newest four images stay in front of the model (an older one becomes a note, and the agent can look again). The images come from you (**Upload file**, or [attached to a message](#the-console)); the agent can't make one. |
 | Images for commands | A command that sends pictures to a model of its own, such as [`generate-lore-entry`](extensions/lore-generator.md#commands), takes an `images` parameter: a list of paths of image files of the workspace (at most 8). It is the model of the command, not the agent's, that has to see them, so the agent can pass images even when its own model does not see images. |
 | `update_plan` | Its to-do list. |
+| `report` | A finding for you (what it found, where, and how serious: *Note*, *Warning* or *Problem*). The agent goes on after it; you read the findings in the [console](#the-console) and in the [review](#reviewing-the-result), apart from its final report. One finding per call, at most 200 per run. |
 | `get_run_status` | How many rounds and tokens it has used, how much context, and the longest answer it can write; its plan; and its sub-agents: a line for each with its state, round, tokens, what it did last and its task. The agent is also told these limits of its model in its prompt, so it writes a long text in parts. |
 | `checkpoint`, `checkpoint_list`, `checkpoint_diff`, `checkpoint_restore`, `checkpoint_delete` | Its [checkpoints](#checkpoints): saves a restore point of the working copy and its workspace (with a label), lists them, shows what changed since one (the settings, parts, lorebooks and entries of the book that were added, changed or deleted, and the files of the workspace; with a path only that file or folder, and for a text file the sentences that differ), goes back to one (when the round ends) and deletes one it does not need. |
 | `get_sync_report` | Only after a resume that took over changes of yours: lists again what you changed in the book while the run was paused and what of it came into the agent's copy, see [Resuming a run](#resuming-a-run). |
@@ -323,6 +324,10 @@ these of its own:</p>
 <tr>
 <td><code translate="no" v-pre>update_plan</code></td>
 <td>Its to-do list.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>report</code></td>
+<td>A finding for you (what it found, where, and how serious: <em>Note</em>, <em>Warning</em> or <em>Problem</em>). The agent goes on after it; you read the findings in the <doc-anchor-trigger to="#the-console">console</doc-anchor-trigger> and in the <doc-anchor-trigger to="#reviewing-the-result">review</doc-anchor-trigger>, apart from its final report. One finding per call, at most 200 per run.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>get_run_status</code></td>
@@ -386,7 +391,7 @@ is one) stay above it and the box for your message under it, while the transcrip
 <li>a <strong>Question of the agent</strong>, when the run is <em>Waiting for you</em>; write the answer in the box and press <strong>Send</strong> (or <strong>Ctrl+Enter</strong>), and the agent goes on;</li>
 <li>a <strong>Report of the agent</strong>, when it called <code translate="no" v-pre>finish</code>.</li>
 </ul>
-<p>The line above the transcript shows the state of the run and its numbers: the rounds, the size of the context against its cap, the <strong>Reply limit</strong> (the most tokens the model of the agent can write in one answer; a call that needs more is cut off, so the agent writes long texts in parts) and the tokens in total. When the agent has made a plan (<code translate="no" v-pre>update_plan</code>), a <strong>Plan</strong> button with the steps done out of all (<strong>Plan 2/5</strong>) appears there; it opens the steps in a popover, each with a mark for <em>Done</em>, <em>In progress</em> or <em>To do</em>.</p>
+<p>The line above the transcript shows the state of the run and its numbers: the rounds, the size of the context against its cap, the <strong>Reply limit</strong> (the most tokens the model of the agent can write in one answer; a call that needs more is cut off, so the agent writes long texts in parts) and the tokens in total. When the agent has made a plan (<code translate="no" v-pre>update_plan</code>), a <strong>Plan</strong> button with the steps done out of all (<strong>Plan 2/5</strong>) appears there; it opens the steps in a popover, each with a mark for <em>Done</em>, <em>In progress</em> or <em>To do</em>. When it has reported findings (<code translate="no" v-pre>report</code>), a <strong>Findings</strong> button with their number (<strong>Findings 3</strong>) opens them the same way, each with its severity. The findings are kept with the run, so they are there after a pause, a restart and when you look at an older run in the history; the Markdown file of a run (<strong>Download</strong>) has them in a section <strong>Findings</strong>.</p>
 <p>In a conversation you can also write while the agent <strong>works</strong>. The message is <strong>queued</strong>: it appears as a dashed bubble at the end of the transcript and the agent
 reads it as soon as the round it is in is over: the request to the model that is on its way and the calls it made finish first, and the next request already contains
 your message (several queued messages go together as one). When it should not wait even for that, press the
@@ -538,7 +543,7 @@ the items by, in a message when it goes on (&quot;While the run was paused the u
 <p><strong>A note with the resume.</strong> <strong>Resume</strong> opens a small window with a field <em>Note for the agent (optional)</em>. What you write there is the first thing the agent reads when it goes on, after the report of the changes you made to the book. It is meant for a change of direction (&quot;leave the lorebook alone&quot;, &quot;start with chapter 3&quot;) and, unlike a message to a conversation, it works for every run, also one that does not wait for your messages. Leave it empty to resume as before.</p>
 <h2 id="reviewing-the-result">Reviewing the result</h2>
 <p>When a run is <em>Done</em> (or you stopped it with <strong>Stop and keep the result</strong>) the agent row and the console have a <strong>Review changes</strong> button. It opens a window with
-everything the agent changed, compared with your book <strong>as it is now</strong>, one line each:</p>
+everything the agent changed, compared with your book <strong>as it is now</strong>, one line each. When the agent reported findings, they are listed above the changes (<strong>Findings (3)</strong>), so an audit that changed nothing still has something to show:</p>
 <ul>
 <li><strong>Book:</strong> its name, description, language, point of view, tense, style and templates, its tags, and the data an extension keeps in the book (an arc outline, the character tracker).</li>
 <li><strong>Part:</strong> a part whose text, instructions, scene setting, point-of-view character, present characters or summary the agent changed, a part it wrote, a part it deleted. The variables a generation keeps with a part (and the data of extensions) are taken over with it, as the field <strong>Data</strong>.</li>
@@ -854,7 +859,7 @@ editing again after you paused or stopped the run. Other lorebooks are not affec
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (bf01940b).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (d7a36b76).</p></div>
             </footer>
         </div>
     </div>

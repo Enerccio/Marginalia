@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.AgentVirtualFileSystemService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Change;
 import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Item;
@@ -38,6 +39,9 @@ class AgentMergeDialogTest extends AgentTestBase {
 
     @Autowired
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private AgentVirtualFileSystemService fileSystemService;
 
     // UI.setCurrent keeps only a weak reference, see WorkspaceStateTest
     private UI ui;
@@ -125,6 +129,22 @@ class AgentMergeDialogTest extends AgentTestBase {
         assertThat(rows(dialog)).isEmpty();
         assertThat(dialog.getSummaryLabel().getText()).isEqualTo("The agent changed nothing in the book.");
         assertThat(dialog.getApplyButton().isEnabled()).isFalse();
+    }
+
+    @Test
+    void theFindingsOfTheAgentAreListedAboveTheChangesAndThereIsNoSectionWithoutThem() throws Exception {
+        finish();
+        assertThat(dialog().getFindingsDetails()).as("the agent reported nothing").isNull();
+
+        fileSystemService.writeFindings(run, "[{\"number\":1,\"severity\":\"warning\",\"text\":\"Kira has green eyes in part 3\",\"time\":\"\"}]");
+        AgentMergeDialog dialog = dialog();
+
+        assertThat(dialog.getFindingsDetails()).isNotNull();
+        assertThat(dialog.getFindingsDetails().isOpened()).isTrue();
+        assertThat(dialog.getFindingsDetails().getSummaryText()).isEqualTo("Findings (1)");
+        assertThat(descendants(dialog.getFindingsDetails()))
+                .anyMatch(c -> c instanceof com.vaadin.flow.component.html.Span span && "Kira has green eyes in part 3".equals(span.getText()))
+                .anyMatch(c -> c instanceof com.vaadin.flow.component.html.Span span && "Warning".equals(span.getText()));
     }
 
     @Test

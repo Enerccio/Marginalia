@@ -611,6 +611,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_AGENTS_WAITING, "対応を待っているエージェント");
         setValue(L.LABEL_CLONE_BOOK, "本を複製");
         setValue(L.LABEL_ONLY_CURRENT_BRANCH, "現在の分岐のみ");
+        setValue(L.LABEL_AGENT_FINDINGS, "所見");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -720,6 +721,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_AGENT_PLAN_PENDING, "未着手");
         setValue(L.ENUM_AGENT_PLAN_IN_PROGRESS, "進行中");
         setValue(L.ENUM_AGENT_PLAN_DONE, "完了");
+        setValue(L.ENUM_AGENT_FINDING_WARNING, "警告");
+        setValue(L.ENUM_AGENT_FINDING_PROBLEM, "問題");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");

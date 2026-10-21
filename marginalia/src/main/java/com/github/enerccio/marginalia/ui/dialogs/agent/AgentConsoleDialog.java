@@ -167,6 +167,13 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     private String shownPlanKey = "";
     // what the plan was read for, it is read again when one of them changes (not at every look at the run)
     private String planReadFor = "";
+    // the findings the agent reported: a button next to the plan, shown while there are some
+    private Button findingsButton;
+    private Popover findingsPopover;
+    private AgentFindingsView findingsView;
+    // what the findings were read for (they are written between rounds), and what is shown
+    private String findingsReadFor = "";
+    private String shownFindingsKey = "";
     private VerticalLayout transcriptBox;
     private TextArea messageField;
     private Button sendButton;
@@ -248,7 +255,16 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         planPopover.setPosition(PopoverPosition.BOTTOM_START);
         planPopover.setOpenOnClick(true);
         planPopover.setAriaLabel(loc.getValue(L.LABEL_AGENT_PLAN));
-        HorizontalLayout statusRow = new HorizontalLayout(statusLabel, planButton, usageLabel);
+        findingsView = new AgentFindingsView(loc);
+        findingsButton = new Button(loc.getValue(L.LABEL_AGENT_FINDINGS), Solid.FLAG.create());
+        findingsButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+        findingsButton.setVisible(false);
+        findingsPopover = new Popover(findingsView);
+        findingsPopover.setTarget(findingsButton);
+        findingsPopover.setPosition(PopoverPosition.BOTTOM_START);
+        findingsPopover.setOpenOnClick(true);
+        findingsPopover.setAriaLabel(loc.getValue(L.LABEL_AGENT_FINDINGS));
+        HorizontalLayout statusRow = new HorizontalLayout(statusLabel, planButton, findingsButton, usageLabel);
         statusRow.setWidthFull();
         statusRow.setPadding(false);
         statusRow.setWrap(true);
@@ -622,6 +638,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
                     + (budget > 0 ? " / " + budget : ""));
         }
         showPlan();
+        showFindings();
         AgentRunStatus status = run == null ? null : run.getStatus();
         boolean queueing = run != null && run.isInteractive() && QUEUEING.contains(status);
         boolean writable = status == AgentRunStatus.IDLE || queueing;
@@ -668,6 +685,31 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         for (RunTools.PlanItem item : plan) {
             planBox.add(planItem(item));
         }
+    }
+
+    /**
+     * The findings of the agent in the popover of the header, read again when the run, its round or its status changes (the agent
+     * reports between rounds) and built again only when they changed.
+     */
+    private void showFindings() throws Exception {
+        String readFor = run == null ? "" : run.getUuid() + ":" + run.getRounds() + ":" + run.getStatus();
+        if (readFor.equals(findingsReadFor)) {
+            return;
+        }
+        findingsReadFor = readFor;
+        List<RunTools.Finding> findings = run == null ? List.of() : agentRunService.getFindings(run);
+        findingsButton.setVisible(!findings.isEmpty());
+        String key = AgentFindings.render(findings, Integer.MAX_VALUE);
+        if (key.equals(shownFindingsKey)) {
+            return;
+        }
+        shownFindingsKey = key;
+        findingsView.setFindings(findings);
+        if (findings.isEmpty()) {
+            findingsPopover.close();
+            return;
+        }
+        findingsButton.setText(loc.getValue(L.LABEL_AGENT_FINDINGS) + " " + findings.size());
     }
 
     private Div planItem(RunTools.PlanItem item) {
@@ -1065,6 +1107,14 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
 
     Span getUsageLabel() {
         return usageLabel;
+    }
+
+    Button getFindingsButton() {
+        return findingsButton;
+    }
+
+    AgentFindingsView getFindingsView() {
+        return findingsView;
     }
 
     Button getPlanButton() {

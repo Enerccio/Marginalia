@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845922886868">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845923840949">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845922886868" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845923840949" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845922886868" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845923840949" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845922886868" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845923840949" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -199,7 +199,7 @@ context made from the database, a state machine that can be paused and resumed, 
 | `AgentMessageService` | `domain.service` | The transcript, append only. |
 | `CommandFunctions` | `domain.service.agent` | Turns the allowed commands into functions for the model. The metadata of `@CommandParameter` is in the schema (`optional`, `default`, `enum` from `allowed`, and `minimum` / `maximum` from `min` / `max` for a number) and checked at the call: a value outside `allowed` or the range is refused with a message that names the limit. The commands that read give their `offset`, `limit` and `length` their defaults and ranges, the flags theirs (`regex` false, `caseSensitive` true for the search-replace commands and false for `find-occurrences`, `dryRun` false...); an update leaves `enabled` without a default, because an omitted value means &quot;unchanged&quot; there. |
 | `AgentFileTools`, `AgentVirtualFileSystemService` | `domain.service.agent`, `domain.service` | The workspace and the file tools; paths are virtual. |
-| `RunTools` | `domain.service.agent` | `finish`, `ask_user`, `update_plan`, `request_compaction`, `get_run_status` (the text of the status is `Progress.render` of the runner; the sub-agents are `SubAgents.describe`: a line for each, the working ones first). The console reads the plan with `AgentRunService.getPlan` (`plan.json` of the run, else the last `update_plan` call of the transcript) and the longest reply with `getResponseCap`. |
+| `RunTools` | `domain.service.agent` | `finish`, `ask_user`, `report`, `update_plan`, `request_compaction`, `get_run_status` (the text of the status is `Progress.render` of the runner; the sub-agents are `SubAgents.describe`: a line for each, the working ones first). The console reads the plan with `AgentRunService.getPlan` (`plan.json` of the run, else the last `update_plan` call of the transcript) and the longest reply with `getResponseCap`. `report(text, severity?)` appends a `RunTools.Finding` (number, severity `note` / `warning` / `problem` as `AgentFindings.severityOf` maps the spellings, text of at most 2 000 characters, time) to the list of the run (at most 200) and hands the whole list to `onFindingsChange`; the worker keeps it as `findings.json` (`AgentFindings`, `writeFindings` / `readFindings`) and reads it back with `restoreFindings`. The file is in the **run folder itself, not in `base/`**, so it outlives the working copy (the release of the copy deletes `base/`) and goes only with the folder; a rewind keeps it. `get_run_status` and the compaction summary list the findings so the agent does not report them again. `AgentRunService.getFindings` serves the console (**Findings** button, `AgentFindingsView`), the review (`AgentMergeDialog`) and the Markdown export of a run. A sub-agent has no `report`. |
 | `CheckpointTools`, `CheckpointService`, `CheckpointStore` | `domain.service.agent`, `domain.service` | The checkpoint tools (`checkpoint`, `checkpoint_list`, `checkpoint_restore`, `checkpoint_delete`), the service behind them and the console, and the ZIP files; see [Checkpoints](#checkpoints). |
 | `AgentMergeService`, `MergeDiff`, `MergePlan`, `BaseAdvance`, `SyncReport`, `SyncTools` | `domain.service`, `domain.service.agent` | Compares the copy with the base and the book now and applies the changes the user picked; brings the changes of the user into the copy on a resume; see [Merge and apply](#merge-and-apply). |
 | `AgentCopyService` | `domain.service` | Read-only look at the working copy of a run (its branches, the parts of one, its lorebooks), for the **Book copy** tab; see [Reading the copy](#reading-the-copy). |
@@ -263,7 +263,7 @@ context made from the database, a state machine that can be paused and resumed, 
 <tr>
 <td><code translate="no" v-pre>RunTools</code></td>
 <td><code translate="no" v-pre>domain.service.agent</code></td>
-<td><code translate="no" v-pre>finish</code>, <code translate="no" v-pre>ask_user</code>, <code translate="no" v-pre>update_plan</code>, <code translate="no" v-pre>request_compaction</code>, <code translate="no" v-pre>get_run_status</code> (the text of the status is <code translate="no" v-pre>Progress.render</code> of the runner; the sub-agents are <code translate="no" v-pre>SubAgents.describe</code>: a line for each, the working ones first). The console reads the plan with <code translate="no" v-pre>AgentRunService.getPlan</code> (<code translate="no" v-pre>plan.json</code> of the run, else the last <code translate="no" v-pre>update_plan</code> call of the transcript) and the longest reply with <code translate="no" v-pre>getResponseCap</code>.</td>
+<td><code translate="no" v-pre>finish</code>, <code translate="no" v-pre>ask_user</code>, <code translate="no" v-pre>report</code>, <code translate="no" v-pre>update_plan</code>, <code translate="no" v-pre>request_compaction</code>, <code translate="no" v-pre>get_run_status</code> (the text of the status is <code translate="no" v-pre>Progress.render</code> of the runner; the sub-agents are <code translate="no" v-pre>SubAgents.describe</code>: a line for each, the working ones first). The console reads the plan with <code translate="no" v-pre>AgentRunService.getPlan</code> (<code translate="no" v-pre>plan.json</code> of the run, else the last <code translate="no" v-pre>update_plan</code> call of the transcript) and the longest reply with <code translate="no" v-pre>getResponseCap</code>. <code translate="no" v-pre>report(text, severity?)</code> appends a <code translate="no" v-pre>RunTools.Finding</code> (number, severity <code translate="no" v-pre>note</code> / <code translate="no" v-pre>warning</code> / <code translate="no" v-pre>problem</code> as <code translate="no" v-pre>AgentFindings.severityOf</code> maps the spellings, text of at most 2 000 characters, time) to the list of the run (at most 200) and hands the whole list to <code translate="no" v-pre>onFindingsChange</code>; the worker keeps it as <code translate="no" v-pre>findings.json</code> (<code translate="no" v-pre>AgentFindings</code>, <code translate="no" v-pre>writeFindings</code> / <code translate="no" v-pre>readFindings</code>) and reads it back with <code translate="no" v-pre>restoreFindings</code>. The file is in the <strong>run folder itself, not in <code translate="no" v-pre>base/</code></strong>, so it outlives the working copy (the release of the copy deletes <code translate="no" v-pre>base/</code>) and goes only with the folder; a rewind keeps it. <code translate="no" v-pre>get_run_status</code> and the compaction summary list the findings so the agent does not report them again. <code translate="no" v-pre>AgentRunService.getFindings</code> serves the console (<strong>Findings</strong> button, <code translate="no" v-pre>AgentFindingsView</code>), the review (<code translate="no" v-pre>AgentMergeDialog</code>) and the Markdown export of a run. A sub-agent has no <code translate="no" v-pre>report</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>CheckpointTools</code>, <code translate="no" v-pre>CheckpointService</code>, <code translate="no" v-pre>CheckpointStore</code></td>
@@ -1031,7 +1031,7 @@ newest is always the one of the previous call.</p>
 <h3 id="files-of-an-agent">Files of an agent</h3>
 <p><code translate="no" v-pre>AgentVirtualFileSystemService</code> hands out the files of agents. Two folders in the application folder (not in <code translate="no" v-pre>data/</code>, which is named by logins):
 <code translate="no" v-pre>agent-workspaces/&lt;agent uuid&gt;</code> is the <strong>workspace</strong>, which belongs to the agent and stays between its runs (the notes it keeps), and
-<code translate="no" v-pre>agent-runs/&lt;run uuid&gt;</code> is the folder of a run (<code translate="no" v-pre>base/</code> with the snapshot of the original, written when the copy is made, and <code translate="no" v-pre>checkpoints/</code>, see <doc-anchor-trigger to="#checkpoints">Checkpoints</doc-anchor-trigger>; <code translate="no" v-pre>RunFolder</code> is the layout). The uuids are
+<code translate="no" v-pre>agent-runs/&lt;run uuid&gt;</code> is the folder of a run (<code translate="no" v-pre>base/</code> with the snapshot of the original, written when the copy is made, and <code translate="no" v-pre>checkpoints/</code>, see <doc-anchor-trigger to="#checkpoints">Checkpoints</doc-anchor-trigger>; <code translate="no" v-pre>findings.json</code>, the findings of <code translate="no" v-pre>report</code>, lies in the folder itself so it outlives the working copy; <code translate="no" v-pre>RunFolder</code> is the layout). The uuids are
 checked, so no value of the database makes a path leave these folders. <code translate="no" v-pre>open(run)</code> is the file system of a run (the workspace, <code translate="no" v-pre>/checkpoints</code> and <code translate="no" v-pre>/AGENTS.md</code>),
 <code translate="no" v-pre>openWorkspace(agent)</code> the workspace alone for the user to look at; both refuse (<code translate="no" v-pre>IllegalArgumentException</code>) what is not the user&#x27;s own. Both use the
 <code translate="no" v-pre>WorkspaceLimits</code> of <code translate="no" v-pre>getLimits(agent)</code>: the defaults of the service (<code translate="no" v-pre>getLimits()</code>) with the quotas of the permission of the agent&#x27;s owner over them.
@@ -1370,7 +1370,7 @@ older rounds when the context is full (the run pauses instead).</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (bf01940b).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (d7a36b76).</p></div>
             </footer>
         </div>
     </div>
