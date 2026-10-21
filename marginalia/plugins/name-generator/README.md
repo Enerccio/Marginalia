@@ -26,8 +26,10 @@ reflection (`NameToolsBridge`), so this one can be unloaded and installed again 
 
 ## Name tables
 
-The names are not in the repository. The build step (`exec-maven-plugin`, phase `generate-resources`, running
-`src/build/GenerateTables.java`) reads every `*.json` of `src/build/resources` and its subfolders (git-ignored):
+The names are not in the repository. A normal build does not touch `name-tables.json`: the training steps run only
+with the profile `train-names` (`mvn package -Ptrain-names`; the executions of `exec-maven-plugin` are bound to
+`generate-resources` through the property `names.training.phase`, `none` by default). The step running
+`src/build/GenerateTables.java` reads every `*.json` of `src/build/resources` and its subfolders (git-ignored):
 
 ```json
 {"_id": "demons", "title": "Theological Demons", "values": ["aamon", "abaddon", "azazel"]}
@@ -115,7 +117,7 @@ missing network. The real names, as pairs with the original script, are the busi
 `mvn exec:exec@scrape-onomastikon` (in this folder, not part of the normal build) downloads
 [the Onomastikon](https://tekeli.li/onomastikon/) with `src/build/ScrapeOnomastikon.java` into
 `src/build/resources/onomastikon`, one source file per category, about 800 requests one at a time (about 2 minutes).
-Run the build afterwards to train the tables. The collection is (c) Kate Monk, "copies may be made for personal use
+Run the build with `-Ptrain-names` afterwards to train the tables. The collection is (c) Kate Monk, "copies may be made for personal use
 only": the downloaded names stay out of git, only the probabilities are committed.
 
 - Every page is read once by its URL, however many links lead to it.
