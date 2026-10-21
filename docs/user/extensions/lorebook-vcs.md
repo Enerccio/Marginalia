@@ -67,8 +67,8 @@ delete entries. The trigger keys of its revisions become the entry's filter, the
 ## Storage
 
 The history is stored in the database with the lorebook, so [database backups](../administration/database-backups.md)
-include it. It is **not** part of [lorebook exports](../lorebooks/import-export.md#exporting) or of the lorebooks in
-[book backups](../books/backups.md).
-
-Importing a lorebook creates new entries. To move the history to an imported copy, export it from the original and
+include it. The data an extension keeps in a lorebook is also written into [lorebook exports](../lorebooks/import-export.md#exporting)
+and into the lorebooks of [book backups](../books/backups.md), and into the copies of a book's lorebooks that
+[agents](../agents.md) work on. But importing a lorebook creates new entries, and the history belongs to the identity of
+the old ones, so it does not show on them. To move the history to an imported copy, export it from the original and
 import it into the copy - the entries are then matched by name and order (see [Lorebook revisions](#lorebook-revisions)).

@@ -20,6 +20,8 @@ Administrators have an **Admin** button at the bottom of the workspace. It is on
 | **Agents** | The system prompt and the compaction prompt that agents follow when neither they nor their user have one of their own. Empty is the built-in prompt; the info icon has **Insert Default Template**, which fills it in so you can edit a copy. What users may do with agents is their [permission](permissions.md). Also **Agents may send messages to the webhooks of users**: the server calls the address a user typed in their settings when an agent needs them and they have the application closed ([When you are not there](../agents.md#when-you-are-not-there)); turn it off where that is not acceptable. |
 | **Extensions** | Installing and removing extensions. See [Managing extensions](extensions.md). |
 
+![The Agents tab of the Admin page](../../images/admin-agents.png)
+
 ## The data folder
 
 Everything Marginalia stores is in the `.marginalia` folder in the home directory of the user that runs it (`./data`
@@ -32,6 +34,8 @@ on the host with the [Docker setup](../getting-started/docker-server.md)):
 | `db-backups/` | [Database backups](database-backups.md). |
 | `data/<login>/backups/manuscripts/<book id>/` | [Book backups](../books/backups.md) of each user. |
 | `extensions/` | Installed [extension](extensions.md) JARs. |
+| `agent-workspaces/<agent id>/` | The files of an [agent](../agents.md#the-working-copy) (its notes and reports, which it keeps between runs). |
+| `agent-runs/<run id>/` | What a run of an agent keeps: the start of the book (to show you the changes, removed with the working copy), the checkpoints and the findings (removed when the run is purged by the cleanup). |
 | `desktop/logs/` | Logs of the [desktop app](../getting-started/desktop-app.md). |
 
 To back up a whole installation, stop Marginalia and copy this folder (including `secret.key`). While it runs, use

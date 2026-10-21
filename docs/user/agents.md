@@ -20,6 +20,8 @@ have it, but the limits are the same as for everybody: the defaults unless they 
 | **Name** | The name you gave it. |
 | **Status** | What its run is doing: *Running*, *Waiting for you*, *Waiting for approval*, *Pausing*, *Paused*, *Stopping*, *Stopped, result kept*, *Done, waits for the review*, *Applied*. An agent without a run says *Not running*, or *Disabled* when it is switched off. |
 
+![The Agents tab](../images/agents-tab.png)
+
 The buttons at the end of a row depend on the run:
 
 | Button | |
@@ -35,6 +37,8 @@ The buttons at the end of a row depend on the run:
 | **Delete** | Moves the agent, with its runs, to the [trash](trash.md). |
 
 Starting is refused, with the reason, when the agent is disabled, has no model, or you have all the runs you may work at once.
+
+![The menu of the Start button](../images/agent-start-menu.png)
 
 An agent has at most one run that is not over, and a book has at most one agent.
 
@@ -75,6 +79,8 @@ that is going on, answers the calls of the round that were not made as such, and
 cost is lost; resume as usual. **Stop** does the same: it does not wait for the request or the call that is going on, they are cancelled and the run ends at once
 (kept or discarded as you chose).
 
+![The question when a run is stopped](../images/agent-stop.png)
+
 A command that is going on is told to stop, and a command that is written to be stopped (the ones that write with a model, search and replace) ends at once and leaves what it had
 done so far. One that can't be stopped may still finish; either way the agent is told that it is not known whether the call was done and checks the state with a read
 command when it goes on. The commands of the sub-agents are cancelled the same way when the run is paused, stopped or sent a message at once.
@@ -85,14 +91,30 @@ While the agent waits for a free place at its model (see [One model, several age
 
 **Console** opens a window for the latest run of the agent, with eight tabs: **Run**, **Runs**, **Workspace**, **Checkpoints**, **Context**, **Book copy**, **Sub-agents** and **Diagnostics**.
 
+![A run started in the console: the agent asks what to do](../images/agent-console-start.png)
+
 **Run** shows the *transcript*: what you told the agent, what it said (both as [Markdown](https://commonmark.org/help/), so lists, headings and emphasis show as such), and every command or file tool it called, folded to one line with the
 arguments (click it to see them and the result, shown as plain text). When the model sends its **reasoning** (what it thought before it answered), a folded *Reasoning* block shows it before the answer, and the download has it. Whether you get any depends on the model and the server: it has to report it, and your AI has to have reasoning switched on. Every message has the time it was written at the right of its first line (the time of day, with the date when it was another day; hover for the whole time), so you can tell how long the agent worked and when it stopped. The state of the run, the **context** (how many tokens the last request used of the limit of the model, so you see how close the run is to a pause), the rounds and tokens it used (and the token budget, when there
 is one) stay above it and the box for your message under it, while the transcript scrolls. What the agent waits for is in the transcript where it was written, as a bubble of its own that stays there when the run goes on:
 
+![The console while the agent works: a message of the author waits in the queue](../images/agent-console-run.png)
+
 - a **Question of the agent**, when the run is *Waiting for you*; write the answer in the box and press **Send** (or **Ctrl+Enter**), and the agent goes on;
 - a **Report of the agent**, when it called `finish`.
 
+![The question of an agent, with the answers it suggests](../images/agent-console-question.png)
+
+![The report of the agent at the end of a conversation](../images/agent-console-report.png)
+
+![The question of an agent, with the answers it suggests](../images/agent-console-question.png)
+
+![The report of the agent at the end of a conversation](../images/agent-console-report.png)
+
 The line above the transcript shows the state of the run and its numbers: the rounds, the size of the context against its cap, the **Reply limit** (the most tokens the model of the agent can write in one answer; a call that needs more is cut off, so the agent writes long texts in parts) and the tokens in total. When the agent has made a plan (`update_plan`), a **Plan** button with the steps done out of all (**Plan 2/5**) appears there; it opens the steps in a popover, each with a mark for *Done*, *In progress* or *To do*. When it has reported findings (`report`), a **Findings** button with their number (**Findings 3**) opens them the same way, each with its severity. The findings are kept with the run, so they are there after a pause, a restart and when you look at an older run in the history; the Markdown file of a run (**Download**) has them in a section **Findings**.
+
+![The plan of the agent](../images/agent-console-plan.png)
+
+![The findings of the agent](../images/agent-console-findings.png)
 
 In a conversation you can also write while the agent **works**. The message is **queued**: it appears as a dashed bubble at the end of the transcript and the agent
 reads it as soon as the round it is in is over: the request to the model that is on its way and the calls it made finish first, and the next request already contains
@@ -112,6 +134,8 @@ where the run waits (*Waiting for you*) or is *Paused* the command runs at once 
 queued, a dashed bubble marked *Command*, and runs at the end of the agent's turn, where the agent would have waited (the agent does not go on because of it).
 The small **Run now** button on the bubble drops the round the agent is in, runs the command and lets the agent go on from there. A command that takes long
 holds the box: wait for it before you write to the agent.
+
+![A command of the author in the console: /compact](../images/agent-console-command.png)
 
 **`/compact [what to stress]`** frees the context. The agent is asked to read everything so far and write a summary (what you asked, what is done, what it found,
 its notes and its plan, what it was about to do); that summary replaces everything before it in what the model reads. In the transcript you still see all of it,
@@ -151,6 +175,8 @@ run in the **Run** tab and read its steps and its report again (the run you open
 A deleted run goes to the [trash](trash.md). A run that is going on can't be deleted, stop it first. Runs you stopped and **discarded** are in the list
 too, so you can read what they did or delete them; the **Run** tab shows them only when you open them.
 
+![The Runs tab](../images/agent-runs.png)
+
 **Workspace** shows the files of the agent: its notes and reports, which it keeps between runs. Click a folder to go in (**Up** goes back), click a
 text file to read it, use the arrows to download a file or the bin to delete it, and **Clear** deletes everything (stale notes mislead a fresh run).
 **New folder** creates a folder in the open one and **Upload file** puts a file from your computer there, so you can hand the agent
@@ -160,6 +186,8 @@ because the agent can only read text, an image (PNG, JPEG, GIF or WebP, recognis
 up to 5 MB, and it counts against the total and the number of files like any file) or a zip file (up to 10 MB, kept as it is; the agent unpacks it, see [below](#unpacking-a-zip-file)). A file is never replaced by an upload: delete the old one first.
 Files can't be changed while the agent works, pause it first. The workspace has a limit of size, file size and number of files, which your administrator can set in your [permission](administration/permissions.md#settings-of-a-permission); the line
 under the table says how much is used. The name `AGENTS.md` at the top is taken by your instructions, which the agent sees there (the file can't be written or deleted).
+
+![The Workspace tab](../images/agent-console-workspace.png)
 
 ### Unpacking a zip file
 
@@ -195,9 +223,13 @@ Rules that hold either way:
 - **Pausing the run pauses the sub-agents too.** They stop at their next stable point (between two requests or two calls, at once when you pause at once) and what they said and did is kept with the run, so a **Resume** goes on where everything was: the sub-agents go on with their conversation, and a call of the agent that waited for one (`await_agent`, or `spawn_agent` with a limit of one) waits again, as if nothing had happened. A sub-agent that was over before the pause is still there for the agent to ask about. Stopping a run and keeping it does the same; discarding it, a restore of a checkpoint (the book the sub-agents worked in is replaced) and the agent finishing or asking you something end them for good. An agent that ends its turn while sub-agents still work is told once; if it does it again they are stopped.
 - Their conversations are not in the **Run** tab. The **Sub-agents** tab of the console shows them: pick one above to read what the agent told it, what it said, the commands it called with their results and how it ended (the answer it gave, or why it failed or was cancelled), in the same blocks as the transcript. It follows the run while it works, and it shows the sub-agents of an older run too (pick that run in the **Runs** tab first). A `spawn_agent` call in the **Run** tab has a **Sub-agent** button that opens its conversation. A conversation the agent went back over (a rewind) is greyed and marked *forgotten by the agent*. The **download** of the run (in the **Runs** tab) has a section for each sub-agent, with its task, its state and every message and call.
 
+![The Sub-agents tab](../images/agent-subagents.png)
+
 ### Models for sub-agents
 
 The agent has one **main model**, picked at the top of the dialog. Under **Models for sub-agents** you can add others, for example a cheap model that only reads or a fluent one that drafts. Each has a **role** (its name), a **description** (when to use it: the agent reads it to choose), its AI and protocol, an optional **context limit**, and what it may use:
+
+![A model for sub-agents](../images/agent-models.png)
 
 - **Can use commands and tools.** Off, a sub-agent on this model only answers with text: it gets no commands and no tools.
 - **Limit the commands.** Off, a sub-agent on this model has the commands of the agent. On, only the ones you tick, and of those only the ones the agent is allowed (the allowed commands of the agent stay the upper limit). The tools for files are not commands, so every sub-agent has them. The main model has the same setting, for the sub-agents that run on it (the **Edit** button of its row).
@@ -231,6 +263,8 @@ When the agent is set to **Ask first** and wants a command that changes or remov
 pops up over the console with the command and its arguments. **Approve** lets it run, **Deny** tells the agent that you refused and it goes on.
 Pausing or stopping the run (or stopping the server) does not count as a denial: the agent is told nothing, and when you **Resume**, the window comes again for the same command. The command still works on the [copy](#the-working-copy) of the book. If the console is
 closed, the window is there as soon as you open it.
+
+![The window that asks for the approval of a command](../images/agent-approval.png)
 
 ## When the server stops
 
@@ -272,10 +306,14 @@ the items by, in a message when it goes on ("While the run was paused the user c
 
 **A note with the resume.** **Resume** opens a small window with a field *Note for the agent (optional)*. What you write there is the first thing the agent reads when it goes on, after the report of the changes you made to the book. It is meant for a change of direction ("leave the lorebook alone", "start with chapter 3") and, unlike a message to a conversation, it works for every run, also one that does not wait for your messages. Leave it empty to resume as before.
 
+![Resuming a run with a note](../images/agent-resume.png)
+
 ## Reviewing the result
 
 When a run is *Done* (or you stopped it with **Stop and keep the result**) the agent row and the console have a **Review changes** button. It opens a window with
 everything the agent changed, compared with your book **as it is now**, one line each. When the agent reported findings, they are listed above the changes (**Findings (3)**), so an audit that changed nothing still has something to show:
+
+![Reviewing the result of a run](../images/agent-review.png)
 
 - **Book:** its name, description, language, point of view, tense, style and templates, its tags, and the data an extension keeps in the book (an arc outline, the character tracker).
 - **Part:** a part whose text, instructions, scene setting, point-of-view character, present characters or summary the agent changed, a part it wrote, a part it deleted. The variables a generation keeps with a part (and the data of extensions) are taken over with it, as the field **Data**.
@@ -290,10 +328,14 @@ change. What both changed to **different** texts is a **conflict**: it starts un
 into the box (the line then changes nothing for that field), **Use the agent's** puts the agent's back; or write the result yourself. A line that can't be taken over (the part it follows, or the lorebook it
 is in, was deleted from your book) says so and can't be ticked.
 
+![A conflict in the review](../images/agent-review-conflict.png)
+
 Under the texts, **Differences** shows what changes **word by word**: what is only in the book now struck through in red, what is only in the text to apply in green (it follows what you write in the box). For a conflict it also
 shows what the agent changed and what you changed since the run started, each from the book as it was then, so you can see who did what. A line the agent changed in more than one thing (a part whose text and scene setting
 changed, an entry with a new content and note) has a **Take this change** box beside each of them: untick one to apply the line without it, the book keeps its own value of that field. The place of a part in the story goes with the part and has no box,
 and what the agent made or deleted is taken or left as a whole. **Show in the copy** (on a line the agent made or changed) opens the [copy of the book](#the-copy-of-the-book) at that part or entry, to read it in its place.
+
+![The differences of a conflict, word by word](../images/agent-review-differences.png)
 
 ### Data that extensions keep (JSON)
 
@@ -303,6 +345,8 @@ places** is put together place by place. It is a conflict only where both change
 
 **Merge JSON data** opens a window with the data of the three versions laid over each other as a tree: *When the run started*, *In the book now*, the *Agent* and the *Result* in a column each, with a mark for what changed
 and where (the agent, the book, both, a conflict). Only the places that changed are shown (untick **Only what changed** for all of them); a place is opened only when you open it, so a big document is no problem.
+
+![The data of an extension laid over each other](../images/agent-json-merge.png)
 
 - Select a place and take its data from one version (**Use the agent's**, **Use the book's**, **Use the one from the start of the run**), **Leave out** (the key or the element is not in the result), or **Put together from
   inside** (the places inside decide, each its own). A key or an element that only one version has is copied into the result by taking it from that version. Taking a whole object or list from one version overrules what you chose
@@ -316,6 +360,8 @@ and where (the agent, the book, both, a conflict). Only the places that changed 
 - **Start over** forgets what you decided and wrote; **Take the result** hands the result to the review, where it is the text to apply (the line stays as you left it while the review is open).
 
 The review also has **Use the agent's** and **Use the book's** for such a field, to take one of the two as it is, and **Start over** to go back to the put-together data.
+
+![The data of the arc outline in the review, with Merge JSON data](../images/agent-review-json.png)
 
 A lorebook that other books use is marked **Shared**: the change goes to the lorebook itself, so the other books get it too. It starts unticked.
 
@@ -333,9 +379,13 @@ point of view and, folded, its instructions and summary), and the **lorebooks** 
 made of the copy and no extension sees a book open. It is read when you open the tab and when you press **Refresh**, also while the agent works, so it shows what the agent has written so far. It is there while the run has its copy
 (not after the result was applied or discarded).
 
+![The Book copy tab](../images/agent-book-copy.png)
+
 ### Diagnostics
 
 The **Diagnostics** tab counts what the run did from its transcript, to find out what an agent needs from its tools and its prompt. It works for any run, an old one too (pick it in **Runs** first), and is made when you open the tab and when you press **Refresh**.
+
+![The Diagnostics tab](../images/agent-diagnostics.png)
 
 - **Overview**: rounds and calls, how many calls failed, the time of the model, of the calls and of pauses (a gap of 30 minutes or more between two steps is a pause, not work), the context at its peak and at the end, the tokens, compactions, your messages and the notices the runner gave the agent (an unreadable call, too many calls, a full context).
 - **Tools**: for each tool the calls, the errors, the results that were cut, how often it was the only call of a round, the characters the agent wrote, how many calls passed a text as `@file:` or `@result`, how many wrote a long text (300 characters or more) out and how many of those copied it from a result the agent had just been given, the tokens of its results (about, from the characters), the share of all results, the longest result and the time.
@@ -354,6 +404,8 @@ The **Context** tab shows what the model reads with its **next request**, taken 
 - A **table of the parts** with the kind, name, tokens and share of the context. Pick a row to read **exactly the text the model is sent** for that part: a section of the system message, the description and parameters of one tool, a message, the arguments of a call or the result of one.
 - **Download** gives the whole context as one Markdown file (the system message with its sections, every tool with its description and schema, the conversation message by message, each text in a code fence), **Copy** puts the same text on the clipboard.
 
+![The Context tab](../images/agent-context.png)
+
 The sizes of the parts are estimates; the number the model reported is the real one (the request and its answer). In the chart of the answers the prompt, the instructions and the tools are as they are now (an older answer may have had others if you changed them), the conversation is as it was then: a summary replaced what was before it, and what a rewind went back over is gone from the answers after it (a compaction that was itself rewound is not brought back, the bars after it are a little too small). The system message and the tools are the ones the next request would use, so a change of the prompt, the instructions or the allowed commands shows at once. The messages are the transcript as stored, without what a resume adds (a "go on", the answers to calls an interruption left open). Reasoning is not part of the context (the model is not sent it back) and images show as their file names. What a compaction replaced is not in the context either; the **Run** tab and the **Runs** download still have it.
 
 ## Checkpoints
@@ -365,6 +417,8 @@ workspace of the agent, so that a job that went wrong can be undone: the agent g
 - **Automatic**, made by the run before a round in which the agent calls something that may change the book or the workspace (a command that is not a plain read, or a file tool that writes), and only when something
   changed since the last checkpoint. The last five are kept; the oldest goes when a new one is made.
 - **Made on purpose**, by the agent with `checkpoint` (it is told to make one before a risky step) or by you with **Save a checkpoint**. They stay until deleted.
+
+![The Checkpoints tab](../images/agent-checkpoints.png)
 
 All the checkpoints of a run share a **quota** that the administrator sets in the [permission](administration/permissions.md#settings-of-a-permission) (100 MB when empty). Part of it is kept for the automatic ones, so that the
 agent can't use it all up; a checkpoint made on purpose that does not fit is **refused**, nothing is deleted behind the back of whoever asked. The agent then gets the list and deletes what it does not need
@@ -381,6 +435,8 @@ of two thousand parts). You can restore while the agent does not work; the agent
 ## Creating and editing an agent
 
 **New agent** opens the same window as **Edit**:
+
+![The window of a new agent](../images/agent-dialog.png)
 
 | Field | |
 |---|---|
@@ -402,6 +458,8 @@ of two thousand parts). You can restore while the agent does not work; the agent
 | **Instructions (agents.md)** | Your instructions to the agent, added to its prompt in every run. The agent can read them, never change them. Empty follows your default from [Settings](account.md#templates), if you have one (it is shown in grey), else there are none. Under it a line says what the prompt, the instructions and the ticked commands weigh in **every request**, in tokens (an estimate, with the tools for files and for the run and the notes of the runner on top). |
 | **Allowed commands** | See below. |
 
+![The prompts of the agent and the hints of the default template](../images/agent-dialog-prompts.png)
+
 ### Allowed commands
 
 The agent is offered only the commands you tick. The table lists every command with its effect (*Destructive* changes or removes
@@ -409,6 +467,8 @@ data, *Non-destructive* only reads or adds). The **Selection** box ticks many at
 (the default for a new agent), or a role; ticking a command yourself makes the selection *Custom*. Commands that an extension brings stay allowed
 when the extension is not loaded, you just don't see them. The **Batch** column says whether the command is used *Together* with other calls in one answer or *Alone* (a command that makes a call to a model, such as `next`, `swipe`, `regenerate` or the compaction, is alone; see **Calls in one answer** below). All the columns can be resized. The **Tokens** column is what the definition of the command (its name, description and parameters) adds to every request of the agent, and
 the line under the instructions adds up the ticked ones: the whole set is about 20 000 tokens, so a smaller selection (a role) leaves more room in the context for the work.
+
+![The allowed commands, with the roles of the Selection box](../images/agent-commands.png)
 
 The roles are sets of commands for a job. All of them can read the book and the lorebooks (every command that only reads, those of extensions too), and none can remove data:
 
@@ -424,6 +484,14 @@ Every command ticked adds its definition to every request, so a role is also the
 ## On a phone
 
 The phone layout has an **Agents** tab in the drawer, for users who may use agents, with the count of the agents that need you beside its name. Each agent is a card with its name, its state and the buttons of the table (they wrap onto more lines). The windows - the console, the review, the agent's settings - fill the screen, and the review shows the table above the detail of the item. Everything works as on the desktop, only smaller. The console is laid out for a thumb:
+
+![The Agents tab on a phone](../images/phone-agents.png)
+
+![The console on a phone](../images/phone-agent-console.png)
+
+![The Agents tab on a phone](../images/phone-agents.png)
+
+![The console on a phone](../images/phone-agent-console.png)
 
 - **Tabs are icons** (run, runs, workspace, checkpoints, context, book copy, sub-agents, diagnostics); the title of the window names the one that is open.
 - **Pause, Pause now, Resume, Finish and Stop are icon buttons at the bottom, and only the ones that can be used now are shown**; **Review changes** keeps its words, it is what a finished run waits for. **Refresh** and **Close** are icons in the header.
@@ -441,6 +509,8 @@ For long work with the transcript or the review a larger screen is still more co
 agent of that book. You can have as many agents, clones included, as your administrator allows (five unless they set another number);
 at the limit **New agent** and **Clone** are off and say why.
 
+![Cloning an agent](../images/agent-clone.png)
+
 ## The book is locked
 
 While a run of an agent works or waits for you, **its book is locked**: you can read it, but nothing changes it, so the agent never
@@ -448,6 +518,10 @@ works on text that moves under it. The book list does not open a locked book, it
 generating, editing, search and replace, summaries and deleting the book are refused. **Pause** or **Stop** the run to edit the book again;
 a paused, stopped or finished run does not lock it.
 
+![A book an agent works on in the book list](../images/agent-locked-book.png)
+
 The **lorebooks of the book** are locked with it: the lorebook the book uses and its sub-lorebooks. On the Lorebooks tab such a lorebook is
 shown the way it is on a phone, as plain text and without any editing, with a note that says which agent holds it; **Refresh** shows it for
 editing again after you paused or stopped the run. Other lorebooks are not affected.
+
+![The lorebook of a book an agent works on](../images/agent-locked-lorebook.png)

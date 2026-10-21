@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845926496712">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845941069260">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845926496712" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845941069260" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845926496712" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845941069260" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845926496712" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845926496712" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845941069260" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845941069260" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -586,7 +586,8 @@ rows out of date: add an app migration that calls <code translate="no" v-pre>upd
 <li>Adding or removing a field needs no database migration.</li>
 <li>Extensions can store data on any entity (<code translate="no" v-pre>getAttributes().add(&quot;myplugin&quot;, ...)</code>) without their own tables.</li>
 <li>Book backups copy <code translate="no" v-pre>extendedContent</code> as a whole, so extension data and new fields of books and parts travel with
-them (lorebook exports don&#x27;t, see <doc-anchor-trigger to="#backups-and-copies">Backups and copies</doc-anchor-trigger>).</li>
+them; lorebook exports and the lorebooks in a backup carry the <code translate="no" v-pre>attributes</code> of lorebooks and entries (see
+<doc-anchor-trigger to="#backups-and-copies">Backups and copies</doc-anchor-trigger>).</li>
 </ul>
 <p>The price is that extended attributes can&#x27;t be queried or indexed in SQL. Anything the application filters, sorts or
 joins on is a real column: relations, <code translate="no" v-pre>name</code>, <code translate="no" v-pre>enabled</code>, <code translate="no" v-pre>ordinal</code>, <code translate="no" v-pre>published</code>, <code translate="no" v-pre>lastOpened</code>, <code translate="no" v-pre>tokenCount</code>,
@@ -1648,13 +1649,17 @@ parts (with <code translate="no" v-pre>extendedContent</code> and summaries) and
 Restoring or cloning creates new rows (new ids and uuids for the parts) and copies <code translate="no" v-pre>extendedContent</code> unchanged, so
 extended attributes and extension data come back exactly as they were. Linked entities are resolved among the
 current user&#x27;s own entities, first by uuid, then by name.</p>
-<p>Lorebooks are different: lorebook exports (<code translate="no" v-pre>LorebookServiceImpl.exportLorebook</code>) and the lorebooks stored inside book
-backups list their fields one by one (<code translate="no" v-pre>name</code>, <code translate="no" v-pre>payload</code>, <code translate="no" v-pre>comment</code>, <code translate="no" v-pre>filtering</code>...), so the <code translate="no" v-pre>attributes</code> of lorebooks
-and entries - extension data such as the Lorebook VCS history - are <strong>not</strong> included.</p>
+<p>Lorebooks list their fields one by one (<code translate="no" v-pre>name</code>, <code translate="no" v-pre>payload</code>, <code translate="no" v-pre>comment</code>, <code translate="no" v-pre>filtering</code>...) in <code translate="no" v-pre>LorebookService.marshalLorebooks</code>,
+which the lorebook export (<code translate="no" v-pre>exportLorebook</code>), the lorebooks inside a book backup and the copy of the lorebooks for an agent
+share. Since 1.4.0 it adds the <code translate="no" v-pre>attributes</code> of lorebooks and entries under <code translate="no" v-pre>attributes</code> (when there are any), and the import
+(<code translate="no" v-pre>unmarshalContent</code>, <code translate="no" v-pre>importLorebooks</code>) sets them on the new lorebooks and entries, so extension data such as the Lorebook
+VCS history travels too. A field that is a real column, or an <code translate="no" v-pre>@ExtendedAttribute</code> field that is not listed there, does not
+(add it to the marshalling). Imported entries have new uuids (the format has none), so data that refers to an entry by its
+uuid does not find it.</p>
 <p>Keep this in mind when adding data: for books and parts anything in <code translate="no" v-pre>extendedContent</code> is backed up automatically,
 while a new column has to be added to the backup and restore code (<code translate="no" v-pre>BackupServiceImpl</code>,
-<code translate="no" v-pre>ManuscriptServiceImpl.restoreBackup</code> / <code translate="no" v-pre>restoreMessages</code>); a new lorebook or entry field has to be added to the
-export and import code in either case.</p>
+<code translate="no" v-pre>ManuscriptServiceImpl.restoreBackup</code> / <code translate="no" v-pre>restoreMessages</code>); a new column or <code translate="no" v-pre>@ExtendedAttribute</code> field of a lorebook or
+entry has to be added to <code translate="no" v-pre>marshalLorebooks</code> and <code translate="no" v-pre>unmarshalContent</code>, data in the <code translate="no" v-pre>attributes</code> goes along by itself.</p>
 <h2 id="adding-a-field-or-an-entity">Adding a field or an entity</h2>
 <p><strong>A field on an existing entity:</strong></p>
 <ol>
@@ -1738,7 +1743,7 @@ define both beans in <code translate="no" v-pre>services-config.xml</code>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (089c15ed).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (f3f9c1f0).</p></div>
             </footer>
         </div>
     </div>

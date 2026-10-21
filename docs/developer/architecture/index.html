@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845926496712">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845941069260">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845926496712" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845941069260" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845926496712" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845941069260" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845926496712" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845926496712" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845941069260" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845941069260" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -368,12 +368,13 @@ push enabled, dark Lumo theme, <code translate="no" v-pre>shared-styles.css</cod
 |---|---|---|
 | `ui.main` | UI | Servlet, app shell, the routes: `Main` (`/`), `Viewer` (`/view`) and `Reset` (`/reset`, clears the saved workspace state), login handling (`LoginCheckRoute`). |
 | `ui.workspace`, `ui.workspace.parts` | UI | The workspace after login and its tabs: books, lorebooks, settings, protocols, inference providers, admin. |
-| `ui.dialogs`, `ui.dialogs.manuscript` | UI | Dialogs; the book window (`ManuscriptDialog`) and its tabs: story, tree, about, prompts, lorebook, backups. |
+| `ui.dialogs`, `ui.dialogs.manuscript` | UI | Dialogs; the book window (`ManuscriptDialog`) and its tabs: story, tree, about, prompts, lorebook, backups. `ui.dialogs.agent` has the screens of agents, `ui.dialogs.search` the search and replace windows. |
 | `ui.components`, `ui.widgets` | UI | Reusable components (lorebook editor, story tree, the help assistant's button and chat) and small widgets. |
 | `ui` (`LLMInteract`, `LLMSnapshot`) | UI | How the UI describes itself to the help assistant's model and what the model may do to it. |
 | `domain.components` | Services | Plain data and helpers shared by services and the UI (`TurnInput`, `TokenLimits`, `PromptTokenBreakdown`, `SummaryNode`, `CronSchedule`). |
 | `domain.service` (+ `impl`) | Services | Business logic, one service per entity plus generation, templates, backups, cleanup, extensions. |
 | `domain.service.impl.generation` | Services | The generation engine's steps, events and DTOs. |
+| `domain.service.agent`, `domain.service.command`, `domain.service.impl.commands` | Services | [Agents](agents.md) (the runner's tools, the virtual file system, checkpoints, the merge of a result) and [commands](commands/index.md) (the definitions, the scope a command runs in, the commands of the application). |
 | `domain.service.impl.inference` | Services | The OpenAI-compatible client and the tokenizer strategies. |
 | `domain.service.manual` | Services | The in-app help: the user manual parsed and searched (`ManualParser`, `ManualIndex`), the functions and prompts of the help assistant (`HelpTools`, `InteractiveHelpTools`, `HelpPrompts`, `UiStateSource`). |
 | `domain.templates` | Services | Template data objects and the macro system. |
@@ -408,7 +409,7 @@ push enabled, dark Lumo theme, <code translate="no" v-pre>shared-styles.css</cod
 <tr>
 <td><code translate="no" v-pre>ui.dialogs</code>, <code translate="no" v-pre>ui.dialogs.manuscript</code></td>
 <td>UI</td>
-<td>Dialogs; the book window (<code translate="no" v-pre>ManuscriptDialog</code>) and its tabs: story, tree, about, prompts, lorebook, backups.</td>
+<td>Dialogs; the book window (<code translate="no" v-pre>ManuscriptDialog</code>) and its tabs: story, tree, about, prompts, lorebook, backups. <code translate="no" v-pre>ui.dialogs.agent</code> has the screens of agents, <code translate="no" v-pre>ui.dialogs.search</code> the search and replace windows.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.components</code>, <code translate="no" v-pre>ui.widgets</code></td>
@@ -434,6 +435,11 @@ push enabled, dark Lumo theme, <code translate="no" v-pre>shared-styles.css</cod
 <td><code translate="no" v-pre>domain.service.impl.generation</code></td>
 <td>Services</td>
 <td>The generation engine&#x27;s steps, events and DTOs.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>domain.service.agent</code>, <code translate="no" v-pre>domain.service.command</code>, <code translate="no" v-pre>domain.service.impl.commands</code></td>
+<td>Services</td>
+<td><a href="../agents/">Agents</a> (the runner&#x27;s tools, the virtual file system, checkpoints, the merge of a result) and <a href="../commands/">commands</a> (the definitions, the scope a command runs in, the commands of the application).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>domain.service.impl.inference</code></td>
@@ -786,6 +792,12 @@ summaries - updates the UI with <code translate="no" v-pre>ui.access(...)</code>
 <code translate="no" v-pre>generateNextTurn</code> therefore captures the request attributes in a <code translate="no" v-pre>ThreadCopyRequestAttributes</code> and the engine wraps
 its work in <code translate="no" v-pre>ThreadCopyRequestAttributes.InRequestScope</code>, which makes the session of the user who started the
 generation current on the worker thread.</p>
+<p>An <a href="../agents/">agent</a> run is not started by a request at all: <code translate="no" v-pre>AgentRunner</code> works it in a background worker of its own
+(a thread pool, one round of the model at a time) and sets up the request context from the run, not from a browser:
+<code translate="no" v-pre>AgentRequestAttributes</code> make the <code translate="no" v-pre>user</code> bean resolve to the owner of the agent and the session point an
+<code translate="no" v-pre>AgenticSessionPoint</code> (the working copy is the open book, the language is the one of the run). Anything that shows on
+the screen of the owner goes through <code translate="no" v-pre>ui.access</code> like any other background work, see
+<a href="../agents/#the-request-context-of-a-run">the request context of a run</a>.</p>
 <h2 id="sessions">Sessions</h2>
 <p><code translate="no" v-pre>bound/SessionManager</code> (bean <code translate="no" v-pre>sessionManager</code>, defined in <code translate="no" v-pre>container-config.xml</code>) knows every HTTP session of the
 application and which user is logged into it.</p>
@@ -931,6 +943,7 @@ version of the application. See <a href="../plugins/">Plugin development</a>.</p
 | `data/&lt;login&gt;/backups/manuscripts/&lt;book id&gt;/` | Book backups (`BackupService`), one JSON file each. |
 | `data/&lt;login&gt;/images/`, `data/&lt;login&gt;/resources/` | Per-user folders for files (created on demand). |
 | `extensions/` | Extension JARs with their verification reports (`name.valid` / `name.invalid`, `ExtensionService.verifyExtension`), plus Felix's bundle cache in `org.eclipse.osgi/` (deleted and rebuilt on every start). |
+| `agent-workspaces/&lt;agent uuid&gt;/`, `agent-runs/&lt;run uuid&gt;/` | The files of [agents](agents.md#files-of-an-agent): the workspace of an agent, and per run the base snapshot of the book, the checkpoints and the findings (`RunFolder`). Not under `data/`, which is named by logins. |
 | `desktop/` | Desktop app only: the Jetty base and `logs/`. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -968,6 +981,10 @@ version of the application. See <a href="../plugins/">Plugin development</a>.</p
 <tr>
 <td><code translate="no" v-pre>extensions/</code></td>
 <td>Extension JARs with their verification reports (<code translate="no" v-pre>name.valid</code> / <code translate="no" v-pre>name.invalid</code>, <code translate="no" v-pre>ExtensionService.verifyExtension</code>), plus Felix&#x27;s bundle cache in <code translate="no" v-pre>org.eclipse.osgi/</code> (deleted and rebuilt on every start).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>agent-workspaces/&lt;agent uuid&gt;/</code>, <code translate="no" v-pre>agent-runs/&lt;run uuid&gt;/</code></td>
+<td>The files of <a href="../agents/#files-of-an-agent">agents</a>: the workspace of an agent, and per run the base snapshot of the book, the checkpoints and the findings (<code translate="no" v-pre>RunFolder</code>). Not under <code translate="no" v-pre>data/</code>, which is named by logins.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>desktop/</code></td>
@@ -1055,7 +1072,7 @@ refused, so an extension can&#x27;t replace English.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (089c15ed).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (f3f9c1f0).</p></div>
             </footer>
         </div>
     </div>

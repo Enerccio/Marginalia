@@ -72,6 +72,8 @@ The ones of the agents; an empty field is the default:
 | **Files in a workspace** | How many files the workspace of one agent of the user can hold, folders are free. 500 when empty. |
 | **Checkpoints of a run (MB)** | How much all the [checkpoints](../agents.md#checkpoints) of one run (restore points of the working copy and its workspace) can take; part of it is kept for the automatic ones. 100 when empty. |
 
+![The settings of the Agents permission](../../images/permissions-settings-agents.png)
+
 ## When permissions were introduced
 
 Before the permissions, **Users can create their own models** and the **Enabled** switch of the help assistant (with

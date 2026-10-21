@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845926496712">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845941069260">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -24,6 +24,10 @@
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/agents/">
     <meta property="og:title" content="Agents">
     <meta property="og:description" content="An agent is a model that works on one of your books on its own, for a long time, calling the commands you allow it as its tools: it can read the story, check it against the lorebook and report to you.">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/agents-tab.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Agents">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -32,17 +36,19 @@
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/agents/">
     <meta name="twitter:title" content="Agents">
     <meta name="twitter:description" content="An agent is a model that works on one of your books on its own, for a long time, calling the commands you allow it as its tools: it can read the story, check it against the lorebook and report to you.">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/agents-tab.png">
+    <meta name="twitter:image:alt" content="Agents">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/user/agents.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845926496712" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845941069260" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845926496712" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845941069260" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845926496712" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845941069260" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -205,6 +211,10 @@ have it, but the limits are the same as for everybody: the defaults unless they 
 </table>
 </div>
 </retype-table>
+<figure class="content-center">
+    <img src="../../images/agents-tab.png" alt="The Agents tab" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">The Agents tab</figcaption>
+</figure>
 <p>The buttons at the end of a row depend on the run:</p>
 <retype-table copy-text="| Button | |
 |---|---|
@@ -267,6 +277,10 @@ have it, but the limits are the same as for everybody: the defaults unless they 
 </div>
 </retype-table>
 <p>Starting is refused, with the reason, when the agent is disabled, has no model, or you have all the runs you may work at once.</p>
+<figure class="content-center">
+    <img src="../../images/agent-start-menu.png" alt="The menu of the Start button" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1590" height="176" />
+    <figcaption class="caption">The menu of the Start button</figcaption>
+</figure>
 <p>An agent has at most one run that is not over, and a book has at most one agent.</p>
 <h2 id="a-run">A run</h2>
 <p>A run is the job of the agent. It works in rounds: the model is asked once, it answers with text and/or calls to its tools, the results go back, and so on.
@@ -378,20 +392,56 @@ long (a slow model, a long generation), so there is <strong>Pause now</strong>: 
 that is going on, answers the calls of the round that were not made as such, and the run is <em>Paused</em> in a moment. What the thrown away request would have
 cost is lost; resume as usual. <strong>Stop</strong> does the same: it does not wait for the request or the call that is going on, they are cancelled and the run ends at once
 (kept or discarded as you chose).</p>
+<figure class="content-center">
+    <img src="../../images/agent-stop.png" alt="The question when a run is stopped" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="579" height="172" />
+    <figcaption class="caption">The question when a run is stopped</figcaption>
+</figure>
 <p>A command that is going on is told to stop, and a command that is written to be stopped (the ones that write with a model, search and replace) ends at once and leaves what it had
 done so far. One that can&#x27;t be stopped may still finish; either way the agent is told that it is not known whether the call was done and checks the state with a read
 command when it goes on. The commands of the sub-agents are cancelled the same way when the run is paused, stopped or sent a message at once.</p>
 <p>While the agent waits for a free place at its model (see <doc-anchor-trigger to="#one-model-several-agents">One model, several agents</doc-anchor-trigger>) it is <em>Running</em>; a <strong>Pause</strong> or <strong>Stop</strong> ends that wait at once.</p>
 <h2 id="the-console">The console</h2>
 <p><strong>Console</strong> opens a window for the latest run of the agent, with eight tabs: <strong>Run</strong>, <strong>Runs</strong>, <strong>Workspace</strong>, <strong>Checkpoints</strong>, <strong>Context</strong>, <strong>Book copy</strong>, <strong>Sub-agents</strong> and <strong>Diagnostics</strong>.</p>
+<figure class="content-center">
+    <img src="../../images/agent-console-start.png" alt="A run started in the console: the agent asks what to do" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1100" height="810" />
+    <figcaption class="caption">A run started in the console: the agent asks what to do</figcaption>
+</figure>
 <p><strong>Run</strong> shows the <em>transcript</em>: what you told the agent, what it said (both as <a href="https://commonmark.org/help/">Markdown</a>, so lists, headings and emphasis show as such), and every command or file tool it called, folded to one line with the
 arguments (click it to see them and the result, shown as plain text). When the model sends its <strong>reasoning</strong> (what it thought before it answered), a folded <em>Reasoning</em> block shows it before the answer, and the download has it. Whether you get any depends on the model and the server: it has to report it, and your AI has to have reasoning switched on. Every message has the time it was written at the right of its first line (the time of day, with the date when it was another day; hover for the whole time), so you can tell how long the agent worked and when it stopped. The state of the run, the <strong>context</strong> (how many tokens the last request used of the limit of the model, so you see how close the run is to a pause), the rounds and tokens it used (and the token budget, when there
 is one) stay above it and the box for your message under it, while the transcript scrolls. What the agent waits for is in the transcript where it was written, as a bubble of its own that stays there when the run goes on:</p>
+<figure class="content-center">
+    <img src="../../images/agent-console-run.png" alt="The console while the agent works: a message of the author waits in the queue" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1100" height="810" />
+    <figcaption class="caption">The console while the agent works: a message of the author waits in the queue</figcaption>
+</figure>
 <ul>
 <li>a <strong>Question of the agent</strong>, when the run is <em>Waiting for you</em>; write the answer in the box and press <strong>Send</strong> (or <strong>Ctrl+Enter</strong>), and the agent goes on;</li>
 <li>a <strong>Report of the agent</strong>, when it called <code translate="no" v-pre>finish</code>.</li>
 </ul>
+<figure class="content-center">
+    <img src="../../images/agent-console-question.png" alt="The question of an agent, with the answers it suggests" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1100" height="810" />
+    <figcaption class="caption">The question of an agent, with the answers it suggests</figcaption>
+</figure>
+<figure class="content-center">
+    <img src="../../images/agent-console-report.png" alt="The report of the agent at the end of a conversation" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1100" height="810" />
+    <figcaption class="caption">The report of the agent at the end of a conversation</figcaption>
+</figure>
+<figure class="content-center">
+    <img src="../../images/agent-console-question.png" alt="The question of an agent, with the answers it suggests" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1100" height="810" />
+    <figcaption class="caption">The question of an agent, with the answers it suggests</figcaption>
+</figure>
+<figure class="content-center">
+    <img src="../../images/agent-console-report.png" alt="The report of the agent at the end of a conversation" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1100" height="810" />
+    <figcaption class="caption">The report of the agent at the end of a conversation</figcaption>
+</figure>
 <p>The line above the transcript shows the state of the run and its numbers: the rounds, the size of the context against its cap, the <strong>Reply limit</strong> (the most tokens the model of the agent can write in one answer; a call that needs more is cut off, so the agent writes long texts in parts) and the tokens in total. When the agent has made a plan (<code translate="no" v-pre>update_plan</code>), a <strong>Plan</strong> button with the steps done out of all (<strong>Plan 2/5</strong>) appears there; it opens the steps in a popover, each with a mark for <em>Done</em>, <em>In progress</em> or <em>To do</em>. When it has reported findings (<code translate="no" v-pre>report</code>), a <strong>Findings</strong> button with their number (<strong>Findings 3</strong>) opens them the same way, each with its severity. The findings are kept with the run, so they are there after a pause, a restart and when you look at an older run in the history; the Markdown file of a run (<strong>Download</strong>) has them in a section <strong>Findings</strong>.</p>
+<figure class="content-center">
+    <img src="../../images/agent-console-plan.png" alt="The plan of the agent" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1100" height="810" />
+    <figcaption class="caption">The plan of the agent</figcaption>
+</figure>
+<figure class="content-center">
+    <img src="../../images/agent-console-findings.png" alt="The findings of the agent" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1100" height="810" />
+    <figcaption class="caption">The findings of the agent</figcaption>
+</figure>
 <p>In a conversation you can also write while the agent <strong>works</strong>. The message is <strong>queued</strong>: it appears as a dashed bubble at the end of the transcript and the agent
 reads it as soon as the round it is in is over: the request to the model that is on its way and the calls it made finish first, and the next request already contains
 your message (several queued messages go together as one). When it should not wait even for that, press the
@@ -408,6 +458,10 @@ where the run waits (<em>Waiting for you</em>) or is <em>Paused</em> the command
 queued, a dashed bubble marked <em>Command</em>, and runs at the end of the agent&#x27;s turn, where the agent would have waited (the agent does not go on because of it).
 The small <strong>Run now</strong> button on the bubble drops the round the agent is in, runs the command and lets the agent go on from there. A command that takes long
 holds the box: wait for it before you write to the agent.</p>
+<figure class="content-center">
+    <img src="../../images/agent-console-command.png" alt="A command of the author in the console: /compact" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1100" height="810" />
+    <figcaption class="caption">A command of the author in the console: /compact</figcaption>
+</figure>
 <p><strong><code translate="no" v-pre>/compact [what to stress]</code></strong> frees the context. The agent is asked to read everything so far and write a summary (what you asked, what is done, what it found,
 its notes and its plan, what it was about to do); that summary replaces everything before it in what the model reads. In the transcript you still see all of it,
 and the summary as a folded block, <strong>Summary of the earlier work</strong>; the export keeps it too. The text after the command, if any, is what the summary should stress.
@@ -436,6 +490,10 @@ run in the <strong>Run</strong> tab and read its steps and its report again (the
 <strong>download</strong> its transcript as a Markdown file (what was said and when, every command with its arguments and result, the report, the conversations of the sub-agents), and the bin to <strong>delete</strong> it.
 A deleted run goes to the <a href="../trash/">trash</a>. A run that is going on can&#x27;t be deleted, stop it first. Runs you stopped and <strong>discarded</strong> are in the list
 too, so you can read what they did or delete them; the <strong>Run</strong> tab shows them only when you open them.</p>
+<figure class="content-center">
+    <img src="../../images/agent-runs.png" alt="The Runs tab" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1100" height="810" />
+    <figcaption class="caption">The Runs tab</figcaption>
+</figure>
 <p><strong>Workspace</strong> shows the files of the agent: its notes and reports, which it keeps between runs. Click a folder to go in (<strong>Up</strong> goes back), click a
 text file to read it, use the arrows to download a file or the bin to delete it, and <strong>Clear</strong> deletes everything (stale notes mislead a fresh run).
 <strong>New folder</strong> creates a folder in the open one and <strong>Upload file</strong> puts a file from your computer there, so you can hand the agent
@@ -445,6 +503,10 @@ because the agent can only read text, an image (PNG, JPEG, GIF or WebP, recognis
 up to 5 MB, and it counts against the total and the number of files like any file) or a zip file (up to 10 MB, kept as it is; the agent unpacks it, see <doc-anchor-trigger to="#unpacking-a-zip-file">below</doc-anchor-trigger>). A file is never replaced by an upload: delete the old one first.
 Files can&#x27;t be changed while the agent works, pause it first. The workspace has a limit of size, file size and number of files, which your administrator can set in your <a href="../administration/permissions/#settings-of-a-permission">permission</a>; the line
 under the table says how much is used. The name <code translate="no" v-pre>AGENTS.md</code> at the top is taken by your instructions, which the agent sees there (the file can&#x27;t be written or deleted).</p>
+<figure class="content-center">
+    <img src="../../images/agent-console-workspace.png" alt="The Workspace tab" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1100" height="810" />
+    <figcaption class="caption">The Workspace tab</figcaption>
+</figure>
 <h3 id="unpacking-a-zip-file">Unpacking a zip file</h3>
 <p>Upload a zip file in the <strong>Workspace</strong> tab (<strong>Upload file</strong>) when the agent should work on many files at once, for example the chapters of
 a draft, and ask it to unpack it: the agent has the tool <code translate="no" v-pre>unzip_file</code>, which unpacks <code translate="no" v-pre>/uploads/draft.zip</code> into the new folder
@@ -484,8 +546,16 @@ differing in case), a name that is both a file and a folder, more than 5 000 ent
 <li><strong>Pausing the run pauses the sub-agents too.</strong> They stop at their next stable point (between two requests or two calls, at once when you pause at once) and what they said and did is kept with the run, so a <strong>Resume</strong> goes on where everything was: the sub-agents go on with their conversation, and a call of the agent that waited for one (<code translate="no" v-pre>await_agent</code>, or <code translate="no" v-pre>spawn_agent</code> with a limit of one) waits again, as if nothing had happened. A sub-agent that was over before the pause is still there for the agent to ask about. Stopping a run and keeping it does the same; discarding it, a restore of a checkpoint (the book the sub-agents worked in is replaced) and the agent finishing or asking you something end them for good. An agent that ends its turn while sub-agents still work is told once; if it does it again they are stopped.</li>
 <li>Their conversations are not in the <strong>Run</strong> tab. The <strong>Sub-agents</strong> tab of the console shows them: pick one above to read what the agent told it, what it said, the commands it called with their results and how it ended (the answer it gave, or why it failed or was cancelled), in the same blocks as the transcript. It follows the run while it works, and it shows the sub-agents of an older run too (pick that run in the <strong>Runs</strong> tab first). A <code translate="no" v-pre>spawn_agent</code> call in the <strong>Run</strong> tab has a <strong>Sub-agent</strong> button that opens its conversation. A conversation the agent went back over (a rewind) is greyed and marked <em>forgotten by the agent</em>. The <strong>download</strong> of the run (in the <strong>Runs</strong> tab) has a section for each sub-agent, with its task, its state and every message and call.</li>
 </ul>
+<figure class="content-center">
+    <img src="../../images/agent-subagents.png" alt="The Sub-agents tab" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1100" height="810" />
+    <figcaption class="caption">The Sub-agents tab</figcaption>
+</figure>
 <h3 id="models-for-sub-agents">Models for sub-agents</h3>
 <p>The agent has one <strong>main model</strong>, picked at the top of the dialog. Under <strong>Models for sub-agents</strong> you can add others, for example a cheap model that only reads or a fluent one that drafts. Each has a <strong>role</strong> (its name), a <strong>description</strong> (when to use it: the agent reads it to choose), its AI and protocol, an optional <strong>context limit</strong>, and what it may use:</p>
+<figure class="content-center">
+    <img src="../../images/agent-models.png" alt="A model for sub-agents" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="900" height="592" />
+    <figcaption class="caption">A model for sub-agents</figcaption>
+</figure>
 <ul>
 <li><strong>Can use commands and tools.</strong> Off, a sub-agent on this model only answers with text: it gets no commands and no tools.</li>
 <li><strong>Limit the commands.</strong> Off, a sub-agent on this model has the commands of the agent. On, only the ones you tick, and of those only the ones the agent is allowed (the allowed commands of the agent stay the upper limit). The tools for files are not commands, so every sub-agent has them. The main model has the same setting, for the sub-agents that run on it (the <strong>Edit</strong> button of its row).</li>
@@ -510,6 +580,10 @@ window you have open gets the notice. Opening the console of the agent clears it
 pops up over the console with the command and its arguments. <strong>Approve</strong> lets it run, <strong>Deny</strong> tells the agent that you refused and it goes on.
 Pausing or stopping the run (or stopping the server) does not count as a denial: the agent is told nothing, and when you <strong>Resume</strong>, the window comes again for the same command. The command still works on the <doc-anchor-trigger to="#the-working-copy">copy</doc-anchor-trigger> of the book. If the console is
 closed, the window is there as soon as you open it.</p>
+<figure class="content-center">
+    <img src="../../images/agent-approval.png" alt="The window that asks for the approval of a command" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">The window that asks for the approval of a command</figcaption>
+</figure>
 <h2 id="when-the-server-stops">When the server stops</h2>
 <p>Stopping the server pauses the runs that work first, as <strong>Pause now</strong> does (it gives the server a few seconds): the request and the call that go on are given up, the run is <em>Paused</em> with the reason &quot;The server was stopped&quot;, and a <strong>Resume</strong> goes on. If the server is killed or crashes instead, the next start pauses the runs it finds working (&quot;Interrupted by a restart of the server&quot;). Everything the run did is kept: the saved rounds, the copy, the workspace, and the messages and commands you had queued. What is lost is the round that was not finished. Resuming handles the call the run was in:</p>
 <ul>
@@ -541,9 +615,17 @@ makes a new one from the book as it is then.</p>
 the items by, in a message when it goes on (&quot;While the run was paused the user changed the book...&quot;), and can ask again with <code translate="no" v-pre>get_sync_report</code>.</p>
 <p><strong>A conflict does not go away by itself.</strong> Every resume compares the copy with the book again, so a conflict is reported again, and the agent is told of it again, each time you resume, until you resolve it: by changing your side of the book (to the agent&#x27;s text, or back to what it was), or in the review.</p>
 <p><strong>A note with the resume.</strong> <strong>Resume</strong> opens a small window with a field <em>Note for the agent (optional)</em>. What you write there is the first thing the agent reads when it goes on, after the report of the changes you made to the book. It is meant for a change of direction (&quot;leave the lorebook alone&quot;, &quot;start with chapter 3&quot;) and, unlike a message to a conversation, it works for every run, also one that does not wait for your messages. Leave it empty to resume as before.</p>
+<figure class="content-center">
+    <img src="../../images/agent-resume.png" alt="Resuming a run with a note" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="520" height="343" />
+    <figcaption class="caption">Resuming a run with a note</figcaption>
+</figure>
 <h2 id="reviewing-the-result">Reviewing the result</h2>
 <p>When a run is <em>Done</em> (or you stopped it with <strong>Stop and keep the result</strong>) the agent row and the console have a <strong>Review changes</strong> button. It opens a window with
 everything the agent changed, compared with your book <strong>as it is now</strong>, one line each. When the agent reported findings, they are listed above the changes (<strong>Findings (3)</strong>), so an audit that changed nothing still has something to show:</p>
+<figure class="content-center">
+    <img src="../../images/agent-review.png" alt="Reviewing the result of a run" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1300" height="828" />
+    <figcaption class="caption">Reviewing the result of a run</figcaption>
+</figure>
 <ul>
 <li><strong>Book:</strong> its name, description, language, point of view, tense, style and templates, its tags, and the data an extension keeps in the book (an arc outline, the character tracker).</li>
 <li><strong>Part:</strong> a part whose text, instructions, scene setting, point-of-view character, present characters or summary the agent changed, a part it wrote, a part it deleted. The variables a generation keeps with a part (and the data of extensions) are taken over with it, as the field <strong>Data</strong>.</li>
@@ -556,16 +638,28 @@ on the right: the text of your book now and the text that will be written, <stro
 change. What both changed to <strong>different</strong> texts is a <strong>conflict</strong>: it starts unticked, and when you tick it the text you see on the right replaces the text of the book. <strong>Use the book&#x27;s</strong> puts the book&#x27;s text
 into the box (the line then changes nothing for that field), <strong>Use the agent&#x27;s</strong> puts the agent&#x27;s back; or write the result yourself. A line that can&#x27;t be taken over (the part it follows, or the lorebook it
 is in, was deleted from your book) says so and can&#x27;t be ticked.</p>
+<figure class="content-center">
+    <img src="../../images/agent-review-conflict.png" alt="A conflict in the review" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1300" height="828" />
+    <figcaption class="caption">A conflict in the review</figcaption>
+</figure>
 <p>Under the texts, <strong>Differences</strong> shows what changes <strong>word by word</strong>: what is only in the book now struck through in red, what is only in the text to apply in green (it follows what you write in the box). For a conflict it also
 shows what the agent changed and what you changed since the run started, each from the book as it was then, so you can see who did what. A line the agent changed in more than one thing (a part whose text and scene setting
 changed, an entry with a new content and note) has a <strong>Take this change</strong> box beside each of them: untick one to apply the line without it, the book keeps its own value of that field. The place of a part in the story goes with the part and has no box,
 and what the agent made or deleted is taken or left as a whole. <strong>Show in the copy</strong> (on a line the agent made or changed) opens the <doc-anchor-trigger to="#the-copy-of-the-book">copy of the book</doc-anchor-trigger> at that part or entry, to read it in its place.</p>
+<figure class="content-center">
+    <img src="../../images/agent-review-differences.png" alt="The differences of a conflict, word by word" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1300" height="828" />
+    <figcaption class="caption">The differences of a conflict, word by word</figcaption>
+</figure>
 <h3 id="data-that-extensions-keep-json">Data that extensions keep (JSON)</h3>
 <p>Extensions keep their own data in a book, in its parts, lorebooks and entries (an arc outline, the character tracker, the variables of a generation). It is JSON, and the review shows it <strong>pretty printed</strong> with the line
 <strong>Merge JSON data</strong> beside the text that will be applied. The data is not taken over as a whole: what only the agent changed is taken from the agent, what only your book changed stays, and what both changed in <strong>different
 places</strong> is put together place by place. It is a conflict only where both changed the <strong>same</strong> place to different values (the order of the keys does not matter); until you decide, the agent&#x27;s version is used there.</p>
 <p><strong>Merge JSON data</strong> opens a window with the data of the three versions laid over each other as a tree: <em>When the run started</em>, <em>In the book now</em>, the <em>Agent</em> and the <em>Result</em> in a column each, with a mark for what changed
 and where (the agent, the book, both, a conflict). Only the places that changed are shown (untick <strong>Only what changed</strong> for all of them); a place is opened only when you open it, so a big document is no problem.</p>
+<figure class="content-center">
+    <img src="../../images/agent-json-merge.png" alt="The data of an extension laid over each other" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1500" height="828" />
+    <figcaption class="caption">The data of an extension laid over each other</figcaption>
+</figure>
 <ul>
 <li>
 <p>Select a place and take its data from one version (<strong>Use the agent&#x27;s</strong>, <strong>Use the book&#x27;s</strong>, <strong>Use the one from the start of the run</strong>), <strong>Leave out</strong> (the key or the element is not in the result), or <strong>Put together from
@@ -589,6 +683,10 @@ changed. Valid text replaces the agent&#x27;s data in that place and everything 
 </li>
 </ul>
 <p>The review also has <strong>Use the agent&#x27;s</strong> and <strong>Use the book&#x27;s</strong> for such a field, to take one of the two as it is, and <strong>Start over</strong> to go back to the put-together data.</p>
+<figure class="content-center">
+    <img src="../../images/agent-review-json.png" alt="The data of the arc outline in the review, with Merge JSON data" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1300" height="828" />
+    <figcaption class="caption">The data of the arc outline in the review, with Merge JSON data</figcaption>
+</figure>
 <p>A lorebook that other books use is marked <strong>Shared</strong>: the change goes to the lorebook itself, so the other books get it too. It starts unticked.</p>
 <p>Applying is done to the book <strong>in place</strong>: the parts keep their addresses, other books keep their links to a lorebook, and what the agent deleted goes to the trash. A <strong>backup of the book as it was</strong> is taken first
 (it is among the backups of the book, with its lorebooks), and the changes are made all together or not at all. <strong>Show the branch the agent ended on</strong> also switches the book to the branch the agent was on, when it is
@@ -600,8 +698,16 @@ can&#x27;t start another.</p>
 point of view and, folded, its instructions and summary), and the <strong>lorebooks</strong> with their entries (pick one to see its content, note, tags and settings). It is not a window of your book: nothing in it can be changed, no backup is
 made of the copy and no extension sees a book open. It is read when you open the tab and when you press <strong>Refresh</strong>, also while the agent works, so it shows what the agent has written so far. It is there while the run has its copy
 (not after the result was applied or discarded).</p>
+<figure class="content-center">
+    <img src="../../images/agent-book-copy.png" alt="The Book copy tab" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1100" height="810" />
+    <figcaption class="caption">The Book copy tab</figcaption>
+</figure>
 <h3 id="diagnostics">Diagnostics</h3>
 <p>The <strong>Diagnostics</strong> tab counts what the run did from its transcript, to find out what an agent needs from its tools and its prompt. It works for any run, an old one too (pick it in <strong>Runs</strong> first), and is made when you open the tab and when you press <strong>Refresh</strong>.</p>
+<figure class="content-center">
+    <img src="../../images/agent-diagnostics.png" alt="The Diagnostics tab" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1100" height="810" />
+    <figcaption class="caption">The Diagnostics tab</figcaption>
+</figure>
 <ul>
 <li><strong>Overview</strong>: rounds and calls, how many calls failed, the time of the model, of the calls and of pauses (a gap of 30 minutes or more between two steps is a pause, not work), the context at its peak and at the end, the tokens, compactions, your messages and the notices the runner gave the agent (an unreadable call, too many calls, a full context).</li>
 <li><strong>Tools</strong>: for each tool the calls, the errors, the results that were cut, how often it was the only call of a round, the characters the agent wrote, how many calls passed a text as <code translate="no" v-pre>@file:</code> or <code translate="no" v-pre>@result</code>, how many wrote a long text (300 characters or more) out and how many of those copied it from a result the agent had just been given, the tokens of its results (about, from the characters), the share of all results, the longest result and the time.</li>
@@ -618,6 +724,10 @@ made of the copy and no extension sees a book open. It is read when you open the
 <li>A <strong>table of the parts</strong> with the kind, name, tokens and share of the context. Pick a row to read <strong>exactly the text the model is sent</strong> for that part: a section of the system message, the description and parameters of one tool, a message, the arguments of a call or the result of one.</li>
 <li><strong>Download</strong> gives the whole context as one Markdown file (the system message with its sections, every tool with its description and schema, the conversation message by message, each text in a code fence), <strong>Copy</strong> puts the same text on the clipboard.</li>
 </ul>
+<figure class="content-center">
+    <img src="../../images/agent-context.png" alt="The Context tab" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1100" height="810" />
+    <figcaption class="caption">The Context tab</figcaption>
+</figure>
 <p>The sizes of the parts are estimates; the number the model reported is the real one (the request and its answer). In the chart of the answers the prompt, the instructions and the tools are as they are now (an older answer may have had others if you changed them), the conversation is as it was then: a summary replaced what was before it, and what a rewind went back over is gone from the answers after it (a compaction that was itself rewound is not brought back, the bars after it are a little too small). The system message and the tools are the ones the next request would use, so a change of the prompt, the instructions or the allowed commands shows at once. The messages are the transcript as stored, without what a resume adds (a &quot;go on&quot;, the answers to calls an interruption left open). Reasoning is not part of the context (the model is not sent it back) and images show as their file names. What a compaction replaced is not in the context either; the <strong>Run</strong> tab and the <strong>Runs</strong> download still have it.</p>
 <h2 id="checkpoints">Checkpoints</h2>
 <p>A <strong>checkpoint</strong> is a restore point of the working copy of the run (the parts, summaries, lorebooks and the data of the extensions, with the handles the agent was given) and of the
@@ -634,6 +744,10 @@ changed since the last checkpoint. The last five are kept; the oldest goes when 
 <p><strong>Made on purpose</strong>, by the agent with <code translate="no" v-pre>checkpoint</code> (it is told to make one before a risky step) or by you with <strong>Save a checkpoint</strong>. They stay until deleted.</p>
 </li>
 </ul>
+<figure class="content-center">
+    <img src="../../images/agent-checkpoints.png" alt="The Checkpoints tab" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1100" height="810" />
+    <figcaption class="caption">The Checkpoints tab</figcaption>
+</figure>
 <p>All the checkpoints of a run share a <strong>quota</strong> that the administrator sets in the <a href="../administration/permissions/#settings-of-a-permission">permission</a> (100 MB when empty). Part of it is kept for the automatic ones, so that the
 agent can&#x27;t use it all up; a checkpoint made on purpose that does not fit is <strong>refused</strong>, nothing is deleted behind the back of whoever asked. The agent then gets the list and deletes what it does not need
 (not the checkpoint of the start, and not the newest one); you can delete any in the tab. Each is an archive (a ZIP of the book as JSON, the pairs and the workspace files) you can <strong>download</strong>.</p>
@@ -644,6 +758,10 @@ of two thousand parts). You can restore while the agent does not work; the agent
 <p><strong>Going back to a message.</strong> You do not have to pick a checkpoint: every message you wrote to the agent has a <strong>Rewind</strong> button under it in the transcript of the <strong>Run</strong> tab. It takes the conversation back to before that message: the agent forgets the message and everything after it, and the working copy and the workspace go back to the newest checkpoint that was made before it (the runner makes one before every round that changes something, so this is usually right at the message). The state of a run is only known at its checkpoints, so when the closest one is older than the message, the messages between that checkpoint and yours are forgotten too; the confirmation tells which checkpoint it is and how many messages go. The forgotten messages stay in the transcript, greyed. The button works while the agent waits for you (it is paused for it), is paused, or was stopped and kept; while the agent works it is disabled. You <strong>Resume</strong> the run afterwards, and it goes on from the notice.</p>
 <h2 id="creating-and-editing-an-agent">Creating and editing an agent</h2>
 <p><strong>New agent</strong> opens the same window as <strong>Edit</strong>:</p>
+<figure class="content-center">
+    <img src="../../images/agent-dialog.png" alt="The window of a new agent" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1100" height="810" />
+    <figcaption class="caption">The window of a new agent</figcaption>
+</figure>
 <retype-table copy-text="| Field | |
 |---|---|
 | **Name** | Required. |
@@ -744,12 +862,20 @@ of two thousand parts). You can restore while the agent does not work; the agent
 </table>
 </div>
 </retype-table>
+<figure class="content-center">
+    <img src="../../images/agent-dialog-prompts.png" alt="The prompts of the agent and the hints of the default template" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1380" height="810" />
+    <figcaption class="caption">The prompts of the agent and the hints of the default template</figcaption>
+</figure>
 <h3 id="allowed-commands">Allowed commands</h3>
 <p>The agent is offered only the commands you tick. The table lists every command with its effect (<em>Destructive</em> changes or removes
 data, <em>Non-destructive</em> only reads or adds). The <strong>Selection</strong> box ticks many at once: <strong>All</strong>, <strong>None</strong> or <strong>All non-destructive</strong>
 (the default for a new agent), or a role; ticking a command yourself makes the selection <em>Custom</em>. Commands that an extension brings stay allowed
 when the extension is not loaded, you just don&#x27;t see them. The <strong>Batch</strong> column says whether the command is used <em>Together</em> with other calls in one answer or <em>Alone</em> (a command that makes a call to a model, such as <code translate="no" v-pre>next</code>, <code translate="no" v-pre>swipe</code>, <code translate="no" v-pre>regenerate</code> or the compaction, is alone; see <strong>Calls in one answer</strong> below). All the columns can be resized. The <strong>Tokens</strong> column is what the definition of the command (its name, description and parameters) adds to every request of the agent, and
 the line under the instructions adds up the ticked ones: the whole set is about 20 000 tokens, so a smaller selection (a role) leaves more room in the context for the work.</p>
+<figure class="content-center">
+    <img src="../../images/agent-commands.png" alt="The allowed commands, with the roles of the Selection box" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1100" height="810" />
+    <figcaption class="caption">The allowed commands, with the roles of the Selection box</figcaption>
+</figure>
 <p>The roles are sets of commands for a job. All of them can read the book and the lorebooks (every command that only reads, those of extensions too), and none can remove data:</p>
 <retype-table copy-text="| Role | Besides reading |
 |---|---|
@@ -789,6 +915,22 @@ the line under the instructions adds up the ticked ones: the whole set is about 
 <p>Every command ticked adds its definition to every request, so a role is also the cheapest way to a small prompt for a weak model.</p>
 <h2 id="on-a-phone">On a phone</h2>
 <p>The phone layout has an <strong>Agents</strong> tab in the drawer, for users who may use agents, with the count of the agents that need you beside its name. Each agent is a card with its name, its state and the buttons of the table (they wrap onto more lines). The windows - the console, the review, the agent&#x27;s settings - fill the screen, and the review shows the table above the detail of the item. Everything works as on the desktop, only smaller. The console is laid out for a thumb:</p>
+<figure class="content-center">
+    <img src="../../images/phone-agents.png" alt="The Agents tab on a phone" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="402" height="874" />
+    <figcaption class="caption">The Agents tab on a phone</figcaption>
+</figure>
+<figure class="content-center">
+    <img src="../../images/phone-agent-console.png" alt="The console on a phone" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="402" height="874" />
+    <figcaption class="caption">The console on a phone</figcaption>
+</figure>
+<figure class="content-center">
+    <img src="../../images/phone-agents.png" alt="The Agents tab on a phone" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="402" height="874" />
+    <figcaption class="caption">The Agents tab on a phone</figcaption>
+</figure>
+<figure class="content-center">
+    <img src="../../images/phone-agent-console.png" alt="The console on a phone" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="402" height="874" />
+    <figcaption class="caption">The console on a phone</figcaption>
+</figure>
 <ul>
 <li>
 <p><strong>Tabs are icons</strong> (run, runs, workspace, checkpoints, context, book copy, sub-agents, diagnostics); the title of the window names the one that is open.</p>
@@ -814,14 +956,26 @@ the line under the instructions adds up the ticked ones: the whole set is about 
 <p><strong>Clone</strong> asks for a name and a book that has no agent, and copies the definition of the agent and its files (not its runs) to a new
 agent of that book. You can have as many agents, clones included, as your administrator allows (five unless they set another number);
 at the limit <strong>New agent</strong> and <strong>Clone</strong> are off and say why.</p>
+<figure class="content-center">
+    <img src="../../images/agent-clone.png" alt="Cloning an agent" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="460" height="316" />
+    <figcaption class="caption">Cloning an agent</figcaption>
+</figure>
 <h2 id="the-book-is-locked">The book is locked</h2>
 <p>While a run of an agent works or waits for you, <strong>its book is locked</strong>: you can read it, but nothing changes it, so the agent never
 works on text that moves under it. The book list does not open a locked book, it tells you which agent holds it, and
 generating, editing, search and replace, summaries and deleting the book are refused. <strong>Pause</strong> or <strong>Stop</strong> the run to edit the book again;
 a paused, stopped or finished run does not lock it.</p>
+<figure class="content-center">
+    <img src="../../images/agent-locked-book.png" alt="A book an agent works on in the book list" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">A book an agent works on in the book list</figcaption>
+</figure>
 <p>The <strong>lorebooks of the book</strong> are locked with it: the lorebook the book uses and its sub-lorebooks. On the Lorebooks tab such a lorebook is
 shown the way it is on a phone, as plain text and without any editing, with a note that says which agent holds it; <strong>Refresh</strong> shows it for
 editing again after you paused or stopped the run. Other lorebooks are not affected.</p>
+<figure class="content-center">
+    <img src="../../images/agent-locked-lorebook.png" alt="The lorebook of a book an agent works on" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">The lorebook of a book an agent works on</figcaption>
+</figure>
 
                 
                 <!-- Required only on API pages -->
@@ -859,7 +1013,7 @@ editing again after you paused or stopped the run. Other lorebooks are not affec
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (089c15ed).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (f3f9c1f0).</p></div>
             </footer>
         </div>
     </div>

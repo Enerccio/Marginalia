@@ -62,6 +62,8 @@ ordered by the **Order** of the entries (entries with the same order by lorebook
 
 The lorebook in the editor is refreshed when the window is closed after a change.
 
+![Mass edit of a lorebook and its sub lorebooks](../../images/lorebook-mass-edit.png)
+
 ## Tagging many at once
 
 The two tags buttons of the toolbar open one window that puts a tag on many items, or takes it off them: **Tag lorebooks** lists
@@ -72,6 +74,8 @@ use **Apply the tag to the checked** or **Remove the tag from the checked** at t
 an agent works on (a lorebook of a book with a running agent, and so all its entries) is grayed out and can not be changed
 until the run is paused or stopped. The window also tags [books](../books/managing-books.md#tagging-many-books-at-once).
 The tags it puts on entries are the ordinary ones, see [Tags](entries.md#tags); negative tags are set on the entry itself.
+
+![Tagging the entries of a lorebook](../../images/multi-tag-entries.png)
 
 ## Using a lorebook in a book
 
@@ -100,6 +104,8 @@ on; parts that were already written keep the lore they were written with.
 - A lorebook can't include itself, directly or through other lorebooks: such a choice is refused with
   *Cannot select sub lorebook: cycle detected.*
 - A disabled sub lorebook is left out together with everything it includes.
+
+![A lorebook with two sub lorebooks: the tokens with and without them](../../images/lorebook-sub-lorebooks.png)
 
 The entries of all included lorebooks are put together and sorted by their [order](entries.md#order-and-insertion),
 regardless of which lorebook they come from.

@@ -1,6 +1,6 @@
 # Extensions
 
-Extensions add features to Marginalia without changing the application itself. Thirteen extensions come with Marginalia:
+Extensions add features to Marginalia without changing the application itself. Fourteen extensions come with Marginalia:
 
 | Extension | What it adds |
 |---|---|
@@ -33,7 +33,7 @@ Extensions hook into the user interface of one Marginalia version. An extension 
 working or break parts of the application. Use the extensions that come with your version of Marginalia.
 !!!
 
-The thirteen extensions above are part of the Marginalia source code (`marginalia/plugins`) and are built separately;
+The fourteen extensions above are part of the Marginalia source code (`marginalia/plugins`) and are built separately;
 see the [plugins README](https://github.com/Enerccio/Marginalia/blob/master/marginalia/plugins/README.md).
 
 ## Extensions on a phone

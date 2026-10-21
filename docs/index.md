@@ -31,6 +31,11 @@ works with any OpenAI-compatible API: OpenAI, OpenRouter, LiteLLM, llama.cpp, LM
 - **Multiple users** – each with their own books, lore, and models; administrators manage users, backups, and cleanup.
   See [Administration](user/administration/index.md).
 - **Published books** – a read-only reading view you can share. See [Publishing & viewer](user/books/publishing.md).
+- **Search and replace, commands** - search and replace in the story and the lorebooks, and a command line next to the
+  story menu with commands that read and change the book. See [Commands](user/commands/index.md) and
+  [Regular expressions](user/regular-expressions.md).
+- **Agents** - a model that works on a book on its own through the commands, on a copy: you watch it, talk to it in a
+  console and review its changes before they reach the book. See [Agents](user/agents.md).
 - **Extensions** - plugins add features at runtime: chapter markers, lorebook history, AI reviews, side questions to
   the model. See [Extensions](user/extensions/index.md).
 

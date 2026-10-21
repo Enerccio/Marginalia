@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845926496712">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845941069260">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845926496712" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845941069260" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845926496712" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845941069260" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845926496712" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845926496712" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845941069260" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845941069260" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -486,49 +486,18 @@ extension, the buttons <em>Stop</em> / <em>Start</em> (<code translate="no" v-pr
 check - the administrator-only services call <code translate="no" v-pre>AdminGuard.requireAdmin()</code> themselves (see
 <a href="../services/#administration">Services</a>).</p>
 <h3 id="the-agents-tab">The agents tab</h3>
-<p><code translate="no" v-pre>AgentPart</code> (<code translate="no" v-pre>ui.workspace.parts</code>, a <code translate="no" v-pre>WorkspaceComponent</code> like the others) is a table of the agents of the user: the uuid, the name and the
-status of the unfinished run (<code translate="no" v-pre>Localization.getAgentRunStatus</code>), and a row of buttons whose visibility follows the status of the run
-(<code translate="no" v-pre>Start</code> / <code translate="no" v-pre>Resume</code>, <code translate="no" v-pre>Pause</code> for <code translate="no" v-pre>RUNNING</code>, <code translate="no" v-pre>IDLE</code> and <code translate="no" v-pre>WAITING_APPROVAL</code>, <code translate="no" v-pre>Stop</code> for the statuses that are not over or stopping). They call
-<code translate="no" v-pre>AgentRunService</code> (<code translate="no" v-pre>start</code>, <code translate="no" v-pre>resume</code>, <code translate="no" v-pre>pause</code>, <code translate="no" v-pre>stop</code>); the refusals of the service (<code translate="no" v-pre>IllegalStateException</code>, <code translate="no" v-pre>SecurityException</code>,
-<code translate="no" v-pre>IllegalArgumentException</code>) are shown as a warning with the text of the exception, everything else as an internal error, and the table
-is read again after every action. <code translate="no" v-pre>DesktopWorkspace.create</code> builds the tab only when <code translate="no" v-pre>AgentService.isAllowed()</code>, once per login (a
-permission given or taken later shows after the next login); the phone layout has none. <strong>New agent</strong> and <strong>Clone</strong> are off when
-<code translate="no" v-pre>AgentService.canCreate()</code> is false. The dialogs are in <code translate="no" v-pre>ui.dialogs.agent</code>:</p>
-<retype-table copy-text="| Class | |
-|---|---|
-| `AgentDialog` | Creates and edits an agent. A new agent gets `Defaults.DEFAULT_AGENT_PROMPT` as its system prompt and the `NON_DESTRUCTIVE` command preset; the book is offered from the books without an agent and is read only on an existing agent. It edits the main model profile only (the first one, role `overseer` for a new agent) and leaves the others as they are; AI and protocol are both set or both empty. A refusal of `AgentService.save` is a notification, the dialog stays. |
-| `AgentCommandsEditor` | The allowed commands: a grid of the commands of `CommandService` (one row per command name, the severity and the `llmDescription`) with a check box column, and a combo box with the `AgentCommandPreset`s (`ALL`, `NONE`, `NON_DESTRUCTIVE`) that ticks them at once; a manual change shows the combo box as *Custom* (empty). The names allowed that no command has now (an extension that is not loaded) are kept and returned by `getAllowed()`. |
-| `AgentCloneDialog`, `AgentStopDialog` | Name and book for `AgentService.cloneAgent`; keep or discard the result for `AgentRunService.stop`. |
-| `AgentLockCheck` | `refuses(manuscript)`: whether a run locks the book, with the notification naming the agent. The book lists (`ManuscriptPart`, `PhoneManuscriptPart`) call it before they open a book (also when the stored state of the workspace is restored). `UIUtils.internalServerError` shows a `ManuscriptLockedException` anywhere else as a warning, not as an error window. |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="comfortable">
-<thead>
-<tr>
-<th>Class</th>
-<th> </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code translate="no" v-pre>AgentDialog</code></td>
-<td>Creates and edits an agent. A new agent gets <code translate="no" v-pre>Defaults.DEFAULT_AGENT_PROMPT</code> as its system prompt and the <code translate="no" v-pre>NON_DESTRUCTIVE</code> command preset; the book is offered from the books without an agent and is read only on an existing agent. It edits the main model profile only (the first one, role <code translate="no" v-pre>overseer</code> for a new agent) and leaves the others as they are; AI and protocol are both set or both empty. A refusal of <code translate="no" v-pre>AgentService.save</code> is a notification, the dialog stays.</td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>AgentCommandsEditor</code></td>
-<td>The allowed commands: a grid of the commands of <code translate="no" v-pre>CommandService</code> (one row per command name, the severity and the <code translate="no" v-pre>llmDescription</code>) with a check box column, and a combo box with the <code translate="no" v-pre>AgentCommandPreset</code>s (<code translate="no" v-pre>ALL</code>, <code translate="no" v-pre>NONE</code>, <code translate="no" v-pre>NON_DESTRUCTIVE</code>) that ticks them at once; a manual change shows the combo box as <em>Custom</em> (empty). The names allowed that no command has now (an extension that is not loaded) are kept and returned by <code translate="no" v-pre>getAllowed()</code>.</td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>AgentCloneDialog</code>, <code translate="no" v-pre>AgentStopDialog</code></td>
-<td>Name and book for <code translate="no" v-pre>AgentService.cloneAgent</code>; keep or discard the result for <code translate="no" v-pre>AgentRunService.stop</code>.</td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>AgentLockCheck</code></td>
-<td><code translate="no" v-pre>refuses(manuscript)</code>: whether a run locks the book, with the notification naming the agent. The book lists (<code translate="no" v-pre>ManuscriptPart</code>, <code translate="no" v-pre>PhoneManuscriptPart</code>) call it before they open a book (also when the stored state of the workspace is restored). <code translate="no" v-pre>UIUtils.internalServerError</code> shows a <code translate="no" v-pre>ManuscriptLockedException</code> anywhere else as a warning, not as an error window.</td>
-</tr>
-</tbody>
-</table>
-</div>
-</retype-table>
+<p><code translate="no" v-pre>AgentPart</code> (<code translate="no" v-pre>ui.workspace.parts</code>, a <code translate="no" v-pre>WorkspaceComponent</code> like the others) is a table of the agents of the user (a card for each on the phone,
+<code translate="no" v-pre>new AgentPart(workspace, true)</code>): the name, the book and the status of the unfinished run (<code translate="no" v-pre>Localization.getAgentRunStatus</code>), and a row of
+buttons whose visibility follows the status of the run (<strong>Start</strong> with <em>Start immediately</em> / <em>Start in console</em>, <strong>Resume</strong>, <strong>Pause</strong>,
+<strong>Pause now</strong>, <strong>Stop</strong>, the console, <strong>Review changes</strong>, <strong>Edit</strong>, <strong>Clone</strong>, <strong>Delete</strong>). They call <code translate="no" v-pre>AgentRunService</code> and <code translate="no" v-pre>AgentRunner</code>; the
+refusals of the service (<code translate="no" v-pre>IllegalStateException</code>, <code translate="no" v-pre>SecurityException</code>, <code translate="no" v-pre>IllegalArgumentException</code>) are shown as a warning with the text of the
+exception, everything else as an internal error, and the table is read again after every action. <code translate="no" v-pre>DesktopWorkspace.create</code> and
+<code translate="no" v-pre>PhoneWorkspace.addAgentsTab</code> build the tab only when <code translate="no" v-pre>AgentService.isAllowed()</code>, once per login (a permission given or taken later shows after
+the next login); a count of the agents that wait for the user is in the tab and, on the phone, in the top bar. <strong>New agent</strong> and <strong>Clone</strong> are
+off when <code translate="no" v-pre>AgentService.canCreate()</code> is false. The dialogs (the editor of an agent with the roles of commands and the models for sub-agents, the
+console, the review of the result, the checkpoints...) are in <code translate="no" v-pre>ui.dialogs.agent</code>; <strong>they are described in <a href="../agents/#the-screens">Agents</a></strong>,
+with the services they call. The administrator&#x27;s settings of agents are <code translate="no" v-pre>AgentSettingsPanel</code> (<code translate="no" v-pre>ui.workspace.parts.admin</code>, the <em>Agents</em> tab of
+<em>Admin</em>: the default system prompt and compaction prompt of the application, and whether agents may send a message to a URL).</p>
 <p>The settings of the <code translate="no" v-pre>AGENTS</code> permission are edited by <code translate="no" v-pre>AgentsPermissionComponent</code>, see <doc-anchor-trigger to="#permissions-dialog">Permissions dialog</doc-anchor-trigger>.</p>
 <h3 id="remembering-where-the-user-was">Remembering where the user was</h3>
 <p>The workspace is autosaved so the next login opens it where it was left. Everything that has state worth coming back
@@ -724,7 +693,7 @@ to it (see <a href="../plugins/ui-extensions/#the-story-menu-bar">Extending the 
 |---|---|
 | `createMenuBar()` | The bar: calls the three methods below. Stored in the field `menuBar`. |
 | `createSummariesMenuItem(bar)` | The **Summaries** item (field `summariesMenuItem`), which opens `SummariesDialog`. Its tooltip shows the tokens of the summaries in use (`refreshSummariesMenuItem()`, run when the story is loaded, after a summary is deleted and when a summary dialog is closed). |
-| `createCogsMenuItem(bar)` | The settings item (field `cogsMenuItem`, local `cogs`) and its sub menu: `createChangeStylesMenuItem(cogs)`, `createHighlightGeneratedMenuItem(cogs)`, `createExportMenuItem(cogs)`. |
+| `createCogsMenuItem(bar)` | The settings item (field `cogsMenuItem`, local `cogs`) and its sub menu: `createChangeStylesMenuItem(cogs)`, `createHighlightGeneratedMenuItem(cogs)`, `createSearchReplaceMenuItem(cogs)` (opens `ManuscriptSearchReplaceDialog`), `createImportArchiveMenuItem(cogs)` (an `ArchiveUploadDialog`, then `ArchiveImportRunner.appendParts`) and `createExportMenuItem(cogs)`. The phone tab has the same, without the highlight. |
 | `populateMenuBar(bar)` | Empty, runs last: the hook for new items of the bar. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -745,7 +714,7 @@ to it (see <a href="../plugins/ui-extensions/#the-story-menu-bar">Extending the 
 </tr>
 <tr>
 <td><code translate="no" v-pre>createCogsMenuItem(bar)</code></td>
-<td>The settings item (field <code translate="no" v-pre>cogsMenuItem</code>, local <code translate="no" v-pre>cogs</code>) and its sub menu: <code translate="no" v-pre>createChangeStylesMenuItem(cogs)</code>, <code translate="no" v-pre>createHighlightGeneratedMenuItem(cogs)</code>, <code translate="no" v-pre>createExportMenuItem(cogs)</code>.</td>
+<td>The settings item (field <code translate="no" v-pre>cogsMenuItem</code>, local <code translate="no" v-pre>cogs</code>) and its sub menu: <code translate="no" v-pre>createChangeStylesMenuItem(cogs)</code>, <code translate="no" v-pre>createHighlightGeneratedMenuItem(cogs)</code>, <code translate="no" v-pre>createSearchReplaceMenuItem(cogs)</code> (opens <code translate="no" v-pre>ManuscriptSearchReplaceDialog</code>), <code translate="no" v-pre>createImportArchiveMenuItem(cogs)</code> (an <code translate="no" v-pre>ArchiveUploadDialog</code>, then <code translate="no" v-pre>ArchiveImportRunner.appendParts</code>) and <code translate="no" v-pre>createExportMenuItem(cogs)</code>. The phone tab has the same, without the highlight.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>populateMenuBar(bar)</code></td>
@@ -811,6 +780,9 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 | `TagMultiComboBox` | Tag selection with lazy search (`TagService.searchTagsForUser`) and creation of new tags. |
 | `LorebookMassEditDialog` (`ui.dialogs`) | The *Mass edit* of `LorebookView`: one `Grid&lt;Row&gt;` with the entries of a lorebook and of its subbooks (`LorebookService.getLorebookTree`, the lorebook first, each once), sorted by `LorebookEntry.order`, then by the position of the lorebook in the tree, then by name. A `Row` is an entry with the lorebook it is in and whether that lorebook is locked (`AgentRunService.findLockingRun(Lorebook)`, asked for each lorebook of the tree, as a subbook can be used by another book than the root). The cells change the enabled flag, name, order (the grid is sorted again), tags, filtering mode, filtering, insertion mode, negative tags and note (the fields of the detail row of `LorebookView`) in place through `LorebookEntryService.save`; the lorebook cell and the *Move checked* button call `LorebookEntryService.move`, which refuses (`LorebookLockedException`, shown by `UIUtils.internalServerError` as a warning) both a locked source and, since this dialog, a locked target lorebook. The text is `StringUtils.abbreviate`d to `CONTENT_PREVIEW_LENGTH` and kept on one line by `CssStyles.MASS_EDIT_CONTENT`. Locked rows use `CssStyles.MULTI_TAG_LOCKED` and are never targets. The `onChange` runnable (the view's `refreshEntries`) runs when the dialog is closed after a change. |
 | `MultiTagDialog` (`ui.dialogs`) | Puts one tag on many books, lorebooks or the entries of a lorebook (`Kind.BOOKS`, `Kind.LOREBOOKS`, or the constructor with a `Lorebook`), opened from `ManuscriptPart` and `LorebookView`. A `ComboBox&lt;Tag&gt;` (an unknown typed value is made with `TagService.getOrCreateForUser`) and a grid of rows (check box, name, chips of the tags with the picked one marked, apply / remove buttons); the rows with the picked tag sort first. The tags of all rows come from one `TagRelationService.getTagsForObjects`; apply and remove go through `createRelation` / `removeRelation` with the class of the entity (`Manuscript`, `Lorebook`, `LorebookEntry`), positive relations only. A row is locked when `AgentRunService.findLockingRun` returns a run (an entry is locked with its lorebook); locked rows are grayed out (`CssStyles.MULTI_TAG_LOCKED`), can not be ticked and are skipped when the change is made, which asks the lock again as the run may have started since the list was read. The tag relations themselves are not guarded by the services, so the lock is checked here. |
+| `ManuscriptCloneDialog` (`ui.dialogs`) | The clone button of the book list (`ManuscriptPart`, `PhoneManuscriptPart`): the name of the copy (the book's name and *(Copy)*) and **Only current branch**; **Clone** calls `BackupService.cloneManuscript(source, name, onlyCurrentBranch)` and gives the new book to `setOnClone`, which the book list uses to read itself again. The lorebook is linked, not copied. |
+| `ArchiveUploadDialog`, `ArchiveEntryNamesDialog`, `ArchiveImportRunner` (`ui.dialogs`) | The pieces of the import of `.md` archives (story part, new book, lorebook; the service is `ArchiveImportService`). `ArchiveUploadDialog.show(title, message, handler)` takes a zip file in memory and calls the `Handler`; an `IllegalArgumentException` of the handler (not a usable archive) is a warning and the dialog stays. `ArchiveEntryNamesDialog.show(content, onConfirm)` lists the files with the entry name each would get (`names.txt`, the first heading, the file name) in an editable grid and hands the names over in the order of the files. `ArchiveImportRunner` runs the import behind a progress dialog with **Stop** (what was imported stays, the user is told how much). |
+| `LazyContextMenu` (`ui.widgets`) | A `ContextMenu` whose items are made when it opens: the constructor takes the target and a `beforeOpen` runnable that `onBeforeOpenMenu` runs before Flow sends the menu. The menu of a story card is one (see `createHamburgerMenu` / `prepareMenu` of the cards), so a story of hundreds of parts does not create the items of all of them. |
 | `ModelProtocolPicker` | A model and a protocol combo box (the AIs and protocols of the user, the protocol optional) for a dialog that runs the model with a choice of its own: `setSelection(ai, protocol)` / `getAi()` / `getProtocol()` / `addSelectionListener(Runnable)`. Used by the generator dialogs of the Lore Generator and the Arc Outline. |
 | `TextAreaPopoverComponent`, `TextFieldPopOverComponent` | Prompt fields with a hints popover. |
 | `TemplateHints` | Content of the hints popover: *Insert Default Template*, the template's variables (from `@LocalizedTemplateDescription`) and the macros (from `Macros.hints()`). |
@@ -868,6 +840,18 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 <tr>
 <td><code translate="no" v-pre>MultiTagDialog</code> (<code translate="no" v-pre>ui.dialogs</code>)</td>
 <td>Puts one tag on many books, lorebooks or the entries of a lorebook (<code translate="no" v-pre>Kind.BOOKS</code>, <code translate="no" v-pre>Kind.LOREBOOKS</code>, or the constructor with a <code translate="no" v-pre>Lorebook</code>), opened from <code translate="no" v-pre>ManuscriptPart</code> and <code translate="no" v-pre>LorebookView</code>. A <code translate="no" v-pre>ComboBox&lt;Tag&gt;</code> (an unknown typed value is made with <code translate="no" v-pre>TagService.getOrCreateForUser</code>) and a grid of rows (check box, name, chips of the tags with the picked one marked, apply / remove buttons); the rows with the picked tag sort first. The tags of all rows come from one <code translate="no" v-pre>TagRelationService.getTagsForObjects</code>; apply and remove go through <code translate="no" v-pre>createRelation</code> / <code translate="no" v-pre>removeRelation</code> with the class of the entity (<code translate="no" v-pre>Manuscript</code>, <code translate="no" v-pre>Lorebook</code>, <code translate="no" v-pre>LorebookEntry</code>), positive relations only. A row is locked when <code translate="no" v-pre>AgentRunService.findLockingRun</code> returns a run (an entry is locked with its lorebook); locked rows are grayed out (<code translate="no" v-pre>CssStyles.MULTI_TAG_LOCKED</code>), can not be ticked and are skipped when the change is made, which asks the lock again as the run may have started since the list was read. The tag relations themselves are not guarded by the services, so the lock is checked here.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ManuscriptCloneDialog</code> (<code translate="no" v-pre>ui.dialogs</code>)</td>
+<td>The clone button of the book list (<code translate="no" v-pre>ManuscriptPart</code>, <code translate="no" v-pre>PhoneManuscriptPart</code>): the name of the copy (the book&#x27;s name and <em>(Copy)</em>) and <strong>Only current branch</strong>; <strong>Clone</strong> calls <code translate="no" v-pre>BackupService.cloneManuscript(source, name, onlyCurrentBranch)</code> and gives the new book to <code translate="no" v-pre>setOnClone</code>, which the book list uses to read itself again. The lorebook is linked, not copied.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ArchiveUploadDialog</code>, <code translate="no" v-pre>ArchiveEntryNamesDialog</code>, <code translate="no" v-pre>ArchiveImportRunner</code> (<code translate="no" v-pre>ui.dialogs</code>)</td>
+<td>The pieces of the import of <code translate="no" v-pre>.md</code> archives (story part, new book, lorebook; the service is <code translate="no" v-pre>ArchiveImportService</code>). <code translate="no" v-pre>ArchiveUploadDialog.show(title, message, handler)</code> takes a zip file in memory and calls the <code translate="no" v-pre>Handler</code>; an <code translate="no" v-pre>IllegalArgumentException</code> of the handler (not a usable archive) is a warning and the dialog stays. <code translate="no" v-pre>ArchiveEntryNamesDialog.show(content, onConfirm)</code> lists the files with the entry name each would get (<code translate="no" v-pre>names.txt</code>, the first heading, the file name) in an editable grid and hands the names over in the order of the files. <code translate="no" v-pre>ArchiveImportRunner</code> runs the import behind a progress dialog with <strong>Stop</strong> (what was imported stays, the user is told how much).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>LazyContextMenu</code> (<code translate="no" v-pre>ui.widgets</code>)</td>
+<td>A <code translate="no" v-pre>ContextMenu</code> whose items are made when it opens: the constructor takes the target and a <code translate="no" v-pre>beforeOpen</code> runnable that <code translate="no" v-pre>onBeforeOpenMenu</code> runs before Flow sends the menu. The menu of a story card is one (see <code translate="no" v-pre>createHamburgerMenu</code> / <code translate="no" v-pre>prepareMenu</code> of the cards), so a story of hundreds of parts does not create the items of all of them.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ModelProtocolPicker</code></td>
@@ -1043,6 +1027,9 @@ runs before and after that method and can read its arguments and local variables
 | Workspace | `Workspace`, `DesktopWorkspace`, `PhoneWorkspace`, `ManuscriptPart`, `PhoneManuscriptPart`, `PhoneLorebookPart`, `PhoneProtocolPart`, `PhoneAIPart`, `PhoneSettingsPart`, `PhoneTrashPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `ResourcesPart`, `TrashPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
 | Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), the shared story helpers (`StoryCards`, `StoryGenerationListener`, `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics`, `StoryBackup`, `StorySupport`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart`, `SummariesDialog` (and its `SummaryContent`), `SummaryDialog`, `ImagesDialog`; the phone twins of the tabs (`PhoneManuscriptStoryPart` and its `ChatMessageCard`, `PhoneManuscriptInfoPart`, `PhoneManuscriptPromptPart`, `PhoneManuscriptLorebookPart`, `PhoneManuscriptTreePart`, `PhoneManuscriptBackupPart`), see [the phone twins](plugins/extendable.md#the-phone-twins) |
 | Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `TokenUsageDialog`, `UsageDialog`, `ExportDialog`, `PhoneManuscriptDialog`, `PhoneSummariesDialog`, `LorebookView`, `PhoneLorebookView`, `TreantTree`, `MessageImages`, `TagMultiComboBox`, `ChartJs`, `TrashGrid`, `PhoneTrashGrid` |
+| Agents (since 1.4.0) | The tab `AgentPart` and the admin panel `AgentSettingsPanel`; the screens of `ui.dialogs.agent`: `AgentDialog`, `AgentCommandsEditor`, `AgentModelsEditor`, `AgentModelDialog`, `AgentCloneDialog`, `AgentStopDialog`, `AgentResumeDialog`, `AgentApprovalDialog`, `AgentLockCheck`, `AgentConsoleDialog` with its tabs (`AgentRunHistory`, `AgentWorkspaceBrowser`, `AgentCheckpointBrowser`, `AgentContextView`, `AgentCopyView`, `AgentSubAgentsView`, `AgentDiagnosticsView`, `AgentFindingsView`, `AgentTranscriptRenderer`), the review `AgentMergeDialog` and `JsonMergeDialog`, and `WordDiffView` |
+| Commands, search and other new dialogs (since 1.4.0) | `CommandBar`, `CommandResultView`, `CommandProgressDialog`; `SearchReplaceDialog` with `ManuscriptSearchReplaceDialog` and `LorebookSearchReplaceDialog`; `ManuscriptCloneDialog`, `ArchiveUploadDialog`, `ArchiveEntryNamesDialog`, `ArchiveImportRunner`, `NewBookAction`; `MultiTagDialog`, `LorebookMassEditDialog`, `LorebookPreview`; `PermissionsDialog`, `HelperPermissionComponent`, `AgentsPermissionComponent`; `HelpAssistantWidget`, `HelpAssistantPanel`; `Reset` (route `/reset`) |
+| Also | `TagsView`, `AILimitsDialog`, `AILimitEditDialog`, `AILimitInfoDialog`, `ExtensionLogDialog`, `InvalidExtensionsWarning`, `TextInputDialog`, `ListSelectDialog`, `ThreadAccessDialog`, `GraphView`, `LanguageSelector`, `ModelProtocolPicker`, `TabDock` |
 | Routes | `LoginCheckRoute` (login, saved logins), `Main` (creates the `DesktopWorkspace` or `PhoneWorkspace` in `proceedWithLogin`), `Viewer` |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -1066,6 +1053,18 @@ runs before and after that method and can read its arguments and local variables
 <td><code translate="no" v-pre>AIDialog</code>, <code translate="no" v-pre>ProtocolDialog</code>, <code translate="no" v-pre>UserDialog</code>, <code translate="no" v-pre>LorebookDialog</code>, <code translate="no" v-pre>LorebookImportDialog</code>, <code translate="no" v-pre>PromptDialog</code>, <code translate="no" v-pre>TokenUsageDialog</code>, <code translate="no" v-pre>UsageDialog</code>, <code translate="no" v-pre>ExportDialog</code>, <code translate="no" v-pre>PhoneManuscriptDialog</code>, <code translate="no" v-pre>PhoneSummariesDialog</code>, <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>PhoneLorebookView</code>, <code translate="no" v-pre>TreantTree</code>, <code translate="no" v-pre>MessageImages</code>, <code translate="no" v-pre>TagMultiComboBox</code>, <code translate="no" v-pre>ChartJs</code>, <code translate="no" v-pre>TrashGrid</code>, <code translate="no" v-pre>PhoneTrashGrid</code></td>
 </tr>
 <tr>
+<td>Agents (since 1.4.0)</td>
+<td>The tab <code translate="no" v-pre>AgentPart</code> and the admin panel <code translate="no" v-pre>AgentSettingsPanel</code>; the screens of <code translate="no" v-pre>ui.dialogs.agent</code>: <code translate="no" v-pre>AgentDialog</code>, <code translate="no" v-pre>AgentCommandsEditor</code>, <code translate="no" v-pre>AgentModelsEditor</code>, <code translate="no" v-pre>AgentModelDialog</code>, <code translate="no" v-pre>AgentCloneDialog</code>, <code translate="no" v-pre>AgentStopDialog</code>, <code translate="no" v-pre>AgentResumeDialog</code>, <code translate="no" v-pre>AgentApprovalDialog</code>, <code translate="no" v-pre>AgentLockCheck</code>, <code translate="no" v-pre>AgentConsoleDialog</code> with its tabs (<code translate="no" v-pre>AgentRunHistory</code>, <code translate="no" v-pre>AgentWorkspaceBrowser</code>, <code translate="no" v-pre>AgentCheckpointBrowser</code>, <code translate="no" v-pre>AgentContextView</code>, <code translate="no" v-pre>AgentCopyView</code>, <code translate="no" v-pre>AgentSubAgentsView</code>, <code translate="no" v-pre>AgentDiagnosticsView</code>, <code translate="no" v-pre>AgentFindingsView</code>, <code translate="no" v-pre>AgentTranscriptRenderer</code>), the review <code translate="no" v-pre>AgentMergeDialog</code> and <code translate="no" v-pre>JsonMergeDialog</code>, and <code translate="no" v-pre>WordDiffView</code></td>
+</tr>
+<tr>
+<td>Commands, search and other new dialogs (since 1.4.0)</td>
+<td><code translate="no" v-pre>CommandBar</code>, <code translate="no" v-pre>CommandResultView</code>, <code translate="no" v-pre>CommandProgressDialog</code>; <code translate="no" v-pre>SearchReplaceDialog</code> with <code translate="no" v-pre>ManuscriptSearchReplaceDialog</code> and <code translate="no" v-pre>LorebookSearchReplaceDialog</code>; <code translate="no" v-pre>ManuscriptCloneDialog</code>, <code translate="no" v-pre>ArchiveUploadDialog</code>, <code translate="no" v-pre>ArchiveEntryNamesDialog</code>, <code translate="no" v-pre>ArchiveImportRunner</code>, <code translate="no" v-pre>NewBookAction</code>; <code translate="no" v-pre>MultiTagDialog</code>, <code translate="no" v-pre>LorebookMassEditDialog</code>, <code translate="no" v-pre>LorebookPreview</code>; <code translate="no" v-pre>PermissionsDialog</code>, <code translate="no" v-pre>HelperPermissionComponent</code>, <code translate="no" v-pre>AgentsPermissionComponent</code>; <code translate="no" v-pre>HelpAssistantWidget</code>, <code translate="no" v-pre>HelpAssistantPanel</code>; <code translate="no" v-pre>Reset</code> (route <code translate="no" v-pre>/reset</code>)</td>
+</tr>
+<tr>
+<td>Also</td>
+<td><code translate="no" v-pre>TagsView</code>, <code translate="no" v-pre>AILimitsDialog</code>, <code translate="no" v-pre>AILimitEditDialog</code>, <code translate="no" v-pre>AILimitInfoDialog</code>, <code translate="no" v-pre>ExtensionLogDialog</code>, <code translate="no" v-pre>InvalidExtensionsWarning</code>, <code translate="no" v-pre>TextInputDialog</code>, <code translate="no" v-pre>ListSelectDialog</code>, <code translate="no" v-pre>ThreadAccessDialog</code>, <code translate="no" v-pre>GraphView</code>, <code translate="no" v-pre>LanguageSelector</code>, <code translate="no" v-pre>ModelProtocolPicker</code>, <code translate="no" v-pre>TabDock</code></td>
+</tr>
+<tr>
 <td>Routes</td>
 <td><code translate="no" v-pre>LoginCheckRoute</code> (login, saved logins), <code translate="no" v-pre>Main</code> (creates the <code translate="no" v-pre>DesktopWorkspace</code> or <code translate="no" v-pre>PhoneWorkspace</code> in <code translate="no" v-pre>proceedWithLogin</code>), <code translate="no" v-pre>Viewer</code></td>
 </tr>
@@ -1076,8 +1075,7 @@ runs before and after that method and can read its arguments and local variables
 <p>New screens, dialogs and components with their own logic get <code translate="no" v-pre>@Extendable</code> too (a nested class needs its own
 annotation), and each of their instrumented methods gets a <a href="../plugins/extendable/#the-public-api"><code translate="no" v-pre>@PublicAPI</code></a> that
 declares its arguments, local variables and return type. Left out on purpose: classes with only static methods (<code translate="no" v-pre>TemplateHints</code>, <code translate="no" v-pre>SummaryRemoval</code>, <code translate="no" v-pre>UIUtils</code>; static
-methods are not instrumented), the generic dialogs and widgets used everywhere (<code translate="no" v-pre>ConfirmDialog</code>, <code translate="no" v-pre>ErrorDialog</code>,
-<code translate="no" v-pre>ProgressBarDialog</code>, <code translate="no" v-pre>Notification</code>, <code translate="no" v-pre>HTabSheet</code>, the <code translate="no" v-pre>BackendTable*</code> providers), the plumbing (servlet, app shell,
+methods are not instrumented), the generic widgets used everywhere (<code translate="no" v-pre>Notification</code>, <code translate="no" v-pre>HTabSheet</code>, <code translate="no" v-pre>LazyContextMenu</code>, the <code translate="no" v-pre>BackendTable*</code> providers; the dialogs <code translate="no" v-pre>ConfirmDialog</code>, <code translate="no" v-pre>ErrorDialog</code> and <code translate="no" v-pre>ProgressBarDialog</code> are <code translate="no" v-pre>@Extendable</code> too, see the list above for the others), the plumbing (servlet, app shell,
 initializer, <code translate="no" v-pre>ThreadCopyRequestAttributes</code>) and small data wrappers.</p>
 <p>The bundled plugins hook into these methods:</p>
 <retype-table copy-text="| Plugin | Class | Methods |
@@ -1338,7 +1336,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (089c15ed).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (f3f9c1f0).</p></div>
             </footer>
         </div>
     </div>

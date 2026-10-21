@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845926496712">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845941069260">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -24,6 +24,10 @@
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/administration/">
     <meta property="og:title" content="Administration">
     <meta property="og:description" content="Administrators manage the Marginalia installation: user accounts, database backups, cleanup of deleted data and extensions. The first account, created on the first start, is an administrator; it can make other users administrators too.">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/admin-agents.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Administration">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -32,17 +36,19 @@
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/administration/">
     <meta name="twitter:title" content="Administration">
     <meta name="twitter:description" content="Administrators manage the Marginalia installation: user accounts, database backups, cleanup of deleted data and extensions. The first account, created on the first start, is an administrator; it can make other users administrators too.">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/admin-agents.png">
+    <meta name="twitter:image:alt" content="Administration">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/user/administration/index.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845926496712" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845941069260" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845926496712" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845941069260" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845926496712" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845941069260" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -217,6 +223,10 @@ it can make other users administrators too.</p>
 </table>
 </div>
 </retype-table>
+<figure class="content-center">
+    <img src="../../images/admin-agents.png" alt="The Agents tab of the Admin page" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">The Agents tab of the Admin page</figcaption>
+</figure>
 <h2 id="the-data-folder">The data folder</h2>
 <p>Everything Marginalia stores is in the <code translate="no" v-pre>.marginalia</code> folder in the home directory of the user that runs it (<code translate="no" v-pre>./data</code>
 on the host with the <a href="../getting-started/docker-server/">Docker setup</a>):</p>
@@ -227,6 +237,8 @@ on the host with the <a href="../getting-started/docker-server/">Docker setup</a
 | `db-backups/` | [Database backups](database-backups.md). |
 | `data/&lt;login&gt;/backups/manuscripts/&lt;book id&gt;/` | [Book backups](../books/backups.md) of each user. |
 | `extensions/` | Installed [extension](extensions.md) JARs. |
+| `agent-workspaces/&lt;agent id&gt;/` | The files of an [agent](../agents.md#the-working-copy) (its notes and reports, which it keeps between runs). |
+| `agent-runs/&lt;run id&gt;/` | What a run of an agent keeps: the start of the book (to show you the changes, removed with the working copy), the checkpoints and the findings (removed when the run is purged by the cleanup). |
 | `desktop/logs/` | Logs of the [desktop app](../getting-started/desktop-app.md). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -256,6 +268,14 @@ on the host with the <a href="../getting-started/docker-server/">Docker setup</a
 <tr>
 <td><code translate="no" v-pre>extensions/</code></td>
 <td>Installed <a href="extensions/">extension</a> JARs.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>agent-workspaces/&lt;agent id&gt;/</code></td>
+<td>The files of an <a href="../agents/#the-working-copy">agent</a> (its notes and reports, which it keeps between runs).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>agent-runs/&lt;run id&gt;/</code></td>
+<td>What a run of an agent keeps: the start of the book (to show you the changes, removed with the working copy), the checkpoints and the findings (removed when the run is purged by the cleanup).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>desktop/logs/</code></td>
@@ -305,7 +325,7 @@ copied at any time.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (089c15ed).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (f3f9c1f0).</p></div>
             </footer>
         </div>
     </div>

@@ -19,8 +19,9 @@ Cleanup can't be undone, what it removes is gone from the [Trash](../trash.md) t
 
 Cleanup covers the data of all users.
 
-Files are not removed. Cleanup deletes entries from the database only; the files of deleted
-[resources](../resources.md) (pictures of the parts) stay in the data folder of their owner.
+Cleanup deletes entries from the database, and only the files of [agents](../agents.md): the workspace of a purged
+agent and the folder of a purged run. The files of deleted [resources](../resources.md) (pictures of the parts) stay in
+the data folder of their owner.
 
 ## Seeing what is deleted
 

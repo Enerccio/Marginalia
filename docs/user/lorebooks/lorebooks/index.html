@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845926496712">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845941069260">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -24,6 +24,10 @@
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/lorebooks/lorebooks/">
     <meta property="og:title" content="Creating lorebooks">
     <meta property="og:description" content="Open the Lorebooks tab. The editor shows one lorebook at a time; pick it in the Lorebook field at the top. Lorebooks belong to your account: other users don't see them.">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/lorebook-mass-edit.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Creating lorebooks">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -32,17 +36,19 @@
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/lorebooks/lorebooks/">
     <meta name="twitter:title" content="Creating lorebooks">
     <meta name="twitter:description" content="Open the Lorebooks tab. The editor shows one lorebook at a time; pick it in the Lorebook field at the top. Lorebooks belong to your account: other users don't see them.">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/lorebook-mass-edit.png">
+    <meta name="twitter:image:alt" content="Creating lorebooks">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/user/lorebooks/lorebooks.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845926496712" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845941069260" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845926496712" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845941069260" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845926496712" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845941069260" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -309,6 +315,10 @@ it. This is checked for each lorebook, so a lorebook can be free while one of it
 </li>
 </ul>
 <p>The lorebook in the editor is refreshed when the window is closed after a change.</p>
+<figure class="content-center">
+    <img src="../../../images/lorebook-mass-edit.png" alt="Mass edit of a lorebook and its sub lorebooks" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1400" height="765" />
+    <figcaption class="caption">Mass edit of a lorebook and its sub lorebooks</figcaption>
+</figure>
 <h2 id="tagging-many-at-once">Tagging many at once</h2>
 <p>The two tags buttons of the toolbar open one window that puts a tag on many items, or takes it off them: <strong>Tag lorebooks</strong> lists
 your lorebooks, <strong>Tag entries</strong> the entries of the selected lorebook. Pick the <strong>Tag</strong> (or type a new one and press Enter);
@@ -318,6 +328,10 @@ use <strong>Apply the tag to the checked</strong> or <strong>Remove the tag from
 an agent works on (a lorebook of a book with a running agent, and so all its entries) is grayed out and can not be changed
 until the run is paused or stopped. The window also tags <a href="../../books/managing-books/#tagging-many-books-at-once">books</a>.
 The tags it puts on entries are the ordinary ones, see <a href="../entries/#tags">Tags</a>; negative tags are set on the entry itself.</p>
+<figure class="content-center">
+    <img src="../../../images/multi-tag-entries.png" alt="Tagging the entries of a lorebook" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="900" height="720" />
+    <figcaption class="caption">Tagging the entries of a lorebook</figcaption>
+</figure>
 <h2 id="using-a-lorebook-in-a-book">Using a lorebook in a book</h2>
 <p>Open the book and its <strong>Lorebook</strong> tab, and pick the lorebook in the <strong>Lorebook</strong> field. The editor below shows the
 lorebook, so you can add and change entries while you write. Clear the field to write without a lorebook.</p>
@@ -348,6 +362,10 @@ only once.</p>
 <p>A disabled sub lorebook is left out together with everything it includes.</p>
 </li>
 </ul>
+<figure class="content-center">
+    <img src="../../../images/lorebook-sub-lorebooks.png" alt="A lorebook with two sub lorebooks: the tokens with and without them" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">A lorebook with two sub lorebooks: the tokens with and without them</figcaption>
+</figure>
 <p>The entries of all included lorebooks are put together and sorted by their <a href="../entries/#order-and-insertion">order</a>,
 regardless of which lorebook they come from.</p>
 <h2 id="disabling-and-deleting">Disabling and deleting</h2>
@@ -394,7 +412,7 @@ affected.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (089c15ed).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (f3f9c1f0).</p></div>
             </footer>
         </div>
     </div>

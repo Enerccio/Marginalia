@@ -31,6 +31,8 @@ Each row has three buttons: the pen opens the book, the clone button makes a cop
 The clone button asks for the **Name** of the new book (the name of the original with *(Copy)* by default) and has the
 check box **Only current branch**, checked by default. The new book is a separate book that gets:
 
+![Cloning a book](../../images/book-clone.png)
+
 - the settings of the book (description, language, prompts, point of view, tense, style, backup settings), the data
   that extensions keep in the book, and the tags;
 - the same **Model**, **Protocol** and **lorebook**. The lorebook is *linked*, not copied: a change of it shows in both
@@ -51,6 +53,8 @@ and use **Apply the tag to the checked** or **Remove the tag from the checked** 
 grayed out: it is locked, so it can not be ticked or changed until the run is paused or stopped. The same window tags
 [lorebooks and their entries](../lorebooks/lorebooks.md#tagging-many-at-once).
 
+![Tagging books](../../images/multi-tag-books.png)
+
 ## Creating a book
 
 1. Click **Add Book**.
@@ -63,6 +67,8 @@ generating.
 To start a book from a folder of text files, use the **import** button (file icon, *Import from archive*) next to
 **Add Book**: upload a `.zip` of `.md` files and the new book, named after the archive, gets a part for each file, see
 [Importing text files](story-editor.md#importing-text-files).
+
+![Importing a zip of text files as a new book](../../images/archive-upload.png)
 
 To start a book from a backup file, use **Import Backup as New Book** in the *Settings* tab, see
 [Book backups](backups.md#importing-a-backup-as-a-new-book).

@@ -56,6 +56,8 @@ that the form marks as invalid with the message it shows, the required fields th
 fields (for a model: the response must be smaller than the context). Only the *names* of the fields, never what is typed in
 them. It never gets the text of a story, a lorebook entry, an API key or a password.
 
+![The assistant explaining why the form of a new model can not be saved yet](../../images/help-assistant-form.png)
+
 ## When something goes wrong
 
 When a user says that something failed ("I get an error", "it does not save", "the model does not answer"), the
