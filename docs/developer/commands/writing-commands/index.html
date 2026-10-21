@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845941069260">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845941245931">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845941069260" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845941245931" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845941069260" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845941245931" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845941069260" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845941069260" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845941245931" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845941245931" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -325,6 +325,14 @@ asks itself, see <doc-anchor-trigger to="#asking-the-user">Asking the user</doc-
 <p><code translate="no" v-pre>@Command(readOnly = true)</code> declares that the command changes nothing (no book, lorebook, or data of an extension); the default is <code translate="no" v-pre>false</code>, so a command that does not say is taken to change data. The runner of an agent takes an
 automatic checkpoint before a round in which a call may change something, and a round of read only commands needs none. All forms of one command share the value (<code translate="no" v-pre>registerCommands</code> throws when they differ),
 <code translate="no" v-pre>CommandDefinition.readOnly()</code> returns it. All the read commands of the app and the <code translate="no" v-pre>get-</code> / <code translate="no" v-pre>list-</code> commands of the Arc Outline and the Character Tracker declare it.</p>
+<h3 id="batch-policy">Batch policy</h3>
+<p><code translate="no" v-pre>@Command(batch = BatchPolicy.SINGLE)</code> says that an agent should call the command <strong>alone</strong> in its answer: the calls after it
+are not made, and one that comes after other calls waits for an answer of its own. Use it for a command that is long or costly
+(one that makes a call to a model: <code translate="no" v-pre>next</code>, <code translate="no" v-pre>swipe</code>, the generators of extensions) or whose result the agent should read before it
+goes on. The default is <code translate="no" v-pre>BatchPolicy.BATCHABLE</code>. It is advice about use, not a claim about what the command does (that is
+<code translate="no" v-pre>readOnly</code>); the runner follows it unless the agent is set to <em>All together, ignore the batch policies</em>. Declare it the same on all
+forms of a command (unlike <code translate="no" v-pre>readOnly</code>, <code translate="no" v-pre>registerCommands</code> does not compare it), and <code translate="no" v-pre>@LLMFunction(batch = ...)</code> does the same for the tools of the application itself. The user sees it as the <strong>Batch</strong>
+column (<em>Together</em> / <em>Alone</em>) in the commands of an agent.</p>
 <h3 id="available-for-agents">Available for agents</h3>
 <p><code translate="no" v-pre>@Command(availableForAgent = false)</code> keeps a command from agents (the default is <code translate="no" v-pre>true</code>). Use it for a command that only
 makes sense for the user at the book window, such as <code translate="no" v-pre>/take-backup</code>, which backs up the book the user has open: an agent works on
@@ -502,7 +510,7 @@ only after the answer. <code translate="no" v-pre>/search-replace-parts</code> a
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (f3f9c1f0).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (43d4f852).</p></div>
             </footer>
         </div>
     </div>

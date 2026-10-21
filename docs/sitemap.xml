@@ -91,13 +91,13 @@
     <loc>https://enerccio.github.io/Marginalia/developer/project-structure/</loc>
   </url>
   <url>
+    <loc>https://enerccio.github.io/Marginalia/developer/plugins/</loc>
+  </url>
+  <url>
     <loc>https://enerccio.github.io/Marginalia/user/books/branches-and-story-tree/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/domain-model/</loc>
-  </url>
-  <url>
-    <loc>https://enerccio.github.io/Marginalia/developer/plugins/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/books/prompts/</loc>
@@ -226,13 +226,13 @@
     <loc>https://enerccio.github.io/Marginalia/developer/plugins/extendable/</loc>
   </url>
   <url>
+    <loc>https://enerccio.github.io/Marginalia/developer/commands/writing-commands/</loc>
+  </url>
+  <url>
     <loc>https://enerccio.github.io/Marginalia/developer/commands/command-bar/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/plugins/ui-extensions/</loc>
-  </url>
-  <url>
-    <loc>https://enerccio.github.io/Marginalia/developer/commands/writing-commands/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/plugins/extended-attributes/</loc>

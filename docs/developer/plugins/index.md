@@ -33,7 +33,7 @@ flowchart LR
 ```
 
 There is no plugin API in the usual sense - no list of extension points with stable signatures. Instead, a plugin
-gets three general mechanisms and the whole application to use them on:
+gets general mechanisms and the whole application to use them on:
 
 | Mechanism | What it gives you | Page |
 |---|---|---|
@@ -43,6 +43,7 @@ gets three general mechanisms and the whole application to use them on:
 | **Other extensions** | Offer text about a book or a story part to other extensions or ask them for it (`IPCService`), or call one particular extension (like the name generator) by reflection, without importing its classes. | [Sharing data between extensions](ipc.md) |
 | **Inference providers** | A model API of the plugin's own: its settings form in the AI dialog and the inference service of its AIs (`ExtensionAIFactory`). | [Inference providers from a plugin](ai-providers.md) |
 | **Generation events** | Listeners that read and change the prompt, the lore, the summaries and the streamed answer while a story part is generated. | [Generation events](generation-events.md), [Generation pipeline](../generation-pipeline.md#events-for-extensions) |
+| **Commands** | Commands for the command bar and for agents: `commandService.registerCommands(...)` with `@Command` methods (a suite object), unregistered on unload. Arc Outline, Character Tracker, Lore Generator, Name Generator and Name Provider bring theirs. | [Writing commands](../commands/writing-commands.md) |
 
 [Extending the UI](ui-extensions.md) puts the first three together: adding components, settings panels, threads and
 cleaning up on unload. [Generation events](generation-events.md) shows how a plugin changes the prompt sent to the

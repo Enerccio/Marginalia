@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845941069260">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845941245931">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845941069260" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845941245931" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845941069260" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845941245931" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845941069260" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845941069260" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845941245931" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845941245931" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -172,6 +172,9 @@ and the summary prompt. Templates are <a href="https://github.com/jknack/handleb
 SillyTavern-compatible macros on top. This page explains how that is implemented and how to add variables and macros.
 What users can write is documented in the user guide: <a href="../../user/templates/templates/">Prompt templates</a> and the
 <a href="../../user/templates/macros/">Macro reference</a>.</p>
+<p>The texts of the <a href="../agents/">agents</a> are the exception: the system prompt, the compaction prompt and the instructions of an
+agent (<code translate="no" v-pre>Defaults.DEFAULT_AGENT_PROMPT</code> and the others around it) are plain text, put into the request as they are, with no
+Handlebars and no macros.</p>
 <p>The code is in <code translate="no" v-pre>domain/templates/</code> (data objects, context, variables), <code translate="no" v-pre>domain/templates/macros/</code> (translator,
 helpers, macro registry) and <code translate="no" v-pre>domain/service/impl/TemplateServiceImpl.java</code>.</p>
 <h2 id="rendering-in-one-picture">Rendering in one picture</h2>
@@ -731,7 +734,7 @@ whose content is the last argument.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (f3f9c1f0).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (43d4f852).</p></div>
             </footer>
         </div>
     </div>

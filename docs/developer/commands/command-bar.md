@@ -108,4 +108,10 @@ In the story tab, `ManuscriptStoryPart.createCommandBox()` builds the bar and th
 `setFrozen` enables and disables it. The method is `@Extendable`/`@PublicAPI` (from 1.4.0), so a plugin can replace or wrap
 the bar through a decorator on its return value (see [Extendable classes](../plugins/extendable.md)).
 
+Two setters turn the bar into the one of another place. `setCommands(Supplier<List<CommandDefinition>>)` makes it offer, and show the
+help of, only those commands instead of all the registered ones, and `setLineRunner(Consumer<String>)` hands a line (the command
+with its slash, a known one) to the runner in place of `commandService.executeLine`; the result and the progress are then the
+runner's business and the result target is not used. The console of an [agent](../agents.md) uses both: it offers `/compact`,
+`/clear-workspace` and the commands that only read or add, and runs them on the run, not on a book window.
+
 The bar is not on the phone's story tab yet; only the desktop `ManuscriptStoryPart` has it.

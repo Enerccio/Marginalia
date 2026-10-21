@@ -114,6 +114,16 @@ annotation attribute needs an enum constant, so use `L.X` directly there, not a 
 automatic checkpoint before a round in which a call may change something, and a round of read only commands needs none. All forms of one command share the value (`registerCommands` throws when they differ),
 `CommandDefinition.readOnly()` returns it. All the read commands of the app and the `get-` / `list-` commands of the Arc Outline and the Character Tracker declare it.
 
+### Batch policy
+
+`@Command(batch = BatchPolicy.SINGLE)` says that an agent should call the command **alone** in its answer: the calls after it
+are not made, and one that comes after other calls waits for an answer of its own. Use it for a command that is long or costly
+(one that makes a call to a model: `next`, `swipe`, the generators of extensions) or whose result the agent should read before it
+goes on. The default is `BatchPolicy.BATCHABLE`. It is advice about use, not a claim about what the command does (that is
+`readOnly`); the runner follows it unless the agent is set to *All together, ignore the batch policies*. Declare it the same on all
+forms of a command (unlike `readOnly`, `registerCommands` does not compare it), and `@LLMFunction(batch = ...)` does the same for the tools of the application itself. The user sees it as the **Batch**
+column (*Together* / *Alone*) in the commands of an agent.
+
 ### Available for agents
 
 `@Command(availableForAgent = false)` keeps a command from agents (the default is `true`). Use it for a command that only
