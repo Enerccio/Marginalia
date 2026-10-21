@@ -40,6 +40,7 @@ How long `mvn test` takes (about 2,560 tests), with the machine, as the time dep
 | Machine | `-Dtest.forks=1` | 3 JVMs (default) | Memory of the 3 JVMs |
 |---|---|---|---|
 | Intel Core i7-10700K (8 cores, 16 threads), 32 GB RAM, NVMe SSD (btrfs on LUKS), Linux, JDK 26 | 19 min | 7 min | 6.5 GB peak |
+| Apple M4 (10 cores), 16 GB RAM, internal SSD, macOS, JDK 26 | 2 min 20 s | 1 min 27 s | 1.8 GB peak |
 
 A class can run after any other in its JVM, and the classes of a JVM share its database, so a test must not count on what the database holds (see [The shared database](#the-shared-database)): create data with `uniqueName` and compare with what was there before.
 

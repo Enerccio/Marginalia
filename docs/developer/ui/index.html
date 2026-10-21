@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845899208092">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845904655019">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845899208092" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845904655019" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845899208092" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845904655019" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845899208092" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845899208092" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845904655019" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845904655019" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -476,7 +476,7 @@ sets the lorebook of the pinned view without touching <code translate="no" v-pre
 toggle in the navbar, which also holds the summaries/settings menu bar), the new turn button is at the bottom. Its
 <code translate="no" v-pre>ChatMessageCard</code> is only the text of the part under a small header line with two icons: the menu (with <em>Show Prompt</em>)
 and a popover with the metadata of the inference (ids, model, protocol, tokens, words) and the turn details (the
-right-hand column of the desktop card). Its summaries item opens <code translate="no" v-pre>PhoneSummariesDialog</code>, the <code translate="no" v-pre>SummariesDialog</code> with a fixed 640 px, taller content column (the grid scrolls sideways anyway, so the summaries stay readable and editable). The fixed navbar and drawer of the
+right-hand column of the desktop card; on both cards the popover is filled by <code translate="no" v-pre>createDetails</code> and opened by the server when its button is clicked, and the editing text area exists only while the part is edited, because the text areas of <code translate="no" v-pre>TurnDetailsForm</code> measure their height as soon as they are in the page and hundreds of them freeze the browser). Its summaries item opens <code translate="no" v-pre>PhoneSummariesDialog</code>, the <code translate="no" v-pre>SummariesDialog</code> with a fixed 640 px, taller content column (the grid scrolls sideways anyway, so the summaries stay readable and editable). The fixed navbar and drawer of the
 <code translate="no" v-pre>AppLayout</code> are kept inside the dialog by the <code translate="no" v-pre>phone-story-layout</code> class.</p>
 <p>On the desktop the <em>Admin</em> button is only added for administrators; <code translate="no" v-pre>AdminPart</code> shows the users grid and the
 <code translate="no" v-pre>DatabaseBackupPanel</code>, <code translate="no" v-pre>CleanupPanel</code> and extensions tab (with the SHA-256 of each JAR behind a <code translate="no" v-pre>#</code> button next to the version - tooltip, click copies it with
@@ -1338,7 +1338,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (e5812c35).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (1732a8e6).</p></div>
             </footer>
         </div>
     </div>
