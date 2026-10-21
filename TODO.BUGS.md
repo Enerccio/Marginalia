@@ -1109,3 +1109,21 @@ old value is lost if the dialog is saved without noticing.
 2. Click **Refresh** (the server answers with the list): Model is empty.
 
 **Expected:** the saved model stays selected; the list only becomes available.
+
+## BUG-65 - The window of the approval of an agent lies under the console that was opened while the agent already waited (medium)
+
+**Where:** `ui/dialogs/agent/AgentConsoleDialog.java`, `showApproval()`. Found while taking the screenshots.
+
+When an agent with *Destructive commands: Ask first* waits for the approval and the user opens its console **afterwards**, the
+console shows *Waiting for approval* but the window with **Approve** / **Deny** is not seen. `AgentConsoleDialog` creates itself and
+calls `showApproval()` (the poll) before the console dialog is opened, so the approval `Dialog` is opened first and lies under the
+console (both are modal, same z-index, later in the DOM wins; the dialog is in the DOM, `opened`, 0x0). The manual says "If the
+console is closed, the window is there as soon as you open it". Found while taking `agent-approval.png` (screenshots/flows/shoot-agents.mjs
+opens the console while the agent still works, which works).
+
+**Steps:**
+1. An agent with *Ask first* and a destructive command in its plan; start it, wait for *Waiting for approval* (no console open).
+2. Open its console with the terminal button.
+
+**Expected:** the window of the approval is on top of the console. **Actual:** only the console is seen; the buttons of the console
+are disabled and there is no way to decide (the approval dialog can not be closed with Esc or a click outside either).

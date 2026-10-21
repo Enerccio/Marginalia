@@ -207,8 +207,14 @@ export async function openBook(page, name = 'Harry Potter and Half Blood Prince 
   await openTab(page, 'Books');
   const cell = page.locator('vaadin-grid-cell-content').filter({ hasText: name }).first();
   const box = await cell.boundingBox();
-  // the pen button is at the right end of the row of the name cell
-  await page.mouse.click(1804, box.y + box.height / 2);
+  // the pen button of the row (its position moved when the row got the Clone button: look it up by its icon)
+  const pens = page.locator('vaadin-grid vaadin-button:has(vaadin-icon[icon$=":pencil"])');
+  let best = null;
+  for (let i = 0; i < await pens.count(); i++) {
+    const pen = await pens.nth(i).boundingBox();
+    if (pen && (best === null || Math.abs(pen.y - box.y) < best.distance)) best = { index: i, distance: Math.abs(pen.y - box.y) };
+  }
+  await pens.nth(best.index).click();
   await page.getByText('Branch view', { exact: true }).first().waitFor();
   await idle(page, 800);
 }

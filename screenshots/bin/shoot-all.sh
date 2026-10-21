@@ -35,6 +35,10 @@ on 13-db-backup
 run shoot-permissions.mjs                        # changes the permissions of ginny: a copy, discarded
 on 13-db-backup
 run plugin-googlegenai.mjs                       # installs the Gemini plugin: a copy, discarded
+on 13-db-backup
+run shoot-books-extra.mjs                        # imports a lorebook with subbooks and a book from a zip: a copy, discarded
+on 22-arcoutline
+run shoot-agents.mjs                             # four agents with runs (the fake model answers from its queue), three more books: a copy, discarded
 on 22-arcoutline
 run shoot-tabs.mjs                               # drags the sidebar tabs apart (saved with the book): a copy, discarded
 # the red bar for invalid extensions: the Author's Note JAR is replaced by the broken one and its report is deleted, so that the

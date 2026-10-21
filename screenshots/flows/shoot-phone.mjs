@@ -20,7 +20,7 @@ await main(async ({ page }) => {
   });
 
   await section(page, 'story', async () => {
-    await page.mouse.click(311, 351);                        // the pen of the first book
+    await page.locator('vaadin-button:has(vaadin-icon[icon$=":pencil"])').first().click();   // the pen of the first book (Clone is next to it now)
     await sleep(2500);
     await page.getByRole('tab', { name: 'Story', exact: true }).first().click();
     await idle(page, 1500);
