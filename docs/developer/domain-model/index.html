@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845877723525">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845880090411">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845877723525" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845880090411" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845877723525" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845880090411" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845877723525" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845877723525" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845880090411" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845880090411" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -744,8 +744,7 @@ joins on is a real column: relations, <code translate="no" v-pre>name</code>, <c
 | `builtPrompt`, `builtPromptTokens`, `backgroundLore` | JSON | The full prompt sent to the model and the activated lore (*Show Prompt*). |
 | `tokenBreakdown` | JSON | Token counts of the prompt (`PromptTokenBreakdown`, JSON in an extended attribute); `null` for parts generated before it was recorded. |
 | `modelUsed`, `protocolUsed`, `promptTokens`, `tokenReasoningCount` | JSON | Generation metadata. |
-| `request`, `ttft`, `reasoningEnd` | JSON | Timestamps for the timing metrics. |
-| `scrollPosition` | JSON | UI state. |">
+| `request`, `ttft`, `reasoningEnd` | JSON | Timestamps for the timing metrics. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -815,11 +814,6 @@ joins on is a real column: relations, <code translate="no" v-pre>name</code>, <c
 <td><code translate="no" v-pre>request</code>, <code translate="no" v-pre>ttft</code>, <code translate="no" v-pre>reasoningEnd</code></td>
 <td>JSON</td>
 <td>Timestamps for the timing metrics.</td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>scrollPosition</code></td>
-<td>JSON</td>
-<td>UI state.</td>
 </tr>
 </tbody>
 </table>
@@ -1250,7 +1244,7 @@ values are extended attributes.</p>
 <retype-table copy-text="| Class | Owner | Contains |
 |---|---|---|
 | `AppSettings` | none (one per installation) | Data versions (`dbVersion`, `appVersion`), the database backup schedule (`backupScheduleEnabled`, `backupSchedule`, `backupKeep`, `lastScheduledBackup`, `backupScheduleChanged`), the help assistant (`helpAiUuid`, `helpAdminData` (may it read the data of the Admin page for an administrator), and the prompts `helpPromptAdmin` / `helpPromptUser`, null = the default; the uuid, not the id; written only by `HelpAssistantService.saveSettings`). The switches `userAisAllowed` and `helpEnabled` and the settings `helpApplyLimits` and `helpInteractions` are replaced by the permissions `CREATE_AI` and `HELPER` with the attributes `helperApplyLimits` and `helperInteractions` (V15 / app version 5); the fields stay, deprecated, only for `PermissionsMigration`. |
-| `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`, `defaultMetaSummaryPrompt`), default book backup strategy, the code of the language of the UI (`language`, see [Localization](architecture.md#localization)), where the user left the workspace (`workspaceState`, a JSON object written by the workspace autosave, see [User interface](ui.md#remembering-where-the-user-was)). |">
+| `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`, `defaultMetaSummaryPrompt`), default book backup strategy, how many parts the story and the viewer load at a time (`storyPartsLimit`, empty loads all), the code of the language of the UI (`language`, see [Localization](architecture.md#localization)), where the user left the workspace (`workspaceState`, a JSON object written by the workspace autosave, see [User interface](ui.md#remembering-where-the-user-was)). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -1269,7 +1263,7 @@ values are extended attributes.</p>
 <tr>
 <td><code translate="no" v-pre>UserSetting</code></td>
 <td>each user</td>
-<td>Default model and protocol (ids, <code translate="no" v-pre>@CleanupReference(WEAK)</code>), default prompts (<code translate="no" v-pre>masterTemplate</code>, <code translate="no" v-pre>defaultPov</code>, <code translate="no" v-pre>defaultTense</code>, <code translate="no" v-pre>defaultStyle</code>, <code translate="no" v-pre>defaultUserPrompt</code>, <code translate="no" v-pre>defaultSummaryPrompt</code>, <code translate="no" v-pre>defaultMetaSummaryPrompt</code>), default book backup strategy, the code of the language of the UI (<code translate="no" v-pre>language</code>, see <a href="../architecture/#localization">Localization</a>), where the user left the workspace (<code translate="no" v-pre>workspaceState</code>, a JSON object written by the workspace autosave, see <a href="../ui/#remembering-where-the-user-was">User interface</a>).</td>
+<td>Default model and protocol (ids, <code translate="no" v-pre>@CleanupReference(WEAK)</code>), default prompts (<code translate="no" v-pre>masterTemplate</code>, <code translate="no" v-pre>defaultPov</code>, <code translate="no" v-pre>defaultTense</code>, <code translate="no" v-pre>defaultStyle</code>, <code translate="no" v-pre>defaultUserPrompt</code>, <code translate="no" v-pre>defaultSummaryPrompt</code>, <code translate="no" v-pre>defaultMetaSummaryPrompt</code>), default book backup strategy, how many parts the story and the viewer load at a time (<code translate="no" v-pre>storyPartsLimit</code>, empty loads all), the code of the language of the UI (<code translate="no" v-pre>language</code>, see <a href="../architecture/#localization">Localization</a>), where the user left the workspace (<code translate="no" v-pre>workspaceState</code>, a JSON object written by the workspace autosave, see <a href="../ui/#remembering-where-the-user-was">User interface</a>).</td>
 </tr>
 </tbody>
 </table>
@@ -1744,7 +1738,7 @@ define both beans in <code translate="no" v-pre>services-config.xml</code>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (5ea23aa7).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (2f3b8608).</p></div>
             </footer>
         </div>
     </div>

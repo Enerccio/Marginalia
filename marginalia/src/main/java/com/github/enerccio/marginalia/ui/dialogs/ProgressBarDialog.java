@@ -24,7 +24,8 @@ public class ProgressBarDialog extends ThreadAccessDialog {
     private ProgressBar progressBar;
     private Span status;
     private final boolean enableCancel;
-    private boolean cancelled;
+    private volatile boolean cancelled;
+    private L cancelLabel = L.LABEL_CANCEL;
     protected boolean manualCancel;
     protected VerticalLayout contentContainer;
     private long lastUpdateTime;
@@ -69,12 +70,19 @@ public class ProgressBarDialog extends ThreadAccessDialog {
 
         if (enableCancel) {
             setHeight("200px");
-            Button cancel = new Button(loc.getValue(L.LABEL_CANCEL));
+            Button cancel = new Button(loc.getValue(cancelLabel));
             cancel.addClickListener(event -> cancelled = true);
             vl.add(cancel);
         }
 
         add(vl);
+    }
+
+    /**
+     * The text of the button that cancels (stops) the action, to set before {@link #create()}; cancel by default.
+     */
+    public void setCancelLabel(L cancelLabel) {
+        this.cancelLabel = cancelLabel;
     }
 
     public boolean isCancelled() {

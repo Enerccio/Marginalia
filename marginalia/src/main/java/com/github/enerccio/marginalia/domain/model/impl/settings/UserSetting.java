@@ -118,6 +118,14 @@ public class UserSetting extends Setting {
     private String language;
 
     /**
+     * How many parts of a book the story and the reader load at a time (the story the last ones, the reader the first
+     * ones, the rest as the user scrolls); {@code null} or less than one loads them all.
+     */
+    @ExtendedAttribute
+    @Transient
+    private Integer storyPartsLimit;
+
+    /**
      * Where the user left the workspace (selected tab, filters, the open book, ...), written by the workspace autosave
      * as the {@code Restorable} state of the workspace and read back after the login.
      */
@@ -267,6 +275,14 @@ public class UserSetting extends Setting {
 
     public void setBackupStrategyValue(String backupStrategyValue) {
         this.backupStrategyValue = backupStrategyValue;
+    }
+
+    public Integer getStoryPartsLimit() {
+        return storyPartsLimit;
+    }
+
+    public void setStoryPartsLimit(Integer storyPartsLimit) {
+        this.storyPartsLimit = storyPartsLimit;
     }
 
     public JsonObject getWorkspaceState() {

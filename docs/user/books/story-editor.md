@@ -10,13 +10,17 @@ This page describes the desktop layout. On a phone the story is one column with 
 
 | Area | |
 |---|---|
-| **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part. The header shows how many parts the branch has. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |
+| **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part (the parts before it are loaded first when it is not loaded yet). The header shows how many parts the branch has. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |
 | **Lorebook** (left, next to the Outline) | A read only look at the lore of the book, see [The lorebook tab](#the-lorebook-tab). |
 | **Parts** (center) | The text of each part, with its menu (☰) and its metadata on the right. |
 | **Bottom bar** | The **Summaries** button (list icon) and the settings menu (⚙) on the left, the **+** button on the right. |
 
 The divider between the sidebar and the parts can be dragged. Marginalia remembers where you left it (saved with the book)
-and the scroll position of each branch, and returns to them when you open the book again.
+and returns to it when you open the book again.
+
+The story always opens at the bottom, at the newest part. A long book is not drawn all at once: only the last parts are
+loaded, and the earlier ones are added above as you scroll up, without moving the part you are reading. How many parts are
+loaded at a time is the **Parts loaded at once in the story** setting of your [account](../account.md) (empty loads all of them).
 
 ### The lorebook tab
 
@@ -281,6 +285,9 @@ compared as numbers (`2.md` before `10.md`), also in folders of the archive. Fol
 `__MACOSX` folder and files that are not `.md` are skipped. The file is the text of the part as it is, it is not sent to
 the model and not changed; the parts count as written by you. The summaries are not made, do that in the
 [summaries](summaries.md) window.
+
+The import shows a progress bar with the number of files done. **Stop** ends it after the part that is being stored: the parts
+that were already added stay in the story (the import is not undone), and a message tells how many of the files were imported.
 
 The **import** button of the Books tab does the same into a new book, see [Managing books](managing-books.md#creating-a-book).
 The same import into a lorebook is described in [Import & export](../lorebooks/import-export.md#importing-an-archive-of-text-files).

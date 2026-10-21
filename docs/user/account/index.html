@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845877723525">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845880090411">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845877723525" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845880090411" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845877723525" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845880090411" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845877723525" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845880090411" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -290,7 +290,8 @@ unlock them.</p>
 |---|---|
 | **Default Model** | The [inference provider](inference-providers.md) new books start with. |
 | **Default Protocol** | The [protocol](protocols.md) new books start with. |
-| **Backup Strategy** | Automatic [book backups](books/backups.md#automatic-backups) for books without their own strategy: *No Backups*, *After N Messages* or *After N Minutes*, with the number next to it. |">
+| **Backup Strategy** | Automatic [book backups](books/backups.md#automatic-backups) for books without their own strategy: *No Backups*, *After N Messages* or *After N Minutes*, with the number next to it. |
+| **Parts loaded at once in the story** | How many parts of a book the [story](books/story-editor.md) and the [viewer](books/publishing.md) load at a time. The story loads the last parts and the earlier ones as you scroll up; the viewer loads the first parts and the next ones as you scroll down. Empty loads all the parts at once. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -311,6 +312,10 @@ unlock them.</p>
 <tr>
 <td><strong>Backup Strategy</strong></td>
 <td>Automatic <a href="../books/backups/#automatic-backups">book backups</a> for books without their own strategy: <em>No Backups</em>, <em>After N Messages</em> or <em>After N Minutes</em>, with the number next to it.</td>
+</tr>
+<tr>
+<td><strong>Parts loaded at once in the story</strong></td>
+<td>How many parts of a book the <a href="../books/story-editor/">story</a> and the <a href="../books/publishing/">viewer</a> load at a time. The story loads the last parts and the earlier ones as you scroll up; the viewer loads the first parts and the next ones as you scroll down. Empty loads all the parts at once.</td>
 </tr>
 </tbody>
 </table>
@@ -484,7 +489,7 @@ settings is installed.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (5ea23aa7).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (2f3b8608).</p></div>
             </footer>
         </div>
     </div>

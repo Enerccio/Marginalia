@@ -31,6 +31,10 @@ the top left corner returns to the list.
 
 What you read is the book as it is now: new parts appear the next time the page is opened.
 
+A long book is read in pieces: the first parts are shown and the next ones are added as you scroll down. How many parts
+are loaded at a time is the **Parts loaded at once in the story** setting of [your account](../account.md); empty loads
+the whole book at once.
+
 [Pictures of the parts](story-editor.md#images) are shown under the text, but only to you, the owner. Readers of a
 [published](#publishing-a-book) book see the text without the pictures.
 

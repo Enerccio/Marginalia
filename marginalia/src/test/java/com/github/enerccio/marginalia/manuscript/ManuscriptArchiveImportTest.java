@@ -2,9 +2,11 @@ package com.github.enerccio.marginalia.manuscript;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.ArchiveImportService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
+import com.github.enerccio.marginalia.utils.MarkdownArchive;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +33,9 @@ class ManuscriptArchiveImportTest extends MarginaliaTestBase {
     @Autowired
     private ManuscriptService manuscriptService;
 
+    @Autowired
+    private ArchiveImportService archiveImportService;
+
     private Manuscript book;
 
     @BeforeEach
@@ -49,7 +54,7 @@ class ManuscriptArchiveImportTest extends MarginaliaTestBase {
         files.put("0001.md", "first");
         files.put("readme.txt", "skipped");
 
-        assertThat(chatMessageService.appendFromArchive(book, zip(files))).isEqualTo(3);
+        assertThat(append(zip(files)).imported()).isEqualTo(3);
 
         Manuscript saved = manuscriptService.find(book);
         assertThat(chatMessageService.getBranchFromLeaf(saved.getActiveLeaf()))
@@ -63,7 +68,7 @@ class ManuscriptArchiveImportTest extends MarginaliaTestBase {
     void partsContinueAfterTheActiveLeaf() throws Exception {
         ChatMessage start = chatMessageService.createPart(book, null, "start", null);
 
-        chatMessageService.appendFromArchive(book, zip(Map.of("1.md", "next")));
+        append(zip(Map.of("1.md", "next")));
 
         Manuscript saved = manuscriptService.find(book);
         List<ChatMessage> branch = chatMessageService.getBranchFromLeaf(saved.getActiveLeaf());
@@ -73,11 +78,33 @@ class ManuscriptArchiveImportTest extends MarginaliaTestBase {
 
     @Test
     void badArchiveChangesNothing() throws Exception {
-        assertThatThrownBy(() -> chatMessageService.appendFromArchive(book, zip(Map.of("a.txt", "text"))))
+        assertThatThrownBy(() -> append(zip(Map.of("a.txt", "text"))))
                 .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> chatMessageService.appendFromArchive(book, "plain".getBytes(StandardCharsets.UTF_8)))
+        assertThatThrownBy(() -> append("plain".getBytes(StandardCharsets.UTF_8)))
                 .isInstanceOf(IllegalArgumentException.class);
         assertThat(chatMessageService.hasAnyMessages(book)).isFalse();
+    }
+
+    @Test
+    void aStoppedImportLeavesThePartsImportedUntilThen() throws Exception {
+        Map<String, String> files = new LinkedHashMap<>();
+        for (int i = 1; i <= 5; i++) {
+            files.put(i + ".md", "part " + i);
+        }
+        int[] stored = {0};
+
+        ArchiveImportService.ImportResult<Manuscript> result = archiveImportService.appendParts(book,
+                MarkdownArchive.read(zip(files)), () -> stored[0] == 3, () -> stored[0]++);
+
+        assertThat(result.isComplete()).isFalse();
+        assertThat(result.imported()).isEqualTo(3);
+        assertThat(result.total()).isEqualTo(5);
+        assertThat(chatMessageService.getBranchFromLeaf(result.target().getActiveLeaf()))
+                .extracting(ChatMessage::getResponse).containsExactly("part 1", "part 2", "part 3");
+    }
+
+    private ArchiveImportService.ImportResult<Manuscript> append(byte[] archive) throws Exception {
+        return archiveImportService.appendParts(manuscriptService.find(book), MarkdownArchive.read(archive), () -> false, () -> { });
     }
 
     private static byte[] zip(Map<String, String> files) throws Exception {

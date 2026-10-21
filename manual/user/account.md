@@ -87,6 +87,7 @@ unlock them.
 | **Default Model** | The [inference provider](inference-providers.md) new books start with. |
 | **Default Protocol** | The [protocol](protocols.md) new books start with. |
 | **Backup Strategy** | Automatic [book backups](books/backups.md#automatic-backups) for books without their own strategy: *No Backups*, *After N Messages* or *After N Minutes*, with the number next to it. |
+| **Parts loaded at once in the story** | How many parts of a book the [story](books/story-editor.md) and the [viewer](books/publishing.md) load at a time. The story loads the last parts and the earlier ones as you scroll up; the viewer loads the first parts and the next ones as you scroll down. Empty loads all the parts at once. |
 
 *Default Model* and *Default Protocol* are used only when a book is created; changing them doesn't change existing
 books. The [Lore Generator](extensions/lore-generator.md) extension has no book and generates with them. The backup strategy applies to all books without a *Per manuscript override*, from their next generated part.

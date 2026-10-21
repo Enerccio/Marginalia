@@ -401,19 +401,23 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
 
     /**
      * Asks for a zip archive of {@code .md} files, shows the names the entries would get to change, and makes a lorebook of
-     * it, see {@link LorebookService#importFromArchive}.
+     * it, see {@link ArchiveImportService#importLorebook}.
      */
     @PublicAPI(from = "1.4.0",
             returns = @APIReturn(type = void.class))
     private void openArchiveImportDialog() {
         ArchiveUploadDialog.show(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE), loc.getValue(L.MSG_IMPORT_FROM_ARCHIVE),
-                (archive, fileName) -> ArchiveEntryNamesDialog.show(MarkdownArchive.read(archive), names -> {
-                    try {
-                        showImported(lorebookService.importFromArchive(archive, fileName, names));
-                    } catch (Exception e) {
-                        UIUtils.internalServerError(loc, e);
-                    }
-                }));
+                (archive, fileName) -> {
+                    MarkdownArchive.Content content = MarkdownArchive.read(archive);
+                    ArchiveEntryNamesDialog.show(content, names ->
+                            new ArchiveImportRunner().importLorebook(content, fileName, names, imported -> {
+                                if (imported != null) {
+                                    showImported(imported);
+                                } else {
+                                    loadLorebooks();
+                                }
+                            }));
+                });
     }
 
     @PublicAPI(from = "1.4.0",

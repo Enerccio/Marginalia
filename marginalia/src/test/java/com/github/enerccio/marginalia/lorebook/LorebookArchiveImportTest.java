@@ -2,9 +2,11 @@ package com.github.enerccio.marginalia.lorebook;
 
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
+import com.github.enerccio.marginalia.domain.service.ArchiveImportService;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
+import com.github.enerccio.marginalia.utils.MarkdownArchive;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,9 @@ class LorebookArchiveImportTest extends MarginaliaTestBase {
     private LorebookService lorebookService;
 
     @Autowired
+    private ArchiveImportService archiveImportService;
+
+    @Autowired
     private LorebookEntryService lorebookEntryService;
 
     @BeforeEach
@@ -47,7 +52,7 @@ class LorebookArchiveImportTest extends MarginaliaTestBase {
         files.put("__MACOSX/chunks/1.md", "resource fork");
         files.put("chunks/sub/", null);
 
-        Lorebook book = lorebookService.importFromArchive(zip(files), "story.zip", null);
+        Lorebook book = importLorebook(zip(files), "story.zip", null).target();
 
         assertThat(book.getName()).isEqualTo("story");
         assertThat(book.isEnabled()).isTrue();
@@ -77,18 +82,40 @@ class LorebookArchiveImportTest extends MarginaliaTestBase {
     void archiveWithoutMarkdownIsRejected() throws Exception {
         Map<String, String> files = new LinkedHashMap<>();
         files.put("a.txt", "text");
-        assertThatThrownBy(() -> lorebookService.importFromArchive(zip(files), "x.zip", null))
+        assertThatThrownBy(() -> importLorebook(zip(files), "x.zip", null))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void notAnArchiveIsRejected() {
-        assertThatThrownBy(() -> lorebookService.importFromArchive("plain".getBytes(StandardCharsets.UTF_8), "x.zip", null))
+        assertThatThrownBy(() -> importLorebook("plain".getBytes(StandardCharsets.UTF_8), "x.zip", null))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
+    @Test
+    void aStoppedImportLeavesTheEntriesImportedUntilThen() throws Exception {
+        Map<String, String> files = new LinkedHashMap<>();
+        for (int i = 1; i <= 5; i++) {
+            files.put(i + ".md", "text " + i);
+        }
+        int[] stored = {0};
+
+        ArchiveImportService.ImportResult<Lorebook> result = archiveImportService.importLorebook(
+                MarkdownArchive.read(zip(files)), "partial.zip", null, () -> stored[0] == 2, () -> stored[0]++);
+
+        assertThat(result.isComplete()).isFalse();
+        assertThat(result.imported()).isEqualTo(2);
+        assertThat(result.total()).isEqualTo(5);
+        assertThat(lorebookEntryService.getEntriesForLorebook(result.target())).hasSize(2);
+        assertThat(lorebookService.find(result.target())).isNotNull();
+    }
+
+    private ArchiveImportService.ImportResult<Lorebook> importLorebook(byte[] archive, String name, List<String> names) throws Exception {
+        return archiveImportService.importLorebook(MarkdownArchive.read(archive), name, names, () -> false, () -> { });
+    }
+
     private List<String> importedNames(byte[] archive, List<String> names) throws Exception {
-        Lorebook book = lorebookService.importFromArchive(archive, "names.zip", names);
+        Lorebook book = importLorebook(archive, "names.zip", names).target();
         return lorebookEntryService.getEntriesForLorebook(book).stream()
                 .sorted(java.util.Comparator.comparingInt(LorebookEntry::getOrder))
                 .map(LorebookEntry::getName).toList();

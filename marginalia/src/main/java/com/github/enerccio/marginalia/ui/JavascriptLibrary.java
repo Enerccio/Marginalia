@@ -125,13 +125,6 @@ public final class JavascriptLibrary {
 
     // --- scrolling ---
 
-    /**
-     * Resolves to the rounded {@code scrollTop} of the element.
-     */
-    public static PendingJavaScriptResult getScrollTop(Element element) {
-        return element.executeJs("return Math.round($0.scrollTop);", element);
-    }
-
     public static void setScrollTop(Element element, int pixelsFromTop) {
         element.executeJs("$0.scrollTop = $1", element, pixelsFromTop);
     }
@@ -220,25 +213,54 @@ public final class JavascriptLibrary {
     }
 
     /**
-     * Restores the scroll position once the layout is done; to the bottom when there is nothing saved.
+     * Fires {@code edge-top} (or {@code edge-bottom}) on the scroll element when it is scrolled close to that edge, to
+     * load more content there. After every load the server calls this again: {@code armed} is whether there is more
+     * to load, if there is not, nothing fires until it is called with {@code true}. The check also runs once the layout
+     * following the current changes is done, so content that does not fill the element asks for more at once.
      */
-    public static void restoreScrollPosition(Element element, Integer savedPosition) {
-        element.executeJs(INSTALL_STICKY_SCROLL + """
-                installSticky($0);
-                requestAnimationFrame(() => {
-                  requestAnimationFrame(() => {
-                    const el = $0;
-                    const target = $1;
-                    if (target !== null && target !== undefined) {
-                      el.scrollTop = target;
-                    } else {
-                      el.scrollTop = el.scrollHeight;
+    public static void watchEdge(Element element, boolean top, boolean armed) {
+        element.executeJs("""
+                const el = $0;
+                const top = $1;
+                const name = top ? 'edge-top' : 'edge-bottom';
+                const busy = '_busy-' + name;
+                const check = '_check-' + name;
+                if (!el[check]) {
+                  el[check] = () => {
+                    if (el[busy]) return;
+                    const distance = top ? el.scrollTop : (el.scrollHeight - el.scrollTop - el.clientHeight);
+                    if (distance < 400) {
+                      el[busy] = true;
+                      el.dispatchEvent(new CustomEvent(name));
                     }
-                    el._lastTop = el.scrollTop;
-                    el._stick = (el.scrollHeight - el.scrollTop - el.clientHeight) < 8;
-                  });
-                });
-                """, element, savedPosition);
+                  };
+                  el.addEventListener('scroll', el[check], {passive: true});
+                }
+                el[busy] = !$2;
+                requestAnimationFrame(() => requestAnimationFrame(el[check]));
+                """, element, top, armed);
+    }
+
+    /**
+     * Remembers how far the scroll position is from the bottom, call it before content is added above the visible part.
+     */
+    public static void rememberDistanceFromBottom(Element element) {
+        element.executeJs("$0._distanceFromBottom = $0.scrollHeight - $0.scrollTop;", element);
+    }
+
+    /**
+     * Keeps the visible content in place after content was added above it (see {@link #rememberDistanceFromBottom}).
+     */
+    public static void restoreDistanceFromBottom(Element element) {
+        element.executeJs("""
+                const el = $0;
+                const restore = () => {
+                  el.scrollTop = el.scrollHeight - el._distanceFromBottom;
+                  el._lastTop = el.scrollTop;
+                };
+                restore();
+                requestAnimationFrame(restore);
+                """, element);
     }
 
     /**
@@ -257,25 +279,6 @@ public final class JavascriptLibrary {
     }
 
     // --- element events ---
-
-    /**
-     * Fires {@code panel-scroll} ({@code detail.scrollTop}) on the element, 300 ms after the user stops scrolling.
-     */
-    public static void fireDebouncedScrollEvent(Element element) {
-        element.executeJs("""
-                const el = $0;
-                if (!el._hasScrollListener) {
-                  el._hasScrollListener = true;
-                  let timer;
-                  el.addEventListener('scroll', () => {
-                    clearTimeout(timer);
-                    timer = setTimeout(() => {
-                      el.dispatchEvent(new CustomEvent('panel-scroll', { detail: { scrollTop: Math.round(el.scrollTop) } }));
-                    }, 300);
-                  });
-                }
-                """, element);
-    }
 
     /**
      * Fires {@code chip-click} ({@code detail.label}) on the multi select combo box when the user clicks the label of

@@ -1,7 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
-import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.GenerationListener;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequestType;
@@ -72,12 +71,11 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
     private final ScrollPanel panel;
     private final CardFactory<C> cardFactory;
     private final StoryHost host;
-    private final ChatMessageService chatMessageService;
     private final Localization loc;
     private final Callbacks callbacks;
 
     public StoryGenerationListener(UI ui, GenerationRequest request, StoryCards<C> cards, ScrollPanel panel,
-                                   CardFactory<C> cardFactory, StoryHost host, ChatMessageService chatMessageService,
+                                   CardFactory<C> cardFactory, StoryHost host,
                                    Localization loc, Callbacks callbacks) {
         this.ui = ui;
         this.request = request;
@@ -85,7 +83,6 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
         this.panel = panel;
         this.cardFactory = cardFactory;
         this.host = host;
-        this.chatMessageService = chatMessageService;
         this.loc = loc;
         this.callbacks = callbacks;
     }
@@ -123,7 +120,7 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
     public void onNodeCreated(ChatMessage message) {
         ui.access(() -> {
             cards.markNoneLast();
-            int newOrderId = cards.size() + 1;
+            int newOrderId = cards.getOffset() + cards.size() + 1;
 
             if (request.getRequestType() == GenerationRequestType.NEW_MESSAGE) {
                 addStreamingCard(message, newOrderId);
@@ -202,12 +199,8 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
 
             callbacks.partGenerated();
 
-            JavascriptLibrary.getScrollTop(panel.getElement())
-                    .then(Integer.class, scrollTop -> {
-                        saveScrollPosition(message, scrollTop);
-                        callbacks.renderStory();
-                        UIPushGuard.push(ui);
-                    });
+            callbacks.renderStory();
+            UIPushGuard.push(ui);
         });
     }
 
@@ -226,7 +219,7 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
             } else {
                 if (streaming != null && !partialMessage.getId().equals(streaming.getMessage().getId())) {
                     panel.remove(streaming);
-                    C card = cardFactory.create(partialMessage, true, cards.size() + 1);
+                    C card = cardFactory.create(partialMessage, true, cards.getOffset() + cards.size() + 1);
                     card.setFrozen(true);
                     cards.put(card);
                     cards.setStreaming(null);
@@ -238,33 +231,14 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
             cards.setStreaming(null);
             host.unfreeze();
 
-            JavascriptLibrary.getScrollTop(panel.getElement())
-                    .then(Integer.class, scrollTop -> {
-                        saveScrollPosition(partialMessage, scrollTop);
-                        try {
-                            callbacks.reloadManuscript();
-                        } catch (Exception e) {
-                            UIUtils.internalServerError(loc, e);
-                        }
-                        callbacks.renderStory();
-                        UIPushGuard.push(ui);
-                    });
+            try {
+                callbacks.reloadManuscript();
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+            callbacks.renderStory();
             UIPushGuard.push(ui);
         });
-    }
-
-    @PublicAPI(from = "1.2.0",
-            returns = @APIReturn(type = void.class),
-            parameters = {@APIParameter(name = "message", type = ChatMessage.class),
-                    @APIParameter(name = "scrollTop", type = Integer.class)})
-    private void saveScrollPosition(ChatMessage message, Integer scrollTop) {
-        if (scrollTop != null && message != null) {
-            message.setScrollPosition(scrollTop);
-            try {
-                chatMessageService.save(message);
-            } catch (Exception ignored) {
-            }
-        }
     }
 
     @PublicAPI(from = "1.2.0",

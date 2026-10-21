@@ -53,6 +53,9 @@ files are taken in the order of their names, numbers inside the names compared a
 
 The table in the dialog shows the result, and you can type over any name.
 
+The import then shows its progress. **Stop** ends it after the entry that is being stored: the lorebook keeps the entries that
+were already imported (the import is not undone), and a message tells how many of the files were imported.
+
 The entries are imported **disabled**: they have no filter, so enabled they would be sent with every request, which
 for a whole book of chapters is hardly wanted. Turn on the ones you need, with a filter or [tags](entries.md#tags) -
 **Mass edit** is the quick way to do it for many entries.

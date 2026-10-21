@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.collections.InsertionMode;
 import com.github.enerccio.marginalia.domain.listener.ExtendableEntityListener;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.model.impl.*;
+import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
 import com.github.enerccio.marginalia.test.ExpectedLog;
@@ -69,12 +70,14 @@ class ExtendableEntityListenerTest {
         ChatMessage message = new ChatMessage();
         message.setInstructions("Write \"more\"\nwith ünïcödé ✓");
         message.setPromptTokens(123_456_789_012L);
-        message.setScrollPosition(42);
         message.setRequest(request);
 
         LorebookEntry entry = new LorebookEntry();
         entry.setFilteringMode(FilteringMode.REGEX);
         entry.setInsertionMode(InsertionMode.BEFORE_USER_PROMPT);
+
+        UserSetting setting = new UserSetting();
+        setting.setStoryPartsLimit(42);
 
         ChatCompletionProtocol protocol = new ChatCompletionProtocol();
         protocol.setTemperature(0.75);
@@ -84,14 +87,19 @@ class ExtendableEntityListenerTest {
         listener.serialize(message);
         listener.serialize(entry);
         listener.serialize(protocol);
+        listener.serialize(setting);
 
         ChatMessage loadedMessage = new ChatMessage();
         loadedMessage.setExtendedContent(message.getExtendedContent());
         listener.deserialize(loadedMessage);
         assertThat(loadedMessage.getInstructions()).isEqualTo("Write \"more\"\nwith ünïcödé ✓");
         assertThat(loadedMessage.getPromptTokens()).isEqualTo(123_456_789_012L);
-        assertThat(loadedMessage.getScrollPosition()).isEqualTo(42);
         assertThat(loadedMessage.getRequest()).isEqualTo(request);
+
+        UserSetting loadedSetting = new UserSetting();
+        loadedSetting.setExtendedContent(setting.getExtendedContent());
+        listener.deserialize(loadedSetting);
+        assertThat(loadedSetting.getStoryPartsLimit()).isEqualTo(42);
 
         LorebookEntry loadedEntry = new LorebookEntry();
         loadedEntry.setExtendedContent(entry.getExtendedContent());

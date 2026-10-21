@@ -153,19 +153,6 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
     ChatMessage insertPart(Manuscript manuscript, ChatMessage after, String text, TurnInput input) throws Exception;
 
     /**
-     * Adds the {@code .md} files of a zip archive to the end of the book, one part for each file, in the order of the file
-     * names (numbers inside names compare as numbers): the first part follows the active leaf of the book (it is the first
-     * part of an empty book) and each next part follows the one before. The last part becomes the active leaf, which is
-     * saved. As {@link #createPart}, the texts are counted and the parts are not flagged as edited. See
-     * {@link com.github.enerccio.marginalia.utils.MarkdownArchive}.
-     *
-     * @return the number of parts added
-     * @throws IllegalArgumentException when the data is not a zip archive or has no {@code .md} file, the manuscript is not
-     *                                  the user's, or it has parts but no active leaf
-     */
-    int appendFromArchive(Manuscript manuscript, byte[] archive) throws Exception;
-
-    /**
      * @param message  the part as saved
      * @param outdated the summaries that became outdated by the edit, oldest first
      */

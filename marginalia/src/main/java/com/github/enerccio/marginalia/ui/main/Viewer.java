@@ -14,7 +14,10 @@ import com.github.enerccio.marginalia.domain.service.search.Sorter;
 import com.github.enerccio.marginalia.domain.service.search.Sorter.Ordering;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.components.MessageImages;
+import com.github.enerccio.marginalia.ui.dialogs.story.LazyBranch;
+import com.github.enerccio.marginalia.ui.dialogs.story.StorySupport;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableItem;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableProviderBase;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
@@ -383,8 +386,7 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
                     @APILocals(name = "contentWrapper", type = VerticalLayout.class),
                     @APILocals(name = "branch", type = List.class),
                     @APILocals(name = "emptyLabel", type = Span.class),
-                    @APILocals(name = "msg", type = ChatMessage.class),
-                    @APILocals(name = "markdown", type = Markdown.class),
+                    @APILocals(name = "window", type = LazyBranch.class),
                     @APILocals(name = "e", type = Exception.class)})
     private void renderManuscriptReadingView(String param) {
         Manuscript manuscript = findManuscript(param);
@@ -440,18 +442,14 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
                 Span emptyLabel = new Span(loc.getValue(L.MSG_NO_ACTIVE_BRANCH));
                 contentWrapper.add(UIUtils.centerComponent(emptyLabel));
             } else {
-                for (ChatMessage msg : branch) {
-                    if (StringUtils.isNotBlank(msg.getResponse())) {
-                        Markdown markdown = new Markdown();
-                        markdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
-                        markdown.setContent(msg.getResponse());
-
-                        contentWrapper.add(markdown);
-                    }
-                    if (!msg.getImages().isEmpty()) {
-                        contentWrapper.add(new MessageImages(msg.getImages()));
-                    }
-                }
+                // the first parts only, the next ones are added when the reader scrolls to the end
+                LazyBranch window = LazyBranch.head(branch, new StorySupport().partsLimit());
+                addParts(contentWrapper, window.loaded());
+                scrollPanel.getElement().addEventListener("edge-bottom", event -> {
+                    addParts(contentWrapper, window.loadLater());
+                    JavascriptLibrary.watchEdge(scrollPanel.getElement(), false, window.hasLater());
+                });
+                JavascriptLibrary.watchEdge(scrollPanel.getElement(), false, window.hasLater());
             }
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -462,6 +460,27 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
         container.setFlexGrow(1, scrollPanel);
 
         add(container);
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "contentWrapper", type = VerticalLayout.class),
+                    @APIParameter(name = "parts", type = List.class)},
+            locals = {@APILocals(name = "msg", type = ChatMessage.class),
+                    @APILocals(name = "markdown", type = Markdown.class)})
+    private void addParts(VerticalLayout contentWrapper, List<ChatMessage> parts) {
+        for (ChatMessage msg : parts) {
+            if (StringUtils.isNotBlank(msg.getResponse())) {
+                Markdown markdown = new Markdown();
+                markdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
+                markdown.setContent(msg.getResponse());
+
+                contentWrapper.add(markdown);
+            }
+            if (!msg.getImages().isEmpty()) {
+                contentWrapper.add(new MessageImages(msg.getImages()));
+            }
+        }
     }
 
     /**

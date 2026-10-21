@@ -323,10 +323,11 @@ their layout and the methods extensions decorate (`renderStoryContent`, `createS
 | Class | Does |
 |---|---|
 | `StoryHost` | What a story tab needs from its dialog (`refreshManuscript`, `save`, `freeze`, `unfreeze`); `ManuscriptDialog` and `PhoneManuscriptDialog` implement it (through `ManuscriptWindow`). |
-| `StoryCard`, `StoryCards` | The card interface both `ChatMessageCard` classes implement, and the registry of the cards of the branch and the streaming one (opened reasonings, last flags, freezing, autosave). |
+| `StoryCard`, `StoryCards` | The card interface both `ChatMessageCard` classes implement, and the registry of the cards of the branch and the streaming one (opened reasonings, last flags, freezing, autosave; `getOffset` is how many parts of the branch have no card because they are before the first one, `prependAll` puts earlier cards in front). |
+| `LazyBranch`, `StoryLazyLoader` | Lazy loading of the parts. `LazyBranch` is the window over the branch (`tail` for the story, `head` for the viewer; the chunk is `UserSetting.storyPartsLimit`, empty loads everything), plain logic without UI. `StoryLazyLoader` fills the panel of a story tab with the cards of the last parts, scrolls to the bottom (or to the searched part, loading what is before it) and prepends the next chunk when the panel fires `edge-top`, keeping the visible part in place; `reveal(id)` loads back to a part (the outline). |
 | `StoryGenerationListener` | The `GenerationListener` of a story tab: creates and fills the cards while a generation streams, redraws the story at its end. The tab reacts through `Callbacks`. |
 | `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics` | The fields of the *New Turn Instructions* popover, the turn details of a part, the metadata lines of a part. |
-| `StoryBackup`, `StorySupport` | The automatic backup after N parts / minutes, and the scroll position tracking and saving of an edited part. |
+| `StoryBackup`, `StorySupport` | The automatic backup after N parts / minutes, the limit of parts to load (`partsLimit`) and the saving of an edited part. The story does not remember a scroll position: it always opens at the bottom. |
 
 The helpers are `@Extendable` instances (the tabs create them with `new`, `StoryBackup` and `StorySupport` are
 `@Configurable`), so a decorator of one of their methods applies to the desktop and the phone tab alike. The inner
@@ -498,7 +499,8 @@ The story editor is the main example: `startGeneration` freezes the book window,
 Prefer Java components. When the browser has to do something (scroll positions, element sizes), the script is a
 static method of `ui.JavascriptLibrary` - UI classes don't call `executeJs` themselves. The element is passed
 explicitly (`$0`, not `this`), and a script that returns a value returns the `PendingJavaScriptResult`, read with
-`.then(...)`; see `UIUtils.getPositionAndSizeOfElement`, the scroll handling in `ManuscriptStoryPart` and
+`.then(...)`; see `UIUtils.getPositionAndSizeOfElement`, `JavascriptLibrary.watchEdge` (fires `edge-top` /
+`edge-bottom` when a scroll element gets close to that edge, the lazy loading of the story and the viewer) and
 `JavascriptLibrary.scrollTextAreaToBottom` (the extension log is shown scrolled to its newest line).
 Extensions keep their own scripts.
 
@@ -525,7 +527,7 @@ The link fires `NodeGotoEvent`. `onNodeGoto` resolves the id among the messages 
 `ChatMessageService.findLeafFor` for the end of the branch to show, makes it the book's active leaf when it is not
 (`ManuscriptDialog.save`) and calls `ManuscriptDialog.showMessage(id)`. That tells `ManuscriptStoryPart` which part to
 scroll to (`scrollToMessageOnNextRender`) and selects the story tab; entering the tab renders the story, which scrolls to
-the part (and flashes it) instead of restoring the saved scroll position.
+the part (and flashes it) instead of scrolling to the bottom; the parts before it are loaded (`StoryLazyLoader`).
 
 ### Styles
 
