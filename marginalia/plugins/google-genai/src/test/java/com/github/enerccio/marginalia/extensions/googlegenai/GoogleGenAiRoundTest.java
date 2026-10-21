@@ -51,6 +51,16 @@ class GoogleGenAiRoundTest {
     }
 
     @Test
+    void theThoughtSignatureOfACallIsKeptWithTheCall() {
+        Answer answer = new Answer();
+        answer.absorb(response("STOP", usage(), Part.builder()
+                .functionCall(FunctionCall.builder().name("ask_user").id("c1").args(Map.of()).build())
+                .thoughtSignature(new byte[]{7, 8, 9}).build()), true);
+
+        assertEquals(java.util.Base64.getEncoder().encodeToString(new byte[]{7, 8, 9}), answer.calls.getFirst().getSignature());
+    }
+
+    @Test
     void theUsageHasTheCacheTheThinkingAndWhyTheAnswerEnded() {
         Answer answer = new Answer();
         answer.absorb(response("STOP", usage(), Part.builder().functionCall(FunctionCall.builder().name("list_files").args(Map.of()).build()).build()), true);

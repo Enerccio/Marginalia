@@ -101,6 +101,19 @@ class AgentMessageServiceTest extends AgentTestBase {
     }
 
     @Test
+    void whatTheProviderWantsBackWithACallIsKeptInTheTranscript() throws Exception {
+        AgentRun run = run();
+        messageService.append(run, List.of(LLMChatMessage.of(LLMRole.USER, "task")));
+        messageService.appendAnswer(run, LLMChatMessage.ofToolCalls(null, List.of(LLMToolCall.of("c1", "ask_user", "{}", "c2lnbmVk"),
+                LLMToolCall.of("c2", "list_files", "{}"))), 100, null);
+
+        List<LLMToolCall> calls = messageService.transcript(run).get(1).getToolCalls();
+
+        assertThat(calls.get(0).getSignature()).isEqualTo("c2lnbmVk");
+        assertThat(calls.get(1).getSignature()).isNull();
+    }
+
+    @Test
     void compactingMarksEverythingAndTheSummaryIsAllTheModelReads() throws Exception {
         AgentRun run = run();
         messageService.append(run, List.of(LLMChatMessage.of(LLMRole.USER, "first"), LLMChatMessage.of(LLMRole.ASSISTANT, "second")));

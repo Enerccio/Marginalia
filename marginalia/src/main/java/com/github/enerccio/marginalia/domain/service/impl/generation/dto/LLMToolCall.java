@@ -9,6 +9,7 @@ public class LLMToolCall {
     private String id;
     private String name;
     private String arguments;
+    private String signature;
 
     /** Identifies the call, the result message refers to it. */
     public String getId() {
@@ -36,11 +37,29 @@ public class LLMToolCall {
         this.arguments = arguments;
     }
 
+    /**
+     * What the provider that made the call wants back with it when the conversation is sent again, opaque text (Google's thought
+     * signature, base64); null when it gave none. It is kept with the call in the transcript of an agent.
+     */
+    public String getSignature() {
+        return signature;
+    }
+
+    public void setSignature(String signature) {
+        this.signature = signature;
+    }
+
     public static LLMToolCall of(String id, String name, String arguments) {
         LLMToolCall call = new LLMToolCall();
         call.id = id;
         call.name = name;
         call.arguments = arguments;
+        return call;
+    }
+
+    public static LLMToolCall of(String id, String name, String arguments, String signature) {
+        LLMToolCall call = of(id, name, arguments);
+        call.signature = signature;
         return call;
     }
 
