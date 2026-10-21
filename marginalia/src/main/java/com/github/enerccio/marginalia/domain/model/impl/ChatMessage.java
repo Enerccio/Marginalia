@@ -113,10 +113,6 @@ public class ChatMessage extends ExtendableEntity {
 
     @ExtendedAttribute
     @Transient
-    private Integer scrollPosition;
-
-    @ExtendedAttribute
-    @Transient
     private String backgroundLore;
 
     // JSON of PromptTokenBreakdown, extended attributes are plain strings; null for parts generated before it existed
@@ -162,7 +158,6 @@ public class ChatMessage extends ExtendableEntity {
         this.originalResponse = source.originalResponse;
         this.responseReasoning = source.responseReasoning;
         this.sceneSetting = source.sceneSetting;
-        this.scrollPosition = source.scrollPosition;
         this.tokenCount = source.tokenCount;
         this.tokenReasoningCount = source.tokenReasoningCount;
         this.ttft = source.ttft;
@@ -345,14 +340,6 @@ public class ChatMessage extends ExtendableEntity {
 
     public void setBuiltPromptTokens(Long builtPromptTokens) {
         this.builtPromptTokens = builtPromptTokens;
-    }
-
-    public Integer getScrollPosition() {
-        return scrollPosition;
-    }
-
-    public void setScrollPosition(Integer scrollPosition) {
-        this.scrollPosition = scrollPosition;
     }
 
     public String getBackgroundLore() {

@@ -97,6 +97,7 @@ public class UserPart implements WorkspaceComponent {
     private ComboBox<Protocol> defaultProtocolCombo;
     private ComboBox<BackupStrategy> backupStrategyCombo;
     private IntegerField backupStrategyValueField;
+    private IntegerField storyPartsLimitField;
     // the message to a URL when an agent needs the user, for users who may use agents
     private TextField agentWebhookUrlField;
     private ComboBox<WebhookFormat> agentWebhookFormatCombo;
@@ -161,6 +162,7 @@ public class UserPart implements WorkspaceComponent {
         defaultsFormLayout.setWidthFull();
         defaultsFormLayout.add(defaultModelCombo, defaultProtocolCombo);
         defaultsFormLayout.add(new HorizontalLayout(backupStrategyCombo, backupStrategyValueField));
+        defaultsFormLayout.add(storyPartsLimitField);
         defaultsFormLayout.add(agentWebhookUrlField, 2);
         defaultsFormLayout.add(agentWebhookFormatCombo, agentWebhookAlwaysBox);
         defaultsFormLayout.add(agentWebhookTestButton, 2);
@@ -310,6 +312,13 @@ public class UserPart implements WorkspaceComponent {
         backupStrategyValueField.setStepButtonsVisible(true);
 
         backupStrategyCombo.addValueChangeListener(e -> updateBackupStrategyValueField(e.getValue()));
+
+        storyPartsLimitField = new IntegerField(loc.getValue(L.LABEL_STORY_PARTS_LIMIT));
+        storyPartsLimitField.setWidthFull();
+        storyPartsLimitField.setMin(1);
+        storyPartsLimitField.setStepButtonsVisible(true);
+        storyPartsLimitField.setClearButtonVisible(true);
+        storyPartsLimitField.setHelperText(loc.getValue(L.HELP_STORY_PARTS_LIMIT));
 
         agentWebhookUrlField = new TextField(loc.getValue(L.LABEL_AGENT_WEBHOOK_URL));
         agentWebhookUrlField.setWidthFull();
@@ -537,6 +546,7 @@ public class UserPart implements WorkspaceComponent {
             }
             updateBackupStrategyValueField(strategy);
 
+            storyPartsLimitField.setValue(userSetting.getStoryPartsLimit());
             masterTemplateField.setValue(StringUtils.defaultString(userSetting.getMasterTemplate()));
             defaultPovField.setValue(StringUtils.defaultString(userSetting.getDefaultPov()));
             defaultTenseField.setValue(StringUtils.defaultString(userSetting.getDefaultTense()));
@@ -638,6 +648,7 @@ public class UserPart implements WorkspaceComponent {
                     @APILocals(name = "defaultStyle", type = String.class),
                     @APILocals(name = "selectedModel", type = AI.class),
                     @APILocals(name = "selectedProtocol", type = Protocol.class),
+                    @APILocals(name = "storyPartsLimit", type = Integer.class),
                     @APILocals(name = "e", type = Exception.class)})
     private void save() {
         if (userSetting == null) {
@@ -678,6 +689,9 @@ public class UserPart implements WorkspaceComponent {
 
             userSetting.setBackupStrategy(strategy);
             userSetting.setBackupStrategyValue(strategy != null && backupStrategyValueField.getValue() != null ? String.valueOf(backupStrategyValueField.getValue()) : null);
+
+            Integer storyPartsLimit = storyPartsLimitField.getValue();
+            userSetting.setStoryPartsLimit(storyPartsLimit != null && storyPartsLimit > 0 ? storyPartsLimit : null);
 
             userSetting.setMasterTemplate(masterTemplate);
             userSetting.setDefaultPov(defaultPov);

@@ -584,6 +584,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_IMPORT_FROM_ARCHIVE, "从压缩包导入");
         setValue(L.LABEL_ENTRY_NAMES, "条目名称");
         setValue(L.LABEL_ARCHIVE_FILE, "压缩包中的文件");
+        setValue(L.LABEL_STORY_PARTS_LIMIT, "故事中一次加载的段落数");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -959,6 +960,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_IMPORT_ARCHIVE_NEW_BOOK, "上传 .md 文件的 zip 压缩包。每个文件按文件名顺序成为以压缩包命名的新书中的一个段落。");
         setValue(L.MSG_ARCHIVE_ENTRY_NAMES, "请检查条目名称。压缩包中的 names.txt（每行一个名称，按文件顺序）会自动填入；留空的名称将使用文件的第一个标题或文件名。");
         setValue(L.MSG_ARCHIVE_PARTS_ADDED, "已添加 %d 个段落。");
+        setValue(L.MSG_ARCHIVE_ENTRIES_ADDED, "已添加 %d 个条目。");
+        setValue(L.MSG_ARCHIVE_IMPORT_STOPPED, "已停止：已导入 %d / %d 个文件，其余未导入。");
+        setValue(L.MSG_IMPORTING_ARCHIVE, "正在从压缩包导入");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1029,6 +1033,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_COMMAND_BATCH_POLICY, "该命令在一次回答的多个调用中的使用方式。可一起：可与其他调用一起调用。单独：因耗时或成本高（例如会调用模型），或应先读取其结果，而在单独的回答中调用。可在智能体设置中忽略此项。");
         setValue(L.HELP_AGENT_BATCH_MODE, "决定智能体一次回答中有多少个调用会被执行。全部一起：无论命令的批处理策略如何，全部执行（最快）。一起（标记为“单独”的命令单独执行）：调用一起执行，但标记为“单独”的命令在单独的回答中执行。每次回答只调用一次：只执行第一个调用，智能体读完结果后再写下一个（最慢，每个调用都是带模型思考的一轮，但能对每个结果作出反应）。在所有模式下，出现错误都会结束该回答：失败调用之后的调用不会执行。");
         setValue(L.HELP_LOREBOOK_MASS_EDIT, "按顺序列出世界书及其子世界书的所有条目。可以直接修改条目的启用框、名称、顺序和标签，正文已被缩短（要阅读或编辑请在世界书中打开该条目）。用每行的世界书框可将条目移动到该世界书本身或其子世界书，也可以用底部的框一次移动所有已勾选的条目。智能体正在处理的世界书的条目显示为灰色，无法更改。");
+        setValue(L.HELP_STORY_PARTS_LIMIT, "故事视图和阅读器一次只显示书中这么多段落：故事视图显示最后的段落（向上滚动时加载更早的段落），阅读器显示最前的段落（向下滚动时加载后面的段落）。留空则一次显示全部段落。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

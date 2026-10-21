@@ -11,7 +11,6 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationR
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
-import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.components.MessageImages;
 import com.github.enerccio.marginalia.ui.dialogs.*;
@@ -24,9 +23,9 @@ import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialogPart
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneSummariesDialog;
 import com.github.enerccio.marginalia.ui.dialogs.search.ManuscriptSearchReplaceDialog;
 import com.github.enerccio.marginalia.ui.dialogs.story.*;
-import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
+import com.github.enerccio.marginalia.utils.MarkdownArchive;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonObject;
 import com.vaadin.flow.component.Component;
@@ -109,6 +108,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
 
     private final StoryCards<ChatMessageCard> cards = new StoryCards<>();
     private final StorySupport support = new StorySupport();
+    private StoryLazyLoader<ChatMessageCard> lazyLoader;
     private final StoryBackup backup = new StoryBackup();
     private Long scrollToMessageId;
 
@@ -142,7 +142,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         centerContentPanel.setSizeFull();
         centerContentPanel.addClassName(CssStyles.STORY_SCROLL_PANEL);
 
-        setupScrollListener();
+        lazyLoader = new StoryLazyLoader<>(centerContentPanel, cards, ChatMessageCard::new, () -> isFrozen);
 
         bottomControlsLayout = buildBottomControls();
 
@@ -153,12 +153,6 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         layout.setContent(centerLayout);
         applyBookStyles();
         return layout;
-    }
-
-    @PublicAPI(from = "1.1.0",
-            returns = @APIReturn(type = void.class))
-    private void setupScrollListener() {
-        support.trackScrollPosition(centerContentPanel, () -> currentManuscript, () -> isFrozen);
     }
 
     @PublicAPI(from = "1.1.0",
@@ -301,17 +295,14 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
 
     /**
      * Asks for a zip archive of {@code .md} files and adds a part for each file to the end of the story, see
-     * {@link ChatMessageService#appendFromArchive}; the story is shown again.
+     * {@link ArchiveImportService#appendParts}; the story is shown again.
      */
     @PublicAPI(from = "1.4.0",
             returns = @APIReturn(type = void.class))
     private void openArchiveImportDialog() {
         ArchiveUploadDialog.show(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE), loc.getValue(L.MSG_IMPORT_ARCHIVE_TO_BOOK),
-                (archive, fileName) -> {
-                    int parts = chatMessageService.appendFromArchive(parent.refreshManuscript(), archive);
-                    Notification.success(String.format(loc.getValue(L.MSG_ARCHIVE_PARTS_ADDED), parts));
-                    load(parent.refreshManuscript());
-                });
+                (archive, fileName) -> new ArchiveImportRunner().appendParts(parent.refreshManuscript(), MarkdownArchive.read(archive),
+                        imported -> load(parent.refreshManuscript())));
     }
 
     @PublicAPI(from = "1.1.0",
@@ -430,16 +421,14 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                     @APILocals(name = "branch", type = List.class),
                     @APILocals(name = "header", type = String.class),
                     @APILocals(name = "msg", type = ChatMessage.class),
-                    @APILocals(name = "dbId", type = Long.class),
-                    @APILocals(name = "card", type = PhoneManuscriptStoryPart.ChatMessageCard.class),
-                    @APILocals(name = "e", type = Exception.class),
-                    @APILocals(name = "target", type = PhoneManuscriptStoryPart.ChatMessageCard.class)})
+                    @APILocals(name = "e", type = Exception.class)})
     private void renderStoryContent() {
         Set<Long> openedReasonings = cards.collectOpenedReasonings();
 
         centerContentPanel.removeAll();
         sidebarList.removeAll();
         cards.clear();
+        lazyLoader.clear();
 
         if (currentManuscript == null || currentManuscript.getActiveLeaf() == null) {
             sidebarHeader.setText("");
@@ -456,48 +445,27 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
 
                 for (int i = 0; i < total; i++) {
                     ChatMessage msg = branch.get(i);
-                    int orderId = i + 1;
-                    Long dbId = msg.getId();
-
-                    createSidebarButton(msg, orderId, dbId);
-
-                    boolean isLast = (i == total - 1);
-                    ChatMessageCard card = new ChatMessageCard(msg, isLast, orderId);
-                    card.setFrozen(isFrozen);
-                    card.setReasoningOpened(openedReasonings.contains(dbId));
-                    cards.put(card);
-                    centerContentPanel.add(card);
+                    createSidebarButton(msg, i + 1, msg.getId());
                 }
+
+                // the cards of the last parts only, the earlier ones are added when the user scrolls up
+                lazyLoader.render(branch, support.partsLimit(), scrollToMessageId, openedReasonings);
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }
-
-            ChatMessageCard target = scrollToMessageId != null ? cards.get(scrollToMessageId) : null;
             scrollToMessageId = null;
-            if (target != null) {
-                scrollToCard(target);
-            } else {
-                restoreScrollPosition();
-            }
         }
     }
 
     /**
-     * The next render of the story (the tab being entered) scrolls to the part instead of restoring the scroll
-     * position, used by the search of the tree.
+     * The next render of the story (the tab being entered) scrolls to the part instead of to the bottom (the parts
+     * before it are loaded), used by the search of the tree.
      */
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "messageId", type = Long.class)})
     public void scrollToMessageOnNextRender(Long messageId) {
         this.scrollToMessageId = messageId;
-    }
-
-    @PublicAPI(from = "1.1.0",
-            returns = @APIReturn(type = void.class),
-            parameters = {@APIParameter(name = "card", type = PhoneManuscriptStoryPart.ChatMessageCard.class)})
-    private void scrollToCard(ChatMessageCard card) {
-        JavascriptLibrary.scrollToAndHighlight(card.getElement());
     }
 
     @PublicAPI(from = "1.1.0",
@@ -514,8 +482,9 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
 
         sidebarBtn.addClickListener(event -> {
             layout.setDrawerOpened(false);
-            if (dbId != null && cards.contains(dbId)) {
-                cards.get(dbId).scrollIntoView();
+            ChatMessageCard card = dbId != null ? lazyLoader.reveal(dbId) : null;
+            if (card != null) {
+                card.scrollIntoView();
             }
         });
         sidebarList.add(sidebarBtn);
@@ -559,17 +528,6 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
     }
 
     @PublicAPI(from = "1.1.0",
-            returns = @APIReturn(type = void.class),
-            locals = {@APILocals(name = "leaf", type = ChatMessage.class),
-                    @APILocals(name = "savedPos", type = Integer.class)})
-    private void restoreScrollPosition() {
-        ChatMessage leaf = currentManuscript != null ? currentManuscript.getActiveLeaf() : null;
-        Integer savedPos = (leaf != null) ? leaf.getScrollPosition() : null;
-
-        JavascriptLibrary.restoreScrollPosition(centerContentPanel.getElement(), savedPos);
-    }
-
-    @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class))
     public void autosaveAndSwapAllToMarkdown() {
         cards.autosaveAndSwapAllToMarkdown();
@@ -606,7 +564,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                     turnInput,
                     request,
                     new StoryGenerationListener<>(ui, request, cards, centerContentPanel, ChatMessageCard::new, parent,
-                            chatMessageService, loc, new StoryGenerationListener.Callbacks() {
+                            loc, new StoryGenerationListener.Callbacks() {
                         @Override
                         public void generationEnded() {
                             activeGenerationToken = null;
@@ -871,24 +829,14 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
 
             deleteItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_DELETE), event -> {
                 ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
-                    JavascriptLibrary.getScrollTop(centerContentPanel.getElement()).then(Integer.class, scrollTop -> {
-                        try {
-                            Long parentId = message.getParent() != null ? message.getParent().getId() : null;
+                    try {
+                        chatMessageService.deleteNodeAndMigrateChildren(message, currentManuscript, false);
 
-                            chatMessageService.deleteNodeAndMigrateChildren(message, currentManuscript, false);
-
-                            parent.refreshManuscript();
-                            load(parent.getManuscript());
-
-                            if (scrollTop != null && scrollTop > 0) {
-                                JavascriptLibrary.setScrollTop(centerContentPanel.getElement(), scrollTop);
-                            } else if (parentId != null && cards.contains(parentId)) {
-                                cards.get(parentId).scrollIntoView();
-                            }
-                        } catch (Exception e) {
-                            UIUtils.internalServerError(loc, e);
-                        }
-                    });
+                        parent.refreshManuscript();
+                        load(parent.getManuscript());
+                    } catch (Exception e) {
+                        UIUtils.internalServerError(loc, e);
+                    }
                 });
             });
 

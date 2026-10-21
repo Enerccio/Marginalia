@@ -576,6 +576,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_IMPORT_FROM_ARCHIVE, "アーカイブからインポート");
         setValue(L.LABEL_ENTRY_NAMES, "エントリ名");
         setValue(L.LABEL_ARCHIVE_FILE, "アーカイブ内のファイル");
+        setValue(L.LABEL_STORY_PARTS_LIMIT, "ストーリーで一度に読み込むパート数");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -951,6 +952,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_IMPORT_ARCHIVE_NEW_BOOK, ".md ファイルの zip アーカイブをアップロードします。各ファイルは、ファイル名順に、アーカイブ名の新しい本のパートになります。");
         setValue(L.MSG_ARCHIVE_ENTRY_NAMES, "エントリ名を確認してください。アーカイブ内の names.txt(1 行に 1 つ、ファイルの順)があればそれが入ります。空欄の名前は、ファイルの最初の見出しまたはファイル名になります。");
         setValue(L.MSG_ARCHIVE_PARTS_ADDED, "%d 個のパートを追加しました。");
+        setValue(L.MSG_ARCHIVE_ENTRIES_ADDED, "%d 個のエントリを追加しました。");
+        setValue(L.MSG_ARCHIVE_IMPORT_STOPPED, "停止しました:%d / %d 個のファイルをインポートしました。残りはインポートされていません。");
+        setValue(L.MSG_IMPORTING_ARCHIVE, "アーカイブからインポート中");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1021,6 +1025,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_COMMAND_BATCH_POLICY, "1回の回答に含まれる呼び出しの中での、このコマンドの使われ方です。まとめて：他の呼び出しと一緒に呼べます。単独：時間やコストがかかる（例：モデルを呼び出す）、または結果を先に読むべきため、単独の回答で呼びます。エージェントの設定で無視することもできます。");
         setValue(L.HELP_AGENT_BATCH_MODE, "エージェントの1回の回答の呼び出しをいくつ実行するかを決めます。すべてまとめて：コマンドのバッチポリシーに関係なくすべて実行（最速）。まとめて（「単独」は単独で）：呼び出しはまとめて実行しますが、「単独」のコマンドは単独の回答で実行します。1回の回答につき1回：最初の呼び出しだけを実行し、エージェントは結果を読んでから次を書きます（各呼び出しがモデルの思考を伴う1ラウンドになり最も遅いですが、各結果に対応できます）。どのモードでも、エラーが起きるとその回答は終了し、失敗した呼び出しの後の呼び出しは実行されません。");
         setValue(L.HELP_LOREBOOK_MASS_EDIT, "ロアブックとそのサブブックのすべてのエントリを順序で表示します。有効のチェック、名前、順序、タグはその場で変更できます。本文は短縮されています（読む・編集するにはロアブックでエントリを開いてください）。行のロアブック欄で、エントリをそのロアブック自身またはサブブックに移動できます。下の欄でチェックしたエントリをまとめて移動することもできます。エージェントが作業中のロアブックのエントリはグレー表示で、変更できません。");
+        setValue(L.HELP_STORY_PARTS_LIMIT, "ストーリーとリーダーは、本のパートを一度にこの数だけ表示します。ストーリーは末尾のパートを表示し、上にスクロールすると前のパートを読み込みます。リーダーは先頭のパートを表示し、下にスクロールすると次のパートを読み込みます。空欄の場合はすべてのパートを一度に表示します。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

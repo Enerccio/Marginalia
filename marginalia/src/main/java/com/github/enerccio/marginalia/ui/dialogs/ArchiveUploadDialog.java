@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Span;
@@ -36,6 +37,8 @@ public class ArchiveUploadDialog extends Dialog {
     private final String message;
     private final Handler handler;
 
+    private final UI ui = UI.getCurrent();
+
     private ArchiveUploadDialog(String title, String message, Handler handler) {
         this.title = title;
         this.message = message;
@@ -56,6 +59,10 @@ public class ArchiveUploadDialog extends Dialog {
         setWidth("450px");
 
         InMemoryUploadHandler uploadHandler = new InMemoryUploadHandler((metadata, data) -> {
+            // the dialogs the handler opens find the UI of the upload
+            if (UI.getCurrent() == null) {
+                UI.setCurrent(ui);
+            }
             try {
                 handler.accept(data, metadata.fileName());
                 close();

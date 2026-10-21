@@ -222,6 +222,8 @@
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.ExporterServiceImpl" />
 
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ArchiveImportServiceImpl" />
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.CommandServiceImpl" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.CleanupServiceImpl">

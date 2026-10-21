@@ -7,9 +7,9 @@ import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.dialogs.ArchiveImportRunner;
 import com.github.enerccio.marginalia.ui.dialogs.ArchiveUploadDialog;
 import com.github.enerccio.marginalia.ui.dialogs.TextInputDialog;
-import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.workspace.ManuscriptSection;
 import com.github.enerccio.marginalia.utils.MarkdownArchive;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -39,9 +39,6 @@ public class NewBookAction {
 
     @Autowired
     private ProtocolService protocolService;
-
-    @Autowired
-    private ChatMessageService chatMessageService;
 
     private final Opener opener;
 
@@ -73,18 +70,17 @@ public class NewBookAction {
 
     /**
      * Asks for a zip archive of {@code .md} files and opens a new book named after it, with a part for each file, see
-     * {@link ChatMessageService#appendFromArchive}.
+     * {@link ArchiveImportService#appendParts}.
      */
     public void runFromArchive() {
         ArchiveUploadDialog.show(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE), loc.getValue(L.MSG_IMPORT_ARCHIVE_NEW_BOOK),
                 (archive, fileName) -> {
                     // the archive is checked before the book is made, a book is not left empty by a bad file
-                    MarkdownArchive.read(archive);
+                    MarkdownArchive.Content content = MarkdownArchive.read(archive);
                     String name = fileName.toLowerCase().endsWith(".zip") ? fileName.substring(0, fileName.length() - 4) : fileName;
                     Manuscript manuscript = createBook(StringUtils.defaultIfBlank(name.trim(), loc.getValue(L.LABEL_NEW_BOOK)));
-                    int parts = chatMessageService.appendFromArchive(manuscript, archive);
-                    Notification.success(String.format(loc.getValue(L.MSG_ARCHIVE_PARTS_ADDED), parts));
-                    opener.open(manuscriptService.find(manuscript));
+                    // a stopped import leaves the book with the parts until then, it is opened too
+                    new ArchiveImportRunner().appendParts(manuscript, content, imported -> opener.open(manuscriptService.find(manuscript)));
                 });
     }
 
