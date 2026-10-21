@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845881182475">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845891627879">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845881182475" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845891627879" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845881182475" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845891627879" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845881182475" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845881182475" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845891627879" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845891627879" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -280,11 +280,12 @@ change it. The code is in <code translate="no" v-pre>ui/</code>.</p>
 full-viewport body, <code translate="no" v-pre>shared-styles.css</code>, page title, PWA metadata.</li>
 <li><code translate="no" v-pre>MarginaliaServlet</code> is the <code translate="no" v-pre>VaadinServlet</code> mapped to <code translate="no" v-pre>/*</code> (with <code translate="no" v-pre>asyncSupported</code> for push).</li>
 <li>
-<p>There are two routes, both extending <code translate="no" v-pre>LoginCheckRoute</code>:</p>
+<p>There are three routes, all extending <code translate="no" v-pre>LoginCheckRoute</code>:</p>
 <retype-table copy-text="| Route | Class | Shows |
   |---|---|---|
   | `/` | `Main` | The workspace. |
-  | `/view`, `/view/&lt;uuid&gt;` | `Viewer` | The reader: a list of the user's own books, and a book's active branch as text (own or published books, by link). |">
+  | `/view`, `/view/&lt;uuid&gt;` | `Viewer` | The reader: a list of the user's own books, and a book's active branch as text (own or published books, by link). |
+  | `/reset` | `Reset` | No page: after the login it empties `UserSetting.workspaceState` and sends the browser to `/`, the way back into a workspace whose restored state freezes the browser. It builds no workspace. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -304,6 +305,11 @@ full-viewport body, <code translate="no" v-pre>shared-styles.css</code>, page ti
 <td><code translate="no" v-pre>/view</code>, <code translate="no" v-pre>/view/&lt;uuid&gt;</code></td>
 <td><code translate="no" v-pre>Viewer</code></td>
 <td>The reader: a list of the user&#x27;s own books, and a book&#x27;s active branch as text (own or published books, by link).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/reset</code></td>
+<td><code translate="no" v-pre>Reset</code></td>
+<td>No page: after the login it empties <code translate="no" v-pre>UserSetting.workspaceState</code> and sends the browser to <code translate="no" v-pre>/</code>, the way back into a workspace whose restored state freezes the browser. It builds no workspace.</td>
 </tr>
 </tbody>
 </table>
@@ -666,8 +672,8 @@ their layout and the methods extensions decorate (<code translate="no" v-pre>ren
 <retype-table copy-text="| Class | Does |
 |---|---|
 | `StoryHost` | What a story tab needs from its dialog (`refreshManuscript`, `save`, `freeze`, `unfreeze`); `ManuscriptDialog` and `PhoneManuscriptDialog` implement it (through `ManuscriptWindow`). |
-| `StoryCard`, `StoryCards` | The card interface both `ChatMessageCard` classes implement, and the registry of the cards of the branch and the streaming one (opened reasonings, last flags, freezing, autosave; `getOffset` is how many parts of the branch have no card because they are before the first one, `prependAll` puts earlier cards in front). |
-| `LazyBranch`, `StoryLazyLoader` | Lazy loading of the parts. `LazyBranch` is the window over the branch (`tail` for the story, `head` for the viewer; the chunk is `UserSetting.storyPartsLimit`, empty loads everything), plain logic without UI. `StoryLazyLoader` fills the panel of a story tab with the cards of the last parts, scrolls to the bottom (or to the searched part, loading what is before it) and prepends the next chunk when the panel fires `edge-top`, keeping the visible part in place; `reveal(id)` loads back to a part (the outline). |
+| `StoryCard`, `StoryCards` | The card interface both `ChatMessageCard` classes implement, and the registry of the cards of the branch and the streaming one (opened reasonings, last flags, freezing, autosave; `getOffset` is how many parts of the branch have no card because they are before the first one, `prependAll` puts earlier cards in front; the loader sets the offset after it drops cards at the start). |
+| `LazyBranch`, `StoryLazyLoader`, `ReaderLazyLoader` | Lazy loading of the parts, a window that slides over the branch. `LazyBranch` is the plain logic without UI: the size of the window is `UserSetting.storyPartsLimit` (empty loads everything), a chunk is half of it; `tail` starts the story with the last parts, `head` the reader with the first ones, `loadEarlier` / `loadLater` extend the window by a chunk and `trimLater` / `trimEarlier` drop the parts at the other end, `centerOn(id)` moves it around a part that is not loaded, `moveToTail` back to the end, `refresh` swaps in the instance a card holds now (an edit saves a new one). `StoryLazyLoader` fills the panel of a story tab with the cards of the window and answers `edge-top` / `edge-bottom` of the panel: it adds the chunk, drops the other end (an edited card is saved first; nothing is dropped while a part is generated, because the streaming card is the last one and the branch does not have it) and puts the visible part back in place. `scrollTo(id)` is the outline (moves the window when the part is not loaded), `showTail()` is called before a generation starts, so the new part is added after the last one. `ReaderLazyLoader` does the same for the reader (`Viewer`) with plain parts that carry `data-message-id`. Both put a `LazyLoadIndicator` in the header and footer of the `ScrollPanel` (`setHeader` / `setFooter`) while there is more to load at that edge, so a user who outruns the loading sees it. |
 | `StoryGenerationListener` | The `GenerationListener` of a story tab: creates and fills the cards while a generation streams, redraws the story at its end. The tab reacts through `Callbacks`. |
 | `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics` | The fields of the *New Turn Instructions* popover, the turn details of a part, the metadata lines of a part. |
 | `StoryBackup`, `StorySupport` | The automatic backup after N parts / minutes, the limit of parts to load (`partsLimit`) and the saving of an edited part. The story does not remember a scroll position: it always opens at the bottom. |">
@@ -686,11 +692,11 @@ their layout and the methods extensions decorate (<code translate="no" v-pre>ren
 </tr>
 <tr>
 <td><code translate="no" v-pre>StoryCard</code>, <code translate="no" v-pre>StoryCards</code></td>
-<td>The card interface both <code translate="no" v-pre>ChatMessageCard</code> classes implement, and the registry of the cards of the branch and the streaming one (opened reasonings, last flags, freezing, autosave; <code translate="no" v-pre>getOffset</code> is how many parts of the branch have no card because they are before the first one, <code translate="no" v-pre>prependAll</code> puts earlier cards in front).</td>
+<td>The card interface both <code translate="no" v-pre>ChatMessageCard</code> classes implement, and the registry of the cards of the branch and the streaming one (opened reasonings, last flags, freezing, autosave; <code translate="no" v-pre>getOffset</code> is how many parts of the branch have no card because they are before the first one, <code translate="no" v-pre>prependAll</code> puts earlier cards in front; the loader sets the offset after it drops cards at the start).</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>LazyBranch</code>, <code translate="no" v-pre>StoryLazyLoader</code></td>
-<td>Lazy loading of the parts. <code translate="no" v-pre>LazyBranch</code> is the window over the branch (<code translate="no" v-pre>tail</code> for the story, <code translate="no" v-pre>head</code> for the viewer; the chunk is <code translate="no" v-pre>UserSetting.storyPartsLimit</code>, empty loads everything), plain logic without UI. <code translate="no" v-pre>StoryLazyLoader</code> fills the panel of a story tab with the cards of the last parts, scrolls to the bottom (or to the searched part, loading what is before it) and prepends the next chunk when the panel fires <code translate="no" v-pre>edge-top</code>, keeping the visible part in place; <code translate="no" v-pre>reveal(id)</code> loads back to a part (the outline).</td>
+<td><code translate="no" v-pre>LazyBranch</code>, <code translate="no" v-pre>StoryLazyLoader</code>, <code translate="no" v-pre>ReaderLazyLoader</code></td>
+<td>Lazy loading of the parts, a window that slides over the branch. <code translate="no" v-pre>LazyBranch</code> is the plain logic without UI: the size of the window is <code translate="no" v-pre>UserSetting.storyPartsLimit</code> (empty loads everything), a chunk is half of it; <code translate="no" v-pre>tail</code> starts the story with the last parts, <code translate="no" v-pre>head</code> the reader with the first ones, <code translate="no" v-pre>loadEarlier</code> / <code translate="no" v-pre>loadLater</code> extend the window by a chunk and <code translate="no" v-pre>trimLater</code> / <code translate="no" v-pre>trimEarlier</code> drop the parts at the other end, <code translate="no" v-pre>centerOn(id)</code> moves it around a part that is not loaded, <code translate="no" v-pre>moveToTail</code> back to the end, <code translate="no" v-pre>refresh</code> swaps in the instance a card holds now (an edit saves a new one). <code translate="no" v-pre>StoryLazyLoader</code> fills the panel of a story tab with the cards of the window and answers <code translate="no" v-pre>edge-top</code> / <code translate="no" v-pre>edge-bottom</code> of the panel: it adds the chunk, drops the other end (an edited card is saved first; nothing is dropped while a part is generated, because the streaming card is the last one and the branch does not have it) and puts the visible part back in place. <code translate="no" v-pre>scrollTo(id)</code> is the outline (moves the window when the part is not loaded), <code translate="no" v-pre>showTail()</code> is called before a generation starts, so the new part is added after the last one. <code translate="no" v-pre>ReaderLazyLoader</code> does the same for the reader (<code translate="no" v-pre>Viewer</code>) with plain parts that carry <code translate="no" v-pre>data-message-id</code>. Both put a <code translate="no" v-pre>LazyLoadIndicator</code> in the header and footer of the <code translate="no" v-pre>ScrollPanel</code> (<code translate="no" v-pre>setHeader</code> / <code translate="no" v-pre>setFooter</code>) while there is more to load at that edge, so a user who outruns the loading sees it.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>StoryGenerationListener</code></td>
@@ -990,7 +996,8 @@ request scope, and <code translate="no" v-pre>vaadinLocked(...)</code> / <code t
 static method of <code translate="no" v-pre>ui.JavascriptLibrary</code> - UI classes don&#x27;t call <code translate="no" v-pre>executeJs</code> themselves. The element is passed
 explicitly (<code translate="no" v-pre>$0</code>, not <code translate="no" v-pre>this</code>), and a script that returns a value returns the <code translate="no" v-pre>PendingJavaScriptResult</code>, read with
 <code translate="no" v-pre>.then(...)</code>; see <code translate="no" v-pre>UIUtils.getPositionAndSizeOfElement</code>, <code translate="no" v-pre>JavascriptLibrary.watchEdge</code> (fires <code translate="no" v-pre>edge-top</code> /
-<code translate="no" v-pre>edge-bottom</code> when a scroll element gets close to that edge, the lazy loading of the story and the viewer) and
+<code translate="no" v-pre>edge-bottom</code> when a scroll element gets close to that edge, with the distance of the opposite edge in <code translate="no" v-pre>detail.far</code>; it remembers the part the user sees first, and <code translate="no" v-pre>restoreAnchor</code> puts it back after the server added or dropped parts, which keeps the position while the lazy loading of the story and the viewer works; the story and the reader panels set <code translate="no" v-pre>overflow-anchor: none</code> so the browser does not correct it a second time),
+<code translate="no" v-pre>JavascriptLibrary.rememberReaderPosition</code> / <code translate="no" v-pre>readReaderPosition</code> (the viewer keeps the id of the first visible part per book uuid in the <code translate="no" v-pre>localStorage</code> of the browser, key <code translate="no" v-pre>marginalia.reader.position.&lt;uuid&gt;</code>; the server only reads it once when the book opens, it is never stored in the database) and
 <code translate="no" v-pre>JavascriptLibrary.scrollTextAreaToBottom</code> (the extension log is shown scrolled to its newest line).
 Extensions keep their own scripts.</p>
 <p>There are three JavaScript modules, all documented in <a href="../custom-components/">Custom components</a>. <code translate="no" v-pre>src/main/frontend/chart-connector.js</code> is loaded by <code translate="no" v-pre>ChartJs</code> (<code translate="no" v-pre>@JsModule</code>, with the
@@ -1012,7 +1019,7 @@ The search is kept while the tab is open and repeated on every <code translate="
 <code translate="no" v-pre>ChatMessageService.findLeafFor</code> for the end of the branch to show, makes it the book&#x27;s active leaf when it is not
 (<code translate="no" v-pre>ManuscriptDialog.save</code>) and calls <code translate="no" v-pre>ManuscriptDialog.showMessage(id)</code>. That tells <code translate="no" v-pre>ManuscriptStoryPart</code> which part to
 scroll to (<code translate="no" v-pre>scrollToMessageOnNextRender</code>) and selects the story tab; entering the tab renders the story, which scrolls to
-the part (and flashes it) instead of scrolling to the bottom; the parts before it are loaded (<code translate="no" v-pre>StoryLazyLoader</code>).</p>
+the part (and flashes it) instead of scrolling to the bottom; the window of parts is moved around it (<code translate="no" v-pre>StoryLazyLoader</code>).</p>
 <h3 id="styles">Styles</h3>
 <p>Global styles are in <code translate="no" v-pre>src/main/frontend/styles/shared-styles.css</code> (imported by <code translate="no" v-pre>AppShellConfig</code>): spacing helpers,
 the loading indicator, the story text (<code translate="no" v-pre>.chat-message</code>), the story tree (<code translate="no" v-pre>.Treant</code>) and the utility classes
@@ -1331,7 +1338,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (539bbbec).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (d0248cae).</p></div>
             </footer>
         </div>
     </div>

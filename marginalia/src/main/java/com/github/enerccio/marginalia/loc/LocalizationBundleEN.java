@@ -955,6 +955,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_ARCHIVE_ENTRIES_ADDED, "%d entries added.");
         setValue(L.MSG_ARCHIVE_IMPORT_STOPPED, "Stopped: %d of %d files imported, the rest was not.");
         setValue(L.MSG_IMPORTING_ARCHIVE, "Importing from archive");
+        setValue(L.MSG_LOADING_EARLIER_PARTS, "Loading earlier parts…");
+        setValue(L.MSG_LOADING_LATER_PARTS, "Loading later parts…");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1025,7 +1027,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_COMMAND_BATCH_POLICY, "How the command is used among the calls of one answer. Together: it may be called with others. Alone: it is called in an answer of its own, as it is long or costly (for example it makes a call to a model) or its result should be read first. The agent can be set to ignore this.");
         setValue(L.HELP_AGENT_BATCH_MODE, "How many calls of one answer of the agent are made. All together: every call, whatever the batch policies of the commands say (fastest). Together, commands marked Alone by themselves: the calls are made together, but a command marked Alone is made in an answer of its own. One call per answer: only the first call is made and the agent writes the next one after it has read the result (slowest, every call is a round with the thinking of the model, but it can react to each result). An error ends the answer in every mode: the calls after the failed one are not made.");
         setValue(L.HELP_LOREBOOK_MASS_EDIT, "Every entry of the lorebook and of its subbooks, by order. Change the enabled box, the name, the order and the tags of an entry in place, the text is shortened (open the entry in the lorebook to read or edit it). Move an entry to the lorebook itself or to one of its subbooks with the lorebook box of its row, or move all the checked entries at once with the box at the bottom. Entries of a lorebook an agent works on are grayed out and can't be changed.");
-        setValue(L.HELP_STORY_PARTS_LIMIT, "The story and the reader show only this many parts of the book at a time: the story the last ones (and loads the earlier ones as you scroll up), the reader the first ones (and loads the next ones as you scroll down). Empty shows all the parts at once.");
+        setValue(L.HELP_STORY_PARTS_LIMIT, "The story and the reader keep only this many parts of the book loaded: the story starts with the last ones, the reader where you stopped reading last time in this browser (or the first ones). The parts before and after are loaded as you scroll, and the ones far from where you are are dropped again. Empty loads all the parts at once.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

@@ -59,12 +59,13 @@ flowchart TB
 - `AppShellConfig` (`AppShellConfigurator`) sets up the page once: `@Push`, Lumo stylesheet, `@ColorScheme(DARK)`,
   full-viewport body, `shared-styles.css`, page title, PWA metadata.
 - `MarginaliaServlet` is the `VaadinServlet` mapped to `/*` (with `asyncSupported` for push).
-- There are two routes, both extending `LoginCheckRoute`:
+- There are three routes, all extending `LoginCheckRoute`:
 
   | Route | Class | Shows |
   |---|---|---|
   | `/` | `Main` | The workspace. |
   | `/view`, `/view/<uuid>` | `Viewer` | The reader: a list of the user's own books, and a book's active branch as text (own or published books, by link). |
+  | `/reset` | `Reset` | No page: after the login it empties `UserSetting.workspaceState` and sends the browser to `/`, the way back into a workspace whose restored state freezes the browser. It builds no workspace. |
 
 `LoginCheckRoute` runs in the route's constructor (`showLogin()`):
 
@@ -323,8 +324,8 @@ their layout and the methods extensions decorate (`renderStoryContent`, `createS
 | Class | Does |
 |---|---|
 | `StoryHost` | What a story tab needs from its dialog (`refreshManuscript`, `save`, `freeze`, `unfreeze`); `ManuscriptDialog` and `PhoneManuscriptDialog` implement it (through `ManuscriptWindow`). |
-| `StoryCard`, `StoryCards` | The card interface both `ChatMessageCard` classes implement, and the registry of the cards of the branch and the streaming one (opened reasonings, last flags, freezing, autosave; `getOffset` is how many parts of the branch have no card because they are before the first one, `prependAll` puts earlier cards in front). |
-| `LazyBranch`, `StoryLazyLoader` | Lazy loading of the parts. `LazyBranch` is the window over the branch (`tail` for the story, `head` for the viewer; the chunk is `UserSetting.storyPartsLimit`, empty loads everything), plain logic without UI. `StoryLazyLoader` fills the panel of a story tab with the cards of the last parts, scrolls to the bottom (or to the searched part, loading what is before it) and prepends the next chunk when the panel fires `edge-top`, keeping the visible part in place; `reveal(id)` loads back to a part (the outline). |
+| `StoryCard`, `StoryCards` | The card interface both `ChatMessageCard` classes implement, and the registry of the cards of the branch and the streaming one (opened reasonings, last flags, freezing, autosave; `getOffset` is how many parts of the branch have no card because they are before the first one, `prependAll` puts earlier cards in front; the loader sets the offset after it drops cards at the start). |
+| `LazyBranch`, `StoryLazyLoader`, `ReaderLazyLoader` | Lazy loading of the parts, a window that slides over the branch. `LazyBranch` is the plain logic without UI: the size of the window is `UserSetting.storyPartsLimit` (empty loads everything), a chunk is half of it; `tail` starts the story with the last parts, `head` the reader with the first ones, `loadEarlier` / `loadLater` extend the window by a chunk and `trimLater` / `trimEarlier` drop the parts at the other end, `centerOn(id)` moves it around a part that is not loaded, `moveToTail` back to the end, `refresh` swaps in the instance a card holds now (an edit saves a new one). `StoryLazyLoader` fills the panel of a story tab with the cards of the window and answers `edge-top` / `edge-bottom` of the panel: it adds the chunk, drops the other end (an edited card is saved first; nothing is dropped while a part is generated, because the streaming card is the last one and the branch does not have it) and puts the visible part back in place. `scrollTo(id)` is the outline (moves the window when the part is not loaded), `showTail()` is called before a generation starts, so the new part is added after the last one. `ReaderLazyLoader` does the same for the reader (`Viewer`) with plain parts that carry `data-message-id`. Both put a `LazyLoadIndicator` in the header and footer of the `ScrollPanel` (`setHeader` / `setFooter`) while there is more to load at that edge, so a user who outruns the loading sees it. |
 | `StoryGenerationListener` | The `GenerationListener` of a story tab: creates and fills the cards while a generation streams, redraws the story at its end. The tab reacts through `Callbacks`. |
 | `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics` | The fields of the *New Turn Instructions* popover, the turn details of a part, the metadata lines of a part. |
 | `StoryBackup`, `StorySupport` | The automatic backup after N parts / minutes, the limit of parts to load (`partsLimit`) and the saving of an edited part. The story does not remember a scroll position: it always opens at the bottom. |
@@ -500,7 +501,8 @@ Prefer Java components. When the browser has to do something (scroll positions, 
 static method of `ui.JavascriptLibrary` - UI classes don't call `executeJs` themselves. The element is passed
 explicitly (`$0`, not `this`), and a script that returns a value returns the `PendingJavaScriptResult`, read with
 `.then(...)`; see `UIUtils.getPositionAndSizeOfElement`, `JavascriptLibrary.watchEdge` (fires `edge-top` /
-`edge-bottom` when a scroll element gets close to that edge, the lazy loading of the story and the viewer) and
+`edge-bottom` when a scroll element gets close to that edge, with the distance of the opposite edge in `detail.far`; it remembers the part the user sees first, and `restoreAnchor` puts it back after the server added or dropped parts, which keeps the position while the lazy loading of the story and the viewer works; the story and the reader panels set `overflow-anchor: none` so the browser does not correct it a second time),
+`JavascriptLibrary.rememberReaderPosition` / `readReaderPosition` (the viewer keeps the id of the first visible part per book uuid in the `localStorage` of the browser, key `marginalia.reader.position.<uuid>`; the server only reads it once when the book opens, it is never stored in the database) and
 `JavascriptLibrary.scrollTextAreaToBottom` (the extension log is shown scrolled to its newest line).
 Extensions keep their own scripts.
 
@@ -527,7 +529,7 @@ The link fires `NodeGotoEvent`. `onNodeGoto` resolves the id among the messages 
 `ChatMessageService.findLeafFor` for the end of the branch to show, makes it the book's active leaf when it is not
 (`ManuscriptDialog.save`) and calls `ManuscriptDialog.showMessage(id)`. That tells `ManuscriptStoryPart` which part to
 scroll to (`scrollToMessageOnNextRender`) and selects the story tab; entering the tab renders the story, which scrolls to
-the part (and flashes it) instead of scrolling to the bottom; the parts before it are loaded (`StoryLazyLoader`).
+the part (and flashes it) instead of scrolling to the bottom; the window of parts is moved around it (`StoryLazyLoader`).
 
 ### Styles
 

@@ -143,7 +143,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         centerContentPanel.setSizeFull();
         centerContentPanel.addClassName(CssStyles.STORY_SCROLL_PANEL);
 
-        lazyLoader = new StoryLazyLoader<>(centerContentPanel, cards, ChatMessageCard::new, () -> isFrozen);
+        lazyLoader = new StoryLazyLoader<>(centerContentPanel, cards, ChatMessageCard::new, () -> isFrozen, loc);
 
         bottomControlsLayout = buildBottomControls();
 
@@ -483,9 +483,8 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
 
         sidebarBtn.addClickListener(event -> {
             layout.setDrawerOpened(false);
-            ChatMessageCard card = dbId != null ? lazyLoader.reveal(dbId) : null;
-            if (card != null) {
-                card.scrollIntoView();
+            if (dbId != null) {
+                lazyLoader.scrollTo(dbId);
             }
         });
         sidebarList.add(sidebarBtn);
@@ -554,6 +553,8 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                     @APILocals(name = "e", type = Exception.class)})
     private void startGeneration(GenerationRequest request, TurnInput turnInput) {
         autosaveAndSwapAllToMarkdown();
+        // the new part is added after the last one, which the user may have scrolled away from
+        lazyLoader.showTail();
         UI ui = UI.getCurrent();
 
         parent.freeze();

@@ -230,8 +230,9 @@ public class BookmarksExtension implements MarginaliaExtension {
 
 How it works:
 
-- **Two decorators.** `menuDecorator` runs after `ChatMessageCard.createMenuItems()` - the card's constructor calls
-  it, so every card gets the item. `sidebarDecorator` runs after `ManuscriptStoryPart.createSidebarButton(msg,
+- **Two decorators.** `menuDecorator` runs after `ChatMessageCard.createMenuItems()` - the card runs it when its menu
+  is opened for the first time (not when the card is created, so the cards of a long story stay cheap), so every menu
+  that is opened gets the item. `sidebarDecorator` runs after `ManuscriptStoryPart.createSidebarButton(msg,
   orderId, dbId)`, which `renderStoryContent()` calls for each part of the branch.
 - **Reaching the components.** The menu is the card's field `hamburgerMenu`; the sidebar button is the local
   variable `sidebarBtn` of `createSidebarButton`, the part is its argument `msg`. Both names are checked before use

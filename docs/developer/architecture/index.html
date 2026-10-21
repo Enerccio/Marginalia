@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845881182475">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845891627879">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845881182475" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845891627879" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845881182475" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845891627879" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845881182475" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845881182475" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845891627879" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845891627879" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -366,7 +366,7 @@ push enabled, dark Lumo theme, <code translate="no" v-pre>shared-styles.css</cod
 <p>All application code is in <code translate="no" v-pre>com.github.enerccio.marginalia</code> (<code translate="no" v-pre>marginalia/src/main/java/...</code>):</p>
 <retype-table copy-text="| Package | Layer | Contents |
 |---|---|---|
-| `ui.main` | UI | Servlet, app shell, the two routes: `Main` (`/`) and `Viewer` (`/view`), login handling (`LoginCheckRoute`). |
+| `ui.main` | UI | Servlet, app shell, the routes: `Main` (`/`), `Viewer` (`/view`) and `Reset` (`/reset`, clears the saved workspace state), login handling (`LoginCheckRoute`). |
 | `ui.workspace`, `ui.workspace.parts` | UI | The workspace after login and its tabs: books, lorebooks, settings, protocols, inference providers, admin. |
 | `ui.dialogs`, `ui.dialogs.manuscript` | UI | Dialogs; the book window (`ManuscriptDialog`) and its tabs: story, tree, about, prompts, lorebook, backups. |
 | `ui.components`, `ui.widgets` | UI | Reusable components (lorebook editor, story tree, the help assistant's button and chat) and small widgets. |
@@ -398,7 +398,7 @@ push enabled, dark Lumo theme, <code translate="no" v-pre>shared-styles.css</cod
 <tr>
 <td><code translate="no" v-pre>ui.main</code></td>
 <td>UI</td>
-<td>Servlet, app shell, the two routes: <code translate="no" v-pre>Main</code> (<code translate="no" v-pre>/</code>) and <code translate="no" v-pre>Viewer</code> (<code translate="no" v-pre>/view</code>), login handling (<code translate="no" v-pre>LoginCheckRoute</code>).</td>
+<td>Servlet, app shell, the routes: <code translate="no" v-pre>Main</code> (<code translate="no" v-pre>/</code>), <code translate="no" v-pre>Viewer</code> (<code translate="no" v-pre>/view</code>) and <code translate="no" v-pre>Reset</code> (<code translate="no" v-pre>/reset</code>, clears the saved workspace state), login handling (<code translate="no" v-pre>LoginCheckRoute</code>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.workspace</code>, <code translate="no" v-pre>ui.workspace.parts</code></td>
@@ -1055,7 +1055,7 @@ refused, so an extension can&#x27;t replace English.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (539bbbec).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (d0248cae).</p></div>
             </footer>
         </div>
     </div>

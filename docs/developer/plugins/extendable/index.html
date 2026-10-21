@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845881182475">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845891627879">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845881182475" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845891627879" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845881182475" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845891627879" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845881182475" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845881182475" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845891627879" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845891627879" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -547,7 +547,7 @@ be <doc-anchor-trigger to="#changing-the-return-value">replaced</doc-anchor-trig
 </li>
 <li>
 <p><strong>Decorate constructors, static methods or lambda bodies.</strong> Decorate the method the constructor calls (for example
-<code translate="no" v-pre>ChatMessageCard</code>&#x27;s constructor calls <code translate="no" v-pre>createMenuItems()</code>), or the method that registers the listener.</p>
+the constructor of <code translate="no" v-pre>ChatMessageCard</code> calls <code translate="no" v-pre>createHamburgerMenu()</code>, the items come later from <code translate="no" v-pre>createMenuItems()</code>), or the method that registers the listener.</p>
 </li>
 <li>
 <p><strong>Decorate classes that aren&#x27;t <code translate="no" v-pre>@Extendable</code></strong>, plugin classes, or library classes.</p>
@@ -586,8 +586,8 @@ stores them.</p>
 | `ManuscriptStoryPart` | `populateMenuBar(bar)` / `createCogsMenuItem(bar)` | argument `bar`; local `cogs` | Add items to the menu bar of the story editor / to its settings menu. Not used by a bundled plugin yet. |
 | `ManuscriptStoryPart` | `createCommandBox()` (from 1.4.0) | return value (a `Component`, the `CommandBar`) | Replace or wrap the command line (`CommandBar` with its `CommandResultView` popover), for example to put another `CommandResultTarget` on the bar. |
 | `SummariesDialog` | `populateMenuBar(bar)` | argument `bar` | Add tools to the (empty) menu bar of the summaries overview. Not used by a bundled plugin yet. |
-| `ManuscriptStoryPart$ChatMessageCard` | `createMenuItems()` | fields `hamburgerMenu`, `message` | Add items to a part's menu (Reviewer). |
-| `ManuscriptStoryPart$ChatMessageCard` | `refreshSummaryMenuItems()` | fields `hamburgerMenu`, `message` | Update menu items when the menu opens (Reviewer). |
+| `ManuscriptStoryPart$ChatMessageCard` | `createMenuItems()` | fields `hamburgerMenu`, `message` | Add items to a part's menu; runs when the menu of the part is first opened (Reviewer). |
+| `ManuscriptStoryPart$ChatMessageCard` | `refreshSummaryMenuItems()` | fields `hamburgerMenu`, `message` | Update menu items each time the menu is about to open (Reviewer). |
 | `ManuscriptStoryPart$ChatMessageCard` | `autosaveAndSwapToMarkdown()` | fields `message`, `this$0` (the outer `ManuscriptStoryPart`) | React to an edited part (Chapter Marker). |
 | `UserPart` | `refresh()` / `save()` | fields `extensionSettings`, `userSetting` | Add a settings panel; save its values (Reviewer, Side Query, Lore Generator). |
 | `LorebookView` | `create()` | local `lorebookHeaderLayout`; field `grid` | Add a panel above the lorebook header (Lorebook VCS); add a column to the entry grid (Lore Generator). |
@@ -641,13 +641,13 @@ stores them.</p>
 <td><code translate="no" v-pre>ManuscriptStoryPart$ChatMessageCard</code></td>
 <td><code translate="no" v-pre>createMenuItems()</code></td>
 <td>fields <code translate="no" v-pre>hamburgerMenu</code>, <code translate="no" v-pre>message</code></td>
-<td>Add items to a part&#x27;s menu (Reviewer).</td>
+<td>Add items to a part&#x27;s menu; runs when the menu of the part is first opened (Reviewer).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ManuscriptStoryPart$ChatMessageCard</code></td>
 <td><code translate="no" v-pre>refreshSummaryMenuItems()</code></td>
 <td>fields <code translate="no" v-pre>hamburgerMenu</code>, <code translate="no" v-pre>message</code></td>
-<td>Update menu items when the menu opens (Reviewer).</td>
+<td>Update menu items each time the menu is about to open (Reviewer).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ManuscriptStoryPart$ChatMessageCard</code></td>
@@ -937,7 +937,7 @@ enough) and to mention the change in the release notes. Do not make the test pas
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (539bbbec).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (d0248cae).</p></div>
             </footer>
         </div>
     </div>
