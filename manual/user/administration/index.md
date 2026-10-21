@@ -38,6 +38,8 @@ on the host with the [Docker setup](../getting-started/docker-server.md)):
 | `db-backups/` | [Database backups](database-backups.md). |
 | `data/<login>/backups/manuscripts/<book id>/` | [Book backups](../books/backups.md) of each user. |
 | `extensions/` | Installed [extension](extensions.md) JARs. |
+| `agent-workspaces/<agent id>/` | The files of an [agent](../agents.md#the-working-copy) (its notes and reports, which it keeps between runs). |
+| `agent-runs/<run id>/` | What a run of an agent keeps: the start of the book (to show you the changes, removed with the working copy), the checkpoints and the findings (removed when the run is purged by the cleanup). |
 | `desktop/logs/` | Logs of the [desktop app](../getting-started/desktop-app.md). |
 
 To back up a whole installation, stop Marginalia and copy this folder (including `secret.key`). While it runs, use

@@ -13,8 +13,10 @@ Select the lorebook in the editor and click the **export** button (file icon, *E
 - the lorebook and **all its sub lorebooks** (every level), with their names, enabled state and tags;
 - every entry with its content, note, order, filter, insertion mode, tags and negative tags.
 
-Use it to keep a copy, to share a world with other users, or to move it to another installation. Entry revisions of
-the [Lorebook VCS](../extensions/lorebook-vcs.md) extension are not part of the file; the extension has its own export.
+Use it to keep a copy, to share a world with other users, or to move it to another installation. The data that
+[extensions](../extensions/index.md) keep in a lorebook or an entry is in the file too, and is restored by the import.
+Entry revisions of the [Lorebook VCS](../extensions/lorebook-vcs.md) extension belong to the old entries and do not show
+on the entries the import creates; the extension has its own export for them.
 
 ## Importing a Marginalia lorebook
 

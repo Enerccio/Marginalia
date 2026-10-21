@@ -140,12 +140,13 @@ All application code is in `com.github.enerccio.marginalia` (`marginalia/src/mai
 |---|---|---|
 | `ui.main` | UI | Servlet, app shell, the routes: `Main` (`/`), `Viewer` (`/view`) and `Reset` (`/reset`, clears the saved workspace state), login handling (`LoginCheckRoute`). |
 | `ui.workspace`, `ui.workspace.parts` | UI | The workspace after login and its tabs: books, lorebooks, settings, protocols, inference providers, admin. |
-| `ui.dialogs`, `ui.dialogs.manuscript` | UI | Dialogs; the book window (`ManuscriptDialog`) and its tabs: story, tree, about, prompts, lorebook, backups. |
+| `ui.dialogs`, `ui.dialogs.manuscript` | UI | Dialogs; the book window (`ManuscriptDialog`) and its tabs: story, tree, about, prompts, lorebook, backups. `ui.dialogs.agent` has the screens of agents, `ui.dialogs.search` the search and replace windows. |
 | `ui.components`, `ui.widgets` | UI | Reusable components (lorebook editor, story tree, the help assistant's button and chat) and small widgets. |
 | `ui` (`LLMInteract`, `LLMSnapshot`) | UI | How the UI describes itself to the help assistant's model and what the model may do to it. |
 | `domain.components` | Services | Plain data and helpers shared by services and the UI (`TurnInput`, `TokenLimits`, `PromptTokenBreakdown`, `SummaryNode`, `CronSchedule`). |
 | `domain.service` (+ `impl`) | Services | Business logic, one service per entity plus generation, templates, backups, cleanup, extensions. |
 | `domain.service.impl.generation` | Services | The generation engine's steps, events and DTOs. |
+| `domain.service.agent`, `domain.service.command`, `domain.service.impl.commands` | Services | [Agents](agents.md) (the runner's tools, the virtual file system, checkpoints, the merge of a result) and [commands](commands/index.md) (the definitions, the scope a command runs in, the commands of the application). |
 | `domain.service.impl.inference` | Services | The OpenAI-compatible client and the tokenizer strategies. |
 | `domain.service.manual` | Services | The in-app help: the user manual parsed and searched (`ManualParser`, `ManualIndex`), the functions and prompts of the help assistant (`HelpTools`, `InteractiveHelpTools`, `HelpPrompts`, `UiStateSource`). |
 | `domain.templates` | Services | Template data objects and the macro system. |
@@ -350,6 +351,13 @@ Background threads have no HTTP request, so session-scoped beans (the current `u
 its work in `ThreadCopyRequestAttributes.InRequestScope`, which makes the session of the user who started the
 generation current on the worker thread.
 
+An [agent](agents.md) run is not started by a request at all: `AgentRunner` works it in a background worker of its own
+(a thread pool, one round of the model at a time) and sets up the request context from the run, not from a browser:
+`AgentRequestAttributes` make the `user` bean resolve to the owner of the agent and the session point an
+`AgenticSessionPoint` (the working copy is the open book, the language is the one of the run). Anything that shows on
+the screen of the owner goes through `ui.access` like any other background work, see
+[the request context of a run](agents.md#the-request-context-of-a-run).
+
 ## Sessions
 
 `bound/SessionManager` (bean `sessionManager`, defined in `container-config.xml`) knows every HTTP session of the
@@ -475,6 +483,7 @@ Everything is in `<user.home>/.marginalia/` (see also [The data folder](../user/
 | `data/<login>/backups/manuscripts/<book id>/` | Book backups (`BackupService`), one JSON file each. |
 | `data/<login>/images/`, `data/<login>/resources/` | Per-user folders for files (created on demand). |
 | `extensions/` | Extension JARs with their verification reports (`name.valid` / `name.invalid`, `ExtensionService.verifyExtension`), plus Felix's bundle cache in `org.eclipse.osgi/` (deleted and rebuilt on every start). |
+| `agent-workspaces/<agent uuid>/`, `agent-runs/<run uuid>/` | The files of [agents](agents.md#files-of-an-agent): the workspace of an agent, and per run the base snapshot of the book, the checkpoints and the findings (`RunFolder`). Not under `data/`, which is named by logins. |
 | `desktop/` | Desktop app only: the Jetty base and `logs/`. |
 
 ## Localization
