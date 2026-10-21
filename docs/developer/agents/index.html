@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845917837954">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845919947397">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845917837954" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845919947397" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845917837954" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845919947397" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845917837954" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845919947397" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -803,6 +803,53 @@ take over, both changed to different values is a <code translate="no" v-pre>conf
 <code translate="no" v-pre>ADDED</code>, one only in the base and still in the book is <code translate="no" v-pre>DELETED</code> (a conflict when the book changed it since), the ones the user deleted from the book are <code translate="no" v-pre>problem</code>s (<code translate="no" v-pre>PROBLEM_GONE</code>, <code translate="no" v-pre>PROBLEM_NEEDS_PARENT</code>,
 <code translate="no" v-pre>PROBLEM_NEEDS_LOREBOOK</code>) and can&#x27;t be applied. <code translate="no" v-pre>Item.dependsOn</code> is the item that must be applied first (the new part a new part follows, the new lorebook a new entry is in); <code translate="no" v-pre>MergeDiff.chain</code> and <code translate="no" v-pre>dependents</code> follow it. A book that had no lorebook when the run started (the commands <code translate="no" v-pre>create-lore-entry</code> and <code translate="no" v-pre>create-lorebook</code> make its root in the copy, <code translate="no" v-pre>LorebookWriteSupport.loreToAddTo</code>) gets the root of the copy as its lorebook when the apply made it (<code translate="no" v-pre>Applier.adoptRoot</code>).
 The service adds <code translate="no" v-pre>sharedWith</code> (the other books whose lorebook tree holds the lorebook).</p>
+<p><strong>JSON data (the attributes).</strong> What extensions keep in <code translate="no" v-pre>attributes</code> of a book, a part, a lorebook or an entry is JSON, so a field named <code translate="no" v-pre>attributes_&lt;key&gt;</code> has the type <code translate="no" v-pre>Type.JSON</code> (<code translate="no" v-pre>editable</code>); its <code translate="no" v-pre>base</code>, <code translate="no" v-pre>agent</code> and <code translate="no" v-pre>book</code> are the
+compact JSON with the keys sorted (<code translate="no" v-pre>JsonText.compact</code>: the order of the keys is no change; empty for no data, uuids of the copy translated). A book and a part have it in <code translate="no" v-pre>extendedContent</code> (<code translate="no" v-pre>attributes_&lt;key&gt;</code>); a lorebook and an
+entry as an <code translate="no" v-pre>attributes</code> object in the snapshot, which <code translate="no" v-pre>LorebookServiceImpl.marshalLorebooks</code> writes when it is not empty, in every variant (so the working copy, the checkpoints, backups and exports carry it) and
+<code translate="no" v-pre>importLorebooks</code> / <code translate="no" v-pre>unmarshalContent</code> read; <code translate="no" v-pre>MergeDiff.lorebookFields</code> / <code translate="no" v-pre>entryFields</code> / <code translate="no" v-pre>messageFields</code> add a field for each key. A JSON field is a <code translate="no" v-pre>conflict</code> only where both versions changed the same place
+(<code translate="no" v-pre>JsonMerge.conflicts</code>), not whenever both changed the data, and when the user wrote nothing the applier takes <code translate="no" v-pre>JsonMerge.merge(base, agent, book)</code> (<code translate="no" v-pre>Applier.value</code>), the three-way merge, in the sync too (there the book is the changed
+side). The text of <code translate="no" v-pre>MergeSelection.edits</code> wins and is read strictly (<code translate="no" v-pre>JsonText.parse</code>): text that is not JSON throws <code translate="no" v-pre>InvalidJsonException</code> and the apply is rolled back. <code translate="no" v-pre>Applier.setAttributes</code> writes the keys into a lorebook, an entry
+(saved again, <code translate="no" v-pre>LorebookEntryService.update</code> copies no attributes) and a created part; <code translate="no" v-pre>BaseAdvance.copyAttribute</code> moves the base for the attributes of lorebooks and entries.</p>
+<p><strong>The JSON merge</strong> (<code translate="no" v-pre>domain.service.agent.jsonmerge</code>, plain code without the database, <code translate="no" v-pre>JsonMergeTest</code>):</p>
+<retype-table copy-text="| Class | What it does |
+|---|---|
+| `JsonText` | The texts: `compact` (sorted keys, what is compared and stored), `pretty` (Gson's pretty printing, what the user reads and writes; null kept, no HTML escaping), `parse` (strict, `InvalidJsonException` with the message of Gson; blank is no data). |
+| `ListMatcher` | The guess for lists: `match(from, to)` takes the same data, then the same identity (`uuid`, `id`, `key`, `name`, `title`, `label`, `handle`, `slug`), then the most alike (Jaccard of the leaves of an object or the words of a text, at least 0.5, not tried above 250 000 pairs), then the left over ones of equal number and kind as replaced (not between two versions that both added elements). `align(base, agent, book)` makes the rows, in the order of the agent, the others after the row before them. |
+| `JsonMergeNode` | A place of the three versions (`null` in a version that has none), the children made on the first `children()` (keys of an object, rows of a list). `Choice` (`MERGED`, `AGENT`, `BOOK`, `BASE`, `NONE`) decides the result; `autoChoice` is what the versions say by themselves, `conflict` / `conflicts` / `unresolved` count the conflicts, `status` says who changed it. `choose` makes the places above put together from their places first (what they took as a whole is handed to the children), `effectiveChoice` / `effectiveResult` are what ends up in the result when a place above rules over it. `setAgentText` / `setAgent` replace the agent's data in a place and compare it again (the places above that the user did not choose are decided again), `split` / `match` correct the rows of a list, `reset` (the root) goes back to the given versions. |
+| `JsonMerge` | The text API: `merge(base, agent, book)` and `conflicts(...)`; text that is not JSON is one value. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Class</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>JsonText</code></td>
+<td>The texts: <code translate="no" v-pre>compact</code> (sorted keys, what is compared and stored), <code translate="no" v-pre>pretty</code> (Gson&#x27;s pretty printing, what the user reads and writes; null kept, no HTML escaping), <code translate="no" v-pre>parse</code> (strict, <code translate="no" v-pre>InvalidJsonException</code> with the message of Gson; blank is no data).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ListMatcher</code></td>
+<td>The guess for lists: <code translate="no" v-pre>match(from, to)</code> takes the same data, then the same identity (<code translate="no" v-pre>uuid</code>, <code translate="no" v-pre>id</code>, <code translate="no" v-pre>key</code>, <code translate="no" v-pre>name</code>, <code translate="no" v-pre>title</code>, <code translate="no" v-pre>label</code>, <code translate="no" v-pre>handle</code>, <code translate="no" v-pre>slug</code>), then the most alike (Jaccard of the leaves of an object or the words of a text, at least 0.5, not tried above 250 000 pairs), then the left over ones of equal number and kind as replaced (not between two versions that both added elements). <code translate="no" v-pre>align(base, agent, book)</code> makes the rows, in the order of the agent, the others after the row before them.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>JsonMergeNode</code></td>
+<td>A place of the three versions (<code translate="no" v-pre>null</code> in a version that has none), the children made on the first <code translate="no" v-pre>children()</code> (keys of an object, rows of a list). <code translate="no" v-pre>Choice</code> (<code translate="no" v-pre>MERGED</code>, <code translate="no" v-pre>AGENT</code>, <code translate="no" v-pre>BOOK</code>, <code translate="no" v-pre>BASE</code>, <code translate="no" v-pre>NONE</code>) decides the result; <code translate="no" v-pre>autoChoice</code> is what the versions say by themselves, <code translate="no" v-pre>conflict</code> / <code translate="no" v-pre>conflicts</code> / <code translate="no" v-pre>unresolved</code> count the conflicts, <code translate="no" v-pre>status</code> says who changed it. <code translate="no" v-pre>choose</code> makes the places above put together from their places first (what they took as a whole is handed to the children), <code translate="no" v-pre>effectiveChoice</code> / <code translate="no" v-pre>effectiveResult</code> are what ends up in the result when a place above rules over it. <code translate="no" v-pre>setAgentText</code> / <code translate="no" v-pre>setAgent</code> replace the agent&#x27;s data in a place and compare it again (the places above that the user did not choose are decided again), <code translate="no" v-pre>split</code> / <code translate="no" v-pre>match</code> correct the rows of a list, <code translate="no" v-pre>reset</code> (the root) goes back to the given versions.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>JsonMerge</code></td>
+<td>The text API: <code translate="no" v-pre>merge(base, agent, book)</code> and <code translate="no" v-pre>conflicts(...)</code>; text that is not JSON is one value.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p><code translate="no" v-pre>JsonMergeDialog</code> is its screen: a <code translate="no" v-pre>TreeGrid</code> over an <code translate="no" v-pre>AbstractBackEndHierarchicalDataProvider</code> (the children come from <code translate="no" v-pre>visibleChildren</code>, so only the opened places are made), a toolbar that acts on the selected place, a breadcrumb (the open
+place, <code translate="no" v-pre>level</code>, is the root row of the grid), the <strong>Only what changed</strong> filter and the Text tab (a <code translate="no" v-pre>TextArea</code> of the agent&#x27;s data that is read strictly in <code translate="no" v-pre>commitText</code> when the user leaves the view, opens another place or takes the result,
+and <code translate="no" v-pre>WordDiffView</code> for the difference to another version). It never touches the database: <code translate="no" v-pre>AgentMergeDialog.jsonView</code> keeps one <code translate="no" v-pre>JsonMergeNode</code> for each item and field (<code translate="no" v-pre>jsonModels</code>, cleared by <code translate="no" v-pre>load</code>), so reopening shows what was
+decided, and stores what the user takes as an edit (dropped again when it is the plain merge). The styles are <code translate="no" v-pre>json-merge-*</code>.</p>
 <p><strong>Apply</strong> runs as two transactions (a <code translate="no" v-pre>TransactionTemplate</code> of the <code translate="no" v-pre>common</code> manager, <code translate="no" v-pre>apply</code> has no <code translate="no" v-pre>@CommonTx</code>): the changes, all or nothing, and then <code translate="no" v-pre>AgentRunService.transition(run, APPLIED)</code>, which deletes the copy, the pairs, the
 base and the checkpoints (the 2000-part measurement: 150 changes on a book of 2000 parts of 4 KB: the plan 0.2 s, the changes and the delete of the copy a few seconds each, the whole apply 5-9 s; a restore is 30 s because it also
 makes a copy). The plan is made again inside the transaction, so the picked ids are applied to the book as it is at that moment, and an item whose prerequisite is not picked is skipped (<code translate="no" v-pre>Skipped</code>). A backup of the book
@@ -1096,6 +1143,7 @@ runner&#x27;s internals.</p>
 | `AgentCloneDialog` | Copies the definition and the workspace (not the runs) to a new agent of another book. |
 | `AgentStopDialog` | Keep or discard the result. |
 | `AgentMergeDialog` | The review of the result of a finished or kept run: the changes in a grid to tick, the detail with the text to apply, apply and discard, see [Merge and apply](#merge-and-apply). |
+| `JsonMergeDialog` | Puts together the JSON data of a field (`Type.JSON`) from the versions of the base, the agent and the book, opened from the detail of the review (**Merge JSON data**), see [Merge and apply](#merge-and-apply). |
 | `AgentCheckpointBrowser` | The **Checkpoints** tab of the console (`AgentConsoleDialog.CHECKPOINTS_TAB`, read again only while shown): the list with who made each, the usage of the quota, save / restore / rewind / download / delete. Saving, restoring and rewinding wait until the agent does not work; a rewind needs a paused or stopped run and a checkpoint that is `rewindable`. |
 | `AgentCopyView` | The **Book copy** tab (`AgentConsoleDialog.COPY_TAB`): a branch of the copy's story part by part (a combo of the branches) and its lorebooks in a grid with the detail of the row; read-only, made when the tab is picked and by **Refresh**; also opened by the review at an item, see [Reading the copy](#reading-the-copy). |
 | `AgentContextView` | The **Context** tab of the console (`AgentConsoleDialog.CONTEXT_TAB`, made when the tab is picked and by **Refresh**, never by the poll: it counts tokens): three `ChartJs` charts (the kinds against the cap as a doughnut, every part in order as bars, and the context per answer as a stacked bar of the estimated kinds with the reported size and the cap as lines; the lines get stacks of their own, or a stacked scale would add them up), a grid of the parts and a read only viewer of the picked one, **Download** and **Copy** of `AgentContext.toMarkdown()`. |
@@ -1135,6 +1183,10 @@ runner&#x27;s internals.</p>
 <tr>
 <td><code translate="no" v-pre>AgentMergeDialog</code></td>
 <td>The review of the result of a finished or kept run: the changes in a grid to tick, the detail with the text to apply, apply and discard, see <doc-anchor-trigger to="#merge-and-apply">Merge and apply</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>JsonMergeDialog</code></td>
+<td>Puts together the JSON data of a field (<code translate="no" v-pre>Type.JSON</code>) from the versions of the base, the agent and the book, opened from the detail of the review (<strong>Merge JSON data</strong>), see <doc-anchor-trigger to="#merge-and-apply">Merge and apply</doc-anchor-trigger>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>AgentCheckpointBrowser</code></td>
@@ -1318,7 +1370,7 @@ older rounds when the context is full (the run pauses instead).</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (9f9fd243).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (0583babc).</p></div>
             </footer>
         </div>
     </div>

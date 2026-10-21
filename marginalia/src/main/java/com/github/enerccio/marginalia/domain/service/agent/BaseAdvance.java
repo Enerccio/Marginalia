@@ -92,6 +92,20 @@ public final class BaseAdvance {
         }
     }
 
+    /**
+     * Brings the data of one key of the {@code attributes} of a lorebook or an entry of the snapshot to the value the other has.
+     */
+    private static void copyAttribute(JsonObject to, JsonObject from, String field) {
+        JsonElement source = from == null ? null : from.get("attributes");
+        JsonElement target = to.get("attributes");
+        if (target == null || !target.isJsonObject()) {
+            target = new JsonObject();
+            to.add("attributes", target);
+        }
+        copyField(target.getAsJsonObject(), source != null && source.isJsonObject() ? source.getAsJsonObject() : null,
+                field.substring(MergeDiff.ATTRIBUTES.length()));
+    }
+
     // --- the book
 
     private static void book(JsonObject base, JsonObject book, Item item) {
@@ -158,7 +172,11 @@ public final class BaseAdvance {
             return;
         }
         for (Field field : item.fields()) {
-            copyField(to, from, field.name());
+            if (field.name().startsWith(MergeDiff.ATTRIBUTES)) {
+                copyAttribute(to, from, field.name());
+            } else {
+                copyField(to, from, field.name());
+            }
         }
     }
 
@@ -201,6 +219,8 @@ public final class BaseAdvance {
                     array(inBase, "entries").remove(to);
                     array(target, "entries").add(to);
                 }
+            } else if (field.name().startsWith(MergeDiff.ATTRIBUTES)) {
+                copyAttribute(to, from, field.name());
             } else {
                 copyField(to, from, field.name());
             }

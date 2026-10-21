@@ -292,6 +292,28 @@ shows what the agent changed and what you changed since the run started, each fr
 changed, an entry with a new content and note) has a **Take this change** box beside each of them: untick one to apply the line without it, the book keeps its own value of that field. The place of a part in the story goes with the part and has no box,
 and what the agent made or deleted is taken or left as a whole. **Show in the copy** (on a line the agent made or changed) opens the [copy of the book](#the-copy-of-the-book) at that part or entry, to read it in its place.
 
+### Data that extensions keep (JSON)
+
+Extensions keep their own data in a book, in its parts, lorebooks and entries (an arc outline, the character tracker, the variables of a generation). It is JSON, and the review shows it **pretty printed** with the line
+**Merge JSON data** beside the text that will be applied. The data is not taken over as a whole: what only the agent changed is taken from the agent, what only your book changed stays, and what both changed in **different
+places** is put together place by place. It is a conflict only where both changed the **same** place to different values (the order of the keys does not matter); until you decide, the agent's version is used there.
+
+**Merge JSON data** opens a window with the data of the three versions laid over each other as a tree: *When the run started*, *In the book now*, the *Agent* and the *Result* in a column each, with a mark for what changed
+and where (the agent, the book, both, a conflict). Only the places that changed are shown (untick **Only what changed** for all of them); a place is opened only when you open it, so a big document is no problem.
+
+- Select a place and take its data from one version (**Use the agent's**, **Use the book's**, **Use the one from the start of the run**), **Leave out** (the key or the element is not in the result), or **Put together from
+  inside** (the places inside decide, each its own). A key or an element that only one version has is copied into the result by taking it from that version. Taking a whole object or list from one version overrules what you chose
+  inside it, but not for good: put it together from inside again and your choices are back.
+- The elements of a **list** have no names, so they are matched by what they are: the same data first, then the same `uuid`, `id` or `name`, then the ones that look most alike, and what is left over in the same number and
+  of the same kind is taken as changed. When the guess is wrong, **Split** an element into the ones of each version, or **Match with…** another element that the first one has no version in common with.
+- **Open** (or a double click) works with one place alone: the path above the tree takes you back up.
+- The **Text** tab shows the data of the open place as text: the agent's data you can **edit**, the others only to read (the book, the start of the run, the result), and **Show the difference to** marks what differs word
+  by word. What you write is checked as JSON when you go back to the tree, change what is shown, open another place or take the result; if it is not valid JSON you stay where you are and are told what is wrong, and nothing is
+  changed. Valid text replaces the agent's data in that place and everything inside it is compared again.
+- **Start over** forgets what you decided and wrote; **Take the result** hands the result to the review, where it is the text to apply (the line stays as you left it while the review is open).
+
+The review also has **Use the agent's** and **Use the book's** for such a field, to take one of the two as it is, and **Start over** to go back to the put-together data.
+
 A lorebook that other books use is marked **Shared**: the change goes to the lorebook itself, so the other books get it too. It starts unticked.
 
 Applying is done to the book **in place**: the parts keep their addresses, other books keep their links to a lorebook, and what the agent deleted goes to the trash. A **backup of the book as it was** is taken first

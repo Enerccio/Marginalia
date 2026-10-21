@@ -44,10 +44,12 @@ public record MergePlan(List<Item> items, Map<String, String> names, boolean boo
 
     /**
      * How the value of a field is read: a text the user may edit before it is taken over (or a value that is only compared),
-     * a set of values (tags, subbooks) that is merged by what was added and removed on each side, one key of an item.
+     * a set of values (tags, subbooks) that is merged by what was added and removed on each side, one key of an item, JSON data
+     * (what extensions keep in the attributes) that is merged place by place and which the user can decide in the dialog of the
+     * JSON merge. The values of such a field are the compact JSON texts of {@code JsonText.compact}, empty for no data.
      */
     public enum Type {
-        TEXT, SET, REF
+        TEXT, SET, REF, JSON
     }
 
     /**

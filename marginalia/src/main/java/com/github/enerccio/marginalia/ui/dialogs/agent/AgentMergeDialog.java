@@ -10,6 +10,9 @@ import com.github.enerccio.marginalia.domain.service.AgentRunService;
 import com.github.enerccio.marginalia.domain.service.agent.MergeDiff;
 import com.github.enerccio.marginalia.domain.service.agent.MergePlan;
 import com.github.enerccio.marginalia.domain.service.agent.MergePlan.*;
+import com.github.enerccio.marginalia.domain.service.agent.jsonmerge.JsonMerge;
+import com.github.enerccio.marginalia.domain.service.agent.jsonmerge.JsonMergeNode;
+import com.github.enerccio.marginalia.domain.service.agent.jsonmerge.JsonText;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -72,11 +75,15 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
     private final Map<String, Map<String, String>> edits = new HashMap<>();
     // the fields of a changed item the user did not tick, by item id and field name
     private final Map<String, Set<String>> skipped = new HashMap<>();
+    // the three versions of the JSON data of a field laid over each other, with what the user decided, by item id and field name
+    private final Map<String, JsonMergeNode> jsonModels = new HashMap<>();
     // true while the dialog changes the selection itself
     private boolean adjusting;
     private Item focused;
     // the copy of the agent opened from the detail of an item
     private Dialog copyDialog;
+    // the merge of JSON data opened from the detail of a field
+    private JsonMergeDialog jsonDialog;
 
     /**
      * @param onChange called after the changes were applied or the result was discarded, the run is not what it was
@@ -192,6 +199,7 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         }
         edits.clear();
         skipped.clear();
+        jsonModels.clear();
         grid.setItems(plan.items());
         summaryLabel.setText(plan.isEmpty() ? loc.getValue(L.MSG_MERGE_NO_CHANGES) : String.format(loc.getValue(L.MSG_MERGE_SUMMARY),
                 plan.items().size(), count(Kind.MESSAGE), count(Kind.LOREBOOK), count(Kind.ENTRY), count(Kind.BOOK), plan.conflicts()));
@@ -411,7 +419,9 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         if (field.conflict()) {
             view.add(note(loc.getValue(L.ENUM_MERGE_STATE_CONFLICT), "error"));
         }
-        if (field.type() == Type.TEXT && field.editable() && item.change() != Change.DELETED && item.applicable()) {
+        if (field.type() == Type.JSON && item.change() != Change.DELETED && item.applicable()) {
+            view.add(jsonView(item, field, name.getText()));
+        } else if (field.type() == Type.TEXT && field.editable() && item.change() != Change.DELETED && item.applicable()) {
             view.add(textView(item, field));
         } else if (field.type() == Type.SET) {
             view.add(setView(field));
@@ -502,12 +512,91 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         return heading;
     }
 
+    /**
+     * What is applied when the user wrote nothing: the agent's text, for JSON the data of both put together.
+     */
+    private static String defaultValue(Field field) {
+        return field.type() == Type.JSON ? JsonMerge.merge(field.base(), field.agent(), field.book()) : field.agent();
+    }
+
     private void edit(Item item, Field field, String text) {
         Map<String, String> fields = edits.computeIfAbsent(item.id(), id -> new HashMap<>());
-        if (text == null || text.equals(field.agent())) {
+        if (text == null || text.equals(defaultValue(field))) {
             fields.remove(field.name());
         } else {
             fields.put(field.name(), text);
+        }
+    }
+
+    /**
+     * The data of the field is JSON: the data that is applied, read only, with what to do with it. The user puts it together in the
+     * dialog of the JSON merge, which remembers what they decided while this one is open.
+     */
+    private Component jsonView(Item item, Field field, String label) {
+        JsonMergeNode model = jsonModels.computeIfAbsent(item.id() + "\u0000" + field.name(), key -> jsonModel(field));
+        if (model == null) {
+            // not JSON after all, a text like the others
+            VerticalLayout fallback = new VerticalLayout(note(loc.getValue(L.MSG_JSON_NOT_JSON), "contrast"), textView(item, field));
+            fallback.setPadding(false);
+            fallback.setSpacing(false);
+            return fallback;
+        }
+        String applied = edits.getOrDefault(item.id(), Map.of()).getOrDefault(field.name(), defaultValue(field));
+        TextArea toApply = readOnlyArea(L.LABEL_MERGE_TO_APPLY, JsonText.pretty(applied));
+        toApply.addClassName(CssStyles.JSON_MERGE_TEXT);
+        toApply.setMaxRows(14);
+
+        Button merge = new Button(loc.getValue(L.LABEL_JSON_MERGE), Solid.CODE_MERGE.create(), event -> {
+            JsonMergeDialog dialog = new JsonMergeDialog(label, model, result -> {
+                edit(item, field, result);
+                show(item);
+            });
+            dialog.create();
+            dialog.open();
+            jsonDialog = dialog;
+        });
+        merge.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        Button useAgent = small(L.LABEL_USE_AGENT_VERSION, event -> {
+            edit(item, field, field.agent());
+            show(item);
+        });
+        Button useBook = small(L.LABEL_USE_BOOK_VERSION, event -> {
+            edit(item, field, field.book());
+            show(item);
+        });
+        Button startOver = small(L.LABEL_JSON_START_OVER, event -> {
+            model.reset();
+            edits.getOrDefault(item.id(), new HashMap<>()).remove(field.name());
+            show(item);
+        });
+        HorizontalLayout buttons = new HorizontalLayout(merge, useAgent, useBook, startOver);
+        buttons.setWrap(true);
+
+        VerticalLayout view = new VerticalLayout();
+        view.setPadding(false);
+        view.setSpacing(false);
+        view.setWidthFull();
+        int conflicts = model.conflicts();
+        if (conflicts > 0 && !edits.getOrDefault(item.id(), Map.of()).containsKey(field.name())) {
+            view.add(note(String.format(loc.getValue(L.MSG_JSON_RESULT_CONFLICTS), conflicts), "error"));
+        }
+        TextArea inBook = readOnlyArea(L.LABEL_MERGE_IN_BOOK_NOW, JsonText.pretty(field.book()));
+        inBook.addClassName(CssStyles.JSON_MERGE_TEXT);
+        view.add(inBook, toApply, buttons);
+        WordDiffView changes = new WordDiffView(loc.getValue(L.MSG_MERGE_NO_DIFFERENCE));
+        changes.show(JsonText.pretty(field.book()), JsonText.pretty(applied));
+        view.add(heading(L.LABEL_MERGE_DIFF_APPLIED), changes);
+        return view;
+    }
+
+    /**
+     * The three versions of the data of the field laid over each other; null when one of them is not JSON.
+     */
+    private static JsonMergeNode jsonModel(Field field) {
+        try {
+            return JsonMergeNode.root(JsonText.parse(field.base()), JsonText.parse(field.agent()), JsonText.parse(field.book()));
+        } catch (JsonText.InvalidJsonException e) {
+            return null;
         }
     }
 
@@ -553,6 +642,9 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
     private String named(Type type, String value) {
         if (type == Type.REF) {
             return name(value);
+        }
+        if (type == Type.JSON) {
+            return JsonText.pretty(value);
         }
         return value == null ? "" : value;
     }
@@ -704,6 +796,10 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
 
     Dialog getCopyDialog() {
         return copyDialog;
+    }
+
+    JsonMergeDialog getJsonDialog() {
+        return jsonDialog;
     }
 
     Map<String, Map<String, String>> getEdits() {

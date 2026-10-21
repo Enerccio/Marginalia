@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845917837954">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845919947397">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845917837954" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845919947397" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845917837954" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845919947397" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845917837954" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845919947397" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -554,6 +554,35 @@ is in, was deleted from your book) says so and can&#x27;t be ticked.</p>
 shows what the agent changed and what you changed since the run started, each from the book as it was then, so you can see who did what. A line the agent changed in more than one thing (a part whose text and scene setting
 changed, an entry with a new content and note) has a <strong>Take this change</strong> box beside each of them: untick one to apply the line without it, the book keeps its own value of that field. The place of a part in the story goes with the part and has no box,
 and what the agent made or deleted is taken or left as a whole. <strong>Show in the copy</strong> (on a line the agent made or changed) opens the <doc-anchor-trigger to="#the-copy-of-the-book">copy of the book</doc-anchor-trigger> at that part or entry, to read it in its place.</p>
+<h3 id="data-that-extensions-keep-json">Data that extensions keep (JSON)</h3>
+<p>Extensions keep their own data in a book, in its parts, lorebooks and entries (an arc outline, the character tracker, the variables of a generation). It is JSON, and the review shows it <strong>pretty printed</strong> with the line
+<strong>Merge JSON data</strong> beside the text that will be applied. The data is not taken over as a whole: what only the agent changed is taken from the agent, what only your book changed stays, and what both changed in <strong>different
+places</strong> is put together place by place. It is a conflict only where both changed the <strong>same</strong> place to different values (the order of the keys does not matter); until you decide, the agent&#x27;s version is used there.</p>
+<p><strong>Merge JSON data</strong> opens a window with the data of the three versions laid over each other as a tree: <em>When the run started</em>, <em>In the book now</em>, the <em>Agent</em> and the <em>Result</em> in a column each, with a mark for what changed
+and where (the agent, the book, both, a conflict). Only the places that changed are shown (untick <strong>Only what changed</strong> for all of them); a place is opened only when you open it, so a big document is no problem.</p>
+<ul>
+<li>
+<p>Select a place and take its data from one version (<strong>Use the agent&#x27;s</strong>, <strong>Use the book&#x27;s</strong>, <strong>Use the one from the start of the run</strong>), <strong>Leave out</strong> (the key or the element is not in the result), or <strong>Put together from
+inside</strong> (the places inside decide, each its own). A key or an element that only one version has is copied into the result by taking it from that version. Taking a whole object or list from one version overrules what you chose
+inside it, but not for good: put it together from inside again and your choices are back.</p>
+</li>
+<li>
+<p>The elements of a <strong>list</strong> have no names, so they are matched by what they are: the same data first, then the same <code translate="no" v-pre>uuid</code>, <code translate="no" v-pre>id</code> or <code translate="no" v-pre>name</code>, then the ones that look most alike, and what is left over in the same number and
+of the same kind is taken as changed. When the guess is wrong, <strong>Split</strong> an element into the ones of each version, or <strong>Match with…</strong> another element that the first one has no version in common with.</p>
+</li>
+<li>
+<p><strong>Open</strong> (or a double click) works with one place alone: the path above the tree takes you back up.</p>
+</li>
+<li>
+<p>The <strong>Text</strong> tab shows the data of the open place as text: the agent&#x27;s data you can <strong>edit</strong>, the others only to read (the book, the start of the run, the result), and <strong>Show the difference to</strong> marks what differs word
+by word. What you write is checked as JSON when you go back to the tree, change what is shown, open another place or take the result; if it is not valid JSON you stay where you are and are told what is wrong, and nothing is
+changed. Valid text replaces the agent&#x27;s data in that place and everything inside it is compared again.</p>
+</li>
+<li>
+<p><strong>Start over</strong> forgets what you decided and wrote; <strong>Take the result</strong> hands the result to the review, where it is the text to apply (the line stays as you left it while the review is open).</p>
+</li>
+</ul>
+<p>The review also has <strong>Use the agent&#x27;s</strong> and <strong>Use the book&#x27;s</strong> for such a field, to take one of the two as it is, and <strong>Start over</strong> to go back to the put-together data.</p>
 <p>A lorebook that other books use is marked <strong>Shared</strong>: the change goes to the lorebook itself, so the other books get it too. It starts unticked.</p>
 <p>Applying is done to the book <strong>in place</strong>: the parts keep their addresses, other books keep their links to a lorebook, and what the agent deleted goes to the trash. A <strong>backup of the book as it was</strong> is taken first
 (it is among the backups of the book, with its lorebooks), and the changes are made all together or not at all. <strong>Show the branch the agent ended on</strong> also switches the book to the branch the agent was on, when it is
@@ -810,7 +839,7 @@ editing again after you paused or stopped the run. Other lorebooks are not affec
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (9f9fd243).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (0583babc).</p></div>
             </footer>
         </div>
     </div>

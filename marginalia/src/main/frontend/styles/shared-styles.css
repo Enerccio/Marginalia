@@ -891,6 +891,37 @@ vaadin-dialog-overlay.agent-console-phone .help-message-user {
     text-decoration: line-through;
 }
 
+/* the JSON merge dialog: what the versions of a place hold, one line in a cell */
+.json-merge-cell {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--lumo-font-family-monospace, monospace);
+    font-size: var(--lumo-font-size-xs);
+}
+
+.json-merge-cell-agent {
+    background: var(--lumo-primary-color-10pct);
+}
+
+.json-merge-cell-book {
+    background: var(--lumo-success-color-10pct);
+}
+
+.json-merge-cell-conflict {
+    background: var(--lumo-error-color-10pct);
+}
+
+.json-merge-absent {
+    color: var(--lumo-tertiary-text-color);
+}
+
+.json-merge-text {
+    font-family: var(--lumo-font-family-monospace, monospace);
+    font-size: var(--lumo-font-size-s);
+}
+
 /* a part of the copy of the book of an agent run, read only */
 .agent-copy-part {
     padding: var(--lumo-space-s) var(--lumo-space-m);

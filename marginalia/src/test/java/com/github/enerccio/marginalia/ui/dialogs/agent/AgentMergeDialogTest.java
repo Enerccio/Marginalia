@@ -322,4 +322,108 @@ class AgentMergeDialogTest extends AgentTestBase {
                 .containsExactlyInAnyOrder("Once upon a time", "there was a dragon");
         assertThat(changes.get()).isEqualTo(1);
     }
+
+    // --- the data of the attributes is JSON, put together in a dialog of its own
+
+    private void setData(Manuscript where, String partText, String json) throws Exception {
+        ChatMessage stored = chatMessageService.find(part(where, partText).getId());
+        stored.getAttributes().add("templateVariables", com.google.gson.JsonParser.parseString(json));
+        chatMessageService.save(stored);
+    }
+
+    private static List<Button> buttons(Component component) {
+        return descendants(component).stream().filter(Button.class::isInstance).map(Button.class::cast).toList();
+    }
+
+    private static Button button(Component component, String text) {
+        return buttons(component).stream().filter(b -> text.equals(b.getText())).findFirst()
+                .orElseThrow(() -> new AssertionError("no button " + text + " in " + buttons(component).stream().map(Button::getText).toList()));
+    }
+
+    @Test
+    void theDataOfAFieldIsShownPrettyPrintedWithWhatIsAppliedAndHowToPutItTogether() throws Exception {
+        setData(copy(), "there was a dragon", "{\"mood\":\"dark\"}");
+        finish();
+        setData(book, "there was a dragon", "{\"mood\":\"light\",\"pace\":\"fast\"}");
+        AgentMergeDialog dialog = dialog();
+        Item item = row(dialog, Kind.MESSAGE, Change.CHANGED, "there");
+
+        dialog.show(item);
+
+        List<TextArea> areas = descendants(dialog.getDetail()).stream().filter(TextArea.class::isInstance).map(TextArea.class::cast).toList();
+        assertThat(areas).extracting(TextArea::getValue).contains("{\n  \"mood\": \"light\",\n  \"pace\": \"fast\"\n}",
+                "{\n  \"mood\": \"dark\",\n  \"pace\": \"fast\"\n}");
+        assertThat(button(dialog.getDetail(), "Merge JSON data")).isNotNull();
+        assertThat(descendants(dialog.getDetail()).stream().filter(Span.class::isInstance).map(Span.class::cast).map(Span::getText))
+                .anyMatch(text -> text.startsWith("1 conflicts in the data"));
+    }
+
+    @Test
+    void whatTheUserDecidesInTheJsonDialogIsWhatIsApplied() throws Exception {
+        setData(copy(), "there was a dragon", "{\"mood\":\"dark\"}");
+        finish();
+        setData(book, "there was a dragon", "{\"mood\":\"light\",\"pace\":\"fast\"}");
+        AgentMergeDialog dialog = dialog();
+        Item item = row(dialog, Kind.MESSAGE, Change.CHANGED, "there");
+        dialog.show(item);
+
+        button(dialog.getDetail(), "Merge JSON data").click();
+        JsonMergeDialog json = dialog.getJsonDialog();
+        assertThat(json).isNotNull();
+        var mood = json.getGrid().getDataProvider().fetchChildren(new com.vaadin.flow.data.provider.hierarchy.HierarchicalQuery<>(null, json.getLevel()))
+                .filter(n -> n.title().equals("mood")).findFirst().orElseThrow();
+        json.getGrid().select(mood);
+        button(json, "Use the book's").click();
+        json.getTakeButton().click();
+
+        assertThat(dialog.getEdits().get(item.id())).containsEntry("attributes_templateVariables", "{\"mood\":\"light\",\"pace\":\"fast\"}");
+        dialog.getGrid().asMultiSelect().select(item);
+        dialog.apply();
+
+        assertThat(chatMessageService.find(part(book, "there was a dragon").getId()).getAttributes().get("templateVariables").toString())
+                .isEqualTo("{\"mood\":\"light\",\"pace\":\"fast\"}");
+    }
+
+    @Test
+    void theDialogRemembersWhatWasDecidedAndStartingOverGivesItUp() throws Exception {
+        setData(copy(), "there was a dragon", "{\"mood\":\"dark\"}");
+        finish();
+        setData(book, "there was a dragon", "{\"mood\":\"light\"}");
+        AgentMergeDialog dialog = dialog();
+        Item item = row(dialog, Kind.MESSAGE, Change.CHANGED, "there");
+        dialog.show(item);
+        button(dialog.getDetail(), "Merge JSON data").click();
+        JsonMergeDialog first = dialog.getJsonDialog();
+        var mood = first.getGrid().getDataProvider().fetchChildren(new com.vaadin.flow.data.provider.hierarchy.HierarchicalQuery<>(null, first.getLevel()))
+                .findFirst().orElseThrow();
+        first.getGrid().select(mood);
+        button(first, "Use the book's").click();
+        first.getTakeButton().click();
+        assertThat(dialog.getEdits().get(item.id())).containsKey("attributes_templateVariables");
+
+        // opened again, the decision is still there
+        button(dialog.getDetail(), "Merge JSON data").click();
+        assertThat(dialog.getJsonDialog().getLevel().unresolved()).isZero();
+
+        button(dialog.getDetail(), "Start over").click();
+
+        assertThat(dialog.getEdits().getOrDefault(item.id(), java.util.Map.of())).doesNotContainKey("attributes_templateVariables");
+        button(dialog.getDetail(), "Merge JSON data").click();
+        assertThat(dialog.getJsonDialog().getLevel().unresolved()).isEqualTo(1);
+    }
+
+    @Test
+    void theAgentsOrTheBooksDataCanBeTakenAsItIs() throws Exception {
+        setData(copy(), "there was a dragon", "{\"mood\":\"dark\"}");
+        finish();
+        setData(book, "there was a dragon", "{\"pace\":\"fast\"}");
+        AgentMergeDialog dialog = dialog();
+        Item item = row(dialog, Kind.MESSAGE, Change.CHANGED, "there");
+        dialog.show(item);
+
+        button(dialog.getDetail(), "Use the agent's").click();
+        assertThat(dialog.getEdits().get(item.id())).containsEntry("attributes_templateVariables", "{\"mood\":\"dark\"}");
+        button(dialog.getDetail(), "Use the book's").click();
+        assertThat(dialog.getEdits().get(item.id())).containsEntry("attributes_templateVariables", "{\"pace\":\"fast\"}");
+    }
 }

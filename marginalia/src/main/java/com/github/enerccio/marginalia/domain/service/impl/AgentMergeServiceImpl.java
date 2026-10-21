@@ -2,17 +2,17 @@ package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.domain.collections.*;
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
+import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.agent.*;
-import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Change;
-import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Field;
-import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Item;
-import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Kind;
+import com.github.enerccio.marginalia.domain.service.agent.MergePlan.*;
+import com.github.enerccio.marginalia.domain.service.agent.jsonmerge.JsonMerge;
+import com.github.enerccio.marginalia.domain.service.agent.jsonmerge.JsonText;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Hibernate;
 import org.slf4j.Logger;
@@ -543,6 +543,10 @@ public class AgentMergeServiceImpl implements AgentMergeService {
             if (field.editable() && edits != null && edits.containsKey(field.name())) {
                 return edits.get(field.name());
             }
+            if (field.type() == Type.JSON) {
+                // the changes of both sides, the places both changed are the agent's unless the user decided them
+                return JsonMerge.merge(field.base(), field.agent(), field.book());
+            }
             return field.agent();
         }
 
@@ -610,12 +614,7 @@ public class AgentMergeServiceImpl implements AgentMergeService {
             }
             if (!attributes.isEmpty()) {
                 for (Map.Entry<String, String> attribute : attributes.entrySet()) {
-                    String name = attribute.getKey().substring(MergeDiff.ATTRIBUTES.length());
-                    if (StringUtils.isBlank(attribute.getValue())) {
-                        targetBook.getAttributes().remove(name);
-                    } else {
-                        targetBook.getAttributes().add(name, JsonParser.parseString(attribute.getValue()));
-                    }
+                    setAttribute(targetBook, attribute.getKey(), attribute.getValue());
                 }
                 manuscriptService.save(targetBook);
                 reload();
@@ -681,6 +680,7 @@ public class AgentMergeServiceImpl implements AgentMergeService {
             lorebook.setName(value(item, field(item, "name")));
             Field enabled = field(item, "enabled");
             lorebook.setEnabled(enabled == null || Boolean.parseBoolean(enabled.agent()));
+            setAttributes(item, lorebook);
             lorebook = lorebookService.save(lorebook);
             createdLorebooks.put(keyOf(item), lorebook);
             made(AgentRunPairKind.LOREBOOK, item.sourceUuid(), lorebook.getUuid());
@@ -721,6 +721,7 @@ public class AgentMergeServiceImpl implements AgentMergeService {
             if (enabled != null) {
                 lorebook.setEnabled(Boolean.parseBoolean(enabled.agent()));
             }
+            setAttributes(item, lorebook);
             lorebook = lorebookService.save(lorebook);
             Field tags = field(item, "tags");
             if (tags != null) {
@@ -783,6 +784,9 @@ public class AgentMergeServiceImpl implements AgentMergeService {
             setEntryFields(item, fields);
             Lorebook target = lorebookByKey(field(item, "lorebook").agent());
             LorebookEntry saved = lorebookEntryService.create(target, fields).entry();
+            if (setAttributes(item, saved)) {
+                saved = lorebookEntryService.save(saved);
+            }
             made(AgentRunPairKind.ENTRY, item.sourceUuid(), saved.getUuid());
             retagEntry(item, saved);
         }
@@ -791,6 +795,9 @@ public class AgentMergeServiceImpl implements AgentMergeService {
             LorebookEntry entry = (LorebookEntry) Hibernate.unproxy(lorebookEntryService.findForUser(item.targetUuid()));
             setEntryFields(item, entry);
             entry = lorebookEntryService.update(entry).entry();
+            if (setAttributes(item, entry)) {
+                entry = lorebookEntryService.save(entry);
+            }
             retagEntry(item, entry);
             Field lorebook = field(item, "lorebook");
             if (lorebook != null) {
@@ -865,6 +872,9 @@ public class AgentMergeServiceImpl implements AgentMergeService {
                     case "povCharacter" -> created.setPovCharacter(edited);
                     case "presentCharacters" -> created.setPresentCharacters(edited);
                     default -> {
+                        if (field.name().startsWith(MergeDiff.ATTRIBUTES)) {
+                            setAttribute(created, field.name(), edited);
+                        }
                     }
                 }
             }
@@ -936,15 +946,32 @@ public class AgentMergeServiceImpl implements AgentMergeService {
         }
 
         /**
-         * Puts the data of one key of the attributes of the part (the JSON of the field), removes it when the other side has none.
+         * Puts the data of one key of the attributes of the object (the JSON of the field), removes it when the other side has none.
+         *
+         * @throws JsonText.InvalidJsonException the text is not JSON
          */
-        private void setAttribute(ChatMessage message, String field, String json) {
+        private void setAttribute(ExtendableEntity entity, String field, String json) {
             String name = field.substring(MergeDiff.ATTRIBUTES.length());
-            if (StringUtils.isBlank(json)) {
-                message.getAttributes().remove(name);
+            JsonElement data = JsonText.parse(json);
+            if (data == null) {
+                entity.getAttributes().remove(name);
             } else {
-                message.getAttributes().add(name, JsonParser.parseString(json));
+                entity.getAttributes().add(name, data);
             }
+        }
+
+        /**
+         * Puts the data of the attributes the item changed into the object; whether there were any.
+         */
+        private boolean setAttributes(Item item, ExtendableEntity entity) {
+            boolean any = false;
+            for (Field field : item.fields()) {
+                if (field.name().startsWith(MergeDiff.ATTRIBUTES)) {
+                    setAttribute(entity, field.name(), value(item, field));
+                    any = true;
+                }
+            }
+            return any;
         }
 
         /**

@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.domain.service.impl;
 import com.github.enerccio.marginalia.domain.collections.AgentRunPairKind;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
+import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
@@ -432,6 +433,7 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             bookObj.addProperty("uuid", book.getUuid());
             bookObj.addProperty("name", book.getName());
             bookObj.addProperty("enabled", book.isEnabled());
+            addAttributes(bookObj, book);
             bookObj.add("tags", toJsonArray(tagRelationService.getTagsForObject(book)));
             JsonArray subbookRefs = new JsonArray();
             for (Lorebook subbook : subbooks) {
@@ -599,6 +601,7 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             lorebook.setName(StringUtils.defaultIfBlank(getString(bookObj, "name"), "Imported Lorebook"));
             lorebook.setEnabled(getBoolean(bookObj, "enabled", true));
             lorebook.setAgentic(agentic);
+            lorebook.setAttributes(attributesOf(bookObj));
             // keep original uuid when free, so later restores link to this copy; a working copy is always new
             if (!agentic && find(uuid) == null) {
                 lorebook.setUuid(uuid);
@@ -647,9 +650,27 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
         entryObj.addProperty("filtering", entry.getFiltering());
         entryObj.addProperty("filteringMode", entry.getFilteringMode() != null ? entry.getFilteringMode().name() : null);
         entryObj.addProperty("insertionMode", entry.getInsertionMode() != null ? entry.getInsertionMode().name() : null);
+        addAttributes(entryObj, entry);
         entryObj.add("tags", toJsonArray(tagRelationService.getTagsForObject(entry)));
         entryObj.add("negativeTags", toJsonArray(tagRelationService.getTagsForObject(entry, true)));
         return entryObj;
+    }
+
+    /**
+     * The data extensions keep in the attributes of the object, when there is any.
+     */
+    private static void addAttributes(JsonObject target, ExtendableEntity source) {
+        if (source.getAttributes() != null && source.getAttributes().size() > 0) {
+            target.add("attributes", source.getAttributes().deepCopy());
+        }
+    }
+
+    /**
+     * The attributes of a marshalled object, empty when it has none.
+     */
+    private static JsonObject attributesOf(JsonObject marshalled) {
+        JsonElement attributes = marshalled.get("attributes");
+        return attributes != null && attributes.isJsonObject() ? attributes.getAsJsonObject().deepCopy() : new JsonObject();
     }
 
     /**
@@ -679,6 +700,7 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             entry.setComment(getString(entryObj, "comment"));
             entry.setEnabled(getBoolean(entryObj, "enabled", true));
             entry.setFiltering(getString(entryObj, "filtering"));
+            entry.setAttributes(attributesOf(entryObj));
 
             if (entryObj.has("order") && !entryObj.get("order").isJsonNull()) {
                 entry.setOrder(entryObj.get("order").getAsInt());
