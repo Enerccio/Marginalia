@@ -27,8 +27,9 @@ All data entities extend `ExtendableEntity` ([Domain model](../domain-model.md))
 | `AI` (inference provider), `Protocol`, `Tag` | Per-provider or per-protocol options. (Marginalia itself keeps the per-user limits of a shared AI in the `@ExtendedAttribute` field `AI.limits`, see [Domain model](../domain-model.md#limits-of-the-users-of-a-shared-ai).) |
 | `UserSetting` | Per-user plugin settings - Reviewer and Side Query keep theirs here. (Marginalia itself keeps the autosaved state of the workspace in its `@ExtendedAttribute` field `workspaceState`.) |
 | `AppSettings` | Settings for the whole installation (administrators). |
+| `Agent`, `AgentRun`, `AgentMessage` | The agents of 1.4.0, their runs and the messages of a run: the data an extension wants to keep with one of them. Marginalia keeps the settings of the agent itself in `@ExtendedAttribute` fields (the models for sub-agents, the allowed commands, the prompts...), see [Agents](../agents.md). |
 
-`User`, `Resource` and `Usage` are not extendable.
+`User`, `Resource`, `Usage` and `AgentRunPair` are not extendable.
 
 ```java
 JsonObject attributes = entity.getAttributes();       // never null after loading; a new entity starts with {}
