@@ -40,6 +40,10 @@ you already have instead of creating copies; see [Restoring a backup](../books/b
 2. Upload a `.zip` file with `.md` (Markdown) files.
 3. Check the **entry names** in the table and change them if you want, then click **Import**.
 
+![The window to upload the archive](../../images/archive-lorebook-upload.png)
+
+![The names of the entries before the import](../../images/archive-entry-names.png)
+
 Marginalia creates a new lorebook named after the file (without `.zip`) with **one entry for each `.md` file**. The
 files are taken in the order of their names, numbers inside the names compared as numbers (`2.md` comes before
 `10.md`), also in folders of the archive; the entries get the *Order* 1, 2, 3... in that sequence. The whole file is the

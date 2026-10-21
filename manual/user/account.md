@@ -111,6 +111,10 @@ The defaults for the [book prompts](books/prompts.md):
 
 ![The Templates tab](../images/settings-templates.png)
 
+Further down, for a user who may use agents, are the prompts of the agents:
+
+![The prompts of the agents in the Templates tab](../images/settings-templates-agents.png)
+
 Each field shows the built-in default in grey while it is empty, and has the hints popover with
 **Insert Default Template** and the available [variables and macros](templates/index.md).
 
