@@ -407,7 +407,7 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
                 pli.getIdentifier() + ";" + pli.getHashedSecret() + ";" + pli.getCreate() + ";" + pli.getLastAccess()).collect(Collectors.joining("|")));
     }
 
-    private String hashPassword(String password, String salt) throws Exception {
+    protected String hashPassword(String password, String salt) throws Exception {
         char[] passwordChars = password.toCharArray();
         byte[] saltBytes = Base64.getDecoder().decode(salt);
 

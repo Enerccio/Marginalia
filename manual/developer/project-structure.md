@@ -294,7 +294,7 @@ Test classes mirror the areas they cover (paths relative to `src/test/java/com/g
 
 | Package | |
 |---|---|
-| `test` | Test infrastructure: `MarginaliaTestBase` (Spring context, temp data folder, login helpers), `GenerationTestBase` / `GenerationRun` (running real generations), `InferenceCollector`, `ExpectedLog`, `TestContextPostProcessor`. |
+| `test` | Test infrastructure: `MarginaliaTestBase` (Spring context, temp data folder, login helpers), `GenerationTestBase` / `GenerationRun` (running real generations), `InferenceCollector`, `ExpectedLog`, `TestContextPostProcessor`, `TestUserService` (cheap password hashing). |
 | `test.llm` | `MockLLMServer` - a fake OpenAI-compatible server with programmable scenarios. |
 | `crud` | CRUD tests for every entity, built on `OwnedCrudContract` / `ExtendableCrudContract`. |
 | `generation` | Generation requests and lorebook activation. |

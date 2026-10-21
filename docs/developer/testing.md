@@ -23,6 +23,16 @@ Surefire is configured in `pom.xml` with:
 |---|---|
 | `-XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true` | `RuntimeInstrumentationTest` installs the ByteBuddy agent into the test JVM. |
 | `marginalia.test.home=target/test-home` | Folder for the test databases (see [The application folder](#the-application-folder)). |
+| `forkCount=${test.forks}` (default 3), `reuseForks=true` | The test classes are spread over that many JVMs, one class at a time in each. Every JVM has its own Spring context and so its own database: SQLite lets one writer in at a time, and the `@Configurable` aspect (the `@Autowired` fields of the UI classes) is one for the JVM and bound to one Spring context, so threads of one JVM with a context each do not work. `-Dtest.forks=1` runs the classes one after another (times below). |
+
+How long `mvn test` takes (about 2,560 tests), with the machine, as the time depends on it. Add a row for yours: the
+`Total time` line of Maven, once with `-Dtest.forks=1` and once as it is.
+
+| Machine | `-Dtest.forks=1` | 3 JVMs (default) | Memory of the 3 JVMs |
+|---|---|---|---|
+| Intel Core i7-10700K (8 cores, 16 threads), 32 GB RAM, NVMe SSD (btrfs on LUKS), Linux, JDK 26 | 19 min | 7 min | 6.5 GB peak |
+
+A class can run after any other in its JVM, and the classes of a JVM share its database, so a test must not count on what the database holds (see [The shared database](#the-shared-database)): create data with `uniqueName` and compare with what was there before.
 
 Reports are written to `target/surefire-reports/`; the CI job uploads them as an artifact when a test fails.
 
@@ -127,7 +137,10 @@ classDiagram
 `application-config.xml` and adds `TestContextPostProcessor`, which
 
 - removes the OSGi framework (`OsgiServiceImpl`) and the instrumentation agent (`RuntimeInstrumentationInitializer`),
-- points `Configuration` to a new folder `target/test-home/ctx-<random>/` instead of `~/.marginalia`.
+- points `Configuration` to a new folder `target/test-home/ctx-<random>/` instead of `~/.marginalia`,
+- makes `TestUserService` the user service: it hashes passwords with one round of SHA-256 instead of PBKDF2 (65536
+  rounds), which was close to half of the time the tests spent, every test creates a user. `authenticate` works as
+  usual; `PasswordHashTest` keeps the real PBKDF2 hash covered.
 
 Everything else is the production wiring: the services, Hibernate, Flyway migrations, the session-scoped current
 user. The base class gives you:
@@ -168,7 +181,7 @@ void lastAdminIsProtected() throws Exception { ... }
 class DatabaseBackupScheduleTest extends MarginaliaTestBase { ... }
 ```
 
-A new context costs a few seconds (Spring, Hibernate, Flyway), so use it sparingly.
+The first context of a JVM costs about 20 seconds (Spring, Hibernate, Flyway; measured as the start of one test class on the first machine of the table, a context built later in a warm JVM should cost less), so use it sparingly.
 
 #### The application folder
 

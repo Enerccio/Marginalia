@@ -19,6 +19,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -53,14 +55,25 @@ class WorkspacePartsLLMTest extends MarginaliaTestBase {
         return "open-dialog:" + loc.getValue(label);
     }
 
+    private int rows(WorkspaceComponent part) {
+        Matcher matcher = Pattern.compile("\\((\\d+) rows?\\)").matcher(part.getLLMState());
+        assertThat(matcher.find()).as(part.getLLMState()).isTrue();
+        return Integer.parseInt(matcher.group(1));
+    }
+
     @Test
     void theModelsSectionDescribesItselfAndOffersTheDialogToAddOne() throws Exception {
         login();
         AIPart part = (AIPart) created(new AIPart(null));
 
-        assertThat(part.getLLMState()).startsWith("A table of the user's models").contains("0 rows")
+        assertThat(part.getLLMState()).startsWith("A table of the user's models")
                 .contains("\"" + loc.getValue(L.LABEL_ADD_MODEL) + "\" opens a dialog");
         assertThat(part.getInteraction()).containsOnlyKeys(add(L.LABEL_ADD_MODEL));
+
+        // the models other users share with everybody are in the table too, so count from what is there
+        int before = rows(part);
+        createAI();
+        assertThat(rows(created(new AIPart(null)))).isEqualTo(before + 1);
     }
 
     @Test
