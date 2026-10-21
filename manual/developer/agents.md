@@ -356,7 +356,7 @@ checked in `AgentServiceImpl.validate`; null or zero offers no tools) read by `A
   (a limit of one: its own answer). A call that finds the limit reached already (one that was cut off) waits for a place first. `await_agent` completes from the `finished` future, with an optional timeout.
   The tools are `FunctionContinuation`s: waiting holds no thread. The system message of the agent says the limits (`Defaults.AGENT_SUBAGENTS_NOTE`), the results are cut at `Defaults.AGENT_SUBAGENT_RESULT_CHARS`.
 - **The loop** is `Worker.subLoop` on a thread of the pool, in `InRequestScope` of the same `AgentRequestAttributes`: system message of the agent plus `Defaults.AGENT_SUBAGENT_NOTE`, the task as the
-  first message, `InferenceService.round` with `subTools` (the commands and the file tools of the agent - **no run tools, checkpoint tools, sync or image tools, and no sub-agent tools**, so no sub-agent
+  first message, `InferenceService.round` with `subTools` (the commands, the file tools and the manual tools of the agent - **no run tools, checkpoint tools, sync or image tools, and no sub-agent tools**, so no sub-agent
   can spawn), the calls one after another, a round without calls is the answer. At most `Defaults.AGENT_SUBAGENT_MAX_ROUNDS`, and the limits of the run (`maxRounds`, `isBudgetExceeded`, the context cap -
   no compaction) fail it with a reason; every request is added to the run (`addUsage`). `checkSub` runs before every request, call and poll: a cancel or a run that was thrown away ends it as `CANCELLED`
   (`SubStopped`), `interrupts`, `SubAgents.suspend` and a run that is `PAUSING` / `PAUSED` (or `STOPPING` towards `STOPPED_KEPT`) end it as `SUSPENDED`, any other status that is not `RUNNING` /
@@ -487,7 +487,8 @@ the user picked. The book is never restored from a backup (that would change the
 their entries: the **base** (`AgentVirtualFileSystemService.readBase`, the book as the run started), the **copy** (`ManuscriptService.snapshotAgenticCopy`) and the **book now** (`createBackup` + `marshalLorebooks(root, true)`).
 The copy is read through the pairs of the run (`AgentRunPairService.getAll`, copy uuid -> original uuid): every uuid of the copy, also the ones inside a text (`nextSummaryUuid`, `replacedSummary`, the data of a plugin;
 `MergeDiff.translate`), becomes the uuid of its original, and an item without a pair gets the key `new:<uuid in the copy>`. Each item is a map of properties (a part: `response`, `instructions`, `sceneSetting`,
-`povCharacter`, `presentCharacters`, `summary` - one canonical string of the text, type, hash and the links of the summary; a lorebook: `name`, `enabled`, `tags`, `subbooks`; an entry: its fields, tags and the lorebook it is in;
+`povCharacter`, `presentCharacters`, `summary` - one canonical string of the text, type, hash and the links of the summary - and every `attributes_*` key of the part, the JSON of the value with the uuids translated, which
+holds the template variables of the generation (`templateVariables`) and the data of the plugins; `MergeDiff.messageFields`; a lorebook: `name`, `enabled`, `tags`, `subbooks`; an entry: its fields, tags and the lorebook it is in;
 the book: its settings, `tags` and every `attributes_*` key, the data of the plugins) and is compared **field by field**: the field the agent changed (copy differs from base) and the book did not (book equals base) is a change to
 take over, both changed to different values is a `conflict`, the same value on both sides is nothing. `SET` fields (tags, subbooks) are merged by what each side added and removed and never conflict. A key only in the copy is
 `ADDED`, one only in the base and still in the book is `DELETED` (a conflict when the book changed it since), the ones the user deleted from the book are `problem`s (`PROBLEM_GONE`, `PROBLEM_NEEDS_PARENT`,
@@ -541,6 +542,7 @@ The view is `AgentCopyView` (the **Book copy** tab, `AgentConsoleDialog.COPY_TAB
 ```text
 CommandFunctions.forAgent(...)                    the commands the agent is allowed
   .and(fileSystemService.getFileTools(files, results))   list_files, read_file, write_file, ..., save_command_result
+  .and(registry.bind(ManualTools.class, ...))            search_manual, read_manual_page (the help assistant's manual tools, read only)
   .and(registry.bind(RunTools.class, runTools))          finish, ask_user, update_plan, get_run_status
   .and(registry.bind(SubAgentTools.class, ...))          spawn_agent (and SubAgentControlTools with more than one), only when the agent has sub-agents, see [Sub-agents](#sub-agents)
   .and(registry.bind(ImageTools.class, ...))             view_image, only when the main profile has images

@@ -577,6 +577,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_ENTRY_NAMES, "エントリ名");
         setValue(L.LABEL_ARCHIVE_FILE, "アーカイブ内のファイル");
         setValue(L.LABEL_STORY_PARTS_LIMIT, "ストーリーで一度に読み込むパート数");
+        setValue(L.LABEL_ATTRIBUTES, "データ");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
