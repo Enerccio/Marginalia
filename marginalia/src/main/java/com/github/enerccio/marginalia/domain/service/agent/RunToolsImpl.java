@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -26,6 +27,8 @@ public final class RunToolsImpl implements RunTools {
     private volatile String question;
     private volatile String compaction;
     private volatile List<PlanItem> plan = List.of();
+    private volatile Consumer<List<PlanItem>> planStore = items -> {
+    };
 
     /**
      * @param status the text of {@code get_run_status} without the plan, made by the runner from the budgets it keeps
@@ -111,7 +114,16 @@ public final class RunToolsImpl implements RunTools {
     }
 
     /**
-     * The plan the run had before it was paused (read back from the transcript).
+     * Called with the whole plan after every {@code update_plan} that was accepted, for the runner to keep it where a restart
+     * finds it. A restored plan is not stored again.
+     */
+    public void onPlanChange(Consumer<List<PlanItem>> store) {
+        this.planStore = store == null ? items -> {
+        } : store;
+    }
+
+    /**
+     * The plan the run had before it was paused (kept by {@link #onPlanChange}, or read back from the transcript).
      */
     public void restorePlan(List<PlanItem> items) {
         this.plan = items == null ? List.of() : List.copyOf(items);
@@ -156,6 +168,7 @@ public final class RunToolsImpl implements RunTools {
             cleaned.add(new PlanItem(StringUtils.abbreviate(item.text().strip(), MAX_ITEM_LENGTH), statusOf(item.status())));
         }
         this.plan = List.copyOf(cleaned);
+        planStore.accept(plan);
         done.complete("Plan saved.\n" + render(cleaned));
     }
 

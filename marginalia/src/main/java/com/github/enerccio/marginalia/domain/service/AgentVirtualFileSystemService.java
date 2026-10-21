@@ -173,6 +173,49 @@ public interface AgentVirtualFileSystemService {
     String readQueue(AgentRun run);
 
     /**
+     * As {@link #writeCallMarker(AgentRun, String)}, for the call of the sub-agent with the handle.
+     */
+    void writeCallMarker(AgentRun run, String subAgent, String callId);
+
+    /**
+     * The id {@link #writeCallMarker(AgentRun, String, String)} kept for the sub-agent; null when there is none.
+     */
+    String readCallMarker(AgentRun run, String subAgent);
+
+    /**
+     * Keeps the last results of the commands of the agent (JSON, as the runner writes it), at once. Null removes it.
+     * No check of the owner: the runner writes it for the run it works.
+     */
+    void writeResults(AgentRun run, String json);
+
+    /**
+     * What {@link #writeResults} kept; null when there is none.
+     */
+    String readResults(AgentRun run);
+
+    /**
+     * Keeps the messages and commands of the author that the runner took from the queue and has not delivered yet (JSON, in the
+     * format of the queue), at once. Null removes it. No check of the owner.
+     */
+    void writeDelivery(AgentRun run, String json);
+
+    /**
+     * What {@link #writeDelivery} kept; null when there is none.
+     */
+    String readDelivery(AgentRun run);
+
+    /**
+     * Keeps the to-do list of the agent (JSON, as the runner writes it), at once, so a restart does not lose it. Null removes it.
+     * No check of the owner: the runner writes it for the run it works.
+     */
+    void writePlan(AgentRun run, String json);
+
+    /**
+     * What {@link #writePlan} kept; null when there is none.
+     */
+    String readPlan(AgentRun run);
+
+    /**
      * The note of the author with the last resume that the model was not told of yet, and marks it as told; null when there is none.
      * No check of the owner: the runner asks for the run it works.
      */

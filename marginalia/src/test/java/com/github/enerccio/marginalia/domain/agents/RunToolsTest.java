@@ -128,6 +128,19 @@ class RunToolsTest {
     }
 
     @Test
+    void anAcceptedPlanIsHandedToTheStoreAndARefusedOneIsNot() {
+        List<List<PlanItem>> stored = new java.util.ArrayList<>();
+        tools.onPlanChange(stored::add);
+
+        tools.updatePlan(new Answer(), List.of(new PlanItem("Read", "completed")));
+        tools.updatePlan(new Answer(), List.of());
+        tools.restorePlan(List.of(new PlanItem("Restored", "pending")));
+
+        assertThat(stored).containsExactly(List.of(new PlanItem("Read", "done")));
+        assertThat(tools.getPlan()).containsExactly(new PlanItem("Restored", "pending"));
+    }
+
+    @Test
     void thePlanOfTheLastUpdateIsReadBackFromTheTranscript() {
         List<LLMChatMessage> transcript = List.of(
                 LLMChatMessage.ofToolCalls(null, List.of(LLMToolCall.of("a", "update_plan", "{\"items\":[{\"text\":\"Old\",\"status\":\"done\"}]}"))),

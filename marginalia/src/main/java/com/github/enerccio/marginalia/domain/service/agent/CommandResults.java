@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.domain.service.agent;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * The last results the commands of a run returned, whole: the model gets a result cut at
@@ -32,6 +33,34 @@ public final class CommandResults {
 
     private final LinkedList<Entry> kept = new LinkedList<>();
     private int counter;
+    private Consumer<Snapshot> store = snapshot -> {
+    };
+
+    /**
+     * What is kept and the number the next result gets, for the runner to store.
+     */
+    public record Snapshot(int counter, List<Entry> entries) {}
+
+    /**
+     * Called after every result that is added, for the runner to keep them where a restart finds them. Not called for
+     * {@link #restore}.
+     */
+    public synchronized void onChange(Consumer<Snapshot> store) {
+        this.store = store == null ? snapshot -> {
+        } : store;
+    }
+
+    /**
+     * Puts back what {@link #onChange} had stored: the results and the number the next one gets.
+     */
+    public synchronized void restore(Snapshot snapshot) {
+        kept.clear();
+        kept.addAll(snapshot.entries());
+        while (kept.size() > KEEP) {
+            kept.removeFirst();
+        }
+        counter = Math.max(snapshot.counter(), kept.stream().mapToInt(Entry::id).max().orElse(0));
+    }
 
     /**
      * Keeps a result.
@@ -44,6 +73,7 @@ public final class CommandResults {
         while (kept.size() > KEEP) {
             kept.removeFirst();
         }
+        store.accept(new Snapshot(counter, List.copyOf(kept)));
         return entry.id();
     }
 

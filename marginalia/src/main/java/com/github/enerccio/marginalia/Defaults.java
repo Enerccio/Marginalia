@@ -226,6 +226,14 @@ Do not call any tool and do not do any of the work now, only write the summary. 
             + "What it read is below, what it changed (if anything) is changed in your working copy, so what you read earlier may be out of date.";
 
     /**
+     * Told to the agent when the server stopped while a command of the author was running and the command can't be run again (it may
+     * be done in part). The line of the command follows.
+     */
+    public static final String AGENT_AUTHOR_COMMAND_INTERRUPTED = "The author ran a command from the console, and the server stopped "
+            + "while it was running. It was not run again, it may be done in part: check what it should have changed in your working copy "
+            + "before you rely on it.";
+
+    /**
      * What the runner adds to the system prompt of an agent: how the run ends and what the tools are for. The prompt
      * and the instructions of the author come before it.
      */

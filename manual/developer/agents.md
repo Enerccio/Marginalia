@@ -138,14 +138,17 @@ the worker polls for that while it waits and cancels the request.
 
 **A run survives a restart.** Every round is appended to `agent_messages` before the next request, the status is in the database, and the working
 copy and the workspace are on disk. A resumed run reads its transcript back, repairs its end (calls nobody answered get "interrupted", a transcript
-that ends with a plain reply gets the resume message, see `AgentRunnerImpl.Worker.prepare`) and goes on. What is *not* kept: the
-`CommandResults` (they live as long as one worker) and the plan is restored from the last `update_plan` call.
+that ends with a plain reply gets the resume message, see `AgentRunnerImpl.Worker.prepare`) and goes on. The plan (`plan.json`, written by
+`RunToolsImpl.onPlanChange` after every accepted `update_plan`; without the file, as for a run that was rewound, it is read from the last `update_plan` call that the
+model still reads, `planOf`) and the `CommandResults` (`results.json`, the last ten whole and the number the next gets; `CommandResults.onChange` / `restore`) are
+files of the base folder too. Only the main agent's results are kept, those of a sub-agent live as long as it does.
 
 **Restart in the middle of a round.** The assistant message with its calls is stored before the calls are made and the results one by one, and the calls of a round
-are made in order, so after a death only the first call without a result can have been going on; the others were never started. Three small files in the folder of
+are made in order, so after a death only the first call without a result can have been going on; the others were never started. Some small files in the folder of
 the base (`AgentVirtualFileSystemService`, written at once, no owner check, a failure is only logged) tell the rest: `call-began` (`writeCallMarker`) holds the id of
 the call that is about to change something (`Worker.call`, only for `changes(call)`; `approveCall` clears it while the call waits for the author's approval and sets it
-again when they agree), `queue.json` (`writeQueue`) is the `Inbox`, and `resume-note.txt` the note of the resume. `Worker.repairCalls(transcript, true)` (from `prepare`)
+again when they agree), `queue.json` (`writeQueue`) is the `Inbox`, `resume-note.txt` the note of the resume, `plan.json` and `results.json` the plan and the results of the commands (see above), `delivery.json` what the
+worker took from the queue and has not finished, and `call-began-<handle>` the same as `call-began` for a sub-agent. `Worker.repairCalls(transcript, true)` (from `prepare`)
 does not answer the open calls as interrupted but keeps them in `replay`; the loop makes them as a round of its own (no request, `replayed`), skipping the model, and a
 call for which `unsafeToRepeat` is true (its id is the marker and it changes something, or it is a sub-agent tool) is answered as interrupted and the rest as skipped after an
 error. The report of the sync and the note of the resume (`resumeMessage`) come after the results (`resumeMessagesDue`): a message of the author between the calls and
@@ -153,11 +156,16 @@ their results is not allowed. **Approvals** are not stored: the call waiting for
 A pause or stop while a call waits must not look like a denial: `AgentApprovalService.rejectAll` notes that approvals were withdrawn (`takeWithdrawn`, cleared by the next
 `request`), `approveCall` turns that into `withdrawnCall`, and the loop leaves that call without a result (the `suspended` path, as for a call that waits for a sub-agent).
 The `Inbox` calls a store function after every change (`storeQueue`, under its lock, the images by the path of their file); `inboxOf` / `existingInbox` read the file when the
-run has no inbox in memory (the queue of a paused run is shown and cancelled after a restart), `forgetInbox` removes it with the run. A command of the author being run
-(`runCommand`) was taken from the queue before it ran and is lost with a restart. `AgentRunner.parkAll(maxMillis)` is what `destroy()` calls: it adds the working runs to
+run has no inbox in memory (the queue of a paused run is shown and cancelled after a restart), `forgetInbox` removes it with the run. `Worker.deliver` takes the items out of the queue, so it keeps the ones it has not
+finished in `delivery.json` (`storeDelivery`; `began` says that the first, a command, is running) and removes each when it is done. A restart finds it in `work()`
+(`takeDelivery`): the items go back to the head of the `Inbox` (to `initial` for a worker that only runs commands), and a command that had begun is not run again unless
+it is `/compact` (nothing changes until its summary is stored) or `/clear-workspace` (deletes the same files again): the others may be done in part, so the agent is
+told `Defaults.AGENT_AUTHOR_COMMAND_INTERRUPTED` and the command line. `AgentRunner.parkAll(maxMillis)` is what `destroy()` calls: it adds the working runs to
 `interrupts` and sets `shuttingDown`, the workers give up the request or call that goes on and pause the run at the stable point (`parkForShutdown`), and it waits up
-to the time given (`PARK_MILLIS`, 5 s); whatever is left is cut off and paused by `recoverInterrupted` at the next start. Sub-agents are not replayed: their open calls
-are answered as interrupted when they continue, as before.
+to the time given (`PARK_MILLIS`, 5 s); whatever is left is cut off and paused by `recoverInterrupted` at the next start. The open calls of a sub-agent are treated the same way
+when it continues (`Worker.replayCutOff`, before its first request): `callSub` writes `call-began-<handle>` for a call that changes something and the loop clears it with the
+result, so the calls that did not begin are made, the one that had begun is answered as interrupted and the ones after it as not made. A `kill -9` cannot be handled: a
+command that was running dies with the JVM, and what it did is told as above.
 
 ## The request context of a run
 
@@ -327,7 +335,7 @@ agent is told to ask the author at once). A worker (a daemon thread of a cached 
 
 1. Loads the run, resolves the main profile (a model that is gone pauses the run), reads the transcript (`AgentMessageService.transcript`) and repairs its end: a
    new run gets `Defaults.DEFAULT_AGENT_START_MESSAGE`, calls of the last assistant message without a result get `Defaults.AGENT_INTERRUPTED_CALL`, a transcript that ends
-   with a plain assistant reply gets `Defaults.DEFAULT_AGENT_RESUME_MESSAGE`. The plan is read back from the last `update_plan` call.
+   with a plain assistant reply gets `Defaults.DEFAULT_AGENT_RESUME_MESSAGE`. The plan and the `CommandResults` are read from their files of the run.
 2. Builds the tools: `CommandFunctions.forAgent(...)` (with a reader of the files of the run and the `CommandResults` of the run, see [References](#references)) `and` the file tools of `AgentVirtualFileSystemService` `and` `RunTools` bound to a `RunToolsImpl`
    (a name used twice fails the run). The `ASK` approval is `Worker.approve`, see [Bringing the user in](#bringing-the-user-in).
 3. Loops. At the top, the **stable point**: the status is read, and `PAUSING` becomes `PAUSED`, `STOPPING` ends with `endStop`, any other status than `RUNNING` ends the worker.
@@ -443,7 +451,7 @@ parameters do not repeat that a value can be given as `@file:/path` or `@result`
 else `AppSettings.defaultAgentCompactionPrompt`, else `Defaults.DEFAULT_AGENT_COMPACTION_PROMPT`: the chain of the system prompt, edited in the agent dialog, the Templates tab of Settings and the Agents tab of Admin) as the last message,
 plus the focus, with the tools declared and no tool wanted: a request through `ask`, counted with `addUsage`. `fit` first leaves out the oldest messages, whole rounds and never the newest, until the history
 and the system message take at most 80% of the context cap, so a run that stopped on a full context can still be compacted (`Defaults.AGENT_COMPACTED_TRIMMED` tells the summary how many were left out). The summary text gets the
-plan appended (`Your plan when this summary was written`): `update_plan` calls are in the compacted rows and `planOf` would not find them after a resume. `AgentMessageService.compact` marks every row of the run
+plan appended (`Your plan when this summary was written`): `update_plan` calls are in the compacted rows, and the plan of a worker that begins comes from `plan.json`. `AgentMessageService.compact` marks every row of the run
 `compacted` (extended attribute of `AgentMessage`, no migration) and appends the summary as a row with `summary`; `transcript` leaves the compacted rows out, `messages` and `count` keep them, so the console shows everything
 (the summary as a folded block) and the Markdown export keeps it. A failure (no model, no text, a tool call instead of text) changes nothing and is written to the transcript as a message of the author. The runner compacts by itself too: after the results of a round (and when the agent did not ask) `compactAutomatically` checks the context of the last request against `Agent.autoCompactPercent` of the cap (null is `Defaults.AGENT_AUTO_COMPACT_PERCENT` = 90, zero never, valid values 50 to 99 in `AgentService.save`) and runs the same `compact` with `Compaction.AUTOMATIC` (the note `Defaults.AGENT_AUTO_COMPACTED_NOTE`; no warning is added on top). A failure is written to the transcript as a message to the agent and the next try waits `AUTO_COMPACT_RETRY_ROUNDS` (3) rounds. The number lags by one round like the warnings, so a round with a huge result can still reach the cap and pause the run at the top of the loop.
 

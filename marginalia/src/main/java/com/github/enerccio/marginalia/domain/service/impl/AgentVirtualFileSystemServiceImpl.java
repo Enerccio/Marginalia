@@ -348,6 +348,56 @@ public class AgentVirtualFileSystemServiceImpl implements AgentVirtualFileSystem
         return readRunFile(run, RunFolder.QUEUE);
     }
 
+    @Override
+    public void writeCallMarker(AgentRun run, String subAgent, String callId) {
+        writeRunFile(run, subCallMarker(subAgent), callId);
+    }
+
+    @Override
+    public String readCallMarker(AgentRun run, String subAgent) {
+        return readRunFile(run, subCallMarker(subAgent));
+    }
+
+    /**
+     * The name is made of the handle, so it is a name of the run folder only when the handle is plain.
+     */
+    private static String subCallMarker(String subAgent) {
+        if (subAgent == null || !subAgent.matches("[a-z0-9]{1,32}")) {
+            throw new IllegalArgumentException("Not a handle of a sub-agent: " + subAgent);
+        }
+        return RunFolder.SUB_CALL_MARKER + subAgent;
+    }
+
+    @Override
+    public void writeResults(AgentRun run, String json) {
+        writeRunFile(run, RunFolder.RESULTS, json);
+    }
+
+    @Override
+    public String readResults(AgentRun run) {
+        return readRunFile(run, RunFolder.RESULTS);
+    }
+
+    @Override
+    public void writeDelivery(AgentRun run, String json) {
+        writeRunFile(run, RunFolder.DELIVERY, json);
+    }
+
+    @Override
+    public String readDelivery(AgentRun run) {
+        return readRunFile(run, RunFolder.DELIVERY);
+    }
+
+    @Override
+    public void writePlan(AgentRun run, String json) {
+        writeRunFile(run, RunFolder.PLAN, json);
+    }
+
+    @Override
+    public String readPlan(AgentRun run) {
+        return readRunFile(run, RunFolder.PLAN);
+    }
+
     /**
      * A small file of the run, written at once (not when the transaction ends: the runner keeps state in them that it needs
      * when the server dies); null removes it. A failure is logged, the run goes on without the file.

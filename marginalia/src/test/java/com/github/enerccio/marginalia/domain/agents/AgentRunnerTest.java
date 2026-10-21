@@ -1995,6 +1995,89 @@ class AgentRunnerTest extends AgentTestBase {
     }
 
     @Test
+    void thePlanIsKeptWithTheRunAndSurvivesACompactionAndAResume() throws Exception {
+        Agent agent = readingAgent();
+        agent.setMaxRounds(1);
+        agent = agentService.save(agent);
+        llm.enqueue(MockLLMResponse.toolCall("update_plan", "{\"items\":[{\"text\":\"Count parts\",\"status\":\"done\"},"
+                        + "{\"text\":\"Count lore\",\"status\":\"in_progress\"}]}"),
+                MockLLMResponse.text("The summary."), MockLLMResponse.toolCall("get_run_status", "{}"), MockLLMResponse.text("Going on."));
+        AgentRun run = await(startRun(agent));
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.PAUSED);
+        assertThat(fileSystemService.readPlan(run)).contains("Count parts").contains("Count lore");
+
+        // the call that wrote the plan is compacted away: the summary is all the transcript has of it
+        runner.command(agentRunService.find(run.getId()), "/compact");
+        run = await(run, Set.of(AgentRunStatus.PAUSED));
+        assertThat(transcript(run)).extracting(LLMChatMessage::getToolCalls).allMatch(List::isEmpty);
+
+        agent.setMaxRounds(null);
+        agentService.save(agent);
+        runner.run(agentRunService.resume(run));
+        run = await(run);
+
+        List<String> results = transcript(run).stream().filter(m -> m.getRole() == LLMRole.TOOL).map(LLMChatMessage::getContent).toList();
+        assertThat(results.getLast()).contains("Plan:").contains("1. [x] Count parts").contains("2. [~] Count lore");
+    }
+
+    @Test
+    void theResultsOfTheCommandsAreKeptWithTheRunAndANewOneContinuesTheNumbers() throws Exception {
+        Agent agent = readingAgent();
+        agent.setMaxRounds(1);
+        agent = agentService.save(agent);
+        llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}"));
+        AgentRun run = await(startRun(agent));
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.PAUSED);
+        assertThat(fileSystemService.readResults(run)).contains("\"counter\":1").contains("get-book-info");
+
+        agent.setMaxRounds(null);
+        agentService.save(agent);
+        // a new worker: nothing of the first one is in memory
+        llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}"), MockLLMResponse.toolCall("list_command_results", "{}"),
+                MockLLMResponse.text("Listed."));
+        runner.run(agentRunService.resume(run));
+        run = await(run);
+
+        List<String> results = transcript(run).stream().filter(m -> m.getRole() == LLMRole.TOOL).map(LLMChatMessage::getContent).toList();
+        assertThat(results.getLast()).contains("#2 get-book-info").contains("#1 get-book-info");
+    }
+
+    @Test
+    void aMessageOfTheAuthorTakenFromTheQueueBeforeTheRestartIsDeliveredAfterIt() throws Exception {
+        Agent agent = readingAgent();
+        AgentRun run = agentRunService.start(agent);
+        messageService.append(run, List.of(LLMChatMessage.of(LLMRole.USER, "Start"), LLMChatMessage.of(LLMRole.ASSISTANT, "Working.")));
+        fileSystemService.writeDelivery(run, "{\"began\":false,\"items\":[{\"id\":\"m1\",\"text\":\"Also count the chapters.\",\"images\":[]}]}");
+        llm.reply("Counting.");
+
+        runner.run(run);
+        run = await(run);
+
+        assertThat(transcript(run).stream().map(LLMChatMessage::getContent)).anyMatch(text -> text != null && text.contains("Also count the chapters."));
+        assertThat(llm.lastCompletionRequest().getBody().toString()).contains("Also count the chapters.");
+        assertThat(fileSystemService.readDelivery(run)).as("delivered, nothing left").isNull();
+    }
+
+    @Test
+    void aCommandOfTheAuthorThatHadBegunIsToldToTheAgentNotRunAgainButTheOnesAfterItAre() throws Exception {
+        Agent agent = readingAgent();
+        AgentRun run = agentRunService.start(agent);
+        messageService.append(run, List.of(LLMChatMessage.of(LLMRole.USER, "Start"), LLMChatMessage.of(LLMRole.ASSISTANT, "Working.")));
+        fileSystemService.writeDelivery(run, "{\"began\":true,\"items\":[{\"id\":\"c1\",\"command\":\"/get-book-info\"},"
+                + "{\"id\":\"m1\",\"text\":\"Then say hello.\",\"images\":[]}]}");
+        llm.reply("Hello.");
+
+        runner.run(run);
+        run = await(run);
+
+        List<String> texts = transcript(run).stream().map(LLMChatMessage::getContent).filter(text -> text != null).toList();
+        assertThat(texts).anyMatch(text -> text.contains("the server stopped while it was running") && text.contains("Command: /get-book-info"));
+        assertThat(texts).as("the command was not run").noneMatch(text -> text.contains("Result:"));
+        assertThat(texts).anyMatch(text -> text.contains("Then say hello."));
+        assertThat(fileSystemService.readDelivery(run)).isNull();
+    }
+
+    @Test
     void whenTheOldestPartDoesNotFitTheContextItIsLeftOutOfTheSummaryRequest() throws Exception {
         Agent agent = readingAgent();
         llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}"), MockLLMResponse.text("Counted."),
