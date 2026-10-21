@@ -766,31 +766,44 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                 responseMarkdown.setContent(message.getResponse());
             }
 
-            responseTextArea = new TextArea();
-            responseTextArea.setWidthFull();
-            responseTextArea.setMinHeight("100px");
-            responseTextArea.setValue(StringUtils.defaultString(message.getResponse()));
-            responseTextArea.setVisible(false);
-
             messageImages = new MessageImages(message.getImages());
 
-            add(headerBar, reasoningDetails, responseMarkdown, responseTextArea, messageImages);
+            add(headerBar, reasoningDetails, responseMarkdown, messageImages);
         }
 
         @PublicAPI(from = "1.1.0",
-                returns = @APIReturn(type = void.class),
-                locals = {@APILocals(name = "content", type = VerticalLayout.class),
-                        @APILocals(name = "detailsHeader", type = Span.class)})
+                returns = @APIReturn(type = void.class))
         private void createInfoPopover() {
             infoPopover = new Popover();
             infoPopover.setTarget(infoBtn);
+            // opened here, not by the click in the browser, so the content is in the popover before it is positioned (a
+            // popover that grows after it opened can end up on the wrong side of its button and be cut off)
+            infoPopover.setOpenOnClick(false);
+            infoBtn.addClickListener(event -> {
+                createDetails();
+                infoPopover.setOpened(!infoPopover.isOpened());
+            });
 
+            metrics = new MessageMetrics(loc, message, this.orderId, true);
+        }
+
+        /**
+         * Fills the info popover, once. It is not done when the card is created, because the text fields of the form
+         * measure their height in the browser as soon as they are in the page, which makes a story of hundreds of parts
+         * freeze it. Regenerating needs the form too, so it calls this as well.
+         */
+        @PublicAPI(from = "1.4.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "content", type = VerticalLayout.class),
+                        @APILocals(name = "detailsHeader", type = Span.class)})
+        private void createDetails() {
+            if (detailsForm != null) {
+                return;
+            }
             VerticalLayout content = new VerticalLayout();
             content.setPadding(false);
             content.setSpacing(false);
             content.addClassName(CssStyles.PHONE_POPOVER_CONTENT);
-
-            metrics = new MessageMetrics(loc, message, this.orderId, true);
 
             Span detailsHeader = new Span(loc.getValue(L.LABEL_TURN_DETAILS));
             detailsHeader.addClassNames(CssStyles.TEXT_SEMIBOLD, CssStyles.TEXT_XS);
@@ -945,12 +958,14 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class))
         private void regenerate() {
+            createDetails();
             startGeneration(GenerationRequest.regenerate(message), detailsForm.toTurnInput());
         }
 
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class))
         private void swipe() {
+            createDetails();
             startGeneration(GenerationRequest.newSwipe(message), detailsForm.toTurnInput());
         }
 
@@ -976,7 +991,9 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
             if (swipeItem != null) {
                 swipeItem.setVisible(isLast);
             }
-            detailsForm.setLastMessage(isLast);
+            if (detailsForm != null) {
+                detailsForm.setLastMessage(isLast);
+            }
         }
 
         @PublicAPI(from = "1.1.0",
@@ -1004,9 +1021,14 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                 autosaveAndSwapToMarkdown();
             } else {
                 editing = true;
+                // created only while a part is edited: a text area measures its height in the browser as soon as it
+                // is in the page, which makes a story of hundreds of parts freeze it
+                responseTextArea = new TextArea();
+                responseTextArea.setWidthFull();
+                responseTextArea.setMinHeight("100px");
                 responseTextArea.setValue(StringUtils.defaultString(message.getResponse()));
+                addComponentAtIndex(indexOf(responseMarkdown) + 1, responseTextArea);
                 responseMarkdown.setVisible(false);
-                responseTextArea.setVisible(true);
                 if (editItem != null) {
                     editItem.setText(loc.getValue(L.LABEL_SAVE));
                 }
@@ -1023,7 +1045,8 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                     String newResponse = responseTextArea.getValue();
                     message = support.saveEditedResponse(currentManuscript, message, newResponse);
                     responseMarkdown.setContent(StringUtils.defaultString(newResponse));
-                    responseTextArea.setVisible(false);
+                    remove(responseTextArea);
+                    responseTextArea = null;
                     responseMarkdown.setVisible(true);
                     editing = false;
                     if (editItem != null) {
@@ -1070,9 +1093,6 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         public void updateResponse(String responseText) {
             message.setResponse(responseText);
             responseMarkdown.setContent(StringUtils.defaultString(responseText));
-            if (!editing) {
-                responseTextArea.setValue(StringUtils.defaultString(responseText));
-            }
         }
 
         @PublicAPI(from = "1.2.0",
