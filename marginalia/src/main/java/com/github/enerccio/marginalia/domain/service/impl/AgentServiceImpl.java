@@ -394,18 +394,14 @@ public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentReposito
         copy.setAutoCompactPercent(original.getAutoCompactPercent());
         copy.setUseAgentModel(original.getUseAgentModel());
         copy.setBatchMode(original.getBatchMode());
+        copy.setMaxSubagents(original.getMaxSubagents());
+        copy.setAllowSelfSubagent(original.getAllowSelfSubagent());
         Agent saved = save(copy);
         fileSystemService.copyWorkspace(original, saved);
         return saved;
     }
 
     private static AgentModelProfile copyProfile(AgentModelProfile profile) {
-        AgentModelProfile copy = new AgentModelProfile(profile.getRole(), profile.getAiUuid(), profile.getProtocolUuid());
-        copy.setDescription(profile.getDescription());
-        copy.setTools(profile.isTools());
-        copy.setImages(profile.isImages());
-        copy.setContextCap(profile.getContextCap());
-        copy.setConcurrency(profile.getConcurrency());
-        return copy;
+        return profile.copy();
     }
 }

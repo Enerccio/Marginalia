@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845904655019">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845911400795">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845904655019" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845911400795" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845904655019" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845911400795" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845904655019" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845911400795" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -277,6 +277,7 @@ these of its own:</p>
 | Files | `list_files`, `read_file`, `write_file`, `append_file`, `replace_in_file`, `regex_replace_in_file`, `grep_files`, `move_file`, `copy_file`, `merge_files`, `unzip_file`, `delete_file` in its own workspace (notes it keeps between runs). Next to the workspace it sees the read-only file `/AGENTS.md`, your instructions as the run started with them, which it can read again whenever it likes and never change. `list_files` and `grep_files` take a name pattern (`glob`, for example `*.md` or `chapters/*.md`), `copy_file` copies a folder with everything in it (a quick way to keep a version of the notes), `merge_files` joins several files into one without the text passing through the model (the last name of a path may be a pattern such as `/chapters/*.md`), `unzip_file` unpacks a [zip file](#unpacking-a-zip-file) of the workspace into a new folder. `list_command_results` and `save_command_result` keep the long result of a command without the agent writing it out again: the last ten results are kept whole (the agent sees a long one cut), and one is saved to a file by its number, the newest when none is given; it then passes the file on as `@file:/path`. |
 | `@file:/path` | Not a tool but a way to call one: a text argument of a command that is exactly `@file:/notes/chapter.md` is replaced by the contents of that file of the agent's workspace, so the agent can write a long text to a file once, check it, and pass it to a command (the result shows the short reference in the call, the command gets the text). `write_file` and `append_file` take it as their content too, which copies a file or adds it to another: a long file can be written in parts, each part within the longest answer of the model, and put together this way. |
 | `@result` | Like `@file:`, for the result of a command: a text argument that is exactly `@result` is replaced by the whole result of the last command the agent called, `@result:3` by the result with that number (`list_command_results` shows the numbers). A generated text goes from one command to the next, or into `write_file` and `append_file`, without the agent writing it out. |
+| `search_manual`, `read_manual_page` | Look something up in the Marginalia user manual (the same pages the help assistant reads): how a prompt template or a macro works, what a lorebook setting does. Read only; every agent has them. |
 | `view_image` | Looks at an image file of its workspace (PNG, JPEG, GIF or WebP): the picture is shown to the model in the next message. Only an agent whose model is marked as seeing images (**The model sees images** in the agent) has it. A large image is scaled down before it is sent, a GIF shows its first frame, and only the newest four images stay in front of the model (an older one becomes a note, and the agent can look again). The images come from you (**Upload file**, or [attached to a message](#the-console)); the agent can't make one. |
 | Images for commands | A command that sends pictures to a model of its own, such as [`generate-lore-entry`](extensions/lore-generator.md#commands), takes an `images` parameter: a list of paths of image files of the workspace (at most 8). It is the model of the command, not the agent's, that has to see them, so the agent can pass images even when its own model does not see images. |
 | `update_plan` | Its to-do list. |
@@ -306,6 +307,10 @@ these of its own:</p>
 <tr>
 <td><code translate="no" v-pre>@result</code></td>
 <td>Like <code translate="no" v-pre>@file:</code>, for the result of a command: a text argument that is exactly <code translate="no" v-pre>@result</code> is replaced by the whole result of the last command the agent called, <code translate="no" v-pre>@result:3</code> by the result with that number (<code translate="no" v-pre>list_command_results</code> shows the numbers). A generated text goes from one command to the next, or into <code translate="no" v-pre>write_file</code> and <code translate="no" v-pre>append_file</code>, without the agent writing it out.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>search_manual</code>, <code translate="no" v-pre>read_manual_page</code></td>
+<td>Look something up in the Marginalia user manual (the same pages the help assistant reads): how a prompt template or a macro works, what a lorebook setting does. Read only; every agent has them.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>view_image</code></td>
@@ -456,7 +461,7 @@ differing in case), a name that is both a file and a folder, more than 5 000 ent
 </li>
 </ul>
 <h2 id="sub-agents">Sub-agents</h2>
-<p>An agent can hand a job to a <strong>sub-agent</strong>: a helper with a conversation of its own that does one task and answers with a text. It has the same commands and files as the agent and works in the same working copy and workspace (what it changes stays), but it does not know the conversation of the agent, so the agent has to say everything in the task. The point is that what the sub-agent reads and tries stays out of the context of the agent: checking a chapter, auditing the names, drafting a part.</p>
+<p>An agent can hand a job to a <strong>sub-agent</strong>: a helper with a conversation of its own that does one task and answers with a text. It has the commands and files of the agent (or of the model it runs on, see <doc-anchor-trigger to="#models-for-sub-agents">below</doc-anchor-trigger>) and works in the same working copy and workspace (what it changes in the book stays), but it does not know the conversation of the agent, so the agent has to say everything in the task. The point is that what the sub-agent reads and tries stays out of the context of the agent: checking a chapter, auditing the names, drafting a part.</p>
 <p>Set <strong>Most sub-agents</strong> in the <doc-anchor-trigger to="#creating-and-editing-an-agent">agent</doc-anchor-trigger> to how many may work at once. Zero (the default) is none: the agent is not even told they exist.</p>
 <ul>
 <li>With <strong>one</strong>, the agent starts a sub-agent and waits (it is <em>parked</em>) until the sub-agent is done; the call returns its answer.</li>
@@ -464,6 +469,9 @@ differing in case), a name that is both a file and a folder, more than 5 000 ent
 </ul>
 <p>Rules that hold either way:</p>
 <ul>
+<li>A sub-agent <strong>reads the whole workspace but writes only in a folder of its own</strong>, <code translate="no" v-pre>/tmp/sub1</code>, <code translate="no" v-pre>/tmp/sub2</code>... (it is made when the sub-agent starts, and what an earlier run left in a folder of the same name is deleted). Its answer is saved there as <code translate="no" v-pre>result.md</code>, so when a long answer is shown cut off, the agent reads all of it from that file. You find the files in the <strong>Workspace</strong> tab; they take part of the workspace quota and stay until you clear it.</li>
+<li>A sub-agent runs on the main model of the agent unless the agent asks for another one, see <doc-anchor-trigger to="#models-for-sub-agents">Models for sub-agents</doc-anchor-trigger>.</li>
+<li>A command of a sub-agent that changes data follows the <strong>Destructive commands</strong> setting of the agent: with <em>Ask first</em> the same <doc-anchor-trigger to="#asking-you">window</doc-anchor-trigger> asks you, and that sub-agent waits for your answer (pausing the run refuses it).</li>
 <li>A sub-agent can <strong>not start sub-agents</strong>, finish the run, ask you, or make checkpoints; it ends by answering with a text.</li>
 <li>Everything counts in the <strong>one budget of the run</strong>: rounds, tokens, the limits of the model. A sub-agent that hits a limit fails and says so; the agent then hits the same limit.</li>
 <li>How many requests are on their way to the model at once is the <strong>Requests to the model at once</strong> your administrator gave you (one when not set): with one, the agent and its sub-agent take turns.</li>
@@ -471,6 +479,13 @@ differing in case), a name that is both a file and a folder, more than 5 000 ent
 <li><strong>Pausing the run pauses the sub-agents too.</strong> They stop at their next stable point (between two requests or two calls, at once when you pause at once) and what they said and did is kept with the run, so a <strong>Resume</strong> goes on where everything was: the sub-agents go on with their conversation, and a call of the agent that waited for one (<code translate="no" v-pre>await_agent</code>, or <code translate="no" v-pre>spawn_agent</code> with a limit of one) waits again, as if nothing had happened. A sub-agent that was over before the pause is still there for the agent to ask about. Stopping a run and keeping it does the same; discarding it, a restore of a checkpoint (the book the sub-agents worked in is replaced) and the agent finishing or asking you something end them for good. An agent that ends its turn while sub-agents still work is told once; if it does it again they are stopped.</li>
 <li>Their conversations are not in the <strong>Run</strong> tab. The <strong>Sub-agents</strong> tab of the console shows them: pick one above to read what the agent told it, what it said, the commands it called with their results and how it ended (the answer it gave, or why it failed or was cancelled), in the same blocks as the transcript. It follows the run while it works, and it shows the sub-agents of an older run too (pick that run in the <strong>Runs</strong> tab first). A <code translate="no" v-pre>spawn_agent</code> call in the <strong>Run</strong> tab has a <strong>Sub-agent</strong> button that opens its conversation. A conversation the agent went back over (a rewind) is greyed and marked <em>forgotten by the agent</em>. The <strong>download</strong> of the run (in the <strong>Runs</strong> tab) has a section for each sub-agent, with its task, its state and every message and call.</li>
 </ul>
+<h3 id="models-for-sub-agents">Models for sub-agents</h3>
+<p>The agent has one <strong>main model</strong>, picked at the top of the dialog. Under <strong>Models for sub-agents</strong> you can add others, for example a cheap model that only reads or a fluent one that drafts. Each has a <strong>role</strong> (its name), a <strong>description</strong> (when to use it: the agent reads it to choose), its AI and protocol, an optional <strong>context limit</strong>, and what it may use:</p>
+<ul>
+<li><strong>Can use commands and tools.</strong> Off, a sub-agent on this model only answers with text: it gets no commands and no tools.</li>
+<li><strong>Limit the commands.</strong> Off, a sub-agent on this model has the commands of the agent. On, only the ones you tick, and of those only the ones the agent is allowed (the allowed commands of the agent stay the upper limit). The tools for files are not commands, so every sub-agent has them. The main model has the same setting, for the sub-agents that run on it (the <strong>Edit</strong> button of its row).</li>
+</ul>
+<p>The agent is told the roles, the descriptions and the commands of each model, and starts a sub-agent on one with the <code translate="no" v-pre>profile</code> of <code translate="no" v-pre>spawn_agent</code>; leaving it out means its own model. The checkbox <strong>Sub-agents may run on the main model</strong> (on by default) turns that last choice off: the agent must then name another model, and with none, it gets no tools for sub-agents at all. A sub-agent has the limits of its own model (how much it can read and how long its answer may be), and the <strong>Sub-agents</strong> tab and the diagnostics say which model each one ran on.</p>
 <h2 id="one-model-several-agents">One model, several agents</h2>
 <p>A local server often has one slot (one GPU): ask it for two answers at once and both crawl or time out. Set <strong>Concurrent requests of agents</strong> in the <a href="../inference-providers/#general-settings">settings of the model</a> (1 for one slot) and the requests of your agents to it take turns, in the order they came: the others wait, their runs stay <em>Running</em>, and a <strong>Pause</strong> or <strong>Stop</strong> ends the wait. It counts the model requests of all the agents of all users who use that model, the commands that write with it included. It does not hold up your own writing in the story window, and that does not count against the agents either.</p>
 <h2 id="when-you-are-not-there">When you are not there</h2>
@@ -514,7 +529,7 @@ the items by, in a message when it goes on (&quot;While the run was paused the u
 everything the agent changed, compared with your book <strong>as it is now</strong>, one line each:</p>
 <ul>
 <li><strong>Book:</strong> its name, description, language, point of view, tense, style and templates, its tags, and the data an extension keeps in the book (an arc outline, the character tracker).</li>
-<li><strong>Part:</strong> a part whose text, instructions, scene setting, point-of-view character, present characters or summary the agent changed, a part it wrote, a part it deleted.</li>
+<li><strong>Part:</strong> a part whose text, instructions, scene setting, point-of-view character, present characters or summary the agent changed, a part it wrote, a part it deleted. The variables a generation keeps with a part (and the data of extensions) are taken over with it, as the field <strong>Data</strong>.</li>
 <li><strong>Lorebook</strong> and <strong>Entry:</strong> a lorebook or an entry the agent made, changed (also moved, renamed, or with other tags, or other subbooks) or deleted.</li>
 </ul>
 <p>Tick the lines you want, then <strong>Apply the picked changes</strong>. The buttons above the list tick <strong>all</strong> of them, <strong>none</strong>, <strong>only new parts</strong> (the new branch the agent wrote, nothing else) or everything
@@ -595,6 +610,7 @@ of two thousand parts). You can restore while the agent does not work; the agent
 | **Destructive commands** | What happens when the agent wants a command that changes or removes data: *Run them*, *Ask first* (a [window](#asking-you) asks you to approve it) or *Refuse them*. |
 | **Most rounds**, **Token budget of a run**, **Context limit** | Optional limits of one run. The limit your administrator gave you applies in any case. |
 | **Most sub-agents** | How many [sub-agents](#sub-agents) the agent can have working at once, 0 to 10. Empty or zero is none. |
+| **Models for sub-agents** | The [models](#models-for-sub-agents) a sub-agent can run on, and whether it may run on the main one. |
 | **Compact at (% of context)** | When the context of the model passes this share of its limit and the agent did not [compact its work](#running-a-command-yourself) itself, the run does it: the agent writes the summary of its earlier work, which replaces it. Empty is 90, zero never (the run then stops when the context is full), otherwise 50 to 99. |
 | **System prompt** | What the agent is told to be. Leave it empty and the agent follows the default - yours from [Settings](account.md#templates), else your administrator's, else the built-in one - which is shown in grey. The info icon has **Insert Default Template**, which fills the default in so you can edit a copy of it; clear the field again to follow the default. |
 | **Compaction prompt** | What the agent is asked when you [`/compact`](#running-a-command-yourself) it: to write the summary that replaces its earlier work. Empty follows the default, like the system prompt, with the same info icon. |
@@ -648,6 +664,10 @@ of two thousand parts). You can restore while the agent does not work; the agent
 <tr>
 <td><strong>Most sub-agents</strong></td>
 <td>How many <doc-anchor-trigger to="#sub-agents">sub-agents</doc-anchor-trigger> the agent can have working at once, 0 to 10. Empty or zero is none.</td>
+</tr>
+<tr>
+<td><strong>Models for sub-agents</strong></td>
+<td>The <doc-anchor-trigger to="#models-for-sub-agents">models</doc-anchor-trigger> a sub-agent can run on, and whether it may run on the main one.</td>
 </tr>
 <tr>
 <td><strong>Compact at (% of context)</strong></td>
@@ -774,7 +794,7 @@ editing again after you paused or stopped the run. Other lorebooks are not affec
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (1732a8e6).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (aa8097de).</p></div>
             </footer>
         </div>
     </div>

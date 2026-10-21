@@ -226,6 +226,7 @@ public final class AgentDiagnostics {
      * One sub-agent.
      *
      * @param handle the handle
+     * @param model  the role of the model profile it ran on, null for the main one
      * @param task   what it was asked, cut
      * @param state  how it ended, {@code PAUSED} when it only waits to be continued
      * @param rounds how many times the model answered
@@ -234,7 +235,7 @@ public final class AgentDiagnostics {
      * @param errors how many of them ended with an error
      * @param tools  the tools it called, with the numbers
      */
-    public record SubAgent(String handle, String task, String state, int rounds, long tokens, int calls, int errors,
+    public record SubAgent(String handle, String model, String task, String state, int rounds, long tokens, int calls, int errors,
                            Map<String, Integer> tools) {
     }
 
@@ -452,7 +453,7 @@ public final class AgentDiagnostics {
             Scan sub = scan(thread.rows().stream().filter(row -> row.getThreadEnd() == null).toList());
             Map<String, Integer> used = new TreeMap<>();
             sub.calls().forEach(call -> used.merge(call.call.getName(), 1, Integer::sum));
-            subAgents.add(new SubAgent(thread.handle(), preview(thread.task()), thread.isOver() ? thread.end() : "PAUSED", thread.rounds(),
+            subAgents.add(new SubAgent(thread.handle(), thread.profile(), preview(thread.task()), thread.isOver() ? thread.end() : "PAUSED", thread.rounds(),
                     thread.tokens(), sub.calls().size(), (int) sub.calls().stream().filter(Call::failed).count(), used));
         }
 
@@ -958,8 +959,8 @@ public final class AgentDiagnostics {
         }
 
         if (!report.subAgents().isEmpty()) {
-            md.append("## Sub-agents\n\n| Handle | State | Rounds | Tokens | Calls | Errors | Tools | Task |\n|---|---|---|---|---|---|---|---|\n");
-            report.subAgents().forEach(sub -> md.append("| ").append(cell(sub.handle())).append(" | ").append(sub.state()).append(" | ")
+            md.append("## Sub-agents\n\n| Handle | Model | State | Rounds | Tokens | Calls | Errors | Tools | Task |\n|---|---|---|---|---|---|---|---|---|\n");
+            report.subAgents().forEach(sub -> md.append("| ").append(cell(sub.handle())).append(" | ").append(cell(StringUtils.defaultString(sub.model(), "main"))).append(" | ").append(sub.state()).append(" | ")
                     .append(sub.rounds()).append(" | ").append(sub.tokens()).append(" | ").append(sub.calls()).append(" | ").append(sub.errors())
                     .append(" | ").append(cell(sub.tools().entrySet().stream().map(entry -> entry.getKey() + " " + entry.getValue())
                             .collect(Collectors.joining(", ")))).append(" | ").append(cell(sub.task())).append(" |\n"));

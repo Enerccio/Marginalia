@@ -180,7 +180,7 @@ a draft, and ask it to unpack it: the agent has the tool `unzip_file`, which unp
 
 ## Sub-agents
 
-An agent can hand a job to a **sub-agent**: a helper with a conversation of its own that does one task and answers with a text. It has the same commands and files as the agent and works in the same working copy and workspace (what it changes stays), but it does not know the conversation of the agent, so the agent has to say everything in the task. The point is that what the sub-agent reads and tries stays out of the context of the agent: checking a chapter, auditing the names, drafting a part.
+An agent can hand a job to a **sub-agent**: a helper with a conversation of its own that does one task and answers with a text. It has the commands and files of the agent (or of the model it runs on, see [below](#models-for-sub-agents)) and works in the same working copy and workspace (what it changes in the book stays), but it does not know the conversation of the agent, so the agent has to say everything in the task. The point is that what the sub-agent reads and tries stays out of the context of the agent: checking a chapter, auditing the names, drafting a part.
 
 Set **Most sub-agents** in the [agent](#creating-and-editing-an-agent) to how many may work at once. Zero (the default) is none: the agent is not even told they exist.
 
@@ -189,12 +189,24 @@ Set **Most sub-agents** in the [agent](#creating-and-editing-an-agent) to how ma
 
 Rules that hold either way:
 
+- A sub-agent **reads the whole workspace but writes only in a folder of its own**, `/tmp/sub1`, `/tmp/sub2`... (it is made when the sub-agent starts, and what an earlier run left in a folder of the same name is deleted). Its answer is saved there as `result.md`, so when a long answer is shown cut off, the agent reads all of it from that file. You find the files in the **Workspace** tab; they take part of the workspace quota and stay until you clear it.
+- A sub-agent runs on the main model of the agent unless the agent asks for another one, see [Models for sub-agents](#models-for-sub-agents).
+- A command of a sub-agent that changes data follows the **Destructive commands** setting of the agent: with *Ask first* the same [window](#asking-you) asks you, and that sub-agent waits for your answer (pausing the run refuses it).
 - A sub-agent can **not start sub-agents**, finish the run, ask you, or make checkpoints; it ends by answering with a text.
 - Everything counts in the **one budget of the run**: rounds, tokens, the limits of the model. A sub-agent that hits a limit fails and says so; the agent then hits the same limit.
 - How many requests are on their way to the model at once is the **Requests to the model at once** your administrator gave you (one when not set): with one, the agent and its sub-agent take turns.
 - Calls that change the book or the workspace are done one at a time, whoever makes them, so two sub-agents never write at the same instant. Still, do not tell two of them to change the same part.
 - **Pausing the run pauses the sub-agents too.** They stop at their next stable point (between two requests or two calls, at once when you pause at once) and what they said and did is kept with the run, so a **Resume** goes on where everything was: the sub-agents go on with their conversation, and a call of the agent that waited for one (`await_agent`, or `spawn_agent` with a limit of one) waits again, as if nothing had happened. A sub-agent that was over before the pause is still there for the agent to ask about. Stopping a run and keeping it does the same; discarding it, a restore of a checkpoint (the book the sub-agents worked in is replaced) and the agent finishing or asking you something end them for good. An agent that ends its turn while sub-agents still work is told once; if it does it again they are stopped.
 - Their conversations are not in the **Run** tab. The **Sub-agents** tab of the console shows them: pick one above to read what the agent told it, what it said, the commands it called with their results and how it ended (the answer it gave, or why it failed or was cancelled), in the same blocks as the transcript. It follows the run while it works, and it shows the sub-agents of an older run too (pick that run in the **Runs** tab first). A `spawn_agent` call in the **Run** tab has a **Sub-agent** button that opens its conversation. A conversation the agent went back over (a rewind) is greyed and marked *forgotten by the agent*. The **download** of the run (in the **Runs** tab) has a section for each sub-agent, with its task, its state and every message and call.
+
+### Models for sub-agents
+
+The agent has one **main model**, picked at the top of the dialog. Under **Models for sub-agents** you can add others, for example a cheap model that only reads or a fluent one that drafts. Each has a **role** (its name), a **description** (when to use it: the agent reads it to choose), its AI and protocol, an optional **context limit**, and what it may use:
+
+- **Can use commands and tools.** Off, a sub-agent on this model only answers with text: it gets no commands and no tools.
+- **Limit the commands.** Off, a sub-agent on this model has the commands of the agent. On, only the ones you tick, and of those only the ones the agent is allowed (the allowed commands of the agent stay the upper limit). The tools for files are not commands, so every sub-agent has them. The main model has the same setting, for the sub-agents that run on it (the **Edit** button of its row).
+
+The agent is told the roles, the descriptions and the commands of each model, and starts a sub-agent on one with the `profile` of `spawn_agent`; leaving it out means its own model. The checkbox **Sub-agents may run on the main model** (on by default) turns that last choice off: the agent must then name another model, and with none, it gets no tools for sub-agents at all. A sub-agent has the limits of its own model (how much it can read and how long its answer may be), and the **Sub-agents** tab and the diagnostics say which model each one ran on.
 
 ## One model, several agents
 
@@ -349,6 +361,7 @@ of two thousand parts). You can restore while the agent does not work; the agent
 | **Destructive commands** | What happens when the agent wants a command that changes or removes data: *Run them*, *Ask first* (a [window](#asking-you) asks you to approve it) or *Refuse them*. |
 | **Most rounds**, **Token budget of a run**, **Context limit** | Optional limits of one run. The limit your administrator gave you applies in any case. |
 | **Most sub-agents** | How many [sub-agents](#sub-agents) the agent can have working at once, 0 to 10. Empty or zero is none. |
+| **Models for sub-agents** | The [models](#models-for-sub-agents) a sub-agent can run on, and whether it may run on the main one. |
 | **Compact at (% of context)** | When the context of the model passes this share of its limit and the agent did not [compact its work](#running-a-command-yourself) itself, the run does it: the agent writes the summary of its earlier work, which replaces it. Empty is 90, zero never (the run then stops when the context is full), otherwise 50 to 99. |
 | **System prompt** | What the agent is told to be. Leave it empty and the agent follows the default - yours from [Settings](account.md#templates), else your administrator's, else the built-in one - which is shown in grey. The info icon has **Insert Default Template**, which fills the default in so you can edit a copy of it; clear the field again to follow the default. |
 | **Compaction prompt** | What the agent is asked when you [`/compact`](#running-a-command-yourself) it: to write the summary that replaces its earlier work. Empty follows the default, like the system prompt, with the same info icon. |

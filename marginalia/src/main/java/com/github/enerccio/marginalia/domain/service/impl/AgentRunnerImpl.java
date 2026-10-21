@@ -57,6 +57,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
 
     // how often a worker that waits for a request or a call looks whether the run was thrown away
     private static final long POLL_MILLIS = 1_000;
+    // how many commands of a model of the agent are named in the note about the models for sub-agents, the rest is counted
+    private static final int MAX_NAMED_COMMANDS = 12;
     // a conversation in these statuses is written to by queueing the message, the worker reads it at the end of the turn
     private static final Set<AgentRunStatus> QUEUEING = EnumSet.of(AgentRunStatus.RUNNING, AgentRunStatus.WAITING_APPROVAL,
             AgentRunStatus.PAUSING);
@@ -817,7 +819,10 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         // how many sub-agents may work at once (zero: none, the agent gets no tools for them), the ones started, the tools of a sub-agent
         private int maxSubagents;
         private SubAgents subAgents;
-        private FunctionSet subTools;
+        // what a sub-agent needs to be built, and the models built, by role in lower case ("" is the main one)
+        private VirtualFileSystem subFiles;
+        private CommandCage subCage;
+        private final Map<String, SubModel> subModels = new ConcurrentHashMap<>();
         // the calls that change the book or the workspace run one at a time, whoever makes them (the agent or a sub-agent)
         private final ReentrantLock changeLock = new ReentrantLock(true);
         // the id of the call of the agent that is made now (the calls of the agent are made one after the other)
@@ -1046,7 +1051,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 changeLock.lock();
                 try {
                     messageService.appendAnswer(run, answer, progress.contextTokens, round.reasoning(),
-                            AgentTelemetry.of(round.usage(), asked, round.calls().size(), round.waitMillis()).toJson());
+                            AgentTelemetry.of(round.usage(), asked, round.calls().size(), round.waitMillis(), mainRole()).toJson());
                 } finally {
                     changeLock.unlock();
                 }
@@ -1578,7 +1583,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             long tokens = estimate(payload(List.of(summary))) + toolTokens();
             changeLock.lock();
             try {
-                messageService.compact(run, summary, tokens, AgentTelemetry.of(round.usage(), 0, 0, round.waitMillis()).toJson());
+                messageService.compact(run, summary, tokens, AgentTelemetry.of(round.usage(), 0, 0, round.waitMillis(), mainRole()).toJson());
             } finally {
                 changeLock.unlock();
             }
@@ -1832,14 +1837,15 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     }
                 })));
             }
-            if (maxSubagents > 0) {
+            if (maxSubagents > 0 && (agent.isSelfSubagentAllowed() || agent.getModelProfiles().size() > 1)) {
                 // a sub-agent has the commands and the files of the agent, and nothing else: it can't start sub-agents of its own
-                subTools = coreTools(files, cage);
+                subFiles = files;
+                subCage = cage;
                 SubAgents pool = new SubAgents(maxSubagents);
                 subAgents = pool;
                 progress.subAgents = () -> "Sub-agents: " + pool.live() + " working of at most " + maxSubagents;
                 SubAgentToolsImpl subAgentTools = new SubAgentToolsImpl(pool, (sub, message) -> startSub(pool, sub, message), () -> currentCallId,
-                        () -> resumedCallId);
+                        () -> resumedCallId, this::subProfile);
                 tools = tools.and(inferenceServices.getFunctionRegistry().bind(SubAgentTools.class, subAgentTools));
                 if (maxSubagents > 1) {
                     // with one, spawning waits for the sub-agent, there is nothing else to do with it
@@ -1869,10 +1875,17 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
          * saves one to a file.
          */
         private FunctionSet coreTools(VirtualFileSystem files, CommandCage cage) {
+            return coreTools(files, cage, agent.getAllowedCommands());
+        }
+
+        /**
+         * As above, with the commands of the list and not all the ones the agent is allowed.
+         */
+        private FunctionSet coreTools(VirtualFileSystem files, CommandCage cage, Collection<String> allowed) {
             // what the commands return, whole, for the tool that saves it to a file
             CommandResults commandResults = new CommandResults();
             // the commands that send images to their own model take them from the files, whether this model sees them or not
-            return CommandFunctions.forAgent(commandService, agent, l -> localization.getValue(l), this::approve,
+            return CommandFunctions.create(commandService, allowed, agent.getDestructiveMode(), l -> localization.getValue(l), this::approve,
                             path -> files.readText(VirtualPath.parse(path)), commandResults,
                             path -> files.readImage(VirtualPath.parse(path)).toAttachment(path), cage)
                     .and(fileSystemService.getFileTools(files, commandResults))
@@ -1979,13 +1992,17 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
          * tries to write a file of 100 000 tokens in one call and the call is cut off.
          */
         private String limitsNote() {
+            return limitsNote(progress.contextCap, progress.responseCap);
+        }
+
+        private String limitsNote(long contextCap, long responseCap) {
             StringBuilder note = new StringBuilder("Limits of the model you run on:");
-            if (progress.contextCap > 0) {
-                note.append("\n- Context: ").append(progress.contextCap).append(" tokens, everything you read at once: this prompt, the conversation and "
+            if (contextCap > 0) {
+                note.append("\n- Context: ").append(contextCap).append(" tokens, everything you read at once: this prompt, the conversation and "
                         + "the results of your calls. When it is full the run pauses.");
             }
-            if (progress.responseCap > 0) {
-                note.append("\n- One answer of yours: at most ").append(progress.responseCap).append(" tokens, the text you write and the arguments of "
+            if (responseCap > 0) {
+                note.append("\n- One answer of yours: at most ").append(responseCap).append(" tokens, the text you write and the arguments of "
                         + "your calls together. A call that needs more (a long file, a long text) is cut off and fails: write long texts in parts, "
                         + "with write_file for the first and append_file for the rest, a part per call.");
             }
@@ -2050,6 +2067,16 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         }
 
         /**
+         * The model a sub-agent runs on: its profile, service and the commands it may use (the tools are made for each sub-agent, they
+         * write in its folder), and what the model may read and write.
+         *
+         * @param role the role of the profile, null for the main one
+         */
+        private record SubModel(String role, ResolvedProfile profile, InferenceService inference, Collection<String> commands, boolean textOnly,
+                                long contextCap, long responseCap) {
+        }
+
+        /**
          * A section of the system message.
          */
         private record SystemPart(AgentContext.Kind kind, String title, String text) {
@@ -2072,6 +2099,10 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             if (maxSubagents > 0) {
                 parts.add(new SystemPart(AgentContext.Kind.NOTE, "Note about sub-agents", String.format(Defaults.AGENT_SUBAGENTS_NOTE.strip(),
                         maxSubagents, maxSubagents == 1 ? Defaults.AGENT_SUBAGENTS_NOTE_ONE : Defaults.AGENT_SUBAGENTS_NOTE_MANY, requestSlots.cap())));
+            }
+            String models = modelsNote();
+            if (models != null) {
+                parts.add(new SystemPart(AgentContext.Kind.NOTE, "Models for sub-agents", models));
             }
             if (progress.contextCap > 0 || progress.responseCap > 0) {
                 parts.add(new SystemPart(AgentContext.Kind.NOTE, "Limits of the model", limitsNote()));
@@ -2265,14 +2296,15 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         /**
          * What a sub-agent is sent: the prompt and the instructions of the agent, the note of the sub-agent, and its own conversation.
          */
-        private List<LLMChatMessage> subPayload(List<LLMChatMessage> conversation) {
+        private List<LLMChatMessage> subPayload(List<LLMChatMessage> conversation, SubModel model, Sub sub) {
             StringBuilder system = new StringBuilder(StringUtils.defaultString(systemPrompt).strip());
             if (StringUtils.isNotBlank(instructions)) {
                 system.append("\n\n# Instructions of the author\n\n").append(instructions.strip());
             }
             system.append("\n\n").append(Defaults.AGENT_SUBAGENT_NOTE.strip());
-            if (progress.contextCap > 0 || progress.responseCap > 0) {
-                system.append("\n\n").append(limitsNote());
+            system.append("\n\nYour folder: ").append(sub.folder());
+            if (model.contextCap() > 0 || model.responseCap() > 0) {
+                system.append("\n\n").append(limitsNote(model.contextCap(), model.responseCap()));
             }
             List<LLMChatMessage> payload = new ArrayList<>();
             payload.add(LLMChatMessage.of(LLMRole.SYSTEM, system.toString()));
@@ -2512,12 +2544,13 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             LLMChatMessage first = LLMChatMessage.of(LLMRole.USER, message);
             changeLock.lock();
             try {
-                messageService.startThread(run, sub.handle(), sub.task(), sub.callId(), first);
+                messageService.startThread(run, sub.handle(), sub.task(), sub.callId(), sub.profile(), first);
             } catch (Exception e) {
                 throw new IllegalStateException("its conversation can't be stored: " + messageOf(e), e);
             } finally {
                 changeLock.unlock();
             }
+            prepareFolder(sub, true);
             log.info("Agent run {}: sub-agent {} is started ({} of {} working)", run.getUuid(), sub.handle(), pool.live(), maxSubagents);
             List<LLMChatMessage> conversation = new ArrayList<>();
             conversation.add(first);
@@ -2543,9 +2576,13 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 if (end == null && !start) {
                     continue;
                 }
-                Sub sub = pool.restore(thread.handle(), StringUtils.defaultString(thread.task()), thread.callId(), end, thread.result(),
+                Sub sub = pool.restore(thread.handle(), StringUtils.defaultString(thread.task()), thread.callId(), thread.profile(), end, thread.result(),
                         thread.rounds(), thread.tokens());
+                if (end == State.DONE && subFiles.stat(VirtualPath.parse(sub.folder()).resolve("result.md")) != null) {
+                    sub.resultFile(sub.folder() + "/result.md");
+                }
                 if (end == null) {
+                    prepareFolder(sub, false);
                     List<LLMChatMessage> conversation = new ArrayList<>(thread.conversation());
                     log.info("Agent run {}: sub-agent {} goes on after {} round(s)", run.getUuid(), sub.handle(), sub.rounds());
                     executor.execute(() -> runSub(pool, sub, conversation));
@@ -2592,6 +2629,9 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     changeLock.unlock();
                 }
             }
+            if (state == State.DONE) {
+                saveResult(sub, text);
+            }
             pool.finish(sub, state, text);
         }
 
@@ -2617,6 +2657,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     return awaitSub(future, cancel, sub);
                 }
             };
+            SubModel model = subModelOf(sub.profile());
+            FunctionSet tools = subTools(sub, model);
             int unreadable = 0;
             int rounds = sub.rounds();
             long tokens = sub.tokens();
@@ -2633,14 +2675,17 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 if (runService.isBudgetExceeded(current)) {
                     throw new SubStopped(State.FAILED, "The run spent its budget of " + progress.tokenBudget + " tokens.");
                 }
-                if (progress.contextCap > 0 && contextTokens >= progress.contextCap) {
-                    throw new SubStopped(State.FAILED, "Its context is full (" + contextTokens + " of " + progress.contextCap
+                if (model.contextCap() > 0 && contextTokens >= model.contextCap()) {
+                    throw new SubStopped(State.FAILED, "Its context is full (" + contextTokens + " of " + model.contextCap()
                             + " tokens), the task is too big for one sub-agent.");
                 }
                 Round round;
                 int asked;
                 try {
-                    Round answered = ask(inference, profile, subPayload(conversation), subTools, waiter);
+                    // the main model is the one of the run, read again every round; the others are the ones built when the sub-agent began
+                    ResolvedProfile modelProfile = model.role() == null ? profile : model.profile();
+                    InferenceService modelService = model.role() == null ? inference : model.inference();
+                    Round answered = ask(modelService, modelProfile, subPayload(conversation, model, sub), tools, waiter);
                     asked = answered.calls().size();
                     round = limitCalls(answered, agent.batchModeOrDefault(), singleCalls);
                     unreadable = 0;
@@ -2682,7 +2727,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 changeLock.lock();
                 try {
                     messageService.appendAnswerToThread(run, sub.handle(), said, round.usage().promptTokens() + round.usage().completionTokens(),
-                            round.reasoning(), AgentTelemetry.of(round.usage(), asked, round.calls().size(), round.waitMillis()).toJson());
+                            round.reasoning(), AgentTelemetry.of(round.usage(), asked, round.calls().size(), round.waitMillis(), model.profile().profile().getRole()).toJson());
                 } finally {
                     changeLock.unlock();
                 }
@@ -2698,7 +2743,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     try {
                         checkSub(sub);
                         long began = System.currentTimeMillis();
-                        String result = callSub(call, sub);
+                        String result = callSub(call, sub, tools);
                         failed = result.startsWith("Error:");
                         log.info("Agent run {}: sub-agent {} {} {} in {} ms ({} characters)", runId, sub.handle(), call.getName(),
                                 result.startsWith("Error:") ? "failed" : "done", System.currentTimeMillis() - began, result.length());
@@ -2720,6 +2765,150 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     }
                 }
             }
+        }
+
+        /**
+         * The role of the main model profile, null when the run has none.
+         */
+        private String mainRole() {
+            return profile == null ? null : profile.profile().getRole();
+        }
+
+        /**
+         * The tools of a sub-agent: the commands of its model and the file tools, which read the whole workspace and write only in the
+         * folder of the sub-agent. None for a model that only answers with text.
+         */
+        private FunctionSet subTools(Sub sub, SubModel model) {
+            if (model.textOnly()) {
+                return FunctionSet.empty();
+            }
+            return coreTools(subFiles.scopedTo(VirtualPath.parse(sub.folder())), subCage, model.commands());
+        }
+
+        /**
+         * Makes the folder of a sub-agent that begins (what an earlier run left in it is gone), or sees that the folder of one that
+         * goes on is there.
+         */
+        private void prepareFolder(Sub sub, boolean fresh) {
+            try {
+                VirtualPath folder = VirtualPath.parse(sub.folder());
+                if (fresh && subFiles.stat(folder) != null) {
+                    subFiles.delete(folder, true);
+                }
+                if (subFiles.stat(folder) == null) {
+                    subFiles.createFolder(folder);
+                }
+            } catch (VirtualFileException e) {
+                // the workspace is full or in the way: the sub-agent works without a folder, its writes say why they fail
+                log.warn("Agent run {}: the folder of sub-agent {} could not be made: {}", runId, sub.handle(), e.getMessage());
+            }
+        }
+
+        /**
+         * Saves the answer of a sub-agent that is done in its folder, for the agent to read in parts when the call shows it cut.
+         */
+        private void saveResult(Sub sub, String answer) {
+            try {
+                VirtualPath file = VirtualPath.parse(sub.folder()).resolve("result.md");
+                subFiles.writeText(file, answer, false);
+                sub.resultFile(file.toString());
+            } catch (VirtualFileException e) {
+                log.warn("Agent run {}: the answer of sub-agent {} is not saved: {}", runId, sub.handle(), e.getMessage());
+            }
+        }
+
+        /**
+         * The model a sub-agent runs on, built once for each role. A role that is not there (the agent was edited meanwhile) or whose
+         * AI the user can not use now ends the sub-agent.
+         *
+         * @param role the role of the profile, null for the main one
+         */
+        private SubModel subModelOf(String role) throws Exception {
+            String key = role == null ? "" : role.toLowerCase();
+            SubModel known = subModels.get(key);
+            if (known != null) {
+                return known;
+            }
+            AgentModelProfile definition = role == null ? agent.getMainProfile() : agent.getModelProfiles().stream()
+                    .filter(candidate -> candidate.getRole().equalsIgnoreCase(role)).findFirst().orElse(null);
+            ResolvedProfile resolved = definition == null ? null : role == null ? profile : agentService.resolveProfile(definition);
+            if (resolved == null) {
+                throw new SubStopped(State.FAILED, "The model " + (role == null ? "of the agent" : role) + " is not available.");
+            }
+            Collection<String> commands = agent.getAllowedCommands();
+            if (definition.getCommands() != null) {
+                Set<String> narrowed = new HashSet<>(commands);
+                narrowed.retainAll(definition.getCommands());
+                commands = narrowed;
+            }
+            SubModel model = new SubModel(role, resolved, inferenceServices.forAIOrThrow(resolved.ai()), commands, role != null && !definition.isTools(),
+                    AgentService.contextCap(agent, resolved), TokenLimits.responseTokens(resolved.ai(), resolved.protocol()));
+            subModels.put(key, model);
+            return model;
+        }
+
+        /**
+         * The role a sub-agent that the agent asked for runs on: null for the main model, which is also what leaving it out means
+         * when the agent may use it.
+         *
+         * @param requested what the agent wrote, null when it left it out
+         * @throws IllegalArgumentException with the text for the agent when it may not
+         */
+        private String subProfile(String requested) {
+            List<AgentModelProfile> all = agent.getModelProfiles();
+            AgentModelProfile main = agent.getMainProfile();
+            String others = all.stream().skip(1).map(AgentModelProfile::getRole).collect(Collectors.joining(", "));
+            if (requested == null || main != null && main.getRole().equalsIgnoreCase(requested)) {
+                if (!agent.isSelfSubagentAllowed()) {
+                    throw new IllegalArgumentException("You may not start a sub-agent on your own model, name another one with profile: " + others);
+                }
+                return null;
+            }
+            return all.stream().skip(1).map(AgentModelProfile::getRole).filter(role -> role.equalsIgnoreCase(requested)).findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("There is no model " + StringUtils.abbreviate(requested, 40) + " for a sub-agent. "
+                            + (others.isEmpty() ? "Leave profile out." : "The models: " + others
+                            + (agent.isSelfSubagentAllowed() ? ", or leave it out for your own." : "."))));
+        }
+
+        /**
+         * The models a sub-agent may run on and what each can do, for the system message; null when the agent has just its own
+         * model for them (nothing to choose).
+         */
+        private String modelsNote() {
+            List<AgentModelProfile> all = agent.getModelProfiles();
+            if (maxSubagents <= 0 || all.isEmpty() || all.size() == 1 && agent.isSelfSubagentAllowed()
+                    && all.getFirst().getCommands() == null) {
+                return null;
+            }
+            StringBuilder note = new StringBuilder("Models for sub-agents (the profile of spawn_agent):");
+            for (int i = 0; i < all.size(); i++) {
+                AgentModelProfile model = all.get(i);
+                boolean main = i == 0;
+                if (main && !agent.isSelfSubagentAllowed()) {
+                    note.append("\n- ").append(model.getRole()).append(" (your own model): you may not start a sub-agent on it.");
+                    continue;
+                }
+                note.append("\n- ").append(model.getRole());
+                if (main) {
+                    note.append(" (your own model, the default when profile is left out)");
+                }
+                if (StringUtils.isNotBlank(model.getDescription())) {
+                    note.append(": ").append(model.getDescription().strip());
+                }
+                note.append(" [").append(!main && !model.isTools() ? "no commands or tools, it only answers with text"
+                        : model.getCommands() == null ? "commands: the same as yours" : model.getCommands().isEmpty() ? "no commands, files only"
+                        : "commands: " + describeCommands(model.getCommands())).append("]");
+            }
+            return note.toString();
+        }
+
+        private String describeCommands(List<String> commands) {
+            List<String> allowed = commands.stream().filter(agent.getAllowedCommands()::contains).sorted().toList();
+            if (allowed.isEmpty()) {
+                return "none of yours";
+            }
+            return allowed.size() > MAX_NAMED_COMMANDS ? String.join(", ", allowed.subList(0, MAX_NAMED_COMMANDS)) + " and " + (allowed.size() - MAX_NAMED_COMMANDS) + " more"
+                    : String.join(", ", allowed);
         }
 
         /**
@@ -2752,7 +2941,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         /**
          * One call of a sub-agent, as {@link #call} for the agent: the calls that change something run one at a time.
          */
-        private String callSub(LLMToolCall call, Sub sub) throws Exception {
+        private String callSub(LLMToolCall call, Sub sub, FunctionSet subTools) throws Exception {
             Executor onThread = task -> CompletableFuture.runAsync(() -> {
                 try (InRequestScope _ = new InRequestScope(attributes)) {
                     task.run();

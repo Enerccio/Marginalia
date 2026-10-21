@@ -24,7 +24,12 @@ public interface AgentMessageService extends ExtendableService<AgentMessage, Age
      * @param rewound  whether the agent went back over the call that started it
      * @param rows     every row of the conversation, the last one is the end of a conversation that ended
      */
-    record SubThread(String handle, String task, String callId, String end, String result, boolean rewound, List<AgentMessage> rows) {
+    record SubThread(String handle, String task, String callId, String profile, String end, String result, boolean rewound,
+                     List<AgentMessage> rows) {
+
+        public SubThread(String handle, String task, String callId, String end, String result, boolean rewound, List<AgentMessage> rows) {
+            this(handle, task, callId, null, end, result, rewound, rows);
+        }
 
         public boolean isOver() {
             return end != null;
@@ -80,6 +85,13 @@ public interface AgentMessageService extends ExtendableService<AgentMessage, Age
      * @throws IllegalArgumentException when the run is not a run of the current user
      */
     AgentMessage startThread(AgentRun run, String handle, String task, String callId, LLMChatMessage first) throws Exception;
+
+    /**
+     * As above, for a sub-agent that runs on another model profile of the agent.
+     *
+     * @param profile the role of the profile, null for the main one
+     */
+    AgentMessage startThread(AgentRun run, String handle, String task, String callId, String profile, LLMChatMessage first) throws Exception;
 
     /**
      * Appends messages to the conversation of a sub-agent.

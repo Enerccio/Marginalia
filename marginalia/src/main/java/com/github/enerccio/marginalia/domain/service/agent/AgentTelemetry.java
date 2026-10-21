@@ -22,16 +22,21 @@ import com.google.gson.JsonParser;
  * @param asked               the calls the answer had
  * @param kept                the calls that were made (repeats, the limits and the batch policies drop the rest)
  * @param waitMillis          the time the request waited for a place (the cap of the run, the cap of the model) before it was sent
+ * @param profile             the role of the model profile of the agent that answered, null when it was not noted (a row of an older run)
  */
 public record AgentTelemetry(long promptTokens, long completionTokens, long cachedTokens, long reasoningTokens, long firstTokenMillis,
                              long generationMillis, String finishReason, long serverPromptMillis, long serverPredictedMillis,
-                             int asked, int kept, long waitMillis) {
+                             int asked, int kept, long waitMillis, String profile) {
 
     public static AgentTelemetry of(RoundUsage usage, int asked, int kept, long waitMillis) {
+        return of(usage, asked, kept, waitMillis, null);
+    }
+
+    public static AgentTelemetry of(RoundUsage usage, int asked, int kept, long waitMillis, String profile) {
         var stats = usage.stats();
         return new AgentTelemetry(usage.promptTokens(), usage.completionTokens(), stats.cachedTokens(), stats.reasoningTokens(),
                 stats.firstTokenMillis(), stats.generationMillis(), stats.finishReason(), stats.serverPromptMillis(),
-                stats.serverPredictedMillis(), asked, kept, waitMillis);
+                stats.serverPredictedMillis(), asked, kept, waitMillis, profile);
     }
 
     public String toJson() {
@@ -48,6 +53,9 @@ public record AgentTelemetry(long promptTokens, long completionTokens, long cach
         json.addProperty("asked", asked);
         json.addProperty("kept", kept);
         json.addProperty("waitMillis", waitMillis);
+        if (profile != null) {
+            json.addProperty("profile", profile);
+        }
         return json.toString();
     }
 
@@ -64,7 +72,8 @@ public record AgentTelemetry(long promptTokens, long completionTokens, long cach
                     number(json, "reasoningTokens"), number(json, "firstTokenMillis"), number(json, "generationMillis"),
                     json.has("finishReason") && !json.get("finishReason").isJsonNull() ? json.get("finishReason").getAsString() : null,
                     number(json, "serverPromptMillis"), number(json, "serverPredictedMillis"), (int) number(json, "asked"),
-                    (int) number(json, "kept"), number(json, "waitMillis"));
+                    (int) number(json, "kept"), number(json, "waitMillis"),
+                    json.has("profile") && !json.get("profile").isJsonNull() ? json.get("profile").getAsString() : null);
         } catch (RuntimeException e) {
             return null;
         }

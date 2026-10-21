@@ -38,20 +38,23 @@ public final class SubAgents {
         private final String handle;
         private final String task;
         private final String callId;
+        private final String profile;
         private volatile State state = State.RUNNING;
         private volatile String result;
         private volatile int rounds;
         private volatile long tokens;
         private volatile String lastAction;
         private volatile boolean cancelRequested;
+        private volatile String resultFile;
         private final CompletableFuture<Sub> finished = new CompletableFuture<>();
 
         private final SubAgents owner;
 
-        private Sub(String handle, String task, String callId, SubAgents owner) {
+        private Sub(String handle, String task, String callId, String profile, SubAgents owner) {
             this.handle = handle;
             this.task = task;
             this.callId = callId;
+            this.profile = profile;
             this.owner = owner;
         }
 
@@ -77,6 +80,13 @@ public final class SubAgents {
             return callId;
         }
 
+        /**
+         * The role of the model profile of the agent it runs on, null for the main one (the model of the agent itself).
+         */
+        public String profile() {
+            return profile;
+        }
+
         public State state() {
             return state;
         }
@@ -86,6 +96,24 @@ public final class SubAgents {
          */
         public String result() {
             return result;
+        }
+
+        /**
+         * The file of the workspace that holds its whole answer, null when it has none (it did not answer, or the file could not be written).
+         */
+        public String resultFile() {
+            return resultFile;
+        }
+
+        public void resultFile(String path) {
+            this.resultFile = path;
+        }
+
+        /**
+         * The folder of the workspace that is its own, where it writes and the agent finds what it made.
+         */
+        public String folder() {
+            return "/" + VirtualFileSystem.SUBAGENTS + "/" + handle;
         }
 
         public int rounds() {
@@ -166,10 +194,19 @@ public final class SubAgents {
      * @throws IllegalStateException when {@code max} sub-agents work already
      */
     public synchronized Sub create(String task, String callId) {
+        return create(task, callId, null);
+    }
+
+    /**
+     * As {@link #create(String, String)}, for a sub-agent that runs on another model of the agent.
+     *
+     * @param profile the role of the model profile, null for the main one
+     */
+    public synchronized Sub create(String task, String callId, String profile) {
         if (live() >= max) {
             throw new IllegalStateException("The limit of " + max + " sub-agents working at once is reached");
         }
-        Sub sub = new Sub("sub" + (++counter), task, callId, this);
+        Sub sub = new Sub("sub" + (++counter), task, callId, profile, this);
         subs.put(sub.handle, sub);
         return sub;
     }
@@ -180,8 +217,8 @@ public final class SubAgents {
      * @param state  how it ended, null when it did not end: the caller continues its conversation
      * @param result its answer or the reason it did not give one, for a state that is not null
      */
-    public synchronized Sub restore(String handle, String task, String callId, State state, String result, int rounds, long tokens) {
-        Sub sub = new Sub(handle, task, callId, this);
+    public synchronized Sub restore(String handle, String task, String callId, String profile, State state, String result, int rounds, long tokens) {
+        Sub sub = new Sub(handle, task, callId, profile, this);
         sub.rounds = rounds;
         sub.tokens = tokens;
         subs.put(handle, sub);

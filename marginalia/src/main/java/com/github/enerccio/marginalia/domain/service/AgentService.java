@@ -101,6 +101,17 @@ public interface AgentService extends ExtendableService<Agent, AgentRepository> 
     }
 
     /**
+     * How many tokens a request to the model of the profile may have: the lowest of the limit of the agent, of the profile and of
+     * the AI; 0 is no limit.
+     */
+    static long contextCap(Agent agent, ResolvedProfile resolved) {
+        return java.util.stream.Stream.of(agent.getContextCap(),
+                        resolved == null ? null : resolved.profile().getContextCap(),
+                        resolved == null ? null : resolved.ai().getMaxContext())
+                .filter(java.util.Objects::nonNull).mapToLong(Integer::longValue).filter(cap -> cap > 0).min().orElse(0);
+    }
+
+    /**
      * Whether the current user can use agents.
      */
     boolean isAllowed() throws Exception;

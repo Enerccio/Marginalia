@@ -39,7 +39,8 @@ import java.util.Objects;
  * Creates or edits an agent. The system prompt of a new agent is blank, which means it follows the default (the prompt
  * of the user's settings, the one of the application settings, then {@code Defaults.DEFAULT_AGENT_PROMPT}): the default
  * is the placeholder of the field and the info popover fills it in to edit a copy. A new agent picks the book it works on (a book has at most one agent, and the book of an agent is not changed). The main
- * model is the AI and the protocol of the first model profile; other profiles an agent may have are left as they are.
+ * model is the AI and the protocol of the first model profile; the other profiles, the models of its sub-agents, are edited in the
+ * table of {@link AgentModelsEditor}.
  */
 @Configurable
 public class AgentDialog extends Dialog implements LLMInteract {
@@ -87,6 +88,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
     private TextAreaPopoverComponent compactionPromptField;
     private TextArea instructionsField;
     private AgentCommandsEditor commandsEditor;
+    private AgentModelsEditor modelsEditor;
     // what the prompt, the instructions and the commands weigh in every request
     private Span sizeLabel;
     private String defaultPrompt = "";
@@ -127,6 +129,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
         form.setWidthFull();
         form.add(nameField, enabledCheckbox, manuscriptCombo, modelPicker, imagesCheckbox, useOwnModelCheckbox);
         form.add(destructiveCombo, batchModeCombo, maxRoundsField, maxSubagentsField, tokenBudgetField, contextLimitField, autoCompactField);
+        form.add(modelsEditor);
         form.add(systemPromptField, compactionPromptField, instructionsField, sizeLabel, commandsEditor);
         add(form);
 
@@ -224,6 +227,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
 
         commandsEditor = new AgentCommandsEditor();
         commandsEditor.setWidthFull();
+        modelsEditor = new AgentModelsEditor();
 
         // a blank prompt or blank instructions follow the default, which is what counts; the field of the prompt is not
         // lazy by default
@@ -328,6 +332,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
             compactionPromptField.setValue(StringUtils.defaultString(agent.getCompactionPrompt()));
             instructionsField.setValue(StringUtils.defaultString(agent.getInstructions()));
             commandsEditor.setAllowed(agent.getAllowedCommands());
+            modelsEditor.setProfiles(agent.getModelProfiles(), agent.isSelfSubagentAllowed());
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -352,6 +357,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
                 agent.setManuscript(manuscriptCombo.getValue());
             }
             applyMainProfile(agent);
+            modelsEditor.applyTo(agent);
             agent.setDestructiveMode(destructiveCombo.getValue());
             agent.setMaxRounds(maxRoundsField.getValue());
             agent.setMaxSubagents(maxSubagentsField.getValue() == null || maxSubagentsField.getValue() == 0 ? null : maxSubagentsField.getValue());
@@ -471,6 +477,10 @@ public class AgentDialog extends Dialog implements LLMInteract {
 
     TextArea getInstructionsField() {
         return instructionsField;
+    }
+
+    AgentModelsEditor getModelsEditor() {
+        return modelsEditor;
     }
 
     AgentCommandsEditor getCommandsEditor() {

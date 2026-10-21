@@ -224,7 +224,7 @@ class AgentDiagnosticsTest {
 
     private static AgentTelemetry telemetry(long prompt, long completion, long cached, long reasoning, long first, long generation,
                                             String finish, int asked, int kept) {
-        return new AgentTelemetry(prompt, completion, cached, reasoning, first, generation, finish, -1, -1, asked, kept, 0);
+        return new AgentTelemetry(prompt, completion, cached, reasoning, first, generation, finish, -1, -1, asked, kept, 0, null);
     }
 
     @Test

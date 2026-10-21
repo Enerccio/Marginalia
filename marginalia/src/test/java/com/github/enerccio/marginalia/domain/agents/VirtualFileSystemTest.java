@@ -681,4 +681,40 @@ class VirtualFileSystemTest {
         assertThatThrownBy(() -> fs.readText(p("/big.md"))).isInstanceOf(VirtualFileException.class)
                 .hasMessageContaining("larger than the limit of 300");
     }
+
+    // ---------------------------------------------------------------------------------------------------------------
+    // a view that can change one folder only (a sub-agent)
+    // ---------------------------------------------------------------------------------------------------------------
+
+    @Test
+    void aScopedViewReadsEverythingAndChangesOnlyItsFolder() {
+        write("/notes.md", "the agent's notes");
+        VirtualFileSystem scoped = fs.scopedTo(p("/tmp/sub1"));
+        scoped.createFolder(p("/tmp/sub1"));
+
+        scoped.writeText(p("/tmp/sub1/draft.md"), "mine", false);
+        scoped.copy(p("/notes.md"), p("/tmp/sub1/notes-copy.md"));
+
+        assertThat(scoped.readText(p("/notes.md"))).isEqualTo("the agent's notes");
+        assertThat(read("/tmp/sub1/draft.md")).as("seen by the whole view").isEqualTo("mine");
+        assertThat(scoped.readText(p("/tmp/sub1/notes-copy.md"))).isEqualTo("the agent's notes");
+        assertThatThrownBy(() -> scoped.writeText(p("/notes.md"), "mine now", false)).isInstanceOf(VirtualFileException.class)
+                .hasMessageContaining("read only for you").hasMessageContaining("/tmp/sub1");
+        assertThatThrownBy(() -> scoped.writeText(p("/tmp/sub2/x.md"), "x", false)).isInstanceOf(VirtualFileException.class);
+        assertThatThrownBy(() -> scoped.delete(p("/notes.md"), false)).isInstanceOf(VirtualFileException.class);
+        assertThatThrownBy(() -> scoped.move(p("/notes.md"), p("/tmp/sub1/moved.md"))).isInstanceOf(VirtualFileException.class);
+        assertThatThrownBy(() -> scoped.move(p("/tmp/sub1/draft.md"), p("/elsewhere.md"))).isInstanceOf(VirtualFileException.class);
+        assertThatThrownBy(() -> scoped.createFolder(p("/other"))).isInstanceOf(VirtualFileException.class);
+        assertThatThrownBy(scoped::clearWorkspace).isInstanceOf(VirtualFileException.class);
+        assertThat(read("/notes.md")).isEqualTo("the agent's notes");
+    }
+
+    @Test
+    void aFolderNamedLikeTheScopeButLongerIsNotInIt() {
+        VirtualFileSystem scoped = fs.scopedTo(p("/tmp/sub1"));
+
+        assertThatThrownBy(() -> scoped.writeText(p("/tmp/sub10/x.md"), "x", false)).isInstanceOf(VirtualFileException.class);
+        assertThatThrownBy(() -> scoped.writeText(p("/tmp/sub1/../sub2/x.md"), "x", false)).isInstanceOf(VirtualFileException.class);
+    }
+
 }

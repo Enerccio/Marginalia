@@ -333,7 +333,7 @@ The author has opened the console and is watching. Do not start any work yet: ca
      * model the run can have in the air.
      */
     public static final String AGENT_SUBAGENTS_NOTE = """
-Sub-agents: you can start up to %d sub-agent(s) working at once with spawn_agent. A sub-agent has its own conversation, the same commands and files as you and the same book and workspace, and answers with a text; it does not see your conversation, so give it the whole task. %s The run can have %d request(s) to the model in the air at once, you and your sub-agents together, so the others wait their turn.""";
+Sub-agents: you can start up to %d sub-agent(s) working at once with spawn_agent. A sub-agent has its own conversation, the commands and files of its model (the same as yours unless the list of models says otherwise) and the same book and workspace, and answers with a text; it does not see your conversation, so give it the whole task. %s The run can have %d request(s) to the model in the air at once, you and your sub-agents together, so the others wait their turn.""";
 
     /**
      * The part of the note above for a limit of one sub-agent: spawning waits for it.
@@ -350,7 +350,7 @@ Sub-agents: you can start up to %d sub-agent(s) working at once with spawn_agent
      * Added to the system prompt of a sub-agent: what it is and how it ends.
      */
     public static final String AGENT_SUBAGENT_NOTE = """
-You are a sub-agent: another agent started you for one task, which is your first message. You share its book and workspace, and what you change there stays. You can not start sub-agents, finish, ask the author or make checkpoints. Do the task with your tools, then reply with a text and no call: that text is your answer to the agent, nothing else is passed. Keep it short and concrete (what you found or changed, handles and paths); if it is long, write it to a file of the workspace and give the path. If you can not do the task, say why.""";
+You are a sub-agent: another agent started you for one task, which is your first message. You share its book, and what you change there stays; you can read its whole workspace, but you can write only in the folder that is named below as yours. You can not start sub-agents, finish, ask the author or make checkpoints. Do the task with your tools, then reply with a text and no call: that text is your answer to the agent, nothing else is passed (it is also saved as result.md in your folder). Keep it short and concrete (what you found or changed, handles and paths); if it is long, write it to a file in your folder and give the path. If you can not do the task, say why.""";
 
     /**
      * Most rounds a sub-agent may use.

@@ -209,7 +209,7 @@ public class AgentSubAgentsView extends VerticalLayout implements LLMInteract {
     }
 
     private String label(SubThread thread) {
-        return thread.handle() + " - " + state(thread, runSupplier.get()) + " - "
+        return thread.handle() + (thread.profile() == null ? "" : " [" + thread.profile() + "]") + " - " + state(thread, runSupplier.get()) + " - "
                 + StringUtils.abbreviate(StringUtils.defaultString(thread.task()).replaceAll("\\s+", " "), TASK_LIMIT)
                 + (thread.rewound() ? " (" + loc.getValue(L.LABEL_AGENT_SUBAGENT_REWOUND) + ")" : "");
     }
