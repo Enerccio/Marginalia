@@ -221,4 +221,15 @@ class LorebookMassEditDialogTest extends AgentTestBase {
         assertThat(dialog.getRows()).allMatch(LorebookMassEditDialog.Row::locked);
         assertThat(dialog.getTargetBox().getListDataView().getItems()).isEmpty();
     }
+
+    @Test
+    void theGridHasTheColumnsOfTheEntryDetailsToo() throws Exception {
+        Lorebook root = lorebook("Root");
+        entry(root, "A", 100);
+
+        LorebookMassEditDialog dialog = open(root, null);
+
+        assertThat(dialog.getGrid().getColumns()).as("check, enabled, name, order, lorebook, tags, filtering mode, filtering, "
+                + "insertion mode, negative tags, note, content").hasSize(12);
+    }
 }

@@ -105,6 +105,24 @@ copy and the workspace are on disk. A resumed run reads its transcript back, rep
 that ends with a plain reply gets the resume message, see `AgentRunnerImpl.Worker.prepare`) and goes on. What is *not* kept: the
 `CommandResults` (they live as long as one worker) and the plan is restored from the last `update_plan` call.
 
+**Restart in the middle of a round.** The assistant message with its calls is stored before the calls are made and the results one by one, and the calls of a round
+are made in order, so after a death only the first call without a result can have been going on; the others were never started. Three small files in the folder of
+the base (`AgentVirtualFileSystemService`, written at once, no owner check, a failure is only logged) tell the rest: `call-began` (`writeCallMarker`) holds the id of
+the call that is about to change something (`Worker.call`, only for `changes(call)`; `approveCall` clears it while the call waits for the author's approval and sets it
+again when they agree), `queue.json` (`writeQueue`) is the `Inbox`, and `resume-note.txt` the note of the resume. `Worker.repairCalls(transcript, true)` (from `prepare`)
+does not answer the open calls as interrupted but keeps them in `replay`; the loop makes them as a round of its own (no request, `replayed`), skipping the model, and a
+call for which `unsafeToRepeat` is true (its id is the marker and it changes something, or it is a sub-agent tool) is answered as interrupted and the rest as skipped after an
+error. The report of the sync and the note of the resume (`resumeMessage`) come after the results (`resumeMessagesDue`): a message of the author between the calls and
+their results is not allowed. **Approvals** are not stored: the call waiting for one has no result, so a restart finds it open and unmarked, and making it again asks again.
+A pause or stop while a call waits must not look like a denial: `AgentApprovalService.rejectAll` notes that approvals were withdrawn (`takeWithdrawn`, cleared by the next
+`request`), `approveCall` turns that into `withdrawnCall`, and the loop leaves that call without a result (the `suspended` path, as for a call that waits for a sub-agent).
+The `Inbox` calls a store function after every change (`storeQueue`, under its lock, the images by the path of their file); `inboxOf` / `existingInbox` read the file when the
+run has no inbox in memory (the queue of a paused run is shown and cancelled after a restart), `forgetInbox` removes it with the run. A command of the author being run
+(`runCommand`) was taken from the queue before it ran and is lost with a restart. `AgentRunner.parkAll(maxMillis)` is what `destroy()` calls: it adds the working runs to
+`interrupts` and sets `shuttingDown`, the workers give up the request or call that goes on and pause the run at the stable point (`parkForShutdown`), and it waits up
+to the time given (`PARK_MILLIS`, 5 s); whatever is left is cut off and paused by `recoverInterrupted` at the next start. Sub-agents are not replayed: their open calls
+are answered as interrupted when they continue, as before.
+
 ## The request context of a run
 
 The commands, the services and `Localization` find the user and the open book through **session scoped beans** (`user`, `sessionPoint`),

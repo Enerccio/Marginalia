@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845912123615">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845915892678">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845912123615" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845915892678" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845912123615" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845915892678" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845912123615" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845915892678" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -362,8 +362,7 @@ these of its own:</p>
 </li>
 <li>
 <p><strong>Paused</strong>, with the reason: the limit of rounds, the token budget or the context limit is reached, the model could not be asked (an error of
-the provider, your limit on the AI), or the server was restarted. <strong>Resume</strong> goes on from the last complete round; a call that was in the air when the
-server stopped is reported to the model as &quot;outcome unknown&quot;.</p>
+the provider, your limit on the AI), or the server was restarted. <strong>Resume</strong> goes on from the last complete round, see <doc-anchor-trigger to="#when-the-server-stops">When the server stops</doc-anchor-trigger>.</p>
 </li>
 <li>
 <p><strong>Failed:</strong> the runner itself broke; the reason says what.</p>
@@ -392,7 +391,7 @@ reads it as soon as the round it is in is over: the request to the model that is
 your message (several queued messages go together as one). When it should not wait even for that, press the
 small <strong>Send now</strong> (lightning) button on the bubble: the agent drops the round it is in (the request to the model is canceled, a command that waited for your approval
 is refused, calls that were not made are marked as skipped) and reads your message next. The <strong>trash</strong> button next to it takes the message back as long as the agent has
-not read it yet (the same for a queued command). Commands that already ran stay done. Queued messages are lost when the server restarts, and
+not read it yet (the same for a queued command). Commands that already ran stay done. Queued messages and commands are kept through a restart of the server (they are read when you resume), and
 a run that is not a conversation (started <em>immediately</em>) does not take messages while it works.</p>
 <h3 id="running-a-command-yourself">Running a command yourself</h3>
 <p>Under the transcript is the command line of the application (the one of the story tab: type <code translate="no" v-pre>/</code>, the list and the help of the command appear above it) with what you can run on the agent: <code translate="no" v-pre>/compact</code>, <code translate="no" v-pre>/clear-workspace</code> and the
@@ -503,8 +502,16 @@ was <em>paused by itself</em> (a limit is reached, the model could not be asked,
 window you have open gets the notice. Opening the console of the agent clears it (the other windows update).</p>
 <p>When the agent is set to <strong>Ask first</strong> and wants a command that changes or removes data, the run stops in <em>Waiting for approval</em> and a window
 pops up over the console with the command and its arguments. <strong>Approve</strong> lets it run, <strong>Deny</strong> tells the agent that you refused and it goes on.
-Pausing or stopping the run refuses the command too. The command still works on the <doc-anchor-trigger to="#the-working-copy">copy</doc-anchor-trigger> of the book. If the console is
+Pausing or stopping the run (or stopping the server) does not count as a denial: the agent is told nothing, and when you <strong>Resume</strong>, the window comes again for the same command. The command still works on the <doc-anchor-trigger to="#the-working-copy">copy</doc-anchor-trigger> of the book. If the console is
 closed, the window is there as soon as you open it.</p>
+<h2 id="when-the-server-stops">When the server stops</h2>
+<p>Stopping the server pauses the runs that work first, as <strong>Pause now</strong> does (it gives the server a few seconds): the request and the call that go on are given up, the run is <em>Paused</em> with the reason &quot;The server was stopped&quot;, and a <strong>Resume</strong> goes on. If the server is killed or crashes instead, the next start pauses the runs it finds working (&quot;Interrupted by a restart of the server&quot;). Everything the run did is kept: the saved rounds, the copy, the workspace, and the messages and commands you had queued. What is lost is the round that was not finished. Resuming handles the call the run was in:</p>
+<ul>
+<li>A call that <strong>had not begun</strong> (it waited for your approval, or for its turn after another call) is made again, so a command that needs your approval asks you again. A call that only reads is made again too.</li>
+<li>A call that <strong>had begun to change something</strong> may be done in part: the agent is told its outcome is unknown and checks it with a read tool before it repeats it; the calls after it are marked as not made.</li>
+<li>A command of yours that was running (<code translate="no" v-pre>/compact</code>, a summary...) when the server stopped is lost; run it again.</li>
+<li>The calls of a sub-agent that were in the air are reported to it as &quot;outcome unknown&quot;, as before, and a sub-agent that waited for your approval asks again by itself.</li>
+</ul>
 <h2 id="the-working-copy">The working copy</h2>
 <p>Every run works on a <strong>copy of your book</strong> and of its lorebooks that the app makes when the run starts: the messages, summaries, tags and settings
 as they are at that moment, and the lorebook with its sub-lorebooks. The copy is hidden: it is not in the lists of books and lorebooks. Whatever the
@@ -796,7 +803,7 @@ editing again after you paused or stopped the run. Other lorebooks are not affec
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (9d483ad1).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (1a5ae04b).</p></div>
             </footer>
         </div>
     </div>

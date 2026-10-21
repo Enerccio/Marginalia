@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845912123615">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845915892678">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845912123615" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845915892678" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845912123615" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845915892678" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845912123615" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845915892678" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -370,6 +370,23 @@ the worker polls for that while it waits and cancels the request.</p>
 copy and the workspace are on disk. A resumed run reads its transcript back, repairs its end (calls nobody answered get &quot;interrupted&quot;, a transcript
 that ends with a plain reply gets the resume message, see <code translate="no" v-pre>AgentRunnerImpl.Worker.prepare</code>) and goes on. What is <em>not</em> kept: the
 <code translate="no" v-pre>CommandResults</code> (they live as long as one worker) and the plan is restored from the last <code translate="no" v-pre>update_plan</code> call.</p>
+<p><strong>Restart in the middle of a round.</strong> The assistant message with its calls is stored before the calls are made and the results one by one, and the calls of a round
+are made in order, so after a death only the first call without a result can have been going on; the others were never started. Three small files in the folder of
+the base (<code translate="no" v-pre>AgentVirtualFileSystemService</code>, written at once, no owner check, a failure is only logged) tell the rest: <code translate="no" v-pre>call-began</code> (<code translate="no" v-pre>writeCallMarker</code>) holds the id of
+the call that is about to change something (<code translate="no" v-pre>Worker.call</code>, only for <code translate="no" v-pre>changes(call)</code>; <code translate="no" v-pre>approveCall</code> clears it while the call waits for the author&#x27;s approval and sets it
+again when they agree), <code translate="no" v-pre>queue.json</code> (<code translate="no" v-pre>writeQueue</code>) is the <code translate="no" v-pre>Inbox</code>, and <code translate="no" v-pre>resume-note.txt</code> the note of the resume. <code translate="no" v-pre>Worker.repairCalls(transcript, true)</code> (from <code translate="no" v-pre>prepare</code>)
+does not answer the open calls as interrupted but keeps them in <code translate="no" v-pre>replay</code>; the loop makes them as a round of its own (no request, <code translate="no" v-pre>replayed</code>), skipping the model, and a
+call for which <code translate="no" v-pre>unsafeToRepeat</code> is true (its id is the marker and it changes something, or it is a sub-agent tool) is answered as interrupted and the rest as skipped after an
+error. The report of the sync and the note of the resume (<code translate="no" v-pre>resumeMessage</code>) come after the results (<code translate="no" v-pre>resumeMessagesDue</code>): a message of the author between the calls and
+their results is not allowed. <strong>Approvals</strong> are not stored: the call waiting for one has no result, so a restart finds it open and unmarked, and making it again asks again.
+A pause or stop while a call waits must not look like a denial: <code translate="no" v-pre>AgentApprovalService.rejectAll</code> notes that approvals were withdrawn (<code translate="no" v-pre>takeWithdrawn</code>, cleared by the next
+<code translate="no" v-pre>request</code>), <code translate="no" v-pre>approveCall</code> turns that into <code translate="no" v-pre>withdrawnCall</code>, and the loop leaves that call without a result (the <code translate="no" v-pre>suspended</code> path, as for a call that waits for a sub-agent).
+The <code translate="no" v-pre>Inbox</code> calls a store function after every change (<code translate="no" v-pre>storeQueue</code>, under its lock, the images by the path of their file); <code translate="no" v-pre>inboxOf</code> / <code translate="no" v-pre>existingInbox</code> read the file when the
+run has no inbox in memory (the queue of a paused run is shown and cancelled after a restart), <code translate="no" v-pre>forgetInbox</code> removes it with the run. A command of the author being run
+(<code translate="no" v-pre>runCommand</code>) was taken from the queue before it ran and is lost with a restart. <code translate="no" v-pre>AgentRunner.parkAll(maxMillis)</code> is what <code translate="no" v-pre>destroy()</code> calls: it adds the working runs to
+<code translate="no" v-pre>interrupts</code> and sets <code translate="no" v-pre>shuttingDown</code>, the workers give up the request or call that goes on and pause the run at the stable point (<code translate="no" v-pre>parkForShutdown</code>), and it waits up
+to the time given (<code translate="no" v-pre>PARK_MILLIS</code>, 5 s); whatever is left is cut off and paused by <code translate="no" v-pre>recoverInterrupted</code> at the next start. Sub-agents are not replayed: their open calls
+are answered as interrupted when they continue, as before.</p>
 <h2 id="the-request-context-of-a-run">The request context of a run</h2>
 <p>The commands, the services and <code translate="no" v-pre>Localization</code> find the user and the open book through <strong>session scoped beans</strong> (<code translate="no" v-pre>user</code>, <code translate="no" v-pre>sessionPoint</code>),
 which resolve against the request attributes of the thread. A run has no browser, so <code translate="no" v-pre>AgentRunService.openSession(run)</code> builds the context from
@@ -1292,7 +1309,7 @@ older rounds when the context is full (the run pauses instead).</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (9d483ad1).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (1a5ae04b).</p></div>
             </footer>
         </div>
     </div>

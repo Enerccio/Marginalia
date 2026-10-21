@@ -50,8 +50,10 @@ A lorebook of a book an agent works on is shown read only (see [Agents](../agent
 **Mass edit** opens a window with every entry of the selected lorebook **and of its sub lorebooks** (however deep) in one table,
 ordered by the **Order** of the entries (entries with the same order by lorebook, then by name). It is for tidying a big lorebook:
 
-- Change the *enabled* box, the **Entry Name**, the **Order** and the **Tags** of an entry in place, as in the editor. The row moves to its
-  new place when you change the order. The text of an entry is shortened in the table; open the entry in the lorebook to read or edit all of it.
+- Change the *enabled* box, the **Entry Name**, the **Order**, the **Tags**, the **Filtering Mode**, the **Filtering**, the **Insertion Mode**, the
+  **Negative Tags** and the **Note** of an entry in place, as in the editor. Every entry is one line; the table scrolls down (and to the side when the
+  window is narrow). The row moves to its new place when you change the order. The text of an entry is shortened in the table; open the entry in
+  the lorebook to read or edit all of it.
 - The **Lorebook** box of a row says in which lorebook the entry is. Pick another one (the lorebook itself or any of its sub lorebooks) to move the entry there.
 - To move many entries, tick them (the box in the header ticks all), pick **Move to lorebook** at the bottom and press **Move checked**.
 - A lorebook that an agent works on is locked: its entries are grayed out and can not be changed or moved, and nothing can be moved into

@@ -65,8 +65,7 @@ How a run ends a stretch of work:
 - **Waiting for you:** the agent answered without a tool call, or asked you something. Answer it in the [console](#the-console).
 - **Done:** the agent called `finish` (in a run you started *immediately*). A run you started *in the console* is a conversation: the report of the agent comes to you like a question, the run waits for your next message, and only **Finish** in the console (or **Stop**) ends it. The result of a *Done* run waits for your [review](#reviewing-the-result).
 - **Paused**, with the reason: the limit of rounds, the token budget or the context limit is reached, the model could not be asked (an error of
-  the provider, your limit on the AI), or the server was restarted. **Resume** goes on from the last complete round; a call that was in the air when the
-  server stopped is reported to the model as "outcome unknown".
+  the provider, your limit on the AI), or the server was restarted. **Resume** goes on from the last complete round, see [When the server stops](#when-the-server-stops).
 - **Failed:** the runner itself broke; the reason says what.
 
 **Pause** takes effect between two rounds: the model request and the calls that are going on finish first. That can take
@@ -97,7 +96,7 @@ reads it as soon as the round it is in is over: the request to the model that is
 your message (several queued messages go together as one). When it should not wait even for that, press the
 small **Send now** (lightning) button on the bubble: the agent drops the round it is in (the request to the model is canceled, a command that waited for your approval
 is refused, calls that were not made are marked as skipped) and reads your message next. The **trash** button next to it takes the message back as long as the agent has
-not read it yet (the same for a queued command). Commands that already ran stay done. Queued messages are lost when the server restarts, and
+not read it yet (the same for a queued command). Commands that already ran stay done. Queued messages and commands are kept through a restart of the server (they are read when you resume), and
 a run that is not a conversation (started *immediately*) does not take messages while it works.
 
 ### Running a command yourself
@@ -227,8 +226,17 @@ window you have open gets the notice. Opening the console of the agent clears it
 
 When the agent is set to **Ask first** and wants a command that changes or removes data, the run stops in *Waiting for approval* and a window
 pops up over the console with the command and its arguments. **Approve** lets it run, **Deny** tells the agent that you refused and it goes on.
-Pausing or stopping the run refuses the command too. The command still works on the [copy](#the-working-copy) of the book. If the console is
+Pausing or stopping the run (or stopping the server) does not count as a denial: the agent is told nothing, and when you **Resume**, the window comes again for the same command. The command still works on the [copy](#the-working-copy) of the book. If the console is
 closed, the window is there as soon as you open it.
+
+## When the server stops
+
+Stopping the server pauses the runs that work first, as **Pause now** does (it gives the server a few seconds): the request and the call that go on are given up, the run is *Paused* with the reason "The server was stopped", and a **Resume** goes on. If the server is killed or crashes instead, the next start pauses the runs it finds working ("Interrupted by a restart of the server"). Everything the run did is kept: the saved rounds, the copy, the workspace, and the messages and commands you had queued. What is lost is the round that was not finished. Resuming handles the call the run was in:
+
+- A call that **had not begun** (it waited for your approval, or for its turn after another call) is made again, so a command that needs your approval asks you again. A call that only reads is made again too.
+- A call that **had begun to change something** may be done in part: the agent is told its outcome is unknown and checks it with a read tool before it repeats it; the calls after it are marked as not made.
+- A command of yours that was running (`/compact`, a summary...) when the server stopped is lost; run it again.
+- The calls of a sub-agent that were in the air are reported to it as "outcome unknown", as before, and a sub-agent that waited for your approval asks again by itself.
 
 ## The working copy
 
