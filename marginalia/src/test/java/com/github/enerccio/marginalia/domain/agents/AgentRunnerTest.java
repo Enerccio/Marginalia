@@ -673,6 +673,65 @@ class AgentRunnerTest extends AgentTestBase {
     }
 
     @Test
+    void theNoteOfAResumeReachesAnAutonomousRunAfterTheReportOfTheChanges() throws Exception {
+        Agent agent = readingAgent();
+        agent.setMaxRounds(1);
+        agent = agentService.save(agent);
+        llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}"), MockLLMResponse.text("Noted."));
+
+        AgentRun run = await(startRun(agent));
+        assertThat(run.isInteractive()).isFalse();
+        Manuscript book = manuscriptService.find(agent.getManuscript().getId());
+        book.setDescription("A new description");
+        manuscriptService.save(book);
+        agent.setMaxRounds(null);
+        agentService.save(agent);
+
+        runner.run(agentRunService.resume(run, "  Mind the ending of chapter two.  "));
+        run = await(run);
+
+        List<LLMChatMessage> users = transcript(run).stream().filter(m -> m.getRole() == LLMRole.USER).toList();
+        String told = users.getLast().getContent();
+        assertThat(told).contains("While the run was paused").contains("The author resumed the run with this note:\nMind the ending of chapter two.")
+                .endsWith("with your task. If you have finished it, call finish with your report.");
+        assertThat(told.indexOf("While the run was paused")).isLessThan(told.indexOf("Mind the ending"));
+    }
+
+    @Test
+    void theNoteOfAResumeIsTheOnlyNewThingTheModelReadsWhenTheBookIsTheSame() throws Exception {
+        Agent agent = readingAgent();
+        agent.setMaxRounds(1);
+        agent = agentService.save(agent);
+        llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}"), MockLLMResponse.text("Noted."));
+
+        AgentRun run = await(startRun(agent));
+        agent.setMaxRounds(null);
+        agentService.save(agent);
+        runner.run(agentRunService.resume(run, "Skip the lorebook."));
+        run = await(run);
+
+        String told = transcript(run).stream().filter(m -> m.getRole() == LLMRole.USER).toList().getLast().getContent();
+        assertThat(told).startsWith("The author resumed the run with this note:\nSkip the lorebook.").doesNotContain("While the run was paused");
+        assertThat(fileSystemService.takeResumeNote(run)).as("read once").isNull();
+    }
+
+    @Test
+    void aBlankNoteOfAResumeIsNoNote() throws Exception {
+        Agent agent = readingAgent();
+        agent.setMaxRounds(1);
+        agent = agentService.save(agent);
+        llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}"), MockLLMResponse.text("Done reading."));
+
+        AgentRun run = await(startRun(agent));
+        agent.setMaxRounds(null);
+        agentService.save(agent);
+        runner.run(agentRunService.resume(run, "   "));
+        run = await(run);
+
+        assertThat(transcript(run).stream().map(LLMChatMessage::getContent)).noneMatch(c -> c != null && c.contains("resumed the run with this note"));
+    }
+
+    @Test
     void aResumeWithoutChangesToTheBookAddsNoNoteForTheModel() throws Exception {
         Agent agent = readingAgent();
         agent.setMaxRounds(1);

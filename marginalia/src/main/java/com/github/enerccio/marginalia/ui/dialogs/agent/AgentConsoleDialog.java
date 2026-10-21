@@ -388,10 +388,15 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         pauseNowButton = new Button(loc.getValue(L.LABEL_PAUSE_NOW), Solid.BOLT.create(),
                 event -> perform(() -> agentRunner.pauseNow(run)));
         pauseNowButton.setTooltipText(loc.getValue(L.HELP_AGENT_PAUSE_NOW));
-        resumeButton = new Button(loc.getValue(L.LABEL_RESUME), Solid.PLAY.create(), event -> perform(() -> {
-            agentRunner.run(agentRunService.resume(run));
-            return null;
-        }));
+        resumeButton = new Button(loc.getValue(L.LABEL_RESUME), Solid.PLAY.create(), event -> {
+            AgentResumeDialog resumeDialog = new AgentResumeDialog(note -> perform(() -> {
+                agentRunner.run(agentRunService.resume(run, note));
+                return null;
+            }));
+            resumeDialog.create();
+            resumeDialog.open();
+            lastDialog = resumeDialog;
+        });
         finishButton = new Button(loc.getValue(L.LABEL_FINISH), Solid.CHECK.create(),
                 event -> perform(() -> agentRunService.finish(run)));
         reviewButton = new Button(loc.getValue(L.LABEL_REVIEW_CHANGES), Solid.CODE_COMPARE.create(), event -> {

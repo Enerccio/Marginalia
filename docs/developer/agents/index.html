@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845911400795">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845912123615">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845911400795" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845912123615" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845911400795" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845912123615" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845911400795" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845912123615" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -484,7 +484,12 @@ The pairs and the base snapshot of the copy are stored with it (above). Not done
 <code translate="no" v-pre>WAITING_APPROVAL</code>) is paused at once; a <code translate="no" v-pre>RUNNING</code> one goes to <code translate="no" v-pre>PAUSING</code> / <code translate="no" v-pre>STOPPING</code> and the runner finishes the change at its next stable
 point, unless <strong>no worker is registered</strong> for it (<code translate="no" v-pre>workerStarted(run)</code> / <code translate="no" v-pre>workerFinished(run)</code>, the runner&#x27;s to call, a set of run ids in
 memory), then the service takes the second step itself, so nothing waits for a runner that does not exist. <code translate="no" v-pre>stop</code> of a run that is paused,
-kept or done changes it at once; discarding deletes the working copy. <code translate="no" v-pre>resume</code> checks what <code translate="no" v-pre>start</code> checks (except the one-unfinished-run rule,
+kept or done changes it at once; discarding deletes the working copy. <code translate="no" v-pre>resume(run, note)</code> also keeps an optional note of the author for the model
+(<code translate="no" v-pre>AgentVirtualFileSystemService.writeResumeNote</code>, a file <code translate="no" v-pre>resume-note.txt</code> in the folder of the base, written after the commit like the sync report; a second
+note before the first was read follows it): the runner reads it in <code translate="no" v-pre>Worker.prepare</code> (<code translate="no" v-pre>takeResumeNote</code>), once, and sends it in the same message as the sync report
+(the report, <code translate="no" v-pre>Defaults.AGENT_RESUME_NOTE</code> + the note, <code translate="no" v-pre>DEFAULT_AGENT_RESUME_MESSAGE</code>); a run without a transcript gets it after the start message. It is a file
+and not the <code translate="no" v-pre>Inbox</code> so that a run that is not a conversation (no inbox) and a restart in between lose nothing. The conflicts of the sync are not stored: the base
+moves only for what was taken over, so the next <code translate="no" v-pre>sync</code> finds them again and the report names them again on every resume. <code translate="no" v-pre>resume</code> checks what <code translate="no" v-pre>start</code> checks (except the one-unfinished-run rule,
 the run is that run). All three take the status of the <code translate="no" v-pre>run</code> the caller has and fail with an <code translate="no" v-pre>IllegalStateException</code> when it is out of date.</p>
 </li>
 <li>
@@ -1287,7 +1292,7 @@ older rounds when the context is full (the run pauses instead).</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (aa8097de).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (9d483ad1).</p></div>
             </footer>
         </div>
     </div>

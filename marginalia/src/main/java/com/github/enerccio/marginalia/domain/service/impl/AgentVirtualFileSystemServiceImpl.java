@@ -329,6 +329,34 @@ public class AgentVirtualFileSystemServiceImpl implements AgentVirtualFileSystem
     }
 
     @Override
+    public void writeResumeNote(AgentRun run, String note) throws Exception {
+        AgentRun stored = ownRun(run);
+        Path file = RunFolder.runOf(home(), stored.getUuid()).resolve(RunFolder.BASE).resolve(RunFolder.RESUME_NOTE);
+        String kept = Files.isRegularFile(file) ? Files.readString(file, StandardCharsets.UTF_8) : "";
+        String text = kept.isBlank() ? note.strip() : kept.strip() + "\n\n" + note.strip();
+        afterCommit(() -> writeAtomically(file, text));
+    }
+
+    @Override
+    public String takeResumeNote(AgentRun run) {
+        if (run == null || run.getUuid() == null) {
+            return null;
+        }
+        Path file = RunFolder.runOf(home(), run.getUuid()).resolve(RunFolder.BASE).resolve(RunFolder.RESUME_NOTE);
+        try {
+            if (!Files.isRegularFile(file)) {
+                return null;
+            }
+            String note = Files.readString(file, StandardCharsets.UTF_8);
+            Files.deleteIfExists(file);
+            return note.isBlank() ? null : note;
+        } catch (IOException e) {
+            log.warn("Agent run {}: the note of the resume can't be read: {}", run.getUuid(), e.getMessage());
+            return null;
+        }
+    }
+
+    @Override
     public void deleteBase(AgentRun run) {
         if (run != null && run.getUuid() != null) {
             deleteAfterCommit(RunFolder.runOf(home(), run.getUuid()).resolve(RunFolder.BASE));

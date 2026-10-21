@@ -276,6 +276,11 @@ The author has opened the console and is watching. Do not start any work yet: ca
     public static final String DEFAULT_AGENT_RESUME_MESSAGE = "Go on with your task. If you have finished it, call finish with your report.";
 
     /**
+     * Put before the note the author wrote with a resume.
+     */
+    public static final String AGENT_RESUME_NOTE = "The author resumed the run with this note:";
+
+    /**
      * The result given to the model for a call that was in flight when the run was interrupted.
      */
     public static final String AGENT_INTERRUPTED_CALL = "Error: this call was interrupted when the run was paused or the server "

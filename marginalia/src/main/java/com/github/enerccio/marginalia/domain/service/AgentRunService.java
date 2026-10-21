@@ -74,6 +74,15 @@ public interface AgentRunService extends ExtendableService<AgentRun, AgentRunRep
     AgentRun resume(AgentRun run) throws Exception;
 
     /**
+     * {@link #resume(AgentRun)} with a note of the author: the agent reads it first when it goes on (after the report of the changes the
+     * author made to the book, if there are any). It works for every run, a conversation or an autonomous one, as the note is kept with
+     * the run and not in the queue of messages.
+     *
+     * @param note what the author wants the agent to know, blank for none
+     */
+    AgentRun resume(AgentRun run, String note) throws Exception;
+
+    /**
      * The runs of the current user that wait to be looked at ({@link AgentRun#isAttention()}): they ask something, wait
      * for a message, finished, failed or were paused for a reason of their own. They stay on the list while the user
      * is away, until {@link #acknowledge} (the console does it when it shows the run).

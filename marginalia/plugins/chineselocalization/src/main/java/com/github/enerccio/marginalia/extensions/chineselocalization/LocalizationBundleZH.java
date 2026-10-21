@@ -596,6 +596,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_COMMANDS_SAME, "与代理相同");
         setValue(L.LABEL_AGENT_COMMANDS_NONE, "没有命令");
         setValue(L.LABEL_AGENT_TEXT_ONLY, "仅文本");
+        setValue(L.LABEL_AGENT_RESUME_NOTE, "给智能体的备注（可选）");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1052,6 +1053,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_SELF_SUBAGENT, "关闭：代理只能在列表中的其他模型上启动子代理。没有其他模型时，代理不会获得子代理相关的工具。");
         setValue(L.HELP_AGENT_MODEL_COMMANDS, "关闭：该模型上的子代理使用与代理相同的命令。开启：只使用勾选的命令，并且只限于代理被允许的命令。文件工具不是命令，子代理始终可用。");
         setValue(L.HELP_AGENT_MODEL_TOOLS, "关闭：该模型只用文本回答，不提供任何命令和工具。");
+        setValue(L.HELP_AGENT_RESUME_NOTE, "智能体继续工作时会先读到这条备注，如果你修改过书，则在修改报告之后。对不等待消息的运行同样有效。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

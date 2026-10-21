@@ -27,6 +27,8 @@ public final class RunFolder {
      */
     public static final String SYNC_REPORT = "sync-report.txt";
     public static final String SYNC_PENDING = "sync-pending";
+    /** The note of the author with a resume, until the model has read it. */
+    public static final String RESUME_NOTE = "resume-note.txt";
 
     private final Path run;
     private final Path workspace;
