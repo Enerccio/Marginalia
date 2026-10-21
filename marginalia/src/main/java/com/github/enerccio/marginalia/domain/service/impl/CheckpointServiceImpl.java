@@ -472,6 +472,8 @@ public class CheckpointServiceImpl implements CheckpointService {
         Restored restored = restore(stored, info.id());
         AgentRun back = restored.run();
         int forgotten = messageService.rewind(back, keep);
+        // the plan kept is the one of the conversation before the rewind; the runner reads the one of the rows that are left
+        fileSystemService.writePlan(back, null);
         List<LLMChatMessage> tell = new ArrayList<>();
         // a round that was cut in the middle: the calls that are left have no result, a model can't be sent that
         List<LLMChatMessage> kept = messageService.transcript(back);

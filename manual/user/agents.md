@@ -241,8 +241,10 @@ Stopping the server pauses the runs that work first, as **Pause now** does (it g
 
 - A call that **had not begun** (it waited for your approval, or for its turn after another call) is made again, so a command that needs your approval asks you again. A call that only reads is made again too.
 - A call that **had begun to change something** may be done in part: the agent is told its outcome is unknown and checks it with a read tool before it repeats it; the calls after it are marked as not made.
-- A command of yours that was running (`/compact`, a summary...) when the server stopped is lost; run it again.
-- The calls of a sub-agent that were in the air are reported to it as "outcome unknown", as before, and a sub-agent that waited for your approval asks again by itself.
+- A command of yours that was running when the server stopped goes on when the run does. `/compact` and `/clear-workspace` are run again; any other command that had begun is **not** run again (it may be done in part): the agent is told so and checks. The messages and commands that came after it are delivered as usual.
+- The plan of the agent and the results of its commands (`list_command_results`, `@result`) are kept too, so the agent has them after the restart.
+- The calls of a sub-agent that were in the air are treated like the agent's: the ones that had not begun are made, the one that had begun is reported to it as "outcome unknown", and a sub-agent that waited for your approval asks again.
+- If the server is **killed** (`kill -9`, a power cut) while a command is running, the command dies with it; what it did is as described above.
 
 ## The working copy
 

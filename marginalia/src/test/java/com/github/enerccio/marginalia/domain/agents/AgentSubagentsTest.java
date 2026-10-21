@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.domain.service.AgentRunner;
 import com.github.enerccio.marginalia.domain.service.AgentService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
 import com.github.enerccio.marginalia.test.AgentTestBase;
 import com.github.enerccio.marginalia.test.llm.MockLLMRequest;
 import com.github.enerccio.marginalia.test.llm.MockLLMResponse;
@@ -302,6 +303,64 @@ class AgentSubagentsTest extends AgentTestBase {
             assertThat(thread.conversation()).extracting(LLMChatMessage::getRole).containsExactly(LLMRole.USER);
         });
         assertThat(subRequests.get()).isEqualTo(2);
+    }
+
+    /**
+     * A sub-agent whose server died in the middle of a round: its conversation ends with two calls, neither has a result.
+     */
+    private AgentRun runWithCutOffSubagent(Agent agent, String marker) throws Exception {
+        CountDownLatch never = new CountDownLatch(1);
+        AtomicInteger subRequests = new AtomicInteger();
+        llm.respondWith(request -> {
+            if (isSub(request)) {
+                return subRequests.incrementAndGet() == 1 ? MockLLMResponse.text("never read").waitFor(never, Duration.ofSeconds(30))
+                        : MockLLMResponse.text("Written.");
+            }
+            return request.getMessages("tool").isEmpty() ? MockLLMResponse.toolCall("spawn_agent", "{\"task\":\"write two notes\"}")
+                    : MockLLMResponse.toolCall("finish", "{\"summary\":\"done\"}");
+        });
+        AgentRun run = startRun(agent);
+        llm.awaitCompletionRequests(2, Duration.ofSeconds(10));
+        agentRunService.pause(agentRunService.find(run.getId()));
+        run = await(run, Set.of(AgentRunStatus.PAUSED));
+        never.countDown();
+        messageService.appendAnswerToThread(run, "sub1", LLMChatMessage.ofToolCalls(null, List.of(
+                LLMToolCall.of("k1", "write_file", "{\"path\":\"/tmp/sub1/a.md\",\"content\":\"one\"}"),
+                LLMToolCall.of("k2", "write_file", "{\"path\":\"/tmp/sub1/b.md\",\"content\":\"two\"}"))), 10, null);
+        if (marker != null) {
+            fileSystemService.writeCallMarker(run, "sub1", marker);
+        }
+        runner.run(agentRunService.resume(run));
+        return await(run, Set.of(AgentRunStatus.DONE));
+    }
+
+    @Test
+    void theCallsOfASubagentThatDidNotBeginWhenTheServerStoppedAreMadeAfterTheRestart() throws Exception {
+        Agent agent = agentWith(1);
+
+        AgentRun run = runWithCutOffSubagent(agent, null);
+
+        List<LLMChatMessage> conversation = messageService.threads(run).getFirst().conversation();
+        assertThat(conversation.stream().filter(message -> message.getRole() == LLMRole.TOOL).map(LLMChatMessage::getContent).toList())
+                .hasSize(2).noneMatch(result -> result.startsWith("Error"));
+        var files = fileSystemService.open(run);
+        assertThat(files.readText(com.github.enerccio.marginalia.domain.service.agent.VirtualPath.parse("/tmp/sub1/a.md"))).isEqualTo("one");
+        assertThat(files.readText(com.github.enerccio.marginalia.domain.service.agent.VirtualPath.parse("/tmp/sub1/b.md"))).isEqualTo("two");
+        assertThat(fileSystemService.readCallMarker(run, "sub1")).isNull();
+    }
+
+    @Test
+    void aCallOfASubagentThatHadBegunIsAnsweredAsInterruptedAndTheOnesAfterItAreNotMade() throws Exception {
+        Agent agent = agentWith(1);
+
+        AgentRun run = runWithCutOffSubagent(agent, "k1");
+
+        List<String> results = messageService.threads(run).getFirst().conversation().stream().filter(message -> message.getRole() == LLMRole.TOOL)
+                .map(LLMChatMessage::getContent).toList();
+        assertThat(results).hasSize(2);
+        assertThat(results.get(0)).startsWith("Error: this call was interrupted");
+        assertThat(results.get(1)).startsWith("Error: this call was not made because an earlier call");
+        assertThat(fileSystemService.open(run).stat(com.github.enerccio.marginalia.domain.service.agent.VirtualPath.parse("/tmp/sub1/b.md"))).isNull();
     }
 
     @Test

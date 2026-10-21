@@ -573,6 +573,14 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             changed();
         }
 
+        /**
+         * Puts items that were taken before the others back at the head, where they were.
+         */
+        synchronized void addFirst(List<Queued> items) {
+            queued.addAll(0, items);
+            changed();
+        }
+
         synchronized boolean contains(String id) {
             return queued.stream().anyMatch(message -> message.id().equals(id));
         }
@@ -684,6 +692,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
     private void forgetInbox(AgentRun run) {
         inboxes.remove(run.getId());
         fileSystemService.writeQueue(run, null);
+        fileSystemService.writeDelivery(run, null);
     }
 
     private void storeQueue(AgentRun run, List<Queued> items) {
@@ -692,22 +701,157 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 fileSystemService.writeQueue(run, null);
                 return;
             }
-            List<Map<String, Object>> stored = new ArrayList<>();
-            for (Queued item : items) {
-                Map<String, Object> entry = new LinkedHashMap<>();
-                entry.put("id", item.id());
-                if (item.command() != null) {
-                    entry.put("command", item.command());
-                } else {
-                    entry.put("text", item.message().getContent());
-                    // the images are references to files of the workspace, kept by their path
-                    entry.put("images", item.message().getAttachments().stream().map(LLMAttachment::getName).toList());
-                }
-                stored.add(entry);
-            }
-            fileSystemService.writeQueue(run, JSON.writeValueAsString(stored));
+            fileSystemService.writeQueue(run, JSON.writeValueAsString(queuedToJson(items)));
         } catch (Exception e) {
             log.warn("Agent run {}: the queued messages can't be kept for a restart: {}", run.getUuid(), e.getMessage());
+        }
+    }
+
+    /**
+     * The results of the commands the run kept, with the number the next one gets (an empty set when there is no file); the set keeps
+     * the new ones in the file again.
+     */
+    private CommandResults loadResults(AgentRun run) {
+        CommandResults results = new CommandResults();
+        String json = fileSystemService.readResults(run);
+        if (json != null) {
+            try {
+                com.fasterxml.jackson.databind.JsonNode stored = JSON.readTree(json);
+                List<CommandResults.Entry> entries = new ArrayList<>();
+                for (com.fasterxml.jackson.databind.JsonNode entry : stored.path("entries")) {
+                    entries.add(new CommandResults.Entry(entry.path("id").asInt(), entry.path("function").asText(),
+                            entry.path("arguments").asText(), entry.path("text").asText()));
+                }
+                results.restore(new CommandResults.Snapshot(stored.path("counter").asInt(), entries));
+            } catch (Exception e) {
+                log.warn("Agent run {}: the kept results of the commands can't be read: {}", run.getUuid(), e.getMessage());
+            }
+        }
+        results.onChange(snapshot -> {
+            try {
+                fileSystemService.writeResults(run, JSON.writeValueAsString(snapshot));
+            } catch (Exception e) {
+                log.warn("Agent run {}: the results of the commands can't be kept for a restart: {}", run.getUuid(), e.getMessage());
+            }
+        });
+        return results;
+    }
+
+    /**
+     * Keeps the plan of the run at every change (a file of the run), so that a restart finds it even when the call that wrote it
+     * was compacted away.
+     */
+    private void storePlan(AgentRun run, List<PlanItem> items) {
+        try {
+            fileSystemService.writePlan(run, JSON.writeValueAsString(items));
+        } catch (Exception e) {
+            log.warn("Agent run {}: the plan can't be kept for a restart: {}", run.getUuid(), e.getMessage());
+        }
+    }
+
+    /**
+     * The plan the run kept; a run that has no file (it began before the plan was kept, or was rewound) has the one of its last
+     * {@code update_plan} call that the model still reads.
+     */
+    private List<PlanItem> loadPlan(AgentRun run, List<LLMChatMessage> transcript) {
+        String json = fileSystemService.readPlan(run);
+        if (json != null) {
+            try {
+                List<PlanItem> plan = new ArrayList<>();
+                for (com.fasterxml.jackson.databind.JsonNode item : JSON.readTree(json)) {
+                    plan.add(new PlanItem(item.path("text").asText(), item.path("status").asText("pending")));
+                }
+                return plan;
+            } catch (Exception e) {
+                log.warn("Agent run {}: the kept plan can't be read: {}", run.getUuid(), e.getMessage());
+            }
+        }
+        return planOf(transcript);
+    }
+
+    private static List<Map<String, Object>> queuedToJson(List<Queued> items) {
+        List<Map<String, Object>> stored = new ArrayList<>();
+        for (Queued item : items) {
+            Map<String, Object> entry = new LinkedHashMap<>();
+            entry.put("id", item.id());
+            if (item.command() != null) {
+                entry.put("command", item.command());
+            } else {
+                entry.put("text", item.message().getContent());
+                // the images are references to files of the workspace, kept by their path
+                entry.put("images", item.message().getAttachments().stream().map(LLMAttachment::getName).toList());
+            }
+            stored.add(entry);
+        }
+        return stored;
+    }
+
+    private static List<Queued> queuedFromJson(com.fasterxml.jackson.databind.JsonNode entries) {
+        List<Queued> kept = new ArrayList<>();
+        for (com.fasterxml.jackson.databind.JsonNode entry : entries) {
+            String id = entry.path("id").asText();
+            if (entry.hasNonNull("command")) {
+                kept.add(new Queued(id, null, entry.get("command").asText()));
+                continue;
+            }
+            LLMChatMessage message = LLMChatMessage.of(LLMRole.USER, entry.path("text").asText());
+            for (com.fasterxml.jackson.databind.JsonNode image : entry.path("images")) {
+                message.addAttachment(ImageFiles.reference(VirtualPath.parse(image.asText())));
+            }
+            kept.add(new Queued(id, message, null));
+        }
+        return kept;
+    }
+
+    /**
+     * Keeps what the worker took from the queue and has not finished (at once, the queue file no longer has it): a restart finds
+     * it and delivers it. {@code began} says that the first of them is a command that is running; null removes the file.
+     */
+    private void storeDelivery(AgentRun run, List<Queued> pending, boolean began) {
+        try {
+            if (pending == null || pending.isEmpty()) {
+                fileSystemService.writeDelivery(run, null);
+                return;
+            }
+            Map<String, Object> stored = new LinkedHashMap<>();
+            stored.put("began", began);
+            stored.put("items", queuedToJson(pending));
+            fileSystemService.writeDelivery(run, JSON.writeValueAsString(stored));
+        } catch (Exception e) {
+            log.warn("Agent run {}: the messages of the author in the air can't be kept for a restart: {}", run.getUuid(), e.getMessage());
+        }
+    }
+
+    /**
+     * What a restart interrupted of {@link #storeDelivery}: the file is removed, the items are returned, and a command that had begun and
+     * can't be run twice is not among them but told to the agent in a message that {@code told} gets.
+     */
+    private List<Queued> takeDelivery(AgentRun run, List<LLMChatMessage> told) {
+        String json = fileSystemService.readDelivery(run);
+        if (json == null) {
+            return List.of();
+        }
+        fileSystemService.writeDelivery(run, null);
+        try {
+            com.fasterxml.jackson.databind.JsonNode stored = JSON.readTree(json);
+            List<Queued> items = new ArrayList<>(queuedFromJson(stored.path("items")));
+            if (stored.path("began").asBoolean() && !items.isEmpty() && items.getFirst().command() != null) {
+                String name = commandName(items.getFirst().command());
+                if (!COMPACT.equals(name) && !CLEAR_WORKSPACE.equals(name)) {
+                    // /compact changes nothing until its summary is stored, /clear-workspace deletes the same files again; the others
+                    // may have changed something
+                    told.add(LLMChatMessage.of(LLMRole.USER, Defaults.AGENT_AUTHOR_COMMAND_INTERRUPTED + "\n\nCommand: "
+                            + items.getFirst().command()));
+                    items.removeFirst();
+                }
+            }
+            if (!items.isEmpty()) {
+                log.info("Agent run {}: {} message(s) and command(s) of the author in the air were kept through the restart", run.getUuid(), items.size());
+            }
+            return items;
+        } catch (Exception e) {
+            log.warn("Agent run {}: the messages of the author in the air that were kept can't be read: {}", run.getUuid(), e.getMessage());
+            return List.of();
         }
     }
 
@@ -717,19 +861,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             return List.of();
         }
         try {
-            List<Queued> kept = new ArrayList<>();
-            for (com.fasterxml.jackson.databind.JsonNode entry : JSON.readTree(json)) {
-                String id = entry.path("id").asText();
-                if (entry.hasNonNull("command")) {
-                    kept.add(new Queued(id, null, entry.get("command").asText()));
-                    continue;
-                }
-                LLMChatMessage message = LLMChatMessage.of(LLMRole.USER, entry.path("text").asText());
-                for (com.fasterxml.jackson.databind.JsonNode image : entry.path("images")) {
-                    message.addAttachment(ImageFiles.reference(VirtualPath.parse(image.asText())));
-                }
-                kept.add(new Queued(id, message, null));
-            }
+            List<Queued> kept = queuedFromJson(JSON.readTree(json));
             if (!kept.isEmpty()) {
                 log.info("Agent run {}: {} message(s) and command(s) of the user were kept through the restart", run.getUuid(), kept.size());
             }
@@ -957,6 +1089,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         private volatile ResolvedProfile profile;
         private volatile InferenceService inference;
         private FunctionSet tools;
+        // what the commands of the agent returned, whole; kept in a file of the run at every result
+        private CommandResults mainResults = new CommandResults();
         // set while a command of the author runs: a message the author forces in then waits for it
         private boolean ignoreForce;
         // the round before which a failed automatic compaction is not tried again
@@ -1049,6 +1183,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         private void loadAgent() throws Exception {
             run = runService.find(runId);
             runTools = new RunToolsImpl(progress::render, run.isInteractive());
+            runTools.onPlanChange(items -> storePlan(run, items));
             agent = agentService.findForUser(run.getAgent().getUuid());
             systemPrompt = agentService.getSystemPrompt(agent);
             instructions = agentService.getInstructions(agent);
@@ -1078,7 +1213,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             loadModel();
 
             List<LLMChatMessage> transcript = new ArrayList<>(messageService.transcript(run));
-            runTools.restorePlan(planOf(transcript));
+            runTools.restorePlan(loadPlan(run, transcript));
+            mainResults = loadResults(run);
             checkpointTools = new CheckpointToolsImpl(() -> run, checkpointService);
             readOnlyCommands = commandService.getCommands().stream().filter(CommandDefinition::readOnly)
                     .map(CommandDefinition::commandName).collect(Collectors.toSet());
@@ -1096,6 +1232,13 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 repairCalls(transcript);
             }
 
+            // what the author had in the air when the server stopped
+            List<LLMChatMessage> interruptedNotes = new ArrayList<>();
+            List<Queued> interrupted = takeDelivery(run, interruptedNotes);
+            if (!interruptedNotes.isEmpty()) {
+                append(transcript, interruptedNotes.toArray(LLMChatMessage[]::new));
+            }
+
             progress.maxRounds = agent.getMaxRounds() == null ? 0 : agent.getMaxRounds();
             progress.contextCap = runService.getContextCap(run);
             progress.responseCap = profile == null ? 0 : TokenLimits.responseTokens(profile.ai(), profile.protocol());
@@ -1108,8 +1251,18 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     transcript.size(), run.getRounds(), progress.maxRounds > 0 ? progress.maxRounds : "no",
                     progress.tokenBudget > 0 ? progress.tokenBudget : "no", progress.contextCap > 0 ? progress.contextCap : "no");
 
+            if (initial == null && !interrupted.isEmpty()) {
+                if (inbox != null) {
+                    // where they were before they were taken: the loop delivers them as it does the queue
+                    inbox.addFirst(interrupted);
+                } else if (runService.find(runId).getStatus() == AgentRunStatus.RUNNING) {
+                    deliver(interrupted, transcript);
+                }
+            }
             if (initial != null) {
-                deliver(initial, transcript);
+                List<Queued> batch = new ArrayList<>(interrupted);
+                batch.addAll(initial);
+                deliver(batch, transcript);
                 run = runService.find(runId);
                 if (run.getStatus() != AgentRunStatus.RUNNING) {
                     // the run waits still, or a pause or a stop was asked meanwhile
@@ -1642,6 +1795,9 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             log.info("Agent run {}: {} queued message(s) and command(s) of the user go to the agent", run.getUuid(), due.size());
             boolean message = false;
             List<Queued> messages = new ArrayList<>();
+            // they are not in the queue file any more: what is not done yet is kept in another, for a restart in the middle of a command
+            List<Queued> pending = new ArrayList<>(due);
+            storeDelivery(run, pending, false);
             for (Queued item : due) {
                 if (item.command() == null) {
                     messages.add(item);
@@ -1650,13 +1806,18 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 }
                 if (!messages.isEmpty()) {
                     append(transcript, merged(messages));
+                    pending.removeAll(messages);
                     messages.clear();
                 }
+                storeDelivery(run, pending, true);
                 runCommand(item.command(), transcript);
+                pending.remove(item);
+                storeDelivery(run, pending, false);
             }
             if (!messages.isEmpty()) {
                 append(transcript, merged(messages));
             }
+            storeDelivery(run, null, false);
             return message;
         }
 
@@ -2129,22 +2290,22 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
          * saves one to a file.
          */
         private FunctionSet coreTools(VirtualFileSystem files, CommandCage cage) {
-            return coreTools(files, cage, agent.getAllowedCommands(), this::approveCall);
+            return coreTools(files, cage, agent.getAllowedCommands(), this::approveCall, mainResults);
         }
 
         /**
          * As above, with the commands of the list and not all the ones the agent is allowed.
          */
         private FunctionSet coreTools(VirtualFileSystem files, CommandCage cage, Collection<String> allowed) {
-            return coreTools(files, cage, allowed, this::approve);
+            return coreTools(files, cage, allowed, this::approve, new CommandResults());
         }
 
         /**
          * As above, with the way the user is asked: the agent's own calls are told apart from the sub-agents' ({@link #approveCall}).
          */
-        private FunctionSet coreTools(VirtualFileSystem files, CommandCage cage, Collection<String> allowed, CommandFunctions.Approval approval) {
-            // what the commands return, whole, for the tool that saves it to a file
-            CommandResults commandResults = new CommandResults();
+        private FunctionSet coreTools(VirtualFileSystem files, CommandCage cage, Collection<String> allowed, CommandFunctions.Approval approval,
+                                      CommandResults commandResults) {
+            // commandResults: what the commands return, whole, for the tool that saves it to a file
             // the commands that send images to their own model take them from the files, whether this model sees them or not
             return CommandFunctions.create(commandService, allowed, agent.getDestructiveMode(), l -> localization.getValue(l), approval,
                             path -> files.readText(VirtualPath.parse(path)), commandResults,
@@ -2931,9 +3092,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             List<LLMToolCall> cutOff = conversation.isEmpty() || !conversation.stream().anyMatch(LLMChatMessage::hasToolCalls) ? List.of()
                     : openCalls(lastCalls(conversation), conversation);
             if (!cutOff.isEmpty()) {
-                List<LLMChatMessage> answers = cutOff.stream().map(open -> LLMChatMessage.ofToolResult(open.getId(), Defaults.AGENT_INTERRUPTED_CALL)).toList();
-                storeSub(sub, answers);
-                conversation.addAll(answers);
+                replayCutOff(sub, cutOff, conversation);
             }
             Waiter waiter = new Waiter() {
                 @Override
@@ -3034,6 +3193,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                         LLMChatMessage answer = LLMChatMessage.ofToolResult(call.getId(), result);
                         storeSub(sub, List.of(answer));
                         conversation.add(answer);
+                        fileSystemService.writeCallMarker(run, sub.handle(), null);
                         sub.progress(rounds, tokens, call.getName());
                     } catch (SubStopped e) {
                         if (e.state == State.SUSPENDED) {
@@ -3098,6 +3258,39 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 sub.resultFile(file.toString());
             } catch (VirtualFileException e) {
                 log.warn("Agent run {}: the answer of sub-agent {} is not saved: {}", runId, sub.handle(), e.getMessage());
+            }
+        }
+
+        /**
+         * The calls of a round of a sub-agent that the server stopped in, with no result: the ones that did not begin are made now, as
+         * the agent's own are ({@link #repairCalls}); the call that had begun to change something may be done in part, it gets the
+         * answer "interrupted" and the ones after it "not made", so the model checks and asks again.
+         */
+        private void replayCutOff(Sub sub, List<LLMToolCall> cutOff, List<LLMChatMessage> conversation) throws Exception {
+            String marker = fileSystemService.readCallMarker(run, sub.handle());
+            FunctionSet subTools = null;
+            boolean failed = false;
+            for (LLMToolCall call : cutOff) {
+                String result;
+                if (failed) {
+                    result = Defaults.AGENT_AFTER_ERROR_SKIPPED_CALL;
+                } else if (changes(call) && call.getId().equals(marker)) {
+                    result = Defaults.AGENT_INTERRUPTED_CALL;
+                    failed = true;
+                } else {
+                    if (subTools == null) {
+                        SubModel model = subModelOf(sub.profile());
+                        subTools = subTools(sub, model);
+                    }
+                    log.info("Agent run {}: sub-agent {} makes the call {} that the restart cut off", run.getUuid(), sub.handle(), call.getName());
+                    checkSub(sub);
+                    result = callSub(call, sub, subTools);
+                    failed = result.startsWith("Error:");
+                }
+                LLMChatMessage answer = LLMChatMessage.ofToolResult(call.getId(), result);
+                storeSub(sub, List.of(answer));
+                conversation.add(answer);
+                fileSystemService.writeCallMarker(run, sub.handle(), null);
             }
         }
 
@@ -3238,6 +3431,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     checkSub(sub);
                 }
                 dirty = true;
+                // from here the call may have changed something, see replayCutOff
+                fileSystemService.writeCallMarker(run, sub.handle(), call.getId());
             }
             try {
                 CompletableFuture<String> answer = subTools.call(call.getName(), call.getArguments(), onThread, canceled::get);

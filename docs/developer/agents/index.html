@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845916874286">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845917837954">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845916874286" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845917837954" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845916874286" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845917837954" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845916874286" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845917837954" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -368,13 +368,16 @@ change itself, so nothing ever waits for a thread that does not exist. A run tha
 the worker polls for that while it waits and cancels the request.</p>
 <p><strong>A run survives a restart.</strong> Every round is appended to <code translate="no" v-pre>agent_messages</code> before the next request, the status is in the database, and the working
 copy and the workspace are on disk. A resumed run reads its transcript back, repairs its end (calls nobody answered get &quot;interrupted&quot;, a transcript
-that ends with a plain reply gets the resume message, see <code translate="no" v-pre>AgentRunnerImpl.Worker.prepare</code>) and goes on. What is <em>not</em> kept: the
-<code translate="no" v-pre>CommandResults</code> (they live as long as one worker) and the plan is restored from the last <code translate="no" v-pre>update_plan</code> call.</p>
+that ends with a plain reply gets the resume message, see <code translate="no" v-pre>AgentRunnerImpl.Worker.prepare</code>) and goes on. The plan (<code translate="no" v-pre>plan.json</code>, written by
+<code translate="no" v-pre>RunToolsImpl.onPlanChange</code> after every accepted <code translate="no" v-pre>update_plan</code>; without the file, as for a run that was rewound, it is read from the last <code translate="no" v-pre>update_plan</code> call that the
+model still reads, <code translate="no" v-pre>planOf</code>) and the <code translate="no" v-pre>CommandResults</code> (<code translate="no" v-pre>results.json</code>, the last ten whole and the number the next gets; <code translate="no" v-pre>CommandResults.onChange</code> / <code translate="no" v-pre>restore</code>) are
+files of the base folder too. Only the main agent&#x27;s results are kept, those of a sub-agent live as long as it does.</p>
 <p><strong>Restart in the middle of a round.</strong> The assistant message with its calls is stored before the calls are made and the results one by one, and the calls of a round
-are made in order, so after a death only the first call without a result can have been going on; the others were never started. Three small files in the folder of
+are made in order, so after a death only the first call without a result can have been going on; the others were never started. Some small files in the folder of
 the base (<code translate="no" v-pre>AgentVirtualFileSystemService</code>, written at once, no owner check, a failure is only logged) tell the rest: <code translate="no" v-pre>call-began</code> (<code translate="no" v-pre>writeCallMarker</code>) holds the id of
 the call that is about to change something (<code translate="no" v-pre>Worker.call</code>, only for <code translate="no" v-pre>changes(call)</code>; <code translate="no" v-pre>approveCall</code> clears it while the call waits for the author&#x27;s approval and sets it
-again when they agree), <code translate="no" v-pre>queue.json</code> (<code translate="no" v-pre>writeQueue</code>) is the <code translate="no" v-pre>Inbox</code>, and <code translate="no" v-pre>resume-note.txt</code> the note of the resume. <code translate="no" v-pre>Worker.repairCalls(transcript, true)</code> (from <code translate="no" v-pre>prepare</code>)
+again when they agree), <code translate="no" v-pre>queue.json</code> (<code translate="no" v-pre>writeQueue</code>) is the <code translate="no" v-pre>Inbox</code>, <code translate="no" v-pre>resume-note.txt</code> the note of the resume, <code translate="no" v-pre>plan.json</code> and <code translate="no" v-pre>results.json</code> the plan and the results of the commands (see above), <code translate="no" v-pre>delivery.json</code> what the
+worker took from the queue and has not finished, and <code translate="no" v-pre>call-began-&lt;handle&gt;</code> the same as <code translate="no" v-pre>call-began</code> for a sub-agent. <code translate="no" v-pre>Worker.repairCalls(transcript, true)</code> (from <code translate="no" v-pre>prepare</code>)
 does not answer the open calls as interrupted but keeps them in <code translate="no" v-pre>replay</code>; the loop makes them as a round of its own (no request, <code translate="no" v-pre>replayed</code>), skipping the model, and a
 call for which <code translate="no" v-pre>unsafeToRepeat</code> is true (its id is the marker and it changes something, or it is a sub-agent tool) is answered as interrupted and the rest as skipped after an
 error. The report of the sync and the note of the resume (<code translate="no" v-pre>resumeMessage</code>) come after the results (<code translate="no" v-pre>resumeMessagesDue</code>): a message of the author between the calls and
@@ -382,11 +385,16 @@ their results is not allowed. <strong>Approvals</strong> are not stored: the cal
 A pause or stop while a call waits must not look like a denial: <code translate="no" v-pre>AgentApprovalService.rejectAll</code> notes that approvals were withdrawn (<code translate="no" v-pre>takeWithdrawn</code>, cleared by the next
 <code translate="no" v-pre>request</code>), <code translate="no" v-pre>approveCall</code> turns that into <code translate="no" v-pre>withdrawnCall</code>, and the loop leaves that call without a result (the <code translate="no" v-pre>suspended</code> path, as for a call that waits for a sub-agent).
 The <code translate="no" v-pre>Inbox</code> calls a store function after every change (<code translate="no" v-pre>storeQueue</code>, under its lock, the images by the path of their file); <code translate="no" v-pre>inboxOf</code> / <code translate="no" v-pre>existingInbox</code> read the file when the
-run has no inbox in memory (the queue of a paused run is shown and cancelled after a restart), <code translate="no" v-pre>forgetInbox</code> removes it with the run. A command of the author being run
-(<code translate="no" v-pre>runCommand</code>) was taken from the queue before it ran and is lost with a restart. <code translate="no" v-pre>AgentRunner.parkAll(maxMillis)</code> is what <code translate="no" v-pre>destroy()</code> calls: it adds the working runs to
+run has no inbox in memory (the queue of a paused run is shown and cancelled after a restart), <code translate="no" v-pre>forgetInbox</code> removes it with the run. <code translate="no" v-pre>Worker.deliver</code> takes the items out of the queue, so it keeps the ones it has not
+finished in <code translate="no" v-pre>delivery.json</code> (<code translate="no" v-pre>storeDelivery</code>; <code translate="no" v-pre>began</code> says that the first, a command, is running) and removes each when it is done. A restart finds it in <code translate="no" v-pre>work()</code>
+(<code translate="no" v-pre>takeDelivery</code>): the items go back to the head of the <code translate="no" v-pre>Inbox</code> (to <code translate="no" v-pre>initial</code> for a worker that only runs commands), and a command that had begun is not run again unless
+it is <code translate="no" v-pre>/compact</code> (nothing changes until its summary is stored) or <code translate="no" v-pre>/clear-workspace</code> (deletes the same files again): the others may be done in part, so the agent is
+told <code translate="no" v-pre>Defaults.AGENT_AUTHOR_COMMAND_INTERRUPTED</code> and the command line. <code translate="no" v-pre>AgentRunner.parkAll(maxMillis)</code> is what <code translate="no" v-pre>destroy()</code> calls: it adds the working runs to
 <code translate="no" v-pre>interrupts</code> and sets <code translate="no" v-pre>shuttingDown</code>, the workers give up the request or call that goes on and pause the run at the stable point (<code translate="no" v-pre>parkForShutdown</code>), and it waits up
-to the time given (<code translate="no" v-pre>PARK_MILLIS</code>, 5 s); whatever is left is cut off and paused by <code translate="no" v-pre>recoverInterrupted</code> at the next start. Sub-agents are not replayed: their open calls
-are answered as interrupted when they continue, as before.</p>
+to the time given (<code translate="no" v-pre>PARK_MILLIS</code>, 5 s); whatever is left is cut off and paused by <code translate="no" v-pre>recoverInterrupted</code> at the next start. The open calls of a sub-agent are treated the same way
+when it continues (<code translate="no" v-pre>Worker.replayCutOff</code>, before its first request): <code translate="no" v-pre>callSub</code> writes <code translate="no" v-pre>call-began-&lt;handle&gt;</code> for a call that changes something and the loop clears it with the
+result, so the calls that did not begin are made, the one that had begun is answered as interrupted and the ones after it as not made. A <code translate="no" v-pre>kill -9</code> cannot be handled: a
+command that was running dies with the JVM, and what it did is told as above.</p>
 <h2 id="the-request-context-of-a-run">The request context of a run</h2>
 <p>The commands, the services and <code translate="no" v-pre>Localization</code> find the user and the open book through <strong>session scoped beans</strong> (<code translate="no" v-pre>user</code>, <code translate="no" v-pre>sessionPoint</code>),
 which resolve against the request attributes of the thread. A run has no browser, so <code translate="no" v-pre>AgentRunService.openSession(run)</code> builds the context from
@@ -578,7 +586,7 @@ agent is told to ask the author at once). A worker (a daemon thread of a cached 
 <li>
 <p>Loads the run, resolves the main profile (a model that is gone pauses the run), reads the transcript (<code translate="no" v-pre>AgentMessageService.transcript</code>) and repairs its end: a
 new run gets <code translate="no" v-pre>Defaults.DEFAULT_AGENT_START_MESSAGE</code>, calls of the last assistant message without a result get <code translate="no" v-pre>Defaults.AGENT_INTERRUPTED_CALL</code>, a transcript that ends
-with a plain assistant reply gets <code translate="no" v-pre>Defaults.DEFAULT_AGENT_RESUME_MESSAGE</code>. The plan is read back from the last <code translate="no" v-pre>update_plan</code> call.</p>
+with a plain assistant reply gets <code translate="no" v-pre>Defaults.DEFAULT_AGENT_RESUME_MESSAGE</code>. The plan and the <code translate="no" v-pre>CommandResults</code> are read from their files of the run.</p>
 </li>
 <li>
 <p>Builds the tools: <code translate="no" v-pre>CommandFunctions.forAgent(...)</code> (with a reader of the files of the run and the <code translate="no" v-pre>CommandResults</code> of the run, see <doc-anchor-trigger to="#references">References</doc-anchor-trigger>) <code translate="no" v-pre>and</code> the file tools of <code translate="no" v-pre>AgentVirtualFileSystemService</code> <code translate="no" v-pre>and</code> <code translate="no" v-pre>RunTools</code> bound to a <code translate="no" v-pre>RunToolsImpl</code>
@@ -739,7 +747,7 @@ parameters do not repeat that a value can be given as <code translate="no" v-pre
 else <code translate="no" v-pre>AppSettings.defaultAgentCompactionPrompt</code>, else <code translate="no" v-pre>Defaults.DEFAULT_AGENT_COMPACTION_PROMPT</code>: the chain of the system prompt, edited in the agent dialog, the Templates tab of Settings and the Agents tab of Admin) as the last message,
 plus the focus, with the tools declared and no tool wanted: a request through <code translate="no" v-pre>ask</code>, counted with <code translate="no" v-pre>addUsage</code>. <code translate="no" v-pre>fit</code> first leaves out the oldest messages, whole rounds and never the newest, until the history
 and the system message take at most 80% of the context cap, so a run that stopped on a full context can still be compacted (<code translate="no" v-pre>Defaults.AGENT_COMPACTED_TRIMMED</code> tells the summary how many were left out). The summary text gets the
-plan appended (<code translate="no" v-pre>Your plan when this summary was written</code>): <code translate="no" v-pre>update_plan</code> calls are in the compacted rows and <code translate="no" v-pre>planOf</code> would not find them after a resume. <code translate="no" v-pre>AgentMessageService.compact</code> marks every row of the run
+plan appended (<code translate="no" v-pre>Your plan when this summary was written</code>): <code translate="no" v-pre>update_plan</code> calls are in the compacted rows, and the plan of a worker that begins comes from <code translate="no" v-pre>plan.json</code>. <code translate="no" v-pre>AgentMessageService.compact</code> marks every row of the run
 <code translate="no" v-pre>compacted</code> (extended attribute of <code translate="no" v-pre>AgentMessage</code>, no migration) and appends the summary as a row with <code translate="no" v-pre>summary</code>; <code translate="no" v-pre>transcript</code> leaves the compacted rows out, <code translate="no" v-pre>messages</code> and <code translate="no" v-pre>count</code> keep them, so the console shows everything
 (the summary as a folded block) and the Markdown export keeps it. A failure (no model, no text, a tool call instead of text) changes nothing and is written to the transcript as a message of the author. The runner compacts by itself too: after the results of a round (and when the agent did not ask) <code translate="no" v-pre>compactAutomatically</code> checks the context of the last request against <code translate="no" v-pre>Agent.autoCompactPercent</code> of the cap (null is <code translate="no" v-pre>Defaults.AGENT_AUTO_COMPACT_PERCENT</code> = 90, zero never, valid values 50 to 99 in <code translate="no" v-pre>AgentService.save</code>) and runs the same <code translate="no" v-pre>compact</code> with <code translate="no" v-pre>Compaction.AUTOMATIC</code> (the note <code translate="no" v-pre>Defaults.AGENT_AUTO_COMPACTED_NOTE</code>; no warning is added on top). A failure is written to the transcript as a message to the agent and the next try waits <code translate="no" v-pre>AUTO_COMPACT_RETRY_ROUNDS</code> (3) rounds. The number lags by one round like the warnings, so a round with a huge result can still reach the cap and pause the run at the top of the loop.</p>
 <p>The agent is warned instead and compacts itself. After the tools of a round are answered (and <code translate="no" v-pre>finish</code> / <code translate="no" v-pre>ask_user</code> did not end the turn) the worker either runs <code translate="no" v-pre>compactForAgent</code> (the model called
@@ -1310,7 +1318,7 @@ older rounds when the context is full (the run pauses instead).</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (4f85ebe1).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (9f9fd243).</p></div>
             </footer>
         </div>
     </div>
