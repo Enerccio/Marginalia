@@ -589,6 +589,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_COMMANDS_NONE, "No commands");
         setValue(L.LABEL_AGENT_TEXT_ONLY, "Text only");
         setValue(L.LABEL_AGENT_RESUME_NOTE, "Note for the agent (optional)");
+        setValue(L.LABEL_AGENT_LANGUAGE, "Language of the agent");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -972,6 +973,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_LOADING_EARLIER_PARTS, "Loading earlier parts…");
         setValue(L.MSG_LOADING_LATER_PARTS, "Loading later parts…");
         setValue(L.MSG_AGENT_COMMANDS_COUNT, "%d commands");
+        setValue(L.MSG_AGENT_LANGUAGE_UNAVAILABLE, "%s (not available, English is used)");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1048,6 +1050,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_MODEL_COMMANDS, "Off: a sub-agent on this model has the commands of the agent. On: only the ticked commands, and of those only the ones the agent is allowed. The tools for files are not commands, a sub-agent always has them.");
         setValue(L.HELP_AGENT_MODEL_TOOLS, "Off: the model only answers with text, it gets no commands and no tools.");
         setValue(L.HELP_AGENT_RESUME_NOTE, "The agent reads this first when it goes on, after the report of the changes you made to the book, if there are any. It works for every run, also one that does not wait for your messages.");
+        setValue(L.HELP_AGENT_LANGUAGE, "The language of everything the agent reads: the descriptions of its commands, their results and errors. It has nothing to do with the language of the book: the agent writes the book in the language of the book whatever it is set to. Commands and their parameters are in English in every language, so English is the most reliable choice, especially for small models. The list holds the languages that are installed; a run keeps the language it was started with.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

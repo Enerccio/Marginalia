@@ -62,7 +62,7 @@ class AgentRunServiceTest extends AgentTestBase {
         assertThat(loaded.getStatus()).isEqualTo(RUNNING);
         assertThat(loaded.getStartedAt()).isAfter(before);
         assertThat(loaded.getFinishedAt()).isNull();
-        assertThat(loaded.getLanguage()).isEqualTo(agent.getManuscript().getLanguage());
+        assertThat(loaded.getLanguage()).as("English for an agent without a language").isEqualTo("en");
         assertThat(loaded.getTotalTokens()).isZero();
         assertThat(loaded.getRounds()).isZero();
         assertThat(loaded.getWorkingCopy()).as("every run works on a copy of its own").isNotNull();
@@ -73,13 +73,23 @@ class AgentRunServiceTest extends AgentTestBase {
     }
 
     @Test
-    void runUsesTheLanguageOfTheBook() throws Exception {
+    void runUsesTheLanguageOfTheAgentNotOfTheBook() throws Exception {
         Manuscript manuscript = manuscript();
         manuscript.setLanguage(Language.JAPANESE);
         manuscript = manuscriptService.save(manuscript);
-        Agent japanese = agentService.save(newAgent(manuscript));
+        Agent english = agentService.save(newAgent(manuscript));
+        AgentRun first = agentRunService.start(english);
+        assertThat(reload(first).getLanguage()).as("the book is Japanese, the agent is not set").isEqualTo("en");
+        agentRunService.transition(first, FAILED, "done");
 
-        assertThat(reload(agentRunService.start(japanese)).getLanguage()).isEqualTo(Language.JAPANESE);
+        english.setLanguage("ja");
+        Agent japanese = agentService.save(english);
+        AgentRun run = agentRunService.start(japanese);
+        assertThat(reload(run).getLanguage()).isEqualTo("ja");
+
+        japanese.setLanguage("en");
+        agentService.save(japanese);
+        assertThat(reload(run).getLanguage()).as("a run keeps the language it was started with").isEqualTo("ja");
     }
 
     @Test
@@ -362,14 +372,14 @@ class AgentRunServiceTest extends AgentTestBase {
         AgentRun moved = agentRunService.transition(stale, IDLE, "waiting");
         agentRunService.addUsage(moved, 700, 70);
 
-        stale.setLanguage(Language.JAPANESE);
+        stale.setLanguage("ja");
         agentRunService.save(stale);
 
         AgentRun loaded = reload(stale);
         assertThat(loaded.getStatus()).isEqualTo(IDLE);
         assertThat(loaded.getStatusReason()).isEqualTo("waiting");
         assertThat(loaded.getTotalTokens()).isEqualTo(770);
-        assertThat(loaded.getLanguage()).isEqualTo(Language.JAPANESE);
+        assertThat(loaded.getLanguage()).isEqualTo("ja");
     }
 
     @Test

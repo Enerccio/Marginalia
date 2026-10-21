@@ -597,6 +597,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_COMMANDS_NONE, "没有命令");
         setValue(L.LABEL_AGENT_TEXT_ONLY, "仅文本");
         setValue(L.LABEL_AGENT_RESUME_NOTE, "给智能体的备注（可选）");
+        setValue(L.LABEL_AGENT_LANGUAGE, "代理的语言");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -980,6 +981,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_LOADING_EARLIER_PARTS, "正在加载更早的段落…");
         setValue(L.MSG_LOADING_LATER_PARTS, "正在加载后面的段落…");
         setValue(L.MSG_AGENT_COMMANDS_COUNT, "%d 个命令");
+        setValue(L.MSG_AGENT_LANGUAGE_UNAVAILABLE, "%s（不可用，使用英语）");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1056,6 +1058,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_MODEL_COMMANDS, "关闭：该模型上的子代理使用与代理相同的命令。开启：只使用勾选的命令，并且只限于代理被允许的命令。文件工具不是命令，子代理始终可用。");
         setValue(L.HELP_AGENT_MODEL_TOOLS, "关闭：该模型只用文本回答，不提供任何命令和工具。");
         setValue(L.HELP_AGENT_RESUME_NOTE, "智能体继续工作时会先读到这条备注，如果你修改过书，则在修改报告之后。对不等待消息的运行同样有效。");
+        setValue(L.HELP_AGENT_LANGUAGE, "代理读到的所有文本（命令的说明、结果和错误）所用的语言。它与书的语言无关：无论如何设置，代理都用书的语言写书。命令及其参数在所有语言中都是英文，因此英语最可靠，尤其是对小模型。列表中是已安装的语言；一次运行保持它开始时的语言。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

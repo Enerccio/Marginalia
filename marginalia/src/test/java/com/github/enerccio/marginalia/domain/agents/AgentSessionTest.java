@@ -4,7 +4,6 @@ import com.github.enerccio.marginalia.bound.AgentRequestAttributes;
 import com.github.enerccio.marginalia.bound.AgentSession;
 import com.github.enerccio.marginalia.bound.AgenticSessionPoint;
 import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
-import com.github.enerccio.marginalia.domain.collections.Language;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -53,7 +52,7 @@ class AgentSessionTest extends AgentTestBase {
         assertThat(session.userUuid()).isEqualTo(user.getUuid());
         assertThat(session.language().code()).isEqualTo("en");
 
-        run.setLanguage(Language.JAPANESE);
+        run.setLanguage("ja");
         assertThat(AgentSession.of(run).language().code()).isEqualTo("ja");
     }
 
@@ -111,7 +110,7 @@ class AgentSessionTest extends AgentTestBase {
 
     @Test
     void textsAreInTheLanguageOfTheRun() throws Exception {
-        run.setLanguage(Language.JAPANESE);
+        run.setLanguage("ja");
         run = agentRunService.save(run);
 
         try (AgentRequestAttributes attributes = agentRunService.openSession(run);
@@ -124,7 +123,7 @@ class AgentSessionTest extends AgentTestBase {
 
     @Test
     void aLanguageWithoutABundleFallsBackToTheDefault() throws Exception {
-        run.setLanguage(Language.CZECH);
+        run.setLanguage("cs");
         run = agentRunService.save(run);
 
         try (AgentRequestAttributes attributes = agentRunService.openSession(run);

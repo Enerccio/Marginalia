@@ -1,7 +1,6 @@
 package com.github.enerccio.marginalia.domain.model.impl;
 
 import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
-import com.github.enerccio.marginalia.domain.collections.Language;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference.Policy;
@@ -88,12 +87,12 @@ public class AgentRun extends ExtendableEntity {
     private Date finishedAt;
 
     /**
-     * Language of the texts the agent sees (results and errors of commands). Not the language of the user's
-     * interface: the language of the book when the run was started.
+     * Code of the language of the texts the agent sees (descriptions of commands, results and errors), the language of
+     * the agent when the run was started. Neither the language of the user's interface nor the one of the book.
      */
     @Transient
     @ExtendedAttribute
-    private Language language;
+    private String language;
 
     /**
      * Whether the run is a conversation with the user (started in the console): the agent's {@code finish} does not
@@ -199,11 +198,11 @@ public class AgentRun extends ExtendableEntity {
         this.interactive = interactive;
     }
 
-    public Language getLanguage() {
-        return language != null ? language : Language.ENGLISH;
+    public String getLanguage() {
+        return language != null ? language : "en";
     }
 
-    public void setLanguage(Language language) {
+    public void setLanguage(String language) {
         this.language = language;
     }
 }

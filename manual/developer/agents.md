@@ -165,8 +165,8 @@ The commands, the services and `Localization` find the user and the open book th
 which resolve against the request attributes of the thread. A run has no browser, so `AgentRunService.openSession(run)` builds the context from
 the database at every start and resume:
 
-- `AgentSession(userUuid, language)` is all a run stores of its session: the owner, and the language of the *book* (not the interface language of
-  the user: the agent sees one fixed language, English where the book's has no bundle).
+- `AgentSession(userUuid, language)` is all a run stores of its session: the owner, and the language of the *agent* (`Agent.language`, copied to `AgentRun.language` when the run starts: neither the interface language
+  of the user nor the language of the book; the agent sees one fixed language, English where its language has no bundle).
 - `AgentRequestAttributes` implements `RequestAttributes` over two maps in memory (session and request scope). It starts with the `user`
   bean (a copy of the owner, as the login makes it) and an `AgenticSessionPoint`. Any other session bean is created on first use, empty.
 - `AgenticSessionPoint` is a `SessionPoint` that holds the **working copy** directly. `CommandUtils.getSessionPoint()` returns it for these attributes
@@ -239,7 +239,7 @@ has `maxAgents` agents (the deleted ones don't count); `canCreate()` is the same
 
 `AgentRunService` extends `ExtendableService`. The status and the counters change only here, by SQL updates (`AgentRunRepository`):
 
-- `start(agent)` creates a run in `RUNNING` (the language of the book). It refuses (`SecurityException`, `IllegalArgumentException` for an agent
+- `start(agent)` creates a run in `RUNNING` (with the language of the agent, `AgentRun.language`, a language code). It refuses (`SecurityException`, `IllegalArgumentException` for an agent
   that is not the user's, `IllegalStateException` otherwise) when the user is not allowed, the agent is disabled, has no main model or the main model
   can't be resolved, the agent has an unfinished run, or the user has all the concurrent runs of the grant (`RUNNING`, `WAITING_APPROVAL`,
   `PAUSING`, `STOPPING`; a run waiting for the user in `IDLE` is not counted).
@@ -289,8 +289,9 @@ has `maxAgents` agents (the deleted ones don't count); `canCreate()` is the same
   free, lorebooks are not locked, and the lock follows the status: paused, stopped and finished runs release it. A change of the manuscript
   that a service does not route through these methods is not locked.
 - `openSession(run)` makes the **request context of a run** (`AgentRequestAttributes`, package `bound`) from the database for every start and
-  resume. A run stores only its `AgentSession(userUuid, language)` (`AgentSession.of(run)`: the owner of the run and the language of the book;
-  the UI language of the user does not matter, the agent sees one fixed language, English where the book's has no localization bundle). The attributes
+  resume. A run stores only its `AgentSession(userUuid, language)` (`AgentSession.of(run)`: the owner of the run and its language, the one `Agent.language` had when it started
+  (a code, English when not set; the combo box of `AgentDialog` lists `Localization.getAvailableLanguages()`, and keeps a stored code whose bundle is gone, marked, until the author changes it);
+  the UI language of the user and the language of the book do not matter, the agent sees one fixed language, English where its language has no localization bundle; the system prompt (`AGENT_RUNNER_NOTE`) tells it to write the book in the language of the book, which `get-book-info` returns). The attributes
   are not a servlet request: they hold the session scope in memory, with the `user` bean (a copy of the owner, with uuid) and the `sessionPoint`
   (an `AgenticSessionPoint` on the working copy; a run without one fails with an `IllegalStateException`, the agent never gets the book of the user), so `currentUser`, the services and
   `Localization` resolve on any thread that enters them with `InRequestScope`. All the threads of the run share the one object:

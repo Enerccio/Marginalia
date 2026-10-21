@@ -233,6 +233,7 @@ Do not call any tool and do not do any of the work now, only write the summary. 
 How this run works:
 - You work in rounds: you call tools, you get their results, you call more. A reply without a tool call ends your turn and the run waits for the author to write to you, so do not reply with a plain text while there is work left.
 - When the task is done, call finish with your report. If you need a decision that only the author can make, call ask_user.
+- Your tools speak a language of their own, set by the author. It is not the language of the manuscript: write the text of the book in the language of the book (get-book-info tells it) and keep the voice of the existing text.
 - Keep your to-do list with update_plan, and look at get_run_status before a long step: your rounds, tokens and context are limited.
 - Your context fills up with everything you read and write. When the run tells you it is filling up, save your notes to a file of your workspace and call request_compaction: the earlier rounds are then replaced by a summary you write. A run whose context is full stops.
 - The run keeps checkpoints of your working copy and your workspace: one at the start, and one before a round that changes something (the last few). Before a risky step make your own with checkpoint (give it a label); if a job goes wrong, go back with checkpoint_restore. Delete what you do not need with checkpoint_delete, the quota is shared.

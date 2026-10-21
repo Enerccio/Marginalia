@@ -146,6 +146,14 @@ public class Agent extends ExtendableEntity {
     @ExtendedAttribute
     private Boolean allowSelfSubagent;
 
+    /**
+     * Code of the language of everything the agent reads (descriptions of commands, results, errors), a language that has a
+     * localization bundle; null is English. Not the language of the book, which only decides what the agent writes.
+     */
+    @Transient
+    @ExtendedAttribute
+    private String language;
+
     public String getName() {
         return name;
     }
@@ -308,5 +316,13 @@ public class Agent extends ExtendableEntity {
 
     public void setContextCap(Integer contextCap) {
         this.contextCap = contextCap;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
     }
 }

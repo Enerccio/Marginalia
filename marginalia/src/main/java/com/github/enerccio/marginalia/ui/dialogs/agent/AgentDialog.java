@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.Language;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.widgets.*;
@@ -78,6 +79,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
     private Checkbox imagesCheckbox;
     private Checkbox useOwnModelCheckbox;
     private ComboBox<AgentBatchMode> batchModeCombo;
+    private ComboBox<Language> languageCombo;
     private ComboBox<DestructiveCommandMode> destructiveCombo;
     private IntegerField maxRoundsField;
     private IntegerField maxSubagentsField;
@@ -128,7 +130,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
         form.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1));
         form.setWidthFull();
         form.add(nameField, enabledCheckbox, manuscriptCombo, modelPicker, imagesCheckbox, useOwnModelCheckbox);
-        form.add(destructiveCombo, batchModeCombo, maxRoundsField, maxSubagentsField, tokenBudgetField, contextLimitField, autoCompactField);
+        form.add(destructiveCombo, batchModeCombo, languageCombo, maxRoundsField, maxSubagentsField, tokenBudgetField, contextLimitField, autoCompactField);
         form.add(modelsEditor);
         form.add(systemPromptField, compactionPromptField, instructionsField, sizeLabel, commandsEditor);
         add(form);
@@ -178,6 +180,15 @@ public class AgentDialog extends Dialog implements LLMInteract {
         batchModeCombo.setValue(AgentBatchMode.BATCHED);
         batchModeCombo.setHelperText(loc.getValue(L.HELP_AGENT_BATCH_MODE));
         batchModeCombo.setWidthFull();
+
+        languageCombo = new ComboBox<>(loc.getValue(L.LABEL_AGENT_LANGUAGE));
+        languageCombo.setItems(loc.getAvailableLanguages());
+        languageCombo.setItemLabelGenerator(this::languageLabel);
+        languageCombo.setAllowCustomValue(false);
+        languageCombo.setClearButtonVisible(false);
+        languageCombo.setValue(Language.EN);
+        languageCombo.setHelperText(loc.getValue(L.HELP_AGENT_LANGUAGE));
+        languageCombo.setWidthFull();
 
         destructiveCombo = new ComboBox<>(loc.getValue(L.LABEL_DESTRUCTIVE_COMMANDS));
         destructiveCombo.setItems(DestructiveCommandMode.values());
@@ -328,6 +339,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
             autoCompactField.setValue(agent.getAutoCompactPercent());
             useOwnModelCheckbox.setValue(agent.isUsingAgentModel());
             batchModeCombo.setValue(agent.batchModeOrDefault());
+            showLanguage(agent.getLanguage());
             systemPromptField.setValue(StringUtils.defaultString(agent.getSystemPrompt()));
             compactionPromptField.setValue(StringUtils.defaultString(agent.getCompactionPrompt()));
             instructionsField.setValue(StringUtils.defaultString(agent.getInstructions()));
@@ -336,6 +348,25 @@ public class AgentDialog extends Dialog implements LLMInteract {
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+    }
+
+    /**
+     * Selects the language of the agent. One whose bundle is gone (an extension that is not loaded) stays in the list, marked, so
+     * saving the agent does not change it silently.
+     */
+    private void showLanguage(String code) {
+        List<Language> languages = new ArrayList<>(loc.getAvailableLanguages());
+        Language stored = code == null ? Language.EN : Language.of(code);
+        if (!languages.contains(stored)) {
+            languages.add(stored);
+        }
+        languageCombo.setItems(languages);
+        languageCombo.setValue(stored);
+    }
+
+    private String languageLabel(Language language) {
+        return loc.getAvailableLanguages().contains(language) ? loc.getDisplayName(language)
+                : String.format(loc.getValue(L.MSG_AGENT_LANGUAGE_UNAVAILABLE), language.code());
     }
 
     private void save() {
@@ -366,6 +397,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
             agent.setAutoCompactPercent(autoCompactField.getValue());
             agent.setUseAgentModel(useOwnModelCheckbox.getValue());
             agent.setBatchMode(batchModeCombo.getValue() == AgentBatchMode.BATCHED ? null : batchModeCombo.getValue());
+            agent.setLanguage(languageCombo.getValue() == null || languageCombo.getValue().equals(Language.EN) ? null : languageCombo.getValue().code());
             agent.setSystemPrompt(systemPromptField.getValue());
             agent.setCompactionPrompt(compactionPromptField.getValue());
             agent.setInstructions(StringUtils.isBlank(instructionsField.getValue()) ? null : instructionsField.getValue());
@@ -465,6 +497,10 @@ public class AgentDialog extends Dialog implements LLMInteract {
 
     Checkbox getUseOwnModelCheckbox() {
         return useOwnModelCheckbox;
+    }
+
+    ComboBox<Language> getLanguageCombo() {
+        return languageCombo;
     }
 
     ComboBox<AgentBatchMode> getBatchModeCombo() {

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845916247042">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845916874286">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845916247042" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845916874286" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845916247042" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845916874286" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845916247042" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845916874286" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -393,8 +393,8 @@ which resolve against the request attributes of the thread. A run has no browser
 the database at every start and resume:</p>
 <ul>
 <li>
-<p><code translate="no" v-pre>AgentSession(userUuid, language)</code> is all a run stores of its session: the owner, and the language of the <em>book</em> (not the interface language of
-the user: the agent sees one fixed language, English where the book&#x27;s has no bundle).</p>
+<p><code translate="no" v-pre>AgentSession(userUuid, language)</code> is all a run stores of its session: the owner, and the language of the <em>agent</em> (<code translate="no" v-pre>Agent.language</code>, copied to <code translate="no" v-pre>AgentRun.language</code> when the run starts: neither the interface language
+of the user nor the language of the book; the agent sees one fixed language, English where its language has no bundle).</p>
 </li>
 <li>
 <p><code translate="no" v-pre>AgentRequestAttributes</code> implements <code translate="no" v-pre>RequestAttributes</code> over two maps in memory (session and request scope). It starts with the <code translate="no" v-pre>user</code>
@@ -467,7 +467,7 @@ has <code translate="no" v-pre>maxAgents</code> agents (the deleted ones don&#x2
 <p><code translate="no" v-pre>AgentRunService</code> extends <code translate="no" v-pre>ExtendableService</code>. The status and the counters change only here, by SQL updates (<code translate="no" v-pre>AgentRunRepository</code>):</p>
 <ul>
 <li>
-<p><code translate="no" v-pre>start(agent)</code> creates a run in <code translate="no" v-pre>RUNNING</code> (the language of the book). It refuses (<code translate="no" v-pre>SecurityException</code>, <code translate="no" v-pre>IllegalArgumentException</code> for an agent
+<p><code translate="no" v-pre>start(agent)</code> creates a run in <code translate="no" v-pre>RUNNING</code> (with the language of the agent, <code translate="no" v-pre>AgentRun.language</code>, a language code). It refuses (<code translate="no" v-pre>SecurityException</code>, <code translate="no" v-pre>IllegalArgumentException</code> for an agent
 that is not the user&#x27;s, <code translate="no" v-pre>IllegalStateException</code> otherwise) when the user is not allowed, the agent is disabled, has no main model or the main model
 can&#x27;t be resolved, the agent has an unfinished run, or the user has all the concurrent runs of the grant (<code translate="no" v-pre>RUNNING</code>, <code translate="no" v-pre>WAITING_APPROVAL</code>,
 <code translate="no" v-pre>PAUSING</code>, <code translate="no" v-pre>STOPPING</code>; a run waiting for the user in <code translate="no" v-pre>IDLE</code> is not counted).</p>
@@ -535,8 +535,9 @@ that a service does not route through these methods is not locked.</p>
 </li>
 <li>
 <p><code translate="no" v-pre>openSession(run)</code> makes the <strong>request context of a run</strong> (<code translate="no" v-pre>AgentRequestAttributes</code>, package <code translate="no" v-pre>bound</code>) from the database for every start and
-resume. A run stores only its <code translate="no" v-pre>AgentSession(userUuid, language)</code> (<code translate="no" v-pre>AgentSession.of(run)</code>: the owner of the run and the language of the book;
-the UI language of the user does not matter, the agent sees one fixed language, English where the book&#x27;s has no localization bundle). The attributes
+resume. A run stores only its <code translate="no" v-pre>AgentSession(userUuid, language)</code> (<code translate="no" v-pre>AgentSession.of(run)</code>: the owner of the run and its language, the one <code translate="no" v-pre>Agent.language</code> had when it started
+(a code, English when not set; the combo box of <code translate="no" v-pre>AgentDialog</code> lists <code translate="no" v-pre>Localization.getAvailableLanguages()</code>, and keeps a stored code whose bundle is gone, marked, until the author changes it);
+the UI language of the user and the language of the book do not matter, the agent sees one fixed language, English where its language has no localization bundle; the system prompt (<code translate="no" v-pre>AGENT_RUNNER_NOTE</code>) tells it to write the book in the language of the book, which <code translate="no" v-pre>get-book-info</code> returns). The attributes
 are not a servlet request: they hold the session scope in memory, with the <code translate="no" v-pre>user</code> bean (a copy of the owner, with uuid) and the <code translate="no" v-pre>sessionPoint</code>
 (an <code translate="no" v-pre>AgenticSessionPoint</code> on the working copy; a run without one fails with an <code translate="no" v-pre>IllegalStateException</code>, the agent never gets the book of the user), so <code translate="no" v-pre>currentUser</code>, the services and
 <code translate="no" v-pre>Localization</code> resolve on any thread that enters them with <code translate="no" v-pre>InRequestScope</code>. All the threads of the run share the one object:
@@ -1309,7 +1310,7 @@ older rounds when the context is full (the run pauses instead).</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (bfd976c0).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (4f85ebe1).</p></div>
             </footer>
         </div>
     </div>
