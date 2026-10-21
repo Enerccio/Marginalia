@@ -68,7 +68,7 @@ ones that ask for classes, methods, arguments, locals or fields that don't exist
 
 ## The bundled plugins
 
-The thirteen plugins in `marginalia/plugins/` are complete, working examples. Each is a separate Maven project.
+The fourteen plugins in `marginalia/plugins/` are complete, working examples. Each is a separate Maven project.
 
 | Plugin | What it adds | Shows how to |
 |---|---|---|

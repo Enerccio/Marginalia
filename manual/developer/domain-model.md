@@ -242,7 +242,8 @@ Why most fields live in JSON:
 - Adding or removing a field needs no database migration.
 - Extensions can store data on any entity (`getAttributes().add("myplugin", ...)`) without their own tables.
 - Book backups copy `extendedContent` as a whole, so extension data and new fields of books and parts travel with
-  them (lorebook exports don't, see [Backups and copies](#backups-and-copies)).
+  them; lorebook exports and the lorebooks in a backup carry the `attributes` of lorebooks and entries (see
+  [Backups and copies](#backups-and-copies)).
 
 The price is that extended attributes can't be queried or indexed in SQL. Anything the application filters, sorts or
 joins on is a real column: relations, `name`, `enabled`, `ordinal`, `published`, `lastOpened`, `tokenCount`,
@@ -654,14 +655,18 @@ Restoring or cloning creates new rows (new ids and uuids for the parts) and copi
 extended attributes and extension data come back exactly as they were. Linked entities are resolved among the
 current user's own entities, first by uuid, then by name.
 
-Lorebooks are different: lorebook exports (`LorebookServiceImpl.exportLorebook`) and the lorebooks stored inside book
-backups list their fields one by one (`name`, `payload`, `comment`, `filtering`...), so the `attributes` of lorebooks
-and entries - extension data such as the Lorebook VCS history - are **not** included.
+Lorebooks list their fields one by one (`name`, `payload`, `comment`, `filtering`...) in `LorebookService.marshalLorebooks`,
+which the lorebook export (`exportLorebook`), the lorebooks inside a book backup and the copy of the lorebooks for an agent
+share. Since 1.4.0 it adds the `attributes` of lorebooks and entries under `attributes` (when there are any), and the import
+(`unmarshalContent`, `importLorebooks`) sets them on the new lorebooks and entries, so extension data such as the Lorebook
+VCS history travels too. A field that is a real column, or an `@ExtendedAttribute` field that is not listed there, does not
+(add it to the marshalling). Imported entries have new uuids (the format has none), so data that refers to an entry by its
+uuid does not find it.
 
 Keep this in mind when adding data: for books and parts anything in `extendedContent` is backed up automatically,
 while a new column has to be added to the backup and restore code (`BackupServiceImpl`,
-`ManuscriptServiceImpl.restoreBackup` / `restoreMessages`); a new lorebook or entry field has to be added to the
-export and import code in either case.
+`ManuscriptServiceImpl.restoreBackup` / `restoreMessages`); a new column or `@ExtendedAttribute` field of a lorebook or
+entry has to be added to `marshalLorebooks` and `unmarshalContent`, data in the `attributes` goes along by itself.
 
 ## Adding a field or an entity
 

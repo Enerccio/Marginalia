@@ -42,6 +42,11 @@ Marginalia は、大規模言語モデル（LLM）と共同で長編小説を書
 - **Languages** - the interface is available in English and Japanese; every user picks their own language, and
   extensions can add more (Simplified Chinese is included as a plugin).
 - **Published books** - share a read-only view of a book.
+- **Search and replace, commands** - search and replace in the story and in lorebooks (also with regular
+  expressions), and a command line in the story editor with commands that read and change the book.
+- **Agents** - a model works on a book on its own, on a copy, through the same commands; you follow it in a console,
+  review what it changed and take over what you want. Needs the permission *Agents* (administrators have it).
+- **Permissions** - an administrator decides per user who creates models, uses the help assistant or uses agents.
 - **Extensions** - plugins add features at runtime (chapter markers, lorebook version history, AI reviews, side
   questions to the model).
 
@@ -134,7 +139,7 @@ model. Then create a book, choose the provider and a protocol, and start writing
 ## Extensions
 
 Extensions are OSGi bundles (JAR files). Administrators install them in *Admin → Extensions*; they are stored in
-`~/.marginalia/extensions`. Thirteen plugins are included in [`marginalia/plugins`](marginalia/plugins/README.md) and
+`~/.marginalia/extensions`. Fourteen plugins are included in [`marginalia/plugins`](marginalia/plugins/README.md) and
 built separately with Maven, or in Docker (see the plugins README):
 
 - [Arc Outline](marginalia/plugins/arc-outline/README.md) - the arcs of the book and their chapters in the story sidebar, written by the model if you want,

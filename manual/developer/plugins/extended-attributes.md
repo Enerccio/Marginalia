@@ -159,11 +159,13 @@ Two things follow from this:
 | Branch Story | The part's attributes are copied to the new branch. |
 | Regenerate | The part is reused: its attributes stay, also data that described the old text. If the request fails before any text arrived, the part is restored with the attributes it had before. |
 | Swipe | A new part - starts with no plugin data. |
-| Lorebook export / import | **Not included** - only the entries' content is exported. Lorebook VCS has its own history export for this reason. |
-| Lorebooks inside a book backup | Not included, same as lorebook export. |
+| Lorebook export / import | Included (since 1.4.0) - the `attributes` of the lorebooks and of the entries are in the file and are set on what the import creates. The entries are new ones with new uuids, so data that names an entry by its uuid (Lorebook VCS) does not find it; Lorebook VCS has its own history export for this reason. |
+| Lorebooks inside a book backup | Included, same as lorebook export. |
+| Clone of a book | The book and its parts as in a backup; the lorebook is shared, not copied. |
+| Working copy of an [agent](../agents.md) | Included for the book, its parts, summaries, lorebooks and entries; the review merges the data of extensions place by place (`Type.JSON`), see [Merge and apply](../agents.md#merge-and-apply). |
 
 Plan for the cases where your data does not follow: data that describes a part's text (a review) may be stale after
-*Regenerate*; data stored on a lorebook is gone after the user exports and imports it.
+*Regenerate*; data stored on a lorebook comes back after an export and import, but not attached to the old entries (their uuids are new).
 
 ## References to other entities
 
