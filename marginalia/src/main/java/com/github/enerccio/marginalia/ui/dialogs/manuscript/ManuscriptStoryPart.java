@@ -866,7 +866,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         private Button turnDetailsBtn;
         private boolean wasReasoningOpenedByGeneration;
 
-        private final TurnDetailsForm detailsForm;
+        private Popover detailsPopover;
+        private TurnDetailsForm detailsForm;
 
         public ChatMessageCard(ChatMessage message, int orderId) {
             this(message, false, orderId);
@@ -916,15 +917,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             responseMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
             renderResponse();
 
-            responseTextArea = new TextArea();
-            responseTextArea.setWidthFull();
-            responseTextArea.setMinHeight("100px");
-            responseTextArea.setValue(StringUtils.defaultString(message.getResponse()));
-            responseTextArea.setVisible(false);
-
             messageImages = new MessageImages(message.getImages());
 
-            contentLayout.add(headerBar, reasoningDetails, responseMarkdown, responseTextArea, messageImages);
+            contentLayout.add(headerBar, reasoningDetails, responseMarkdown, messageImages);
 
             metaLayout = new VerticalLayout();
             metaLayout.setWidth("220px");
@@ -938,16 +933,15 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             turnDetailsBtn.setThemeName("tertiary small");
             turnDetailsBtn.setWidthFull();
 
-            Popover readOnlyPopover = new Popover();
-            readOnlyPopover.setTarget(turnDetailsBtn);
-
-            FormLayout detailsLayout = new FormLayout();
-            detailsLayout.setWidth("520px");
-            detailsLayout.addClassName(CssStyles.POPOVER_FORM);
-
-            detailsForm = new TurnDetailsForm(loc, message, () -> this.message, () -> this.isLast, this::saveMessage);
-            detailsForm.addTo(detailsLayout);
-            readOnlyPopover.add(detailsLayout);
+            detailsPopover = new Popover();
+            detailsPopover.setTarget(turnDetailsBtn);
+            // opened here, not by the click in the browser, so the content is in the popover before it is positioned (a
+            // popover that grows after it opened can end up on the wrong side of its button and be cut off)
+            detailsPopover.setOpenOnClick(false);
+            turnDetailsBtn.addClickListener(event -> {
+                createDetails();
+                detailsPopover.setOpened(!detailsPopover.isOpened());
+            });
 
             metaLayout.add(metrics.getHeader());
             metaLayout.add(metrics.getLines());
@@ -956,6 +950,27 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             add(contentLayout, metaLayout);
             setFlexGrow(1, contentLayout);
             setFlexGrow(0, metaLayout);
+        }
+
+        /**
+         * Fills the popover of the turn details, once. It is not done when the card is created, because the four text
+         * fields of the form measure their height in the browser as soon as they are in the page, which makes a story
+         * of hundreds of parts freeze it. Regenerating needs the form too, so it calls this as well.
+         */
+        @PublicAPI(from = "1.4.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "detailsLayout", type = FormLayout.class)})
+        private void createDetails() {
+            if (detailsForm != null) {
+                return;
+            }
+            FormLayout detailsLayout = new FormLayout();
+            detailsLayout.setWidth("520px");
+            detailsLayout.addClassName(CssStyles.POPOVER_FORM);
+
+            detailsForm = new TurnDetailsForm(loc, message, () -> this.message, () -> this.isLast, this::saveMessage);
+            detailsForm.addTo(detailsLayout);
+            detailsPopover.add(detailsLayout);
         }
 
         /**
@@ -1099,12 +1114,14 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class))
         private void regenerate() {
+            createDetails();
             startGeneration(GenerationRequest.regenerate(message), detailsForm.toTurnInput());
         }
 
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class))
         private void swipe() {
+            createDetails();
             startGeneration(GenerationRequest.newSwipe(message), detailsForm.toTurnInput());
         }
 
@@ -1130,7 +1147,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             if (swipeItem != null) {
                 swipeItem.setVisible(isLast);
             }
-            detailsForm.setLastMessage(isLast);
+            if (detailsForm != null) {
+                detailsForm.setLastMessage(isLast);
+            }
         }
 
         @PublicAPI(from = "1.1.0",
@@ -1158,9 +1177,14 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 autosaveAndSwapToMarkdown();
             } else {
                 editing = true;
+                // created only while a part is edited: a text area measures its height in the browser as soon as it
+                // is in the page, which makes a story of hundreds of parts freeze it
+                responseTextArea = new TextArea();
+                responseTextArea.setWidthFull();
+                responseTextArea.setMinHeight("100px");
                 responseTextArea.setValue(StringUtils.defaultString(message.getResponse()));
+                contentLayout.addComponentAtIndex(contentLayout.indexOf(responseMarkdown) + 1, responseTextArea);
                 responseMarkdown.setVisible(false);
-                responseTextArea.setVisible(true);
                 if (editItem != null) {
                     editItem.setText(loc.getValue(L.LABEL_SAVE));
                 }
@@ -1177,7 +1201,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     String newResponse = responseTextArea.getValue();
                     message = support.saveEditedResponse(currentManuscript, message, newResponse);
                     renderResponse();
-                    responseTextArea.setVisible(false);
+                    contentLayout.remove(responseTextArea);
+                    responseTextArea = null;
                     responseMarkdown.setVisible(true);
                     editing = false;
                     if (editItem != null) {
@@ -1237,9 +1262,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         public void updateResponse(String responseText) {
             message.setResponse(responseText);
             renderResponse();
-            if (!editing) {
-                responseTextArea.setValue(StringUtils.defaultString(responseText));
-            }
         }
 
         @PublicAPI(from = "1.2.0",
