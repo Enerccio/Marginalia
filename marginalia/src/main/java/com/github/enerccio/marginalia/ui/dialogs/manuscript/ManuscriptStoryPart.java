@@ -19,6 +19,7 @@ import com.github.enerccio.marginalia.ui.components.MessageImages;
 import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.dialogs.search.ManuscriptSearchReplaceDialog;
 import com.github.enerccio.marginalia.ui.dialogs.story.*;
+import com.github.enerccio.marginalia.ui.widgets.LazyContextMenu;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
 import com.github.enerccio.marginalia.utils.GeneratedTextHighlighter;
@@ -841,6 +842,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         private final VerticalLayout contentLayout;
         private Button menuBtn;
         private ContextMenu hamburgerMenu;
+        private boolean menuItemsCreated;
         private MenuItem editItem;
         private MenuItem regenerateItem;
         private MenuItem swipeItem;
@@ -895,7 +897,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             menuBtn.setThemeName("tertiary icon small");
             menuBtn.addClassName(CssStyles.MARGIN_LEFT_AUTO);
 
-            createMenuItems();
+            createHamburgerMenu();
 
             headerBar.add(UIUtils.voidComponent(), menuBtn);
 
@@ -955,14 +957,39 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             setFlexGrow(0, metaLayout);
         }
 
+        /**
+         * Creates the empty menu of the card. The items are added when the menu is opened for the first time, see
+         * {@link #prepareMenu()}.
+         */
+        @PublicAPI(from = "1.4.0",
+                returns = @APIReturn(type = void.class))
+        private void createHamburgerMenu() {
+            hamburgerMenu = new LazyContextMenu(menuBtn, this::prepareMenu);
+            hamburgerMenu.setOpenOnClick(true);
+        }
+
+        /**
+         * Runs each time the menu is about to open: creates the items the first time, then refreshes the ones that
+         * depend on the part.
+         */
+        @PublicAPI(from = "1.4.0",
+                returns = @APIReturn(type = void.class))
+        private void prepareMenu() {
+            if (!menuItemsCreated) {
+                menuItemsCreated = true;
+                createMenuItems();
+            }
+            refreshSummaryMenuItems();
+        }
+
+        /**
+         * Adds the items to {@code hamburgerMenu}. Called when the menu is opened for the first time, not when the
+         * card is created, so the cards of a long story stay cheap.
+         */
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class))
         private void createMenuItems() {
-            hamburgerMenu = new ContextMenu();
-            hamburgerMenu.setTarget(menuBtn);
-            hamburgerMenu.setOpenOnClick(true);
-
-            editItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_EDIT), event -> toggleEdit());
+            editItem = hamburgerMenu.addItem(loc.getValue(editing ? L.LABEL_SAVE : L.LABEL_EDIT), event -> toggleEdit());
 
             regenerateItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_REGENERATE), event -> regenerate());
             regenerateItem.setVisible(this.isLast);
@@ -993,12 +1020,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     }
                 });
             });
-
-            hamburgerMenu.addOpenedChangeListener(event -> {
-                if (event.isOpened()) {
-                    refreshSummaryMenuItems();
-                }
-            });
         }
 
         @PublicAPI(from = "1.1.0",
@@ -1022,6 +1043,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     }
                 }
             } catch (Exception ignored) {}
+
+            if (summaryItem == null) {
+                return;
+            }
 
             boolean hasSummary = (message != null && message.getSummary() != null);
             if (hasSummary) {
@@ -1135,7 +1160,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 responseTextArea.setValue(StringUtils.defaultString(message.getResponse()));
                 responseMarkdown.setVisible(false);
                 responseTextArea.setVisible(true);
-                editItem.setText(loc.getValue(L.LABEL_SAVE));
+                if (editItem != null) {
+                    editItem.setText(loc.getValue(L.LABEL_SAVE));
+                }
             }
         }
 
@@ -1152,7 +1179,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     responseTextArea.setVisible(false);
                     responseMarkdown.setVisible(true);
                     editing = false;
-                    editItem.setText(loc.getValue(L.LABEL_EDIT));
+                    if (editItem != null) {
+                        editItem.setText(loc.getValue(L.LABEL_EDIT));
+                    }
                     updateMetrics(message);
                 } catch (Exception e) {
                     UIUtils.internalServerError(loc, e);
