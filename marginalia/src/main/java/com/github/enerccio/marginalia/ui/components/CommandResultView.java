@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.components;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.Component;
@@ -22,6 +23,7 @@ import org.springframework.beans.factory.annotation.Configurable;
  * cross, by Esc, by a click outside of it and when the user starts a new command.
  */
 @Configurable
+@Extendable
 public class CommandResultView implements CommandResultTarget {
 
     @Autowired
@@ -36,6 +38,12 @@ public class CommandResultView implements CommandResultTarget {
      *
      * @param target the component the popover opens above, normally the command bar
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "target", type = Component.class)},
+            locals = {@APILocals(name = "close", type = Button.class),
+                    @APILocals(name = "header", type = HorizontalLayout.class),
+                    @APILocals(name = "content", type = Div.class)})
     public void create(Component target) {
         popover = new Popover();
         popover.setTarget(target);
@@ -65,6 +73,9 @@ public class CommandResultView implements CommandResultTarget {
         popover.add(content);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "result", type = CommandResult.class)})
     @Override
     public void onCommandResult(CommandResult result) {
         title.setText(String.format(loc.getValue(L.LABEL_COMMAND_RESULT), result.humanName()));
@@ -72,6 +83,8 @@ public class CommandResultView implements CommandResultTarget {
         popover.open();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void clearCommandResult() {
         popover.close();

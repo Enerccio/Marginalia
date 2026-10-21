@@ -1,6 +1,10 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.domain.traits.APIParameter;
+import com.github.enerccio.marginalia.domain.traits.APIReturn;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -19,6 +23,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.web.util.HtmlUtils;
 
 @Configurable(preConstruction = true)
+@Extendable
 public class TextInputDialog extends Dialog implements LLMInteract {
 
 	@Autowired
@@ -72,6 +77,9 @@ public class TextInputDialog extends Dialog implements LLMInteract {
 		add(vl);
 	}
 	
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "message", type = String.class)})
 	private String getMessage(String message) {
 		message = HtmlUtils.htmlEscape(message);
 		message = message.replace("\n", "<br/>");

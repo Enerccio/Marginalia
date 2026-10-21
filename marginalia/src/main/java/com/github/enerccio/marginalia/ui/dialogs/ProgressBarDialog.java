@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.ModalityMode;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 @Configurable
+@Extendable
 public class ProgressBarDialog extends ThreadAccessDialog {
     private static final long THRESHOLD = 5 * 100 * 1000 * 1000;
 
@@ -39,6 +41,10 @@ public class ProgressBarDialog extends ThreadAccessDialog {
         this(enablePush, false);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "vl", type = VerticalLayout.class),
+                    @APILocals(name = "cancel", type = Button.class)})
     public void create() {
         setWidth("450px");
         setHeight("160px");
@@ -81,38 +87,62 @@ public class ProgressBarDialog extends ThreadAccessDialog {
     /**
      * The text of the button that cancels (stops) the action, to set before {@link #create()}; cancel by default.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "cancelLabel", type = L.class)})
     public void setCancelLabel(L cancelLabel) {
         this.cancelLabel = cancelLabel;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = boolean.class))
     public boolean isCancelled() {
         return cancelled;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "progressAction", type = ProgressBarDialog.ProgressAction.class)})
     public void setAction(ProgressAction progressAction) {
         this.progressAction = progressAction;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "afterAction", type = Runnable.class)})
     public void setAfterAction(Runnable afterAction) {
         this.afterAction = afterAction;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "title", type = String.class)})
     public void setTitle(String title) {
         super.setHeaderTitle(title);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "total", type = Long.class)})
     public void setTotal(Long total) {
         this.total = total;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = boolean.class))
     protected boolean isDefined() {
         return total != null;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     public void updateProgress() {
         updateProgressMultiple(1);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "delta", type = long.class)})
     public void updateProgressMultiple(long delta) {
         if (isDefined()) {
             current += delta;
@@ -129,12 +159,16 @@ public class ProgressBarDialog extends ThreadAccessDialog {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void open() {
         super.open();
         run();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     @Override
     protected void runInThread() {
         lastUpdateTime = System.nanoTime();

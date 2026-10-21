@@ -6,7 +6,7 @@ import com.github.enerccio.marginalia.domain.service.TokenizerService;
 import com.github.enerccio.marginalia.domain.service.agent.CommandFunctions;
 import com.github.enerccio.marginalia.domain.service.command.CommandDefinition;
 import com.github.enerccio.marginalia.domain.service.function.FunctionDefinition;
-import com.github.enerccio.marginalia.domain.traits.BatchPolicy;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
  * that brought it is not loaded) is not shown but stays allowed when the selection is saved.
  */
 @Configurable(preConstruction = true)
+@Extendable
 public class AgentCommandsEditor extends VerticalLayout {
 
     /**
@@ -103,6 +104,11 @@ public class AgentCommandsEditor extends VerticalLayout {
         loadCommands();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Checkbox.class),
+            parameters = {@APIParameter(name = "row", type = AgentCommandsEditor.Row.class),
+                    @APIParameter(name = "label", type = String.class)},
+            locals = {@APILocals(name = "checkbox", type = Checkbox.class)})
     private Checkbox checkbox(Row row, String label) {
         Checkbox checkbox = label == null ? new Checkbox(selected.contains(row.name())) : new Checkbox(label, selected.contains(row.name()));
         checkbox.addValueChangeListener(event -> {
@@ -118,6 +124,11 @@ public class AgentCommandsEditor extends VerticalLayout {
     }
 
     // package visible for the tests
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "row", type = AgentCommandsEditor.Row.class)},
+            locals = {@APILocals(name = "card", type = VerticalLayout.class),
+                    @APILocals(name = "line", type = HorizontalLayout.class)})
     Component card(Row row) {
         VerticalLayout card = AgentCard.of(row.humanName(), "", List.of(
                 row.effect() + "   " + loc.getValue(L.LABEL_COMMAND_BATCH_POLICY) + ": " + row.batch() + "   "
@@ -130,6 +141,12 @@ public class AgentCommandsEditor extends VerticalLayout {
         return line;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "byName", type = Map.class),
+                    @APILocals(name = "single", type = Set.class),
+                    @APILocals(name = "definition", type = CommandDefinition.class),
+                    @APILocals(name = "description", type = String.class)})
     private void loadCommands() {
         Map<String, CommandDefinition> byName = new LinkedHashMap<>();
         // a command is alone in its answer when any of its overloads says so, as the runner takes it
@@ -161,6 +178,11 @@ public class AgentCommandsEditor extends VerticalLayout {
      * What the definition of the command adds to every request of the agent, in tokens: its name, description and parameters as the
      * model reads them (the same estimate the runner makes).
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = long.class),
+            parameters = {@APIParameter(name = "commandName", type = String.class)},
+            locals = {@APILocals(name = "function", type = FunctionDefinition.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private long tokensOf(String commandName) {
         try {
             long tokens = 0;
@@ -178,6 +200,8 @@ public class AgentCommandsEditor extends VerticalLayout {
     /**
      * What the definitions of the ticked commands add to every request of the agent, in tokens (estimated).
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = long.class))
     public long getSelectedTokens() {
         return rows.stream().filter(row -> selected.contains(row.name())).mapToLong(Row::tokens).sum();
     }
@@ -185,6 +209,11 @@ public class AgentCommandsEditor extends VerticalLayout {
     /**
      * Allows exactly these commands (the names), the table shows the ones that exist.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "names", type = Collection.class)},
+            locals = {@APILocals(name = "known", type = Set.class),
+                    @APILocals(name = "name", type = String.class)})
     public void setAllowed(Collection<String> names) {
         loading = true;
         try {
@@ -204,6 +233,9 @@ public class AgentCommandsEditor extends VerticalLayout {
     /**
      * The allowed commands: the ticked ones in the order of the table, then the allowed ones that don't exist now.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = List.class),
+            locals = {@APILocals(name = "allowed", type = List.class)})
     public List<String> getAllowed() {
         List<String> allowed = new ArrayList<>();
         rows.stream().map(Row::name).filter(selected::contains).forEach(allowed::add);
@@ -214,6 +246,10 @@ public class AgentCommandsEditor extends VerticalLayout {
     /**
      * Ticks the commands of the preset and clears the others.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "preset", type = AgentCommandPreset.class)},
+            locals = {@APILocals(name = "row", type = AgentCommandsEditor.Row.class)})
     public void select(AgentCommandPreset preset) {
         selected.clear();
         for (Row row : rows) {
@@ -234,10 +270,15 @@ public class AgentCommandsEditor extends VerticalLayout {
     /**
      * The preset that the ticked commands are exactly, null for any other selection.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = AgentCommandPreset.class))
     public AgentCommandPreset getPreset() {
         return currentPreset();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "commandName", type = String.class)})
     public boolean isSelected(String commandName) {
         return selected.contains(commandName);
     }
@@ -245,6 +286,10 @@ public class AgentCommandsEditor extends VerticalLayout {
     /**
      * Ticks or clears one command, as the check box in its row does.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "commandName", type = String.class),
+                    @APIParameter(name = "value", type = boolean.class)})
     public void setSelected(String commandName, boolean value) {
         if (rows.stream().noneMatch(row -> row.name().equals(commandName))) {
             throw new IllegalArgumentException("No such command: " + commandName);
@@ -262,14 +307,23 @@ public class AgentCommandsEditor extends VerticalLayout {
     /**
      * Names of the commands in the table.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = List.class))
     public List<String> getCommandNames() {
         return rows.stream().map(Row::name).toList();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "listener", type = Runnable.class)})
     public void onChange(Runnable listener) {
         listeners.add(listener);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = AgentCommandPreset.class),
+            locals = {@APILocals(name = "preset", type = AgentCommandPreset.class),
+                    @APILocals(name = "names", type = Set.class)})
     private AgentCommandPreset currentPreset() {
         if (rows.isEmpty()) {
             return null;
@@ -283,16 +337,22 @@ public class AgentCommandsEditor extends VerticalLayout {
         return null;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void changed() {
         if (!loading) {
             listeners.forEach(Runnable::run);
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = ComboBox.class))
     ComboBox<AgentCommandPreset> getPresetCombo() {
         return presetCombo;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Grid.class))
     Grid<Row> getGrid() {
         return grid;
     }

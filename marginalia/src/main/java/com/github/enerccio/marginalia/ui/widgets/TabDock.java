@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.widgets;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.Restorable;
@@ -21,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * Tab sheets that the user can take apart: a tab dragged out of its sheet either joins another sheet (dropped on a tab or
@@ -41,6 +43,7 @@ import java.util.*;
  * likes).
  */
 @Configurable
+@Extendable
 public class TabDock extends Div implements Restorable {
 
     private static final String KEY_COLUMNS = "columns";
@@ -117,6 +120,8 @@ public class TabDock extends Div implements Restorable {
         addClassName(CssStyles.TAB_DOCK);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = boolean.class))
     public boolean isDetachable() {
         return detachable;
     }
@@ -124,6 +129,10 @@ public class TabDock extends Div implements Restorable {
     /**
      * Adds a tab whose id is its caption, see {@link #add(String, String, Component)}.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Tab.class),
+            parameters = {@APIParameter(name = "caption", type = String.class),
+                    @APIParameter(name = "content", type = Component.class)})
     public Tab add(String caption, Component content) {
         return add(caption, caption, content);
     }
@@ -136,6 +145,14 @@ public class TabDock extends Div implements Restorable {
      * @param caption text of the tab
      * @param content what the tab shows
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Tab.class),
+            parameters = {@APIParameter(name = "id", type = String.class),
+                    @APIParameter(name = "caption", type = String.class),
+                    @APIParameter(name = "content", type = Component.class)},
+            locals = {@APILocals(name = "old", type = TabDock.Entry.class),
+                    @APILocals(name = "entry", type = TabDock.Entry.class),
+                    @APILocals(name = "group", type = TabDock.Group.class)})
     public Tab add(String id, String caption, Component content) {
         Entry old = entries.get(id);
         if (old != null) {
@@ -163,6 +180,11 @@ public class TabDock extends Div implements Restorable {
      * Removes the tab with this content, wherever the user has moved it to. Its place in the layout is kept for when it
      * is added again.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "content", type = Component.class)},
+            locals = {@APILocals(name = "entry", type = TabDock.Entry.class),
+                    @APILocals(name = "group", type = TabDock.Group.class)})
     public void remove(Component content) {
         Entry entry = entries.values().stream().filter(candidate -> candidate.content == content).findFirst().orElse(null);
         if (entry == null) {
@@ -185,6 +207,8 @@ public class TabDock extends Div implements Restorable {
      * @return which tabs are together in which order: {@code {"columns":[{"groups":[{"tabs":["id", ...]}, ...]}, ...]}},
      * including the tabs that are not in the dock now
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = JsonObject.class))
     public JsonObject getLayout() {
         return layoutOf(columns);
     }
@@ -194,6 +218,17 @@ public class TabDock extends Div implements Restorable {
      * without sheets puts all tabs into one sheet. A layout with {@code groups} at the top is one column. Does not call the
      * {@linkplain #setOnLayoutChange layout listener}.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "layout", type = JsonObject.class)},
+            locals = {@APILocals(name = "parsed", type = List.class),
+                    @APILocals(name = "seen", type = Set.class),
+                    @APILocals(name = "columnArray", type = JsonElement.class),
+                    @APILocals(name = "element", type = JsonElement.class),
+                    @APILocals(name = "column", type = TabDock.Column.class),
+                    @APILocals(name = "id", type = String.class),
+                    @APILocals(name = "selected", type = Set.class),
+                    @APILocals(name = "previous", type = List.class)})
     public void setLayout(JsonObject layout) {
         if (!detachable) {
             return;
@@ -285,6 +320,9 @@ public class TabDock extends Div implements Restorable {
     /**
      * Called after the user changed the layout by dragging a tab; {@link #getLayout()} is the new one.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "onLayoutChange", type = Runnable.class)})
     public void setOnLayoutChange(Runnable onLayoutChange) {
         this.onLayoutChange = onLayoutChange;
     }
@@ -292,6 +330,9 @@ public class TabDock extends Div implements Restorable {
     /**
      * Called after the user selected a tab or changed the layout, what {@link #storeState()} stores changed.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "onStateChange", type = Runnable.class)})
     public void setOnStateChange(Runnable onStateChange) {
         this.onStateChange = onStateChange;
     }
@@ -299,6 +340,10 @@ public class TabDock extends Div implements Restorable {
     /**
      * The selected tab of every sheet.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = JsonObject.class),
+            locals = {@APILocals(name = "state", type = JsonObject.class),
+                    @APILocals(name = "selected", type = List.class)})
     @Override
     public JsonObject storeState() {
         JsonObject state = new JsonObject();
@@ -317,6 +362,11 @@ public class TabDock extends Div implements Restorable {
     /**
      * Selects the tabs; a tab that is not in the dock yet (an extension adds it later) is selected when it comes.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "self", type = JsonObject.class)},
+            locals = {@APILocals(name = "id", type = String.class),
+                    @APILocals(name = "group", type = TabDock.Group.class)})
     @Override
     public void restoreState(JsonObject self) {
         for (String id : RestorableState.strings(self, KEY_SELECTED)) {
@@ -356,12 +406,18 @@ public class TabDock extends Div implements Restorable {
         return layout;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = List.class),
+            locals = {@APILocals(name = "all", type = List.class)})
     private List<Group> allGroups() {
         List<Group> all = new ArrayList<>();
         columns.forEach(column -> all.addAll(column.groups));
         return all;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TabDock.Group.class),
+            locals = {@APILocals(name = "column", type = TabDock.Column.class)})
     private Group firstGroup() {
         if (columns.isEmpty()) {
             columns.add(new Column());
@@ -373,6 +429,10 @@ public class TabDock extends Div implements Restorable {
         return column.groups.get(0);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TabDock.Group.class),
+            parameters = {@APIParameter(name = "id", type = String.class)},
+            locals = {@APILocals(name = "group", type = TabDock.Group.class)})
     private Group groupOf(String id) {
         for (Group group : allGroups()) {
             if (group.ids.contains(id)) {
@@ -382,6 +442,10 @@ public class TabDock extends Div implements Restorable {
         return null;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TabDock.Column.class),
+            parameters = {@APIParameter(name = "group", type = TabDock.Group.class)},
+            locals = {@APILocals(name = "column", type = TabDock.Column.class)})
     private Column columnOf(Group group) {
         for (Column column : columns) {
             if (column.groups.contains(group)) {
@@ -391,6 +455,10 @@ public class TabDock extends Div implements Restorable {
         return null;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TabDock.Entry.class),
+            parameters = {@APIParameter(name = "tab", type = Tab.class)},
+            locals = {@APILocals(name = "entry", type = TabDock.Entry.class)})
     private Entry entryOf(Tab tab) {
         for (Entry entry : entries.values()) {
             if (entry.tab == tab) {
@@ -400,6 +468,12 @@ public class TabDock extends Div implements Restorable {
         return null;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = List.class),
+            parameters = {@APIParameter(name = "group", type = TabDock.Group.class)},
+            locals = {@APILocals(name = "present", type = List.class),
+                    @APILocals(name = "id", type = String.class),
+                    @APILocals(name = "entry", type = TabDock.Entry.class)})
     private List<Entry> presentEntries(Group group) {
         List<Entry> present = new ArrayList<>();
         for (String id : group.ids) {
@@ -423,6 +497,19 @@ public class TabDock extends Div implements Restorable {
      * Makes the sheets show what the model says: takes the tabs that moved out of their sheets, puts them into the new
      * ones, creates the sheets that are needed and drops those that have no tab, and selects the remembered tabs.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "live", type = List.class),
+                    @APILocals(name = "all", type = List.class),
+                    @APILocals(name = "group", type = TabDock.Group.class),
+                    @APILocals(name = "current", type = List.class),
+                    @APILocals(name = "wanted", type = List.class),
+                    @APILocals(name = "visible", type = List.class),
+                    @APILocals(name = "visibleColumns", type = List.class),
+                    @APILocals(name = "column", type = TabDock.Column.class),
+                    @APILocals(name = "visibleGroups", type = List.class),
+                    @APILocals(name = "present", type = List.class),
+                    @APILocals(name = "selected", type = TabDock.Entry.class)})
     private void arrange() {
         arranging = true;
         try {
@@ -487,6 +574,10 @@ public class TabDock extends Div implements Restorable {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "group", type = TabDock.Group.class)},
+            locals = {@APILocals(name = "sheet", type = TabSheet.class)})
     private void createSheet(Group group) {
         TabSheet sheet = new TabSheet();
         sheet.setWidthFull();
@@ -512,6 +603,16 @@ public class TabDock extends Div implements Restorable {
      * other with splitters between them. The strips for a new column (at the sides of the columns) and for a new sheet (above
      * and under the sheets) are visible while dragging.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "visibleColumns", type = List.class)},
+            locals = {@APILocals(name = "columnCells", type = List.class),
+                    @APILocals(name = "column", type = TabDock.Column.class),
+                    @APILocals(name = "visibleGroups", type = List.class),
+                    @APILocals(name = "groupCells", type = List.class),
+                    @APILocals(name = "group", type = TabDock.Group.class),
+                    @APILocals(name = "cell", type = Div.class),
+                    @APILocals(name = "body", type = Div.class)})
     private void fill(List<Column> visibleColumns) {
         removeAll();
         List<Component> columnCells = new ArrayList<>();
@@ -567,6 +668,15 @@ public class TabDock extends Div implements Restorable {
      * chain: the first cell and a split layout of the rest, and so on; the position of each splitter is the share of its cell in
      * what is left. When the user moves a splitter, the shares of all the cells are read again and handed to {@code onResize}.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "cells", type = List.class),
+                    @APIParameter(name = "shares", type = double[].class),
+                    @APIParameter(name = "orientation", type = SplitLayout.Orientation.class),
+                    @APIParameter(name = "onResize", type = Consumer.class)},
+            locals = {@APILocals(name = "splits", type = List.class),
+                    @APILocals(name = "tail", type = Component.class),
+                    @APILocals(name = "split", type = SplitLayout.class)})
     private Component chain(List<Component> cells, double[] shares, SplitLayout.Orientation orientation,
                             java.util.function.Consumer<double[]> onResize) {
         int count = cells.size();
@@ -630,6 +740,12 @@ public class TabDock extends Div implements Restorable {
         return shares;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Div.class),
+            parameters = {@APIParameter(name = "column", type = TabDock.Column.class),
+                    @APIParameter(name = "before", type = TabDock.Group.class)},
+            locals = {@APILocals(name = "zone", type = Div.class),
+                    @APILocals(name = "target", type = DropTarget.class)})
     private Div createZone(Column column, Group before) {
         Div zone = new Div(loc.getValue(L.LABEL_DROP_TAB_TO_DETACH));
         zone.addClassName(CssStyles.TAB_DOCK_ZONE);
@@ -639,6 +755,11 @@ public class TabDock extends Div implements Restorable {
         return zone;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Div.class),
+            parameters = {@APIParameter(name = "before", type = TabDock.Column.class)},
+            locals = {@APILocals(name = "zone", type = Div.class),
+                    @APILocals(name = "target", type = DropTarget.class)})
     private Div createSideZone(Column before) {
         Div zone = new Div(loc.getValue(L.LABEL_DROP_TAB_TO_DETACH_SIDE));
         zone.addClassNames(CssStyles.TAB_DOCK_ZONE, CssStyles.TAB_DOCK_SIDE_ZONE);
@@ -650,6 +771,10 @@ public class TabDock extends Div implements Restorable {
 
     // ---- dragging
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "entry", type = TabDock.Entry.class)},
+            locals = {@APILocals(name = "source", type = DragSource.class)})
     private void makeDraggable(Entry entry) {
         entry.tab.addClassName(CssStyles.TAB_DOCK_TAB);
 
@@ -669,6 +794,9 @@ public class TabDock extends Div implements Restorable {
         });
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "entry", type = TabDock.Entry.class)})
     private void startDrag(Entry entry) {
         dragged = entry;
         addClassName(CssStyles.TAB_DOCK_DRAGGING);
@@ -678,12 +806,19 @@ public class TabDock extends Div implements Restorable {
     /**
      * The end of a drag; also run by the drop, because the tab that was dropped has moved and its end event may never come.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void finishDrag() {
         dragged = null;
         removeClassName(CssStyles.TAB_DOCK_DRAGGING);
         setDropsActive(false);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "active", type = boolean.class)},
+            locals = {@APILocals(name = "group", type = TabDock.Group.class),
+                    @APILocals(name = "entry", type = TabDock.Entry.class)})
     private void setDropsActive(boolean active) {
         for (Group group : allGroups()) {
             if (group.drop != null) {
@@ -700,6 +835,11 @@ public class TabDock extends Div implements Restorable {
     /**
      * Takes the tab out of its sheet; a sheet left without tabs and a column left without sheets are dropped from the layout.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "moved", type = TabDock.Entry.class)},
+            locals = {@APILocals(name = "from", type = TabDock.Group.class),
+                    @APILocals(name = "column", type = TabDock.Column.class)})
     private void takeOut(Entry moved) {
         Group from = groupOf(moved.id);
         if (from == null) {
@@ -723,6 +863,12 @@ public class TabDock extends Div implements Restorable {
      * The drop of a tab on a tab or a sheet joins the sheet, before the tab it was dropped on. A drop reaches the tab and
      * then the sheet, the second one finds nothing dragged any more.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "target", type = TabDock.Group.class),
+                    @APIParameter(name = "before", type = TabDock.Entry.class)},
+            locals = {@APILocals(name = "moved", type = TabDock.Entry.class),
+                    @APILocals(name = "layoutBefore", type = JsonObject.class)})
     private void dropOnGroup(Group target, Entry before) {
         Entry moved = dragged;
         finishDrag();
@@ -747,6 +893,14 @@ public class TabDock extends Div implements Restorable {
         layoutMoved(layoutBefore);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "column", type = TabDock.Column.class),
+                    @APIParameter(name = "before", type = TabDock.Group.class)},
+            locals = {@APILocals(name = "moved", type = TabDock.Entry.class),
+                    @APILocals(name = "from", type = TabDock.Group.class),
+                    @APILocals(name = "layoutBefore", type = JsonObject.class),
+                    @APILocals(name = "group", type = TabDock.Group.class)})
     private void dropAsNewGroup(Column column, Group before) {
         Entry moved = dragged;
         finishDrag();
@@ -775,6 +929,15 @@ public class TabDock extends Div implements Restorable {
         layoutMoved(layoutBefore);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "before", type = TabDock.Column.class)},
+            locals = {@APILocals(name = "moved", type = TabDock.Entry.class),
+                    @APILocals(name = "layoutBefore", type = JsonObject.class),
+                    @APILocals(name = "from", type = TabDock.Group.class),
+                    @APILocals(name = "fromColumn", type = TabDock.Column.class),
+                    @APILocals(name = "group", type = TabDock.Group.class),
+                    @APILocals(name = "column", type = TabDock.Column.class)})
     private void dropAsNewColumn(Column before) {
         Entry moved = dragged;
         finishDrag();
@@ -800,6 +963,9 @@ public class TabDock extends Div implements Restorable {
         layoutMoved(layoutBefore);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "layoutBefore", type = JsonObject.class)})
     private void layoutMoved(JsonObject layoutBefore) {
         arrange();
         if (!getLayout().equals(layoutBefore)) {
@@ -810,6 +976,8 @@ public class TabDock extends Div implements Restorable {
         stateChanged();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void stateChanged() {
         if (onStateChange != null) {
             onStateChange.run();

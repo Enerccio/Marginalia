@@ -14,6 +14,7 @@ import com.github.enerccio.marginalia.domain.service.agent.RunTools;
 import com.github.enerccio.marginalia.domain.service.agent.jsonmerge.JsonMerge;
 import com.github.enerccio.marginalia.domain.service.agent.jsonmerge.JsonMergeNode;
 import com.github.enerccio.marginalia.domain.service.agent.jsonmerge.JsonText;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -22,6 +23,7 @@ import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.WordDiffView;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -40,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -49,6 +52,7 @@ import java.util.stream.Collectors;
  * to the book in place after a backup of it; the whole result can be discarded instead.
  */
 @Configurable
+@Extendable
 public class AgentMergeDialog extends Dialog implements LLMInteract {
 
     @Autowired
@@ -96,6 +100,18 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         this.onChange = onChange;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "allButton", type = Button.class),
+                    @APILocals(name = "noneButton", type = Button.class),
+                    @APILocals(name = "newButton", type = Button.class),
+                    @APILocals(name = "cleanButton", type = Button.class),
+                    @APILocals(name = "toolbar", type = HorizontalLayout.class),
+                    @APILocals(name = "split", type = SplitLayout.class),
+                    @APILocals(name = "content", type = VerticalLayout.class),
+                    @APILocals(name = "findings", type = Details.class),
+                    @APILocals(name = "closeButton", type = Button.class),
+                    @APILocals(name = "footer", type = HorizontalLayout.class)})
     public void create() {
         setHeaderTitle(loc.getValue(L.LABEL_REVIEW_CHANGES) + " - " + agentName);
         setWidth("1300px");
@@ -188,6 +204,12 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
     /**
      * What the agent reported with {@code report}, above the changes; null when it reported nothing.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Details.class),
+            locals = {@APILocals(name = "findings", type = List.class),
+                    @APILocals(name = "e", type = Exception.class),
+                    @APILocals(name = "view", type = AgentFindingsView.class),
+                    @APILocals(name = "details", type = Details.class)})
     private Details findingsSection() {
         List<RunTools.Finding> findings;
         try {
@@ -209,6 +231,11 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         return details;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class),
+            parameters = {@APIParameter(name = "label", type = L.class),
+                    @APIParameter(name = "listener", type = ComponentEventListener.class)},
+            locals = {@APILocals(name = "button", type = Button.class)})
     private Button small(L label, com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>> listener) {
         Button button = new Button(loc.getValue(label), listener);
         button.addThemeVariants(ButtonVariant.LUMO_SMALL);
@@ -218,6 +245,10 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
     /**
      * Reads the plan again and ticks what can be taken over without a decision.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = RuntimeException.class),
+                    @APILocals(name = "e", type = Exception.class)})
     void load() {
         try {
             plan = mergeService.plan(run);
@@ -239,6 +270,9 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         showFirst();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = long.class),
+            parameters = {@APIParameter(name = "kind", type = MergePlan.Kind.class)})
     private long count(Kind kind) {
         return plan.items().stream().filter(item -> item.kind() == kind).count();
     }
@@ -246,10 +280,18 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
     /**
      * What is ticked at first: what the agent changed and the user did not, and that belongs to this book alone.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "item", type = MergePlan.Item.class)})
     private boolean isClean(Item item) {
         return item.applicable() && !item.conflict() && item.sharedWith().isEmpty();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "wanted", type = Predicate.class)},
+            locals = {@APILocals(name = "chosen", type = Set.class),
+                    @APILocals(name = "ids", type = Set.class)})
     private void pick(java.util.function.Predicate<Item> wanted) {
         Set<Item> chosen = plan.items().stream().filter(wanted).collect(Collectors.toCollection(LinkedHashSet::new));
         // what a pick needs comes with it, and what needs a part that is not picked goes
@@ -268,6 +310,15 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
      * An item that is picked brings what it needs, an item that is dropped drops what needs it, and what cannot be applied
      * is not picked at all.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "added", type = Set.class),
+                    @APIParameter(name = "removed", type = Set.class)},
+            locals = {@APILocals(name = "selected", type = Set.class),
+                    @APILocals(name = "byId", type = Map.class),
+                    @APILocals(name = "item", type = MergePlan.Item.class),
+                    @APILocals(name = "id", type = String.class),
+                    @APILocals(name = "needed", type = MergePlan.Item.class)})
     private void keepConsistent(Set<Item> added, Set<Item> removed) {
         Set<Item> selected = new HashSet<>(grid.asMultiSelect().getSelectedItems());
         Map<String, Item> byId = plan.items().stream().collect(Collectors.toMap(Item::id, item -> item, (a, b) -> a));
@@ -303,6 +354,8 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void updateApply() {
         if (applyButton == null) {
             return;
@@ -331,12 +384,20 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         };
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "item", type = MergePlan.Item.class)},
+            locals = {@APILocals(name = "badges", type = HorizontalLayout.class)})
     private Component card(Item item) {
         HorizontalLayout badges = (HorizontalLayout) states(item);
         return AgentCard.of(item.label(), "", List.of(loc.getValue(kindText(item.kind())) + " - " + loc.getValue(changeText(item.change()))),
                 badges.getComponentCount() == 0 ? null : badges);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "item", type = MergePlan.Item.class)},
+            locals = {@APILocals(name = "states", type = HorizontalLayout.class)})
     private Component states(Item item) {
         HorizontalLayout states = new HorizontalLayout();
         states.setSpacing(false);
@@ -352,6 +413,11 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         return states;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Span.class),
+            parameters = {@APIParameter(name = "text", type = L.class),
+                    @APIParameter(name = "theme", type = String.class)},
+            locals = {@APILocals(name = "badge", type = Span.class)})
     private Span badge(L text, String theme) {
         Span badge = new Span(loc.getValue(text));
         badge.getElement().getThemeList().add("badge small " + theme);
@@ -360,10 +426,18 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
 
     // --- the detail
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void showFirst() {
         show(plan.items().isEmpty() ? null : plan.items().getFirst());
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "item", type = MergePlan.Item.class)},
+            locals = {@APILocals(name = "title", type = Span.class),
+                    @APILocals(name = "inCopy", type = Button.class),
+                    @APILocals(name = "field", type = MergePlan.Field.class)})
     void show(Item item) {
         focused = item;
         detail.removeAll();
@@ -394,6 +468,11 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
     /**
      * Opens the copy of the agent to read, at the part or the entry of the item.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "item", type = MergePlan.Item.class)},
+            locals = {@APILocals(name = "dialog", type = Dialog.class),
+                    @APILocals(name = "view", type = AgentCopyView.class)})
     void showInCopy(Item item) {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(loc.getValue(L.LABEL_AGENT_BOOK_COPY) + " - " + agentName);
@@ -414,12 +493,20 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         copyDialog = dialog;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Span.class),
+            parameters = {@APIParameter(name = "text", type = String.class),
+                    @APIParameter(name = "theme", type = String.class)},
+            locals = {@APILocals(name = "note", type = Span.class)})
     private Span note(String text, String theme) {
         Span note = new Span(text);
         note.getElement().getThemeList().add("badge " + theme);
         return note;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "problem", type = String.class)})
     private String problem(String problem) {
         return loc.getValue(switch (problem) {
             case MergePlan.PROBLEM_NEEDS_PARENT -> L.MSG_MERGE_PROBLEM_NEEDS_PARENT;
@@ -428,6 +515,14 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         });
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "item", type = MergePlan.Item.class),
+                    @APIParameter(name = "field", type = MergePlan.Field.class)},
+            locals = {@APILocals(name = "view", type = VerticalLayout.class),
+                    @APILocals(name = "name", type = Span.class),
+                    @APILocals(name = "take", type = Checkbox.class),
+                    @APILocals(name = "head", type = HorizontalLayout.class)})
     private Component fieldView(Item item, Field field) {
         VerticalLayout view = new VerticalLayout();
         view.setPadding(false);
@@ -475,6 +570,12 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
                 && item.fields().stream().filter(other -> !MergeDiff.PARENT.equals(other.name())).count() > 1;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "item", type = MergePlan.Item.class),
+                    @APIParameter(name = "field", type = MergePlan.Field.class),
+                    @APIParameter(name = "taken", type = boolean.class)},
+            locals = {@APILocals(name = "fields", type = Set.class)})
     private void take(Item item, Field field, boolean taken) {
         Set<String> fields = skipped.computeIfAbsent(item.id(), id -> new HashSet<>());
         if (taken) {
@@ -487,6 +588,16 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
     /**
      * The book's text next to the text that is applied; the second one is written over when the user wants.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "item", type = MergePlan.Item.class),
+                    @APIParameter(name = "field", type = MergePlan.Field.class)},
+            locals = {@APILocals(name = "toApply", type = TextArea.class),
+                    @APILocals(name = "inBook", type = TextArea.class),
+                    @APILocals(name = "useBook", type = Button.class),
+                    @APILocals(name = "useAgent", type = Button.class),
+                    @APILocals(name = "button", type = Button.class),
+                    @APILocals(name = "both", type = VerticalLayout.class)})
     private Component textView(Item item, Field field) {
         TextArea toApply = new TextArea(loc.getValue(L.LABEL_MERGE_TO_APPLY));
         toApply.setWidthFull();
@@ -515,6 +626,16 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
      * The words that change, word by word: from the book now to the text that is applied (it follows what the user writes), and
      * for a conflict also what each side did since the run started.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "field", type = MergePlan.Field.class),
+                    @APIParameter(name = "toApply", type = TextArea.class)},
+            locals = {@APILocals(name = "same", type = String.class),
+                    @APILocals(name = "applied", type = WordDiffView.class),
+                    @APILocals(name = "content", type = VerticalLayout.class),
+                    @APILocals(name = "agent", type = WordDiffView.class),
+                    @APILocals(name = "user", type = WordDiffView.class),
+                    @APILocals(name = "details", type = Details.class)})
     private Component differences(Field field, TextArea toApply) {
         String same = loc.getValue(L.MSG_MERGE_NO_DIFFERENCE);
         WordDiffView applied = new WordDiffView(same);
@@ -537,6 +658,10 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         return details;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Span.class),
+            parameters = {@APIParameter(name = "text", type = L.class)},
+            locals = {@APILocals(name = "heading", type = Span.class)})
     private Span heading(L text) {
         Span heading = new Span(loc.getValue(text));
         heading.addClassName(CssStyles.HINT_TEXT);
@@ -550,6 +675,12 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         return field.type() == Type.JSON ? JsonMerge.merge(field.base(), field.agent(), field.book()) : field.agent();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "item", type = MergePlan.Item.class),
+                    @APIParameter(name = "field", type = MergePlan.Field.class),
+                    @APIParameter(name = "text", type = String.class)},
+            locals = {@APILocals(name = "fields", type = Map.class)})
     private void edit(Item item, Field field, String text) {
         Map<String, String> fields = edits.computeIfAbsent(item.id(), id -> new HashMap<>());
         if (text == null || text.equals(defaultValue(field))) {
@@ -563,6 +694,23 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
      * The data of the field is JSON: the data that is applied, read only, with what to do with it. The user puts it together in the
      * dialog of the JSON merge, which remembers what they decided while this one is open.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "item", type = MergePlan.Item.class),
+                    @APIParameter(name = "field", type = MergePlan.Field.class),
+                    @APIParameter(name = "label", type = String.class)},
+            locals = {@APILocals(name = "model", type = JsonMergeNode.class),
+                    @APILocals(name = "fallback", type = VerticalLayout.class),
+                    @APILocals(name = "applied", type = String.class),
+                    @APILocals(name = "toApply", type = TextArea.class),
+                    @APILocals(name = "merge", type = Button.class),
+                    @APILocals(name = "useAgent", type = Button.class),
+                    @APILocals(name = "useBook", type = Button.class),
+                    @APILocals(name = "startOver", type = Button.class),
+                    @APILocals(name = "buttons", type = HorizontalLayout.class),
+                    @APILocals(name = "view", type = VerticalLayout.class),
+                    @APILocals(name = "inBook", type = TextArea.class),
+                    @APILocals(name = "changes", type = WordDiffView.class)})
     private Component jsonView(Item item, Field field, String label) {
         JsonMergeNode model = jsonModels.computeIfAbsent(item.id() + "\u0000" + field.name(), key -> jsonModel(field));
         if (model == null) {
@@ -631,6 +779,14 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "field", type = MergePlan.Field.class)},
+            locals = {@APILocals(name = "before", type = Set.class),
+                    @APILocals(name = "after", type = Set.class),
+                    @APILocals(name = "view", type = VerticalLayout.class),
+                    @APILocals(name = "added", type = String.class),
+                    @APILocals(name = "removed", type = String.class)})
     private Component setView(Field field) {
         Set<String> before = lines(field.base());
         Set<String> after = lines(field.agent());
@@ -665,11 +821,19 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
     /**
      * The name of a lorebook given by its key; anything else as it is.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "key", type = String.class)},
+            locals = {@APILocals(name = "name", type = String.class)})
     private String name(String key) {
         String name = plan.names().get(key);
         return name != null ? name : key;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "type", type = MergePlan.Type.class),
+                    @APIParameter(name = "value", type = String.class)})
     private String named(Type type, String value) {
         if (type == Type.REF) {
             return name(value);
@@ -680,10 +844,19 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         return value == null ? "" : value;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "label", type = L.class),
+                    @APIParameter(name = "value", type = String.class)})
     private Component readOnly(L label, String value) {
         return readOnlyArea(label, value);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TextArea.class),
+            parameters = {@APIParameter(name = "label", type = L.class),
+                    @APIParameter(name = "value", type = String.class)},
+            locals = {@APILocals(name = "area", type = TextArea.class)})
     private TextArea readOnlyArea(L label, String value) {
         TextArea area = new TextArea(loc.getValue(label));
         area.setReadOnly(true);
@@ -694,6 +867,9 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         return area;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = L.class),
+            parameters = {@APIParameter(name = "field", type = String.class)})
     private L fieldText(String field) {
         return switch (field) {
             case "name" -> L.LABEL_NAME;
@@ -730,6 +906,9 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
 
     // --- apply and discard
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "picked", type = Set.class)})
     private void confirmApply() {
         Set<Item> picked = grid.asMultiSelect().getSelectedItems();
         if (picked.isEmpty()) {
@@ -747,6 +926,14 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
     /**
      * Applies the picked changes with the texts the user wrote.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "ids", type = Set.class),
+                    @APILocals(name = "written", type = Map.class),
+                    @APILocals(name = "left", type = Map.class),
+                    @APILocals(name = "result", type = AgentMergeService.MergeResult.class),
+                    @APILocals(name = "e", type = RuntimeException.class),
+                    @APILocals(name = "e", type = Exception.class)})
     void apply() {
         Set<String> ids = grid.asMultiSelect().getSelectedItems().stream().map(Item::id).collect(Collectors.toSet());
         Map<String, Map<String, String>> written = new HashMap<>();
@@ -779,6 +966,10 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = RuntimeException.class),
+                    @APILocals(name = "e", type = Exception.class)})
     void discard() {
         try {
             agentRunService.stop(run, false);
@@ -793,54 +984,80 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
 
     // for the tests of the dialog
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Grid.class))
     Grid<Item> getGrid() {
         return grid;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getApplyButton() {
         return applyButton;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getDiscardButton() {
         return discardButton;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = VerticalLayout.class))
     VerticalLayout getDetail() {
         return detail;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Checkbox.class))
     Checkbox getBranchBox() {
         return branchBox;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Details.class))
     Details getFindingsDetails() {
         return findingsDetails;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Span.class))
     Span getSummaryLabel() {
         return summaryLabel;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = MergePlan.class))
     MergePlan getPlan() {
         return plan;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = MergePlan.Item.class))
     Item getFocused() {
         return focused;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Dialog.class))
     Dialog getCopyDialog() {
         return copyDialog;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = JsonMergeDialog.class))
     JsonMergeDialog getJsonDialog() {
         return jsonDialog;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Map.class))
     Map<String, Map<String, String>> getEdits() {
         return edits;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Map.class))
     Map<String, Set<String>> getSkipped() {
         return skipped;
     }

@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.ProtocolService;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -34,6 +35,7 @@ import java.util.Map;
  * {@link #applyTo} puts the table into the agent.
  */
 @Configurable(preConstruction = true)
+@Extendable
 public class AgentModelsEditor extends VerticalLayout {
 
     @Autowired
@@ -82,6 +84,11 @@ public class AgentModelsEditor extends VerticalLayout {
         refresh();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "ai", type = AI.class),
+                    @APILocals(name = "protocol", type = Protocol.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void loadNames() {
         try {
             for (AI ai : aiService.findAllForUser()) {
@@ -100,6 +107,10 @@ public class AgentModelsEditor extends VerticalLayout {
      *
      * @param profiles the profiles of the agent, the main one first; none for an agent that has no model yet
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "profiles", type = List.class),
+                    @APIParameter(name = "selfAllowed", type = boolean.class)})
     public void setProfiles(List<AgentModelProfile> profiles, boolean selfAllowed) {
         main = profiles.isEmpty() ? new AgentModelProfile(AgentDialog.MAIN_ROLE, null, null) : profiles.getFirst().copy();
         others.clear();
@@ -113,6 +124,11 @@ public class AgentModelsEditor extends VerticalLayout {
      * and the other profiles. The main profile itself (its AI and protocol) is the dialog's; an agent that has none keeps the
      * profiles it has.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "agent", type = Agent.class)},
+            locals = {@APILocals(name = "profiles", type = List.class),
+                    @APILocals(name = "all", type = List.class)})
     public void applyTo(Agent agent) {
         agent.setAllowSelfSubagent(selfCheckbox.getValue() ? null : false);
         List<AgentModelProfile> profiles = new ArrayList<>(agent.getModelProfiles());
@@ -126,6 +142,9 @@ public class AgentModelsEditor extends VerticalLayout {
         agent.setModelProfiles(all);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "rows", type = List.class)})
     private void refresh() {
         List<AgentModelProfile> rows = new ArrayList<>();
         rows.add(main);
@@ -133,14 +152,23 @@ public class AgentModelsEditor extends VerticalLayout {
         grid.setItems(rows);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "profile", type = AgentModelProfile.class)})
     private boolean isMain(AgentModelProfile profile) {
         return profile == main;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "profile", type = AgentModelProfile.class)})
     private String roleOf(AgentModelProfile profile) {
         return isMain(profile) ? loc.getValue(L.LABEL_AGENT_MAIN_MODEL) : profile.getRole();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "profile", type = AgentModelProfile.class)})
     private String modelOf(AgentModelProfile profile) {
         if (isMain(profile)) {
             return "";
@@ -148,6 +176,9 @@ public class AgentModelsEditor extends VerticalLayout {
         return aiNames.getOrDefault(profile.getAiUuid(), "?") + " / " + protocolNames.getOrDefault(profile.getProtocolUuid(), "?");
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "profile", type = AgentModelProfile.class)})
     private String commandsOf(AgentModelProfile profile) {
         if (!isMain(profile) && !profile.isTools()) {
             return loc.getValue(L.LABEL_AGENT_TEXT_ONLY);
@@ -159,6 +190,12 @@ public class AgentModelsEditor extends VerticalLayout {
                 : String.format(loc.getValue(L.MSG_AGENT_COMMANDS_COUNT), profile.getCommands().size());
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = HorizontalLayout.class),
+            parameters = {@APIParameter(name = "profile", type = AgentModelProfile.class)},
+            locals = {@APILocals(name = "edit", type = Button.class),
+                    @APILocals(name = "line", type = HorizontalLayout.class),
+                    @APILocals(name = "delete", type = Button.class)})
     private HorizontalLayout buttons(AgentModelProfile profile) {
         Button edit = new Button(loc.getValue(L.LABEL_EDIT), event -> edit(profile, isMain(profile)));
         edit.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
@@ -175,6 +212,11 @@ public class AgentModelsEditor extends VerticalLayout {
         return line;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "profile", type = AgentModelProfile.class),
+                    @APIParameter(name = "isMainProfile", type = boolean.class)},
+            locals = {@APILocals(name = "dialog", type = AgentModelDialog.class)})
     private void edit(AgentModelProfile profile, boolean isMainProfile) {
         AgentModelDialog dialog = new AgentModelDialog(profile, isMainProfile, edited -> {
             if (isMainProfile) {
@@ -194,22 +236,33 @@ public class AgentModelsEditor extends VerticalLayout {
     }
 
     // for the tests
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Grid.class))
     Grid<AgentModelProfile> getGrid() {
         return grid;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Checkbox.class))
     Checkbox getSelfCheckbox() {
         return selfCheckbox;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = List.class))
     List<AgentModelProfile> getOthers() {
         return others;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = AgentModelProfile.class))
     AgentModelProfile getMain() {
         return main;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "profile", type = AgentModelProfile.class)})
     void addModel(AgentModelProfile profile) {
         others.add(profile);
         refresh();

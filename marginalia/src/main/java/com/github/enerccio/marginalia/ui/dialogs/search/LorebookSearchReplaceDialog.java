@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.service.LorebookReplaceService;
 import com.github.enerccio.marginalia.domain.service.LorebookReplaceService.Options;
 import com.github.enerccio.marginalia.domain.service.LorebookReplaceService.Plan;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,7 @@ import java.util.List;
  * known by its name.
  */
 @Configurable(preConstruction = true)
+@Extendable
 public class LorebookSearchReplaceDialog extends SearchReplaceDialog {
 
     @Autowired
@@ -30,16 +32,24 @@ public class LorebookSearchReplaceDialog extends SearchReplaceDialog {
         create();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class))
     @Override
     protected String getTitle() {
         return loc.getValue(L.LABEL_SEARCH_AND_REPLACE);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class))
     @Override
     protected String getIdColumnHeader() {
         return loc.getValue(L.LABEL_NAME);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = SearchReplaceDialog.Searcher.class),
+            parameters = {@APIParameter(name = "request", type = SearchReplaceDialog.SearchRequest.class)},
+            locals = {@APILocals(name = "options", type = LorebookReplaceService.Options.class)})
     @Override
     protected Searcher createSearcher(SearchRequest request) {
         Options options = new Options(request.search(), request.replacement(), request.regex(), request.caseSensitive());

@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.widgets;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.utils.WordDiff;
 import com.github.enerccio.marginalia.utils.WordDiff.Segment;
 import com.vaadin.flow.component.html.Div;
@@ -12,6 +13,7 @@ import java.util.List;
  * The difference of two texts word by word, as one text: what only the first has struck through in red, what only the second
  * has in green, the rest as it is (see {@link WordDiff}).
  */
+@Extendable
 public class WordDiffView extends Div {
 
     private final String sameText;
@@ -27,6 +29,13 @@ public class WordDiffView extends Div {
     /**
      * Shows what turns {@code before} into {@code after}.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "before", type = String.class),
+                    @APIParameter(name = "after", type = String.class)},
+            locals = {@APILocals(name = "segments", type = List.class),
+                    @APILocals(name = "segment", type = WordDiff.Segment.class),
+                    @APILocals(name = "span", type = Span.class)})
     public void show(String before, String after) {
         removeAll();
         List<Segment> segments = WordDiff.diff(before, after);

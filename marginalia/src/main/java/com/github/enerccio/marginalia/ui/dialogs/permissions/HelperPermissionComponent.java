@@ -1,6 +1,10 @@
 package com.github.enerccio.marginalia.ui.dialogs.permissions;
 
 import com.github.enerccio.marginalia.domain.security.model.Permission;
+import com.github.enerccio.marginalia.domain.traits.APIParameter;
+import com.github.enerccio.marginalia.domain.traits.APIReturn;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.Component;
@@ -17,6 +21,7 @@ import java.util.List;
  * count against their limits, and whether the assistant may move through the interface for them.
  */
 @Configurable
+@Extendable
 public class HelperPermissionComponent implements PermissionUIComponent {
 
     @Autowired
@@ -29,6 +34,8 @@ public class HelperPermissionComponent implements PermissionUIComponent {
     private boolean loading;
 
     // texts need the injected localization, which is there only after the constructor
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void build() {
         if (layout != null) {
             return;
@@ -43,6 +50,8 @@ public class HelperPermissionComponent implements PermissionUIComponent {
         layout.setPadding(false);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void changed() {
         // not an edit while the model is put into the component
         if (!loading) {
@@ -50,12 +59,17 @@ public class HelperPermissionComponent implements PermissionUIComponent {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class))
     @Override
     public Component getComponent() {
         build();
         return layout;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "permission", type = Permission.class)})
     @Override
     public void model2component(Permission permission) {
         build();
@@ -68,6 +82,9 @@ public class HelperPermissionComponent implements PermissionUIComponent {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "permission", type = Permission.class)})
     @Override
     public void component2model(Permission permission) {
         build();
@@ -75,6 +92,9 @@ public class HelperPermissionComponent implements PermissionUIComponent {
         permission.setHelperInteractions(interactions.getValue());
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "runnable", type = Runnable.class)})
     @Override
     public void onChange(Runnable runnable) {
         listeners.add(runnable);

@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.ui.dialogs.agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.AgentRunService;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Configurable;
  * so the user is told to pause or stop the run instead of getting a window that can't save anything.
  */
 @Configurable
+@Extendable
 public class AgentLockCheck {
 
     @Autowired
@@ -26,6 +28,11 @@ public class AgentLockCheck {
     /**
      * Whether the book is locked by a run of its agent; when it is, tells the user which agent holds it.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)},
+            locals = {@APILocals(name = "locking", type = AgentRun.class),
+                    @APILocals(name = "e", type = Exception.class)})
     public boolean refuses(Manuscript manuscript) {
         try {
             AgentRun locking = agentRunService.findLockingRun(manuscript);

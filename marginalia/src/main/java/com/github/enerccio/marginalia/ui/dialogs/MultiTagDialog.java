@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -45,6 +46,7 @@ import java.util.stream.Stream;
  * and nothing can be done with it.
  */
 @Configurable
+@Extendable
 public class MultiTagDialog extends Dialog implements LLMInteract {
 
     private static final Logger log = LoggerFactory.getLogger(MultiTagDialog.class);
@@ -159,6 +161,12 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
         this.onChange = onChange;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "hint", type = Span.class),
+                    @APILocals(name = "close", type = Button.class),
+                    @APILocals(name = "footer", type = HorizontalLayout.class),
+                    @APILocals(name = "content", type = VerticalLayout.class)})
     public void create() {
         setHeaderTitle(loc.getValue(kind.title));
         setWidth("900px");
@@ -235,6 +243,16 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
     /**
      * Reads the items and their tags again. The checks and the picked tag stay.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "loaded", type = List.class),
+                    @APILocals(name = "book", type = Manuscript.class),
+                    @APILocals(name = "book", type = Lorebook.class),
+                    @APILocals(name = "entry", type = LorebookEntry.class),
+                    @APILocals(name = "checked", type = Set.class),
+                    @APILocals(name = "tags", type = Map.class),
+                    @APILocals(name = "row", type = MultiTagDialog.Row.class),
+                    @APILocals(name = "e", type = Exception.class)})
     public void load() {
         try {
             List<Row> loaded = new ArrayList<>();
@@ -277,6 +295,9 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
     /**
      * The items with the picked tag first, the others after them, each group by name.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "tag", type = Tag.class)})
     private void sort() {
         if (grid == null) {
             return;
@@ -291,6 +312,10 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
         return row.tags.stream().anyMatch(t -> Objects.equals(t.getId(), tag.getId()));
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Checkbox.class),
+            parameters = {@APIParameter(name = "row", type = MultiTagDialog.Row.class)},
+            locals = {@APILocals(name = "box", type = Checkbox.class)})
     private Checkbox checkbox(Row row) {
         Checkbox box = new Checkbox(row.checked);
         box.setEnabled(!row.locked);
@@ -302,6 +327,10 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
         return box;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Span.class),
+            parameters = {@APIParameter(name = "row", type = MultiTagDialog.Row.class)},
+            locals = {@APILocals(name = "name", type = Span.class)})
     private Span nameCell(Row row) {
         Span name = new Span(StringUtils.defaultString(row.name));
         if (row.locked) {
@@ -310,6 +339,13 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
         return dimmed(name, row);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Div.class),
+            parameters = {@APIParameter(name = "row", type = MultiTagDialog.Row.class)},
+            locals = {@APILocals(name = "picked", type = Tag.class),
+                    @APILocals(name = "cell", type = Div.class),
+                    @APILocals(name = "tag", type = Tag.class),
+                    @APILocals(name = "chip", type = Span.class)})
     Div tagsCell(Row row) {
         Tag picked = tagBox.getValue();
         Div cell = new Div();
@@ -324,6 +360,11 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
         return dimmed(cell, row);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = HorizontalLayout.class),
+            parameters = {@APIParameter(name = "row", type = MultiTagDialog.Row.class)},
+            locals = {@APILocals(name = "apply", type = Button.class),
+                    @APILocals(name = "remove", type = Button.class)})
     private HorizontalLayout actions(Row row) {
         Button apply = new Button(Solid.PLUS.create(), event -> change(List.of(row), true));
         apply.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
@@ -346,6 +387,8 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
         return component;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void updateButtons() {
         if (applyChecked == null) {
             return;
@@ -355,6 +398,9 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
         removeChecked.setEnabled(enabled);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "apply", type = boolean.class)})
     private void applyToChecked(boolean apply) {
         change(rows.stream().filter(row -> row.checked).toList(), apply);
     }
@@ -362,6 +408,13 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
     /**
      * Puts the picked tag on the items, or takes it off. An item that was locked meanwhile is left alone.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "targets", type = List.class),
+                    @APIParameter(name = "apply", type = boolean.class)},
+            locals = {@APILocals(name = "tag", type = Tag.class),
+                    @APILocals(name = "row", type = MultiTagDialog.Row.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void change(List<Row> targets, boolean apply) {
         Tag tag = tagBox.getValue();
         if (tag == null) {
@@ -396,6 +449,9 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "row", type = MultiTagDialog.Row.class)})
     private boolean isLockedNow(Row row) throws Exception {
         return switch (kind) {
             case BOOKS -> agentRunService.findLockingRun((Manuscript) row.entity) != null;
@@ -408,6 +464,11 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
      * A tag typed in the box that does not exist yet is created (an existing one with that value, in any case, is used) and
      * picked.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "typed", type = String.class)},
+            locals = {@APILocals(name = "tag", type = Tag.class),
+                    @APILocals(name = "e", type = Exception.class)})
     void createTag(String typed) {
         try {
             Tag tag = tagService.getOrCreateForUser(typed);
@@ -422,35 +483,55 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
 
     // for the tests of the dialog
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = ComboBox.class))
     ComboBox<Tag> getTagBox() {
         return tagBox;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Grid.class))
     Grid<Row> getGrid() {
         return grid;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = List.class))
     List<Row> getRows() {
         return rows;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Checkbox.class))
     Checkbox getAllBox() {
         return allBox;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getApplyChecked() {
         return applyChecked;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getRemoveChecked() {
         return removeChecked;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "row", type = MultiTagDialog.Row.class),
+                    @APIParameter(name = "checked", type = boolean.class)})
     void check(Row row, boolean checked) {
         row.checked = checked;
         updateButtons();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "row", type = MultiTagDialog.Row.class),
+                    @APIParameter(name = "apply", type = boolean.class)})
     void applyTo(Row row, boolean apply) {
         change(List.of(row), apply);
     }

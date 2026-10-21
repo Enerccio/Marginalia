@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.service.AgentVirtualFileSystemService;
 import com.github.enerccio.marginalia.domain.service.agent.*;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -49,6 +50,7 @@ import java.util.function.BooleanSupplier;
  * changed while the agent works, the run would lose them under its hands.
  */
 @Configurable
+@Extendable
 public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract {
 
     /**
@@ -90,6 +92,9 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
      * What the workspace may hold, with the quotas of the owner; the default limits when they can't be read (only the
      * size of the upload box depends on it, the file system checks every file).
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = WorkspaceLimits.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private WorkspaceLimits limits() {
         try {
             return fileSystemService.getLimits(agent);
@@ -103,6 +108,14 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
         this.busy = busy;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "refreshButton", type = Button.class),
+                    @APILocals(name = "button", type = Button.class),
+                    @APILocals(name = "uploadButton", type = Button.class),
+                    @APILocals(name = "limits", type = WorkspaceLimits.class),
+                    @APILocals(name = "entry", type = Map.Entry.class),
+                    @APILocals(name = "toolbar", type = HorizontalLayout.class)})
     public void create() {
         setSizeFull();
         setPadding(false);
@@ -176,6 +189,9 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
         refresh();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "entry", type = VirtualEntry.class)})
     private String sizeText(VirtualEntry entry) {
         return entry.directory() ? "" : FileUtils.byteCountToDisplaySize(entry.size());
     }
@@ -183,11 +199,20 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
     /**
      * Whether to make the browser of a phone: the default is the screen of the user, set it before {@link #create()}.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "phone", type = boolean.class)})
     void setPhone(boolean phone) {
         this.phone = phone;
     }
 
     // package visible for the tests
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "entry", type = VirtualEntry.class)},
+            locals = {@APILocals(name = "name", type = Span.class),
+                    @APILocals(name = "cell", type = HorizontalLayout.class),
+                    @APILocals(name = "size", type = Span.class)})
     Component nameCell(VirtualEntry entry) {
         Span name = new Span(entry.path().getName());
         name.addClassName(CssStyles.WRAP_ANYWHERE);
@@ -202,6 +227,12 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
         return cell;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "entry", type = VirtualEntry.class)},
+            locals = {@APILocals(name = "deleteButton", type = Button.class),
+                    @APILocals(name = "downloadButton", type = Button.class),
+                    @APILocals(name = "actions", type = HorizontalLayout.class)})
     private Component actions(VirtualEntry entry) {
         Button deleteButton = new Button(Solid.TRASH.create(), event ->
                 ConfirmDialog.open(loc.getValue(L.MSG_CONFIRM_DELETE), () -> delete(entry), () -> {}));
@@ -219,6 +250,11 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
         return actions;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Anchor.class),
+            parameters = {@APIParameter(name = "entry", type = VirtualEntry.class),
+                    @APIParameter(name = "button", type = Button.class)},
+            locals = {@APILocals(name = "anchor", type = Anchor.class)})
     private Anchor downloadAnchor(VirtualEntry entry, Button button) {
         Anchor anchor = new Anchor(new InputStreamDownloadHandler((InputStreamDownloadCallback) downloadEvent -> {
             try {
@@ -237,6 +273,12 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
     /**
      * A folder is entered, a text file is shown.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "entry", type = VirtualEntry.class)},
+            locals = {@APILocals(name = "content", type = byte[].class),
+                    @APILocals(name = "text", type = String.class),
+                    @APILocals(name = "e", type = VirtualFileException.class)})
     void open(VirtualEntry entry) {
         if (entry.directory()) {
             folder = entry.path();
@@ -261,6 +303,10 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "entry", type = VirtualEntry.class)},
+            locals = {@APILocals(name = "e", type = VirtualFileException.class)})
     void delete(VirtualEntry entry) {
         try {
             files.delete(entry.path(), true);
@@ -274,6 +320,10 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
     /**
      * Creates a folder in the open one; the name follows the rules of the names of the agent.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "name", type = String.class)},
+            locals = {@APILocals(name = "e", type = VirtualFileException.class)})
     void createFolder(String name) {
         if (isBusy()) {
             return;
@@ -290,6 +340,13 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
      * Puts an uploaded file in the open folder. It is text (what the agent reads), an image (what it can be shown) or a
      * zip file (which the agent unpacks), within the limits of the workspace, and a file of that name is not replaced.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "fileName", type = String.class),
+                    @APIParameter(name = "content", type = byte[].class)},
+            locals = {@APILocals(name = "target", type = VirtualPath.class),
+                    @APILocals(name = "text", type = String.class),
+                    @APILocals(name = "e", type = VirtualFileException.class)})
     void upload(String fileName, byte[] content) {
         if (isBusy()) {
             return;
@@ -324,6 +381,8 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = boolean.class))
     private boolean isBusy() {
         if (busy.getAsBoolean()) {
             Notification.warning(loc.getValue(L.MSG_AGENT_WORKSPACE_BUSY));
@@ -333,6 +392,10 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
         return false;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = RuntimeException.class),
+                    @APILocals(name = "e", type = Exception.class)})
     void clear() {
         try {
             fileSystemService.clearWorkspace(agent);
@@ -349,6 +412,13 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
     /**
      * Reads the folder again, and the buttons that depend on whether the agent works.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "entries", type = List.class),
+                    @APILocals(name = "e", type = VirtualFileException.class),
+                    @APILocals(name = "shown", type = String.class),
+                    @APILocals(name = "usage", type = WorkspaceUsage.class),
+                    @APILocals(name = "e", type = Exception.class)})
     public void refresh() {
         if (grid == null) {
             return;
@@ -389,34 +459,50 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
 
     // for the tests of the browser
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Grid.class))
     Grid<VirtualEntry> getGrid() {
         return grid;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TextArea.class))
     TextArea getViewer() {
         return viewer;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Span.class))
     Span getUsageLabel() {
         return usageLabel;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getClearButton() {
         return clearButton;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getNewFolderButton() {
         return newFolderButton;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Upload.class))
     Upload getUpload() {
         return upload;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getUpButton() {
         return upButton;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = VirtualPath.class))
     VirtualPath getFolder() {
         return folder;
     }

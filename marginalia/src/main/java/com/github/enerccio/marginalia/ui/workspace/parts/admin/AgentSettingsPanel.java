@@ -4,6 +4,10 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.service.AgentService;
 import com.github.enerccio.marginalia.domain.service.AgentWebhookService;
+import com.github.enerccio.marginalia.domain.traits.APILocals;
+import com.github.enerccio.marginalia.domain.traits.APIReturn;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -26,6 +30,7 @@ import org.springframework.beans.factory.annotation.Configurable;
  * and what the info popover fills in. (What the users may do with agents is the permission {@code AGENTS}.)
  */
 @Configurable
+@Extendable
 public class AgentSettingsPanel implements LLMInteract {
 
     @Autowired
@@ -42,6 +47,12 @@ public class AgentSettingsPanel implements LLMInteract {
     private TextAreaPopoverComponent promptField;
     private TextAreaPopoverComponent compactionField;
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "layout", type = VerticalLayout.class),
+                    @APILocals(name = "description", type = Span.class),
+                    @APILocals(name = "compactionDescription", type = Span.class),
+                    @APILocals(name = "save", type = Button.class)})
     public Component create() throws Exception {
         VerticalLayout layout = new VerticalLayout();
         layout.setSizeFull();
@@ -77,12 +88,17 @@ public class AgentSettingsPanel implements LLMInteract {
         return layout;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void load() throws Exception {
         promptField.setValue(agentService.getAppSystemPrompt());
         compactionField.setValue(agentService.getAppCompactionPrompt());
         webhooksAllowed.setValue(webhookService.isAllowed());
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private void save() {
         try {
             agentService.setAppSystemPrompt(promptField.getValue());

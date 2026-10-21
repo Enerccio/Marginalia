@@ -5,6 +5,10 @@ import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.ProtocolService;
+import com.github.enerccio.marginalia.domain.traits.APILocals;
+import com.github.enerccio.marginalia.domain.traits.APIReturn;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.ModelProtocolPicker;
@@ -34,6 +38,7 @@ import java.util.function.Consumer;
  * the same model. The profile is changed only when the dialog is confirmed.
  */
 @Configurable(preConstruction = true)
+@Extendable
 public class AgentModelDialog extends Dialog {
 
     @Autowired
@@ -68,6 +73,12 @@ public class AgentModelDialog extends Dialog {
         this.onOk = onOk;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "form", type = FormLayout.class),
+                    @APILocals(name = "cancelButton", type = Button.class),
+                    @APILocals(name = "okButton", type = Button.class),
+                    @APILocals(name = "footer", type = HorizontalLayout.class)})
     public void create() {
         setHeaderTitle(loc.getValue(main ? L.LABEL_AGENT_MAIN_MODEL : L.LABEL_AGENT_MODELS));
         setWidth("900px");
@@ -119,6 +130,11 @@ public class AgentModelDialog extends Dialog {
         load();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "ai", type = AI.class),
+                    @APILocals(name = "protocol", type = Protocol.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void load() {
         try {
             roleField.setValue(StringUtils.defaultString(profile.getRole()));
@@ -138,6 +154,8 @@ public class AgentModelDialog extends Dialog {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void save() {
         if (!main && (StringUtils.isBlank(roleField.getValue()) || modelPicker.getAi() == null || modelPicker.getProtocol() == null
                 || contextLimitField.isInvalid())) {
@@ -158,30 +176,44 @@ public class AgentModelDialog extends Dialog {
     }
 
     // for the tests
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TextField.class))
     TextField getRoleField() {
         return roleField;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = ModelProtocolPicker.class))
     ModelProtocolPicker getModelPicker() {
         return modelPicker;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Checkbox.class))
     Checkbox getToolsCheckbox() {
         return toolsCheckbox;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Checkbox.class))
     Checkbox getLimitCommandsCheckbox() {
         return limitCommandsCheckbox;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = AgentCommandsEditor.class))
     AgentCommandsEditor getCommandsEditor() {
         return commandsEditor;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TextArea.class))
     TextArea getDescriptionField() {
         return descriptionField;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     void confirm() {
         save();
     }

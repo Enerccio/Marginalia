@@ -12,10 +12,11 @@ import com.github.enerccio.marginalia.domain.service.InferenceErrors;
 import com.github.enerccio.marginalia.domain.service.InferenceService.ChunkType;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncCallback;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncController;
-import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.function.FunctionContinuation;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.service.manual.UiStateSource;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
@@ -23,12 +24,7 @@ import com.github.enerccio.marginalia.ui.LLMSnapshot;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.github.enerccio.marginalia.utils.UiProblems;
-import com.vaadin.flow.component.AttachEvent;
-import com.vaadin.flow.component.DetachEvent;
-import com.vaadin.flow.component.Key;
-import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.UIDetachedException;
-import com.vaadin.flow.dom.ElementUtil;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
@@ -38,6 +34,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.shared.Tooltip;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.dom.ElementUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +53,7 @@ import java.util.function.Supplier;
  * shown again when the panel is opened. The button is not shown at all while the assistant is off.
  */
 @Configurable(preConstruction = true)
+@Extendable
 public class HelpAssistantWidget extends Div {
     private static final Logger log = LoggerFactory.getLogger(HelpAssistantWidget.class);
 
@@ -113,6 +111,9 @@ public class HelpAssistantWidget extends Div {
         setVisible(isAvailable());
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = boolean.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private boolean isAvailable() {
         try {
             return helpService.isAvailable();
@@ -122,6 +123,13 @@ public class HelpAssistantWidget extends Div {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "title", type = Span.class),
+                    @APILocals(name = "close", type = Button.class),
+                    @APILocals(name = "header", type = HorizontalLayout.class),
+                    @APILocals(name = "infoRow", type = Div.class),
+                    @APILocals(name = "inputRow", type = HorizontalLayout.class)})
     private void buildPanel() {
         Span title = new Span(loc.getValue(L.LABEL_HELP_ASSISTANT));
 
@@ -172,6 +180,8 @@ public class HelpAssistantWidget extends Div {
         panel.setVisible(false);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void toggle() {
         if (panel.isVisible()) {
             panel.setVisible(false);
@@ -184,6 +194,11 @@ public class HelpAssistantWidget extends Div {
      * Shows the panel with the conversation. Asked again at each opening, so that a change an administrator made
      * (the AI, the limits, turned off) is seen without a reload.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "info", type = HelpAssistantService.Info.class),
+                    @APILocals(name = "e", type = Exception.class),
+                    @APILocals(name = "ai", type = String.class)})
     private void open() {
         Info info;
         try {
@@ -208,6 +223,10 @@ public class HelpAssistantWidget extends Div {
         input.focus();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "copy", type = List.class),
+                    @APILocals(name = "message", type = LLMChatMessage.class)})
     private void renderHistory() {
         messages.removeAll();
         List<LLMChatMessage> copy;
@@ -227,6 +246,10 @@ public class HelpAssistantWidget extends Div {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Div.class),
+            parameters = {@APIParameter(name = "text", type = String.class)},
+            locals = {@APILocals(name = "card", type = Div.class)})
     private Div userCard(String text) {
         Div card = new Div();
         card.setText(text);
@@ -234,12 +257,18 @@ public class HelpAssistantWidget extends Div {
         return card;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Markdown.class),
+            parameters = {@APIParameter(name = "text", type = String.class)},
+            locals = {@APILocals(name = "card", type = Markdown.class)})
     private Markdown assistantCard(String text) {
         Markdown card = new Markdown(text);
         card.addClassName(CssStyles.HELP_MESSAGE);
         return card;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void clearChat() {
         if (generating) {
             stop();
@@ -248,6 +277,9 @@ public class HelpAssistantWidget extends Div {
         renderHistory();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "current", type = CancellationToken.class)})
     private void stop() {
         cancelled = true;
         CancellationToken current = token;
@@ -256,6 +288,15 @@ public class HelpAssistantWidget extends Div {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "text", type = String.class),
+                    @APILocals(name = "question", type = LLMChatMessage.class),
+                    @APILocals(name = "questionCard", type = Div.class),
+                    @APILocals(name = "answerCard", type = Markdown.class),
+                    @APILocals(name = "answer", type = HelpAssistantWidget.Answer.class),
+                    @APILocals(name = "ui", type = UI.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void send() {
         if (generating) {
             stop();
@@ -379,6 +420,9 @@ public class HelpAssistantWidget extends Div {
     }
 
     /** The last messages of the conversation, starting with a question of the user. */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = List.class),
+            locals = {@APILocals(name = "copy", type = List.class)})
     private List<LLMChatMessage> recentHistory() {
         List<LLMChatMessage> copy;
         synchronized (history) {
@@ -390,6 +434,9 @@ public class HelpAssistantWidget extends Div {
         return copy;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "value", type = boolean.class)})
     private void setGenerating(boolean value) {
         generating = value;
         sendButton.setIcon((value ? Solid.STOP : Solid.PAPER_PLANE).create());
@@ -397,6 +444,9 @@ public class HelpAssistantWidget extends Div {
         clearButton.setEnabled(!value);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "attachEvent", type = AttachEvent.class)})
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
@@ -411,6 +461,9 @@ public class HelpAssistantWidget extends Div {
         JavascriptLibrary.keepOnTopOfDialogs(getElement());
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "detachEvent", type = DetachEvent.class)})
     @Override
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);

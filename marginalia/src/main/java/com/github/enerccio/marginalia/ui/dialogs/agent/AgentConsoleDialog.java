@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.agent;
 
+import com.flowingcode.vaadin.addons.fontawesome.FontAwesome;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
@@ -10,6 +11,7 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.AgentApprovalService.PendingApproval;
 import com.github.enerccio.marginalia.domain.service.agent.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
@@ -59,6 +61,7 @@ import java.util.concurrent.Callable;
  * is one line with the attach, command and send buttons around it (the command line opens from its button).
  */
 @Configurable
+@Extendable
 public class AgentConsoleDialog extends Dialog implements LLMInteract {
 
     /**
@@ -222,10 +225,21 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
      * Called when the user changed the run from the console (paused, resumed, stopped it), so the table of agents
      * can show it.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "onChange", type = Runnable.class)})
     public void setOnChange(Runnable onChange) {
         this.onChange = onChange;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "statusRow", type = HorizontalLayout.class),
+                    @APILocals(name = "attachButton", type = Button.class),
+                    @APILocals(name = "commandHint", type = Span.class),
+                    @APILocals(name = "inputRow", type = HorizontalLayout.class),
+                    @APILocals(name = "runTab", type = VerticalLayout.class),
+                    @APILocals(name = "footer", type = HorizontalLayout.class)})
     public void create() {
         setHeaderTitle(phone ? agent.getName() : loc.getValue(L.LABEL_AGENT_CONSOLE) + " - " + agent.getName());
         setWidth("1100px");
@@ -484,6 +498,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         refreshRun();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "attachEvent", type = AttachEvent.class)},
+            locals = {@APILocals(name = "ui", type = UI.class)})
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
@@ -493,6 +511,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         pollRegistration = ui.addPollListener(event -> refreshRun());
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "detachEvent", type = DetachEvent.class)})
     @Override
     protected void onDetach(DetachEvent detachEvent) {
         if (approvalDialog != null) {
@@ -510,6 +531,13 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     /**
      * A tab of the console: its name, on a phone an icon with the name for the title and for a screen reader.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "label", type = L.class),
+                    @APIParameter(name = "icon", type = FontAwesome.Solid.class),
+                    @APIParameter(name = "content", type = Component.class)},
+            locals = {@APILocals(name = "name", type = String.class),
+                    @APILocals(name = "tab", type = Tab.class)})
     private void addTab(L label, Solid icon, Component content) {
         String name = loc.getValue(label);
         tabNames.add(name);
@@ -525,6 +553,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     /**
      * A button of the phone without its words: the icon, the words are its tooltip and its label for a screen reader.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "button", type = Button.class),
+                    @APIParameter(name = "label", type = L.class)})
     private void iconOnly(Button button, L label) {
         button.setText("");
         button.addThemeVariants(ButtonVariant.LUMO_ICON);
@@ -535,6 +567,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     /**
      * A control of the run that can or can't be used now; a phone has no room for the ones that can't, they are hidden.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "button", type = Button.class),
+                    @APIParameter(name = "usable", type = boolean.class)})
     private void usable(Button button, boolean usable) {
         button.setEnabled(usable);
         if (phone) {
@@ -545,6 +581,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     /**
      * Whether this console is the console of the agent.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "agentUuid", type = String.class)})
     public boolean isFor(String agentUuid) {
         return agent.getUuid().equals(agentUuid);
     }
@@ -552,6 +591,8 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     /**
      * The run went back in its conversation: the rows that were shown are marked now, so the transcript is made again.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     void rewound() {
         shownRunId = null;
         refreshRun();
@@ -560,6 +601,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     /**
      * The button of a {@code spawn_agent} call in the transcript: the conversation of the sub-agent it started.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "callId", type = String.class)})
     private void openSubAgent(String callId) {
         if (subAgentsView.showCall(callId)) {
             tabs.setSelectedIndex(SUBAGENTS_TAB);
@@ -568,6 +612,8 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = boolean.class))
     private boolean isWorking() {
         return run != null && run.getStatus().isActive();
     }
@@ -575,6 +621,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     /**
      * Reads the latest run again: its state, and the part of the transcript that is new.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "runs", type = List.class),
+                    @APILocals(name = "e", type = Exception.class)})
     void refreshRun() {
         if (statusLabel == null) {
             return;
@@ -606,6 +656,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "status", type = AgentRunStatus.class),
+                    @APILocals(name = "reason", type = String.class)})
     private void showState() throws Exception {
         if (run != null && run.isAttention()) {
             // the user is looking at it now; the other screens of the user are told
@@ -661,6 +715,12 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
      * The plan of the agent in the popover of the header. It is read again when the run, its round or its status changes (the agent
      * writes it between rounds), and the popover is built again only when the plan itself changed.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "readFor", type = String.class),
+                    @APILocals(name = "plan", type = List.class),
+                    @APILocals(name = "key", type = String.class),
+                    @APILocals(name = "item", type = RunTools.PlanItem.class)})
     private void showPlan() throws Exception {
         String readFor = run == null ? "" : run.getUuid() + ":" + run.getRounds() + ":" + run.getStatus();
         if (readFor.equals(planReadFor)) {
@@ -691,6 +751,11 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
      * The findings of the agent in the popover of the header, read again when the run, its round or its status changes (the agent
      * reports between rounds) and built again only when they changed.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "readFor", type = String.class),
+                    @APILocals(name = "findings", type = List.class),
+                    @APILocals(name = "key", type = String.class)})
     private void showFindings() throws Exception {
         String readFor = run == null ? "" : run.getUuid() + ":" + run.getRounds() + ":" + run.getStatus();
         if (readFor.equals(findingsReadFor)) {
@@ -712,6 +777,12 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         findingsButton.setText(loc.getValue(L.LABEL_AGENT_FINDINGS) + " " + findings.size());
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Div.class),
+            parameters = {@APIParameter(name = "item", type = RunTools.PlanItem.class)},
+            locals = {@APILocals(name = "icon", type = Icon.class),
+                    @APILocals(name = "text", type = Span.class),
+                    @APILocals(name = "row", type = Div.class)})
     private Div planItem(RunTools.PlanItem item) {
         boolean done = "done".equals(item.status());
         boolean active = "in_progress".equals(item.status());
@@ -734,6 +805,11 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
      * A command that waits for the user pops up as a dialog over the console, the oldest first; when it is decided the
      * next one does.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "waiting", type = List.class),
+                    @APILocals(name = "next", type = AgentApprovalService.PendingApproval.class),
+                    @APILocals(name = "asked", type = AgentRun.class)})
     private void showApproval() throws Exception {
         List<PendingApproval> waiting = run != null && run.getStatus() == AgentRunStatus.WAITING_APPROVAL
                 ? agentApprovalService.pending(run) : List.of();
@@ -754,6 +830,12 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "runId", type = Long.class),
+                    @APILocals(name = "queued", type = List.class),
+                    @APILocals(name = "message", type = AgentRunner.QueuedMessage.class),
+                    @APILocals(name = "bubble", type = Div.class)})
     private void showTranscript() throws Exception {
         Long runId = run == null ? null : run.getId();
         if (!java.util.Objects.equals(runId, shownRunId)) {
@@ -787,6 +869,11 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "messages", type = List.class),
+                    @APILocals(name = "row", type = AgentMessage.class),
+                    @APILocals(name = "bubble", type = Div.class)})
     private void showMessages() throws Exception {
         if (run == null || agentMessageService.count(run) == shown) {
             return;
@@ -818,6 +905,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
      * The button under a message of the author that takes the conversation back to before it, see
      * {@link CheckpointService#rewindToMessage}.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class),
+            parameters = {@APIParameter(name = "row", type = AgentMessage.class)},
+            locals = {@APILocals(name = "button", type = Button.class)})
     private Button rollbackButton(AgentMessage row) {
         Button button = new Button(loc.getValue(L.LABEL_REWIND), Solid.BACKWARD_STEP.create(), event -> rollBack(row.getUuid()));
         button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
@@ -826,6 +917,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         return button;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "button", type = Button.class),
+                    @APIParameter(name = "status", type = AgentRunStatus.class)})
     private void showRollbackButton(Button button, AgentRunStatus status) {
         boolean possible = status != null && ROLLBACK.contains(status);
         button.setEnabled(possible);
@@ -837,6 +932,13 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
      * Asks, then goes back to before the message: the checkpoint it goes to and what the agent forgets are shown first. A run
      * that waits for the author is paused for it.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "messageUuid", type = String.class)},
+            locals = {@APILocals(name = "current", type = AgentRun.class),
+                    @APILocals(name = "plan", type = CheckpointService.RewindPlan.class),
+                    @APILocals(name = "e", type = CheckpointService.CheckpointException.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void rollBack(String messageUuid) {
         AgentRun current = run;
         if (current == null) {
@@ -853,6 +955,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "messageUuid", type = String.class)})
     void rollBackNow(String messageUuid) {
         perform(() -> {
             try {
@@ -872,6 +977,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     /**
      * The author ran a command from the bar: given to the agent as the author's, see {@link AgentRunner#command}.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "line", type = String.class)})
     private void runCommand(String line) {
         if (run == null) {
             return;
@@ -884,6 +992,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         runCommandNow(line);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "line", type = String.class)})
     private void runCommandNow(String line) {
         perform(() -> agentRunner.command(run, line));
         fastPollUntil = System.currentTimeMillis() + COMMAND_POLL_FOR_MILLIS;
@@ -894,6 +1005,15 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
      * A message or a command of the author that waits for the agent: a bubble marked as queued, with the small button that
      * gives it to the agent now.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Div.class),
+            parameters = {@APIParameter(name = "message", type = AgentRunner.QueuedMessage.class)},
+            locals = {@APILocals(name = "force", type = Button.class),
+                    @APILocals(name = "now", type = L.class),
+                    @APILocals(name = "heading", type = Div.class),
+                    @APILocals(name = "cancel", type = Button.class),
+                    @APILocals(name = "header", type = HorizontalLayout.class),
+                    @APILocals(name = "bubble", type = Div.class)})
     private Div queuedBubble(AgentRunner.QueuedMessage message) {
         Button force = new Button(Solid.BOLT.create(), event -> perform(() -> {
             agentRunner.force(run, message.id());
@@ -923,6 +1043,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         return bubble;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "text", type = String.class)})
     private void send() {
         String text = messageField.getValue();
         if ((StringUtils.isBlank(text) && pendingImages.isEmpty()) || run == null) {
@@ -940,6 +1063,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     /**
      * The largest image of the workspace of the agent, the default limit when it can't be read.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = long.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private long imageLimit() {
         try {
             return fileSystemService.getLimits(agent).maxImageBytes();
@@ -948,6 +1074,8 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = boolean.class))
     private boolean seesImages() {
         return agent.getMainProfile() != null && agent.getMainProfile().isImages();
     }
@@ -955,6 +1083,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     /**
      * An image the author picked for the next message: kept until it is sent, and shown beside the message.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "fileName", type = String.class),
+                    @APIParameter(name = "content", type = byte[].class)})
     void attachImage(String fileName, byte[] content) {
         imageUpload.clearFileList();
         if (pendingImages.size() >= AgentRunner.MAX_ATTACHED_IMAGES) {
@@ -968,6 +1100,12 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         showPendingImages();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "image", type = AgentConsoleDialog.PendingImage.class),
+                    @APILocals(name = "remove", type = Button.class),
+                    @APILocals(name = "name", type = Span.class),
+                    @APILocals(name = "chip", type = HorizontalLayout.class)})
     private void showPendingImages() {
         pendingRow.removeAll();
         for (PendingImage image : pendingImages) {
@@ -994,6 +1132,13 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
      *
      * @return their paths
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = List.class),
+            locals = {@APILocals(name = "paths", type = List.class),
+                    @APILocals(name = "files", type = VirtualFileSystem.class),
+                    @APILocals(name = "image", type = AgentConsoleDialog.PendingImage.class),
+                    @APILocals(name = "path", type = VirtualPath.class),
+                    @APILocals(name = "e", type = VirtualFileException.class)})
     private List<String> storePendingImages() throws Exception {
         List<String> paths = new ArrayList<>();
         if (pendingImages.isEmpty()) {
@@ -1028,6 +1173,11 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         return path;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "action", type = Callable.class)},
+            locals = {@APILocals(name = "e", type = RuntimeException.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void perform(Callable<?> action) {
         try {
             action.call();
@@ -1045,138 +1195,206 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
 
     // for the tests of the console
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = VerticalLayout.class))
     VerticalLayout getTranscriptBox() {
         return transcriptBox;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TextArea.class))
     TextArea getMessageField() {
         return messageField;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = CommandBar.class))
     CommandBar getCommandBar() {
         return commandBar;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getSendButton() {
         return sendButton;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Upload.class))
     Upload getImageUpload() {
         return imageUpload;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = int.class))
     int getPendingImages() {
         return pendingImages.size();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getPauseButton() {
         return pauseButton;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getPauseNowButton() {
         return pauseNowButton;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getResumeButton() {
         return resumeButton;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getReviewButton() {
         return reviewButton;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getFinishButton() {
         return finishButton;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getStopButton() {
         return stopButton;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = List.class))
     List<Button> getRollbackButtons() {
         return rollbackButtons;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = List.class))
     List<Div> getQueuedBubbles() {
         return queuedBubbles;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Span.class))
     Span getStatusLabel() {
         return statusLabel;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Span.class))
     Span getUsageLabel() {
         return usageLabel;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getFindingsButton() {
         return findingsButton;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = AgentFindingsView.class))
     AgentFindingsView getFindingsView() {
         return findingsView;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getPlanButton() {
         return planButton;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Popover.class))
     Popover getPlanPopover() {
         return planPopover;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = VerticalLayout.class))
     VerticalLayout getPlanBox() {
         return planBox;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = AgentApprovalDialog.class))
     AgentApprovalDialog getApprovalDialog() {
         return approvalDialog;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Dialog.class))
     Dialog getLastDialog() {
         return lastDialog;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = AgentRunHistory.class))
     AgentRunHistory getHistory() {
         return history;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = AgentContextView.class))
     AgentContextView getContextView() {
         return contextView;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = AgentCopyView.class))
     AgentCopyView getCopyView() {
         return copyView;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TabSheet.class))
     TabSheet getTabs() {
         return tabs;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = VerticalLayout.class))
     VerticalLayout getCommandRow() {
         return commandRow;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getCommandButton() {
         return commandButton;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getRefreshButton() {
         return refreshButton;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getCloseButton() {
         return closeButton;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = AgentSubAgentsView.class))
     AgentSubAgentsView getSubAgentsView() {
         return subAgentsView;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = AgentDiagnosticsView.class))
     AgentDiagnosticsView getDiagnosticsView() {
         return diagnosticsView;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = AgentWorkspaceBrowser.class))
     AgentWorkspaceBrowser getWorkspaceBrowser() {
         return workspaceBrowser;
     }

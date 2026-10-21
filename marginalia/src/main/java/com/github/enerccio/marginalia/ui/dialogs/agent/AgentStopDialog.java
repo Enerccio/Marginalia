@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.agent;
 
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -17,6 +18,7 @@ import java.util.function.Consumer;
  * Asks how the run of an agent ends: the result (the working copy) is kept for the review, or discarded.
  */
 @Configurable
+@Extendable
 public class AgentStopDialog extends Dialog implements LLMInteract {
 
     @Autowired
@@ -38,6 +40,10 @@ public class AgentStopDialog extends Dialog implements LLMInteract {
         this.onStop = onStop;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "cancelButton", type = Button.class),
+                    @APILocals(name = "footer", type = HorizontalLayout.class)})
     public void create() {
         setHeaderTitle(loc.getValue(L.LABEL_STOP));
         add(new Span(String.format(loc.getValue(L.MSG_CONFIRM_STOP_RUN), agentName)));
@@ -53,6 +59,9 @@ public class AgentStopDialog extends Dialog implements LLMInteract {
         getFooter().add(footer);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "keep", type = boolean.class)})
     private void stop(boolean keep) {
         close();
         onStop.accept(keep);
@@ -60,10 +69,14 @@ public class AgentStopDialog extends Dialog implements LLMInteract {
 
     // for the tests of the dialog
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getKeepButton() {
         return keepButton;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getDiscardButton() {
         return discardButton;
     }

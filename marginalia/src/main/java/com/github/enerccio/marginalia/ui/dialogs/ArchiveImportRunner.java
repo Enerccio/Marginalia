@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ArchiveImportService;
 import com.github.enerccio.marginalia.domain.service.ArchiveImportService.ImportResult;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -21,6 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * book and the lorebook.
  */
 @Configurable
+@Extendable
 public class ArchiveImportRunner {
 
     /**
@@ -41,6 +43,11 @@ public class ArchiveImportRunner {
     /**
      * Adds the files of the archive to the end of the story of the book.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class),
+                    @APIParameter(name = "content", type = MarkdownArchive.Content.class),
+                    @APIParameter(name = "afterwards", type = ArchiveImportRunner.Continuation.class)})
     public void appendParts(Manuscript manuscript, MarkdownArchive.Content content, Continuation<Manuscript> afterwards) {
         run(content, (dialog) -> archiveImportService.appendParts(manuscript, content, dialog::isCancelled, dialog::updateProgress),
                 L.MSG_ARCHIVE_PARTS_ADDED, afterwards);
@@ -49,6 +56,12 @@ public class ArchiveImportRunner {
     /**
      * Makes a lorebook of the files of the archive.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "content", type = MarkdownArchive.Content.class),
+                    @APIParameter(name = "name", type = String.class),
+                    @APIParameter(name = "names", type = List.class),
+                    @APIParameter(name = "afterwards", type = ArchiveImportRunner.Continuation.class)})
     public void importLorebook(MarkdownArchive.Content content, String name, List<String> names, Continuation<Lorebook> afterwards) {
         run(content, (dialog) -> archiveImportService.importLorebook(content, name, names, dialog::isCancelled, dialog::updateProgress),
                 L.MSG_ARCHIVE_ENTRIES_ADDED, afterwards);
@@ -59,6 +72,15 @@ public class ArchiveImportRunner {
         ImportResult<T> run(ProgressBarDialog dialog) throws Exception;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "content", type = MarkdownArchive.Content.class),
+                    @APIParameter(name = "action", type = ArchiveImportRunner.Import.class),
+                    @APIParameter(name = "doneMessage", type = L.class),
+                    @APIParameter(name = "afterwards", type = ArchiveImportRunner.Continuation.class)},
+            locals = {@APILocals(name = "result", type = AtomicReference.class),
+                    @APILocals(name = "failure", type = AtomicReference.class),
+                    @APILocals(name = "progress", type = ProgressBarDialog.class)})
     private <T> void run(MarkdownArchive.Content content, Import<T> action, L doneMessage, Continuation<T> afterwards) {
         AtomicReference<ImportResult<T>> result = new AtomicReference<>();
         AtomicReference<Exception> failure = new AtomicReference<>();

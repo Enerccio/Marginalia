@@ -1,5 +1,9 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.domain.traits.APILocals;
+import com.github.enerccio.marginalia.domain.traits.APIReturn;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.MarkdownArchive;
@@ -23,6 +27,7 @@ import java.util.function.Consumer;
  * order of the files; the dialog is not closed by Cancel's callback.
  */
 @Configurable
+@Extendable
 public class ArchiveEntryNamesDialog extends Dialog {
 
     private static final class Row {
@@ -60,6 +65,11 @@ public class ArchiveEntryNamesDialog extends Dialog {
         dialog.open();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "grid", type = Grid.class),
+                    @APILocals(name = "layout", type = VerticalLayout.class),
+                    @APILocals(name = "importButton", type = Button.class)})
     private void create() {
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);

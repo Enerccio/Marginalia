@@ -2,7 +2,9 @@ package com.github.enerccio.marginalia.ui.dialogs.agent;
 
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.service.agent.AgentFindings;
+import com.github.enerccio.marginalia.domain.service.agent.RunTools;
 import com.github.enerccio.marginalia.domain.service.agent.RunTools.Finding;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.html.Div;
@@ -15,6 +17,7 @@ import java.util.List;
  * The findings an agent reported with {@code report}, one row each: its number, its severity and its text. Shown in the popover of
  * the console and in the review of a run.
  */
+@Extendable
 final class AgentFindingsView extends VerticalLayout {
 
     private final Localization loc;
@@ -29,6 +32,12 @@ final class AgentFindingsView extends VerticalLayout {
     /**
      * Shows the findings instead of what was shown.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "findings", type = List.class)},
+            locals = {@APILocals(name = "finding", type = RunTools.Finding.class),
+                    @APILocals(name = "severity", type = Span.class),
+                    @APILocals(name = "row", type = Div.class)})
     void setFindings(List<Finding> findings) {
         removeAll();
         for (Finding finding : findings) {

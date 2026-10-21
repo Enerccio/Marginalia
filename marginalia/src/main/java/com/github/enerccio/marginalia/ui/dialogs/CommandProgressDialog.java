@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.ModalityMode;
@@ -19,6 +20,7 @@ import org.springframework.beans.factory.annotation.Configurable;
  * empty is hidden. The owner closes it when the command finishes, whatever the reason.
  */
 @Configurable
+@Extendable
 public class CommandProgressDialog extends Dialog {
 
     @Autowired
@@ -41,6 +43,10 @@ public class CommandProgressDialog extends Dialog {
         this.onStop = onStop;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "progress", type = ProgressBar.class),
+                    @APILocals(name = "content", type = VerticalLayout.class)})
     public void create() {
         setHeaderTitle(String.format(loc.getValue(L.LABEL_COMMAND_RUNNING), commandName));
         setWidth("380px");
@@ -74,6 +80,9 @@ public class CommandProgressDialog extends Dialog {
     /**
      * Shows the main line of status, hides it when the text is null or blank. Call it with the UI lock.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "text", type = String.class)})
     public void setStatus(String text) {
         show(status, text);
     }
@@ -81,6 +90,9 @@ public class CommandProgressDialog extends Dialog {
     /**
      * Shows the second line of status, hides it when the text is null or blank. Call it with the UI lock.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "text", type = String.class)})
     public void setSubStatus(String text) {
         show(subStatus, text);
     }
@@ -89,6 +101,9 @@ public class CommandProgressDialog extends Dialog {
      * Enables or disables the Stop button: the command can't be stopped while it does something it has to finish.
      * Once the user has pressed it stays disabled. Call it with the UI lock.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "enabled", type = boolean.class)})
     public void setStopEnabled(boolean enabled) {
         stop.setEnabled(enabled && !stopRequested);
     }

@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.BackupService;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -25,6 +26,7 @@ import java.util.function.Consumer;
  * all of it. The lorebook is linked, not copied (see {@link BackupService#cloneManuscript}).
  */
 @Configurable
+@Extendable
 public class ManuscriptCloneDialog extends Dialog implements LLMInteract {
 
     @Autowired
@@ -46,10 +48,18 @@ public class ManuscriptCloneDialog extends Dialog implements LLMInteract {
     /**
      * @param onClone called with the new book after the dialog closed
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "onClone", type = Consumer.class)})
     public void setOnClone(Consumer<Manuscript> onClone) {
         this.onClone = onClone;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "content", type = VerticalLayout.class),
+                    @APILocals(name = "cancelButton", type = Button.class),
+                    @APILocals(name = "footer", type = HorizontalLayout.class)})
     public void create() {
         setHeaderTitle(loc.getValue(L.LABEL_CLONE_BOOK));
         setWidth("460px");
@@ -76,6 +86,10 @@ public class ManuscriptCloneDialog extends Dialog implements LLMInteract {
         getFooter().add(footer);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "clone", type = Manuscript.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void cloneBook() {
         if (StringUtils.isBlank(nameField.getValue())) {
             Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE));
@@ -97,14 +111,20 @@ public class ManuscriptCloneDialog extends Dialog implements LLMInteract {
 
     // for the tests of the dialog
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TextField.class))
     TextField getNameField() {
         return nameField;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Checkbox.class))
     Checkbox getOnlyCurrentBranch() {
         return onlyCurrentBranch;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getCloneButton() {
         return cloneButton;
     }

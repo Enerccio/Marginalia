@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.security.model.Permission;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
 import com.github.enerccio.marginalia.domain.security.service.PermissionService;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -41,6 +42,7 @@ import java.util.*;
  * what depends on the permissions is built again, unless they are the user who edits.
  */
 @Configurable
+@Extendable
 public class PermissionsDialog extends Dialog implements LLMInteract {
 
     @Autowired
@@ -95,6 +97,11 @@ public class PermissionsDialog extends Dialog implements LLMInteract {
         this.user = user;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "toolbar", type = HorizontalLayout.class),
+                    @APILocals(name = "content", type = VerticalLayout.class),
+                    @APILocals(name = "exitButton", type = Button.class)})
     public void create() {
         setHeaderTitle(loc.getValue(L.LABEL_PERMISSIONS) + ": " + user.getLogin());
         setWidth("720px");
@@ -172,10 +179,16 @@ public class PermissionsDialog extends Dialog implements LLMInteract {
     /**
      * Whether something was changed since the permissions were read.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = boolean.class))
     public boolean isDirty() {
         return !deleted.isEmpty() || rows.stream().anyMatch(Row::isModified);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "permission", type = Permission.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void load() {
         try {
             rows.clear();
@@ -189,6 +202,11 @@ public class PermissionsDialog extends Dialog implements LLMInteract {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = PermissionsDialog.Row.class),
+            parameters = {@APIParameter(name = "permission", type = Permission.class)},
+            locals = {@APILocals(name = "component", type = PermissionUIComponent.class),
+                    @APILocals(name = "row", type = PermissionsDialog.Row.class)})
     private Row createRow(Permission permission) {
         PermissionUIComponent component = uiFactory.createComponent(permission.getPermissionType());
         Row row = new Row(permission, component);
@@ -206,6 +224,10 @@ public class PermissionsDialog extends Dialog implements LLMInteract {
      * Shows the rows again (details of the rows that have settings are open) and offers the permission types the user
      * has none of.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "available", type = List.class),
+                    @APILocals(name = "selected", type = PermissionType.class)})
     private void refresh() {
         rows.sort((a, b) -> a.permission.getPermissionType().compareTo(b.permission.getPermissionType()));
         dataProvider.refreshAll();
@@ -220,10 +242,17 @@ public class PermissionsDialog extends Dialog implements LLMInteract {
         updateState();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void updateState() {
         saveButton.setEnabled(isDirty());
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "type", type = PermissionType.class),
+                    @APILocals(name = "permission", type = Permission.class),
+                    @APILocals(name = "row", type = PermissionsDialog.Row.class)})
     private void addPermission() {
         PermissionType type = typeCombo.getValue();
         if (type == null) {
@@ -242,10 +271,17 @@ public class PermissionsDialog extends Dialog implements LLMInteract {
         refresh();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "row", type = PermissionsDialog.Row.class)})
     private boolean isExpanded(Row row) {
         return row.component != null && expanded.contains(row.permission.getPermissionType());
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "row", type = PermissionsDialog.Row.class),
+                    @APIParameter(name = "open", type = boolean.class)})
     private void setExpanded(Row row, boolean open) {
         if (open) {
             expanded.add(row.permission.getPermissionType());
@@ -257,6 +293,10 @@ public class PermissionsDialog extends Dialog implements LLMInteract {
         grid.setDetailsVisible(row, isExpanded(row));
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "row", type = PermissionsDialog.Row.class),
+                    @APIParameter(name = "granted", type = boolean.class)})
     private void setGranted(Row row, boolean granted) {
         row.permission.setGranted(granted);
         updateState();
@@ -265,38 +305,65 @@ public class PermissionsDialog extends Dialog implements LLMInteract {
     // what the grid does with a permission, by its type, for the tests: the components of the grid cells are only
     // created when the browser asks for them
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = List.class))
     List<PermissionType> getTypes() {
         return rows.stream().map(row -> row.permission.getPermissionType()).toList();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = List.class))
     List<PermissionType> getAvailableTypes() {
         return typeCombo.getListDataView().getItems().toList();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "type", type = PermissionType.class),
+                    @APIParameter(name = "granted", type = boolean.class)})
     void setGranted(PermissionType type, boolean granted) {
         setGranted(row(type), granted);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "type", type = PermissionType.class)})
     void remove(PermissionType type) {
         remove(row(type));
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "type", type = PermissionType.class)})
     boolean isExpanded(PermissionType type) {
         return isExpanded(row(type)) && grid.isDetailsVisible(row(type));
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "type", type = PermissionType.class),
+                    @APIParameter(name = "open", type = boolean.class)})
     void setExpanded(PermissionType type, boolean open) {
         setExpanded(row(type), open);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = PermissionUIComponent.class),
+            parameters = {@APIParameter(name = "type", type = PermissionType.class)})
     PermissionUIComponent getSettings(PermissionType type) {
         return row(type).component;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = PermissionsDialog.Row.class),
+            parameters = {@APIParameter(name = "type", type = PermissionType.class)})
     private Row row(PermissionType type) {
         return rows.stream().filter(row -> row.permission.getPermissionType() == type).findFirst().orElseThrow();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "row", type = PermissionsDialog.Row.class)})
     private void remove(Row row) {
         rows.remove(row);
         if (!row.isNew()) {
@@ -305,6 +372,11 @@ public class PermissionsDialog extends Dialog implements LLMInteract {
         refresh();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "permission", type = Permission.class),
+                    @APILocals(name = "row", type = PermissionsDialog.Row.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void save() {
         try {
             for (Permission permission : deleted) {
@@ -328,6 +400,8 @@ public class PermissionsDialog extends Dialog implements LLMInteract {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void exit() {
         if (isDirty()) {
             ConfirmDialog.show(loc.getValue(L.MSG_UNSAVED_CHANGES_EXIT), this::close);

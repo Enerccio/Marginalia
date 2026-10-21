@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.service.AgentRunner;
 import com.github.enerccio.marginalia.domain.service.agent.AgentContext;
 import com.github.enerccio.marginalia.domain.service.agent.AgentContext.Kind;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
@@ -44,6 +45,7 @@ import java.util.function.Supplier;
  * every part.
  */
 @Configurable
+@Extendable
 public class AgentContextView extends VerticalLayout implements LLMInteract {
 
     private static final Gson GSON = new Gson();
@@ -82,6 +84,12 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
         this.runSupplier = runSupplier;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "help", type = Span.class),
+                    @APILocals(name = "refreshButton", type = Button.class),
+                    @APILocals(name = "download", type = Anchor.class),
+                    @APILocals(name = "header", type = HorizontalLayout.class)})
     public void create() {
         setSizeFull();
         setPadding(false);
@@ -141,6 +149,11 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
     /**
      * Makes the context of the run again and shows it.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "run", type = AgentRun.class),
+                    @APILocals(name = "e", type = RuntimeException.class),
+                    @APILocals(name = "e", type = Exception.class)})
     public void refresh() {
         if (sizeLabel == null) {
             return;
@@ -165,6 +178,8 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
         showContext();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void showEmpty() {
         emptyLabel.setVisible(true);
         sizeLabel.setText("");
@@ -175,6 +190,9 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
         downloadButton.setEnabled(false);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "size", type = StringBuilder.class)})
     private void showContext() {
         emptyLabel.setVisible(false);
         long estimated = context.estimatedTokens();
@@ -199,6 +217,9 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
         viewer.clear();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "part", type = AgentContext.Part.class)})
     private void show(AgentContext.Part part) {
         viewer.setValue(part == null ? "" : part.text());
         // the columns a phone has no room for
@@ -208,15 +229,24 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
     /**
      * Whether to make the view of a phone: the default is the screen of the user, set it before {@link #create()}.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "phone", type = boolean.class)})
     void setPhone(boolean phone) {
         this.phone = phone;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "part", type = AgentContext.Part.class)})
     private String share(AgentContext.Part part) {
         long total = context == null ? 0 : context.estimatedTokens();
         return total == 0 ? "" : String.format("%.1f %%", part.tokens() * 100.0 / total);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "kind", type = AgentContext.Kind.class)})
     private String kindName(Kind kind) {
         return switch (kind) {
             case SYSTEM_PROMPT -> loc.getValue(L.LABEL_AGENT_CONTEXT_PROMPT);
@@ -233,6 +263,14 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
     /**
      * The kinds of parts against the cap: what the context is made of and how much room is left.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = ChartJs.class),
+            locals = {@APILocals(name = "labels", type = List.class),
+                    @APILocals(name = "values", type = List.class),
+                    @APILocals(name = "colors", type = List.class),
+                    @APILocals(name = "kind", type = AgentContext.Kind.class),
+                    @APILocals(name = "dataset", type = Map.class),
+                    @APILocals(name = "config", type = Map.class)})
     private ChartJs kindsChart() {
         List<String> labels = new ArrayList<>();
         List<Long> values = new ArrayList<>();
@@ -264,6 +302,14 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
     /**
      * Every part in the order it is sent, a bar of its tokens in the colour of its kind.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = ChartJs.class),
+            locals = {@APILocals(name = "labels", type = List.class),
+                    @APILocals(name = "values", type = List.class),
+                    @APILocals(name = "colors", type = List.class),
+                    @APILocals(name = "part", type = AgentContext.Part.class),
+                    @APILocals(name = "dataset", type = Map.class),
+                    @APILocals(name = "config", type = Map.class)})
     private ChartJs partsChart() {
         List<String> labels = new ArrayList<>();
         List<Long> values = new ArrayList<>();
@@ -289,6 +335,18 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
      * The context at each answer of the model: what it was made of (estimated, a stacked bar of the kinds), the size the model
      * reported and the cap.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = ChartJs.class),
+            locals = {@APILocals(name = "labels", type = List.class),
+                    @APILocals(name = "values", type = List.class),
+                    @APILocals(name = "point", type = AgentContext.Point.class),
+                    @APILocals(name = "datasets", type = List.class),
+                    @APILocals(name = "kind", type = AgentContext.Kind.class),
+                    @APILocals(name = "tokens", type = List.class),
+                    @APILocals(name = "bars", type = Map.class),
+                    @APILocals(name = "reported", type = Map.class),
+                    @APILocals(name = "cap", type = Map.class),
+                    @APILocals(name = "config", type = Map.class)})
     private ChartJs historyChart() {
         List<Integer> labels = new ArrayList<>();
         List<Long> values = new ArrayList<>();
@@ -337,12 +395,18 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
         return chart(config);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = ChartJs.class),
+            parameters = {@APIParameter(name = "config", type = Map.class)},
+            locals = {@APILocals(name = "chart", type = ChartJs.class)})
     private ChartJs chart(Map<String, Object> config) {
         ChartJs chart = new ChartJs();
         chart.setChartConfig(GSON.toJson(config));
         return chart;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void copy() {
         if (context == null) {
             return;
@@ -351,6 +415,10 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
         Notification.success(loc.getValue(L.MSG_COPIED_TO_CLIPBOARD));
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Anchor.class),
+            parameters = {@APIParameter(name = "button", type = Button.class)},
+            locals = {@APILocals(name = "anchor", type = Anchor.class)})
     private Anchor downloadAnchor(Button button) {
         Anchor anchor = new Anchor(new InputStreamDownloadHandler((InputStreamDownloadCallback) downloadEvent -> {
             if (context == null) {
@@ -366,10 +434,14 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
 
     // for the tests
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = AgentContext.class))
     AgentContext getContext() {
         return context;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Grid.class))
     Grid<AgentContext.Part> getGrid() {
         return grid;
     }

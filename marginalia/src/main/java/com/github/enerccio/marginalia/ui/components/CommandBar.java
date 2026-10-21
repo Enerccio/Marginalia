@@ -4,7 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.service.CommandService;
 import com.github.enerccio.marginalia.domain.service.command.*;
-import com.github.enerccio.marginalia.domain.traits.CommandDataSeverity;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
@@ -50,6 +50,7 @@ import java.util.function.Supplier;
  * {@code async = true}) blocks the UI with a modal window that has a Stop button, which cancels the run.
  */
 @Configurable
+@Extendable
 public class CommandBar extends Composite<HorizontalLayout> implements HasEnabled {
     private static final Logger log = LoggerFactory.getLogger(CommandBar.class);
 
@@ -77,10 +78,15 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
     /**
      * Where the results of the commands go; null (the default) drops them.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "resultTarget", type = CommandResultTarget.class)})
     public void setResultTarget(CommandResultTarget resultTarget) {
         this.resultTarget = resultTarget;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = CommandResultTarget.class))
     public CommandResultTarget getResultTarget() {
         return resultTarget;
     }
@@ -89,6 +95,9 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
      * Makes the bar offer, and show the help of, these commands instead of all the registered ones, for a place that
      * runs only some of them or has commands of its own (the console of an agent).
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "commands", type = Supplier.class)})
     public void setCommands(Supplier<List<CommandDefinition>> commands) {
         this.commands = commands;
     }
@@ -98,18 +107,31 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
      * session: for a place that runs the commands somewhere else, or in another way. The line is the command with its
      * slash, a known one; the result and the progress are the runner's business, so the result target is not used.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "lineRunner", type = Consumer.class)})
     public void setLineRunner(Consumer<String> lineRunner) {
         this.lineRunner = lineRunner;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = List.class))
     private List<CommandDefinition> definitions() {
         return commands == null ? commandService.getCommands() : commands.get();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = List.class),
+            parameters = {@APIParameter(name = "name", type = String.class)})
     private List<CommandDefinition> definitions(String name) {
         return definitions().stream().filter(definition -> definition.commandName().equals(name)).toList();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = HorizontalLayout.class),
+            locals = {@APILocals(name = "layout", type = HorizontalLayout.class),
+                    @APILocals(name = "enter", type = ShortcutRegistration.class),
+                    @APILocals(name = "run", type = Button.class)})
     @Override
     protected HorizontalLayout initContent() {
         HorizontalLayout layout = new HorizontalLayout();
@@ -184,10 +206,22 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
     /**
      * Puts the cursor in the field.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     public void focus() {
         input.focus();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Div.class),
+            parameters = {@APIParameter(name = "item", type = String.class)},
+            locals = {@APILocals(name = "name", type = String.class),
+                    @APILocals(name = "overloads", type = List.class),
+                    @APILocals(name = "row", type = Div.class),
+                    @APILocals(name = "nameSpan", type = Span.class),
+                    @APILocals(name = "humanName", type = Span.class),
+                    @APILocals(name = "description", type = String.class),
+                    @APILocals(name = "descriptionDiv", type = Div.class)})
     private Div renderItem(String item) {
         String name = item.startsWith("/") ? item.substring(1) : item;
         List<CommandDefinition> overloads = definitions(name);
@@ -213,6 +247,10 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
      * The small label that tells whether the command changes or removes the data that exists, with the sentence that
      * explains it as its tooltip.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Span.class),
+            parameters = {@APIParameter(name = "severity", type = CommandDataSeverity.class)},
+            locals = {@APILocals(name = "badge", type = Span.class)})
     private Span severityBadge(CommandDataSeverity severity) {
         Span badge = new Span(loc.getValue(severity.getLabel()));
         badge.addClassNames(CssStyles.COMMAND_SEVERITY, severity.isDestructive()
@@ -224,6 +262,9 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
     /**
      * The user typed in the field (the combo box asks for the matching items on every change).
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "filter", type = String.class)})
     private void typed(String filter) {
         if (!filter.equals(text)) {
             changed(filter);
@@ -233,6 +274,9 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
     /**
      * The text of the field is another one: a result that is shown is out of date, the help is for the new text.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "newText", type = String.class)})
     private void changed(String newText) {
         if (!newText.equals(text) && resultTarget != null) {
             resultTarget.clearCommandResult();
@@ -245,6 +289,8 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
     /**
      * Enter was pressed in the field.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void runTyped() {
         if (pickedByEnter) {
             pickedByEnter = false;
@@ -258,6 +304,10 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
     /**
      * The user picked an item of the list, or cleared the field.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "value", type = String.class)},
+            locals = {@APILocals(name = "overloads", type = List.class)})
     private void picked(String value) {
         if (value == null || value.isEmpty()) {
             changed("");
@@ -282,6 +332,18 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
      * typed the list of commands (with their descriptions) is the help, so the popover is for the arguments, for text
      * that is not a command and for a name nothing matches.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "line", type = CommandLine.class),
+                    @APILocals(name = "info", type = CommandHelp.class),
+                    @APILocals(name = "description", type = String.class),
+                    @APILocals(name = "descriptionDiv", type = Div.class),
+                    @APILocals(name = "overload", type = CommandDefinition.class),
+                    @APILocals(name = "usage", type = Div.class),
+                    @APILocals(name = "parameter", type = CommandParameterDefinition.class),
+                    @APILocals(name = "span", type = Span.class),
+                    @APILocals(name = "next", type = CommandParameterDefinition.class),
+                    @APILocals(name = "tooMany", type = Div.class)})
     private void showHelp() {
         help.removeAll();
         CommandLine line = CommandLine.parse(text);
@@ -354,12 +416,24 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
      * The command has started: empties the field, so the next one is typed from scratch. Commands that are not valid
      * never get here, the user keeps the text to correct it.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void clearInput() {
         text = "";
         pickedByEnter = false;
         input.clear();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "line", type = String.class)},
+            locals = {@APILocals(name = "parsed", type = CommandLine.class),
+                    @APILocals(name = "overloads", type = List.class),
+                    @APILocals(name = "humanName", type = String.class),
+                    @APILocals(name = "future", type = CommandRun.class),
+                    @APILocals(name = "ui", type = UI.class),
+                    @APILocals(name = "attributes", type = RequestAttributes.class),
+                    @APILocals(name = "dialog", type = CommandProgressDialog.class)})
     private void run(String line) {
         CommandLine parsed = CommandLine.parse(line);
         if (!parsed.command()) {
@@ -440,6 +514,17 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
     /**
      * The command is over: hands the result to the target, or tells the user what went wrong.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "commandName", type = String.class),
+                    @APIParameter(name = "humanName", type = String.class),
+                    @APIParameter(name = "future", type = CompletableFuture.class)},
+            locals = {@APILocals(name = "value", type = Object.class),
+                    @APILocals(name = "e", type = CancellationException.class),
+                    @APILocals(name = "e", type = CompletionException.class),
+                    @APILocals(name = "cause", type = Throwable.class),
+                    @APILocals(name = "failure", type = CommandException.class),
+                    @APILocals(name = "reason", type = Throwable.class)})
     private void finished(String commandName, String humanName, CompletableFuture<Object> future) {
         try {
             Object value = future.join();

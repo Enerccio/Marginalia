@@ -1,7 +1,9 @@
 package com.github.enerccio.marginalia.ui.dialogs.agent;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.domain.service.AgentApprovalService;
 import com.github.enerccio.marginalia.domain.service.AgentApprovalService.PendingApproval;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -26,6 +28,7 @@ import java.util.function.Consumer;
  * approve or deny. It can't be dismissed without a decision, the run waits for it.
  */
 @Configurable
+@Extendable
 public class AgentApprovalDialog extends Dialog implements LLMInteract {
 
     /**
@@ -51,6 +54,13 @@ public class AgentApprovalDialog extends Dialog implements LLMInteract {
         this.onDecision = onDecision;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "question", type = Span.class),
+                    @APILocals(name = "content", type = VerticalLayout.class),
+                    @APILocals(name = "title", type = Span.class),
+                    @APILocals(name = "arguments", type = Div.class),
+                    @APILocals(name = "footer", type = HorizontalLayout.class)})
     public void create() {
         setHeaderTitle(loc.getValue(L.LABEL_AGENT_APPROVAL));
         setWidth("560px");
@@ -89,10 +99,15 @@ public class AgentApprovalDialog extends Dialog implements LLMInteract {
         return text.toString().stripTrailing();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = AgentApprovalService.PendingApproval.class))
     public PendingApproval getApproval() {
         return approval;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "approved", type = boolean.class)})
     private void decide(boolean approved) {
         close();
         onDecision.accept(approved);
@@ -100,10 +115,14 @@ public class AgentApprovalDialog extends Dialog implements LLMInteract {
 
     // for the tests of the dialog
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getApproveButton() {
         return approveButton;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
     Button getDenyButton() {
         return denyButton;
     }
