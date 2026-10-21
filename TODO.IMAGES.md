@@ -19,6 +19,7 @@ retaken); retake them by hand when the screen they show changes.
 | `desktop-tray.png` | `user/getting-started/desktop-app.md` | The tray icon of the desktop application (a native macOS menu bar). |
 | `dev-intellij-tomcat.png` | `developer/building.md` | The run configuration of IntelliJ IDEA. |
 | `dev-plugin-bookmarks.png` | `developer/plugins/example.md` | The *Bookmarks* example plugin of the developer guide: the plugin is not in the repository, it is built step by step in the page. Needs the bottom bar with the Summaries button and the part menu with *Images* and *Token Usage*. |
+| `command-running.png` | `user/commands/index.md` | The Stop window of a running command. It was taken with `/hello-world-async`, which is a fixture of the tests now; the picture is the old one. Retake it with a command that takes time (the `shoot-commands` flow has a note). |
 | `dev-ui-map-phone.png` (+ `-not-annotated`) | `developer/ui.md` | Optional: the phone twin of the class maps (workspace drawer, book window, story part). `tools/annotate_ui_maps.py` has no layout for it yet. |
 
 ## Ideas

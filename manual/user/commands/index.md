@@ -49,9 +49,9 @@ three ways:
 
 | You type                     | The command gets                | Why                                        |
 |------------------------------|---------------------------------|--------------------------------------------|
-| `/hello-world two\ words`    | one argument, `two words`       | `\ ` (backslash, space) is a space         |
-| `/hello-world "two words"`   | one argument, `two words`       | double quotes keep everything inside together |
-| `/hello-world say\ "hi"`     | one argument, `say hi`          | quotes can start in the middle of an argument |
+| `/search-parts two\ words`   | one argument, `two words`       | `\ ` (backslash, space) is a space         |
+| `/search-parts "two words"`  | one argument, `two words`       | double quotes keep everything inside together |
+| `/search-parts say\ "hi"`    | one argument, `say hi`          | quotes can start in the middle of an argument |
 
 The other special characters:
 
@@ -69,7 +69,7 @@ not fit, the command is not run and a notification says so.
 
 ## Forms of a command
 
-One command can take different arguments: `/hello-world` with nothing, and `/hello-world something` with one argument
+One command can take different arguments: `/list-parts` with nothing, and `/list-parts 2` with one argument
 are two **forms** of the same command. Marginalia picks the form by the number of arguments you typed and by what they
 look like. If no form fits, a notification says that the command does not take these arguments, and the help shows the
 forms it does have.
@@ -88,8 +88,7 @@ If a command fails, or there is no such command, you get a notification with the
 
 Most commands answer at once. A command that needs time shows a window with an animated bar and a **Stop** button, and
 the story is locked until the command is done. Under the bar the command can say what it is doing now and, in smaller
-letters, the detail of the step. **Stop** cancels the command; it should return immediately. You can try it with
-`/hello-world-async`.
+letters, the detail of the step. **Stop** cancels the command; it should return immediately. The commands that have the model write, like `/next`, are of this kind.
 
 ![The window of a command that is running](../../images/command-running.png)
 
@@ -119,9 +118,6 @@ changes the book; **No** leaves everything as it was. The question stays until y
 
 | Command                              | What it does                                                                       |
 |--------------------------------------|------------------------------------------------------------------------------------|
-| `/hello-world`                       | Returns *Hello world*. (This and the two below are examples to try the command line.) |
-| `/hello-world <message>`             | Returns the message it was given.                                                  |
-| `/hello-world-async [<message>]`     | The same, but after 10 seconds; shows the **Stop** window while it waits.          |
 | `/search-replace-parts <search> <replace> [regex] [caseSensitive] [summaries] [allBranches] [revalidateSummaries] [maxHits] [dryRun]` | Search and replace in the story of the open book, like the **Search and replace** window of the story tab. The options are `true`/`false`, in this order, and each one you leave out has the default of that window ([regex](../regular-expressions.md) no, case sensitive yes, summaries yes, all branches no, revalidate yes); to set one, give those before it too. `maxHits` refuses a replace that finds more matches than that, and with `dryRun` `true` nothing is changed: the answer counts the matches and shows a few, which is how an agent looks before it replaces. There is no preview: after the search you are asked whether to replace the number of matches found, and only **Yes** changes the book. The replace cannot be stopped. |
 | `/search-replace-lore-entries <search> <replace> [regex] [caseSensitive] [maxHits] [dryRun]` | The same for the entries (name, text and comment) of the lorebook of the open book. |
 | `/take-backup`                       | Takes a backup of the book that is open; it appears in the **Backups** tab of the book. Says no book is open when there is none. |
@@ -200,7 +196,7 @@ describes): the answer lists them and says what to do, `/revalidate-summaries` i
 | `/set-lore-entry-tags <entry> [add] [remove] [addNegative] [removeNegative]` | Changes the tags and negative tags of an entry (comma separated). |
 | `/create-lorebook <name> [parent]` | Makes a lorebook that is a subbook of `parent` (the root when none is given; a book that has no lorebook gets one first). |
 | `/set-lorebook <lorebook> [name] [enabled]` | Renames a lorebook or switches it on or off. |
-| `/add-subbook <lorebook> <subbook>`, `/remove-subbook <lorebook> <subbook>` | Changes which lorebooks a lorebook contains; a lorebook can't contain itself. |
+| `/add-subbook <lorebook> <subbook>`, `/remove-subbook <lorebook> <subbook>` | Changes which lorebooks a lorebook contains; a lorebook can't contain itself. For an [agent](../agents.md), `/add-subbook` also brings back a lorebook it deleted or took out of its parent earlier (it names it by the handle it had), with its entries. |
 | `/delete-lorebook <lorebook>` | Deletes a lorebook with its entries (not the root). Asks first. |
 
 The commands that have the model write (`/next`, `/swipe`, `/regenerate`, the two summaries) take time and show the **Stop** window.
@@ -214,7 +210,7 @@ You see these in the list as long as the extension is loaded; each is described 
 | `/list-lore-templates [<template>]` | [Lore Generator](../extensions/lore-generator.md) | Your saved generation prompts, or the text of one. |
 | `/generate-lore-entry [<prompt> ...]` | [Lore Generator](../extensions/lore-generator.md) | Generates the text of a lore entry with the lore of the lorebook and returns it. Stores nothing. |
 | `/compact-lore-entry <text> [...]` | [Lore Generator](../extensions/lore-generator.md) | Compacts a generated text into a dense lore entry text and returns it. Stores nothing. |
-| `/list-name-categories`, `/generate-names <category> <count> [...]` | [Name generator](../extensions/name-generator.md) | The categories of made up names, and names of one of them. |
+| `/list-name-categories [<filter>]`, `/generate-names <category> <count> [...]` | [Name generator](../extensions/name-generator.md) | The categories of made up names, and names of one of them. |
 | `/list-real-name-lists`, `/pick-real-names <list> <count>` | [Name provider](../extensions/name-provider.md) | The lists of real names, and names picked from one of them. |
 | `/get-arc-outline [<arc> [<notes>]]` | [Arc Outline](../extensions/arc-outline.md) | The arcs and chapters of the outline. |
 | `/add-arc`, `/update-arc`, `/move-arc`, `/delete-arc` | [Arc Outline](../extensions/arc-outline.md) | Add, change, move and delete an arc (`<arc>` is its number). |

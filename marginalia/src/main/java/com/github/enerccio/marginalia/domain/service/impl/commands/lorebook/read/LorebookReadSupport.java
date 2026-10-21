@@ -84,6 +84,18 @@ public abstract class LorebookReadSupport extends ManuscriptReadSupport {
             return books.get(n - 1);
         }
 
+        /**
+         * The lorebook with that handle, also one that the book does not use any more (deleted, or taken out of its parent) and
+         * that a command can bring back; a number is refused.
+         */
+        public Lorebook bookOrUnused(String handle) throws Exception {
+            if (!isHandle(handle)) {
+                throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_HANDLE_REQUIRED));
+            }
+            Lorebook found = context.getScope().resolveUnusedLorebook(handle.strip());
+            return books.stream().filter(b -> b.getId().equals(found.getId())).findFirst().orElse(found);
+        }
+
         private int number(String text) {
             try {
                 return Integer.parseInt(text.strip());

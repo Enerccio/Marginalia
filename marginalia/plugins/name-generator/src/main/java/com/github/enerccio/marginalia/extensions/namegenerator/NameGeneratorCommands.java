@@ -4,7 +4,9 @@ import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.google.gson.Gson;
 
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 /**
  * The names of the Markov chain tables as commands, for the command bar and for agents: {@code list-name-categories}
@@ -18,6 +20,13 @@ public class NameGeneratorCommands {
 
     private static final Gson GSON = new Gson();
 
+    private static final String LIST_TEXT = "Lists the categories of names that generate-names accepts, all of them or those whose name starts with "
+            + "the filter. Reads only.";
+    private static final String LIST_LLM = "Lists the categories of made-up names that generate-names accepts. There are over a thousand, so give "
+            + "`filter`, the start of the name of the category (not case sensitive; the names are paths like \"Africa - Central Africa - Chad - Male\", so \"Africa - Central\" lists that region), and only the categories that start so are listed. "
+            + "Returns a JSON array. Reads only.";
+    private static final String LIST_RESULT = "JSON array of the categories";
+    private static final String PARAM_FILTER = "The start of the name of the categories to list, not case sensitive";
     private static final String GENERATE_TEXT = "Generates made-up names of a category from Markov chains (at most "
             + NameGeneratorFunctionsImpl.MAX_COUNT + " at a time). Reads only.";
     private static final String GENERATE_LLM = "Generates made-up names of one category (see list-name-categories), at random each time. Use it "
@@ -39,12 +48,25 @@ public class NameGeneratorCommands {
     }
 
     @Command(commandName = LIST, humanNameText = "List name categories", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            descriptionText = "Lists the categories of names that generate-names accepts. Reads only.",
-            llmDescriptionText = "Lists the categories of made-up names that generate-names accepts. Call it first. Returns a JSON array. Reads only.",
+            descriptionText = LIST_TEXT, llmDescriptionText = LIST_LLM,
             signature = @CommandParameterSignature,
-            returns = @CommandReturn(name = "categories", type = String.class, descriptionText = "JSON array of the categories"))
+            returns = @CommandReturn(name = "categories", type = String.class, descriptionText = LIST_RESULT))
     public void listCategories(CommandContext context) {
-        context.setReturn(GSON.toJson(tables.categories()));
+        context.setReturn(json(tables.categories()));
+    }
+
+    @Command(commandName = LIST, humanNameText = "List name categories", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            descriptionText = LIST_TEXT, llmDescriptionText = LIST_LLM,
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "filter", type = String.class, descriptionText = PARAM_FILTER)}),
+            returns = @CommandReturn(name = "categories", type = String.class, descriptionText = LIST_RESULT))
+    public void listCategoriesFiltered(CommandContext context) {
+        context.setReturn(json(tables.categories(context.get("filter", String.class))));
+    }
+
+    /** A JSON array with a category on each line, so a result that is too long for an agent is cut between two of them. */
+    private static String json(List<String> categories) {
+        return categories.isEmpty() ? "[]" : "[\n" + categories.stream().map(GSON::toJson).collect(Collectors.joining(",\n")) + "\n]";
     }
 
     @Command(commandName = GENERATE, humanNameText = "Generate names", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
@@ -83,8 +105,8 @@ public class NameGeneratorCommands {
     private void generateNames(CommandContext context, Integer minLength, Integer maxLength) {
         String category = context.get("category", String.class);
         if (category == null || !tables.has(category)) {
-            throw new IllegalArgumentException("Unknown category '" + category + "'. Categories: "
-                    + String.join(", ", tables.categories()));
+            throw new IllegalArgumentException("Unknown category '" + category + "'. Call list-name-categories with a filter, the start of the name "
+                    + "of the category, to find it.");
         }
         int count = NameGeneratorFunctionsImpl.clampCount(context.get("count", Integer.class));
         context.setReturn(GSON.toJson(tables.generate(category, count, minLength, maxLength, ThreadLocalRandom.current())));

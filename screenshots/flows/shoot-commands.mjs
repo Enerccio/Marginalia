@@ -1,7 +1,7 @@
 // The command line of the story editor: the list, the help, a result, a command that takes time and the question of
 // the search and replace command. Pictures: command-list, command-help, command-result, command-running, command-confirm.
 // State: a COPY of 13-db-backup (/take-backup adds a backup to the book; the replace is refused, so nothing else changes).
-import {bookTab, closeDialog, dialogRects, idle, login, main, openBook, section, sleep, snap, snapDialog} from '../lib/shot.mjs';
+import {bookTab, idle, login, main, openBook, section, sleep, snap} from '../lib/shot.mjs';
 
 const BAR = 'input[placeholder="Type / for commands"]';
 // the lower part of the story tab: the command line with everything that opens above it
@@ -44,15 +44,8 @@ await main(async ({ page }) => {
     await clear();
   });
 
-  await section(page, 'running', async () => {
-    await input.click();
-    await input.pressSequentially('/hello-world-async "Hello from a worker"', { delay: 10 });
-    await input.press('Enter');
-    await sleep(1800);
-    await snap(page, 'command-running', { clip: LOWER });
-    await page.getByRole('button', { name: 'Stop', exact: true }).click();
-    await idle(page, 800);
-  });
+  // 'command-running' used /hello-world-async, which the application no longer has (it is a fixture of the tests); the picture
+  // in the manual is the old one. It needs a command that takes time and works without a model to be retaken.
 
   await section(page, 'confirm', async () => {
     await input.click();

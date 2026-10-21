@@ -46,6 +46,16 @@ public interface LorebookService extends ExtendableService<Lorebook, LorebookRep
     Lorebook addSubbook(Lorebook parent, Lorebook subbook) throws Exception;
 
     /**
+     * Brings back a lorebook that was deleted, with the entries and tags that went with it (what the trash does), for the lorebook
+     * of the user. A lorebook that is not deleted is returned as it is. It is not made a subbook of anything.
+     *
+     * @return the restored lorebook
+     * @throws IllegalArgumentException when the lorebook is not the user's
+     * @throws IllegalStateException    when it can't be restored because something it depends on is deleted too
+     */
+    Lorebook restore(Lorebook lorebook) throws Exception;
+
+    /**
      * Takes the lorebook out of the subbooks of the parent (nothing happens when it is not one).
      *
      * @return the saved parent

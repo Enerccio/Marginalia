@@ -80,6 +80,19 @@ public interface CommandScope {
     Lorebook resolveLorebook(String uuid) throws Exception;
 
     /**
+     * A lorebook of the book that is not one of its lorebooks any more, because a command deleted it or took it out of its
+     * parent, so that it can be brought back (the lorebook and its entries stay as they were). It has to be one that the
+     * caller was given before, which for an agent is a lorebook of its working copy that it has a handle for. A lorebook
+     * that is still used is returned as well.
+     *
+     * @throws IllegalArgumentException when it is no such lorebook; the user at the command bar has no unused lorebooks,
+     *                                  they restore from the trash
+     */
+    default Lorebook resolveUnusedLorebook(String uuid) throws Exception {
+        return resolveLorebook(uuid);
+    }
+
+    /**
      * The entry with that uuid, which has to be an entry of one of the lorebooks of the book.
      *
      * @throws IllegalArgumentException when it is not one, or is deleted

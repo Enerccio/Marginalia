@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.agents;
 
+import com.github.enerccio.marginalia.domain.collections.AgentRunPairKind;
 import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.service.*;
@@ -34,6 +35,9 @@ class CommandScopeTest extends AgentTestBase {
 
     @Autowired
     private CommandService commandService;
+
+    @Autowired
+    private AgentRunPairService pairService;
 
     @Autowired
     private ChatMessageService chatMessageService;
@@ -238,6 +242,70 @@ class CommandScopeTest extends AgentTestBase {
         stray.setAgentic(true);
         Lorebook saved = lorebookService.save(stray);
         assertThatThrownBy(() -> scope.resolveLorebook(saved.getUuid())).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void aLorebookTheCopyDoesNotUseAnyMoreIsFoundOnlyWhenTheRunHasAHandleForIt() throws Exception {
+        AgentRun run = agentRunService.start(agent);
+        CommandScope scope = commandScopes.forRun(run);
+        Lorebook copiedRoot = scope.getLorebook();
+        Lorebook copiedSub = lorebookService.getSubbooks(copiedRoot).getFirst();
+        lorebookService.removeSubbook(copiedRoot, copiedSub);
+        lorebookService.delete(copiedSub, false);
+
+        assertThatThrownBy(() -> scope.resolveLorebook(copiedSub.getUuid())).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> scope.resolveUnusedLorebook(copiedSub.getUuid())).as("the agent was never given it")
+                .isInstanceOf(IllegalArgumentException.class);
+
+        pairService.handleFor(run, AgentRunPairKind.LOREBOOK, copiedSub.getUuid());
+        Lorebook found = scope.resolveUnusedLorebook(copiedSub.getUuid());
+
+        assertThat(found.getId()).isEqualTo(copiedSub.getId());
+        assertThat(found.isDeleted()).isTrue();
+        // the lorebooks of the user are never reached this way, with a handle or without
+        for (Lorebook outside : List.of(root, sub, unrelated)) {
+            assertThatThrownBy(() -> scope.resolveUnusedLorebook(outside.getUuid())).isInstanceOf(IllegalArgumentException.class);
+        }
+    }
+
+    @Test
+    void aSubbookThatAnAgentDeletedIsOnlyMarkedAndAddSubbookBringsItBackWithItsEntries() throws Exception {
+        AgentRun run = agentRunService.start(agent);
+        CommandScope scope = commandScopes.forRun(run);
+        Lorebook copiedRoot = scope.getLorebook();
+        Lorebook copiedSub = lorebookService.getSubbooks(copiedRoot).getFirst();
+        pairService.handleFor(run, AgentRunPairKind.LOREBOOK, copiedSub.getUuid());
+
+        commandService.execute("delete-lorebook", Map.of("lorebook", copiedSub.getUuid()), false, scope).get(10, TimeUnit.SECONDS);
+
+        assertThat(lorebookService.find(copiedSub.getId()).isDeleted()).as("only marked as deleted").isTrue();
+        assertThat(lorebookService.getSubbooks(copiedRoot)).isEmpty();
+        assertThat(entryService.getEntriesForLorebook(copiedSub)).isEmpty();
+
+        commandService.execute("add-subbook", Map.of("lorebook", copiedRoot.getUuid(), "subbook", copiedSub.getUuid()), false, scope)
+                .get(10, TimeUnit.SECONDS);
+
+        assertThat(lorebookService.find(copiedSub.getId()).isDeleted()).isFalse();
+        assertThat(lorebookService.getSubbooks(copiedRoot)).extracting(Lorebook::getId).containsExactly(copiedSub.getId());
+        assertThat(entryService.getEntriesForLorebook(copiedSub)).extracting(LorebookEntry::getName).containsExactly("sub entry");
+        assertThat(scope.resolveLorebook(copiedSub.getUuid()).getId()).isEqualTo(copiedSub.getId());
+    }
+
+    @Test
+    void aSubbookTakenOutOfItsParentCanBeAddedAgainByItsHandle() throws Exception {
+        AgentRun run = agentRunService.start(agent);
+        CommandScope scope = commandScopes.forRun(run);
+        Lorebook copiedRoot = scope.getLorebook();
+        Lorebook copiedSub = lorebookService.getSubbooks(copiedRoot).getFirst();
+        pairService.handleFor(run, AgentRunPairKind.LOREBOOK, copiedSub.getUuid());
+
+        commandService.execute("remove-subbook", Map.of("lorebook", copiedRoot.getUuid(), "subbook", copiedSub.getUuid()), false, scope)
+                .get(10, TimeUnit.SECONDS);
+        assertThat(lorebookService.getSubbooks(copiedRoot)).isEmpty();
+        commandService.execute("add-subbook", Map.of("lorebook", copiedRoot.getUuid(), "subbook", copiedSub.getUuid()), false, scope)
+                .get(10, TimeUnit.SECONDS);
+
+        assertThat(lorebookService.getSubbooks(copiedRoot)).extracting(Lorebook::getId).containsExactly(copiedSub.getId());
     }
 
     @Test
