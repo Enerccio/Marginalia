@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import com.github.enerccio.marginalia.utils.MarkdownArchive;
 import com.google.gson.*;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Hibernate;
@@ -348,6 +349,39 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             }
         }
 
+        return lorebook;
+    }
+
+    @Override
+    @CommonTx
+    public Lorebook importFromArchive(byte[] archive, String name, List<String> names) throws Exception {
+        MarkdownArchive.Content content = MarkdownArchive.read(archive);
+        List<String> entryNames = content.itemNames();
+
+        String bookName = StringUtils.trimToEmpty(name);
+        if (bookName.toLowerCase().endsWith(".zip")) {
+            bookName = bookName.substring(0, bookName.length() - 4).trim();
+        }
+        if (bookName.isEmpty()) {
+            bookName = "Imported Archive";
+        }
+
+        Lorebook lorebook = new Lorebook();
+        lorebook.setName(bookName);
+        lorebook.setEnabled(true);
+        lorebook = save(lorebook);
+
+        for (int i = 0; i < content.items().size(); i++) {
+            String given = names != null && i < names.size() ? StringUtils.trimToEmpty(names.get(i)) : "";
+            LorebookEntry entry = new LorebookEntry();
+            entry.setLorebook(lorebook);
+            entry.setName(given.isEmpty() ? entryNames.get(i) : given);
+            entry.setPayload(content.items().get(i).text());
+            entry.setOrder(i + 1);
+            // without a filter the entry is always sent, which for a whole book of chapters is not wanted
+            entry.setEnabled(false);
+            lorebookEntryService.save(entry);
+        }
         return lorebook;
     }
 

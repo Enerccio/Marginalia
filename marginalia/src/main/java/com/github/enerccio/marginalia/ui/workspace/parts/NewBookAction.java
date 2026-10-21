@@ -4,15 +4,16 @@ import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
-import com.github.enerccio.marginalia.domain.service.AIService;
-import com.github.enerccio.marginalia.domain.service.ManuscriptService;
-import com.github.enerccio.marginalia.domain.service.ProtocolService;
-import com.github.enerccio.marginalia.domain.service.SettingService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.dialogs.ArchiveUploadDialog;
 import com.github.enerccio.marginalia.ui.dialogs.TextInputDialog;
+import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.workspace.ManuscriptSection;
+import com.github.enerccio.marginalia.utils.MarkdownArchive;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -39,6 +40,9 @@ public class NewBookAction {
     @Autowired
     private ProtocolService protocolService;
 
+    @Autowired
+    private ChatMessageService chatMessageService;
+
     private final Opener opener;
 
     /**
@@ -59,32 +63,52 @@ public class NewBookAction {
     public void run() {
         TextInputDialog dialog = new TextInputDialog.Builder(loc.getValue(L.LABEL_NEW_BOOK), name -> {
             try {
-                Manuscript manuscript = new Manuscript();
-                manuscript.setName(name);
-
-                UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-                Long defaultModelId = userSetting.getDefaultModel();
-                if (defaultModelId != null) {
-                    AI ai = aiService.find(defaultModelId);
-                    if (ai != null && !ai.isDeleted()) {
-                        manuscript.setAi(ai);
-                    }
-                }
-                Long defaultProtocolId = userSetting.getDefaultProtocol();
-                if (defaultProtocolId != null) {
-                    Protocol protocol = protocolService.find(defaultProtocolId);
-                    if (protocol != null && !protocol.isDeleted()) {
-                        manuscript.setProtocol(protocol);
-                    }
-                }
-
-                manuscript = manuscriptService.save(manuscript);
-                opener.open(manuscript);
+                opener.open(createBook(name));
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }
         }).messageRequired().showCancel(true).build();
         dialog.open();
+    }
+
+    /**
+     * Asks for a zip archive of {@code .md} files and opens a new book named after it, with a part for each file, see
+     * {@link ChatMessageService#appendFromArchive}.
+     */
+    public void runFromArchive() {
+        ArchiveUploadDialog.show(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE), loc.getValue(L.MSG_IMPORT_ARCHIVE_NEW_BOOK),
+                (archive, fileName) -> {
+                    // the archive is checked before the book is made, a book is not left empty by a bad file
+                    MarkdownArchive.read(archive);
+                    String name = fileName.toLowerCase().endsWith(".zip") ? fileName.substring(0, fileName.length() - 4) : fileName;
+                    Manuscript manuscript = createBook(StringUtils.defaultIfBlank(name.trim(), loc.getValue(L.LABEL_NEW_BOOK)));
+                    int parts = chatMessageService.appendFromArchive(manuscript, archive);
+                    Notification.success(String.format(loc.getValue(L.MSG_ARCHIVE_PARTS_ADDED), parts));
+                    opener.open(manuscriptService.find(manuscript));
+                });
+    }
+
+    private Manuscript createBook(String name) throws Exception {
+        Manuscript manuscript = new Manuscript();
+        manuscript.setName(name);
+
+        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+        Long defaultModelId = userSetting.getDefaultModel();
+        if (defaultModelId != null) {
+            AI ai = aiService.find(defaultModelId);
+            if (ai != null && !ai.isDeleted()) {
+                manuscript.setAi(ai);
+            }
+        }
+        Long defaultProtocolId = userSetting.getDefaultProtocol();
+        if (defaultProtocolId != null) {
+            Protocol protocol = protocolService.find(defaultProtocolId);
+            if (protocol != null && !protocol.isDeleted()) {
+                manuscript.setProtocol(protocol);
+            }
+        }
+
+        return manuscriptService.save(manuscript);
     }
 
 }

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845856159683">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845877723525">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845856159683" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845877723525" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845856159683" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845877723525" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845856159683" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845877723525" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -717,7 +717,14 @@ the line under the instructions adds up the ticked ones: the whole set is about 
 </retype-table>
 <p>Every command ticked adds its definition to every request, so a role is also the cheapest way to a small prompt for a weak model.</p>
 <h2 id="on-a-phone">On a phone</h2>
-<p>The phone layout has an <strong>Agents</strong> tab in the drawer, for users who may use agents, with the count of the agents that need you beside its name. Each agent is a card with its name, its state and the buttons of the table (they wrap onto more lines). The windows - the console, the review, the agent&#x27;s settings - fill the screen, their buttons wrap, and the review shows the table above the detail of the item. Everything works as on the desktop, only smaller; for long work with the transcript or the review a larger screen is more comfortable.</p>
+<p>The phone layout has an <strong>Agents</strong> tab in the drawer, for users who may use agents, with the count of the agents that need you beside its name. Each agent is a card with its name, its state and the buttons of the table (they wrap onto more lines). The windows - the console, the review, the agent&#x27;s settings - fill the screen, and the review shows the table above the detail of the item. Everything works as on the desktop, only smaller. The console is laid out for a thumb:</p>
+<ul>
+<li><strong>Tabs are icons</strong> (run, runs, workspace, checkpoints, context, book copy, sub-agents, diagnostics); the title of the window names the one that is open.</li>
+<li><strong>Pause, Pause now, Resume, Finish and Stop are icon buttons at the bottom, and only the ones that can be used now are shown</strong>; <strong>Review changes</strong> keeps its words, it is what a finished run waits for. <strong>Refresh</strong> and <strong>Close</strong> are icons in the header.</li>
+<li><strong>The message box is one line</strong> with the <strong>Send</strong> and <strong>Attach image</strong> icons beside it. The <strong>command line</strong> (the terminal icon) is hidden until you open it, so the keyboard does not cover the transcript for nothing. The messages of the transcript use the whole width.</li>
+<li><strong>Tables are lists of cards</strong>: a run, a checkpoint, a command of the agent&#x27;s settings, an item of the review each show their name and state with the details under it and their buttons below, in place of columns. The files of the workspace show their size under the name, and the toolbar of the workspace is icons. The context table keeps the number, name and tokens; the type and share of a part are under the text of the part you pick.</li>
+</ul>
+<p>For long work with the transcript or the review a larger screen is still more comfortable.</p>
 <h2 id="cloning">Cloning</h2>
 <p><strong>Clone</strong> asks for a name and a book that has no agent, and copies the definition of the agent and its files (not its runs) to a new
 agent of that book. You can have as many agents, clones included, as your administrator allows (five unless they set another number);
@@ -767,7 +774,7 @@ editing again after you paused or stopped the run. Other lorebooks are not affec
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (35af6ea1).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (5ea23aa7).</p></div>
             </footer>
         </div>
     </div>

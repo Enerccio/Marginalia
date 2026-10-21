@@ -272,6 +272,19 @@ column that shows the type and id, and below them the match and the replacement.
 The same search and replace can be run from the [command line](../commands/index.md#commands-that-come-with-marginalia)
 with `/search-replace-parts`; it asks before it replaces.
 
+## Importing text files
+
+The settings menu (⚙) has **Import from archive**. Upload a `.zip` of `.md` (Markdown) files and every file is added as
+a **part** at the end of the story: the first one after the last part of the active branch (the first part of an empty
+book), each next one after the one before. The files are taken in the order of their names, numbers inside the names
+compared as numbers (`2.md` before `10.md`), also in folders of the archive. Folders, hidden files (`.name`), the
+`__MACOSX` folder and files that are not `.md` are skipped. The file is the text of the part as it is, it is not sent to
+the model and not changed; the parts count as written by you. The summaries are not made, do that in the
+[summaries](summaries.md) window.
+
+The **import** button of the Books tab does the same into a new book, see [Managing books](managing-books.md#creating-a-book).
+The same import into a lorebook is described in [Import & export](../lorebooks/import-export.md#importing-an-archive-of-text-files).
+
 ## Exporting the story
 
 The settings menu (⚙) also has **Export story**, which saves the active branch as a text, Markdown, HTML, Word, PDF or EPUB

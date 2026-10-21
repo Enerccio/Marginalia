@@ -581,6 +581,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_COUNT_TOKENS_WITH_SUBBOOKS, "计算含子世界书");
         setValue(L.LABEL_TOKENS_WITH_SUBBOOKS, "含子世界书：约 %d 个词元");
         setValue(L.LABEL_SHOWN_LOREBOOK, "显示的世界书");
+        setValue(L.LABEL_IMPORT_FROM_ARCHIVE, "从压缩包导入");
+        setValue(L.LABEL_ENTRY_NAMES, "条目名称");
+        setValue(L.LABEL_ARCHIVE_FILE, "压缩包中的文件");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -950,6 +953,12 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_TAG_CHECK_FIRST, "请先勾选项目。");
         setValue(L.MSG_ENTRIES_MOVED, "已将 %d 个条目移动到世界书“%s”。");
         setValue(L.MSG_MOVE_PICK_FIRST, "请先勾选条目，并选择要移动到的世界书。");
+        setValue(L.MSG_INVALID_ARCHIVE, "压缩包必须是至少包含一个 .md 文件的 zip 文件。");
+        setValue(L.MSG_IMPORT_FROM_ARCHIVE, "上传 .md 文件的 zip 压缩包。每个文件按文件名顺序成为新世界书中一个已禁用的条目。");
+        setValue(L.MSG_IMPORT_ARCHIVE_TO_BOOK, "上传 .md 文件的 zip 压缩包。每个文件按文件名顺序成为故事中的一个段落，添加在最后一个段落之后。");
+        setValue(L.MSG_IMPORT_ARCHIVE_NEW_BOOK, "上传 .md 文件的 zip 压缩包。每个文件按文件名顺序成为以压缩包命名的新书中的一个段落。");
+        setValue(L.MSG_ARCHIVE_ENTRY_NAMES, "请检查条目名称。压缩包中的 names.txt（每行一个名称，按文件顺序）会自动填入；留空的名称将使用文件的第一个标题或文件名。");
+        setValue(L.MSG_ARCHIVE_PARTS_ADDED, "已添加 %d 个段落。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

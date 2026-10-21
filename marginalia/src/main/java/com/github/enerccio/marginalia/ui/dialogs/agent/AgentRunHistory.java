@@ -17,6 +17,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -61,6 +62,8 @@ public class AgentRunHistory extends VerticalLayout implements LLMInteract {
 
     private Grid<AgentRun> grid;
     private Span emptyLabel;
+    // a phone shows a run as a card, see AgentCard
+    private boolean phone = UIUtils.isPhone();
     // what the grid shows, so a poll that finds nothing new does not rebuild it
     private String signature = "";
 
@@ -81,21 +84,51 @@ public class AgentRunHistory extends VerticalLayout implements LLMInteract {
 
         grid = new Grid<>();
         grid.setSizeFull();
-        grid.addColumn(run -> run.getStartedAt() == null ? ""
-                        : DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(run.getStartedAt()))
-                .setHeader(loc.getValue(L.LABEL_DATE)).setFlexGrow(2);
-        grid.addColumn(run -> loc.getValue(loc.getAgentRunStatus(run.getStatus())))
-                .setHeader(loc.getValue(L.LABEL_STATUS)).setFlexGrow(2);
-        grid.addColumn(AgentRun::getRounds).setHeader(loc.getValue(L.LABEL_ROUNDS)).setFlexGrow(1);
-        grid.addColumn(AgentRun::getTotalTokens).setHeader(loc.getValue(L.LABEL_TOKENS)).setFlexGrow(1);
-        grid.addColumn(run -> StringUtils.abbreviate(StringUtils.defaultString(run.getStatusReason()).replaceAll("\\s+", " "), RESULT_LIMIT))
-                .setHeader(loc.getValue(L.LABEL_RESULT)).setFlexGrow(4);
-        grid.addComponentColumn(this::actions).setHeader("").setFlexGrow(0).setWidth("160px");
+        if (phone) {
+            grid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES);
+            grid.addComponentColumn(this::card).setHeader(loc.getValue(L.LABEL_AGENT_RUNS));
+        } else {
+            grid.addColumn(this::started)
+                    .setHeader(loc.getValue(L.LABEL_DATE)).setFlexGrow(2);
+            grid.addColumn(this::statusText)
+                    .setHeader(loc.getValue(L.LABEL_STATUS)).setFlexGrow(2);
+            grid.addColumn(AgentRun::getRounds).setHeader(loc.getValue(L.LABEL_ROUNDS)).setFlexGrow(1);
+            grid.addColumn(AgentRun::getTotalTokens).setHeader(loc.getValue(L.LABEL_TOKENS)).setFlexGrow(1);
+            grid.addColumn(this::result)
+                    .setHeader(loc.getValue(L.LABEL_RESULT)).setFlexGrow(4);
+            grid.addComponentColumn(this::actions).setHeader("").setFlexGrow(0).setWidth("160px");
+        }
 
         emptyLabel = new Span(loc.getValue(L.MSG_AGENT_NO_RUN_YET));
         emptyLabel.addClassName(CssStyles.HINT_TEXT);
         add(grid, emptyLabel);
         setFlexGrow(1, grid);
+    }
+
+    /**
+     * Whether to show the runs as cards: the default is the screen of the user, set it before {@link #create()}.
+     */
+    void setPhone(boolean phone) {
+        this.phone = phone;
+    }
+
+    private String started(AgentRun run) {
+        return run.getStartedAt() == null ? ""
+                : DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(run.getStartedAt());
+    }
+
+    private String statusText(AgentRun run) {
+        return loc.getValue(loc.getAgentRunStatus(run.getStatus()));
+    }
+
+    private String result(AgentRun run) {
+        return StringUtils.abbreviate(StringUtils.defaultString(run.getStatusReason()).replaceAll("\\s+", " "), RESULT_LIMIT);
+    }
+
+    // package visible for the tests, like the actions
+    Component card(AgentRun run) {
+        return AgentCard.of(started(run), statusText(run), List.of(loc.getValue(L.LABEL_ROUNDS) + ": " + run.getRounds() + "   "
+                + loc.getValue(L.LABEL_TOKENS) + ": " + run.getTotalTokens(), result(run)), actions(run));
     }
 
     /**

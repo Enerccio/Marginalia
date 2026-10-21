@@ -20,6 +20,7 @@ import com.github.enerccio.marginalia.ui.components.MessageImages;
 import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.dialogs.search.ManuscriptSearchReplaceDialog;
 import com.github.enerccio.marginalia.ui.dialogs.story.*;
+import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
 import com.github.enerccio.marginalia.utils.GeneratedTextHighlighter;
@@ -291,6 +292,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         changeStyles = createChangeStylesMenuItem(cogs);
         highlightGenerated = createHighlightGeneratedMenuItem(cogs);
         createSearchReplaceMenuItem(cogs);
+        createImportArchiveMenuItem(cogs);
         createExportMenuItem(cogs);
         return cogs;
     }
@@ -367,6 +369,29 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = MenuItem.class),
+            parameters = {@APIParameter(name = "cogs", type = MenuItem.class)})
+    private MenuItem createImportArchiveMenuItem(MenuItem cogs) {
+        return cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.FILE_IMPORT.create(), loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE)),
+                event -> openArchiveImportDialog());
+    }
+
+    /**
+     * Asks for a zip archive of {@code .md} files and adds a part for each file to the end of the story, see
+     * {@link ChatMessageService#appendFromArchive}; the story is shown again.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
+    private void openArchiveImportDialog() {
+        ArchiveUploadDialog.show(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE), loc.getValue(L.MSG_IMPORT_ARCHIVE_TO_BOOK),
+                (archive, fileName) -> {
+                    int parts = chatMessageService.appendFromArchive(parent.refreshManuscript(), archive);
+                    Notification.success(String.format(loc.getValue(L.MSG_ARCHIVE_PARTS_ADDED), parts));
+                    load(parent.refreshManuscript());
+                });
     }
 
     @PublicAPI(from = "1.1.0",

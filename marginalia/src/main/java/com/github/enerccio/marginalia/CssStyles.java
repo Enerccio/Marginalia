@@ -124,6 +124,9 @@ public final class CssStyles {
     public static final String HELP_MESSAGE_FOLDED = "help-message-folded";
     public static final String HELP_MESSAGE_ERROR = "help-message-error";
     public static final String AGENT_REWOUND = "agent-rewound";
+    public static final String AGENT_CONSOLE_PHONE = "agent-console-phone";
+    public static final String AGENT_CARD = "agent-card";
+    public static final String AGENT_REPORT = "agent-report";
     public static final String AGENT_TIME = "agent-time";
     public static final String MERGE_DIFF = "merge-diff";
     public static final String MERGE_DIFF_ADDED = "merge-diff-added";

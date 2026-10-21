@@ -104,6 +104,7 @@ public class ManuscriptPart implements ManuscriptSection {
             locals = {@APILocals(name = "headerLayout", type = HorizontalLayout.class),
                     @APILocals(name = "titleSpan", type = Span.class),
                     @APILocals(name = "addBookButton", type = Button.class),
+                    @APILocals(name = "importArchiveButton", type = Button.class),
                     @APILocals(name = "toolColumn", type = Grid.Column.class),
                     @APILocals(name = "filterRow", type = HeaderRow.class),
                     @APILocals(name = "refresh", type = Button.class)})
@@ -127,7 +128,9 @@ public class ManuscriptPart implements ManuscriptSection {
         this.addBookButton = addBookButton;
 
         tagBooksButton = new Button(loc.getValue(L.LABEL_TAG_BOOKS), Solid.TAGS.create(), event -> openTagDialog());
-        headerLayout.add(titleSpan, tagBooksButton, addBookButton);
+        Button importArchiveButton = new Button(Solid.FILE_IMPORT.create(), event -> new NewBookAction(this::openManuscript).runFromArchive());
+        importArchiveButton.setTooltipText(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE));
+        headerLayout.add(titleSpan, tagBooksButton, importArchiveButton, addBookButton);
         headerLayout.setFlexGrow(1, titleSpan);
         headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 

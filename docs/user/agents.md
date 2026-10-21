@@ -369,7 +369,14 @@ Every command ticked adds its definition to every request, so a role is also the
 
 ## On a phone
 
-The phone layout has an **Agents** tab in the drawer, for users who may use agents, with the count of the agents that need you beside its name. Each agent is a card with its name, its state and the buttons of the table (they wrap onto more lines). The windows - the console, the review, the agent's settings - fill the screen, their buttons wrap, and the review shows the table above the detail of the item. Everything works as on the desktop, only smaller; for long work with the transcript or the review a larger screen is more comfortable.
+The phone layout has an **Agents** tab in the drawer, for users who may use agents, with the count of the agents that need you beside its name. Each agent is a card with its name, its state and the buttons of the table (they wrap onto more lines). The windows - the console, the review, the agent's settings - fill the screen, and the review shows the table above the detail of the item. Everything works as on the desktop, only smaller. The console is laid out for a thumb:
+
+- **Tabs are icons** (run, runs, workspace, checkpoints, context, book copy, sub-agents, diagnostics); the title of the window names the one that is open.
+- **Pause, Pause now, Resume, Finish and Stop are icon buttons at the bottom, and only the ones that can be used now are shown**; **Review changes** keeps its words, it is what a finished run waits for. **Refresh** and **Close** are icons in the header.
+- **The message box is one line** with the **Send** and **Attach image** icons beside it. The **command line** (the terminal icon) is hidden until you open it, so the keyboard does not cover the transcript for nothing. The messages of the transcript use the whole width.
+- **Tables are lists of cards**: a run, a checkpoint, a command of the agent's settings, an item of the review each show their name and state with the details under it and their buttons below, in place of columns. The files of the workspace show their size under the name, and the toolbar of the workspace is icons. The context table keeps the number, name and tokens; the type and share of a part are under the text of the part you pick.
+
+For long work with the transcript or the review a larger screen is still more comfortable.
 
 ## Cloning
 

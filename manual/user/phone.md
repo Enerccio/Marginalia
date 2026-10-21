@@ -93,7 +93,7 @@ The story tab is one column of parts. The differences from the [story editor](bo
 
 - The **outline** (and the tabs extensions add next to it, such as the [Author's Note](extensions/authors-note.md))
   is in a **drawer**. Open it with the button at the top left.
-- The **Summaries** button and the settings menu (⚙, with *Change Styles For Text*, *Search and replace* and *Export story*) are in the top bar, not
+- The **Summaries** button and the settings menu (⚙, with *Change Styles For Text*, *Search and replace*, *Import from archive* and *Export story*) are in the top bar, not
   at the bottom.
 - The **+** button for a new part is at the bottom.
 - **Search and replace** opens the same window as on the desktop, with the fields and buttons below each other:

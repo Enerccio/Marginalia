@@ -76,6 +76,19 @@ class AgentCheckpointBrowserTest extends AgentTestBase {
         return browser;
     }
 
+    @Test
+    void aPhoneShowsACheckpointAsACardWithItsButtons() throws Exception {
+        checkpointService.ensureStart(run);
+        AgentCheckpointBrowser browser = new AgentCheckpointBrowser(() -> run, busy::get, restored::incrementAndGet);
+        browser.setPhone(true);
+        browser.create();
+
+        assertThat(browser.getGrid().getColumns()).hasSize(1);
+        com.vaadin.flow.component.Component card = browser.card(rows(browser).getFirst());
+        assertThat(com.github.enerccio.marginalia.test.ComponentTree.all(card, com.vaadin.flow.component.button.Button.class).toList())
+                .as("restore, rewind, download, delete").hasSize(4);
+    }
+
     private static List<Info> rows(AgentCheckpointBrowser browser) {
         return browser.getGrid().getDataProvider().fetch(new Query<>()).toList();
     }

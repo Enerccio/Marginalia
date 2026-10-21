@@ -13,7 +13,7 @@ The toolbar has two rows, which wrap onto more lines in a narrow window: the fir
 | **Only root lorebooks** | Lists only the lorebooks that are not a sub lorebook of another one (the selected lorebook stays in the list). |
 | **Add Lorebook** | Creates a new lorebook named *New Lorebook* and selects it. |
 | **Delete Lorebook** | Deletes the selected lorebook (after confirming). |
-| Import (file icon) | **Import Marginalia Lorebook** or **Import from SillyTavern**, see [Import & export](import-export.md). |
+| Import (file icon) | **Import Marginalia Lorebook**, **Import from SillyTavern** or **Import from archive** (a zip of `.md` files), see [Import & export](import-export.md). |
 | Export (file icon) | Downloads the lorebook with its sub lorebooks, see [Import & export](import-export.md#exporting). |
 | Tags (tags icon, last of the first row) | **Tag lorebooks**: puts a tag on many lorebooks at once, see [below](#tagging-many-at-once). Not shown for a lorebook that is open in a book. |
 | **Add Entry** | Adds an entry to the lorebook, see [Entries & activation](entries.md). |

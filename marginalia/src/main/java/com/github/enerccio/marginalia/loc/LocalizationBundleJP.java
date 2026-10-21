@@ -573,6 +573,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_COUNT_TOKENS_WITH_SUBBOOKS, "サブブックを含めて計算");
         setValue(L.LABEL_TOKENS_WITH_SUBBOOKS, "サブブックを含む：約%dトークン");
         setValue(L.LABEL_SHOWN_LOREBOOK, "表示するロアブック");
+        setValue(L.LABEL_IMPORT_FROM_ARCHIVE, "アーカイブからインポート");
+        setValue(L.LABEL_ENTRY_NAMES, "エントリ名");
+        setValue(L.LABEL_ARCHIVE_FILE, "アーカイブ内のファイル");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -942,6 +945,12 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_TAG_CHECK_FIRST, "先に項目をチェックしてください。");
         setValue(L.MSG_ENTRIES_MOVED, "%d件のエントリをロアブック「%s」に移動しました。");
         setValue(L.MSG_MOVE_PICK_FIRST, "先にエントリをチェックし、移動先のロアブックを選んでください。");
+        setValue(L.MSG_INVALID_ARCHIVE, "アーカイブは .md ファイルを 1 つ以上含む zip ファイルである必要があります。");
+        setValue(L.MSG_IMPORT_FROM_ARCHIVE, ".md ファイルの zip アーカイブをアップロードします。各ファイルは、ファイル名順に、新しいロアブックの無効なエントリになります。");
+        setValue(L.MSG_IMPORT_ARCHIVE_TO_BOOK, ".md ファイルの zip アーカイブをアップロードします。各ファイルは、ファイル名順に、最後のパートの後ろにストーリーのパートとして追加されます。");
+        setValue(L.MSG_IMPORT_ARCHIVE_NEW_BOOK, ".md ファイルの zip アーカイブをアップロードします。各ファイルは、ファイル名順に、アーカイブ名の新しい本のパートになります。");
+        setValue(L.MSG_ARCHIVE_ENTRY_NAMES, "エントリ名を確認してください。アーカイブ内の names.txt(1 行に 1 つ、ファイルの順)があればそれが入ります。空欄の名前は、ファイルの最初の見出しまたはファイル名になります。");
+        setValue(L.MSG_ARCHIVE_PARTS_ADDED, "%d 個のパートを追加しました。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

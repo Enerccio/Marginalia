@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845856159683">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845877723525">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845856159683" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845877723525" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845856159683" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845877723525" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845856159683" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845877723525" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -641,6 +641,16 @@ summary that was outdated already stays so.</p>
 column that shows the type and id, and below them the match and the replacement.</p>
 <p>The same search and replace can be run from the <a href="../../commands/#commands-that-come-with-marginalia">command line</a>
 with <code translate="no" v-pre>/search-replace-parts</code>; it asks before it replaces.</p>
+<h2 id="importing-text-files">Importing text files</h2>
+<p>The settings menu (⚙) has <strong>Import from archive</strong>. Upload a <code translate="no" v-pre>.zip</code> of <code translate="no" v-pre>.md</code> (Markdown) files and every file is added as
+a <strong>part</strong> at the end of the story: the first one after the last part of the active branch (the first part of an empty
+book), each next one after the one before. The files are taken in the order of their names, numbers inside the names
+compared as numbers (<code translate="no" v-pre>2.md</code> before <code translate="no" v-pre>10.md</code>), also in folders of the archive. Folders, hidden files (<code translate="no" v-pre>.name</code>), the
+<code translate="no" v-pre>__MACOSX</code> folder and files that are not <code translate="no" v-pre>.md</code> are skipped. The file is the text of the part as it is, it is not sent to
+the model and not changed; the parts count as written by you. The summaries are not made, do that in the
+<a href="../summaries/">summaries</a> window.</p>
+<p>The <strong>import</strong> button of the Books tab does the same into a new book, see <a href="../managing-books/#creating-a-book">Managing books</a>.
+The same import into a lorebook is described in <a href="../../lorebooks/import-export/#importing-an-archive-of-text-files">Import &amp; export</a>.</p>
 <h2 id="exporting-the-story">Exporting the story</h2>
 <p>The settings menu (⚙) also has <strong>Export story</strong>, which saves the active branch as a text, Markdown, HTML, Word, PDF or EPUB
 file. See <a href="../export/">Exporting a book</a>.</p>
@@ -699,7 +709,7 @@ tense, style and <a href="../summaries/">summaries</a>. The jailbreak prompt of 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (35af6ea1).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (5ea23aa7).</p></div>
             </footer>
         </div>
     </div>

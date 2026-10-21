@@ -36,6 +36,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BooleanSupplier;
 
 /**
@@ -75,6 +76,8 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
     private Button newFolderButton;
     private Upload upload;
     private Grid<VirtualEntry> grid;
+    // a phone has the buttons of the toolbar as icons and the size of a file under its name
+    private boolean phone = UIUtils.isPhone();
     // what the grid shows now, to leave it alone while nothing changed
     private String shownRows;
     private TextArea viewer;
@@ -134,6 +137,15 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
                 String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), event.getErrorMessage())));
         pathLabel = new Span();
         pathLabel.addClassNames(CssStyles.TEXT_MONOSPACE, CssStyles.WRAP_ANYWHERE);
+        if (phone) {
+            for (Map.Entry<Button, L> entry : Map.of(upButton, L.LABEL_UP, refreshButton, L.LABEL_REFRESH,
+                    newFolderButton, L.LABEL_NEW_FOLDER, uploadButton, L.LABEL_UPLOAD_FILE, clearButton, L.LABEL_CLEAR).entrySet()) {
+                entry.getKey().setText("");
+                entry.getKey().addThemeVariants(ButtonVariant.LUMO_ICON);
+                entry.getKey().setAriaLabel(loc.getValue(entry.getValue()));
+                entry.getKey().setTooltipText(loc.getValue(entry.getValue()));
+            }
+        }
         HorizontalLayout toolbar = new HorizontalLayout(upButton, refreshButton, pathLabel, newFolderButton, upload,
                 clearButton);
         toolbar.setWidthFull();
@@ -145,8 +157,9 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
         grid.setWidthFull();
         grid.addThemeVariants(GridVariant.LUMO_COMPACT);
         grid.addComponentColumn(this::nameCell).setHeader(loc.getValue(L.LABEL_NAME)).setFlexGrow(3);
-        grid.addColumn(entry -> entry.directory() ? "" : FileUtils.byteCountToDisplaySize(entry.size()))
-                .setHeader(loc.getValue(L.LABEL_SIZE)).setFlexGrow(1);
+        if (!phone) {
+            grid.addColumn(this::sizeText).setHeader(loc.getValue(L.LABEL_SIZE)).setFlexGrow(1);
+        }
         grid.addComponentColumn(this::actions).setHeader("").setFlexGrow(0).setWidth("120px");
         grid.addItemClickListener(event -> open(event.getItem()));
 
@@ -163,12 +176,29 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
         refresh();
     }
 
-    private Component nameCell(VirtualEntry entry) {
+    private String sizeText(VirtualEntry entry) {
+        return entry.directory() ? "" : FileUtils.byteCountToDisplaySize(entry.size());
+    }
+
+    /**
+     * Whether to make the browser of a phone: the default is the screen of the user, set it before {@link #create()}.
+     */
+    void setPhone(boolean phone) {
+        this.phone = phone;
+    }
+
+    // package visible for the tests
+    Component nameCell(VirtualEntry entry) {
         Span name = new Span(entry.path().getName());
         name.addClassName(CssStyles.WRAP_ANYWHERE);
         HorizontalLayout cell = new HorizontalLayout((entry.directory() ? Solid.FOLDER : Solid.FILE).create(), name);
         cell.setAlignItems(FlexComponent.Alignment.CENTER);
         cell.setSpacing(true);
+        if (phone && !entry.directory()) {
+            Span size = new Span(sizeText(entry));
+            size.addClassName(CssStyles.HINT_TEXT);
+            cell.add(size);
+        }
         return cell;
     }
 

@@ -27,6 +27,33 @@ Lorebooks also travel inside [book backups](../books/backups.md). Restoring or c
 you already have instead of creating copies; see [Restoring a backup](../books/backups.md#restoring-a-backup).
 !!!
 
+## Importing an archive of text files
+
+1. Click the **import** button and choose **Import from archive**.
+2. Upload a `.zip` file with `.md` (Markdown) files.
+3. Check the **entry names** in the table and change them if you want, then click **Import**.
+
+Marginalia creates a new lorebook named after the file (without `.zip`) with **one entry for each `.md` file**. The
+files are taken in the order of their names, numbers inside the names compared as numbers (`2.md` comes before
+`10.md`), also in folders of the archive; the entries get the *Order* 1, 2, 3... in that sequence. The whole file is the
+*Content*. Other files, folders, hidden files (`.name`) and the `__MACOSX` folder of archives made on a Mac are skipped.
+
+**Entry names** are filled in from, in this order:
+
+1. a file `names.txt` in the root of the archive: one name on a line, the first line for the first `.md` file in the
+   order above, and so on (an empty line leaves that file to the next rule; extra lines are ignored). Use it to name
+   many files at once, for example from a script;
+2. the first heading of the file (`# Chapter 1` gives *Chapter 1*);
+3. the file name without `.md`.
+
+The table in the dialog shows the result, and you can type over any name.
+
+The entries are imported **disabled**: they have no filter, so enabled they would be sent with every request, which
+for a whole book of chapters is hardly wanted. Turn on the ones you need, with a filter or [tags](entries.md#tags) -
+**Mass edit** is the quick way to do it for many entries.
+
+To put the same files into a story as parts instead, see [Importing text files](../books/story-editor.md#importing-text-files).
+
 ## Importing SillyTavern world info
 
 1. Click the **import** button and choose **Import from SillyTavern**.

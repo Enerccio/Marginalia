@@ -87,6 +87,7 @@ public class AgentDiagnosticsView extends VerticalLayout implements LLMInteract 
 
         report = new Markdown();
         report.setWidthFull();
+        report.addClassName(CssStyles.AGENT_REPORT);
 
         add(help, header, emptyLabel, report);
         showEmpty();

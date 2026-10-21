@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.domain.service.search.FulltextQuery;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.domain.traits.NoTx;
+import com.github.enerccio.marginalia.utils.MarkdownArchive;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -474,6 +475,24 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
             manuscriptService.save(book);
         }
         return saved;
+    }
+
+    @Override
+    @CommonTx
+    public int appendFromArchive(Manuscript manuscript, byte[] archive) throws Exception {
+        MarkdownArchive.Content content = MarkdownArchive.read(archive);
+        Manuscript book = ownBook(manuscript);
+        ChatMessage last = book.getActiveLeaf() == null ? null : ownPart(book, book.getActiveLeaf());
+        if (last == null && hasAnyMessages(book)) {
+            throw new IllegalArgumentException("The book has parts but no active part to continue after");
+        }
+        for (MarkdownArchive.Item item : content.items()) {
+            ChatMessage created = newPart(book, item.text(), null);
+            last = last == null ? createRoot(book, created) : addChild(last, created);
+        }
+        book.setActiveLeaf(last);
+        manuscriptService.save(book);
+        return content.items().size();
     }
 
     /**
