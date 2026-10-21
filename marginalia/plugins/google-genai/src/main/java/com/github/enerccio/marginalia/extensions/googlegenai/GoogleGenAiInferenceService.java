@@ -133,7 +133,10 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
         if (!UnmeteredScope.isActive()) {
             limitService.check(ai, approximatePromptTokens(payload), TokenLimits.responseTokens(ai, protocol));
         }
-        GoogleGenAiMessages.Prepared prepared = GoogleGenAiMessages.prepare(payload);
+        // the history of an agent is rebuilt from its transcript: a call that has no thought signature of its own (made before it was
+        // kept, or by another model) gets the value Google documents for it, which Gemini 3 insists on
+        GoogleGenAiMessages.Prepared prepared = GoogleGenAiMessages.prepare(payload,
+                settings.model().toLowerCase(Locale.ROOT).contains("gemini-3"));
         boolean functionsOffered = functions != null && !functions.isEmpty();
         Run run = new Run(protocol, functionsOffered ? functions : null, null, prepared.systemInstruction(),
                 new Outcome(callback::isDead, (call, result, failed) -> {}, callback::onCancel, callback::onError));
@@ -756,7 +759,8 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
                         FunctionCall call = part.functionCall().get();
                         String arguments = GoogleGenAiMessages.argumentsJson(call);
                         received.append(arguments);
-                        calls.add(LLMToolCall.of(GoogleGenAiMessages.callId(call), call.name().orElse(""), arguments));
+                        calls.add(LLMToolCall.of(GoogleGenAiMessages.callId(call), call.name().orElse(""), arguments,
+                                part.thoughtSignature().map(bytes -> Base64.getEncoder().encodeToString(bytes)).orElse(null)));
                         // as it came: with the id and the thought signature the model gave it
                         addModelPart(part);
                     }

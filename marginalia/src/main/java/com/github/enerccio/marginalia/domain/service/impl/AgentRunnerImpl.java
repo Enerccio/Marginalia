@@ -2024,7 +2024,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     calls.add(call);
                 } else {
                     broken = true;
-                    calls.add(LLMToolCall.of(call.getId(), call.getName(), "{}"));
+                    calls.add(LLMToolCall.of(call.getId(), call.getName(), "{}", call.getSignature()));
                 }
             }
             return broken ? LLMChatMessage.ofToolCalls(message.getContent(), calls) : message;
