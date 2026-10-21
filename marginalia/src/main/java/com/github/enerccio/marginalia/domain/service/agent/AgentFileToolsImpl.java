@@ -32,6 +32,8 @@ public final class AgentFileToolsImpl implements AgentFileTools {
     public static final int MAX_SEARCHED = 1_000;
     // files joined by one merge_files
     public static final int MAX_MERGED = 100;
+    // files one folder wide replace may change unless max_files says more
+    public static final int MAX_REPLACED = 100;
     // how long the regular expressions of one call may run, unless told otherwise
     public static final long REGEX_MILLIS = 3_000;
 
@@ -258,14 +260,29 @@ public final class AgentFileToolsImpl implements AgentFileTools {
     }
 
     @Override
-    public void replaceInFile(FunctionContinuation<String> done, String path, String oldText, String newText) {
+    public void replaceInFile(FunctionContinuation<String> done, String path, String oldText, String newText, Boolean dryRun,
+                              Integer maxFiles, String glob) {
         run(done, "replace_in_file", () -> {
             if (oldText == null || oldText.isEmpty()) {
                 throw new VirtualFileException("old_text is empty. To write a whole file use write_file");
             }
             VirtualPath file = fs.parse(path);
+            String given = newText == null ? "" : newText;
+            if (isFolder(file)) {
+                return replaceBelow(file, text -> {
+                    String from = oldText;
+                    String to = given;
+                    int found = count(text, from);
+                    if (found == 0 && text.contains("\r\n") && !from.contains("\r")) {
+                        from = from.replace("\n", "\r\n");
+                        to = to.replace("\n", "\r\n");
+                        found = count(text, from);
+                    }
+                    return found == 0 ? null : new Replaced(text.replace(from, to), found);
+                }, dryRun, maxFiles, glob, "old_text is in no file");
+            }
             String text = fs.readText(file);
-            String replacement = newText == null ? "" : newText;
+            String replacement = given;
             String from = oldText;
             int count = count(text, from);
             if (count == 0 && text.contains("\r\n") && !from.contains("\r")) {
@@ -282,10 +299,113 @@ public final class AgentFileToolsImpl implements AgentFileTools {
                 throw new VirtualFileException("old_text is in " + file + " " + count + " times. Add the text around it "
                         + "so that it matches once");
             }
+            if (Boolean.TRUE.equals(dryRun)) {
+                return "Dry run, nothing was changed: the text would be replaced in " + file;
+            }
             int at = text.indexOf(from);
             fs.writeText(file, text.substring(0, at) + replacement + text.substring(at + from.length()), false);
             return "Replaced the text in " + file;
         });
+    }
+
+    /**
+     * What a replace made of one file: the new text and the number of replacements.
+     */
+    private record Replaced(String text, int count) {
+    }
+
+    private boolean isFolder(VirtualPath path) {
+        VirtualEntry entry = fs.stat(path);
+        return entry != null && entry.directory();
+    }
+
+    /**
+     * The folder wide replace: plans the change of every text file below the folder (that matches the glob), refuses it when
+     * it would touch more files than allowed or a file can't be written, and only then writes, all files or none. A dry run
+     * (the default) writes nothing and says what would change.
+     *
+     * @param edit the new text of a file, null when nothing is to be replaced in it
+     */
+    private String replaceBelow(VirtualPath folder, Function<String, Replaced> edit, Boolean dryRun, Integer maxFiles, String glob,
+                                String none) {
+        VirtualGlob names = VirtualGlob.parse(glob);
+        int allowed = maxFiles == null || maxFiles < 1 ? MAX_REPLACED : Math.min(maxFiles, MAX_SEARCHED);
+        List<VirtualEntry> walked = fs.walk(folder, MAX_SEARCHED + 1);
+        boolean capped = walked.size() > MAX_SEARCHED;
+        List<VirtualEntry> files = walked.stream().limit(MAX_SEARCHED)
+                .filter(e -> !e.directory() && (names == null || names.matches(folder, e.path()))).toList();
+        record Change(VirtualPath file, String before, String after, int count) {
+        }
+        List<Change> changes = new ArrayList<>();
+        int total = 0;
+        for (VirtualEntry file : files) {
+            if (file.size() > fs.getLimits().maxFileBytes()) {
+                continue;
+            }
+            String text;
+            try {
+                text = fs.readText(file.path());
+            } catch (VirtualFileException e) {
+                // not text, left alone
+                continue;
+            }
+            Replaced replaced = edit.apply(text);
+            if (replaced != null && replaced.count() > 0) {
+                changes.add(new Change(file.path(), text, replaced.text(), replaced.count()));
+                total += replaced.count();
+            }
+        }
+        String capNote = capped ? " [only the first " + MAX_SEARCHED + " entries were looked at, give a folder below]" : "";
+        if (changes.isEmpty()) {
+            throw new VirtualFileException(none + " of " + folder
+                    + (names != null ? " with a name like " + VirtualPath.printable(glob.strip()) : "") + ", nothing to replace" + capNote);
+        }
+        if (changes.size() > allowed) {
+            throw new VirtualFileException("The replacement would change " + changes.size() + " files, more than max_files "
+                    + allowed + ". Nothing was changed. Narrow it with a deeper folder or glob, or raise max_files");
+        }
+        for (Change change : changes) {
+            fs.checkWritable(change.file());
+        }
+        boolean dry = dryRun == null || dryRun;
+        StringBuilder out = new StringBuilder(dry ? "Dry run, nothing was changed. Would replace " : "Replaced ")
+                .append(total).append(total == 1 ? " occurrence in " : " occurrences in ")
+                .append(changes.size()).append(changes.size() == 1 ? " file:\n" : " files:\n");
+        int shown = Math.min(changes.size(), MAX_LISTED);
+        for (int i = 0; i < shown; i++) {
+            out.append(changes.get(i).file()).append(": ").append(changes.get(i).count())
+                    .append(changes.get(i).count() == 1 ? " replacement\n" : " replacements\n");
+        }
+        if (changes.size() > shown) {
+            out.append("and ").append(changes.size() - shown).append(" more files\n");
+        }
+        if (dry) {
+            return out.append("Call again with dry_run false to make the change.").append(capNote).toString();
+        }
+        List<Change> written = new ArrayList<>();
+        try {
+            for (Change change : changes) {
+                fs.writeText(change.file(), change.after(), false);
+                written.add(change);
+            }
+        } catch (RuntimeException e) {
+            boolean restored = true;
+            for (Change change : written) {
+                try {
+                    fs.writeText(change.file(), change.before(), false);
+                } catch (RuntimeException again) {
+                    restored = false;
+                    log.warn("The file {} could not be put back after a failed replace", change.file(), again);
+                }
+            }
+            String why = e instanceof VirtualFileException ? e.getMessage() : "A file could not be written";
+            if (!(e instanceof VirtualFileException)) {
+                log.warn("A folder wide replace failed", e);
+            }
+            throw new VirtualFileException(why + (restored ? ". Nothing was changed" : ". Some files were already changed, "
+                    + "check them with grep_files"));
+        }
+        return out.toString().stripTrailing() + capNote;
     }
 
     private static int count(String text, String part) {
@@ -297,18 +417,29 @@ public final class AgentFileToolsImpl implements AgentFileTools {
     }
 
     @Override
-    public void regexReplaceInFile(FunctionContinuation<String> done, String path, String pattern, String replacement) {
+    public void regexReplaceInFile(FunctionContinuation<String> done, String path, String pattern, String replacement,
+                                   Boolean dryRun, Integer maxFiles, String glob) {
         run(done, "regex_replace_in_file", () -> {
             VirtualPath file = fs.parse(path);
             TextSearch search = compile(pattern, replacement, true, true);
-            String text = fs.readText(file);
             long deadline = DeadlineCharSequence.deadlineIn(regexMillis);
+            if (isFolder(file)) {
+                return replaceBelow(file, text -> {
+                    TextSearch.Result result = search.apply(null, text, t -> new DeadlineCharSequence(t, deadline));
+                    return result.found() ? new Replaced(result.newText(), result.hits().size()) : null;
+                }, dryRun, maxFiles, glob, "The pattern matches nothing in any file");
+            }
+            String text = fs.readText(file);
             TextSearch.Result result = search.apply(null, text, t -> new DeadlineCharSequence(t, deadline));
             if (!result.found()) {
                 throw new VirtualFileException("The pattern matches nothing in " + file);
             }
+            String matches = result.hits().size() + (result.hits().size() == 1 ? " match in " : " matches in ") + file;
+            if (Boolean.TRUE.equals(dryRun)) {
+                return "Dry run, nothing was changed. Would replace " + matches;
+            }
             fs.writeText(file, result.newText(), false);
-            return "Replaced " + result.hits().size() + (result.hits().size() == 1 ? " match in " : " matches in ") + file;
+            return "Replaced " + matches;
         });
     }
 

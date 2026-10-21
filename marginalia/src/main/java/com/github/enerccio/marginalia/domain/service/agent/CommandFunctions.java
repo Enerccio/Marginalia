@@ -340,7 +340,54 @@ public final class CommandFunctions {
         }
         forms.stream().map(CommandParameterDefinition::defaultValue).filter(value -> !value.isEmpty()).findFirst()
                 .ifPresent(value -> schema.set("default", valueNode(type, value)));
+        if (isNumber(type)) {
+            forms.stream().map(CommandParameterDefinition::min).filter(value -> !value.isEmpty()).findFirst()
+                    .ifPresent(value -> schema.set("minimum", valueNode(type, value)));
+            forms.stream().map(CommandParameterDefinition::max).filter(value -> !value.isEmpty()).findFirst()
+                    .ifPresent(value -> schema.set("maximum", valueNode(type, value)));
+        }
         return schema;
+    }
+
+    private static boolean isNumber(Class<?> type) {
+        Class<?> boxed = boxed(type);
+        return Number.class.isAssignableFrom(boxed) && boxed != Object.class;
+    }
+
+    /**
+     * The number as a model wrote it (a JSON number, or a text of one), null for anything else.
+     */
+    private static BigDecimal numberOf(Object value) {
+        if (value instanceof Number number) {
+            return new BigDecimal(number.toString());
+        }
+        try {
+            return value == null ? null : new BigDecimal(value.toString().trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    /**
+     * The message for a number outside of the limits of its parameter, null when it is inside or the parameter has none.
+     */
+    private static String outOfRange(CommandParameterDefinition parameter, Object value) {
+        if (value == null || (parameter.min().isEmpty() && parameter.max().isEmpty())) {
+            return null;
+        }
+        BigDecimal number = numberOf(value);
+        BigDecimal min = numberOf(parameter.min());
+        BigDecimal max = numberOf(parameter.max());
+        if (number == null) {
+            return null;
+        }
+        if (min != null && number.compareTo(min) < 0) {
+            return "Parameter '" + parameter.name() + "' must be at least " + parameter.min() + ", not " + value;
+        }
+        if (max != null && number.compareTo(max) > 0) {
+            return "Parameter '" + parameter.name() + "' must be at most " + parameter.max() + ", not " + value;
+        }
+        return null;
     }
 
     /** Whether the parameter takes images (in every form that has it), which the model names by paths of files. */
@@ -608,6 +655,10 @@ public final class CommandFunctions {
             if (value != null && !parameter.allowed().isEmpty() && !parameter.allowed().contains(String.valueOf(value))) {
                 throw new FunctionCallException(Kind.INVALID_ARGUMENTS, "Parameter '" + parameter.name() + "' must be one of "
                         + parameter.allowed());
+            }
+            String range = outOfRange(parameter, value);
+            if (range != null) {
+                throw new FunctionCallException(Kind.INVALID_ARGUMENTS, range);
             }
             complete.put(parameter.name(), value);
         }

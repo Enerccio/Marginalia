@@ -33,6 +33,16 @@ public interface CheckpointTools {
     void restore(FunctionContinuation<String> done,
                  @LLMParam(description = "The number of the checkpoint, e.g. 0003 or 3") String id);
 
+    @LLMFunction(name = "checkpoint_diff", description = "Shows what changed between a checkpoint and now: in the book "
+            + "(settings, parts, lorebooks and entries that were added, changed or deleted) and in your workspace (files added, "
+            + "changed or removed). With a path of your workspace only that file or folder is compared, and for a text file the "
+            + "sentences that differ are shown. Use it to see what a step did before you decide to go back with "
+            + "checkpoint_restore.")
+    void diff(FunctionContinuation<String> done,
+              @LLMParam(description = "The number of the checkpoint, e.g. 0003 or 3") String id,
+              @LLMParam(description = "A file or folder of your workspace to compare instead of everything, e.g. /notes/plot.md",
+                      required = false) String path);
+
     @LLMFunction(name = "checkpoint_delete", description = "Deletes a checkpoint to free the quota. The checkpoint of the start "
             + "of the run and the newest one can't be deleted.")
     void delete(FunctionContinuation<String> done,

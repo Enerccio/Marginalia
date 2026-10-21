@@ -63,7 +63,7 @@ public class PreviewLoreActivationCommand extends LorebookReadSupport {
             description = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION, llmDescription = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "text", type = String.class, description = L.DESC_COMMAND_PREVIEW_TEXT_PARAM),
-                    @CommandParameter(name = "limit", type = Integer.class, description = L.DESC_COMMAND_LIMIT_PARAM)}),
+                    @CommandParameter(name = "limit", type = Integer.class, optional = true, defaultValue = "50", min = "1", max = "200", description = L.DESC_COMMAND_LIMIT_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_RETURN))
     public void previewTextLimit(CommandContext context) throws Exception {
         preview(context, context.get("text", String.class), null, null, context.get("limit", Integer.class));
@@ -75,7 +75,7 @@ public class PreviewLoreActivationCommand extends LorebookReadSupport {
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
                     @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM),
-                    @CommandParameter(name = "limit", type = Integer.class, description = L.DESC_COMMAND_LIMIT_PARAM)}),
+                    @CommandParameter(name = "limit", type = Integer.class, optional = true, defaultValue = "50", min = "1", max = "200", description = L.DESC_COMMAND_LIMIT_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_RETURN))
     public void previewPartLimit(CommandContext context) throws Exception {
         preview(context, null, ref(context, "part"), ref(context, "branch"), context.get("limit", Integer.class));

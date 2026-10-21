@@ -111,9 +111,27 @@ public final class MergeDiff {
         return originalToCopy;
     }
 
+    /**
+     * What changed between two states of the same book, for a look at the difference (not for a merge): the items of {@code later}
+     * that are not in {@code earlier} are added, the ones it lacks are deleted. The same item is found by its key: the uuid of
+     * the original in the pairs, or what the pairs say for an item without an original; a key that is not in the pairs is the uuid
+     * itself. So two states of copies that were made apart (before and after a restore) still match.
+     *
+     * @param earlierKeys the uuid of an item of {@code earlier} to its key
+     * @param laterKeys   the same for {@code later}
+     */
+    public static MergePlan between(JsonObject earlier, Map<String, String> earlierKeys, JsonObject later, Map<String, String> laterKeys) {
+        View before = view(earlier, earlierKeys);
+        return compute(before, view(later, laterKeys), before, key -> key, key -> key);
+    }
+
     private static MergePlan compute(JsonObject base, View changed, View other, Function<String, String> source,
                                      Function<String, String> target) {
-        View baseView = view(base, null);
+        return compute(view(base, null), changed, other, source, target);
+    }
+
+    private static MergePlan compute(View baseView, View changed, View other, Function<String, String> source,
+                                     Function<String, String> target) {
         boolean bookChanged = !baseView.messages.equals(other.messages) || !baseView.lorebooks.equals(other.lorebooks)
                 || !baseView.entries.equals(other.entries) || !baseView.book.equals(other.book);
 

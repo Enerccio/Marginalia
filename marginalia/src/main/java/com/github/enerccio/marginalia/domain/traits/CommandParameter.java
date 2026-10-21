@@ -46,6 +46,17 @@ public @interface CommandParameter {
     String[] allowed() default {};
 
     /**
+     * The smallest value of a number, as text; empty is no lower limit. For an agent only: it is in the schema of the function and a
+     * smaller value is refused with a message that names the limit, the command line does not check it.
+     */
+    String min() default "";
+
+    /**
+     * The largest value of a number, as text; empty is no upper limit. Checked and shown like {@link #min()}.
+     */
+    String max() default "";
+
+    /**
      * What the parameter means, shown to the user while they type it, the key of its text; may be left out (see
      * {@link Command} for the pairs of texts).
      */

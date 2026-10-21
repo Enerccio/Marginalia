@@ -74,20 +74,38 @@ public interface AgentFileTools {
     @LLMFunction(name = "replace_in_file", description = "Replaces a piece of text in a file of your workspace with "
             + "another. old_text has to be in the file exactly once, character for character with its spaces and line "
             + "breaks; include enough of the lines around it to make it unique. Read the file first when you are not "
-            + "sure of the exact text.")
+            + "sure of the exact text. When path is a folder, it replaces every occurrence of old_text in all the text "
+            + "files below it (only those that match glob, when given) and reports 'path: n replacements' per file; that "
+            + "is a dry run unless you pass dry_run false, and all or nothing: if one file can't be changed none is.")
     void replaceInFile(FunctionContinuation<String> done,
-                       @LLMParam(description = "Path of the file") String path,
+                       @LLMParam(description = "Path of the file, or of a folder to change all the files below it") String path,
                        @LLMParam(name = "old_text", description = "The text to replace, exactly as in the file") String oldText,
                        @LLMParam(name = "new_text", description = "The text that takes its place; empty removes the old "
-                               + "text") String newText);
+                               + "text") String newText,
+                       @LLMParam(name = "dry_run", description = "true only reports what would change and changes nothing. "
+                               + "Default false for a file, true for a folder", required = false) Boolean dryRun,
+                       @LLMParam(name = "max_files", description = "For a folder: the most files that may change, default "
+                               + AgentFileToolsImpl.MAX_REPLACED + "; when more would, nothing changes and you are told how many",
+                               required = false) Integer maxFiles,
+                       @LLMParam(description = "For a folder: change only the files whose name matches this pattern, for "
+                               + "example *.md or chapters/*.md; the same patterns as in list_files", required = false) String glob);
 
     @LLMFunction(name = "regex_replace_in_file", description = "Replaces every match of a regular expression (Java "
             + "syntax) in a file of your workspace. The replacement can use groups of the pattern as $1, $2; write \\$ "
-            + "for a dollar sign. Fails when nothing matches.")
+            + "for a dollar sign. Fails when nothing matches. When path is a folder, it does that in all the text files "
+            + "below it (only those that match glob, when given) and reports 'path: n replacements' per file; that is a "
+            + "dry run unless you pass dry_run false, and all or nothing: if one file can't be changed none is.")
     void regexReplaceInFile(FunctionContinuation<String> done,
-                            @LLMParam(description = "Path of the file") String path,
+                            @LLMParam(description = "Path of the file, or of a folder to change all the files below it") String path,
                             @LLMParam(description = "The regular expression; ^ and $ match at every line") String pattern,
-                            @LLMParam(description = "The replacement; empty removes the matches") String replacement);
+                            @LLMParam(description = "The replacement; empty removes the matches") String replacement,
+                            @LLMParam(name = "dry_run", description = "true only reports what would change and changes "
+                                    + "nothing. Default false for a file, true for a folder", required = false) Boolean dryRun,
+                            @LLMParam(name = "max_files", description = "For a folder: the most files that may change, default "
+                                    + AgentFileToolsImpl.MAX_REPLACED + "; when more would, nothing changes and you are told how many",
+                                    required = false) Integer maxFiles,
+                            @LLMParam(description = "For a folder: change only the files whose name matches this pattern, for "
+                                    + "example *.md or chapters/*.md; the same patterns as in list_files", required = false) String glob);
 
     @LLMFunction(name = "grep_files", description = "Searches the files of your workspace for a text or a regular "
             + "expression and lists the matching lines as path:line: text. Searches one file, or all the files below a "

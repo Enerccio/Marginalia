@@ -140,6 +140,11 @@ public final class CssStyles {
     public static final String JSON_MERGE_TEXT = "json-merge-text";
     public static final String AGENT_COPY_PART = "agent-copy-part";
     public static final String AGENT_COPY_PART_HEAD = "agent-copy-part-head";
+    public static final String AGENT_PLAN = "agent-plan";
+    public static final String AGENT_PLAN_ITEM = "agent-plan-item";
+    public static final String AGENT_PLAN_DONE = "agent-plan-done";
+    public static final String AGENT_PLAN_ACTIVE = "agent-plan-active";
+    public static final String AGENT_ATTENTION_CUE = "agent-attention-cue";
     public static final String HELP_INPUT = "help-input";
 
     // --- Commands (ui.components.CommandBar, CommandResultView) ---

@@ -55,6 +55,18 @@ public interface AgentRunService extends ExtendableService<AgentRun, AgentRunRep
     long getContextCap(AgentRun run) throws Exception;
 
     /**
+     * The longest answer the model of the run can write, in tokens, 0 when it is not known (or the model of the agent can't be
+     * resolved). A call whose arguments need more is cut off.
+     */
+    long getResponseCap(AgentRun run) throws Exception;
+
+    /**
+     * The plan the agent keeps with {@code update_plan}: the one it kept for a restart, else the one of its last call that it still
+     * reads; empty for none.
+     */
+    List<com.github.enerccio.marginalia.domain.service.agent.RunTools.PlanItem> getPlan(AgentRun run) throws Exception;
+
+    /**
      * Sets the model the working copy of the run writes with: the AI and the protocol of the main model profile of the agent when
      * the agent uses its own model ({@code Agent.useAgentModel}, the default), else the AI and the protocol the book has now. Done
      * every time a worker starts, so a profile or a flag the author changed in the meantime is used. The two are not merged back

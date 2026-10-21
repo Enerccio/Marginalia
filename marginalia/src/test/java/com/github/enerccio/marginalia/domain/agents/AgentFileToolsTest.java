@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.domain.agents;
 
 import com.github.enerccio.marginalia.domain.service.agent.*;
 import com.github.enerccio.marginalia.domain.service.function.FunctionContinuation;
+import com.github.enerccio.marginalia.test.TestImages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -233,7 +234,7 @@ class AgentFileToolsTest {
     void replacesTextThatIsThereOnce() {
         write("/a.md", "The hero left.\nThe villain stayed.\n");
 
-        assertThat(ok(a -> tools.replaceInFile(a, "/a.md", "villain stayed", "villain fled"))).isEqualTo("Replaced the text in /a.md");
+        assertThat(ok(a -> tools.replaceInFile(a, "/a.md", "villain stayed", "villain fled", null, null, null))).isEqualTo("Replaced the text in /a.md");
 
         assertThat(read("/a.md")).isEqualTo("The hero left.\nThe villain fled.");
     }
@@ -242,7 +243,7 @@ class AgentFileToolsTest {
     void replacesAcrossLinesAndRemovesWithEmptyNewText() {
         write("/a.md", "one\ntwo\nthree\n");
 
-        ok(a -> tools.replaceInFile(a, "/a.md", "one\ntwo\n", ""));
+        ok(a -> tools.replaceInFile(a, "/a.md", "one\ntwo\n", "", null, null, null));
 
         assertThat(read("/a.md")).isEqualTo("three");
     }
@@ -251,10 +252,10 @@ class AgentFileToolsTest {
     void replaceNeedsExactlyOneMatch() {
         write("/a.md", "cat dog cat\n");
 
-        assertThat(error(a -> tools.replaceInFile(a, "/a.md", "cat", "bird"))).contains("2 times").contains("matches once");
-        assertThat(error(a -> tools.replaceInFile(a, "/a.md", "cow", "bird"))).contains("not in /a.md").contains("exactly");
-        assertThat(error(a -> tools.replaceInFile(a, "/a.md", "", "bird"))).contains("empty");
-        assertThat(error(a -> tools.replaceInFile(a, "/a.md", null, "bird"))).contains("empty");
+        assertThat(error(a -> tools.replaceInFile(a, "/a.md", "cat", "bird", null, null, null))).contains("2 times").contains("matches once");
+        assertThat(error(a -> tools.replaceInFile(a, "/a.md", "cow", "bird", null, null, null))).contains("not in /a.md").contains("exactly");
+        assertThat(error(a -> tools.replaceInFile(a, "/a.md", "", "bird", null, null, null))).contains("empty");
+        assertThat(error(a -> tools.replaceInFile(a, "/a.md", null, "bird", null, null, null))).contains("empty");
         assertThat(read("/a.md")).isEqualTo("cat dog cat");
     }
 
@@ -262,7 +263,7 @@ class AgentFileToolsTest {
     void replaceInADollarAndBackslashIsLiteral() {
         write("/a.md", "price: X\n");
 
-        ok(a -> tools.replaceInFile(a, "/a.md", "X", "$5 \\ $1"));
+        ok(a -> tools.replaceInFile(a, "/a.md", "X", "$5 \\ $1", null, null, null));
 
         assertThat(read("/a.md")).isEqualTo("price: $5 \\ $1");
     }
@@ -272,14 +273,14 @@ class AgentFileToolsTest {
         Files.createDirectories(folder.workspace());
         Files.writeString(folder.workspace().resolve("win.md"), "one\r\ntwo\r\nthree\r\n");
 
-        ok(a -> tools.replaceInFile(a, "/win.md", "one\ntwo", "1\n2"));
+        ok(a -> tools.replaceInFile(a, "/win.md", "one\ntwo", "1\n2", null, null, null));
 
         assertThat(Files.readString(folder.workspace().resolve("win.md"))).isEqualTo("1\r\n2\r\nthree\r\n");
     }
 
     @Test
     void replaceOfAMissingFileFails() {
-        assertThat(error(a -> tools.replaceInFile(a, "/missing.md", "a", "b"))).contains("/missing.md");
+        assertThat(error(a -> tools.replaceInFile(a, "/missing.md", "a", "b", null, null, null))).contains("/missing.md");
     }
 
     // ---------------------------------------------------------------------------------------------------------------
@@ -290,11 +291,11 @@ class AgentFileToolsTest {
     void replacesByRegularExpression() {
         write("/a.md", "Chapter 1\nChapter 22\nIntro\n");
 
-        assertThat(ok(a -> tools.regexReplaceInFile(a, "/a.md", "Chapter (\\d+)", "Part $1"))).isEqualTo("Replaced 2 matches in /a.md");
+        assertThat(ok(a -> tools.regexReplaceInFile(a, "/a.md", "Chapter (\\d+)", "Part $1", null, null, null))).isEqualTo("Replaced 2 matches in /a.md");
         assertThat(read("/a.md")).isEqualTo("Part 1\nPart 22\nIntro");
-        assertThat(ok(a -> tools.regexReplaceInFile(a, "/a.md", "^Intro$", "Start"))).isEqualTo("Replaced 1 match in /a.md");
+        assertThat(ok(a -> tools.regexReplaceInFile(a, "/a.md", "^Intro$", "Start", null, null, null))).isEqualTo("Replaced 1 match in /a.md");
         assertThat(read("/a.md")).endsWith("Start");
-        ok(a -> tools.regexReplaceInFile(a, "/a.md", "Part ", ""));
+        ok(a -> tools.regexReplaceInFile(a, "/a.md", "Part ", "", null, null, null));
         assertThat(read("/a.md")).isEqualTo("1\n22\nStart");
     }
 
@@ -302,10 +303,10 @@ class AgentFileToolsTest {
     void regularExpressionErrorsAreForTheModel() {
         write("/a.md", "text\n");
 
-        assertThat(error(a -> tools.regexReplaceInFile(a, "/a.md", "(unclosed", "x"))).contains("not valid");
-        assertThat(error(a -> tools.regexReplaceInFile(a, "/a.md", "text", "$2"))).contains("replacement is not valid");
-        assertThat(error(a -> tools.regexReplaceInFile(a, "/a.md", "nothing", "x"))).contains("matches nothing");
-        assertThat(error(a -> tools.regexReplaceInFile(a, "/a.md", "", "x"))).contains("empty");
+        assertThat(error(a -> tools.regexReplaceInFile(a, "/a.md", "(unclosed", "x", null, null, null))).contains("not valid");
+        assertThat(error(a -> tools.regexReplaceInFile(a, "/a.md", "text", "$2", null, null, null))).contains("replacement is not valid");
+        assertThat(error(a -> tools.regexReplaceInFile(a, "/a.md", "nothing", "x", null, null, null))).contains("matches nothing");
+        assertThat(error(a -> tools.regexReplaceInFile(a, "/a.md", "", "x", null, null, null))).contains("empty");
         assertThat(read("/a.md")).isEqualTo("text");
     }
 
@@ -316,11 +317,116 @@ class AgentFileToolsTest {
         tools = new AgentFileToolsImpl(fs, 200);
         long start = System.nanoTime();
 
-        assertThat(error(a -> tools.regexReplaceInFile(a, "/a.md", "(a+)+\\1$", "x"))).contains("too long");
+        assertThat(error(a -> tools.regexReplaceInFile(a, "/a.md", "(a+)+\\1$", "x", null, null, null))).contains("too long");
         assertThat(error(a -> tools.grepFiles(a, "(a+)+\\1$", "/", true, false, null))).contains("too long");
 
         assertThat((System.nanoTime() - start) / 1_000_000).as("milliseconds").isLessThan(3_000);
         assertThat(read("/a.md")).hasSize(41);
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------
+    // replace below a folder
+    // ---------------------------------------------------------------------------------------------------------------
+
+    private void chapters() {
+        write("/book/one.md", "The hero Anna left.\nAnna stayed.\n");
+        write("/book/two.md", "Nothing here.\n");
+        write("/book/deep/three.md", "Anna!\n");
+        write("/book/notes.txt", "Anna wrote this.\n");
+    }
+
+    @Test
+    void aFolderReplaceIsADryRunUnlessToldOtherwise() {
+        chapters();
+
+        String report = ok(a -> tools.replaceInFile(a, "/book", "Anna", "Mira", null, null, null));
+
+        assertThat(report).startsWith("Dry run, nothing was changed. Would replace 4 occurrences in 3 files:")
+                .contains("/book/one.md: 2 replacements").contains("/book/deep/three.md: 1 replacement")
+                .contains("/book/notes.txt: 1 replacement").doesNotContain("two.md").endsWith("Call again with dry_run false to make the change.");
+        assertThat(read("/book/one.md")).contains("Anna");
+    }
+
+    @Test
+    void aFolderReplaceChangesEveryOccurrenceInEveryFileWhenNotADryRun() {
+        chapters();
+
+        String report = ok(a -> tools.replaceInFile(a, "/book", "Anna", "Mira", false, null, null));
+
+        assertThat(report).startsWith("Replaced 4 occurrences in 3 files:").contains("/book/one.md: 2 replacements");
+        assertThat(read("/book/one.md")).isEqualTo("The hero Mira left.\nMira stayed.");
+        assertThat(read("/book/deep/three.md")).isEqualTo("Mira!");
+        assertThat(read("/book/two.md")).isEqualTo("Nothing here.");
+    }
+
+    @Test
+    void aGlobLimitsAFolderReplace() {
+        chapters();
+
+        ok(a -> tools.replaceInFile(a, "/book", "Anna", "Mira", false, null, "*.md"));
+
+        assertThat(read("/book/one.md")).doesNotContain("Anna");
+        assertThat(read("/book/notes.txt")).contains("Anna");
+        assertThat(error(a -> tools.replaceInFile(a, "/book", "Mira", "Eve", false, null, "*.txt"))).contains("no file of /book")
+                .contains("*.txt");
+    }
+
+    @Test
+    void aFolderReplaceThatWouldChangeTooManyFilesChangesNone() {
+        chapters();
+
+        assertThat(error(a -> tools.replaceInFile(a, "/book", "Anna", "Mira", false, 2, null))).contains("3 files")
+                .contains("max_files 2").contains("Nothing was changed");
+
+        assertThat(read("/book/one.md")).contains("Anna");
+        assertThat(read("/book/deep/three.md")).isEqualTo("Anna!");
+    }
+
+    @Test
+    void aFolderReplaceWritesNothingWhenOneFileCannotBeWritten() {
+        // the first file fits the total after the change, the second would not: the first one has to be put back
+        fs = VirtualFileSystem.ofRun(folder, new WorkspaceLimits(1_000, 800, 100), new ReentrantLock());
+        tools = new AgentFileToolsImpl(fs);
+        write("/a.md", "x ".repeat(10));
+        write("/b.md", "x ".repeat(10));
+
+        String message = error(a -> tools.replaceInFile(a, "/", "x", "x".repeat(50), false, null, null));
+
+        assertThat(message).contains("Nothing was changed");
+        assertThat(read("/a.md")).isEqualTo("x ".repeat(10));
+        assertThat(read("/b.md")).isEqualTo("x ".repeat(10));
+    }
+
+    @Test
+    void aFolderReplaceLeavesImagesAndOtherNonTextAlone() throws IOException {
+        write("/book/a.md", "Anna\n");
+        fs.writeImage(VirtualPath.ROOT.resolve("book").resolve("pic.png"), TestImages.image(4, 4, "png"));
+
+        String report = ok(a -> tools.replaceInFile(a, "/book", "Anna", "Mira", false, null, null));
+
+        assertThat(report).contains("1 file").doesNotContain("pic.png");
+    }
+
+    @Test
+    void aFolderRegexReplaceReportsPerFile() {
+        chapters();
+
+        assertThat(ok(a -> tools.regexReplaceInFile(a, "/book", "A(nn)a", "M$1", null, null, "**/*.md")))
+                .startsWith("Dry run, nothing was changed. Would replace 3 occurrences in 2 files:");
+        ok(a -> tools.regexReplaceInFile(a, "/book", "A(nn)a", "M$1", false, null, "**/*.md"));
+
+        assertThat(read("/book/one.md")).isEqualTo("The hero Mnn left.\nMnn stayed.");
+        assertThat(error(a -> tools.regexReplaceInFile(a, "/book", "Zzz", "x", false, null, null))).contains("matches nothing in any file");
+    }
+
+    @Test
+    void aSingleFileCanBeADryRunToo() {
+        write("/a.md", "cat dog\n");
+
+        assertThat(ok(a -> tools.replaceInFile(a, "/a.md", "cat", "bird", true, null, null))).startsWith("Dry run, nothing was changed");
+        assertThat(ok(a -> tools.regexReplaceInFile(a, "/a.md", "c(a)t", "b$1", true, null, null))).contains("Would replace 1 match in /a.md");
+
+        assertThat(read("/a.md")).isEqualTo("cat dog");
     }
 
     // ---------------------------------------------------------------------------------------------------------------
@@ -450,8 +556,8 @@ class AgentFileToolsTest {
         collect.accept(a -> tools.writeFile(a, "/link/x", "x"));
         collect.accept(a -> tools.grepFiles(a, "text", "/", false, false, null));
         collect.accept(a -> tools.grepFiles(a, "text", "/link", false, false, null));
-        collect.accept(a -> tools.replaceInFile(a, "/link", "a", "b"));
-        collect.accept(a -> tools.regexReplaceInFile(a, "/link", "a", "b"));
+        collect.accept(a -> tools.replaceInFile(a, "/link", "a", "b", null, null, null));
+        collect.accept(a -> tools.regexReplaceInFile(a, "/link", "a", "b", null, null, null));
         collect.accept(a -> tools.deleteFile(a, "/link", true));
         collect.accept(a -> tools.moveFile(a, "/link", "/x"));
         collect.accept(a -> tools.moveFile(a, "/notes/a.md", "/link/a.md"));

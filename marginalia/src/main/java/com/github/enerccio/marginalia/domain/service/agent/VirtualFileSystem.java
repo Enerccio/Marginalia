@@ -134,6 +134,15 @@ public final class VirtualFileSystem {
     }
 
     /**
+     * Whether the file can be written: not in a read only mount and inside the write scope.
+     *
+     * @throws VirtualFileException when it can't, the message says why
+     */
+    public void checkWritable(VirtualPath file) {
+        writableMountFor(file);
+    }
+
+    /**
      * @return the file or folder, null when there is none
      */
     public VirtualEntry stat(VirtualPath path) {

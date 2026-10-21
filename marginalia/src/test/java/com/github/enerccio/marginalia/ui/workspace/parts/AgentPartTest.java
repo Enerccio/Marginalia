@@ -330,6 +330,21 @@ class AgentPartTest extends AgentTestBase {
     }
 
     @Test
+    void aListenerIsToldTheCountOfTheAgentsThatNeedTheUser() throws Exception {
+        Agent waiting = agent();
+        part.refresh();
+        List<Integer> counts = new ArrayList<>();
+
+        part.addAttentionListener(counts::add);
+        agentRunService.transition(agentRunService.start(waiting), AgentRunStatus.IDLE, "Which chapter?");
+        part.refresh();
+        agentRunService.acknowledge(agentRunService.findUnfinished(waiting));
+        part.refresh();
+
+        assertThat(counts).as("now, then at every look").containsExactly(0, 1, 0);
+    }
+
+    @Test
     void whatHappenedWhileTheUserWasAwayIsThereWhenTheTabOpens() throws Exception {
         Agent agent = agent();
         AgentRun run = agentRunService.start(agent);

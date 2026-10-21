@@ -246,6 +246,35 @@ class AgentSubagentsTest extends AgentTestBase {
     }
 
     @Test
+    void theStatusOfTheRunListsTheSubagentsThatWork() throws Exception {
+        updatePermission(agentUser(), PermissionType.AGENTS, permission -> permission.setAgentsMaxConcurrency(2));
+        Agent agent = agentWith(2);
+        CountDownLatch never = new CountDownLatch(1);
+        llm.respondWith(request -> {
+            if (isSub(request)) {
+                return MockLLMResponse.text("never read").waitFor(never, Duration.ofSeconds(30));
+            }
+            return switch (request.getMessages("tool").size()) {
+                case 0 -> MockLLMResponse.toolCall("spawn_agent", "{\"task\":\"Count\\nthe   dragons in the lorebook\"}");
+                case 1 -> MockLLMResponse.toolCall("get_run_status", "{}");
+                case 2 -> MockLLMResponse.toolCall("cancel_agent", "{\"handle\":\"sub1\"}");
+                case 3 -> MockLLMResponse.toolCall("get_run_status", "{}");
+                default -> MockLLMResponse.toolCall("finish", "{\"summary\":\"done\"}");
+            };
+        });
+
+        AgentRun run = await(startRun(agent));
+        never.countDown();
+
+        List<String> results = messageService.transcript(run).stream().filter(message -> message.getRole() == LLMRole.TOOL)
+                .map(LLMChatMessage::getContent).toList();
+        assertThat(results.get(1)).contains("Sub-agents: 1 working of at most 2")
+                .containsPattern("- sub1: running, round \\d+, \\d+ tokens.* - Count the dragons in the lorebook");
+        assertThat(results.get(3)).as("the sub-agent waits for its model, it is told to stop").contains("- sub1: running")
+                .contains(", asked to stop - Count the dragons");
+    }
+
+    @Test
     void pausingTheRunSuspendsTheSubagentAndLeavesTheCallOfTheAgentOpen() throws Exception {
         Agent agent = agentWith(1);
         CountDownLatch never = new CountDownLatch(1);

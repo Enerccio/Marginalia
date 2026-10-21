@@ -606,6 +606,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_JSON_TAKE_RESULT, "結果を採用");
         setValue(L.LABEL_JSON_START_OVER, "最初からやり直す");
         setValue(L.LABEL_JSON_APPLY_TEXT, "このテキストを使う");
+        setValue(L.LABEL_AGENT_REPLY_LIMIT, "返信の上限");
+        setValue(L.LABEL_AGENT_PLAN, "計画");
+        setValue(L.LABEL_AGENTS_WAITING, "対応を待っているエージェント");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -712,6 +715,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_JSON_CHOICE_BOOK, "ブック");
         setValue(L.ENUM_JSON_CHOICE_BASE, "開始時");
         setValue(L.ENUM_JSON_CHOICE_NONE, "除外");
+        setValue(L.ENUM_AGENT_PLAN_PENDING, "未着手");
+        setValue(L.ENUM_AGENT_PLAN_IN_PROGRESS, "進行中");
+        setValue(L.ENUM_AGENT_PLAN_DONE, "完了");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -1008,6 +1014,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_JSON_NOT_JSON, "このデータはJSONではないため、テキストとしてのみ編集できます。");
         setValue(L.MSG_JSON_RESULT_CONFLICTS, "データに競合が %d 件あります。決定しない箇所はエージェントの内容が採用されます。");
         setValue(L.MSG_JSON_MATCH_PICK, "%s と同じ要素はどれですか?");
+        setValue(L.MSG_AGENT_NO_PLAN, "エージェントはまだ計画を立てていません。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

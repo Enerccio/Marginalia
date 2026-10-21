@@ -45,6 +45,7 @@ import org.springframework.web.context.request.RequestAttributes;
 
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.function.IntConsumer;
 
 /**
  * The tab with the agents of the user: a table of them with the state of their run and the buttons to start, pause or
@@ -109,6 +110,9 @@ public class AgentPart implements WorkspaceComponent {
     private AgentConsoleDialog console;
     // how many agents wait to be looked at, shown on the tab even when another tab is open
     private final Span attentionBadge = new Span();
+    // told the same count, for the cue in the top bar of the phone
+    private final List<IntConsumer> attentionListeners = new ArrayList<>();
+    private int waiting;
     private Runnable unsubscribe;
 
     // the phone shows each agent as a card (name, state, buttons) in a single column
@@ -134,6 +138,14 @@ public class AgentPart implements WorkspaceComponent {
      */
     public Span getAttentionBadge() {
         return attentionBadge;
+    }
+
+    /**
+     * Asks to be told the count of the agents that wait for the user, now and whenever it is read again.
+     */
+    public void addAttentionListener(IntConsumer listener) {
+        attentionListeners.add(listener);
+        listener.accept(waiting);
     }
 
     public String getName() {
@@ -492,9 +504,10 @@ public class AgentPart implements WorkspaceComponent {
                     runs.put(agent.getUuid(), run);
                 }
             }
-            int waiting = agentRunService.findNeedingAttention().size();
+            waiting = agentRunService.findNeedingAttention().size();
             attentionBadge.setText(String.valueOf(waiting));
             attentionBadge.setVisible(waiting > 0);
+            attentionListeners.forEach(listener -> listener.accept(waiting));
             canCreate = agentService.canCreate();
             addAgentButton.setEnabled(canCreate);
             addAgentButton.setTooltipText(canCreate ? null : loc.getValue(L.MSG_AGENT_LIMIT_REACHED));

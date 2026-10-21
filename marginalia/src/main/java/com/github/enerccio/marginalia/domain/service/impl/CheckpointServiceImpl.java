@@ -14,6 +14,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import com.github.enerccio.marginalia.utils.TextDiff;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,11 +22,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.zip.CRC32;
+import java.util.zip.ZipEntry;
 
 public class CheckpointServiceImpl implements CheckpointService {
 
@@ -295,6 +299,140 @@ public class CheckpointServiceImpl implements CheckpointService {
             throw new CheckpointException("There is no checkpoint " + id);
         }
         return file;
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------
+    // comparing
+    // ---------------------------------------------------------------------------------------------------------------
+
+    // the files of the workspace one comparison looks at
+    private static final int MAX_COMPARED_FILES = 20_000;
+
+    @Override
+    @CommonTxReadOnly
+    public Difference diff(AgentRun run, String id, String path) throws Exception {
+        AgentRun stored = own(run);
+        Lock lock = lockOf(stored);
+        lock.lock();
+        try (CheckpointStore.Snapshot snapshot = openOrFail(storeOf(stored), id)) {
+            VirtualFileSystem files = fileSystemService.open(stored);
+            VirtualPath filter = path == null || path.isBlank() ? null : files.parse(path);
+            MergePlan book = null;
+            if (filter == null) {
+                JsonObject now = manuscriptService.snapshotAgenticCopy(stored.getWorkingCopy());
+                book = MergeDiff.between(snapshot.manuscript(), keysOf(snapshot.pairs()), now, keysOf(pairService.getAll(stored)));
+            }
+            List<FileChange> changes = new ArrayList<>();
+            Map<VirtualPath, VirtualEntry> current = new TreeMap<>();
+            for (VirtualEntry entry : files.walk(VirtualPath.ROOT, MAX_COMPARED_FILES)) {
+                if (!entry.directory() && (filter == null || entry.path().startsWith(filter))) {
+                    current.put(entry.path(), entry);
+                }
+            }
+            Set<VirtualPath> saved = new HashSet<>();
+            List<ZipEntry> entries = new ArrayList<>(snapshot.zip().stream().toList());
+            entries.sort(Comparator.comparing(ZipEntry::getName));
+            for (ZipEntry entry : entries) {
+                if (entry.isDirectory() || !entry.getName().startsWith(CheckpointStore.WORKSPACE)) {
+                    continue;
+                }
+                VirtualPath file;
+                try {
+                    file = files.parse("/" + entry.getName().substring(CheckpointStore.WORKSPACE.length()));
+                } catch (VirtualFileException e) {
+                    continue;
+                }
+                if (filter != null && !file.startsWith(filter)) {
+                    continue;
+                }
+                saved.add(file);
+                VirtualEntry now = current.get(file);
+                if (now == null) {
+                    changes.add(new FileChange(file.toString(), MergePlan.Change.DELETED, entry.getSize(), 0));
+                } else if (now.size() != entry.getSize() || crc(files, file) != entry.getCrc()) {
+                    changes.add(new FileChange(file.toString(), MergePlan.Change.CHANGED, entry.getSize(), now.size()));
+                }
+            }
+            current.forEach((file, entry) -> {
+                if (!saved.contains(file)) {
+                    changes.add(new FileChange(file.toString(), MergePlan.Change.ADDED, 0, entry.size()));
+                }
+            });
+            changes.sort(Comparator.comparing(FileChange::path));
+            TextDiff.Result lines = null;
+            if (filter != null) {
+                if (files.stat(filter) == null && !savedUnder(entries, filter)) {
+                    throw new CheckpointException("There is no " + filter + " in the checkpoint " + snapshot.info().id() + " or now");
+                }
+                if (changes.size() == 1 && changes.getFirst().path().equals(filter.toString())) {
+                    lines = fileLines(snapshot, files, filter, changes.getFirst());
+                }
+            }
+            return new Difference(snapshot.info(), book, changes, lines);
+        } catch (IOException e) {
+            throw new CheckpointException("The checkpoint could not be read: " + e.getMessage());
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private static CheckpointStore.Snapshot openOrFail(CheckpointStore store, String id) throws IOException {
+        String normal = CheckpointStore.normalizeId(id);
+        if (normal == null || store.find(normal) == null) {
+            throw new CheckpointException("There is no checkpoint " + id + ". The checkpoints:\n" + CheckpointText.list(store.list()));
+        }
+        return store.open(normal);
+    }
+
+    /**
+     * The key of every item of a copy for the comparison of two states: the uuid of the original, for an item the agent made its
+     * handle (the same after a restore, which makes the items of a new copy), else its own uuid.
+     */
+    private static Map<String, String> keysOf(List<UuidPair> pairs) {
+        Map<String, String> keys = new HashMap<>();
+        for (UuidPair pair : pairs) {
+            keys.put(pair.copyUuid(), pair.originalUuid() != null ? pair.originalUuid()
+                    : MergeDiff.NEW + (pair.handle() != null ? pair.handle() : pair.copyUuid()));
+        }
+        return keys;
+    }
+
+    private static boolean savedUnder(List<ZipEntry> entries, VirtualPath folder) {
+        String name = CheckpointStore.WORKSPACE + folder.toString().substring(1);
+        return folder.isRoot() || entries.stream().map(ZipEntry::getName).anyMatch(entry -> entry.equals(name) || entry.equals(name + "/")
+                || entry.startsWith(name + "/"));
+    }
+
+    private static long crc(VirtualFileSystem files, VirtualPath file) {
+        CRC32 crc = new CRC32();
+        try {
+            crc.update(files.read(file));
+        } catch (VirtualFileException e) {
+            // not readable: never equal to the saved one
+            return -1;
+        }
+        return crc.getValue();
+    }
+
+    private static TextDiff.Result fileLines(CheckpointStore.Snapshot snapshot, VirtualFileSystem files, VirtualPath file, FileChange change)
+            throws IOException {
+        String before = "";
+        String after = "";
+        try {
+            if (change.change() != MergePlan.Change.ADDED) {
+                ZipEntry entry = snapshot.zip().getEntry(CheckpointStore.WORKSPACE + file.toString().substring(1));
+                try (InputStream in = snapshot.zip().getInputStream(entry)) {
+                    before = VirtualFileSystem.decodeText(in.readAllBytes(), file);
+                }
+            }
+            if (change.change() != MergePlan.Change.DELETED) {
+                after = files.readText(file);
+            }
+        } catch (VirtualFileException e) {
+            // an image or another file that is not text
+            return null;
+        }
+        return TextDiff.diff(before, after);
     }
 
     // ---------------------------------------------------------------------------------------------------------------

@@ -43,7 +43,7 @@ public class GetLoreEntryCommand extends LorebookReadSupport {
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "entry", type = String.class, description = L.DESC_COMMAND_LORE_ENTRY_PARAM),
                     @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_LOREBOOK_PARAM),
-                    @CommandParameter(name = "offset", type = Integer.class, description = L.DESC_COMMAND_OFFSET_PARAM)}),
+                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0", description = L.DESC_COMMAND_OFFSET_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_LORE_ENTRY_RETURN))
     public void getLoreEntryOffset(CommandContext context) throws Exception {
         getLoreEntry(context, ref(context, "entry"), ref(context, "lorebook"), context.get("offset", Integer.class), null);
@@ -55,8 +55,8 @@ public class GetLoreEntryCommand extends LorebookReadSupport {
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "entry", type = String.class, description = L.DESC_COMMAND_LORE_ENTRY_PARAM),
                     @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_LOREBOOK_PARAM),
-                    @CommandParameter(name = "offset", type = Integer.class, description = L.DESC_COMMAND_OFFSET_PARAM),
-                    @CommandParameter(name = "length", type = Integer.class, description = L.DESC_COMMAND_LENGTH_PARAM)}),
+                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0", description = L.DESC_COMMAND_OFFSET_PARAM),
+                    @CommandParameter(name = "length", type = Integer.class, optional = true, defaultValue = "6000", min = "1", max = "20000", description = L.DESC_COMMAND_LENGTH_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_LORE_ENTRY_RETURN))
     public void getLoreEntryLength(CommandContext context) throws Exception {
         getLoreEntry(context, ref(context, "entry"), ref(context, "lorebook"), context.get("offset", Integer.class), context.get("length", Integer.class));

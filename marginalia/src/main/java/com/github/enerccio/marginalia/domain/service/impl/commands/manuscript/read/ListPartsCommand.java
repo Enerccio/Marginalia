@@ -42,7 +42,7 @@ public class ListPartsCommand extends ManuscriptReadSupport {
             description = L.DESC_COMMAND_LIST_PARTS, llmDescription = L.DESC_COMMAND_LIST_PARTS_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM),
-                    @CommandParameter(name = "offset", type = Integer.class, description = L.DESC_COMMAND_OFFSET_PARAM)}),
+                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0", description = L.DESC_COMMAND_OFFSET_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_PARTS_RETURN))
     public void listPartsOffset(CommandContext context) throws Exception {
         listParts(context, ref(context, "branch"), context.get("offset", Integer.class), null);
@@ -53,8 +53,8 @@ public class ListPartsCommand extends ManuscriptReadSupport {
             description = L.DESC_COMMAND_LIST_PARTS, llmDescription = L.DESC_COMMAND_LIST_PARTS_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM),
-                    @CommandParameter(name = "offset", type = Integer.class, description = L.DESC_COMMAND_OFFSET_PARAM),
-                    @CommandParameter(name = "limit", type = Integer.class, description = L.DESC_COMMAND_LIMIT_PARAM)}),
+                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0", description = L.DESC_COMMAND_OFFSET_PARAM),
+                    @CommandParameter(name = "limit", type = Integer.class, optional = true, defaultValue = "50", min = "1", max = "200", description = L.DESC_COMMAND_LIMIT_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_PARTS_RETURN))
     public void listPartsLimit(CommandContext context) throws Exception {
         listParts(context, ref(context, "branch"), context.get("offset", Integer.class), context.get("limit", Integer.class));

@@ -115,7 +115,7 @@ public class PartStructureCommands extends ManuscriptWriteSupport {
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "text", type = String.class, description = L.DESC_COMMAND_NEW_TEXT_PARAM),
                     @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_INSERT_ANCHOR_PARAM),
-                    @CommandParameter(name = "before", type = Boolean.class, description = L.DESC_COMMAND_INSERT_BEFORE_PARAM)}),
+                    @CommandParameter(name = "before", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_INSERT_BEFORE_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_INSERT_PART_RETURN))
     public void insertPartBefore(CommandContext context) throws Exception {
         insertPart(context, context.get("text", String.class), ref(context, "part"), Boolean.TRUE.equals(context.get("before", Boolean.class)));

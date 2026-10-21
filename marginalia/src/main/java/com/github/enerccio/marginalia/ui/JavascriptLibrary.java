@@ -433,6 +433,49 @@ public final class JavascriptLibrary {
                 })""", tabSheet);
     }
 
+    // --- swipe ---
+
+    /**
+     * Fires {@code swipe} ({@code detail}: {@code left} or {@code right}) on the element when a finger is drawn across it sideways:
+     * far enough, quickly enough, and mostly horizontally. A touch that starts in a box that takes the finger itself (a field, a
+     * table, anything that scrolls sideways) is left alone. Done once for an element.
+     */
+    public static void fireSwipeEvents(Element element) {
+        element.executeJs("""
+                var el = $0;
+                if (el.__swipeEvents) { return; }
+                el.__swipeEvents = true;
+                var start = null;
+                var own = ['INPUT', 'TEXTAREA', 'SELECT', 'VAADIN-GRID', 'VAADIN-TEXT-FIELD', 'VAADIN-TEXT-AREA', 'VAADIN-COMBO-BOX',
+                    'VAADIN-SELECT', 'VAADIN-SLIDER', 'VAADIN-RICH-TEXT-EDITOR', 'VAADIN-TABS', 'VAADIN-TAB-SHEET'];
+                function takesFinger(event) {
+                    var path = event.composedPath();
+                    for (var i = 0; i < path.length && path[i] !== el; i++) {
+                        var node = path[i];
+                        if (!(node instanceof HTMLElement)) { continue; }
+                        if (own.indexOf(node.tagName) >= 0 || node.isContentEditable) { return true; }
+                        var overflow = getComputedStyle(node).overflowX;
+                        if ((overflow === 'auto' || overflow === 'scroll') && node.scrollWidth > node.clientWidth + 1) { return true; }
+                    }
+                    return false;
+                }
+                el.addEventListener('touchstart', function (e) {
+                    start = e.touches.length === 1 && !takesFinger(e)
+                        ? { x: e.touches[0].clientX, y: e.touches[0].clientY, time: Date.now() } : null;
+                }, { passive: true });
+                el.addEventListener('touchcancel', function () { start = null; }, { passive: true });
+                el.addEventListener('touchend', function (e) {
+                    if (!start) { return; }
+                    var from = start;
+                    start = null;
+                    var dx = e.changedTouches[0].clientX - from.x;
+                    var dy = e.changedTouches[0].clientY - from.y;
+                    if (Math.abs(dx) < 80 || Math.abs(dx) < 2 * Math.abs(dy) || Date.now() - from.time > 700) { return; }
+                    el.dispatchEvent(new CustomEvent('swipe', { detail: dx < 0 ? 'left' : 'right' }));
+                }, { passive: true });
+                """, element);
+    }
+
     // --- help assistant ---
 
     /** The sessionStorage key of the problems the browser keeps for the help assistant. */

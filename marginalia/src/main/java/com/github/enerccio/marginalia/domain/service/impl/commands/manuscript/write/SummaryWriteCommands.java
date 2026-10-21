@@ -8,7 +8,11 @@ import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 /**
  * {@code /set-summary part text}, {@code /remove-summary part [unwind]}, {@code /revalidate-summaries [part]}: the commands that change
@@ -46,7 +50,7 @@ public class SummaryWriteCommands extends ManuscriptWriteSupport {
             description = L.DESC_COMMAND_REMOVE_SUMMARY, llmDescription = L.DESC_COMMAND_REMOVE_SUMMARY_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM),
-                    @CommandParameter(name = "unwind", type = Boolean.class, description = L.DESC_COMMAND_UNWIND_PARAM)}),
+                    @CommandParameter(name = "unwind", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_UNWIND_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_REMOVE_SUMMARY_RETURN))
     public void removeSummaryUnwind(CommandContext context) throws Exception {
         removeSummary(context, ref(context, "part"), context.get("unwind", Boolean.class));

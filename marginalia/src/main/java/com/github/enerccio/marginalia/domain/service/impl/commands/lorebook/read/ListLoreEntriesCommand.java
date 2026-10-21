@@ -58,7 +58,7 @@ public class ListLoreEntriesCommand extends LorebookReadSupport {
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_LOREBOOK_PARAM),
                     @CommandParameter(name = "filter", type = String.class, description = L.DESC_COMMAND_LORE_FILTER_PARAM),
-                    @CommandParameter(name = "offset", type = Integer.class, description = L.DESC_COMMAND_OFFSET_PARAM)}),
+                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0", description = L.DESC_COMMAND_OFFSET_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_LORE_ENTRIES_RETURN))
     public void listLoreEntriesOffset(CommandContext context) throws Exception {
         listLoreEntries(context, ref(context, "lorebook"), context.get("filter", String.class), context.get("offset", Integer.class), null);
@@ -70,8 +70,8 @@ public class ListLoreEntriesCommand extends LorebookReadSupport {
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_LOREBOOK_PARAM),
                     @CommandParameter(name = "filter", type = String.class, description = L.DESC_COMMAND_LORE_FILTER_PARAM),
-                    @CommandParameter(name = "offset", type = Integer.class, description = L.DESC_COMMAND_OFFSET_PARAM),
-                    @CommandParameter(name = "limit", type = Integer.class, description = L.DESC_COMMAND_LIMIT_PARAM)}),
+                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0", description = L.DESC_COMMAND_OFFSET_PARAM),
+                    @CommandParameter(name = "limit", type = Integer.class, optional = true, defaultValue = "50", min = "1", max = "200", description = L.DESC_COMMAND_LIMIT_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_LORE_ENTRIES_RETURN))
     public void listLoreEntriesLimit(CommandContext context) throws Exception {
         listLoreEntries(context, ref(context, "lorebook"), context.get("filter", String.class), context.get("offset", Integer.class), context.get("limit", Integer.class));

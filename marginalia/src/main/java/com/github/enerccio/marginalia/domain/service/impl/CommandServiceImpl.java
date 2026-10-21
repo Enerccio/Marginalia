@@ -183,7 +183,7 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
             parameters.add(new CommandParameterDefinition(parameter.name(), parameter.type(),
                     CommandText.of(describe(method), "description of parameter " + parameter.name(),
                             parameter.description(), parameter.descriptionText(), false),
-                    parameter.optional(), parameter.defaultValue(), List.of(parameter.allowed())));
+                    parameter.optional(), parameter.defaultValue(), List.of(parameter.allowed()), parameter.min(), parameter.max()));
         }
         CommandReturn returns = meta.returns();
         try {

@@ -33,7 +33,7 @@ public class SearchPartsCommand extends ManuscriptReadSupport {
             description = L.DESC_COMMAND_SEARCH_PARTS, llmDescription = L.DESC_COMMAND_SEARCH_PARTS_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "query", type = String.class, description = L.DESC_COMMAND_QUERY_PARAM),
-                    @CommandParameter(name = "limit", type = Integer.class, description = L.DESC_COMMAND_LIMIT_PARAM)}),
+                    @CommandParameter(name = "limit", type = Integer.class, optional = true, defaultValue = "50", min = "1", max = "200", description = L.DESC_COMMAND_LIMIT_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SEARCH_PARTS_RETURN))
     public void searchPartsLimit(CommandContext context) throws Exception {
         searchParts(context, context.get("query", String.class), context.get("limit", Integer.class));
