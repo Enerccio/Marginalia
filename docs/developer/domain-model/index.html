@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846014095953">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846015790605">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846014095953" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846015790605" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846014095953" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846015790605" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846014095953" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846014095953" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846015790605" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846015790605" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -696,6 +696,7 @@ joins on is a real column: relations, <code translate="no" v-pre>name</code>, <c
 | Swipe | New sibling of the last part (another child of its parent). Moving between swipes sets `activeLeaf` to the deepest last descendant of the chosen sibling (`ChatMessageService.swipeTo`). |
 | Regenerate | Replaces the text of the last part in place. |
 | Branch story | Copies a part as a new sibling (`ChatMessageService.branch`), so the story can continue differently from there. |
+| Merge into previous part | The text, original text, reasoning and images of the part are appended to its parent, the prompt fields and `attributes` are the ones the author reviewed (`PartMerge`), then the part is deleted like below (`ChatMessageService.mergeIntoPrevious`). Refused for a root and for a parent with other children. |
 | Delete a part | Its children are re-attached to its parent, then it is deleted (`deleteNodeAndMigrateChildren`). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -721,6 +722,10 @@ joins on is a real column: relations, <code translate="no" v-pre>name</code>, <c
 <tr>
 <td>Branch story</td>
 <td>Copies a part as a new sibling (<code translate="no" v-pre>ChatMessageService.branch</code>), so the story can continue differently from there.</td>
+</tr>
+<tr>
+<td>Merge into previous part</td>
+<td>The text, original text, reasoning and images of the part are appended to its parent, the prompt fields and <code translate="no" v-pre>attributes</code> are the ones the author reviewed (<code translate="no" v-pre>PartMerge</code>), then the part is deleted like below (<code translate="no" v-pre>ChatMessageService.mergeIntoPrevious</code>). Refused for a root and for a parent with other children.</td>
 </tr>
 <tr>
 <td>Delete a part</td>
@@ -1748,7 +1753,7 @@ define both beans in <code translate="no" v-pre>services-config.xml</code>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (755dbce2).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (e1c50869).</p></div>
             </footer>
         </div>
     </div>

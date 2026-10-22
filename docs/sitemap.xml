@@ -34,16 +34,16 @@
     <loc>https://enerccio.github.io/Marginalia/user/lorebooks/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/user/commands/</loc>
-  </url>
-  <url>
     <loc>https://enerccio.github.io/Marginalia/user/books/story-editor/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/user/resources/</loc>
+    <loc>https://enerccio.github.io/Marginalia/user/commands/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/trash/</loc>
+  </url>
+  <url>
+    <loc>https://enerccio.github.io/Marginalia/user/resources/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/account/</loc>

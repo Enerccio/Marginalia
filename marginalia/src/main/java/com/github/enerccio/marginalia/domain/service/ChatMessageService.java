@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service;
 
+import com.github.enerccio.marginalia.domain.components.PartMerge;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -10,6 +11,7 @@ import com.github.enerccio.marginalia.domain.service.search.FulltextHit;
 import com.github.enerccio.marginalia.domain.service.search.FulltextQuery;
 
 import java.util.List;
+import java.util.Set;
 
 public interface ChatMessageService extends ExtendableService<ChatMessage, ChatMessageRepository> {
 
@@ -151,6 +153,50 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
      * @throws IllegalArgumentException when {@code after} is not a part of the manuscript or the manuscript is not the user's
      */
     ChatMessage insertPart(Manuscript manuscript, ChatMessage after, String text, TurnInput input) throws Exception;
+
+    /**
+     * What merging a part into the part before it would do, for the review of the author: the two parts, the prompt fields
+     * of both combined without the start they share, the data kept on them value by value and the join of the two texts the
+     * text asks for. Nothing is changed.
+     *
+     * @throws IllegalArgumentException when the part is not a part of the manuscript, or the manuscript is not the user's
+     * @throws IllegalStateException    when the part cannot be merged, see {@link #mergeIntoPrevious}
+     */
+    MergePreview previewMergeIntoPrevious(Manuscript manuscript, ChatMessage part) throws Exception;
+
+    /**
+     * Appends the text of the part to the part before it and removes the part: the continuation of a text the model
+     * stopped in the middle ("continue" is not reliable in chat completion). The previous part keeps its identity, summary
+     * and generation record (prompt, model, times); the texts, original texts (so that the generated text is told from the
+     * author's), reasoning, images and counts are put together, and what followed the removed part follows the previous
+     * one now (the active leaf moves to it when the removed part was the leaf). The summaries that described the story with
+     * the two parts are outdated by the change of the texts, as with an edit; the summary of the removed part is deleted.
+     * The part is deleted like by <i>Delete</i>, the Trash restores it (but not the merge).
+     *
+     * @param input        the prompt fields of the merged turn
+     * @param join         what stands between the two texts
+     * @param fromPrevious the attributes ({@link PartMerge.AttributeChange#path()}) for which the value of the previous part is
+     *                     taken instead of the value of the later part (which wins otherwise)
+     * @param dropped      the attributes that are left out
+     * @return the previous part as saved
+     * @throws IllegalArgumentException when the part is not a part of the manuscript, or the manuscript is not the user's
+     * @throws IllegalStateException    when the part is the first part of the book, or the part before it has other
+     *                                  continuations (the swipes of the part): they would follow a text that already contains
+     *                                  the part, delete them or make them a branch first
+     */
+    ChatMessage mergeIntoPrevious(Manuscript manuscript, ChatMessage part, TurnInput input, PartMerge.Join join,
+                                  Set<List<String>> fromPrevious, Set<List<String>> dropped) throws Exception;
+
+    /**
+     * @param previous   the part the other is merged into
+     * @param part       the part that is merged
+     * @param input      the combined prompt fields
+     * @param join       the join of the two texts
+     * @param attributes the data kept on the parts, every value of both
+     */
+    record MergePreview(ChatMessage previous, ChatMessage part, TurnInput input, PartMerge.Join join,
+                        List<PartMerge.AttributeChange> attributes) {
+    }
 
     /**
      * @param message  the part as saved

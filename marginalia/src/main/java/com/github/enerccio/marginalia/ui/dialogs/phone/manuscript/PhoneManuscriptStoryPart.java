@@ -698,6 +698,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         private MenuItem regenerateItem;
         private MenuItem swipeItem;
         private MenuItem branchItem;
+        private MenuItem mergeItem;
         private MenuItem summaryItem;
         private MenuItem deleteSummaryItem;
         private MenuItem deleteItem;
@@ -859,6 +860,9 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
 
             branchItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_BRANCH_STORY), event -> branch());
 
+            mergeItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_MERGE_INTO_PREVIOUS), event -> mergeIntoPrevious());
+            mergeItem.setVisible(message.getParent() != null);
+
             showPromptItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_SHOW_PROMPT), event -> showPrompt());
 
             tokenUsageItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_TOKEN_USAGE), event -> showTokenUsage());
@@ -926,6 +930,27 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                 refreshSummaryMenuItems();
                 refreshSummariesMenuItem();
             });
+        }
+
+        /**
+         * Opens the review of merging the part into the part before it, see {@link PartMergeDialog}.
+         */
+        @PublicAPI(from = "1.5.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "e", type = Exception.class)})
+        private void mergeIntoPrevious() {
+            try {
+                currentManuscript = parent.refreshManuscript();
+                PartMergeDialog.open(currentManuscript, message, merged -> {
+                    try {
+                        load(parent.refreshManuscript());
+                    } catch (Exception e) {
+                        UIUtils.internalServerError(loc, e);
+                    }
+                });
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
         }
 
         @PublicAPI(from = "1.1.0",

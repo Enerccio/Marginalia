@@ -627,6 +627,14 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_TOOLS_SELECT_SHOWN, "选择当前显示项");
         setValue(L.LABEL_TOOLS_CLEAR_SHOWN, "取消选择当前显示项");
         setValue(L.LABEL_TOOLS_HINT, "给模型的提示");
+        setValue(L.LABEL_MERGE_INTO_PREVIOUS, "合并到上一段");
+        setValue(L.LABEL_PART_JOIN, "文本连接方式");
+        setValue(L.LABEL_PART_PREVIOUS, "上一段");
+        setValue(L.LABEL_PART_MERGED, "被合并的段落");
+        setValue(L.LABEL_PART_TAKE_PREVIOUS, "上一段的值");
+        setValue(L.LABEL_PART_TAKE_MERGED, "被合并段落的值");
+        setValue(L.LABEL_PART_SHOW_UNCHANGED, "显示未变化的数据");
+        setValue(L.LABEL_PART_CHANGE, "变化");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -739,6 +747,14 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_AGENT_FINDING_WARNING, "警告");
         setValue(L.ENUM_AGENT_FINDING_PROBLEM, "问题");
         setValue(L.ENUM_PERMISSION_NOTIFICATIONS, "通知");
+        setValue(L.ENUM_PART_JOIN_PARAGRAPH, "空行");
+        setValue(L.ENUM_PART_JOIN_LINE, "换行");
+        setValue(L.ENUM_PART_JOIN_SPACE, "空格");
+        setValue(L.ENUM_PART_JOIN_NONE, "无");
+        setValue(L.ENUM_PART_CHANGE_SAME, "相同");
+        setValue(L.ENUM_PART_CHANGE_DIFFERENT, "不同");
+        setValue(L.ENUM_PART_CHANGE_ONLY_PREVIOUS, "仅上一段有");
+        setValue(L.ENUM_PART_CHANGE_ONLY_MERGED, "仅被合并段落有");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -1040,6 +1056,11 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_TOOLS_TOOLTIP, "让模型使用已安装扩展的工具");
         setValue(L.MSG_TOOLS_ALSO_COMMANDS, "也可作为命令用于命令栏和代理。");
         setValue(L.MSG_TOOLS_HINT_INFO, "当模型获得此工具组时添加到提示中。留空则使用工具组自带的文字。");
+        setValue(L.MSG_PART_MERGE_INFO, "此段的文本会追加到上一段，此段随后被删除；它后面的内容改为接在上一段之后。涵盖这两段的摘要会过期。");
+        setValue(L.MSG_PART_MERGE_PROMPT_INFO, "两个回合的提示字段会合并；相同的开头只保留一次。结果可以编辑。");
+        setValue(L.MSG_PART_MERGE_NO_DATA, "两段都没有数据。");
+        setValue(L.MSG_PART_MERGE_NOT_POSSIBLE, "无法合并此段：它是书的第一段，或者上一段还有其他后续（滑动）。请先删除这些滑动或将其设为分支。");
+        setValue(L.MSG_PART_MERGED, "该段已合并到上一段。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

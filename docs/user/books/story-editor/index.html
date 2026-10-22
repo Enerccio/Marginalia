@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846014095953">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846015790605">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846014095953" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846015790605" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846014095953" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846015790605" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846014095953" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846015790605" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -359,6 +359,7 @@ prompt, the model gets them as <em>Current Location &amp; Time</em>, <em>Point o
 | **Regenerate** | Writes the last part again, replacing its text. Only on the last part. |
 | **Swipe** | Writes another version of the last part and keeps the old one as a separate branch. Only on the last part. See [Branches &amp; story tree](branches-and-story-tree.md#trying-another-version-of-the-last-part). |
 | **Branch Story** | Starts a new branch from this part, see [Branches &amp; story tree](branches-and-story-tree.md#branching-from-an-earlier-part). |
+| **Merge into previous part** | Adds the text of this part to the part before it, see [below](#merging-a-part-into-the-previous-one). Not on the first part. |
 | **Show Prompt** | Shows the exact prompt that was sent to the model for this part. |
 | **Token Usage** | Shows how the context of the model was used for this part: a chart of the sections of the prompt (instructions of the model, lore, summaries, story so far, your instructions, room kept for the response) and the size of each message sent to the model. If part of the story did not fit, it says how many parts were left out. Parts written before this was recorded have no chart. |
 | **Images** | Attaches pictures to the part, see [Images](#images). |
@@ -389,6 +390,10 @@ prompt, the model gets them as <em>Current Location &amp; Time</em>, <em>Point o
 <tr>
 <td><strong>Branch Story</strong></td>
 <td>Starts a new branch from this part, see <a href="../branches-and-story-tree/#branching-from-an-earlier-part">Branches &amp; story tree</a>.</td>
+</tr>
+<tr>
+<td><strong>Merge into previous part</strong></td>
+<td>Adds the text of this part to the part before it, see <doc-anchor-trigger to="#merging-a-part-into-the-previous-one">below</doc-anchor-trigger>. Not on the first part.</td>
 </tr>
 <tr>
 <td><strong>Show Prompt</strong></td>
@@ -483,6 +488,32 @@ generation and drops the summary.</p>
 <p><strong>Delete</strong> removes the part from the story. The parts that followed it stay and continue from the part before it, so
 deleting a part in the middle of the story just takes it out. Deleting the last part makes the part before it the new
 end of the branch.</p>
+<h2 id="merging-a-part-into-the-previous-one">Merging a part into the previous one</h2>
+<p>A model that stopped in the middle of a sentence (the response limit, a cut connection) cannot be told to &quot;continue&quot; the
+same text reliably. Write the next part instead (<em>continue from where the last part stopped</em>) and join the two with
+<strong>Merge into previous part</strong> in the menu of the second one. A review opens:</p>
+<ul>
+<li>
+<p><strong>Join the texts with</strong>: an empty line, a line break, a space or nothing. It is preselected from the end of the previous
+text: a paragraph after a text that ended a sentence, a space after one that was cut.</p>
+</li>
+<li>
+<p>The <strong>scene setting</strong>, <strong>POV character</strong>, <strong>present characters</strong> and <strong>instructions</strong> of both turns, combined in fields
+you can edit. What the two turns have in common at the start is kept once (&quot;Write the duel. Keep it short&quot; and &quot;Write the
+duel. Add rain&quot; give the first, and &quot;Add rain&quot; on the next line).</p>
+</li>
+<li>
+<p><strong>Data</strong>: what the two parts keep, value by value (for example the <a href="../../templates/macros/">variables</a> of the story
+and the data of extensions), with whether the value is the same, different or only on one of the parts. The merged part
+keeps the value of the <strong>later part</strong> (it is where the story stands now) unless you choose the value of the previous
+part for it, or leave the value out. Values that are the same are hidden unless you ask for them.</p>
+</li>
+</ul>
+<p>The previous part keeps its place, its summary and how it was generated (prompt, model, times); it gets the joined text,
+the joined reasoning and pictures, and its words and tokens are counted again. The part you merged is deleted (it is in
+the <a href="../../trash/">Trash</a>) and what followed it continues from the previous part. Summaries that cover the two parts become
+outdated, as after an edit. The part cannot be merged when it is the first part of the book, or when the part before it has
+other continuations (swipes of the part): delete them or make them a branch first.</p>
 <h2 id="images">Images</h2>
 <p>A part can have pictures: a map, a character portrait, an illustration. Choose <strong>Images</strong> in the part menu to open the
 list of the pictures of the part.</p>
@@ -717,7 +748,7 @@ tense, style and <a href="../summaries/">summaries</a>. The jailbreak prompt of 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (755dbce2).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (e1c50869).</p></div>
             </footer>
         </div>
     </div>

@@ -1,6 +1,8 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.domain.components.PartMerge;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
+import com.github.enerccio.marginalia.domain.model.ImageAttachment;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Summary;
@@ -430,6 +432,82 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         stored.setWordCount(countWords(newText));
         stored.setEdited(true);
         return save(stored);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public MergePreview previewMergeIntoPrevious(Manuscript manuscript, ChatMessage part) throws Exception {
+        Manuscript book = ownBook(manuscript);
+        ChatMessage later = ownPart(book, part);
+        ChatMessage previous = mergeTarget(book, later);
+        TurnInput input = new TurnInput(
+                PartMerge.combineText(previous.getSceneSetting(), later.getSceneSetting()),
+                PartMerge.combineText(previous.getPovCharacter(), later.getPovCharacter()),
+                PartMerge.combineText(previous.getPresentCharacters(), later.getPresentCharacters()),
+                PartMerge.combineText(previous.getInstructions(), later.getInstructions()));
+        return new MergePreview(previous, later, input, PartMerge.Join.suggest(previous.getResponse(), later.getResponse()),
+                PartMerge.diffAttributes(previous.getAttributes(), later.getAttributes()));
+    }
+
+    @Override
+    @CommonTx
+    public ChatMessage mergeIntoPrevious(Manuscript manuscript, ChatMessage part, TurnInput input, PartMerge.Join join,
+                                         Set<List<String>> fromPrevious, Set<List<String>> dropped) throws Exception {
+        Manuscript book = ownBook(manuscript);
+        ChatMessage later = ownPart(book, part);
+        ChatMessage previous = mergeTarget(book, later);
+        PartMerge.Join joined = join == null ? PartMerge.Join.suggest(previous.getResponse(), later.getResponse()) : join;
+
+        String text = PartMerge.join(previous.getResponse(), later.getResponse(), joined);
+        if (previous.getOriginalResponse() != null || later.getOriginalResponse() != null) {
+            // the part that was not generated has no original text: its text is what the author added to the generated one
+            previous.setOriginalResponse(PartMerge.join(previous.getOriginalResponse(), later.getOriginalResponse(), joined));
+        }
+        previous.setResponse(text);
+        previous.setTokenCount(countTokens(book, text));
+        previous.setWordCount(countWords(text));
+        previous.setEdited(previous.isEdited() || later.isEdited());
+        previous.setResponseReasoning(blankToNull(PartMerge.join(previous.getResponseReasoning(), later.getResponseReasoning(), PartMerge.Join.PARAGRAPH)));
+        if (previous.getTokenReasoningCount() != null || later.getTokenReasoningCount() != null) {
+            previous.setTokenReasoningCount((previous.getTokenReasoningCount() == null ? 0 : previous.getTokenReasoningCount())
+                    + (later.getTokenReasoningCount() == null ? 0 : later.getTokenReasoningCount()));
+        }
+        List<ImageAttachment> images = previous.getImages();
+        images.addAll(later.getImages());
+        previous.setImages(images);
+        if (input != null) {
+            previous.setSceneSetting(input.sceneSetting());
+            previous.setPovCharacter(input.povCharacter());
+            previous.setPresentCharacters(input.presentCharacters());
+            previous.setInstructions(input.instructions());
+        }
+        previous.setAttributes(PartMerge.mergeAttributes(previous.getAttributes(), later.getAttributes(),
+                fromPrevious == null ? Set.of() : fromPrevious, dropped == null ? Set.of() : dropped));
+        ChatMessage saved = save(previous);
+
+        // what follows the part follows the previous one now, the active leaf moves to it when the part was the leaf
+        deleteNodeAndMigrateChildren(later, book, false);
+        return saved;
+    }
+
+    private static String blankToNull(String text) {
+        return text == null || text.isBlank() ? null : text;
+    }
+
+    /**
+     * The part {@code later} is merged into.
+     */
+    private ChatMessage mergeTarget(Manuscript book, ChatMessage later) throws Exception {
+        if (later.getParent() == null) {
+            throw new IllegalStateException("The first part of the book has no part before it to be merged into");
+        }
+        ChatMessage previous = ownPart(book, later.getParent());
+        for (ChatMessage child : getRepository().findChildren(previous)) {
+            if (!child.getId().equals(later.getId())) {
+                throw new IllegalStateException("The part before has other continuations (swipes of the part), delete them or make them a branch first");
+            }
+        }
+        return previous;
     }
 
     private long countTokens(Manuscript book, String text) throws Exception {

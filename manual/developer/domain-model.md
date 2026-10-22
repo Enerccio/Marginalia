@@ -288,6 +288,7 @@ flowchart LR
 | Swipe | New sibling of the last part (another child of its parent). Moving between swipes sets `activeLeaf` to the deepest last descendant of the chosen sibling (`ChatMessageService.swipeTo`). |
 | Regenerate | Replaces the text of the last part in place. |
 | Branch story | Copies a part as a new sibling (`ChatMessageService.branch`), so the story can continue differently from there. |
+| Merge into previous part | The text, original text, reasoning and images of the part are appended to its parent, the prompt fields and `attributes` are the ones the author reviewed (`PartMerge`), then the part is deleted like below (`ChatMessageService.mergeIntoPrevious`). Refused for a root and for a parent with other children. |
 | Delete a part | Its children are re-attached to its parent, then it is deleted (`deleteNodeAndMigrateChildren`). |
 
 Siblings are ordered by `creation`. The branch from the root to a leaf is read with a recursive SQL query

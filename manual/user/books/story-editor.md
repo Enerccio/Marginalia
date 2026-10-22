@@ -117,6 +117,7 @@ Every part has a menu (☰) in its top right corner:
 | **Regenerate** | Writes the last part again, replacing its text. Only on the last part. |
 | **Swipe** | Writes another version of the last part and keeps the old one as a separate branch. Only on the last part. See [Branches & story tree](branches-and-story-tree.md#trying-another-version-of-the-last-part). |
 | **Branch Story** | Starts a new branch from this part, see [Branches & story tree](branches-and-story-tree.md#branching-from-an-earlier-part). |
+| **Merge into previous part** | Adds the text of this part to the part before it, see [below](#merging-a-part-into-the-previous-one). Not on the first part. |
 | **Show Prompt** | Shows the exact prompt that was sent to the model for this part. |
 | **Token Usage** | Shows how the context of the model was used for this part: a chart of the sections of the prompt (instructions of the model, lore, summaries, story so far, your instructions, room kept for the response) and the size of each message sent to the model. If part of the story did not fit, it says how many parts were left out. Parts written before this was recorded have no chart. |
 | **Images** | Attaches pictures to the part, see [Images](#images). |
@@ -162,6 +163,28 @@ generation and drops the summary.
 **Delete** removes the part from the story. The parts that followed it stay and continue from the part before it, so
 deleting a part in the middle of the story just takes it out. Deleting the last part makes the part before it the new
 end of the branch.
+
+## Merging a part into the previous one
+
+A model that stopped in the middle of a sentence (the response limit, a cut connection) cannot be told to "continue" the
+same text reliably. Write the next part instead (*continue from where the last part stopped*) and join the two with
+**Merge into previous part** in the menu of the second one. A review opens:
+
+- **Join the texts with**: an empty line, a line break, a space or nothing. It is preselected from the end of the previous
+  text: a paragraph after a text that ended a sentence, a space after one that was cut.
+- The **scene setting**, **POV character**, **present characters** and **instructions** of both turns, combined in fields
+  you can edit. What the two turns have in common at the start is kept once ("Write the duel. Keep it short" and "Write the
+  duel. Add rain" give the first, and "Add rain" on the next line).
+- **Data**: what the two parts keep, value by value (for example the [variables](../templates/macros.md) of the story
+  and the data of extensions), with whether the value is the same, different or only on one of the parts. The merged part
+  keeps the value of the **later part** (it is where the story stands now) unless you choose the value of the previous
+  part for it, or leave the value out. Values that are the same are hidden unless you ask for them.
+
+The previous part keeps its place, its summary and how it was generated (prompt, model, times); it gets the joined text,
+the joined reasoning and pictures, and its words and tokens are counted again. The part you merged is deleted (it is in
+the [Trash](../trash.md)) and what followed it continues from the previous part. Summaries that cover the two parts become
+outdated, as after an edit. The part cannot be merged when it is the first part of the book, or when the part before it has
+other continuations (swipes of the part): delete them or make them a branch first.
 
 ## Images
 
