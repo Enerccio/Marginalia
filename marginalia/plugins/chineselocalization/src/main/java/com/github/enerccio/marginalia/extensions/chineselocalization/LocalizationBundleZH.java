@@ -647,6 +647,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_MODIFIED_TO, "修改时间止");
         setValue(L.LABEL_PARTS_FROM, "段落数下限");
         setValue(L.LABEL_PARTS_TO, "段落数上限");
+        setValue(L.LABEL_CLONE_LOREBOOK, "复制世界书");
+        setValue(L.LABEL_CLONE_PROTOCOL, "复制协议");
+        setValue(L.LABEL_CLONE_PROVIDER, "复制推理提供方");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");

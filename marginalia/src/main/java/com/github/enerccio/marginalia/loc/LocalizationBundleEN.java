@@ -639,6 +639,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_MODIFIED_TO, "Modified to");
         setValue(L.LABEL_PARTS_FROM, "Number of parts from");
         setValue(L.LABEL_PARTS_TO, "Number of parts to");
+        setValue(L.LABEL_CLONE_LOREBOOK, "Clone Lorebook");
+        setValue(L.LABEL_CLONE_PROTOCOL, "Clone Protocol");
+        setValue(L.LABEL_CLONE_PROVIDER, "Clone Inference Provider");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");

@@ -259,6 +259,34 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
     }
 
     @Override
+    @CommonTx
+    public Lorebook cloneLorebook(Lorebook source, String name) throws Exception {
+        Lorebook original = source == null ? null : findForUser(source.getUuid());
+        if (original == null || original.isAgentic()) {
+            throw new IllegalArgumentException("The lorebook does not exist");
+        }
+
+        JsonObject content = new JsonObject();
+        content.add("tags", toJsonArray(tagRelationService.getTagsForObject(original)));
+        JsonArray entries = new JsonArray();
+        for (LorebookEntry entry : lorebookEntryService.getEntriesForLorebook(original)) {
+            entries.add(marshalEntry(entry, false));
+        }
+        content.add("entries", entries);
+
+        Lorebook copy = new Lorebook();
+        copy.setName(StringUtils.isBlank(name) ? original.getName() : name);
+        copy.setEnabled(original.isEnabled());
+        if (original.getAttributes() != null) {
+            copy.setAttributes(original.getAttributes().deepCopy());
+        }
+        copy.setSubbooks(new ArrayList<>(getSubbooks(original)));
+        copy = save(copy);
+        unmarshalContent(copy, content, null);
+        return copy;
+    }
+
+    @Override
     @CommonTxReadOnly
     public Lorebook fillEntries(Lorebook book) throws Exception {
         book.setCachedEntries(lorebookEntryService.getEntriesForLorebook(book));

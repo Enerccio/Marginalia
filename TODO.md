@@ -151,9 +151,10 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     name, tags to include/exclude with all/any, created/modified range, number of parts, text in the active branch or in all
     branches, results with name and tags). Global search across books' contents in one list (text hits per part) was left out.
 
-17. **Duplicate actions** — duplicate book (settings only / with story), lorebook, protocol, provider.
-    ✅ Books: the clone button of the book list (`ManuscriptCloneDialog`, `BackupService.cloneManuscript`, optionally only
-    the current branch). Still open: lorebook, protocol, provider (lorebook export/import is the workaround).
+17. ~~**Duplicate actions**~~ ✅ Done — duplicate book (`ManuscriptCloneDialog`, `BackupService.cloneManuscript`, optionally only
+    the current branch), lorebook (`LorebookService.cloneLorebook`: entries, tags, attributes, subbooks stay linked),
+    protocol (`ProtocolService.cloneProtocol`) and provider (`AIService.cloneAI`: API key / extension settings and
+    attributes, not shared, only the owner), each with a name dialog (`CloneNameDialog`).
 
 18. **More provider and protocol types.** Only `AIType.OPEN_AI_COMPATIBLE` and `ProtocolType.CHAT_COMPLETION` exist.
     - Text completion protocol (llama.cpp / KoboldCpp / Ollama raw prompt with instruct templates).
