@@ -13,6 +13,16 @@ extension talks to the Gemini API directly (the Google Gen AI SDK), which gives 
 doesn't: the **summaries of the model's thinking** shown as reasoning, the thinking level of Gemini 3 and the thinking
 budget of the earlier models, the safety filters, and the exact token counts Google reports.
 
+!!!warning Your story text goes to Google
+Every request of an AI that uses this provider - the prompt with the story, the lorebook entries and the summaries, the
+answers of the model, the files and pictures an agent or a command sends - is sent to Google's servers
+(`generativelanguage.googleapis.com`, or the proxy you set). Google's terms and privacy policy for the Gemini API decide
+what happens to it there (retention, whether it is used to improve models; this depends on the plan of your API key). The
+other providers send to the server you chose, which may be your own. Do not use this provider for text you may not send to
+Google. On a server shared with other users, an administrator who shares an AI of this provider sends the story text of
+everybody who uses it to Google.
+!!!
+
 ## Installing
 
 Load the extension in *Admin → Extensions*, as described in [Managing extensions](../administration/extensions.md).

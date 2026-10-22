@@ -11,7 +11,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/utils/AITypes.java
   - marginalia/src/main/resources/migration/V14__extension_ai.sql
   - marginalia/plugins/google-genai
-verified: 333d9397
+verified: b7b55df1
 ---
 
 # Inference providers from a plugin
@@ -192,6 +192,10 @@ has wins over an embedded copy** (the bundle looks in its own JARs only for what
 - nothing is imported (`Import-Package` lists only the negated own package), so no package of an embedded library has to be
   exported by the application;
 - the JAR is large (about 14 MB: the SDK, Guava, Protobuf, google-auth).
+
+A provider that sends the story to a service somebody else runs should say so where the administrator and the users read: the
+README of the plugin (and its user page) states that the story text, the lore, the summaries and the files of agents go to
+Google's servers, under Google's terms, and that sharing such an AI sends the text of everybody who uses it.
 
 The plugin has unit tests for the pure parts (`GoogleGenAiMessagesTest`, `GoogleGenAiErrorsTest`,
 `GoogleGenAiSettingsTest`); the core has `ExtensionAIFactoryTest`, `ExtensionAICrudTest`, `ExtensionAIGenerationTest` and

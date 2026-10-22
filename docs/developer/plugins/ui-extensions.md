@@ -245,7 +245,7 @@ public class MyPanel extends VerticalLayout implements LLMInteract {
   Give your fields labels and mark the required ones, then the model can name them.
 - To add to a class of the application, decorate its `getLLMState` (or `getInteraction`) with `getCurrentReturn` /
   `setCurrentReturn` (see [Changing the return value](extendable.md#changing-the-return-value)); append to the text and put your
-  entries into a copy of the map. Only the classes that override those methods can be decorated: both workspaces, `AdminPart`,
+  entries into a copy of the map. Only the classes that override those methods can be decorated: both workspaces, `AdminPart` (it exists only for administrators),
   both story editor dialogs, `Main`, `UserPart` and the lists of models, protocols and books (`getLLMState`, `getInteraction`) and
   `AIDialog` (`getLLMProblems`); the other elements use the defaults of the interface.
 - What a user was shown that went wrong is recorded for you: your `Notification.error` / `warning` (the application's

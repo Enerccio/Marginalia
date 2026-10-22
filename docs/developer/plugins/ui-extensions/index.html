@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845998638260">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845998752333">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845998638260" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845998752333" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845998638260" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845998752333" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845998638260" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845998638260" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845998752333" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845998752333" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -409,7 +409,7 @@ Give your fields labels and mark the required ones, then the model can name them
 <li>
 <p>To add to a class of the application, decorate its <code translate="no" v-pre>getLLMState</code> (or <code translate="no" v-pre>getInteraction</code>) with <code translate="no" v-pre>getCurrentReturn</code> /
 <code translate="no" v-pre>setCurrentReturn</code> (see <a href="../extendable/#changing-the-return-value">Changing the return value</a>); append to the text and put your
-entries into a copy of the map. Only the classes that override those methods can be decorated: both workspaces, <code translate="no" v-pre>AdminPart</code>,
+entries into a copy of the map. Only the classes that override those methods can be decorated: both workspaces, <code translate="no" v-pre>AdminPart</code> (it exists only for administrators),
 both story editor dialogs, <code translate="no" v-pre>Main</code>, <code translate="no" v-pre>UserPart</code> and the lists of models, protocols and books (<code translate="no" v-pre>getLLMState</code>, <code translate="no" v-pre>getInteraction</code>) and
 <code translate="no" v-pre>AIDialog</code> (<code translate="no" v-pre>getLLMProblems</code>); the other elements use the defaults of the interface.</p>
 </li>
@@ -648,7 +648,7 @@ uninstalled for good, its data stays in the database (and in backups) - harmless
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (1e3193fc).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (b7b55df1).</p></div>
             </footer>
         </div>
     </div>
