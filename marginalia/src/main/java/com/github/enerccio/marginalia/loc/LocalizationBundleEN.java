@@ -619,6 +619,14 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_TOOLS_SELECT_SHOWN, "Check shown");
         setValue(L.LABEL_TOOLS_CLEAR_SHOWN, "Uncheck shown");
         setValue(L.LABEL_TOOLS_HINT, "Hint for the model");
+        setValue(L.LABEL_MERGE_INTO_PREVIOUS, "Merge into previous part");
+        setValue(L.LABEL_PART_JOIN, "Join the texts with");
+        setValue(L.LABEL_PART_PREVIOUS, "Previous part");
+        setValue(L.LABEL_PART_MERGED, "Merged part");
+        setValue(L.LABEL_PART_TAKE_PREVIOUS, "Value of the previous part");
+        setValue(L.LABEL_PART_TAKE_MERGED, "Value of the merged part");
+        setValue(L.LABEL_PART_SHOW_UNCHANGED, "Show unchanged data");
+        setValue(L.LABEL_PART_CHANGE, "Change");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -731,6 +739,14 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_AGENT_FINDING_WARNING, "Warning");
         setValue(L.ENUM_AGENT_FINDING_PROBLEM, "Problem");
         setValue(L.ENUM_PERMISSION_NOTIFICATIONS, "Notifications");
+        setValue(L.ENUM_PART_JOIN_PARAGRAPH, "An empty line");
+        setValue(L.ENUM_PART_JOIN_LINE, "A line break");
+        setValue(L.ENUM_PART_JOIN_SPACE, "A space");
+        setValue(L.ENUM_PART_JOIN_NONE, "Nothing");
+        setValue(L.ENUM_PART_CHANGE_SAME, "Same");
+        setValue(L.ENUM_PART_CHANGE_DIFFERENT, "Different");
+        setValue(L.ENUM_PART_CHANGE_ONLY_PREVIOUS, "Only on the previous part");
+        setValue(L.ENUM_PART_CHANGE_ONLY_MERGED, "Only on the merged part");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -1032,6 +1048,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_TOOLS_TOOLTIP, "Let the model use the tools of the installed extensions");
         setValue(L.MSG_TOOLS_ALSO_COMMANDS, "Also available as commands for the command bar and agents.");
         setValue(L.MSG_TOOLS_HINT_INFO, "Added to the prompt when the model gets this suite. Empty: the text of the suite itself.");
+        setValue(L.MSG_PART_MERGE_INFO, "The text of this part is added to the part before it and this part is removed; what followed it follows the previous part. The summaries that cover the two parts become outdated.");
+        setValue(L.MSG_PART_MERGE_PROMPT_INFO, "The prompt fields of both turns are combined; the start they have in common is kept once. You can edit the result.");
+        setValue(L.MSG_PART_MERGE_NO_DATA, "The two parts keep no data.");
+        setValue(L.MSG_PART_MERGE_NOT_POSSIBLE, "This part cannot be merged: it is the first part of the book, or the part before it has other continuations (swipes). Delete the swipes or make them a branch first.");
+        setValue(L.MSG_PART_MERGED, "The part was merged into the previous one.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

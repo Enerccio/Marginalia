@@ -133,7 +133,7 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 
 ## P2 — Expected features (feature parity with similar tools)
 
-15. **Merge into previous part** (instead of a "continue" request type) — chat completion has no reliable "continue":
+15. ✅ **Merge into previous part** (instead of a "continue" request type) — chat completion has no reliable "continue":
     prefilling a trailing assistant message is ignored or rejected by many OpenAI-compatible backends and reasoning
     models, and tends to repeat the text. A new turn ("continue from where the last part stopped") already works;
     what is missing is joining the result. Add a part action that appends the selected part's text to the part before
@@ -141,11 +141,16 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     data) win, what happens if the previous part has other children (branches), and invalidating a summary that
     covered either part. Optional helper: pre-fill the next turn's instructions with a "continue" text when the last
     part ended on a length cutoff. Separately: "impersonate/draft instructions for me".
+    Done: *Merge into previous part* in the part menu (`ChatMessageService.mergeIntoPrevious`, review in `PartMergeDialog`: join of the
+    texts, prompt fields combined without their shared start, `attributes` value by value with the choice which wins; refused for a
+    first part and for a part with swipes). Still open: the pre-filled "continue" instruction after a length cutoff, "impersonate/draft
+    instructions for me".
 16. ✅ **Search inside a book** — the box above the branch tree searches the messages of all branches (`_fulltext`,
     `FulltextQuery`) and jumps to a found part. Missing: global search across books.
 
 17. **Duplicate actions** — duplicate book (settings only / with story), lorebook, protocol, provider.
-    Most of it exists via backup clone and lorebook export/import.
+    ✅ Books: the clone button of the book list (`ManuscriptCloneDialog`, `BackupService.cloneManuscript`, optionally only
+    the current branch). Still open: lorebook, protocol, provider (lorebook export/import is the workaround).
 
 18. **More provider and protocol types.** Only `AIType.OPEN_AI_COMPATIBLE` and `ProtocolType.CHAT_COMPLETION` exist.
     - Text completion protocol (llama.cpp / KoboldCpp / Ollama raw prompt with instruct templates).
@@ -160,7 +165,9 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 
 20. **Lorebook improvements.**
     - ✅ Edit lorebook-level tags in `LorebookView` (generation reads them in `fillEntries`, but there's no UI).
-    - Entry search/filter and bulk enable/disable/delete in the entry grid.
+    - Bulk edit: ✅ *Mass edit* (`LorebookMassEditDialog`: all entries of the lorebook and its subbooks in one table, move
+      to another lorebook) and *Tag entries* (`MultiTagDialog`). Still open: entry search/filter and bulk delete in the
+      entry grid.
     - SillyTavern **export** (import exists).
     - Recursive activation / scan depth (entries activating other entries) and activation preview
       ("which entries would fire for this prompt").

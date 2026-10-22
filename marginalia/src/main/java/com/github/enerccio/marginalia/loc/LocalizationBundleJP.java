@@ -619,6 +619,14 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_TOOLS_SELECT_SHOWN, "表示中を選択");
         setValue(L.LABEL_TOOLS_CLEAR_SHOWN, "表示中の選択を解除");
         setValue(L.LABEL_TOOLS_HINT, "モデル向けヒント");
+        setValue(L.LABEL_MERGE_INTO_PREVIOUS, "前のパートに統合");
+        setValue(L.LABEL_PART_JOIN, "テキストのつなぎ方");
+        setValue(L.LABEL_PART_PREVIOUS, "前のパート");
+        setValue(L.LABEL_PART_MERGED, "統合するパート");
+        setValue(L.LABEL_PART_TAKE_PREVIOUS, "前のパートの値");
+        setValue(L.LABEL_PART_TAKE_MERGED, "統合するパートの値");
+        setValue(L.LABEL_PART_SHOW_UNCHANGED, "変更のないデータも表示");
+        setValue(L.LABEL_PART_CHANGE, "変更");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -731,6 +739,14 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_AGENT_FINDING_WARNING, "警告");
         setValue(L.ENUM_AGENT_FINDING_PROBLEM, "問題");
         setValue(L.ENUM_PERMISSION_NOTIFICATIONS, "通知");
+        setValue(L.ENUM_PART_JOIN_PARAGRAPH, "空行");
+        setValue(L.ENUM_PART_JOIN_LINE, "改行");
+        setValue(L.ENUM_PART_JOIN_SPACE, "スペース");
+        setValue(L.ENUM_PART_JOIN_NONE, "なし");
+        setValue(L.ENUM_PART_CHANGE_SAME, "同じ");
+        setValue(L.ENUM_PART_CHANGE_DIFFERENT, "異なる");
+        setValue(L.ENUM_PART_CHANGE_ONLY_PREVIOUS, "前のパートのみ");
+        setValue(L.ENUM_PART_CHANGE_ONLY_MERGED, "統合するパートのみ");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -1032,6 +1048,11 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_TOOLS_TOOLTIP, "インストール済み拡張機能のツールをモデルが使えるようにします");
         setValue(L.MSG_TOOLS_ALSO_COMMANDS, "コマンドバーとエージェント用のコマンドとしても利用できます。");
         setValue(L.MSG_TOOLS_HINT_INFO, "モデルがこのツール群を受け取るとき、プロンプトに追加されます。空の場合はツール群自身の文面を使います。");
+        setValue(L.MSG_PART_MERGE_INFO, "このパートのテキストは前のパートに追加され、このパートは削除されます。後続のパートは前のパートに続くようになります。2つのパートを含む要約は古くなります。");
+        setValue(L.MSG_PART_MERGE_PROMPT_INFO, "両方のターンのプロンプト項目を結合します。共通する先頭部分は1回だけ残します。結果は編集できます。");
+        setValue(L.MSG_PART_MERGE_NO_DATA, "どちらのパートにもデータがありません。");
+        setValue(L.MSG_PART_MERGE_NOT_POSSIBLE, "このパートは統合できません。本の最初のパートであるか、前のパートに他の続き(スワイプ)があります。先にスワイプを削除するか、ブランチにしてください。");
+        setValue(L.MSG_PART_MERGED, "パートを前のパートに統合しました。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

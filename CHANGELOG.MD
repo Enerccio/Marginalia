@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- **Merge into previous part** (menu of a part, desktop and phone): appends the text of a part to the part before it and removes the part, for the text a model stopped in the middle of. A review (`PartMergeDialog`) shows how the texts are joined (empty line, line break, space, nothing; preselected from the end of the text), the scene setting, POV, present characters and instructions of both turns combined with the start they share kept once (editable), and the data kept on the parts (`attributes`, variables included) value by value with the choice of the later part's value (default), the previous part's value or none. The previous part keeps its summary and generation record, gets the joined text, original text (for *Highlight Generated Text*), reasoning and pictures; what followed the merged part follows it. Refused for the first part and for a part with swipes. New `ChatMessageService.previewMergeIntoPrevious` / `mergeIntoPrevious`, `PartMerge`; new `@Extendable` method `mergeIntoPrevious` of the part cards (`@PublicAPI` from 1.5.0).
+
 ## [1.4.0] - 2026-10-22
 
 Everything below is new since 1.3.0. Migrations `V15` to `V18`; plugins have to be rebuilt with the application (`lore-generator`, `arc-outline` and `character-tracker` use the new command and agent API).
