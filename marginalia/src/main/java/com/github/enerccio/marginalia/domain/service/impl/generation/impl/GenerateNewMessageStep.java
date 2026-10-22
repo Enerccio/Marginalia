@@ -23,7 +23,7 @@ public class GenerateNewMessageStep extends GenerationStepBase {
     protected void onStep(GenerationController controller) throws Exception {
         controller.emitEvent(Events.BEFORE_GENERATE_NEW_MESSAGE, () -> {
             Manuscript manuscript = controller.getManuscript();
-            InferenceService inferenceService = inferenceServices.forAIOrThrow(manuscript.getAi());
+            InferenceService inferenceService = inferenceServices.forAIOrThrow(controller.getAi());
             TurnInput input = controller.getInput();
             List<LLMChatMessage> payload = controller.getPayload();
 
@@ -54,8 +54,8 @@ public class GenerateNewMessageStep extends GenerationStepBase {
             initialNode.setReasoningEnd(null);
             initialNode.setTokenReasoningCount(null);
             initialNode.setBuiltPromptTokens(controller.getPrePromptData().getSystemPromptTokens() + controller.getPrePromptData().getUserPromptProcessedTokens());
-            initialNode.setModelUsed(manuscript.getAi().getName());
-            initialNode.setProtocolUsed(manuscript.getProtocol().getName());
+            initialNode.setModelUsed(controller.getAi().getName());
+            initialNode.setProtocolUsed(controller.getProtocol().getName());
             initialNode.setBuiltPrompt(gson.toJson(payload));
             initialNode.setBuiltPromptTokens(inferenceService.countTokens(initialNode.getBuiltPrompt()));
             initialNode.setTokenBreakdown(createTokenBreakdown(controller, inferenceService, payload));

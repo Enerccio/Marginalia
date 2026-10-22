@@ -249,6 +249,23 @@ class WorkspaceStateTest extends MarginaliaTestBase {
     }
 
     @Test
+    void lorebookViewRestoresTheRootOnlyBox() throws Exception {
+        login();
+        lorebook("A first");
+
+        LorebookView view = new LorebookView();
+        view.create();
+        view.refresh();
+        assertThat(view.storeState().has("rootOnly")).isFalse();
+
+        view.restoreState(json("{\"rootOnly\":true}"));
+        assertThat(view.storeState().get("rootOnly").getAsBoolean()).isTrue();
+
+        view.restoreState(json("{}"));
+        assertThat(view.storeState().has("rootOnly")).isFalse();
+    }
+
+    @Test
     void lorebookViewSkipsALorebookThatIsGone() throws Exception {
         login();
         Lorebook kept = lorebook("A kept");
@@ -315,6 +332,40 @@ class WorkspaceStateTest extends MarginaliaTestBase {
         assertThat(stored.get("tab").getAsString()).isEqualTo("lorebook");
         assertThat(stored.getAsJsonObject("parts").getAsJsonObject("story").getAsJsonObject("newTurn"))
                 .isEqualTo(json("{\"scene\":\"A tavern\",\"pov\":\"Alice\",\"present\":\"\",\"instructions\":\"Be brief\",\"edited\":true}"));
+    }
+
+    /**
+     * The uuid of the lorebook the lorebook tab of the dialog shows when it is not the one of the book, otherwise null.
+     */
+    private static String shownOf(ManuscriptDialog dialog) {
+        JsonObject parts = dialog.storeState().getAsJsonObject("parts");
+        JsonObject lorebookPart = parts == null ? null : parts.getAsJsonObject("lorebook");
+        return lorebookPart == null || !lorebookPart.has("shown") ? null : lorebookPart.get("shown").getAsString();
+    }
+
+    @Test
+    void manuscriptDialogShowsASubbookOfTheLorebookOfTheBook() throws Exception {
+        login();
+        Lorebook root = lorebook("Root");
+        Lorebook sub = lorebook("Sub");
+        lorebookService.addSubbook(root, sub);
+        Manuscript manuscript = manuscript();
+        manuscript.setLorebook(root);
+        manuscript = manuscriptService.save(manuscript);
+        ManuscriptDialog dialog = new ManuscriptDialog(manuscript);
+        dialog.create();
+        // the tabs are loaded when the dialog is opened
+        dialog.open();
+        assertThat(shownOf(dialog)).as("the lorebook of the book is shown by default").isNull();
+
+        dialog.restoreState(json("{\"tab\":\"lorebook\",\"parts\":{\"lorebook\":{\"shown\":\"" + sub.getUuid() + "\"}}}"));
+
+        assertThat(shownOf(dialog)).isEqualTo(sub.getUuid());
+        assertThat(manuscriptService.find(manuscript).getLorebook().getUuid()).as("the book keeps its lorebook").isEqualTo(root.getUuid());
+
+        // a lorebook that is not among the subbooks is not shown
+        dialog.restoreState(json("{\"parts\":{\"lorebook\":{\"shown\":\"" + lorebook("Other").getUuid() + "\"}}}"));
+        assertThat(shownOf(dialog)).isEqualTo(sub.getUuid());
     }
 
     @Test
@@ -463,6 +514,23 @@ class WorkspaceStateTest extends MarginaliaTestBase {
     void phoneWorkspaceSkipsWhatIsGone() throws Exception {
         login();
         workspaceSkipsWhatIsGone(new PhoneWorkspace());
+    }
+
+    @Test
+    void phoneWorkspaceHasTheAgentsTabOnlyForAUserWhoMayUseAgents() throws Exception {
+        com.github.enerccio.marginalia.domain.security.model.User user = login();
+        Workspace without = new PhoneWorkspace();
+        without.create();
+        assertThat(without.getInteraction()).doesNotContainKey("open-section:Agents");
+
+        setPermission(user, com.github.enerccio.marginalia.domain.security.permissions.PermissionType.AGENTS, true);
+        Workspace with = new PhoneWorkspace();
+        with.create();
+        with.refresh();
+
+        assertThat(with.getInteraction()).containsKey("open-section:Agents");
+        with.getInteraction().get("open-section:Agents").action().run();
+        assertThat(with.storeState().get("tab").getAsString()).isEqualTo("agents");
     }
 
     @Test

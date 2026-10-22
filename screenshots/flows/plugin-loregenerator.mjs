@@ -1,4 +1,4 @@
-// Lore Generator: a new entry for the Three Broomsticks - prompt, generation, compaction, copy to the entry, Name tools.
+// Lore Generator: a new entry for the Three Broomsticks - prompt, generation, compaction, copy to the entry, Tools.
 import {bookTab, closeDialog, fill, idle, llm, login, main, openBook, press, sleep, snapDialog} from '../lib/shot.mjs';
 
 await main(async ({ page }) => {
@@ -37,26 +37,47 @@ await main(async ({ page }) => {
   await sleep(1000);
   await snapDialog(page, 'plugin-loregenerator-compaction', -1);
 
-  // the Name tools (needs the Name generator and the Name provider extensions)
-  await press(d, 'Name tools', { exact: false });
+  // the Tools dialog (needs the Name generator, Name provider and Place provider extensions): names of Japan from both
+  // sources (the dialog with the first one open), then the places on with the hint opened (the other two closed)
+  await press(d, 'Tools', { exact: false });
   await idle(page, 1500);
-  const names = page.locator('vaadin-dialog[opened]').last();
-  // one category of each source: the filter "Japan" lists the ones of the Name generator first, the ones of the Name
-  // provider last (the first checkbox is the one of the header)
-  await names.locator('input[placeholder="Filter categories"]').fill('Japan');
-  await sleep(1200);
-  // the checkbox of the row with this category (the grid reuses its row elements, so the row is found by its text)
-  const check = async text => {
-    const cell = await names.locator('vaadin-grid-cell-content').filter({ hasText: text }).first().boundingBox();
-    const box = await names.locator('vaadin-checkbox').nth(1).boundingBox();
+  const tools = page.locator('vaadin-dialog[opened]').last();
+  const section = name => tools.locator('vaadin-details').filter({ has: page.locator(`vaadin-details-summary:has-text("${name}")`) }).first();
+  const open = async name => {
+    const sec = section(name);
+    if ((await sec.locator('vaadin-details-summary').first().getAttribute('aria-expanded')) !== 'true') {
+      await tools.getByText(name, { exact: true }).first().click();
+    }
+    await sleep(500);
+    return sec;
+  };
+  // the checkbox of the row with this text (the grid reuses its row elements, so the row is found by its text)
+  const check = async (sec, text) => {
+    const cell = await sec.locator('vaadin-grid-cell-content').filter({ hasText: text }).first().boundingBox();
+    // the "select all" checkbox of the header is hidden: the first one that has a box is the one of a row
+    let box = null;
+    const boxes = sec.locator('vaadin-grid vaadin-checkbox');
+    for (let i = 0; i < await boxes.count() && !box; i++) box = await boxes.nth(i).boundingBox();
     await page.mouse.click(box.x + box.width / 2, cell.y + cell.height / 2);
     await sleep(300);
   };
-  await check('Generator: Japan - Surnames');
-  await check('Provider: Japan - Surnames');
+  for (const name of ['Name generator', 'Name provider']) {
+    const sec = await open(name);
+    await sec.locator('input[placeholder="Filter"]').fill('Japan');
+    await sleep(1200);
+    await check(sec, 'Japan - Surnames');
+    if (name === 'Name generator') await snapDialog(page, 'tools-dialog');
+    await tools.getByText(new RegExp('^' + name + ' \\(1\\)$')).first().click();   // close it: the next section comes into view
+    await sleep(500);
+  }
+  const places = await open('Place provider');
+  await places.locator('vaadin-checkbox').first().click();
   await sleep(500);
-  await snapDialog(page, 'plugin-loregenerator-names');
-  await closeDialog(page);
+  await tools.getByText('Hint for the model', { exact: true }).last().click();
+  await sleep(700);
+  await snapDialog(page, 'tools-hint');
+  await press(tools, 'Save');
+  await sleep(800);
 
   await press(d, 'Copy to Lore Entry', { exact: false });
   await idle(page, 1000);

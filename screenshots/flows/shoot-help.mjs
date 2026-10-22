@@ -1,6 +1,7 @@
 // The help assistant: its tab in Admin and the chat panel (run on a copy of 13-db-backup, it is discarded: the settings are
-// installation wide). The fake model answers the question from the queue; the answer is what the manual says about restoring.
-import {idle, llm, login, main, openTab, pick, press, sleep, snap, field} from '../lib/shot.mjs';
+// installation wide and the administrator gets a permission). The fake model answers the question from the queue; the
+// answer is what the manual says about restoring.
+import {addPermission, idle, llm, login, main, openPermissions, openTab, pick, press, sleep, snap} from '../lib/shot.mjs';
 
 const ANSWER = `On the **Backups** tab of the book, click **Restore** next to the backup you want to go back to, then choose **Full Restore** (everything) or **Messages Only Restore** (only the parts and summaries). Restoring replaces **all parts** of the book, so take a backup of the current state first.
 
@@ -15,14 +16,23 @@ await main(async ({ page }) => {
   await idle(page, 800);
   await openTab(page, 'Help assistant');
   const panel = page.getByRole('tabpanel').filter({ hasText: 'Reset to default' });
-  await panel.locator('vaadin-checkbox', { hasText: 'Enabled' }).first().click();
   await pick(panel, 'Model', 'Local LLM');
-  // the checkbox is as wide as its help text: click the label, not the middle of the element
-  await panel.getByText('Allow navigating the interface', { exact: true }).click();
   await sleep(400);
   await snap(page, 'admin-help-assistant');
   await press(panel, 'Save');
   await idle(page, 800);
+
+  // what depends on the user is in their permission: the administrator asks without one, but the assistant moves through
+  // the interface only for those whose permission allows it, so they give it to themselves (the page is not reloaded)
+  await openTab(page, 'Users');
+  const d = await openPermissions(page, 'admin');
+  await addPermission(d, 'Help assistant');
+  await d.getByText('Allow navigating the interface', { exact: true }).click();
+  await sleep(300);
+  await press(d, 'Save');
+  await idle(page, 800);
+  await press(d, 'Exit');
+  await idle(page, 500);
 
   // the button is there when the page is built: reload, then ask
   await page.reload();

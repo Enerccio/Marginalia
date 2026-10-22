@@ -26,6 +26,7 @@ public final class WorkspaceLLMSupport {
         LABELS.put("settings", L.LABEL_SETTINGS);
         LABELS.put("protocols", L.LABEL_PROTOCOLS);
         LABELS.put("models", L.LABEL_MODELS);
+        LABELS.put("agents", L.LABEL_AGENTS);
         LABELS.put("resources", L.LABEL_RESOURCES);
         LABELS.put("trash", L.LABEL_TRASH);
         LABELS.put("admin", L.LABEL_ADMIN);

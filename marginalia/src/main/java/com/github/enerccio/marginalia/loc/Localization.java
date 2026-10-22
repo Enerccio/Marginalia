@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.loc;
 
 import com.github.enerccio.marginalia.domain.collections.*;
+import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookDecision;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookMatch;
@@ -23,6 +24,12 @@ public interface Localization {
      * language.
      */
     String getValue(L l);
+
+    /**
+     * The text in the language, for what is said outside of a session (a message to a webhook): the default language when the
+     * language has no bundle or the bundle lacks the text.
+     */
+    String getValue(Language language, L l);
     L parseValue(String text);
     Locale getLocale();
     DateFormat getDateFormat();
@@ -42,6 +49,11 @@ public interface Localization {
     L getCleanupPolicy(CleanupReference.Policy t);
     L getLorebookMatch(LorebookMatch t);
     L getLorebookDecision(LorebookDecision t);
+    L getPermissionType(PermissionType t);
+
+    L getAgentRunStatus(AgentRunStatus t);
+
+    L getDestructiveCommandMode(DestructiveCommandMode t);
 
     /**
      * Localized name of the kind of object an entity class stands for (book, lorebook...), subclasses use the name of

@@ -34,7 +34,7 @@ await main(async ({ page }) => {
     await fresh();
     // expand Draconia (the chevron of her row) to show icon and note
     const y = await page.evaluate(() => {
-      const el = [...document.querySelectorAll('*')].find(e => e.children.length === 0 && e.textContent.trim() === 'Harry Potter' && e.getBoundingClientRect().x < 700);
+      const el = [...document.querySelectorAll('*')].find(e => e.children.length === 0 && e.textContent.trim() === 'Harry Potter' && e.getBoundingClientRect().width > 0 && e.getBoundingClientRect().x < 700);
       const r = el.getBoundingClientRect(); return r.y + r.height / 2;
     });
     await page.mouse.click(566, y);
@@ -45,7 +45,7 @@ await main(async ({ page }) => {
   await section(page, 'dialog', async () => {
     await fresh();
     const y = await page.evaluate(() => {
-      const el = [...document.querySelectorAll('*')].find(e => e.children.length === 0 && e.textContent.trim() === 'Harry Potter' && e.getBoundingClientRect().x < 700);
+      const el = [...document.querySelectorAll('*')].find(e => e.children.length === 0 && e.textContent.trim() === 'Harry Potter' && e.getBoundingClientRect().width > 0 && e.getBoundingClientRect().x < 700);
       const r = el.getBoundingClientRect(); return r.y + r.height / 2;
     });
     await page.mouse.click(602, y);
@@ -61,7 +61,7 @@ await main(async ({ page }) => {
     // Cancel with an edited field asks before the changes are thrown away (nothing is saved: the answer is Yes)
     await fresh();
     const y = await page.evaluate(() => {
-      const el = [...document.querySelectorAll('*')].find(e => e.children.length === 0 && e.textContent.trim() === 'Harry Potter' && e.getBoundingClientRect().x < 700);
+      const el = [...document.querySelectorAll('*')].find(e => e.children.length === 0 && e.textContent.trim() === 'Harry Potter' && e.getBoundingClientRect().width > 0 && e.getBoundingClientRect().x < 700);
       const r = el.getBoundingClientRect(); return r.y + r.height / 2;
     });
     await page.mouse.click(602, y);

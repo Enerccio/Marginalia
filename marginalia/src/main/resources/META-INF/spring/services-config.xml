@@ -13,6 +13,14 @@
         <property name="repository" ref="userRepository" />
     </bean>
 
+    <bean id="permissionRepository" class="com.github.enerccio.marginalia.domain.security.repository.impl.JpaPermissionRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.security.service.impl.PermissionServiceImpl">
+        <property name="repository" ref="permissionRepository" />
+    </bean>
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.InferenceServicesImpl">
         <property name="inferenceProviders">
             <list>
@@ -105,6 +113,8 @@
         <property name="repository" ref="lorebookRepository" />
     </bean>
 
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.LorebookActivationServiceImpl" />
+
     <bean id="lorebookEntryRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaLorebookEntryRepository">
         <property name="entityManager" ref="em"/>
     </bean>
@@ -120,6 +130,64 @@
     <bean class="com.github.enerccio.marginalia.domain.service.impl.SummaryServiceImpl">
         <property name="repository" ref="summaryRepository" />
     </bean>
+
+    <bean id="agentRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaAgentRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentServiceImpl">
+        <property name="repository" ref="agentRepository" />
+    </bean>
+
+    <bean id="agentRunRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaAgentRunRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentRunServiceImpl">
+        <property name="repository" ref="agentRunRepository" />
+    </bean>
+
+    <bean id="agentMessageRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaAgentMessageRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentMessageServiceImpl">
+        <property name="repository" ref="agentMessageRepository" />
+    </bean>
+
+    <bean id="agentRunPairRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaAgentRunPairRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentRunPairServiceImpl">
+        <property name="repository" ref="agentRunPairRepository" />
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.CommandScopesImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentApprovalServiceImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentWebhookServiceImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentAttentionServiceImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AIGateImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentRunnerImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentVirtualFileSystemServiceImpl">
+        <property name="entityManager" ref="em" />
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.CheckpointServiceImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentMergeServiceImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentCopyServiceImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ManuscriptReplaceServiceImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.LorebookReplaceServiceImpl" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.TokenizerServiceImpl" />
 
@@ -144,6 +212,8 @@
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.IPCServiceImpl" />
 
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ToolServiceImpl" />
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.OsgiServiceImpl" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.ExtensionServiceImpl" />
@@ -153,6 +223,10 @@
     <bean class="com.github.enerccio.marginalia.domain.service.impl.DatabaseBackupServiceImpl" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.ExporterServiceImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ArchiveImportServiceImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.CommandServiceImpl" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.CleanupServiceImpl">
         <property name="entityManager" ref="em" />

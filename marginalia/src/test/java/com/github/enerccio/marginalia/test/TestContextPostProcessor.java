@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.test;
 
+import com.github.enerccio.marginalia.domain.security.service.impl.UserServiceImpl;
 import com.github.enerccio.marginalia.domain.service.impl.OsgiServiceImpl;
 import com.github.enerccio.marginalia.instruct.RuntimeInstrumentationInitializer;
 import org.jspecify.annotations.NonNull;
@@ -21,6 +22,7 @@ import java.util.Set;
  * Adapts the production Spring XML for tests:
  * <ul>
  *     <li>removes the OSGi framework and the {@code @Extendable} bytecode instrumentation</li>
+ *     <li>hashes passwords cheaply, {@link TestUserService} is the user service</li>
  *     <li>points {@code Configuration} (and so the SQLite database, data and backup folders) to a fresh folder under
  *     {@code marginalia.test.home} (default {@code target/test-home}) instead of {@code ~/.marginalia}</li>
  * </ul>
@@ -41,8 +43,11 @@ public class TestContextPostProcessor implements BeanDefinitionRegistryPostProce
     public void postProcessBeanDefinitionRegistry(@NonNull BeanDefinitionRegistry registry) throws BeansException {
         for (String name : registry.getBeanDefinitionNames()) {
             BeanDefinition definition = registry.getBeanDefinition(name);
-            if (EXCLUDED_CLASSES.contains(definition.getBeanClassName())) {
+            // a bean that has a parent definition has no class of its own
+            if (definition.getBeanClassName() != null && EXCLUDED_CLASSES.contains(definition.getBeanClassName())) {
                 registry.removeBeanDefinition(name);
+            } else if (UserServiceImpl.class.getName().equals(definition.getBeanClassName())) {
+                definition.setBeanClassName(TestUserService.class.getName());
             }
         }
 

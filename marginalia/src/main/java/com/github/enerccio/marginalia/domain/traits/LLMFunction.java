@@ -29,4 +29,10 @@ public @interface LLMFunction {
     /** What the function does and when to use it; the model decides on this text. */
     String description() default "";
 
+    /**
+     * How the function is used among the calls of one answer of an agent: with others ({@link BatchPolicy#BATCHABLE}, the default)
+     * or alone ({@link BatchPolicy#SINGLE}), as for {@link Command#batch()}.
+     */
+    BatchPolicy batch() default BatchPolicy.BATCHABLE;
+
 }

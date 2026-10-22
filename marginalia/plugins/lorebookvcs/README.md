@@ -30,5 +30,6 @@ An import replaces the lorebook's history and asks for confirmation when there i
 
 ## Storage
 
-The history is stored in the database with the lorebook, so it's included in database backups. It's not part of
-lorebook exports or of the lorebooks inside book backups - use the history export to move it.
+The history is stored in the database with the lorebook, so it's included in database backups. The data is also
+written into lorebook exports and the lorebooks inside book backups, but an import creates new entries, which the
+history (kept by the identity of the old ones) does not match - use the history export to move it.

@@ -59,6 +59,22 @@ public class AI extends ExtendableEntity {
     @ExtendedAttribute
     private String limits;
 
+    /**
+     * How many requests of agents may be on the way to this AI at once, the rest waits (see {@code AIGate}); null or zero is no
+     * cap. A server with one slot (a single GPU) sets one.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Integer maxConcurrentRequests;
+
+    public Integer getMaxConcurrentRequests() {
+        return maxConcurrentRequests;
+    }
+
+    public void setMaxConcurrentRequests(Integer maxConcurrentRequests) {
+        this.maxConcurrentRequests = maxConcurrentRequests;
+    }
+
     public AIType getAiType() {
         return aiType;
     }

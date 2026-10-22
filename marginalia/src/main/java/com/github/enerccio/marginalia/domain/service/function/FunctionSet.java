@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.service.function.FunctionCallExcept
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
 import java.util.function.BooleanSupplier;
 
@@ -96,7 +97,13 @@ public final class FunctionSet {
                     + ", available functions: " + String.join(", ", functions.keySet())));
             return result;
         }
-        PendingCall continuation = new PendingCall(binding.definition().getName(), result, cancelled);
+        PendingCall continuation = new PendingCall(binding.definition().getName(), result, cancelled, new ConcurrentLinkedQueue<>());
+        // the caller cancels the future it got
+        result.whenComplete((_, _) -> {
+            if (result.isCancelled()) {
+                continuation.runHooks();
+            }
+        });
         try {
             executor.execute(() -> {
                 try {
@@ -115,8 +122,28 @@ public final class FunctionSet {
     }
 
     /** The continuation of one call: finishes the future the caller waits on, once. */
-    private record PendingCall(String name, CompletableFuture<String> result, BooleanSupplier cancelled)
+    private record PendingCall(String name, CompletableFuture<String> result, BooleanSupplier cancelled, Queue<Runnable> hooks)
             implements FunctionContinuation<Object> {
+
+        @Override
+        public void onCancel(Runnable hook) {
+            hooks.add(hook);
+            if (result.isCancelled()) {
+                runHooks();
+            }
+        }
+
+        // each hook runs once, whoever gets to it first
+        void runHooks() {
+            Runnable hook;
+            while ((hook = hooks.poll()) != null) {
+                try {
+                    hook.run();
+                } catch (RuntimeException e) {
+                    // the cancel of the others goes on
+                }
+            }
+        }
 
         @Override
         public void complete(Object value) {

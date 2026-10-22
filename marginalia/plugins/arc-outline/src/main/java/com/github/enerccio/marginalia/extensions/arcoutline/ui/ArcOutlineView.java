@@ -8,9 +8,7 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
-import com.vaadin.flow.component.ClickEvent;
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.ComponentEventListener;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
@@ -42,7 +40,9 @@ public class ArcOutlineView extends VerticalLayout {
 
     private final ArcOutlineService service;
     private final Manuscript manuscript;
-    private final ArcOutline outline;
+    private ArcOutline outline;
+    /** Removes the listener that reads the outline again when a command changes it, set while the view is attached. */
+    private Runnable changeRegistration;
     /**
      * Uuids of the arcs whose chapters are hidden; kept here because the list is rebuilt after every change.
      */
@@ -64,6 +64,25 @@ public class ArcOutlineView extends VerticalLayout {
         setPadding(false);
         buildUI();
         refresh();
+    }
+
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+        // a command (the command bar, an agent) stores the outline behind the back of the view, which keeps it in memory
+        changeRegistration = service.onChange(manuscript, () -> UIUtils.accessComponent(this, () -> {
+            outline = loadOutline();
+            refresh();
+        }));
+    }
+
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        if (changeRegistration != null) {
+            changeRegistration.run();
+            changeRegistration = null;
+        }
+        super.onDetach(detachEvent);
     }
 
     private ArcOutline loadOutline() {

@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.model.impl.settings;
 
+import com.github.enerccio.marginalia.domain.collections.WebhookFormat;
 import com.github.enerccio.marginalia.domain.model.Setting;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
@@ -56,6 +57,51 @@ public class UserSetting extends Setting {
     @Transient
     private String defaultMetaSummaryPrompt;
 
+    /**
+     * The system prompt of the agents of the user that have none of their own; blank is the one of the application
+     * settings, and then {@code Defaults.DEFAULT_AGENT_PROMPT}.
+     */
+    @ExtendedAttribute
+    @Transient
+    private String defaultAgentPrompt;
+
+    /**
+     * The URL the application sends a short message to when an agent of the user needs them (asks, finished, failed) and the
+     * user has the application closed, see {@code AgentWebhookService}. Blank is no message. The URL may hold a secret, it is not logged.
+     */
+    @ExtendedAttribute
+    @Transient
+    private String agentWebhookUrl;
+
+    /**
+     * The body the service behind {@link #agentWebhookUrl} expects; null is {@code PLAIN}.
+     */
+    @ExtendedAttribute
+    @Transient
+    private WebhookFormat agentWebhookFormat;
+
+    /**
+     * Whether the message is sent also while the user has the application open somewhere; the default is only when they have not.
+     */
+    @ExtendedAttribute
+    @Transient
+    private Boolean agentWebhookAlways;
+
+    /**
+     * The instructions ("agents.md") of the agents of the user that have none of their own; blank is no instructions.
+     */
+    @ExtendedAttribute
+    @Transient
+    private String defaultAgentInstructions;
+
+    /**
+     * The compaction prompt of the agents of the user that have none of their own; blank is the one of the application
+     * settings, and then {@code Defaults.DEFAULT_AGENT_COMPACTION_PROMPT}.
+     */
+    @ExtendedAttribute
+    @Transient
+    private String defaultAgentCompactionPrompt;
+
     @ExtendedAttribute
     @Transient
     private BackupStrategy backupStrategy;
@@ -70,6 +116,14 @@ public class UserSetting extends Setting {
     @ExtendedAttribute
     @Transient
     private String language;
+
+    /**
+     * How many parts of a book the story and the reader load at a time (the story the last ones, the reader the first
+     * ones, the rest as the user scrolls); {@code null} or less than one loads them all.
+     */
+    @ExtendedAttribute
+    @Transient
+    private Integer storyPartsLimit;
 
     /**
      * Where the user left the workspace (selected tab, filters, the open book, ...), written by the workspace autosave
@@ -151,6 +205,54 @@ public class UserSetting extends Setting {
         this.defaultMetaSummaryPrompt = defaultMetaSummaryPrompt;
     }
 
+    public String getDefaultAgentCompactionPrompt() {
+        return defaultAgentCompactionPrompt;
+    }
+
+    public void setDefaultAgentCompactionPrompt(String defaultAgentCompactionPrompt) {
+        this.defaultAgentCompactionPrompt = defaultAgentCompactionPrompt;
+    }
+
+    public String getAgentWebhookUrl() {
+        return agentWebhookUrl;
+    }
+
+    public void setAgentWebhookUrl(String agentWebhookUrl) {
+        this.agentWebhookUrl = agentWebhookUrl;
+    }
+
+    public WebhookFormat getAgentWebhookFormat() {
+        return agentWebhookFormat;
+    }
+
+    public void setAgentWebhookFormat(WebhookFormat agentWebhookFormat) {
+        this.agentWebhookFormat = agentWebhookFormat;
+    }
+
+    public Boolean getAgentWebhookAlways() {
+        return agentWebhookAlways;
+    }
+
+    public void setAgentWebhookAlways(Boolean agentWebhookAlways) {
+        this.agentWebhookAlways = agentWebhookAlways;
+    }
+
+    public String getDefaultAgentInstructions() {
+        return defaultAgentInstructions;
+    }
+
+    public void setDefaultAgentInstructions(String defaultAgentInstructions) {
+        this.defaultAgentInstructions = defaultAgentInstructions;
+    }
+
+    public String getDefaultAgentPrompt() {
+        return defaultAgentPrompt;
+    }
+
+    public void setDefaultAgentPrompt(String defaultAgentPrompt) {
+        this.defaultAgentPrompt = defaultAgentPrompt;
+    }
+
     public BackupStrategy getBackupStrategy() {
         return backupStrategy;
     }
@@ -173,6 +275,14 @@ public class UserSetting extends Setting {
 
     public void setBackupStrategyValue(String backupStrategyValue) {
         this.backupStrategyValue = backupStrategyValue;
+    }
+
+    public Integer getStoryPartsLimit() {
+        return storyPartsLimit;
+    }
+
+    public void setStoryPartsLimit(Integer storyPartsLimit) {
+        this.storyPartsLimit = storyPartsLimit;
     }
 
     public JsonObject getWorkspaceState() {

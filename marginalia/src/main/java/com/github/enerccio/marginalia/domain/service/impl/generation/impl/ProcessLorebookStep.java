@@ -1,27 +1,28 @@
 package com.github.enerccio.marginalia.domain.service.impl.generation.impl;
 
-import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
+import com.github.enerccio.marginalia.domain.service.LorebookActivationService;
+import com.github.enerccio.marginalia.domain.service.LorebookActivationService.Verdict;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PrePromptData;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
-import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
+import java.util.List;
 
 public class ProcessLorebookStep extends GenerationStepBase {
     private static final Logger log = LoggerFactory.getLogger(ProcessLorebookStep.class);
+
+    @Autowired
+    private LorebookActivationService activationService;
 
     @SuppressWarnings("unchecked")
     @Override
@@ -31,33 +32,9 @@ public class ProcessLorebookStep extends GenerationStepBase {
             Lorebook lorebook = lorebookService.find(controller.getManuscript().getLorebook());
             if (lorebook != null) {
                 List<String> manuscriptTags = tagRelationService.getTagsForObject(controller.getManuscript()).stream().map(Tag::getValue).toList();
-                InferenceService inferenceService = inferenceServices.forAIOrThrow(controller.getManuscript().getAi());
+                InferenceService inferenceService = inferenceServices.forAIOrThrow(controller.getAi());
 
-                Set<Long> processedLorebooks = new HashSet<>();
-                Stack<Lorebook> lorebookStack = new Stack<>();
-                Queue<Lorebook> toProcess = new LinkedList<>();
-                toProcess.add(lorebook);
-                while (!toProcess.isEmpty()) {
-                    Lorebook l = toProcess.remove();
-                    if (l.isDeleted() || !l.isEnabled()) {
-                        log.debug("Lorebook {} skipped because it's deleted or not enabled", l.getName());
-                        continue;
-                    }
-                    if (!processedLorebooks.contains(l.getId())) {
-                        processedLorebooks.add(l.getId());
-                        lorebookStack.add(l);
-                        toProcess.addAll(lorebookService.getSubbooks(l));
-                    }
-                }
-
-                List<Lorebook> foundLorebooks = new ArrayList<>(lorebookStack);
-                for (Lorebook book : foundLorebooks) {
-                    book = lorebookService.fillEntries(book);
-                    lorebookService.evict(book);
-                    for (LorebookEntry entry : book.getCachedEntries()) {
-                        lorebookEntryService.evict(entry);
-                    }
-                }
+                List<Lorebook> foundLorebooks = activationService.collectLorebooks(lorebook);
 
                 controller.getProperties().put(GenerationProperties.LOREBOOKS, foundLorebooks);
                 log.debug("Lorebooks found: {}", foundLorebooks);
@@ -65,41 +42,22 @@ public class ProcessLorebookStep extends GenerationStepBase {
                     List<Lorebook> lorebooks = (List<Lorebook>) controller.getProperties().get(GenerationProperties.LOREBOOKS);
                     log.debug("Lorebooks to be processed: {}", foundLorebooks);
 
-                    Map<Integer, List<LorebookEntry>> lorebookEntries = new TreeMap<>();
-
-                    for (Lorebook l : lorebooks) {
-                        for (LorebookEntry lorebookEntry : l.getCachedEntries()) {
-                            lorebookEntries.computeIfAbsent(lorebookEntry.getOrder(), _ -> new ArrayList<>()).add(lorebookEntry);
-                        }
-                    }
-
-                    for (List<LorebookEntry> list : lorebookEntries.values()) {
-                        list.sort(Comparator.comparing(LorebookEntry::getCreation, Comparator.nullsLast(Comparator.naturalOrder())));
-                    }
-
-                    List<LorebookEntry> entries = new ArrayList<>();
-                    for (List<LorebookEntry> list : lorebookEntries.values()) {
-                        entries.addAll(list);
-                    }
+                    List<LorebookEntry> entries = activationService.orderedEntries(lorebooks);
                     log.debug("Processing entries: {}", entries);
 
-                    List<LorebookEntry> activatedEntries = new ArrayList<>();
+                    List<LorebookEntry> activatedEntries = new java.util.ArrayList<>();
                     forEachAsync(controller, entries, (entry, next) -> {
                         controller.getProperties().put(GenerationProperties.LOREBOOK_ENTRY, entry);
                         controller.emitEvent(Events.PROCESS_LOREBOOK_ENTRY, () -> {
                             log.debug("Processing entry: {} ", entry.getName());
 
-                            if (!entry.isEnabled()) {
-                                log.debug("Entry {} not added because it's not enabled", entry.getName());
-                            } else if (hasNegativeTag(entry.getCachedNegativeTags(), manuscriptTags)) {
-                                log.debug("Entry {} not added because negative tags {} matches book tags {}.", entry.getName(), entry.getCachedNegativeTags(), manuscriptTags);
-                            } else if (!entry.getCachedTags().isEmpty() && !hasPositiveTags(entry.getCachedTags(), manuscriptTags)) {
-                                log.debug("Entry {} not added because tags {} defined and not match book tags {}.", entry.getName(), entry.getCachedTags(), manuscriptTags);
-                            } else if (StringUtils.isNotBlank(entry.getFiltering()) && !promptMatches(entry, controller.getPrePromptData().getUserPromptProcessed())) {
-                                log.debug("Entry {} not added because it does not match filtering ({}, {})", entry.getName(), entry.getFiltering(), entry.getFilteringMode());
-                            } else {
-                                log.debug("Entry {} added to activated entries.", entry.getName());
+                            Verdict verdict = activationService.evaluate(entry, manuscriptTags,
+                                    controller.getPrePromptData().getUserPromptProcessed());
+                            if (verdict.activated()) {
+                                log.debug("Entry {} added to activated entries ({}).", entry.getName(), verdict.reason());
                                 activatedEntries.add(entry);
+                            } else {
+                                log.debug("Entry {} not added: {} {}", entry.getName(), verdict.reason(), verdict.detail());
                             }
                             next.returnFromEvent();
                         });
@@ -114,7 +72,7 @@ public class ProcessLorebookStep extends GenerationStepBase {
                             StringBuilder builder = new StringBuilder();
                             StringBuilder builderUserPrompt = new StringBuilder();
                             for (LorebookEntry entry : finalActivatedEntries) {
-                                String payload = processPayload(entry, templateData);
+                                String payload = activationService.renderPayload(entry, templateData);
                                 if (StringUtils.isBlank(payload)) {
                                     continue;
                                 }
@@ -162,53 +120,6 @@ public class ProcessLorebookStep extends GenerationStepBase {
         templateData.setStyle(data.getStyle());
         templateData.setTemplateContext(getTemplateContext(controller));
         return templateData;
-    }
-
-    private String processPayload(LorebookEntry entry, LorebookTemplateData templateData) {
-        String payload = entry.getPayload();
-        if (StringUtils.isBlank(payload)) {
-            return payload;
-        }
-        try {
-            return templateService.processTemplate(payload, "lorebookEntry", templateData);
-        } catch (Exception e) {
-            // a broken entry must not break the generation, use it as it is
-            log.warn("Failed to process template of lorebook entry '{}': {}", entry.getName(), e.getMessage());
-            log.debug(e.getMessage(), e);
-            return payload;
-        }
-    }
-
-    private boolean promptMatches(LorebookEntry entry, String textToSearch) {
-        if (StringUtils.isBlank(entry.getFiltering())) {
-            return true;
-        }
-
-        String content = Objects.toString(textToSearch, "");
-
-        if (entry.getFilteringMode() == FilteringMode.TEXT) {
-            return Strings.CI.contains(content, entry.getFiltering());
-        } else {
-            try {
-                Pattern pattern = Pattern.compile(
-                        entry.getFiltering(),
-                        Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE | Pattern.DOTALL
-                );
-                return pattern.matcher(content).find();
-            } catch (PatternSyntaxException e) {
-                log.warn("Invalid regex pattern '{}' in lorebook entry '{}': {}",
-                        entry.getFiltering(), entry.getName(), e.getMessage());
-                return false;
-            }
-        }
-    }
-
-    private boolean hasNegativeTag(List<String> cachedNegativeTags, List<String> manuscriptTags) {
-        return !SetUtils.intersection(new HashSet<>(cachedNegativeTags), new HashSet<>(manuscriptTags)).isEmpty();
-    }
-
-    private boolean hasPositiveTags(List<String> cachedPositiveTags, List<String> manuscriptTags) {
-        return !SetUtils.intersection(new HashSet<>(cachedPositiveTags), new HashSet<>(manuscriptTags)).isEmpty();
     }
 
     @Override

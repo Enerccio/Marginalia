@@ -6,7 +6,7 @@
   <parent>
     <groupId>io.github.enerccio</groupId>
     <artifactId>marginalia-parent</artifactId>
-    <version>1.3.0</version>
+    <version>1.4.0</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -24,6 +24,7 @@
     <vaadin.version>25.2.3</vaadin.version>
     <spring.version>7.0.8</spring.version>
     <junit.version>6.0.3</junit.version>
+    <test.forks>3</test.forks>
   </properties>
 
   <dependencyManagement>
@@ -431,8 +432,14 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.5.4</version>
         <configuration>
-          <!-- RuntimeInstrumentationTest installs the ByteBuddy agent into the test JVM -->
-          <argLine>-XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true</argLine>
+          <!-- Test classes are spread over several JVMs, every one has its own Spring context and so its own database (SQLite
+               lets one writer in at a time). Not threads of one JVM: the @Configurable aspect is one for the JVM and
+               is bound to one Spring context. -Dtest.forks=1 runs them one after another -->
+          <forkCount>${test.forks}</forkCount>
+          <reuseForks>true</reuseForks>
+          <!-- RuntimeInstrumentationTest installs the ByteBuddy agent into the test JVM. The headless flags keep AWT
+               (ImageIO/Graphics2D in the image tests) from putting a Java icon in the macOS Dock and stealing focus -->
+          <argLine>-XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true -Djava.awt.headless=true -Dapple.awt.UIElement=true</argLine>
           <systemPropertyVariables>
             <marginalia.test.home>${project.build.directory}/test-home</marginalia.test.home>
           </systemPropertyVariables>

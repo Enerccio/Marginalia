@@ -170,6 +170,9 @@ Marginalia checks this when it generates the next part. Outdated summaries are r
 generate without them, or **No** to stop and generate new summaries first. Either way the outdated summaries are gone;
 the parts they covered are sent in full again (as far as they fit) until you summarize them again.
 
+A [search and replace](story-editor.md#search-and-replace) in the story keeps the summaries it covers valid and warns about
+the ones that become outdated.
+
 A meta summary is outdated when a part it covers is edited or deleted, but also when a summary it merged is deleted.
 (That is why the merged summaries can't be edited: the change would make the meta summary outdated.) Removing an
 outdated meta summary is the same as unwinding it: the summary it replaced comes back, and is checked as well. If it

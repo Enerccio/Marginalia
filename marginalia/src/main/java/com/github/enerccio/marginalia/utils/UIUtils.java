@@ -1,8 +1,11 @@
 package com.github.enerccio.marginalia.utils;
 
 import com.github.enerccio.marginalia.Configuration;
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.service.InferenceErrors;
+import com.github.enerccio.marginalia.domain.service.LorebookLockedException;
+import com.github.enerccio.marginalia.domain.service.ManuscriptLockedException;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
@@ -43,7 +46,22 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 
 public class UIUtils {
+
+    /** The screens narrower than this (in pixels) get the phone workspace. */
+    public static final int PHONE_MAX_WIDTH_PX = 768;
+
     private static final Logger log = LoggerFactory.getLogger(UIUtils.class);
+
+    /**
+     * Sets the text of a component only when it differs from what it shows. A screen that polls and sets the same text every
+     * time replaces the text node in the browser, which drops the selection the user was copying.
+     */
+    public static void setTextIfChanged(com.vaadin.flow.component.HasText component, String text) {
+        String wanted = text == null ? "" : text;
+        if (!wanted.equals(component.getText())) {
+            component.setText(wanted);
+        }
+    }
 
     private static final ThreadLocal<SimpleDateFormat> simpleDateFormat = ThreadLocal.withInitial(() -> new SimpleDateFormat("dd.MM.yyyy HH:mm:ss"));
 
@@ -84,6 +102,14 @@ public class UIUtils {
     }
 
     public static void internalServerError(Localization loc, Throwable cause) {
+        for (Throwable t = cause; t != null && t.getCause() != t; t = t.getCause()) {
+            if (t instanceof ManuscriptLockedException locked) {
+                // not a fault: the book is worked on by an agent, the user has to pause or stop it
+                Notification.warning(String.format(loc.getValue(t instanceof LorebookLockedException ? L.ERROR_LOREBOOK_LOCKED : L.ERROR_BOOK_LOCKED),
+                        locked.getAgentName()));
+                return;
+            }
+        }
         log.error(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), cause);
         UiProblems.exception(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), cause);
 
@@ -269,6 +295,38 @@ public class UIUtils {
             return Integer.parseInt(position.substring(0, position.lastIndexOf("px")).trim());
         }
         return -1;
+    }
+
+    /**
+     * Whether the user's screen is a phone: the same width the application picks its phone workspace by. False where the
+     * size is not known (no browser yet).
+     */
+    public static boolean isPhone() {
+        UI ui = UI.getCurrent();
+        if (ui == null) {
+            return false;
+        }
+        com.vaadin.flow.component.page.ExtendedClientDetails details = ui.getPage().getExtendedClientDetails();
+        // the width is 0 or less while the browser has not told it
+        return details != null && details.getBodyClientWidth() > 0 && details.getBodyClientWidth() < PHONE_MAX_WIDTH_PX;
+    }
+
+    /**
+     * On a phone the dialog fills the screen (and has no rounded corners or margin, like the phone book window); elsewhere
+     * it is left as it is.
+     *
+     * @param fullHeight whether the dialog is as high as the screen too, for a dialog with a transcript or a table that wants room
+     */
+    public static void fitPhone(Dialog dialog, boolean fullHeight) {
+        if (!isPhone()) {
+            return;
+        }
+        dialog.addClassName(CssStyles.PHONE_DIALOG);
+        dialog.setWidth("100%");
+        dialog.setMaxWidth("100%");
+        if (fullHeight) {
+            dialog.setHeight("100%");
+        }
     }
 
     /**

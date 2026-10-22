@@ -42,6 +42,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+import org.springframework.web.context.request.RequestAttributes;
 
 import java.io.InterruptedIOException;
 import java.net.SocketTimeoutException;
@@ -192,6 +193,98 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
         return request.cancellationToken();
     }
 
+    @Override
+    public CancellationToken round(List<LLMChatMessage> payload, Protocol protocol, FunctionSet functions,
+                                   InferenceRoundCallback callback) throws Exception {
+        boolean metered = !UnmeteredScope.isActive();
+        if (metered) {
+            limitService.check(ai, approximatePromptTokens(payload), TokenLimits.responseTokens(ai, protocol));
+        }
+        boolean functionsOffered = functions != null && !functions.isEmpty();
+        OpenAIClient client = openClient();
+        CancellationToken token = new CancellationToken();
+        RequestAttributes attributes = ThreadCopyRequestAttributes.create();
+        List<LLMChatMessage> conversation = new ArrayList<>(payload);
+        // streamed and put together here: the read timeout is the wait for the next chunk, so a model that thinks for
+        // long (its reasoning arrives chunk by chunk) is not cut as one that waits for the whole answer would be
+        ChatCompletionCreateParams params = buildParams(protocol, conversation, functionsOffered ? functions : null,
+                false, true, null).build();
+
+        AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
+        CompletableFuture.runAsync(() -> {
+            try {
+                wrapper.run(() -> {
+                    if (callback.isDead() || token.isCancelled()) {
+                        callback.onCancel();
+                        return;
+                    }
+                    StringBuilder text = new StringBuilder();
+                    StringBuilder reasoning = new StringBuilder();
+                    // everything that arrived, for our count when the provider reports none
+                    StringBuilder received = new StringBuilder();
+                    SortedMap<Long, PendingToolCall> pending = new TreeMap<>();
+                    TokenUsage reported = null;
+                    boolean stopped = false;
+                    RoundStatsCollector stats = new RoundStatsCollector();
+                    try (StreamResponse<ChatCompletionChunk> stream = client.chat().completions().createStreaming(params)) {
+                        Iterator<ChatCompletionChunk> chunks = stream.stream().iterator();
+                        while (chunks.hasNext()) {
+                            if (callback.isDead() || token.isCancelled()) {
+                                stopped = true;
+                                break;
+                            }
+                            ChatCompletionChunk chunk = chunks.next();
+                            stats.chunk(chunk);
+                            if (chunk.usage().isPresent()) {
+                                reported = new TokenUsage(chunk.usage().get().promptTokens(), chunk.usage().get().completionTokens());
+                            }
+                            for (ChatCompletionChunk.Choice choice : chunk.choices()) {
+                                ChatCompletionChunk.Choice.Delta delta = choice.delta();
+                                String thought = reasoningOf(delta);
+                                if (thought != null) {
+                                    reasoning.append(thought);
+                                    received.append(thought);
+                                }
+                                if (functionsOffered && delta.toolCalls().isPresent()) {
+                                    collectToolCalls(pending, delta.toolCalls().get());
+                                    delta.toolCalls().get().forEach(call -> call.function()
+                                            .flatMap(function -> function.arguments()).ifPresent(received::append));
+                                }
+                                delta.content().ifPresent(content -> {
+                                    text.append(content);
+                                    received.append(content);
+                                });
+                            }
+                        }
+                    } catch (RuntimeException e) {
+                        if (!received.isEmpty()) {
+                            // it answered before it failed, so that was billed; a failure before any text is not counted
+                            recordUsage(attributes, conversation, null, received.toString(), metered);
+                        }
+                        throw e;
+                    }
+                    TokenUsage counted = recordUsage(attributes, conversation, stopped ? null : reported,
+                            received.toString(), metered);
+                    List<LLMToolCall> calls = functionsOffered ? toToolCalls(pending) : List.of();
+                    if (stopped || callback.isDead() || token.isCancelled()) {
+                        callback.onCancel();
+                    } else {
+                        callback.onRound(text.toString(), StringUtils.isBlank(reasoning) ? null : reasoning.toString(), calls,
+                                new RoundUsage(counted.promptTokens(), counted.completionTokens(), stats.stats()));
+                    }
+                });
+            } catch (Throwable e) {
+                log.error("Failed to ask for a round: {}", e.getMessage(), e);
+                try {
+                    callback.onError(translate(e));
+                } catch (Exception ex) {
+                    log.error("Error during callback.onError", ex);
+                }
+            }
+        });
+        return token;
+    }
+
     /**
      * One request of {@link #infer}. Building it fails here, in the caller's thread, for the first round; the rest runs
      * asynchronously.
@@ -255,7 +348,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
      * {@code metered}: whether the limits apply and the usage is counted, see {@link UnmeteredScope}.
      */
     private record Request(OpenAIClient client, Protocol protocol, FunctionSet functions, InferenceAsyncCallback callback,
-                           CancellationToken cancellationToken, ThreadCopyRequestAttributes attributes, JsonNode schema,
+                           CancellationToken cancellationToken, RequestAttributes attributes, JsonNode schema,
                            boolean metered) {
 
         /** The part of the callback the function calls need, the same for a stream and for infer. */
@@ -643,7 +736,56 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
      * the provider reported, otherwise our count of the payload and of the text that arrived (a stopped request has no
      * report).
      */
-    private void recordUsage(ThreadCopyRequestAttributes attributes, List<LLMChatMessage> payload, TokenUsage reported, String generated) {
+    private void recordUsage(RequestAttributes attributes, List<LLMChatMessage> payload, TokenUsage reported, String generated) {
+        recordUsage(attributes, payload, reported, generated, true);
+    }
+
+    /**
+     * @param metered whether the usage is recorded for the user, the counts are returned either way (zeros when they
+     *                could not be made)
+     */
+    /** The calls arrive in pieces: the first has the id and the name, then the JSON arguments follow. */
+    private static void collectToolCalls(SortedMap<Long, PendingToolCall> calls,
+                                         List<ChatCompletionChunk.Choice.Delta.ToolCall> deltas) {
+        for (ChatCompletionChunk.Choice.Delta.ToolCall delta : deltas) {
+            // some servers send no index, a call that has an id is then a new one
+            long index = delta._index().asKnown().orElseGet(() -> delta.id().isPresent() || calls.isEmpty()
+                    ? calls.size() : calls.lastKey());
+            PendingToolCall call = calls.computeIfAbsent(index, i -> new PendingToolCall());
+            delta.id().filter(id -> !id.isEmpty()).ifPresent(id -> call.id = id);
+            delta.function().ifPresent(function -> {
+                // a name repeated in the later chunks is not a longer name
+                function.name().filter(name -> !name.isEmpty() && call.name == null).ifPresent(name -> call.name = name);
+                function.arguments().ifPresent(call.arguments::append);
+            });
+        }
+    }
+
+    private static List<LLMToolCall> toToolCalls(SortedMap<Long, PendingToolCall> pending) {
+        List<LLMToolCall> calls = new ArrayList<>();
+        for (PendingToolCall call : pending.values()) {
+            String id = call.id != null ? call.id : "call_" + UUID.randomUUID().toString().replace("-", "");
+            calls.add(LLMToolCall.of(id, call.name, call.arguments.length() == 0 ? "{}" : call.arguments.toString()));
+        }
+        return calls;
+    }
+
+    /**
+     * What a streamed chunk carries as the reasoning of the model: the field {@code reasoning_content} or
+     * {@code reasoning} of the delta, null when there is none.
+     */
+    @SuppressWarnings("unchecked")
+    private static String reasoningOf(ChatCompletionChunk.Choice.Delta delta) {
+        com.openai.core.JsonValue val = delta._additionalProperties().get("reasoning_content");
+        if (val == null) {
+            val = delta._additionalProperties().get("reasoning");
+        }
+        String reasoning = (val != null && !val.isNull()) ? (String) val.asString().orElse((String) null) : null;
+        return reasoning == null || reasoning.isEmpty() ? null : reasoning;
+    }
+
+    private TokenUsage recordUsage(RequestAttributes attributes, List<LLMChatMessage> payload, TokenUsage reported,
+                                   String generated, boolean metered) {
         try (InRequestScope _ = new InRequestScope(attributes)) {
             long prefill;
             long generatedTokens;
@@ -654,9 +796,13 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                 prefill = approximatePromptTokens(payload);
                 generatedTokens = tokenizerService.countTokensApprox(generated);
             }
-            usageService.record(ai, prefill, generatedTokens);
+            if (metered) {
+                usageService.record(ai, prefill, generatedTokens);
+            }
+            return new TokenUsage(prefill, generatedTokens);
         } catch (Exception e) {
             log.warn("Failed to count the usage of AI {}", ai.getId(), e);
+            return reported != null ? reported : new TokenUsage(0, 0);
         }
     }
 
@@ -799,6 +945,63 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
     private record TokenUsage(long promptTokens, long completionTokens) {}
 
     /**
+     * What a streamed answer says about how it went, besides its text: when its first and last chunks came, why it ended and what
+     * the provider reports of its cache and reasoning (the usage of OpenAI, the {@code timings} of llama.cpp).
+     */
+    static final class RoundStatsCollector {
+
+        private final long began = System.nanoTime();
+        private long first = -1;
+        private long last = -1;
+        private String finishReason;
+        private long cached = -1;
+        private long reasoning = -1;
+        private long serverPrompt = -1;
+        private long serverPredicted = -1;
+
+        void chunk(ChatCompletionChunk chunk) {
+            long now = System.nanoTime();
+            if (first < 0) {
+                first = now;
+            }
+            last = now;
+            try {
+                chunk.usage().ifPresent(usage -> {
+                    usage.promptTokensDetails().flatMap(details -> details.cachedTokens()).ifPresent(tokens -> cached = tokens);
+                    usage.completionTokensDetails().flatMap(details -> details.reasoningTokens()).ifPresent(tokens -> reasoning = tokens);
+                });
+                for (ChatCompletionChunk.Choice choice : chunk.choices()) {
+                    choice.finishReason().ifPresent(reason -> finishReason = reason.asString());
+                }
+                // llama.cpp: {"timings": {"cache_n": 1234, "prompt_ms": 56.7, "predicted_ms": 8901.2, ...}}
+                JsonValue timings = chunk._additionalProperties().get("timings");
+                Optional<?> object = timings == null ? Optional.empty() : timings.asObject();
+                if (object.isPresent() && object.get() instanceof Map<?, ?> values) {
+                    number(values, "cache_n").ifPresent(value -> cached = Math.max(cached, value.longValue()));
+                    number(values, "prompt_ms").ifPresent(value -> serverPrompt = value.longValue());
+                    number(values, "predicted_ms").ifPresent(value -> serverPredicted = value.longValue());
+                }
+            } catch (RuntimeException e) {
+                // what a provider adds to a chunk is a bonus, not a reason to fail the round
+            }
+        }
+
+        private static Optional<Number> number(Map<?, ?> values, String name) {
+            Object value = values.get(name);
+            if (value instanceof JsonValue json) {
+                return json.asNumber();
+            }
+            return value instanceof Number number ? Optional.of(number) : Optional.empty();
+        }
+
+        InferenceService.RoundStats stats() {
+            return new InferenceService.RoundStats(cached, reasoning,
+                    first < 0 ? -1 : (first - began) / 1_000_000, first < 0 ? -1 : (Math.max(last, first) - first) / 1_000_000,
+                    finishReason, serverPrompt, serverPredicted);
+        }
+    }
+
+    /**
      * Runs the functions the model called at the end of a stream and starts the next request.
      */
     private interface FunctionCaller {
@@ -897,7 +1100,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                         for (ChatCompletionChunk.Choice choice : chunk.choices()) {
                             ChatCompletionChunk.Choice.Delta delta = choice.delta();
 
-                            String reasoning = extractReasoningContent(delta);
+                            String reasoning = reasoningOf(delta);
                             if (reasoning != null && !reasoning.isEmpty()) {
                                 received.append(reasoning);
                                 pendingChunks.add(new PendingChunk(ChunkType.REASONING, reasoning));
@@ -968,40 +1171,15 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
             }
         }
 
-        /** The calls arrive in pieces: the first has the id and the name, then the JSON arguments follow. */
         private void collectToolCalls(List<ChatCompletionChunk.Choice.Delta.ToolCall> deltas) {
+            OpenAICompatibleInferenceService.collectToolCalls(toolCalls, deltas);
             for (ChatCompletionChunk.Choice.Delta.ToolCall delta : deltas) {
-                // some servers send no index, a call that has an id is then a new one
-                long index = delta._index().asKnown().orElseGet(() -> delta.id().isPresent() || toolCalls.isEmpty()
-                        ? toolCalls.size() : toolCalls.lastKey());
-                PendingToolCall call = toolCalls.computeIfAbsent(index, i -> new PendingToolCall());
-                delta.id().filter(id -> !id.isEmpty()).ifPresent(id -> call.id = id);
-                delta.function().ifPresent(function -> {
-                    // a name repeated in the later chunks is not a longer name
-                    function.name().filter(name -> !name.isEmpty() && call.name == null).ifPresent(name -> call.name = name);
-                    function.arguments().ifPresent(call.arguments::append);
-                });
                 received.append(delta.function().flatMap(function -> function.arguments()).orElse(""));
             }
         }
 
         private List<LLMToolCall> pendingCalls() {
-            List<LLMToolCall> calls = new ArrayList<>();
-            for (PendingToolCall call : toolCalls.values()) {
-                String id = call.id != null ? call.id : "call_" + UUID.randomUUID().toString().replace("-", "");
-                calls.add(LLMToolCall.of(id, call.name, call.arguments.length() == 0 ? "{}" : call.arguments.toString()));
-            }
-            return calls;
-        }
-
-        @SuppressWarnings("unchecked")
-        private String extractReasoningContent(ChatCompletionChunk.Choice.Delta delta) {
-            delta._additionalProperties();
-            com.openai.core.JsonValue val = delta._additionalProperties().get("reasoning_content");
-            if (val == null) {
-                val = delta._additionalProperties().get("reasoning");
-            }
-            return (val != null && !val.isNull()) ? (String) val.asString().orElse((String) null) : null;
+            return toToolCalls(toolCalls);
         }
 
         /**

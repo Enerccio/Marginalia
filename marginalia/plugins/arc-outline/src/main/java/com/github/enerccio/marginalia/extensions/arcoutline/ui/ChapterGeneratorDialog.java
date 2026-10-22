@@ -1,14 +1,15 @@
 package com.github.enerccio.marginalia.extensions.arcoutline.ui;
 
+import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.structured.SchemaCheck;
 import com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.*;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.Defaults;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
@@ -88,6 +89,7 @@ public class ChapterGeneratorDialog extends GeneratorDialog {
 
         generalSpecification = new TextArea("What you want from the chapters in general");
         generalSpecification.setWidthFull();
+        DialogFocus.onOpen(this, generalSpecification);
         generalSpecification.setMinHeight("100px");
         generalSpecification.setMaxHeight("25vh");
         generalSpecification.setPlaceholder("The pace, the tone, what must happen, what must not...");
@@ -189,9 +191,9 @@ public class ChapterGeneratorDialog extends GeneratorDialog {
     // --- generation ---
 
     @Override
-    protected String buildPrompt(String template, FunctionSet nameFunctions) throws Exception {
+    protected String buildPrompt(String template, ToolSet tools) throws Exception {
         return service.buildChapterPrompt(manuscript, outline, arc, contextGroup.getValue(), template, numberOfChapters(),
-                generalSpecification.getValue(), chapterSpecification(), nameFunctions);
+                generalSpecification.getValue(), chapterSpecification(), tools);
     }
 
     @Override

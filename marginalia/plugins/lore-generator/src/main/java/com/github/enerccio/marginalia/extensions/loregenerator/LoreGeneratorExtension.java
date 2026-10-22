@@ -4,11 +4,13 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
+import com.github.enerccio.marginalia.domain.service.CommandService;
 import com.github.enerccio.marginalia.domain.service.ExtensionService;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtendableMethodContext;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
+import com.github.enerccio.marginalia.extensions.loregenerator.commands.LoreGeneratorCommands;
 import com.github.enerccio.marginalia.extensions.loregenerator.model.LoreGeneratorData;
 import com.github.enerccio.marginalia.extensions.loregenerator.service.LoreGeneratorService;
 import com.github.enerccio.marginalia.extensions.loregenerator.ui.LoreGeneratorDialog;
@@ -22,6 +24,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.Collections;
@@ -42,6 +45,12 @@ public class LoreGeneratorExtension implements MarginaliaExtension {
 
     private final LoreGeneratorService loreGeneratorService = new LoreGeneratorService();
 
+    @Autowired
+    private CommandService commandService;
+
+    /** Kept to unregister it, the service takes the object. */
+    private LoreGeneratorCommands commands;
+
     private ExtensionDecorator userPartDecorator;
     private ExtensionDecorator userPartSaveDecorator;
     private ExtensionDecorator lorebookViewDecorator;
@@ -54,7 +63,7 @@ public class LoreGeneratorExtension implements MarginaliaExtension {
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
         log = parentService.createLogger(bundle);
         loreGeneratorService.setLogger(log);
-        loreGeneratorService.setOsgiService(parentService);
+        loreGeneratorService.setBundle(bundle);
         try {
             // the Lore Generator section in the extension settings of the user settings
             userPartDecorator = new ExtensionDecorator() {
@@ -136,6 +145,10 @@ public class LoreGeneratorExtension implements MarginaliaExtension {
             };
             extensionService.registerDecorator(lorebookPartDecorator, LOREBOOK_PART, "refresh");
 
+            // the commands for the command bar and for agents
+            commands = new LoreGeneratorCommands(loreGeneratorService);
+            commandService.registerCommands(commands);
+
             log.info("Lore Generator extension loaded");
         } catch (Exception e) {
             // there may be no UI (loading at startup), the extension service logs it and skips the extension
@@ -172,6 +185,10 @@ public class LoreGeneratorExtension implements MarginaliaExtension {
 
     @Override
     public void onExtensionUnload(Bundle bundle, OsgiService osgiService, ExtensionService extensionService) {
+        if (commands != null) {
+            commandService.unregisterCommands(commands);
+            commands = null;
+        }
         if (userPartDecorator != null) {
             extensionService.unregisterDecorator(userPartDecorator);
         }

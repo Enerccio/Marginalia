@@ -235,7 +235,20 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 25. **Writing statistics** — words per day/session, per-book totals, goals. 🧩
 26. **Undo for edits** — message edits overwrite text in place; keep per-message edit history (branching
     covers generations but not manual edits). 🧩 (similar to `lorebookvcs`)
-27. **Keyboard shortcuts** in the story editor (generate, stop, swipe, regenerate, edit).
+27. **Keyboard shortcuts** in the story editor (generate, stop, swipe, regenerate, edit), so most of the writing loop
+    works with the keyboard and tabs. First step: a shortcut on the open story tab that opens the new-turn popover
+    (`NewTurnForm.focusInstructions` already puts the cursor into the instructions), Ctrl+Enter in the popover to
+    generate and Esc to close it, the focus going back to the story afterwards. Single keys such as `+` fire only when
+    no text field (or other input) has the focus, the ones that would collide with typing need a modifier. Check the
+    browser and OS collisions (Ctrl+N/T/W are the browser's, Option+letter types characters on a Mac) in a real browser
+    before choosing the defaults, show the key in the tooltip of the button it triggers, and make the shortcuts active
+    only for the open story tab. The command bar (`/`), search and replace and next/previous tab are the next
+    candidates; the phone layout needs none.
+    **Key binding dialog.** The defaults are not final, so the user changes them in a dialog (user settings): a table of
+    actions with their current key, a field that records the next key combination pressed, a reset to the default and a
+    warning when two actions get the same key or the key is one the browser keeps. The bindings are a per-user setting
+    (an `@ExtendedAttribute` of `UserSetting`, travels with backups); plugins register their actions with a default key
+    so they show up in the same dialog.
 28. ✅ **Mobile layout** — below 768 px (decided once, at page load) the app uses `PhoneWorkspace`: a drawer instead of
     the tab bar and phone twins of the parts (`workspace/phone/parts`) and of the book window
     (`PhoneManuscriptDialog`, tabs in `dialogs/phone/manuscript`), documented in `manual/user/phone.md`. Not done: the
@@ -381,3 +394,12 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
 66. **Off-site backup target.** Scheduled database backups can only stay in the data folder. Add an upload step (S3,
     WebDAV, or a post-backup shell hook) with optional encryption, and a restore-test button that opens the newest
     backup in a scratch database and reports row counts.
+
+### Development
+
+67. ~~**Test speed on other machines (the Mac).**~~ ✅ Measured 2026-10-21 on the Apple M4 (10 cores, 16 GB, JDK 26):
+    2:20 min on one JVM, 1:27 min on the default 3 JVMs, 1.8 GB peak for the 3 JVMs, all 2,558 tests passed (so no test
+    counts on an empty database or on the order of the classes there). The row is in `manual/developer/testing.md`.
+    Still unmeasured: `-Dtest.forks=2` or `0.25C` on a laptop (not needed with 1.8 GB), caching the encoding that
+    `JavaTokkitStrategy` loads for every test (about 8% of the samples of one profile) and the cost of a context rebuilt
+    by `@DirtiesContext` in a warm JVM.

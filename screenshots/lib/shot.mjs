@@ -35,7 +35,12 @@ export async function launch({ phone = false, locale = 'en-US', scale = 1 } = {}
   });
   const page = await context.newPage();
   page.setDefaultTimeout(15000);
-  // toasts ("Settings saved...") must not end up in a screenshot
+  // the version text in the corner (a build detail) and the toasts ("Settings saved...") must not end up in a screenshot
+  await page.addInitScript(() => {
+    const css = '.build-info-footer { display: none !important; }';
+    const add = () => { const st = document.createElement('style'); st.textContent = css; (document.head || document.documentElement).appendChild(st); };
+    if (document.head) add(); else document.addEventListener('DOMContentLoaded', add);
+  });
   if (!process.env.SHOT_TOASTS) await page.addInitScript(() => {
     const css = 'vaadin-notification-card, vaadin-notification-container { display: none !important; }';
     const add = () => { const st = document.createElement('style'); st.id = 'shot-hide-toasts'; st.textContent = css; (document.head || document.documentElement).appendChild(st); };
@@ -202,8 +207,14 @@ export async function openBook(page, name = 'Harry Potter and Half Blood Prince 
   await openTab(page, 'Books');
   const cell = page.locator('vaadin-grid-cell-content').filter({ hasText: name }).first();
   const box = await cell.boundingBox();
-  // the pen button is at the right end of the row of the name cell
-  await page.mouse.click(1804, box.y + box.height / 2);
+  // the pen button of the row (its position moved when the row got the Clone button: look it up by its icon)
+  const pens = page.locator('vaadin-grid vaadin-button:has(vaadin-icon[icon$=":pencil"])');
+  let best = null;
+  for (let i = 0; i < await pens.count(); i++) {
+    const pen = await pens.nth(i).boundingBox();
+    if (pen && (best === null || Math.abs(pen.y - box.y) < best.distance)) best = { index: i, distance: Math.abs(pen.y - box.y) };
+  }
+  await pens.nth(best.index).click();
   await page.getByText('Branch view', { exact: true }).first().waitFor();
   await idle(page, 800);
 }
@@ -316,4 +327,28 @@ export async function pickSelect(scope, text) {
 /** Lets the toasts (notifications) be seen again: they are hidden in all other screenshots. */
 export async function showToasts(page) {
   await page.evaluate(() => { const st = document.getElementById('shot-hide-toasts'); if (st) st.remove(); });
+}
+
+/**
+ * Opens the permissions window of a user: the key button in the row of Admin → Users (the page must be there).
+ * Returns the dialog.
+ */
+export async function openPermissions(page, loginName) {
+  const cell = page.locator('vaadin-grid-cell-content').filter({ hasText: new RegExp('^\\s*' + loginName + '\\s*$') }).first();
+  const y = (await cell.boundingBox()).y;
+  const keys = page.locator('vaadin-grid vaadin-button:has(vaadin-icon[icon$=":key"])');
+  let best = null;
+  for (let i = 0; i < await keys.count(); i++) {
+    const box = await keys.nth(i).boundingBox();
+    if (best === null || Math.abs(box.y - y) < best.distance) best = { index: i, distance: Math.abs(box.y - y) };
+  }
+  await keys.nth(best.index).click();
+  await idle(page, 900);
+  return dialog(page);
+}
+
+/** Adds a permission in the open permissions window: picks it in the combo box and presses Add permission. */
+export async function addPermission(d, label) {
+  await pick(d, 'Permission', label);
+  await press(d, 'Add permission');
 }

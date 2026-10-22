@@ -1,7 +1,7 @@
 ---
 label: Database & migrations
 order: 950
-verified: 939f3671
+verified: 333d9397
 covers:
   - marginalia/src/main/resources/migration
   - marginalia/src/main/java/com/github/enerccio/marginalia/bound/migration
@@ -26,9 +26,9 @@ and how to write a migration. What the tables contain is described in [Domain mo
 | | |
 |---|---|
 | File | `<user.home>/.marginalia/marginalia.sqlite`, with `marginalia.sqlite-wal` and `-shm` while it runs |
-| JDBC URL | `jdbc:sqlite:<file>?busy_timeout=10000&journal_mode=WAL` (built by `Configuration.resolveDb`) |
+| JDBC URL | `jdbc:sqlite:<file>?busy_timeout=10000&journal_mode=WAL` (built by `Configuration.resolveDb`); the pool of read-write transactions adds `&transaction_mode=IMMEDIATE` (`Configuration.resolveWriteDb`) |
 | Driver | `org.sqlite.JDBC` (`sqlite-jdbc`) |
-| Pool | commons-dbcp `BasicDataSource`, 10-20 connections, validated with `SELECT 1` |
+| Pool | commons-dbcp `BasicDataSource`, 10-20 connections, validated with `SELECT 1`; a second one (`writeDataSource`, 2-20) for read-write transactions |
 | Journal | WAL - readers don't block the writer; writers wait up to 10 s (`busy_timeout`) for each other |
 | Foreign keys | Not enforced (`PRAGMA foreign_keys` is off), see [Conventions](#schema-conventions) |
 
@@ -37,8 +37,11 @@ The beans are in `src/main/resources/META-INF/spring/datasources-config.xml`:
 ```mermaid
 flowchart LR
     conf["configuration<br/>resolveDb()"] --> ds["dataSource<br/>BasicDataSource"]
+    conf --> wds["writeDataSource<br/>BEGIN IMMEDIATE"]
     ds --> fw["flyway<br/>init-method=migrate"]
-    ds --> proxy["ds<br/>TransactionAwareDataSourceProxy"]
+    ds --> routing["routingDataSource<br/>ReadWriteRoutingDataSource"]
+    wds --> routing
+    routing --> proxy["ds<br/>TransactionAwareDataSourceProxy"]
     fw -. "depends-on" .-> emf
     proxy --> emf["emf<br/>EntityManagerFactory (PU)"]
     proxy --> jdbc["jdbcTemplate"]
@@ -50,6 +53,15 @@ flowchart LR
   schema.
 - Hibernate and `jdbcTemplate` use the data source through `TransactionAwareDataSourceProxy`, so plain JDBC code
   joins the current JPA transaction.
+- **Read-write transactions take the write lock when they begin.** A deferred transaction reads, takes its snapshot and
+  needs the lock at its first write; when another connection has committed in between, the write fails at once with
+  `SQLITE_BUSY` or `SQLITE_BUSY_SNAPSHOT` and `busy_timeout` does not help. So `routingDataSource`
+  (`ReadWriteRoutingDataSource`) gives a read-write transaction a connection of `writeDataSource`
+  (`transaction_mode=IMMEDIATE`, writers queue for the busy timeout) and a read-only one
+  (`@CommonTxReadOnly`) a plain connection of `dataSource` (never waits for a writer). The transaction manager asks for
+  the connection before it publishes the read-only flag, so the `jpaDialect` bean (`ReadWriteRoutingDataSource.Dialect`)
+  notes it while the transaction begins. Flyway and code outside a transaction use `dataSource`. `ConcurrentTransactionsTest`
+  covers both sides.
 - The persistence unit `PU` is defined in `src/main/webapp/config/persistence.xml`: the list of entity classes
   (`exclude-unlisted-classes`), the dialect and `hibernate.hbm2ddl.auto=validate`.
 
@@ -104,6 +116,7 @@ migration is written for one version step and ignores the others.
 | APP | 1 → 2 | `bound/migration/EncryptApiKeysMigration` | Encrypts the plain text `ais_openaicompat.apiKey` values, see [Encrypted columns](#encrypted-columns). |
 | APP | 2 → 3 | `bound/migration/FulltextMigration` | Fills `_fulltext` (added by V9) of the existing rows of every entity with `@Fulltextable` fields, deleted rows included: walks the table by id in batches of 200, one transaction per batch, and calls `ExtendableEntityListener.updateFulltext` on the loaded entity, so `extendedContent` and `modification` stay as they are. Repeating it is harmless. See [Full-text column](domain-model.md#full-text-column). |
 | APP | 3 → 4 | `bound/migration/OriginalResponseMigration` | Copies `response` of every `ChatMessage` (deleted ones too) into the extended attribute `originalResponse` when it has none: batches of 200 by id, one transaction per batch, the entity is re-serialized with `ExtendableEntityListener.serialize`, `modification` stays as it is. Repeating it is harmless. |
+| APP | 4 → 5 | `bound/migration/PermissionsMigration` | Gives the permissions `CREATE_AI` and `HELPER` to every existing (not deleted) user when the switches they replace (`AppSettings.userAisAllowed`, `helpEnabled`) were on; the permission has no owner. The new `HELPER` permissions also get `helperApplyLimits` and `helperInteractions` from `AppSettings.helpApplyLimits` / `helpInteractions`. Users that already have the permission are skipped (repeatable). Reads in one session and writes in another: the id generator updates its sequence table on a second connection and SQLite locks it out while the first holds a read lock. |
 
 To add one: implement `Migration`, register the bean in the `migrations` list of `applicationInitializer` and raise
 `appVersion` (or `dbVersion`). A fresh database starts at version 1, so it goes through all migrations too.
@@ -126,6 +139,10 @@ To add one: implement `Migration`, register the bean in the `migrations` list of
 | V12 | `V12__usage_limit_period.sql` | `usages.periodPrefillTokens` and `usages.periodGeneratedTokens` (`bigint not null default 0`): the tokens a user used since the last reset of their token limit on a shared AI. The limits themselves are not columns, they are the extended attribute `AI.limits`. See [Limits of the users of a shared AI](domain-model.md#limits-of-the-users-of-a-shared-ai). |
 | V13 | `V13__usage_ai_nullable.sql` | `usages.ai_id` allows NULL (table rebuilt, SQLite cannot drop NOT NULL): the cleanup nulls the reference to an AI before it purges it, which failed for an AI with usage rows. |
 | V14 | `V14__extension_ai.sql` | New table `ais_extension` (`extensionId`, `id`): the subclass `ExtensionAI` of `AI`, an AI provided by an extension. The settings of the provider are not columns, they are in the attributes of the AI. |
+| V15 | `V15__permissions.sql` | New table `permissions` (`permissionType`, `holder_id`, `granted`, owner `userId`, extended content) and its `permissions_SEQ`, the index `(holder_id, permissionType, is_deleted)`: the entity `Permission`. See [`Permission`](domain-model.md#permission-what-a-user-was-allowed). |
+| V16 | `V16__agents.sql` | New tables `agents` (`name`, `enabled`, `manuscript_id`, owner `userId`, extended content), `agent_runs` (`agent_id`, `status`, `statusReason`, `workingCopy_id`, `prefillTokens`, `generatedTokens`, `rounds`, `startedAt`, `finishedAt`) and `agent_messages` (`run_id`, `ordinal`: the transcript of a run) with their `_SEQ` tables and indexes: the entities `Agent`, `AgentRun` and `AgentMessage`; the column `agentic` of `manuscripts` and `lorebooks` (a working copy of an agent). `manuscript_id`, `agent_id` are nullable (the cleanup nulls an `OWNED_BY` reference before the purge). A partial unique index `ux_agent_runs_unfinished` keeps one run per agent that is not over (the statuses are listed in the index, a new status that is not terminal needs a new migration). See [`Agent`](domain-model.md#agent-and-agentrun-agents). |
+| V17 | `V17__agent_run_pairs.sql` | New table `agent_run_pairs` (`run_id`, `kind`, `copyUuid`, `originalUuid`, `handle`) with its `_SEQ` table: the entity `AgentRunPair`, which item of the working copy of an agent run is which item of the original. Not a `BaseEntity` (no uuid, `is_deleted` or extended content columns). Unique indexes on `(run_id, copyUuid)` and `(run_id, handle)`, an index on `(run_id, originalUuid)`; there is no foreign key to `agent_runs` (the project uses none), the rows are deleted by `AgentRunPairService.deleteForRun`. See [`AgentRunPair`](domain-model.md#agent-and-agentrun-agents). |
+| V18 | `V18__agent_message_threads.sql` | The nullable column `thread` (varchar 16) of `agent_messages`, the handle of the sub-agent whose conversation a row belongs to (null: the agent's own), and the index `ix_agent_messages_thread` on `(run_id, thread, is_deleted, ordinal)`. See [`AgentMessage`](domain-model.md#agent-and-agentrun-agents). |
 
 ### Rules
 
@@ -313,11 +330,12 @@ means the index is used. `FlywayMigrationTest.tagRelationLookupsUseIndexes` does
 
 | Limitation | Consequence |
 |---|---|
-| One writer at a time | Writes are serialized; long transactions block other users' writes (up to `busy_timeout`, then `SQLITE_BUSY`). Keep transactions short and never call a model inside one - generation runs outside transactions (`@NoTx`). |
+| One writer at a time | Writes are serialized; a read-write transaction holds the write lock from its start (see above), so a long one blocks other users' writes (up to `busy_timeout`, then `SQLITE_BUSY`); read-only transactions are not blocked. Keep transactions short and never call a model inside one - generation runs outside transactions (`@NoTx`). |
 | `ALTER TABLE` is limited | Type, nullability and constraint changes need a table rebuild. |
 | DDL in transactions | SQLite supports transactional DDL, so a failing migration is rolled back completely. |
 | No `VACUUM` inside a transaction | `VACUUM INTO` for backups runs with `@NoTx`. |
 | Dynamic typing | A column accepts any value; the entity mapping is what keeps types consistent. |
+| 500 terms in a compound SELECT | The driver answers `getColumns` of all tables with one compound SELECT, so the columns of all tables together would be limited to 500 (the validation after the migrations hit it with `V16`). `persistence.xml` therefore sets `hibernate.hbm2ddl.jdbc_metadata_extraction_strategy` to `individually`, validate table by table - keep it. |
 
 ## Database backups and restores
 

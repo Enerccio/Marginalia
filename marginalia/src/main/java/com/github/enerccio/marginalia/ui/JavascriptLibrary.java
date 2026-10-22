@@ -22,6 +22,23 @@ public final class JavascriptLibrary {
         page.executeJs("navigator.clipboard.writeText($0);", text);
     }
 
+    /**
+     * Sends the images pasted into the element (Ctrl+V of a picture from the clipboard) to the upload, as if they were
+     * picked in it. A paste of text is left alone.
+     *
+     * @param element the box the user pastes into
+     * @param upload  the {@code vaadin-upload} the images go to
+     */
+    public static void forwardPastedImages(Element element, Element upload) {
+        element.executeJs(
+                "$0.addEventListener('paste', e => {"
+                        + " const files = Array.from(e.clipboardData ? e.clipboardData.files : []).filter(f => f.type.startsWith('image/'));"
+                        + " if (files.length) { e.preventDefault(); $1.uploadFiles(files); } });",
+                element,
+                upload
+        );
+    }
+
     // --- tree ---
 
     /**
@@ -107,13 +124,6 @@ public final class JavascriptLibrary {
     }
 
     // --- scrolling ---
-
-    /**
-     * Resolves to the rounded {@code scrollTop} of the element.
-     */
-    public static PendingJavaScriptResult getScrollTop(Element element) {
-        return element.executeJs("return Math.round($0.scrollTop);", element);
-    }
 
     public static void setScrollTop(Element element, int pixelsFromTop) {
         element.executeJs("$0.scrollTop = $1", element, pixelsFromTop);
@@ -203,25 +213,93 @@ public final class JavascriptLibrary {
     }
 
     /**
-     * Restores the scroll position once the layout is done; to the bottom when there is nothing saved.
+     * Where a part is in the scrolled content (not in the window), to find it again after parts were added or dropped
+     * around it: {@code anchorOf} picks the first part the user sees and {@code anchorPos} is its position in the
+     * content, which the user's own scrolling does not change.
      */
-    public static void restoreScrollPosition(Element element, Integer savedPosition) {
-        element.executeJs(INSTALL_STICKY_SCROLL + """
-                installSticky($0);
-                requestAnimationFrame(() => {
-                  requestAnimationFrame(() => {
-                    const el = $0;
-                    const target = $1;
-                    if (target !== null && target !== undefined) {
-                      el.scrollTop = target;
-                    } else {
-                      el.scrollTop = el.scrollHeight;
+    private static final String ANCHOR_HELPERS = """
+            const anchorPos = (el, node) =>
+              node.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop;
+            const anchorOf = (el, content) => {
+              const top = el.getBoundingClientRect().top;
+              for (const node of content.children) {
+                const rect = node.getBoundingClientRect();
+                if (rect.height > 0 && rect.bottom > top + 1) {
+                  return {node: node, pos: anchorPos(el, node)};
+                }
+              }
+              return null;
+            };
+            """;
+
+    /**
+     * Fires {@code edge-top} (or {@code edge-bottom}) on the scroll element when it is scrolled close to that edge, to
+     * load more content there. The event has {@code detail.far}, the distance in pixels from the opposite edge, so
+     * the server drops parts there only when that is far enough not to be needed again at once. After every load the
+     * server calls this again: {@code armed} is whether there is more to load, if there is not, nothing fires until it
+     * is called with {@code true}. The check also runs once the layout following the current changes is done, so
+     * content that does not fill the element asks for more at once. The part the user sees first is remembered when
+     * the event fires, {@link #restoreAnchor} puts it back in place.
+     *
+     * @param element the scroll element
+     * @param content the element whose children are the parts
+     */
+    public static void watchEdge(Element element, Element content, boolean top, boolean armed) {
+        element.executeJs(ANCHOR_HELPERS + """
+                const el = $0;
+                const content = $1;
+                const top = $2;
+                const name = top ? 'edge-top' : 'edge-bottom';
+                const busy = '_busy-' + name;
+                const check = '_check-' + name;
+                if (!el[check]) {
+                  el[check] = () => {
+                    if (el[busy]) return;
+                    const bottomGap = el.scrollHeight - el.scrollTop - el.clientHeight;
+                    const distance = top ? el.scrollTop : bottomGap;
+                    if (distance < 400) {
+                      el[busy] = true;
+                      el._anchor = anchorOf(el, content);
+                      el.dispatchEvent(new CustomEvent(name, {detail: {far: top ? bottomGap : el.scrollTop}}));
                     }
+                  };
+                  el.addEventListener('scroll', el[check], {passive: true});
+                }
+                el[busy] = !$3;
+                requestAnimationFrame(() => requestAnimationFrame(el[check]));
+                """, element, content, top, armed);
+    }
+
+    /**
+     * Keeps the part the user sees in place after parts were added above it or dropped from there (the part that
+     * {@link #watchEdge} remembered when it fired). The position is corrected again while the new parts settle, their
+     * Markdown is rendered after they are in the page.
+     *
+     * @param element the scroll element
+     * @param content the element whose children are the parts
+     */
+    public static void restoreAnchor(Element element, Element content) {
+        element.executeJs(ANCHOR_HELPERS + """
+                const el = $0;
+                const content = $1;
+                const anchor = el._anchor;
+                if (!anchor || !anchor.node.isConnected) return;
+                const apply = () => {
+                  if (!anchor.node.isConnected) return;
+                  const pos = anchorPos(el, anchor.node);
+                  if (pos !== anchor.pos) {
+                    el.scrollTop += pos - anchor.pos;
                     el._lastTop = el.scrollTop;
-                    el._stick = (el.scrollHeight - el.scrollTop - el.clientHeight) < 8;
-                  });
-                });
-                """, element, savedPosition);
+                    anchor.pos = pos;
+                  }
+                };
+                apply();
+                if (el._anchorObserver) el._anchorObserver.disconnect();
+                el._anchorObserver = new ResizeObserver(apply);
+                el._anchorObserver.observe(content);
+                clearTimeout(el._anchorTimer);
+                el._anchorTimer = setTimeout(() => el._anchorObserver.disconnect(), 1500);
+                """, element, content);
     }
 
     /**
@@ -239,25 +317,90 @@ public final class JavascriptLibrary {
                 """, element);
     }
 
+    /**
+     * Scrolls the element to the top of its scroll parent once the layout following the current changes is done.
+     */
+    public static void scrollIntoViewAfterLayout(Element element) {
+        element.executeJs("""
+                requestAnimationFrame(() => {
+                  requestAnimationFrame(() => $0.scrollIntoView({block: 'start'}));
+                });
+                """, element);
+    }
+
+    // --- reader position ---
+
+    private static final String READER_POSITION_KEY = "marginalia.reader.position.";
+
+    /**
+     * Keeps the id of the part the reader sees first in the {@code localStorage} of the browser, under the uuid of
+     * the book, while the user scrolls (the server never learns it, it is read back by {@link #readReaderPosition}).
+     * The parts are the children of {@code content} that have the attribute {@code data-message-id}.
+     *
+     * @param element the scroll element
+     * @param content the element whose children are the parts
+     */
+    public static void rememberReaderPosition(Element element, Element content, String manuscriptUuid) {
+        element.executeJs("""
+                const el = $0;
+                const content = $1;
+                const key = $2 + $3;
+                if (el._positionKey === key) return;
+                el._positionKey = key;
+                if (!el._positionInstalled) {
+                  el._positionInstalled = true;
+                  const save = () => {
+                    const top = el.getBoundingClientRect().top;
+                    for (const node of el._positionContent.children) {
+                      const id = node.getAttribute('data-message-id');
+                      if (id !== null && node.getBoundingClientRect().bottom > top + 1) {
+                        try { localStorage.setItem(el._positionKey, id); } catch (e) {}
+                        return;
+                      }
+                    }
+                  };
+                  el.addEventListener('scroll', () => {
+                    clearTimeout(el._positionTimer);
+                    el._positionTimer = setTimeout(save, 250);
+                  }, {passive: true});
+                  window.addEventListener('pagehide', save);
+                }
+                el._positionContent = content;
+                """, element, content, READER_POSITION_KEY, manuscriptUuid);
+    }
+
+    /**
+     * The id of the part the reader saw first when the user left the book last time, as text; {@code null} when there
+     * is none or the storage is blocked.
+     */
+    public static PendingJavaScriptResult readReaderPosition(Page page, String manuscriptUuid) {
+        return page.executeJs("""
+                try { return localStorage.getItem($0 + $1); } catch (e) { return null; }
+                """, READER_POSITION_KEY, manuscriptUuid);
+    }
+
     // --- element events ---
 
     /**
-     * Fires {@code panel-scroll} ({@code detail.scrollTop}) on the element, 300 ms after the user stops scrolling.
+     * Fires {@code chip-click} ({@code detail.label}) on the multi select combo box when the user clicks the label of
+     * one of its chips (not its remove button), without opening the dropdown.
      */
-    public static void fireDebouncedScrollEvent(Element element) {
-        element.executeJs("""
+    public static void fireChipClickEvent(Element comboBox) {
+        comboBox.executeJs("""
                 const el = $0;
-                if (!el._hasScrollListener) {
-                  el._hasScrollListener = true;
-                  let timer;
-                  el.addEventListener('scroll', () => {
-                    clearTimeout(timer);
-                    timer = setTimeout(() => {
-                      el.dispatchEvent(new CustomEvent('panel-scroll', { detail: { scrollTop: Math.round(el.scrollTop) } }));
-                    }, 300);
-                  });
+                if (!el._hasChipClickListener) {
+                  el._hasChipClickListener = true;
+                  el.addEventListener('click', e => {
+                    const path = e.composedPath();
+                    const chip = path.find(n => n.localName === 'vaadin-multi-select-combo-box-chip');
+                    if (!chip || path.some(n => n.getAttribute && n.getAttribute('part') === 'remove-button')) {
+                      return;
+                    }
+                    e.stopPropagation();
+                    el.dispatchEvent(new CustomEvent('chip-click', { detail: { label: chip.label || chip.textContent.trim() } }));
+                  }, true);
                 }
-                """, element);
+                """, comboBox);
     }
 
     // --- tab sheet ---
@@ -288,6 +431,49 @@ public final class JavascriptLibrary {
                     const event = new CustomEvent('myscroll', { detail: e.target.scrollTop + ',' + e.target.scrollLeft });
                     el.dispatchEvent(event);
                 })""", tabSheet);
+    }
+
+    // --- swipe ---
+
+    /**
+     * Fires {@code swipe} ({@code detail}: {@code left} or {@code right}) on the element when a finger is drawn across it sideways:
+     * far enough, quickly enough, and mostly horizontally. A touch that starts in a box that takes the finger itself (a field, a
+     * table, anything that scrolls sideways) is left alone. Done once for an element.
+     */
+    public static void fireSwipeEvents(Element element) {
+        element.executeJs("""
+                var el = $0;
+                if (el.__swipeEvents) { return; }
+                el.__swipeEvents = true;
+                var start = null;
+                var own = ['INPUT', 'TEXTAREA', 'SELECT', 'VAADIN-GRID', 'VAADIN-TEXT-FIELD', 'VAADIN-TEXT-AREA', 'VAADIN-COMBO-BOX',
+                    'VAADIN-SELECT', 'VAADIN-SLIDER', 'VAADIN-RICH-TEXT-EDITOR', 'VAADIN-TABS', 'VAADIN-TAB-SHEET'];
+                function takesFinger(event) {
+                    var path = event.composedPath();
+                    for (var i = 0; i < path.length && path[i] !== el; i++) {
+                        var node = path[i];
+                        if (!(node instanceof HTMLElement)) { continue; }
+                        if (own.indexOf(node.tagName) >= 0 || node.isContentEditable) { return true; }
+                        var overflow = getComputedStyle(node).overflowX;
+                        if ((overflow === 'auto' || overflow === 'scroll') && node.scrollWidth > node.clientWidth + 1) { return true; }
+                    }
+                    return false;
+                }
+                el.addEventListener('touchstart', function (e) {
+                    start = e.touches.length === 1 && !takesFinger(e)
+                        ? { x: e.touches[0].clientX, y: e.touches[0].clientY, time: Date.now() } : null;
+                }, { passive: true });
+                el.addEventListener('touchcancel', function () { start = null; }, { passive: true });
+                el.addEventListener('touchend', function (e) {
+                    if (!start) { return; }
+                    var from = start;
+                    start = null;
+                    var dx = e.changedTouches[0].clientX - from.x;
+                    var dy = e.changedTouches[0].clientY - from.y;
+                    if (Math.abs(dx) < 80 || Math.abs(dx) < 2 * Math.abs(dy) || Date.now() - from.time > 700) { return; }
+                    el.dispatchEvent(new CustomEvent('swipe', { detail: dx < 0 ? 'left' : 'right' }));
+                }, { passive: true });
+                """, element);
     }
 
     // --- help assistant ---

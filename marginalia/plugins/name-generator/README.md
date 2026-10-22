@@ -2,8 +2,6 @@
 
 Gives the model functions to get names instead of inventing them, from Markov chains trained on lists of names.
 
-![Name tools of the Lore Generator, the categories of this extension](../../../manual/images/plugin-loregenerator-names.png)
-
 ## Functions
 
 | Function | Arguments | Answer |
@@ -11,19 +9,26 @@ Gives the model functions to get names instead of inventing them, from Markov ch
 | `list_name_categories` | none | the categories of names that can be generated |
 | `generate_names` | `category`, `count`, optional `min_length`, `max_length` | `count` names of the category; `count` is limited to 1-100 and the lengths (in letters) to 2-30, whatever the model asks for; without lengths the usual ones of the category are used (see *Chain settings*), else 3 and 20; limits the wrong way round are swapped |
 
+## Commands
+
+The same names for the command bar and for agents (`NameGeneratorCommands`, both `NON_DESTRUCTIVE`): `/list-name-categories [filter]` (a JSON array with a category on each line; `filter` is the start of the name of the categories to list, not case sensitive, since there are over a thousand of them) and `/generate-names category count [min_length [max_length]]` (a JSON array of names, same limits as the function).
+
 ## For developers
 
 `NameGeneratorFunctions` is the `@LLMFunction` interface, `NameGeneratorFunctionsImpl` the implementation (`MAX_COUNT`,
-`clampCount`) on `NameTables` (loading and sampling). The extension compiles the interface on load; `NameGeneratorExtension.functions()` returns the bound
-`FunctionSet` to pass to `InferenceService.stream`. The [Lore Generator](../lore-generator/README.md) and the
-[Arc Outline](../arc-outline/README.md) offer the functions to the model for the categories the user checks (prefix
-`Generator: `, the categories of the [Name provider](../name-provider/README.md) have `Provider: `); they find this extension by
-reflection (`NameToolsBridge`), so this one can be unloaded and installed again without restarting them.
+`clampCount`) on `NameTables` (loading and sampling). The extension compiles the interface on load and registers a `NameGeneratorToolProvider` with the tool service (`ToolService`, key
+`names`, human name *Name generator*): every category is an item, and the functions the model gets (`NameGeneratorToolProvider.Restricted`)
+know only the checked ones. The provider brings `NameGeneratorCommands` along, so one registration gives the command bar and agents the
+commands and the [Lore Generator](../lore-generator/README.md) and the [Arc Outline](../arc-outline/README.md) (the **Tools** button) the
+functions. The service removes both when the extension is unloaded, so it can be unloaded and installed again without restarting the
+others. The hint added to the prompt is `NameGeneratorToolProvider.HINT`; the user can replace it in the tool dialog.
 
 ## Name tables
 
-The names are not in the repository. The build step (`exec-maven-plugin`, phase `generate-resources`, running
-`src/build/GenerateTables.java`) reads every `*.json` of `src/build/resources` and its subfolders (git-ignored):
+The names are not in the repository. A normal build does not touch `name-tables.json`: the training steps run only
+with the profile `train-names` (`mvn package -Ptrain-names`; the executions of `exec-maven-plugin` are bound to
+`generate-resources` through the property `names.training.phase`, `none` by default). The step running
+`src/build/GenerateTables.java` reads every `*.json` of `src/build/resources` and its subfolders (git-ignored):
 
 ```json
 {"_id": "demons", "title": "Theological Demons", "values": ["aamon", "abaddon", "azazel"]}
@@ -111,7 +116,7 @@ missing network. The real names, as pairs with the original script, are the busi
 `mvn exec:exec@scrape-onomastikon` (in this folder, not part of the normal build) downloads
 [the Onomastikon](https://tekeli.li/onomastikon/) with `src/build/ScrapeOnomastikon.java` into
 `src/build/resources/onomastikon`, one source file per category, about 800 requests one at a time (about 2 minutes).
-Run the build afterwards to train the tables. The collection is (c) Kate Monk, "copies may be made for personal use
+Run the build with `-Ptrain-names` afterwards to train the tables. The collection is (c) Kate Monk, "copies may be made for personal use
 only": the downloaded names stay out of git, only the probabilities are committed.
 
 - Every page is read once by its URL, however many links lead to it.

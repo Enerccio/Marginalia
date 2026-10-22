@@ -90,6 +90,20 @@ vaadin-markdown table {
     max-width: 100%;
 }
 
+/* The report of the diagnostics of an agent run (ui.dialogs.agent.AgentDiagnosticsView) has wide tables: their cells keep their words
+   whole and the table scrolls sideways, breaking the words anywhere made the columns one letter wide on a phone */
+vaadin-markdown.agent-report table {
+    display: block;
+    overflow-x: auto;
+}
+
+vaadin-markdown.agent-report th,
+vaadin-markdown.agent-report td {
+    white-space: nowrap;
+    word-break: normal;
+    overflow-wrap: normal;
+}
+
 /* A message card of the story */
 .chat-message {
     margin-bottom: 8px;
@@ -365,6 +379,10 @@ vaadin-markdown table {
     cursor: pointer;
 }
 
+.clickable-chips vaadin-multi-select-combo-box-chip {
+    cursor: pointer;
+}
+
 .form-padding-bottom {
     padding-bottom: 16px;
 }
@@ -541,11 +559,28 @@ vaadin-markdown table {
 .story-scroll-panel {
     padding: 8px;
     overscroll-behavior: contain;
+    /* the lazy loading keeps the visible part in place itself, see JavascriptLibrary.restoreAnchor */
+    overflow-anchor: none;
+}
+
+.lazy-load-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--lumo-space-xs);
+    padding: var(--lumo-space-m);
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-s);
+}
+
+.lazy-load-indicator vaadin-progress-bar {
+    width: 10em;
 }
 
 .reader-scroll-panel {
     padding: 12px;
     overscroll-behavior: contain;
+    overflow-anchor: none;
 }
 
 .reader-content {
@@ -613,6 +648,13 @@ vaadin-markdown table {
     top: 0;
     right: 0;
     width: 40px;
+}
+
+/* Resizable text area on a phone: the height is the one of the field, the label and the helper text (long on a narrow screen)
+   stay outside of it (ui.widgets.ResizableTextArea sets the two variables) */
+.resizable-text-area-field::part(input-field) {
+    height: var(--resizable-text-area-height, auto);
+    min-height: var(--resizable-text-area-min-height, 0);
 }
 
 /* Resizable text area toggle icon */
@@ -787,6 +829,181 @@ vaadin-dialog-overlay.phone-dialog::part(overlay) {
     white-space: pre-wrap;
 }
 
+.help-message-queued {
+    border: 1px dashed var(--lumo-primary-color-50pct);
+    background: var(--lumo-primary-color-10pct);
+    opacity: 0.8;
+}
+
+/* A message that holds a Details: pre-wrap would reach the blank lines of its shadow DOM and show them as line breaks */
+.help-message-folded {
+    align-self: stretch;
+    white-space: normal;
+}
+
+/* the console of an agent on a phone (ui.dialogs.agent.AgentConsoleDialog): the tabs and the transcript get the whole screen,
+   the message of the author does not leave a gap at its left */
+vaadin-dialog-overlay.agent-console-phone::part(content) {
+    padding: 0;
+}
+
+vaadin-dialog-overlay.agent-console-phone .help-messages {
+    padding: var(--lumo-space-xs);
+}
+
+vaadin-dialog-overlay.agent-console-phone .help-message-user {
+    margin-left: var(--lumo-space-s);
+}
+
+/* a row of a table of the agent console on a phone: what the columns say, one under the other */
+.agent-card {
+    min-width: 0;
+    padding: var(--lumo-space-xs) 0;
+}
+
+/* what a rewind of an agent run took out of the memory of the agent: still there to read */
+.agent-rewound {
+    opacity: 0.45;
+}
+
+/* when a message of the transcript of an agent run was written: small, at the right of its first line */
+.agent-time {
+    float: right;
+    margin-left: var(--lumo-space-s);
+    font-size: var(--lumo-font-size-xxs);
+    font-weight: normal;
+    color: var(--lumo-tertiary-text-color);
+}
+
+/* the difference of two texts, word by word, in the review of an agent run */
+.merge-diff {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    max-height: 16em;
+    overflow: auto;
+    padding: var(--lumo-space-s);
+    border: 1px solid var(--lumo-contrast-10pct);
+    border-radius: var(--lumo-border-radius-m);
+    font-size: var(--lumo-font-size-s);
+}
+
+.merge-diff-added {
+    background: var(--lumo-success-color-10pct);
+    color: var(--lumo-success-text-color);
+}
+
+.merge-diff-removed {
+    background: var(--lumo-error-color-10pct);
+    color: var(--lumo-error-text-color);
+    text-decoration: line-through;
+}
+
+/* the JSON merge dialog: what the versions of a place hold, one line in a cell */
+.json-merge-cell {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--lumo-font-family-monospace, monospace);
+    font-size: var(--lumo-font-size-xs);
+}
+
+.json-merge-cell-agent {
+    background: var(--lumo-primary-color-10pct);
+}
+
+.json-merge-cell-book {
+    background: var(--lumo-success-color-10pct);
+}
+
+.json-merge-cell-conflict {
+    background: var(--lumo-error-color-10pct);
+}
+
+.json-merge-absent {
+    color: var(--lumo-tertiary-text-color);
+}
+
+.json-merge-text {
+    font-family: var(--lumo-font-family-monospace, monospace);
+    font-size: var(--lumo-font-size-s);
+}
+
+/* a part of the copy of the book of an agent run, read only */
+.agent-copy-part {
+    padding: var(--lumo-space-s) var(--lumo-space-m);
+    border-bottom: 1px solid var(--lumo-contrast-10pct);
+}
+
+.agent-copy-part-head {
+    display: flex;
+    gap: var(--lumo-space-s);
+    align-items: baseline;
+    font-size: var(--lumo-font-size-xs);
+    color: var(--lumo-secondary-text-color);
+}
+
+/* the plan of an agent run, in the popover of the console */
+.agent-plan {
+    max-width: min(420px, 85vw);
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.agent-plan-item {
+    display: flex;
+    gap: var(--lumo-space-s);
+    align-items: baseline;
+    padding: var(--lumo-space-xs) 0;
+}
+
+.agent-plan-done {
+    color: var(--lumo-secondary-text-color);
+    text-decoration: line-through;
+}
+
+.agent-plan-active {
+    font-weight: 600;
+}
+
+/* the findings an agent reported: the popover of the console and the section of the review */
+.agent-findings {
+    max-width: min(560px, 85vw);
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+/* in the review, above the table of the changes, which needs the room */
+.agent-findings-compact {
+    max-width: none;
+    max-height: 25vh;
+}
+
+.agent-finding {
+    display: flex;
+    gap: var(--lumo-space-s);
+    align-items: baseline;
+    padding: var(--lumo-space-xs) 0;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.agent-finding-warning {
+    color: var(--lumo-warning-text-color);
+    font-weight: 600;
+}
+
+.agent-finding-problem {
+    color: var(--lumo-error-text-color);
+    font-weight: 600;
+}
+
+/* the count of the agents that wait for the user, in the top bar of the phone while the drawer is closed */
+.agent-attention-cue {
+    margin-inline-start: auto;
+    margin-inline-end: var(--lumo-space-s);
+}
+
 .help-message-error {
     background: var(--lumo-error-color-10pct);
     color: var(--lumo-error-text-color);
@@ -795,4 +1012,216 @@ vaadin-dialog-overlay.phone-dialog::part(overlay) {
 .help-input {
     padding: var(--lumo-space-s);
     border-top: 1px solid var(--lumo-contrast-10pct);
+}
+
+/* Commands (ui.components.CommandBar, CommandResultView) */
+.command-box {
+    flex: 1 1 40%;
+    min-width: 12em;
+    margin-right: var(--lumo-space-s);
+}
+
+.command-bar vaadin-combo-box {
+    min-width: 0;
+}
+
+/* the help and the result are popovers above the bar */
+.command-help {
+    box-sizing: border-box;
+    max-width: 36em;
+    font-size: var(--lumo-font-size-s);
+    overflow-wrap: anywhere;
+}
+
+.command-help-usage {
+    font-family: var(--lumo-font-family-monospace, monospace);
+}
+
+.command-help-current {
+    font-weight: bold;
+    color: var(--lumo-primary-text-color);
+}
+
+.command-help-error {
+    color: var(--lumo-error-text-color);
+}
+
+.command-item-name {
+    font-family: var(--lumo-font-family-monospace, monospace);
+    font-weight: bold;
+}
+
+.command-item-description {
+    font-size: var(--lumo-font-size-xs);
+    color: var(--lumo-secondary-text-color);
+}
+
+.command-severity {
+    margin-left: var(--lumo-space-s);
+    padding: 0 var(--lumo-space-xs);
+    border-radius: var(--lumo-border-radius-s);
+    font-size: var(--lumo-font-size-xxs);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.command-severity-destructive {
+    color: var(--lumo-error-text-color);
+    background-color: var(--lumo-error-color-10pct);
+}
+
+.command-severity-non-destructive {
+    color: var(--lumo-success-text-color);
+    background-color: var(--lumo-success-color-10pct);
+}
+
+.command-result {
+    box-sizing: border-box;
+    max-width: 36em;
+    min-width: 16em;
+    font-size: var(--lumo-font-size-s);
+}
+
+.command-result-text {
+    max-height: 10em;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+/* Search and replace dialog (ui.dialogs.search) */
+.search-button-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9em, 1fr));
+    gap: var(--lumo-space-s);
+    width: 100%;
+}
+
+/* the children are, in this order: search field, replace field, options, search button, replace button */
+.search-input-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content;
+    grid-template-areas:
+        "search search-button"
+        "replace replace-button"
+        "options options";
+    align-items: end;
+    gap: var(--lumo-space-s) var(--lumo-space-m);
+    width: 100%;
+}
+
+.search-input-grid > :nth-child(1) {
+    grid-area: search;
+}
+
+.search-input-grid > :nth-child(2) {
+    grid-area: replace;
+}
+
+.search-input-grid > :nth-child(3) {
+    grid-area: options;
+    align-self: start;
+}
+
+.search-input-grid > :nth-child(4) {
+    grid-area: search-button;
+}
+
+.search-input-grid > :nth-child(5) {
+    grid-area: replace-button;
+}
+
+.search-hit-context {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.search-hit-match,
+.search-hit-replacement {
+    font-weight: bold;
+    border-radius: var(--lumo-border-radius-s);
+    padding: 0 var(--lumo-space-xs);
+}
+
+.search-hit-match {
+    background-color: var(--lumo-error-color-10pct);
+    color: var(--lumo-error-text-color);
+}
+
+.search-hit-replacement {
+    background-color: var(--lumo-success-color-10pct);
+    color: var(--lumo-success-text-color);
+}
+
+.search-hit-placeholder {
+    font-style: italic;
+}
+
+/* Version footer (ui.components.BuildInfoFooter): tiny text fixed in the bottom left corner, outside the layout */
+.build-info-footer {
+    position: fixed;
+    left: var(--lumo-space-s);
+    bottom: 2px;
+    z-index: 1;
+    font-size: 10px;
+    line-height: 1;
+    color: var(--lumo-secondary-text-color);
+    opacity: 0.6;
+}
+
+.fold-spacer {
+    display: inline-block;
+    width: var(--lumo-size-s);
+}
+
+/* Agent console: the workspace tab (ui.dialogs.agent.AgentWorkspaceBrowser) is small text with little room around it,
+   so that the folder shows more than a row or two */
+.workspace-browser {
+    gap: var(--lumo-space-xs);
+    font-size: var(--lumo-font-size-xs);
+}
+
+/* the list and the viewer split the height of the tab (3 : 2), so the tab itself has nothing to scroll */
+.workspace-browser vaadin-grid {
+    flex: 3 1 0;
+    min-height: 6rem;
+    font-size: var(--lumo-font-size-xs);
+    --lumo-font-size-m: var(--lumo-font-size-xs);
+}
+
+.workspace-browser vaadin-text-area {
+    flex: 2 1 0;
+    min-height: 6rem;
+    padding: 0;
+    --lumo-font-size-m: var(--lumo-font-size-xs);
+}
+
+/* the dialog that tags many books, lorebooks or entries at once */
+/* an item an agent works on: listed, but nothing can be done with it */
+.multi-tag-locked {
+    opacity: 0.45;
+}
+
+.mass-edit-content {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--lumo-font-size-s);
+    color: var(--lumo-secondary-text-color);
+}
+
+.multi-tag-chip {
+    display: inline-block;
+    margin-right: var(--lumo-space-xs);
+    padding: 0 var(--lumo-space-s);
+    border-radius: var(--lumo-border-radius-l);
+    background: var(--lumo-contrast-10pct);
+    font-size: var(--lumo-font-size-xs);
+}
+
+/* the tag picked in the dialog, where an item has it */
+.multi-tag-chip-marked {
+    background: var(--lumo-primary-color);
+    color: var(--lumo-primary-contrast-color);
+    font-weight: 600;
 }

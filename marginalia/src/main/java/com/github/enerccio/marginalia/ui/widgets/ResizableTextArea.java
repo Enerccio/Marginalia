@@ -4,6 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.textfield.TextArea;
 
@@ -60,6 +61,15 @@ public final class ResizableTextArea {
     }
 
     private static void applyMode(TextArea area, String fixedHeight, boolean expanded) {
+        if (UIUtils.isPhone()) {
+            // the helper text of a field takes most of the height of the whole component on a narrow screen: size the field
+            area.addClassName(CssStyles.RESIZABLE_TEXT_AREA_FIELD);
+            area.setHeight(null);
+            area.setMinHeight(null);
+            area.getElement().getStyle().set("--resizable-text-area-height", expanded ? "auto" : fixedHeight);
+            area.getElement().getStyle().set("--resizable-text-area-min-height", expanded ? fixedHeight : "0");
+            return;
+        }
         if (expanded) {
             area.setHeight(null);
             area.setMinHeight(fixedHeight);

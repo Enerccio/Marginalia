@@ -9,7 +9,9 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.contextmenu.MenuItem;
@@ -44,7 +46,9 @@ public class CharacterTrackerView extends VerticalLayout {
 
     private final CharacterTrackerService service;
     private final Manuscript manuscript;
-    private final CharacterBook book;
+    private CharacterBook book;
+    /** Removes the listener that reads the characters again when a command changes them, set while the view is attached. */
+    private Runnable changeRegistration;
     /**
      * Uuids of the characters whose icon and note are shown; kept here because the grid forgets it when it is reloaded.
      */
@@ -62,6 +66,25 @@ public class CharacterTrackerView extends VerticalLayout {
         setPadding(false);
         buildUI();
         refreshGrid();
+    }
+
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+        // a command (the command bar, an agent) stores the characters behind the back of the view, which keeps them in memory
+        changeRegistration = service.onChange(manuscript, () -> UIUtils.accessComponent(this, () -> {
+            book = loadBook();
+            refreshGrid();
+        }));
+    }
+
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        if (changeRegistration != null) {
+            changeRegistration.run();
+            changeRegistration = null;
+        }
+        super.onDetach(detachEvent);
     }
 
     private CharacterBook loadBook() {

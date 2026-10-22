@@ -17,6 +17,9 @@ Most problems leave a trace in the log:
 
 Error dialogs in the application (*Internal Server Error*) show the error as well; the log has the full details.
 
+When you report a problem, include the version text in the bottom left corner of the page (for example
+`Marginalia 1.4.0 (93ec118)`: the version and the Git commit of the build).
+
 ## Installing and starting
 
 **macOS says the app "is damaged" or "can't be opened".**
@@ -38,7 +41,7 @@ extension (see [below](#extensions)).
 Change the left side of the port mapping in `docker-compose.yml`, e.g. `"8081:8080"`, and open port 8081.
 
 **Marginalia is slow or stops with "OutOfMemoryError".**
-Raise the memory: `-Xmx1g` (or more) in `JAVA_TOOL_OPTIONS` in `docker-compose.yml`.
+Raise the memory: `-Xmx2g` (or more) in `JAVA_TOOL_OPTIONS` in `docker-compose.yml`.
 
 ## Logging in
 
@@ -68,6 +71,13 @@ Without an administrator, the password can only be reset in the database:
 Behind a reverse proxy, the proxy must forward WebSockets and allow long requests - see the nginx example in
 [Server (Docker)](getting-started/docker-server.md#https-and-reverse-proxy). With the desktop app, the app was probably
 quit; start it again.
+
+**The workspace freezes the browser when it opens.**
+Marginalia opens again what you had open when you left, so a very long book (for example one imported from an
+archive) can freeze the page before you can change anything. Open `/reset` on your Marginalia address (for example
+`https://marginalia.example.com/reset`) and log in: the saved state of the workspace (open books, selected tabs,
+filters) is forgotten and you land in an empty workspace. Then set **Parts loaded at once in the story** in your
+[account](account.md) before you open the book again.
 
 ## Models and generation
 

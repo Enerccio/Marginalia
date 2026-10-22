@@ -39,13 +39,37 @@ public class JpaManuscriptRepository extends JpaExtendableRepository<Manuscript>
                 .executeUpdate();
     }
 
-    @SuppressWarnings("SqlSourceToSinkFlow")
+    @Override
+    public List<Manuscript> findAllByAgentic(boolean agentic, User user) throws Exception {
+        List<Manuscript> books = getEntityManager().createQuery(
+                        "SELECT m FROM Manuscript m WHERE m.deleted = false AND m.owner.id = :ownerId AND m.agentic = :agentic",
+                        Manuscript.class)
+                .setParameter("ownerId", user.getId())
+                .setParameter("agentic", agentic)
+                .getResultList();
+        for (Manuscript book : books) {
+            hydrate(book);
+        }
+        return books;
+    }
+
     @Override
     public List<Long> searchManuscripts(ManuscriptFilterValues filterValues, List<Sorter> sorters, User user) throws Exception {
+        return searchManuscripts(filterValues, sorters, user, null);
+    }
+
+    @SuppressWarnings("SqlSourceToSinkFlow")
+    @Override
+    public List<Long> searchManuscripts(ManuscriptFilterValues filterValues, List<Sorter> sorters, User user, Boolean agentic) throws Exception {
         if (filterValues == null) {
-            return getEntityManager().createQuery("SELECT m.id FROM Manuscript m WHERE m.deleted = false AND m.owner.id = :ownerId " + Sorter.toOrderBy("m", sorters), Long.class)
-                    .setParameter("ownerId", user.getId())
-                    .getResultList();
+            String agenticFilter = agentic == null ? "" : " AND m.agentic = :agentic";
+            TypedQuery<Long> all = getEntityManager().createQuery("SELECT m.id FROM Manuscript m WHERE m.deleted = false AND m.owner.id = :ownerId"
+                    + agenticFilter + " " + Sorter.toOrderBy("m", sorters), Long.class)
+                    .setParameter("ownerId", user.getId());
+            if (agentic != null) {
+                all.setParameter("agentic", agentic);
+            }
+            return all.getResultList();
         } else {
             String base = "SELECT DISTINCT (m.id) FROM Manuscript m LEFT JOIN TagRelation tr ON tr.objectId = m.id LEFT JOIN Tag t ON tr.tag = t WHERE ";
             Map<String, Object> parameters = new HashMap<>();
@@ -55,6 +79,10 @@ public class JpaManuscriptRepository extends JpaExtendableRepository<Manuscript>
             ands.add("m.deleted = false");
             ands.add("m.owner.id = :ownerId");
             parameters.put("ownerId", user.getId());
+            if (agentic != null) {
+                ands.add("m.agentic = :agentic");
+                parameters.put("agentic", agentic);
+            }
 
             if (filterValues.getName() != null) {
                 String nameFilter = filterValues.getName();

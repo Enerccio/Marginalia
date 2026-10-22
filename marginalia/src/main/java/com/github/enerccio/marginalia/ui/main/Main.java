@@ -8,13 +8,14 @@ import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
-import com.github.enerccio.marginalia.ui.workspace.DesktopWorkspace;
 import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.components.BuildInfoFooter;
 import com.github.enerccio.marginalia.ui.components.HelpAssistantWidget;
+import com.github.enerccio.marginalia.ui.workspace.DesktopWorkspace;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.phone.PhoneWorkspace;
-import com.github.enerccio.marginalia.utils.UiProblems;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.github.enerccio.marginalia.utils.UiProblems;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
@@ -23,6 +24,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+
 import java.util.List;
 
 @Route("/")
@@ -117,7 +119,7 @@ public class Main extends LoginCheckRoute implements LLMInteract {
             UiProblems.attach(sessionPoint);
 
             ExtendedClientDetails details = UI.getCurrent().getPage().getExtendedClientDetails();
-            boolean isPhone = details != null && details.getBodyClientWidth() < 768;
+            boolean isPhone = details != null && details.getBodyClientWidth() < UIUtils.PHONE_MAX_WIDTH_PX;
 
             Workspace workspace = isPhone ? new PhoneWorkspace() : new DesktopWorkspace();
             User referenceCopy = new User();
@@ -125,9 +127,11 @@ public class Main extends LoginCheckRoute implements LLMInteract {
             referenceCopy.setLogin(u.getLogin());
             referenceCopy.setFullName(u.getFullName());
             applicationPoint.register(UI.getCurrent(), workspace, referenceCopy);
+            sessionPoint.setWorkspace(workspace);
             workspace.setOnLogout(this::logout);
             add(workspace.create());
             add(new HelpAssistantWidget());
+            add(new BuildInfoFooter());
             workspace.refresh();
             workspace.restoreAutosaved();
         } catch (Exception e) {

@@ -1,0 +1,1064 @@
+package com.github.enerccio.marginalia.ui.dialogs.agent;
+
+import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
+import com.github.enerccio.marginalia.domain.service.AgentMergeService;
+import com.github.enerccio.marginalia.domain.service.AgentMergeService.MergeResult;
+import com.github.enerccio.marginalia.domain.service.AgentMergeService.MergeSelection;
+import com.github.enerccio.marginalia.domain.service.AgentRunService;
+import com.github.enerccio.marginalia.domain.service.agent.MergeDiff;
+import com.github.enerccio.marginalia.domain.service.agent.MergePlan;
+import com.github.enerccio.marginalia.domain.service.agent.MergePlan.*;
+import com.github.enerccio.marginalia.domain.service.agent.RunTools;
+import com.github.enerccio.marginalia.domain.service.agent.jsonmerge.JsonMerge;
+import com.github.enerccio.marginalia.domain.service.agent.jsonmerge.JsonMergeNode;
+import com.github.enerccio.marginalia.domain.service.agent.jsonmerge.JsonText;
+import com.github.enerccio.marginalia.domain.traits.*;
+import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
+import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.WordDiffView;
+import com.github.enerccio.marginalia.utils.UIUtils;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ComponentEventListener;
+import com.vaadin.flow.component.ModalityMode;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
+import com.vaadin.flow.component.textfield.TextArea;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
+
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+/**
+ * The review of what a finished (or stopped and kept) run changed: every change of the agent in a list the user ticks, the
+ * detail of the one they look at with the value of the book now and the value the apply writes, which they can edit. A
+ * change both the user and the agent made to the same text is a conflict, and starts unticked. The picked changes are applied
+ * to the book in place after a backup of it; the whole result can be discarded instead.
+ */
+@Configurable
+@Extendable
+public class AgentMergeDialog extends Dialog implements LLMInteract {
+
+    @Autowired
+    private Localization loc;
+
+    @Autowired
+    private AgentMergeService mergeService;
+
+    @Autowired
+    private AgentRunService agentRunService;
+
+    private final String agentName;
+    private final AgentRun run;
+    private final Runnable onChange;
+
+    private MergePlan plan;
+    private Grid<Item> grid;
+    private Span summaryLabel;
+    private Span hintLabel;
+    private Checkbox branchBox;
+    private Details findingsDetails;
+    private VerticalLayout detail;
+    private Button applyButton;
+    private Button discardButton;
+    // the text the user wrote in place of the agent's, by item id and field name
+    private final Map<String, Map<String, String>> edits = new HashMap<>();
+    // the fields of a changed item the user did not tick, by item id and field name
+    private final Map<String, Set<String>> skipped = new HashMap<>();
+    // the three versions of the JSON data of a field laid over each other, with what the user decided, by item id and field name
+    private final Map<String, JsonMergeNode> jsonModels = new HashMap<>();
+    // true while the dialog changes the selection itself
+    private boolean adjusting;
+    private Item focused;
+    // the copy of the agent opened from the detail of an item
+    private Dialog copyDialog;
+    // the merge of JSON data opened from the detail of a field
+    private JsonMergeDialog jsonDialog;
+
+    /**
+     * @param onChange called after the changes were applied or the result was discarded, the run is not what it was
+     */
+    public AgentMergeDialog(String agentName, AgentRun run, Runnable onChange) {
+        this.agentName = agentName;
+        this.run = run;
+        this.onChange = onChange;
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "allButton", type = Button.class),
+                    @APILocals(name = "noneButton", type = Button.class),
+                    @APILocals(name = "newButton", type = Button.class),
+                    @APILocals(name = "cleanButton", type = Button.class),
+                    @APILocals(name = "toolbar", type = HorizontalLayout.class),
+                    @APILocals(name = "split", type = SplitLayout.class),
+                    @APILocals(name = "content", type = VerticalLayout.class),
+                    @APILocals(name = "findings", type = Details.class),
+                    @APILocals(name = "closeButton", type = Button.class),
+                    @APILocals(name = "footer", type = HorizontalLayout.class)})
+    public void create() {
+        setHeaderTitle(loc.getValue(L.LABEL_REVIEW_CHANGES) + " - " + agentName);
+        setWidth("1300px");
+        setMaxWidth("96%");
+        setHeight("92%");
+        setModality(ModalityMode.STRICT);
+        setCloseOnOutsideClick(false);
+        UIUtils.fitPhone(this, true);
+
+        summaryLabel = new Span();
+        summaryLabel.addClassName(CssStyles.TEXT_SEMIBOLD);
+        hintLabel = new Span(loc.getValue(L.HELP_MERGE));
+        hintLabel.addClassName(CssStyles.HINT_TEXT);
+
+        Button allButton = small(L.LABEL_SELECT_ALL, event -> pick(item -> item.applicable()));
+        Button noneButton = small(L.LABEL_SELECT_NONE, event -> pick(item -> false));
+        Button newButton = small(L.LABEL_SELECT_NEW_PARTS, event ->
+                pick(item -> item.applicable() && item.kind() == Kind.MESSAGE && item.change() == Change.ADDED));
+        Button cleanButton = small(L.LABEL_SELECT_WITHOUT_CONFLICTS, event -> pick(this::isClean));
+        branchBox = new Checkbox(loc.getValue(L.LABEL_SWITCH_TO_AGENT_BRANCH));
+        HorizontalLayout toolbar = new HorizontalLayout(allButton, noneButton, newButton, cleanButton, branchBox);
+        toolbar.setWidthFull();
+        toolbar.setWrap(true);
+        toolbar.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        grid = new Grid<>();
+        grid.setSelectionMode(Grid.SelectionMode.MULTI);
+        grid.setSizeFull();
+        grid.addThemeVariants(GridVariant.LUMO_COMPACT);
+        if (UIUtils.isPhone()) {
+            // next to the check box four columns leave no room for the name: an item is a card, its kind and change under it
+            grid.addComponentColumn(this::card).setHeader(loc.getValue(L.LABEL_NAME));
+        } else {
+            grid.addColumn(item -> loc.getValue(kindText(item.kind()))).setHeader(loc.getValue(L.LABEL_TYPE)).setFlexGrow(0).setWidth("110px");
+            grid.addColumn(item -> loc.getValue(changeText(item.change()))).setHeader(loc.getValue(L.LABEL_STATE)).setFlexGrow(0).setWidth("100px");
+            grid.addColumn(Item::label).setHeader(loc.getValue(L.LABEL_NAME)).setFlexGrow(1);
+            grid.addComponentColumn(this::states).setHeader("").setFlexGrow(0).setWidth("170px");
+        }
+        grid.addItemClickListener(event -> show(event.getItem()));
+        grid.asMultiSelect().addSelectionListener(event -> {
+            if (!adjusting) {
+                keepConsistent(event.getAddedSelection(), event.getRemovedSelection());
+            }
+            updateApply();
+        });
+
+        detail = new VerticalLayout();
+        detail.setPadding(true);
+        detail.setSpacing(true);
+        detail.setSizeFull();
+        detail.addClassNames(CssStyles.MIN_HEIGHT_0, CssStyles.OVERFLOW_AUTO);
+
+        SplitLayout split = new SplitLayout(grid, detail);
+        split.setSizeFull();
+        split.setSplitterPosition(42);
+        if (UIUtils.isPhone()) {
+            // the table above, the detail of the item below: side by side neither would have room
+            split.setOrientation(SplitLayout.Orientation.VERTICAL);
+        }
+        split.addClassName(CssStyles.MIN_HEIGHT_0);
+
+        VerticalLayout content = new VerticalLayout(summaryLabel, hintLabel);
+        Details findings = findingsSection();
+        if (findings != null) {
+            content.add(findings);
+        }
+        content.add(toolbar, split);
+        content.setSizeFull();
+        content.setPadding(false);
+        content.setSpacing(false);
+        content.addClassNames(CssStyles.MIN_HEIGHT_0, CssStyles.GAP_S);
+        content.expand(split);
+        add(content);
+
+        discardButton = new Button(loc.getValue(L.LABEL_DISCARD_RESULT), Solid.TRASH.create(), event ->
+                ConfirmDialog.open(loc.getValue(L.MSG_MERGE_CONFIRM_DISCARD), this::discard, () -> {}));
+        discardButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        Button closeButton = new Button(loc.getValue(L.LABEL_CLOSE), event -> close());
+        applyButton = new Button(loc.getValue(L.LABEL_APPLY_PICKED_CHANGES), Solid.CHECK.create(), event -> confirmApply());
+        applyButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        HorizontalLayout footer = new HorizontalLayout(discardButton, closeButton, applyButton);
+        footer.setWidthFull();
+        footer.setWrap(true);
+        footer.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+        getFooter().add(footer);
+
+        load();
+    }
+
+    /**
+     * What the agent reported with {@code report}, above the changes; null when it reported nothing.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Details.class),
+            locals = {@APILocals(name = "findings", type = List.class),
+                    @APILocals(name = "e", type = Exception.class),
+                    @APILocals(name = "view", type = AgentFindingsView.class),
+                    @APILocals(name = "details", type = Details.class)})
+    private Details findingsSection() {
+        List<RunTools.Finding> findings;
+        try {
+            findings = agentRunService.getFindings(run);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+            return null;
+        }
+        if (findings.isEmpty()) {
+            return null;
+        }
+        AgentFindingsView view = new AgentFindingsView(loc);
+        view.setFindings(findings);
+        view.addClassName(CssStyles.AGENT_FINDINGS_COMPACT);
+        Details details = new Details(loc.getValue(L.LABEL_AGENT_FINDINGS) + " (" + findings.size() + ")", view);
+        details.setOpened(true);
+        details.setWidthFull();
+        findingsDetails = details;
+        return details;
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class),
+            parameters = {@APIParameter(name = "label", type = L.class),
+                    @APIParameter(name = "listener", type = ComponentEventListener.class)},
+            locals = {@APILocals(name = "button", type = Button.class)})
+    private Button small(L label, com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>> listener) {
+        Button button = new Button(loc.getValue(label), listener);
+        button.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        return button;
+    }
+
+    /**
+     * Reads the plan again and ticks what can be taken over without a decision.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = RuntimeException.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    void load() {
+        try {
+            plan = mergeService.plan(run);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+            plan = new MergePlan(List.of(), Map.of(), false);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+            plan = new MergePlan(List.of(), Map.of(), false);
+        }
+        edits.clear();
+        skipped.clear();
+        jsonModels.clear();
+        grid.setItems(plan.items());
+        summaryLabel.setText(plan.isEmpty() ? loc.getValue(L.MSG_MERGE_NO_CHANGES) : String.format(loc.getValue(L.MSG_MERGE_SUMMARY),
+                plan.items().size(), count(Kind.MESSAGE), count(Kind.LOREBOOK), count(Kind.ENTRY), count(Kind.BOOK), plan.conflicts()));
+        hintLabel.setText(loc.getValue(plan.bookChanged() ? L.MSG_MERGE_BOOK_CHANGED : L.HELP_MERGE));
+        pick(this::isClean);
+        showFirst();
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = long.class),
+            parameters = {@APIParameter(name = "kind", type = MergePlan.Kind.class)})
+    private long count(Kind kind) {
+        return plan.items().stream().filter(item -> item.kind() == kind).count();
+    }
+
+    /**
+     * What is ticked at first: what the agent changed and the user did not, and that belongs to this book alone.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "item", type = MergePlan.Item.class)})
+    private boolean isClean(Item item) {
+        return item.applicable() && !item.conflict() && item.sharedWith().isEmpty();
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "wanted", type = Predicate.class)},
+            locals = {@APILocals(name = "chosen", type = Set.class),
+                    @APILocals(name = "ids", type = Set.class)})
+    private void pick(java.util.function.Predicate<Item> wanted) {
+        Set<Item> chosen = plan.items().stream().filter(wanted).collect(Collectors.toCollection(LinkedHashSet::new));
+        // what a pick needs comes with it, and what needs a part that is not picked goes
+        Set<String> ids = chosen.stream().map(Item::id).collect(Collectors.toSet());
+        chosen.removeIf(item -> item.dependsOn() != null && !ids.contains(item.dependsOn()));
+        adjusting = true;
+        try {
+            grid.asMultiSelect().setValue(chosen);
+        } finally {
+            adjusting = false;
+        }
+        updateApply();
+    }
+
+    /**
+     * An item that is picked brings what it needs, an item that is dropped drops what needs it, and what cannot be applied
+     * is not picked at all.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "added", type = Set.class),
+                    @APIParameter(name = "removed", type = Set.class)},
+            locals = {@APILocals(name = "selected", type = Set.class),
+                    @APILocals(name = "byId", type = Map.class),
+                    @APILocals(name = "item", type = MergePlan.Item.class),
+                    @APILocals(name = "id", type = String.class),
+                    @APILocals(name = "needed", type = MergePlan.Item.class)})
+    private void keepConsistent(Set<Item> added, Set<Item> removed) {
+        Set<Item> selected = new HashSet<>(grid.asMultiSelect().getSelectedItems());
+        Map<String, Item> byId = plan.items().stream().collect(Collectors.toMap(Item::id, item -> item, (a, b) -> a));
+        boolean blocked = false;
+        for (Item item : added) {
+            if (!item.applicable()) {
+                selected.remove(item);
+                blocked = true;
+                continue;
+            }
+            for (String id : MergeDiff.chain(plan, item)) {
+                Item needed = byId.get(id);
+                if (needed != null && needed.applicable()) {
+                    selected.add(needed);
+                }
+            }
+        }
+        for (Item item : removed) {
+            for (String id : MergeDiff.dependents(plan, item.id())) {
+                selected.remove(byId.get(id));
+            }
+        }
+        if (blocked) {
+            Notification.warning(loc.getValue(L.ENUM_MERGE_STATE_BLOCKED));
+        }
+        if (!selected.equals(grid.asMultiSelect().getSelectedItems())) {
+            adjusting = true;
+            try {
+                grid.asMultiSelect().setValue(selected);
+            } finally {
+                adjusting = false;
+            }
+        }
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
+    private void updateApply() {
+        if (applyButton == null) {
+            return;
+        }
+        int picked = grid.asMultiSelect().getSelectedItems().size();
+        applyButton.setEnabled(picked > 0);
+        applyButton.setText(loc.getValue(L.LABEL_APPLY_PICKED_CHANGES) + (picked > 0 ? " (" + picked + ")" : ""));
+    }
+
+    // --- the list
+
+    private static L kindText(Kind kind) {
+        return switch (kind) {
+            case BOOK -> L.ENUM_MERGE_KIND_BOOK;
+            case MESSAGE -> L.ENUM_MERGE_KIND_MESSAGE;
+            case LOREBOOK -> L.ENUM_MERGE_KIND_LOREBOOK;
+            case ENTRY -> L.ENUM_MERGE_KIND_ENTRY;
+        };
+    }
+
+    private static L changeText(Change change) {
+        return switch (change) {
+            case ADDED -> L.ENUM_MERGE_CHANGE_ADDED;
+            case CHANGED -> L.ENUM_MERGE_CHANGE_CHANGED;
+            case DELETED -> L.ENUM_MERGE_CHANGE_DELETED;
+        };
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "item", type = MergePlan.Item.class)},
+            locals = {@APILocals(name = "badges", type = HorizontalLayout.class)})
+    private Component card(Item item) {
+        HorizontalLayout badges = (HorizontalLayout) states(item);
+        return AgentCard.of(item.label(), "", List.of(loc.getValue(kindText(item.kind())) + " - " + loc.getValue(changeText(item.change()))),
+                badges.getComponentCount() == 0 ? null : badges);
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "item", type = MergePlan.Item.class)},
+            locals = {@APILocals(name = "states", type = HorizontalLayout.class)})
+    private Component states(Item item) {
+        HorizontalLayout states = new HorizontalLayout();
+        states.setSpacing(false);
+        states.setPadding(false);
+        if (!item.applicable()) {
+            states.add(badge(L.ENUM_MERGE_STATE_BLOCKED, "error"));
+        } else if (item.conflict()) {
+            states.add(badge(L.ENUM_MERGE_STATE_CONFLICT, "error"));
+        }
+        if (!item.sharedWith().isEmpty()) {
+            states.add(badge(L.ENUM_MERGE_STATE_SHARED, "contrast"));
+        }
+        return states;
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Span.class),
+            parameters = {@APIParameter(name = "text", type = L.class),
+                    @APIParameter(name = "theme", type = String.class)},
+            locals = {@APILocals(name = "badge", type = Span.class)})
+    private Span badge(L text, String theme) {
+        Span badge = new Span(loc.getValue(text));
+        badge.getElement().getThemeList().add("badge small " + theme);
+        return badge;
+    }
+
+    // --- the detail
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
+    private void showFirst() {
+        show(plan.items().isEmpty() ? null : plan.items().getFirst());
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "item", type = MergePlan.Item.class)},
+            locals = {@APILocals(name = "title", type = Span.class),
+                    @APILocals(name = "inCopy", type = Button.class),
+                    @APILocals(name = "field", type = MergePlan.Field.class)})
+    void show(Item item) {
+        focused = item;
+        detail.removeAll();
+        if (item == null) {
+            return;
+        }
+        Span title = new Span(loc.getValue(kindText(item.kind())) + " - " + loc.getValue(changeText(item.change())) + ": " + item.label());
+        title.addClassName(CssStyles.TEXT_SEMIBOLD);
+        detail.add(title);
+        if (item.problem() != null) {
+            detail.add(note(problem(item.problem()), "error"));
+        } else if (item.conflict()) {
+            detail.add(note(loc.getValue(L.ENUM_MERGE_STATE_CONFLICT), "error"));
+        }
+        if (!item.sharedWith().isEmpty()) {
+            detail.add(note(String.format(loc.getValue(L.MSG_MERGE_SHARED), String.join(", ", item.sharedWith())), "contrast"));
+        }
+        if (item.sourceUuid() != null && item.kind() != Kind.BOOK) {
+            Button inCopy = new Button(loc.getValue(L.LABEL_SHOW_IN_COPY), Solid.EYE.create(), event -> showInCopy(item));
+            inCopy.addThemeVariants(ButtonVariant.LUMO_SMALL);
+            detail.add(inCopy);
+        }
+        for (Field field : item.fields()) {
+            detail.add(fieldView(item, field));
+        }
+    }
+
+    /**
+     * Opens the copy of the agent to read, at the part or the entry of the item.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "item", type = MergePlan.Item.class)},
+            locals = {@APILocals(name = "dialog", type = Dialog.class),
+                    @APILocals(name = "view", type = AgentCopyView.class)})
+    void showInCopy(Item item) {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(loc.getValue(L.LABEL_AGENT_BOOK_COPY) + " - " + agentName);
+        dialog.setWidth("1000px");
+        dialog.setMaxWidth("96%");
+        dialog.setHeight("85%");
+        UIUtils.fitPhone(dialog, true);
+        AgentCopyView view = new AgentCopyView(() -> run);
+        view.create();
+        dialog.add(view);
+        dialog.getFooter().add(new Button(loc.getValue(L.LABEL_CLOSE), event -> dialog.close()));
+        dialog.open();
+        if (item.kind() == Kind.MESSAGE) {
+            view.showPart(item.sourceUuid());
+        } else {
+            view.showEntry(item.sourceUuid());
+        }
+        copyDialog = dialog;
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Span.class),
+            parameters = {@APIParameter(name = "text", type = String.class),
+                    @APIParameter(name = "theme", type = String.class)},
+            locals = {@APILocals(name = "note", type = Span.class)})
+    private Span note(String text, String theme) {
+        Span note = new Span(text);
+        note.getElement().getThemeList().add("badge " + theme);
+        return note;
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "problem", type = String.class)})
+    private String problem(String problem) {
+        return loc.getValue(switch (problem) {
+            case MergePlan.PROBLEM_NEEDS_PARENT -> L.MSG_MERGE_PROBLEM_NEEDS_PARENT;
+            case MergePlan.PROBLEM_NEEDS_LOREBOOK -> L.MSG_MERGE_PROBLEM_NEEDS_LOREBOOK;
+            default -> L.MSG_MERGE_PROBLEM_GONE;
+        });
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "item", type = MergePlan.Item.class),
+                    @APIParameter(name = "field", type = MergePlan.Field.class)},
+            locals = {@APILocals(name = "view", type = VerticalLayout.class),
+                    @APILocals(name = "name", type = Span.class),
+                    @APILocals(name = "take", type = Checkbox.class),
+                    @APILocals(name = "head", type = HorizontalLayout.class)})
+    private Component fieldView(Item item, Field field) {
+        VerticalLayout view = new VerticalLayout();
+        view.setPadding(false);
+        view.setSpacing(false);
+        view.addClassName(CssStyles.GAP_S);
+        Span name = new Span(field.name().startsWith(MergeDiff.ATTRIBUTES)
+                ? loc.getValue(L.LABEL_ATTRIBUTES) + ": " + field.name().substring(MergeDiff.ATTRIBUTES.length())
+                : loc.getValue(fieldText(field.name())));
+        name.addClassName(CssStyles.TEXT_SEMIBOLD);
+        if (pickable(item, field)) {
+            Checkbox take = new Checkbox(loc.getValue(L.LABEL_MERGE_TAKE_FIELD));
+            take.setValue(!skipped.getOrDefault(item.id(), Set.of()).contains(field.name()));
+            take.addValueChangeListener(event -> take(item, field, event.getValue()));
+            HorizontalLayout head = new HorizontalLayout(name, take);
+            head.setAlignItems(FlexComponent.Alignment.CENTER);
+            view.add(head);
+        } else {
+            view.add(name);
+        }
+        if (field.conflict()) {
+            view.add(note(loc.getValue(L.ENUM_MERGE_STATE_CONFLICT), "error"));
+        }
+        if (field.type() == Type.JSON && item.change() != Change.DELETED && item.applicable()) {
+            view.add(jsonView(item, field, name.getText()));
+        } else if (field.type() == Type.TEXT && field.editable() && item.change() != Change.DELETED && item.applicable()) {
+            view.add(textView(item, field));
+        } else if (field.type() == Type.SET) {
+            view.add(setView(field));
+        } else {
+            view.add(readOnly(L.LABEL_MERGE_BEFORE_RUN, named(field.type(), field.base())));
+            view.add(readOnly(L.LABEL_MERGE_IN_BOOK_NOW, named(field.type(), field.book())));
+            if (item.change() != Change.DELETED) {
+                view.add(readOnly(L.LABEL_MERGE_TO_APPLY, named(field.type(), field.agent())));
+            }
+        }
+        return view;
+    }
+
+    /**
+     * Whether the user can leave this field of the item out: the fields of an item the agent changed, when it changed more than
+     * one; where a part stands goes with the part.
+     */
+    private static boolean pickable(Item item, Field field) {
+        return item.change() == Change.CHANGED && item.applicable() && !MergeDiff.PARENT.equals(field.name())
+                && item.fields().stream().filter(other -> !MergeDiff.PARENT.equals(other.name())).count() > 1;
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "item", type = MergePlan.Item.class),
+                    @APIParameter(name = "field", type = MergePlan.Field.class),
+                    @APIParameter(name = "taken", type = boolean.class)},
+            locals = {@APILocals(name = "fields", type = Set.class)})
+    private void take(Item item, Field field, boolean taken) {
+        Set<String> fields = skipped.computeIfAbsent(item.id(), id -> new HashSet<>());
+        if (taken) {
+            fields.remove(field.name());
+        } else {
+            fields.add(field.name());
+        }
+    }
+
+    /**
+     * The book's text next to the text that is applied; the second one is written over when the user wants.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "item", type = MergePlan.Item.class),
+                    @APIParameter(name = "field", type = MergePlan.Field.class)},
+            locals = {@APILocals(name = "toApply", type = TextArea.class),
+                    @APILocals(name = "inBook", type = TextArea.class),
+                    @APILocals(name = "useBook", type = Button.class),
+                    @APILocals(name = "useAgent", type = Button.class),
+                    @APILocals(name = "button", type = Button.class),
+                    @APILocals(name = "both", type = VerticalLayout.class)})
+    private Component textView(Item item, Field field) {
+        TextArea toApply = new TextArea(loc.getValue(L.LABEL_MERGE_TO_APPLY));
+        toApply.setWidthFull();
+        toApply.setMinRows(3);
+        toApply.setMaxRows(14);
+        toApply.setValue(edits.getOrDefault(item.id(), Map.of()).getOrDefault(field.name(), field.agent()));
+        toApply.setValueChangeMode(com.vaadin.flow.data.value.ValueChangeMode.LAZY);
+        toApply.addValueChangeListener(event -> edit(item, field, event.getValue()));
+        if (item.change() == Change.ADDED) {
+            return toApply;
+        }
+        TextArea inBook = readOnlyArea(L.LABEL_MERGE_IN_BOOK_NOW, field.book());
+        Button useBook = new Button(loc.getValue(L.LABEL_USE_BOOK_VERSION), event -> toApply.setValue(field.book()));
+        Button useAgent = new Button(loc.getValue(L.LABEL_USE_AGENT_VERSION), event -> toApply.setValue(field.agent()));
+        for (Button button : List.of(useBook, useAgent)) {
+            button.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
+        }
+        VerticalLayout both = new VerticalLayout(inBook, toApply, new HorizontalLayout(useBook, useAgent), differences(field, toApply));
+        both.setPadding(false);
+        both.setSpacing(false);
+        both.setWidthFull();
+        return both;
+    }
+
+    /**
+     * The words that change, word by word: from the book now to the text that is applied (it follows what the user writes), and
+     * for a conflict also what each side did since the run started.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "field", type = MergePlan.Field.class),
+                    @APIParameter(name = "toApply", type = TextArea.class)},
+            locals = {@APILocals(name = "same", type = String.class),
+                    @APILocals(name = "applied", type = WordDiffView.class),
+                    @APILocals(name = "content", type = VerticalLayout.class),
+                    @APILocals(name = "agent", type = WordDiffView.class),
+                    @APILocals(name = "user", type = WordDiffView.class),
+                    @APILocals(name = "details", type = Details.class)})
+    private Component differences(Field field, TextArea toApply) {
+        String same = loc.getValue(L.MSG_MERGE_NO_DIFFERENCE);
+        WordDiffView applied = new WordDiffView(same);
+        applied.show(field.book(), toApply.getValue());
+        toApply.addValueChangeListener(event -> applied.show(field.book(), event.getValue()));
+        VerticalLayout content = new VerticalLayout(heading(L.LABEL_MERGE_DIFF_APPLIED), applied);
+        if (field.conflict()) {
+            WordDiffView agent = new WordDiffView(same);
+            agent.show(field.base(), field.agent());
+            WordDiffView user = new WordDiffView(same);
+            user.show(field.base(), field.book());
+            content.add(heading(L.LABEL_MERGE_DIFF_AGENT), agent, heading(L.LABEL_MERGE_DIFF_USER), user);
+        }
+        content.setPadding(false);
+        content.setSpacing(false);
+        content.addClassName(CssStyles.GAP_S);
+        Details details = new Details(loc.getValue(L.LABEL_MERGE_DIFFERENCES), content);
+        details.setOpened(true);
+        details.setWidthFull();
+        return details;
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Span.class),
+            parameters = {@APIParameter(name = "text", type = L.class)},
+            locals = {@APILocals(name = "heading", type = Span.class)})
+    private Span heading(L text) {
+        Span heading = new Span(loc.getValue(text));
+        heading.addClassName(CssStyles.HINT_TEXT);
+        return heading;
+    }
+
+    /**
+     * What is applied when the user wrote nothing: the agent's text, for JSON the data of both put together.
+     */
+    private static String defaultValue(Field field) {
+        return field.type() == Type.JSON ? JsonMerge.merge(field.base(), field.agent(), field.book()) : field.agent();
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "item", type = MergePlan.Item.class),
+                    @APIParameter(name = "field", type = MergePlan.Field.class),
+                    @APIParameter(name = "text", type = String.class)},
+            locals = {@APILocals(name = "fields", type = Map.class)})
+    private void edit(Item item, Field field, String text) {
+        Map<String, String> fields = edits.computeIfAbsent(item.id(), id -> new HashMap<>());
+        if (text == null || text.equals(defaultValue(field))) {
+            fields.remove(field.name());
+        } else {
+            fields.put(field.name(), text);
+        }
+    }
+
+    /**
+     * The data of the field is JSON: the data that is applied, read only, with what to do with it. The user puts it together in the
+     * dialog of the JSON merge, which remembers what they decided while this one is open.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "item", type = MergePlan.Item.class),
+                    @APIParameter(name = "field", type = MergePlan.Field.class),
+                    @APIParameter(name = "label", type = String.class)},
+            locals = {@APILocals(name = "model", type = JsonMergeNode.class),
+                    @APILocals(name = "fallback", type = VerticalLayout.class),
+                    @APILocals(name = "applied", type = String.class),
+                    @APILocals(name = "toApply", type = TextArea.class),
+                    @APILocals(name = "merge", type = Button.class),
+                    @APILocals(name = "useAgent", type = Button.class),
+                    @APILocals(name = "useBook", type = Button.class),
+                    @APILocals(name = "startOver", type = Button.class),
+                    @APILocals(name = "buttons", type = HorizontalLayout.class),
+                    @APILocals(name = "view", type = VerticalLayout.class),
+                    @APILocals(name = "inBook", type = TextArea.class),
+                    @APILocals(name = "changes", type = WordDiffView.class)})
+    private Component jsonView(Item item, Field field, String label) {
+        JsonMergeNode model = jsonModels.computeIfAbsent(item.id() + "\u0000" + field.name(), key -> jsonModel(field));
+        if (model == null) {
+            // not JSON after all, a text like the others
+            VerticalLayout fallback = new VerticalLayout(note(loc.getValue(L.MSG_JSON_NOT_JSON), "contrast"), textView(item, field));
+            fallback.setPadding(false);
+            fallback.setSpacing(false);
+            return fallback;
+        }
+        String applied = edits.getOrDefault(item.id(), Map.of()).getOrDefault(field.name(), defaultValue(field));
+        TextArea toApply = readOnlyArea(L.LABEL_MERGE_TO_APPLY, JsonText.pretty(applied));
+        toApply.addClassName(CssStyles.JSON_MERGE_TEXT);
+        toApply.setMaxRows(14);
+
+        Button merge = new Button(loc.getValue(L.LABEL_JSON_MERGE), Solid.CODE_MERGE.create(), event -> {
+            JsonMergeDialog dialog = new JsonMergeDialog(label, model, result -> {
+                edit(item, field, result);
+                show(item);
+            });
+            dialog.create();
+            dialog.open();
+            jsonDialog = dialog;
+        });
+        merge.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        Button useAgent = small(L.LABEL_USE_AGENT_VERSION, event -> {
+            edit(item, field, field.agent());
+            show(item);
+        });
+        Button useBook = small(L.LABEL_USE_BOOK_VERSION, event -> {
+            edit(item, field, field.book());
+            show(item);
+        });
+        Button startOver = small(L.LABEL_JSON_START_OVER, event -> {
+            model.reset();
+            edits.getOrDefault(item.id(), new HashMap<>()).remove(field.name());
+            show(item);
+        });
+        HorizontalLayout buttons = new HorizontalLayout(merge, useAgent, useBook, startOver);
+        buttons.setWrap(true);
+
+        VerticalLayout view = new VerticalLayout();
+        view.setPadding(false);
+        view.setSpacing(false);
+        view.setWidthFull();
+        int conflicts = model.conflicts();
+        if (conflicts > 0 && !edits.getOrDefault(item.id(), Map.of()).containsKey(field.name())) {
+            view.add(note(String.format(loc.getValue(L.MSG_JSON_RESULT_CONFLICTS), conflicts), "error"));
+        }
+        TextArea inBook = readOnlyArea(L.LABEL_MERGE_IN_BOOK_NOW, JsonText.pretty(field.book()));
+        inBook.addClassName(CssStyles.JSON_MERGE_TEXT);
+        view.add(inBook, toApply, buttons);
+        WordDiffView changes = new WordDiffView(loc.getValue(L.MSG_MERGE_NO_DIFFERENCE));
+        changes.show(JsonText.pretty(field.book()), JsonText.pretty(applied));
+        view.add(heading(L.LABEL_MERGE_DIFF_APPLIED), changes);
+        return view;
+    }
+
+    /**
+     * The three versions of the data of the field laid over each other; null when one of them is not JSON.
+     */
+    private static JsonMergeNode jsonModel(Field field) {
+        try {
+            return JsonMergeNode.root(JsonText.parse(field.base()), JsonText.parse(field.agent()), JsonText.parse(field.book()));
+        } catch (JsonText.InvalidJsonException e) {
+            return null;
+        }
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "field", type = MergePlan.Field.class)},
+            locals = {@APILocals(name = "before", type = Set.class),
+                    @APILocals(name = "after", type = Set.class),
+                    @APILocals(name = "view", type = VerticalLayout.class),
+                    @APILocals(name = "added", type = String.class),
+                    @APILocals(name = "removed", type = String.class)})
+    private Component setView(Field field) {
+        Set<String> before = lines(field.base());
+        Set<String> after = lines(field.agent());
+        VerticalLayout view = new VerticalLayout();
+        view.setPadding(false);
+        view.setSpacing(false);
+        for (String added : after) {
+            if (!before.contains(added)) {
+                view.add(new Span("+ " + name(added)));
+            }
+        }
+        for (String removed : before) {
+            if (!after.contains(removed)) {
+                view.add(new Span("- " + name(removed)));
+            }
+        }
+        return view;
+    }
+
+    private static Set<String> lines(String text) {
+        Set<String> values = new LinkedHashSet<>();
+        if (text != null) {
+            for (String line : text.split("\n")) {
+                if (!line.isEmpty()) {
+                    values.add(line);
+                }
+            }
+        }
+        return values;
+    }
+
+    /**
+     * The name of a lorebook given by its key; anything else as it is.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "key", type = String.class)},
+            locals = {@APILocals(name = "name", type = String.class)})
+    private String name(String key) {
+        String name = plan.names().get(key);
+        return name != null ? name : key;
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "type", type = MergePlan.Type.class),
+                    @APIParameter(name = "value", type = String.class)})
+    private String named(Type type, String value) {
+        if (type == Type.REF) {
+            return name(value);
+        }
+        if (type == Type.JSON) {
+            return JsonText.pretty(value);
+        }
+        return value == null ? "" : value;
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "label", type = L.class),
+                    @APIParameter(name = "value", type = String.class)})
+    private Component readOnly(L label, String value) {
+        return readOnlyArea(label, value);
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TextArea.class),
+            parameters = {@APIParameter(name = "label", type = L.class),
+                    @APIParameter(name = "value", type = String.class)},
+            locals = {@APILocals(name = "area", type = TextArea.class)})
+    private TextArea readOnlyArea(L label, String value) {
+        TextArea area = new TextArea(loc.getValue(label));
+        area.setReadOnly(true);
+        area.setWidthFull();
+        area.setMinRows(1);
+        area.setMaxRows(10);
+        area.setValue(value == null ? "" : value);
+        return area;
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = L.class),
+            parameters = {@APIParameter(name = "field", type = String.class)})
+    private L fieldText(String field) {
+        return switch (field) {
+            case "name" -> L.LABEL_NAME;
+            case "description" -> L.LABEL_DESCRIPTION;
+            case "language" -> L.LABEL_LANGUAGE;
+            case "pov" -> L.LABEL_POV;
+            case "tense" -> L.LABEL_TENSE;
+            case "style" -> L.LABEL_STYLE;
+            case "template" -> L.LABEL_MASTER_TEMPLATE;
+            case "userPrompt" -> L.LABEL_TOKEN_USER_PROMPT;
+            case "summaryPrompt" -> L.LABEL_SUMMARY_PROMPT;
+            case "metaSummaryPrompt" -> L.LABEL_META_SUMMARY_PROMPT;
+            case "tags" -> L.LABEL_TAGS;
+            case "negativeTags" -> L.LABEL_NEGATIVE_TAGS;
+            case "response" -> L.LABEL_PART_TEXT;
+            case "instructions" -> L.LABEL_INSTRUCTIONS;
+            case "sceneSetting" -> L.LABEL_SCENE_SETTING;
+            case "povCharacter" -> L.LABEL_POV_CHARACTER;
+            case "presentCharacters" -> L.LABEL_PRESENT_CHARACTERS;
+            case "summary" -> L.LABEL_SUMMARY;
+            case "enabled" -> L.LABEL_ENABLED;
+            case "subbooks" -> L.LABEL_SUBBOOKS;
+            case "payload" -> L.LABEL_CONTENT;
+            case "comment" -> L.LABEL_NOTE;
+            case "order" -> L.LABEL_ORDER;
+            case "filtering" -> L.LABEL_FILTERING;
+            case "filteringMode" -> L.LABEL_FILTERING_MODE;
+            case "insertionMode" -> L.LABEL_INSERTION_MODE;
+            case "lorebook" -> L.LABEL_LOREBOOK;
+            case MergeDiff.PARENT -> L.LABEL_AGENT_MERGE_FOLLOWS;
+            default -> L.LABEL_BOOK;
+        };
+    }
+
+    // --- apply and discard
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "picked", type = Set.class)})
+    private void confirmApply() {
+        Set<Item> picked = grid.asMultiSelect().getSelectedItems();
+        if (picked.isEmpty()) {
+            Notification.warning(loc.getValue(L.MSG_MERGE_NOTHING_PICKED));
+            return;
+        }
+        long conflicts = picked.stream().filter(Item::conflict).count();
+        if (conflicts > 0) {
+            ConfirmDialog.open(String.format(loc.getValue(L.MSG_MERGE_CONFIRM_CONFLICTS), conflicts), this::apply, () -> {});
+        } else {
+            apply();
+        }
+    }
+
+    /**
+     * Applies the picked changes with the texts the user wrote.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "ids", type = Set.class),
+                    @APILocals(name = "written", type = Map.class),
+                    @APILocals(name = "left", type = Map.class),
+                    @APILocals(name = "result", type = AgentMergeService.MergeResult.class),
+                    @APILocals(name = "e", type = RuntimeException.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    void apply() {
+        Set<String> ids = grid.asMultiSelect().getSelectedItems().stream().map(Item::id).collect(Collectors.toSet());
+        Map<String, Map<String, String>> written = new HashMap<>();
+        edits.forEach((id, fields) -> {
+            if (ids.contains(id) && !fields.isEmpty()) {
+                written.put(id, new HashMap<>(fields));
+            }
+        });
+        try {
+            Map<String, Set<String>> left = new HashMap<>();
+            skipped.forEach((id, fields) -> {
+                if (ids.contains(id) && !fields.isEmpty()) {
+                    left.put(id, new HashSet<>(fields));
+                }
+            });
+            MergeResult result = mergeService.apply(run, new MergeSelection(ids, written, branchBox.getValue(), left));
+            Notification.success(String.format(loc.getValue(L.MSG_MERGE_APPLIED), result.total()));
+            if (!result.skipped().isEmpty()) {
+                Notification.warning(String.format(loc.getValue(L.MSG_MERGE_SKIPPED), result.skipped().size(),
+                        result.skipped().stream().map(skipped -> skipped.label() + " (" + skipped.reason() + ")").collect(Collectors.joining("; "))));
+            }
+            close();
+            onChange.run();
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            // the rules of the service, its text says what; the book may have changed under the review
+            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+            load();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = RuntimeException.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    void discard() {
+        try {
+            agentRunService.stop(run, false);
+            close();
+            onChange.run();
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    // for the tests of the dialog
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Grid.class))
+    Grid<Item> getGrid() {
+        return grid;
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
+    Button getApplyButton() {
+        return applyButton;
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Button.class))
+    Button getDiscardButton() {
+        return discardButton;
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = VerticalLayout.class))
+    VerticalLayout getDetail() {
+        return detail;
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Checkbox.class))
+    Checkbox getBranchBox() {
+        return branchBox;
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Details.class))
+    Details getFindingsDetails() {
+        return findingsDetails;
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Span.class))
+    Span getSummaryLabel() {
+        return summaryLabel;
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = MergePlan.class))
+    MergePlan getPlan() {
+        return plan;
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = MergePlan.Item.class))
+    Item getFocused() {
+        return focused;
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Dialog.class))
+    Dialog getCopyDialog() {
+        return copyDialog;
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = JsonMergeDialog.class))
+    JsonMergeDialog getJsonDialog() {
+        return jsonDialog;
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Map.class))
+    Map<String, Map<String, String>> getEdits() {
+        return edits;
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Map.class))
+    Map<String, Set<String>> getSkipped() {
+        return skipped;
+    }
+}

@@ -1,6 +1,5 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.AIType;
 import com.github.enerccio.marginalia.domain.collections.ReasoningEffort;
@@ -15,6 +14,8 @@ import com.github.enerccio.marginalia.extensions.ExtensionAIFactory;
 import com.github.enerccio.marginalia.extensions.ExtensionAIForm;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -74,6 +75,7 @@ public class AIDialog extends Dialog implements LLMInteract {
     // General fields (in tab 1)
     private IntegerField maxContextField;
     private IntegerField maxResponseField;
+    private IntegerField maxConcurrentField;
     private Checkbox needsJailbreakCheckbox;
     private TextArea jailbreakField;
     private Checkbox enabledReasoningCheckbox;
@@ -150,6 +152,7 @@ public class AIDialog extends Dialog implements LLMInteract {
         generalFormLayout.add(needsJailbreakCheckbox, jailbreakField);
         generalFormLayout.setColspan(jailbreakField, 2);
         generalFormLayout.add(enabledReasoningCheckbox, reasoningEffortCombo);
+        generalFormLayout.add(maxConcurrentField, 2);
 
         tabSheet.add(loc.getValue(L.LABEL_GENERAL_SETTINGS), generalFormLayout);
 
@@ -251,6 +254,7 @@ public class AIDialog extends Dialog implements LLMInteract {
         nameField = new TextField(loc.getValue(L.LABEL_NAME));
         nameField.setRequired(true);
         nameField.setWidthFull();
+        DialogFocus.onOpen(this, nameField);
 
         typeCombo = new ComboBox<>(loc.getValue(L.LABEL_TYPE));
         // the type Extension is offered when some extension provides an AI (or the AI being edited is one)
@@ -284,6 +288,12 @@ public class AIDialog extends Dialog implements LLMInteract {
         maxResponseField.setMin(1);
         maxResponseField.setHelperText(loc.getValue(L.HELP_AI_MAX_RESPONSE));
         maxResponseField.setWidthFull();
+
+        maxConcurrentField = new IntegerField(loc.getValue(L.LABEL_MAX_CONCURRENT_REQUESTS));
+        maxConcurrentField.setMin(1);
+        maxConcurrentField.setStepButtonsVisible(true);
+        maxConcurrentField.setHelperText(loc.getValue(L.HELP_AI_MAX_CONCURRENT_REQUESTS));
+        maxConcurrentField.setWidthFull();
 
         needsJailbreakCheckbox = new Checkbox(loc.getValue(L.LABEL_NEEDS_JAILBREAK));
         jailbreakField = new TextArea(loc.getValue(L.LABEL_JAILBREAK));
@@ -459,6 +469,7 @@ public class AIDialog extends Dialog implements LLMInteract {
         // older providers may have no limits stored - offer the defaults, saving requires a value
         maxContextField.setValue(ai.getMaxContext() != null && ai.getMaxContext() > 0 ? ai.getMaxContext() : DEFAULT_MAX_CONTEXT);
         maxResponseField.setValue(ai.getMaxCompletionTokens() != null && ai.getMaxCompletionTokens() > 0 ? ai.getMaxCompletionTokens() : DEFAULT_MAX_RESPONSE);
+        maxConcurrentField.setValue(ai.getMaxConcurrentRequests() != null && ai.getMaxConcurrentRequests() > 0 ? ai.getMaxConcurrentRequests() : null);
         jailbreakField.setValue(StringUtils.defaultString(ai.getJailbreak()));
         needsJailbreakCheckbox.setValue(Boolean.TRUE.equals(ai.getNeedsJailbreak()));
         jailbreakField.setEnabled(Boolean.TRUE.equals(ai.getNeedsJailbreak()));
@@ -777,6 +788,7 @@ public class AIDialog extends Dialog implements LLMInteract {
             ai.setShared(sharedCheckbox.isVisible() && sharedCheckbox.getValue());
             ai.setMaxContext(maxContext);
             ai.setMaxCompletionTokens(maxResponse);
+            ai.setMaxConcurrentRequests(maxConcurrentField.getValue());
             ai.setJailbreak(jailbreakField.getValue());
             ai.setNeedsJailbreak(needsJailbreakCheckbox.getValue());
             ai.setEnabledReasoning(enabledReasoningCheckbox.getValue());

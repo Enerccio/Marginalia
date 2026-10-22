@@ -67,7 +67,6 @@ class ChatMessageCrudTest extends ExtendableCrudContract<ChatMessage> {
         message.setProtocolUsed("protocol-a");
         message.setBuiltPrompt("[system] ...");
         message.setBuiltPromptTokens(1100L);
-        message.setScrollPosition(250);
         message.setBackgroundLore("lore");
         return message;
     }
@@ -94,7 +93,6 @@ class ChatMessageCrudTest extends ExtendableCrudContract<ChatMessage> {
         assertThat(loaded.getProtocolUsed()).isEqualTo("protocol-a");
         assertThat(loaded.getBuiltPrompt()).isEqualTo("[system] ...");
         assertThat(loaded.getBuiltPromptTokens()).isEqualTo(1100L);
-        assertThat(loaded.getScrollPosition()).isEqualTo(250);
         assertThat(loaded.getBackgroundLore()).isEqualTo("lore");
         assertThat(loaded.isEdited()).isFalse();
     }
@@ -104,7 +102,6 @@ class ChatMessageCrudTest extends ExtendableCrudContract<ChatMessage> {
         entity.setResponse("It was a bright morning.");
         entity.setEdited(true);
         entity.setWordCount(4);
-        entity.setScrollPosition(null);
     }
 
     @Override
@@ -112,7 +109,6 @@ class ChatMessageCrudTest extends ExtendableCrudContract<ChatMessage> {
         assertThat(loaded.getResponse()).isEqualTo("It was a bright morning.");
         assertThat(loaded.isEdited()).isTrue();
         assertThat(loaded.getWordCount()).isEqualTo(4);
-        assertThat(loaded.getScrollPosition()).isNull();
         assertThat(loaded.getInstructions()).isEqualTo("Continue the story");
     }
 

@@ -13,6 +13,10 @@ makes up new names that sound like a category, this one hands out names that exi
 
 The names of the functions differ from the ones of the Name generator, so a request can offer both.
 
+## Commands
+
+The same names for the command bar and for agents (`NameProviderCommands`, both `NON_DESTRUCTIVE`): `/list-real-name-lists` (a JSON array) and `/pick-real-names list count` (a JSON array of `{romanized, original}`, same limit as the function).
+
 ## Categories
 
 One category per country and kind, `<Country> - Surnames` or `<Country> - Forenames` (the country code of the data is
@@ -41,7 +45,9 @@ an original name takes the romanized one, a pair is kept once per category, and 
 
 `NameProviderFunctions` is the `@LLMFunction` interface, `NameProviderFunctionsImpl` the implementation (`MAX_COUNT`,
 `clampCount`) on `NameLists` (loading and the random choice), `NameEntry` the answer. The extension compiles the interface
-on load; `NameProviderExtension.functions()` returns the bound `FunctionSet` to pass to `InferenceService.stream`.
-The [Lore Generator](../lore-generator/README.md) and the [Arc Outline](../arc-outline/README.md) offer the functions
-to the model for the categories the user checks (prefix `Provider: `); they find this extension by reflection
-(`NameToolsBridge`), so it can be unloaded and installed again without restarting them.
+on load and registers a `NameProviderToolProvider` with the tool service (`ToolService`, key `names`, human name *Name provider*):
+every list is an item, and the functions the model gets (`NameProviderToolProvider.Restricted`) know only the checked ones. The provider
+brings `NameProviderCommands` along, so one registration gives the command bar and agents the commands and the
+[Lore Generator](../lore-generator/README.md) and the [Arc Outline](../arc-outline/README.md) (the **Tools** button) the functions. The
+service removes both when the extension is unloaded. The hint added to the prompt is `NameProviderToolProvider.HINT`; the user can
+replace it in the tool dialog.

@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.TagRelationService;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -139,6 +140,15 @@ public class TagRelationServiceImpl extends ExtendableServiceImpl<TagRelation, T
             return Collections.emptyList();
         }
         return getRepository().findTagsForObject(objectId, clazz.getName(), negative);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public Map<Long, List<Tag>> getTagsForObjects(Collection<Long> objectIds, Class<?> clazz) throws Exception {
+        if (objectIds == null || objectIds.isEmpty() || clazz == null) {
+            return Collections.emptyMap();
+        }
+        return getRepository().findTagsForObjects(objectIds, clazz.getName());
     }
 
     @Override

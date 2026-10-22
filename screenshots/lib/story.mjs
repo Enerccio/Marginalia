@@ -72,3 +72,12 @@ export async function sideTab(page, name) {
   await page.getByRole('tab', { name, exact: true }).first().click();
   await idle(page, 700);
 }
+
+/**
+ * Opens the settings menu (the cog) below the story. Its place depends on the width of the sidebar (saved with the book),
+ * so it is looked up: the last menu bar button of the bottom row.
+ */
+export async function openStoryMenu(page) {
+  await page.locator('vaadin-horizontal-layout.border-top-subtle vaadin-menu-bar-button:not([slot="overflow"])').last().click();
+  await idle(page, 500);
+}

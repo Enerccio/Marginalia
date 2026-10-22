@@ -1,6 +1,5 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.domain.collections.ProtocolType;
 import com.github.enerccio.marginalia.domain.model.impl.ChatCompletionProtocol;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
@@ -8,6 +7,8 @@ import com.github.enerccio.marginalia.domain.service.ProtocolService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ModalityMode;
@@ -131,6 +132,7 @@ public class ProtocolDialog extends Dialog implements LLMInteract {
         nameField = new TextField(loc.getValue(L.LABEL_NAME));
         nameField.setRequired(true);
         nameField.setWidthFull();
+        DialogFocus.onOpen(this, nameField);
 
         typeCombo = new ComboBox<>(loc.getValue(L.LABEL_TYPE));
         typeCombo.setItems(ProtocolType.values());

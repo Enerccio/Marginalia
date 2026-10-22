@@ -4,6 +4,10 @@ import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.ProtocolService;
+import com.github.enerccio.marginalia.domain.traits.APIParameter;
+import com.github.enerccio.marginalia.domain.traits.APIReturn;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -21,6 +25,7 @@ import java.util.List;
  * is optional.
  */
 @Configurable(preConstruction = true)
+@Extendable
 public class ModelProtocolPicker extends HorizontalLayout {
 
     @Autowired
@@ -57,12 +62,24 @@ public class ModelProtocolPicker extends HorizontalLayout {
 
         setAlignItems(FlexComponent.Alignment.BASELINE);
         setPadding(false);
+        if (UIUtils.isPhone()) {
+            // two boxes of 260 pixels do not fit next to each other: the protocol goes under the model
+            setWrap(true);
+            setSpacing(false);
+            setWidthFull();
+            aiCombo.setWidthFull();
+            protocolCombo.setWidthFull();
+        }
         add(aiCombo, protocolCombo);
     }
 
     /**
      * Selects the model and the protocol; null clears the choice.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "ai", type = AI.class),
+                    @APIParameter(name = "protocol", type = Protocol.class)})
     public void setSelection(AI ai, Protocol protocol) {
         aiCombo.setValue(ai);
         protocolCombo.setValue(protocol);
@@ -71,6 +88,8 @@ public class ModelProtocolPicker extends HorizontalLayout {
     /**
      * The chosen model, null when there is none.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = AI.class))
     public AI getAi() {
         return aiCombo.getValue();
     }
@@ -78,6 +97,8 @@ public class ModelProtocolPicker extends HorizontalLayout {
     /**
      * The chosen protocol, null for none.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Protocol.class))
     public Protocol getProtocol() {
         return protocolCombo.getValue();
     }
@@ -85,11 +106,17 @@ public class ModelProtocolPicker extends HorizontalLayout {
     /**
      * Calls {@code listener} when the model or the protocol is changed, by the user or by {@link #setSelection}.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "listener", type = Runnable.class)})
     public void addSelectionListener(Runnable listener) {
         aiCombo.addValueChangeListener(_ -> listener.run());
         protocolCombo.addValueChangeListener(_ -> listener.run());
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "enabled", type = boolean.class)})
     @Override
     public void setEnabled(boolean enabled) {
         super.setEnabled(enabled);

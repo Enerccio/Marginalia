@@ -50,6 +50,18 @@ public interface SummaryService extends ExtendableService<Summary, SummaryReposi
     Summary copySummary(Summary summary) throws Exception;
 
     /**
+     * Says that the summaries of the branch still describe the story: works out their hash again from the story as it is
+     * now, the way a search and replace does for the texts it changed. For the author (or an agent) who edited a part
+     * and knows that what the summary says is still true.
+     *
+     * @param newestFirst the branch, from the newest part to the root
+     * @param only        the part whose summary is revalidated, all the summaries of the branch when null
+     * @return the summaries that were outdated and are valid now, oldest first
+     * @throws ManuscriptLockedException when an agent works on the book
+     */
+    List<SummaryBlock> revalidate(Manuscript manuscript, List<ChatMessage> newestFirst, ChatMessage only) throws Exception;
+
+    /**
      * Changes the text of the summary, its token count is counted again.
      * <p>
      * Only for summaries that no meta summary stands in for: the text of those is a part of the hash of the meta summary.
@@ -79,6 +91,42 @@ public interface SummaryService extends ExtendableService<Summary, SummaryReposi
      * @return blocks newest first, messages newer than the first summary are not in any block
      */
     List<SummaryBlock> collectBlocks(List<ChatMessage> newestFirst) throws Exception;
+
+    /**
+     * The first block of a branch that is given from the message with the summary down to the root, with the hash the
+     * block would have if the story had the texts of {@code texts}. Gives the hash a summary needs after a change of
+     * the story (a search and replace) without walking the whole branch.
+     *
+     * @param newestFirst the message with the summary and its ancestors, newest first
+     * @return null when the first message has no summary
+     */
+    SummaryBlock collectFirstBlock(java.util.Iterator<ChatMessage> newestFirst, BlockTexts texts) throws Exception;
+
+    /**
+     * The texts the hash of a summary block is made of.
+     */
+    interface BlockTexts {
+
+        /**
+         * The story as it is saved.
+         */
+        BlockTexts CURRENT = new BlockTexts() {
+            @Override
+            public String response(ChatMessage message) {
+                return message.getResponse();
+            }
+
+            @Override
+            public String summary(Summary summary) {
+                return summary.getSummary();
+            }
+        };
+
+        String response(ChatMessage message);
+
+        String summary(Summary summary);
+
+    }
 
     /**
      * @param hash hash of the block as it is now, compared to {@link Summary#getSummaryMessageHash()} it tells whether

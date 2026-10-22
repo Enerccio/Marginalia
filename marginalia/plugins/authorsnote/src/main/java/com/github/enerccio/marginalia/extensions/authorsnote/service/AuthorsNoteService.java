@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.extensions.authorsnote.service;
 
+import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
@@ -67,13 +68,13 @@ public class AuthorsNoteService {
     }
 
     /**
-     * Tokens the note takes in the prompt of {@code manuscript}'s model, 0 when it is not inserted.
+     * Tokens the note takes in the prompt of the model {@code ai} that generates, 0 when it is not inserted.
      */
-    public long countTokens(Manuscript manuscript, AuthorsNoteData data) throws Exception {
+    public long countTokens(AI ai, AuthorsNoteData data) throws Exception {
         if (!isInserted(data)) {
             return 0;
         }
-        return inferenceServices.forAI(manuscript.getAi()).countTokens(data.getNote().trim()) + MESSAGE_BUFFER_TOKENS;
+        return inferenceServices.forAI(ai).countTokens(data.getNote().trim()) + MESSAGE_BUFFER_TOKENS;
     }
 
     /**

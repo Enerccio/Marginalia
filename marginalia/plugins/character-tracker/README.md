@@ -46,6 +46,16 @@ Characters without relationships are not in the map.
 
 ![Importing characters from the lorebook](../../../manual/images/plugin-charactertracker-import.png)
 
+## Commands
+
+`CharacterTrackerCommands` registers `/list-characters`, `/get-character`, `/create-character`, `/update-character`,
+`/delete-character`, `/list-character-relations`, `/add-character-relation`, `/update-character-relation` and
+`/delete-character-relation` for the command bar and for agents (see the user manual for the arguments). They work on
+`CommandContext.getScope().getManuscript()` (the open book, or the working copy of an agent). A character is addressed by its
+name (or its number in the list), a relationship by its number; no uuid leaves the plugin. They store the book with
+`CharacterTrackerService.save`, then `changed(manuscript)` tells the open `CharacterTrackerView` of the book to read the
+characters again (`onChange`). Deleting is the only `DESTRUCTIVE` kind and asks `context.confirm`.
+
 ## How it works
 
 The plugin decorates `renderStoryContent` of `ManuscriptStoryPart` and `PhoneManuscriptStoryPart` and adds the tab to

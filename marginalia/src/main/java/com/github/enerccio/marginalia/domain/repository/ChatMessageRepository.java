@@ -18,11 +18,28 @@ public interface ChatMessageRepository extends ExtendableRepository<ChatMessage>
 
     void reparentChildren(ChatMessage targetNode, ChatMessage newParent) throws Exception;
 
+    /**
+     * Makes the part {@code newParent} the parent of the children of {@code targetNode} (the deleted ones too), except itself:
+     * what a part inserted below {@code targetNode} takes over.
+     */
+    void reparentChildrenExcept(ChatMessage targetNode, ChatMessage newParent) throws Exception;
+
+    /**
+     * Makes the part {@code newRoot} the parent of the other first parts of the manuscript (the roots, the deleted ones too):
+     * what a part inserted before the story takes over.
+     */
+    void reparentRootsUnder(Manuscript manuscript, ChatMessage newRoot) throws Exception;
+
     boolean hasAnyMessages(Manuscript manuscript) throws Exception;
 
     List<Long> getAllMessageIds(Manuscript manuscript) throws Exception;
 
     List<ChatMessage> getAllMessages(Manuscript manuscript) throws Exception;
+
+    /**
+     * Every message of the manuscript, the soft deleted ones too, for deleting the manuscript for good.
+     */
+    List<ChatMessage> getAllMessagesIncludingDeleted(Manuscript manuscript) throws Exception;
 
     /**
      * Id and {@code _fulltext} ({@code Object[]{Long, String}}) of the messages of the manuscript that are not deleted
@@ -32,6 +49,23 @@ public interface ChatMessageRepository extends ExtendableRepository<ChatMessage>
      *                     match, see {@link com.github.enerccio.marginalia.domain.service.search.FulltextQuery#likePatterns()}
      */
     List<Object[]> findFulltexts(Manuscript manuscript, List<List<String>> likePatterns) throws Exception;
+
+    /**
+     * Id and {@code _fulltext} ({@code Object[]{Long, String}}) of the messages of the manuscript that are not deleted,
+     * oldest first. The rest of the message is not read.
+     *
+     * @param literal text the {@code _fulltext} has to contain (the database compares ignoring the case of the letters
+     *                it knows, so the caller checks again); null for all the messages
+     */
+    List<Object[]> findFulltextsContaining(Manuscript manuscript, String literal) throws Exception;
+
+    /**
+     * Id of the message, id of its summary and {@code _fulltext} of the summary ({@code Object[]{Long, Long, String}})
+     * of the messages of the manuscript that are not deleted and have a summary that is not deleted, oldest first.
+     *
+     * @param literal see {@link #findFulltextsContaining}
+     */
+    List<Object[]> findSummaryFulltextsContaining(Manuscript manuscript, String literal) throws Exception;
 
     /**
      * Ids of the messages below the message (its children, their children...) that are not deleted, the message itself

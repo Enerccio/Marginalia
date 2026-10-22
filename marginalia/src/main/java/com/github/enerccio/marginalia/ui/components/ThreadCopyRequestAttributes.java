@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.components;
 
+import com.github.enerccio.marginalia.bound.AgentRequestAttributes;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -30,10 +31,17 @@ public class ThreadCopyRequestAttributes extends ServletRequestAttributes {
 		// fake copy, do nothing
 	}
 
-	public static ThreadCopyRequestAttributes create() {
+	/**
+	 * The request context of the current thread in a form another thread can run in (see {@link InRequestScope}), null
+	 * when this thread has none. Whoever starts a worker thread takes it before, on the thread that has the context.
+	 * <p>
+	 * A browser session is copied (the copy outlives the request); the attributes of an agent run are not bound to a
+	 * request and are used by all the threads of the run as they are.
+	 */
+	public static RequestAttributes create() {
 		RequestAttributes attrs = RequestContextHolder.getRequestAttributes();
-		if (attrs instanceof ThreadCopyRequestAttributes existing) {
-			return existing;
+		if (attrs instanceof ThreadCopyRequestAttributes || attrs instanceof AgentRequestAttributes) {
+			return attrs;
 		}
 		if (attrs instanceof ServletRequestAttributes servletAttrs) {
 			return new ThreadCopyRequestAttributes(servletAttrs.getRequest(), servletAttrs.getResponse());
@@ -43,10 +51,10 @@ public class ThreadCopyRequestAttributes extends ServletRequestAttributes {
 
 	public static class InRequestScope implements AutoCloseable {
 
-		private final ThreadCopyRequestAttributes attributes;
+		private final RequestAttributes attributes;
 		private final RequestAttributes oldAttributes;
 
-		public InRequestScope(ThreadCopyRequestAttributes attributes) {
+		public InRequestScope(RequestAttributes attributes) {
 			this.attributes = attributes;
 			oldAttributes = RequestContextHolder.getRequestAttributes();
 			if (attributes == null)

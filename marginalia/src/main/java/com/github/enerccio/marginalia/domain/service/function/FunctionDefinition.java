@@ -5,9 +5,12 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.enerccio.marginalia.domain.service.function.FunctionCallException.Kind;
+import com.github.enerccio.marginalia.domain.traits.BatchPolicy;
+import com.github.enerccio.marginalia.domain.traits.LLMFunction;
 
 import java.lang.invoke.MethodHandle;
 import java.util.List;
+import java.util.Map;
 
 /**
  * One {@link com.github.enerccio.marginalia.domain.traits.LLMFunction} method, compiled: the JSON schema of its
@@ -41,15 +44,57 @@ public final class FunctionDefinition {
     private final ObjectNode parametersSchema;
     private final List<Parameter> parameters;
     private final MethodHandle handle;
+    private final BatchPolicy batch;
+    // set for a function that is not a method of an interface, see dynamic()
+    private final Handler dynamic;
+
+    /**
+     * What a {@linkplain #dynamic function made at run time} does: it gets the arguments the model wrote, by name, as
+     * the JSON values they are (text, numbers, booleans, lists and maps; a value the model left out or wrote as null is
+     * a null), and answers through the continuation like any function.
+     */
+    @FunctionalInterface
+    public interface Handler {
+
+        void call(FunctionContinuation<Object> continuation, Map<String, Object> arguments);
+
+    }
 
     /** @param handle takes the target, the continuation and then the arguments as Objects, see {@link FunctionCompiler} */
     FunctionDefinition(String name, String description, ObjectNode parametersSchema, List<Parameter> parameters,
-                       MethodHandle handle) {
+                       MethodHandle handle, BatchPolicy batch) {
+        this.batch = batch;
         this.name = name;
         this.description = description;
         this.parametersSchema = parametersSchema;
         this.parameters = List.copyOf(parameters);
         this.handle = handle;
+        this.dynamic = null;
+    }
+
+    private FunctionDefinition(String name, String description, ObjectNode parametersSchema, Handler dynamic) {
+        this.batch = BatchPolicy.BATCHABLE;
+        this.name = name;
+        this.description = description;
+        this.parametersSchema = parametersSchema;
+        this.parameters = List.of();
+        this.handle = null;
+        this.dynamic = dynamic;
+    }
+
+    /**
+     * A function that has no Java method, made at run time with a schema of its own (the commands an agent may call, see
+     * {@code CommandFunctions}). Bind it with {@link FunctionSet#bind}, the target is not used. The arguments are checked
+     * by the handler, not against the schema.
+     *
+     * @param parametersSchema JSON schema of the arguments, {@code type: object}
+     * @throws IllegalArgumentException when the name is not 1-64 letters, digits, '_' or '-'
+     */
+    public static FunctionDefinition dynamic(String name, String description, ObjectNode parametersSchema, Handler handler) {
+        if (!FunctionCompiler.isValidName(name)) {
+            throw new IllegalArgumentException("Function name '" + name + "' must be 1-64 letters, digits, '_' or '-'");
+        }
+        return new FunctionDefinition(name, description == null ? "" : description, parametersSchema, handler);
     }
 
     public String getName() {
@@ -58,6 +103,13 @@ public final class FunctionDefinition {
 
     public String getDescription() {
         return description;
+    }
+
+    /**
+     * How the function is used among the calls of one answer of an agent, see {@link LLMFunction#batch()}.
+     */
+    public BatchPolicy getBatch() {
+        return batch;
     }
 
     /**
@@ -73,7 +125,14 @@ public final class FunctionDefinition {
      *
      * @throws FunctionCallException when the arguments do not fit or the method threw
      */
+    @SuppressWarnings("unchecked")
     void invoke(Object target, FunctionContinuation<?> continuation, String argumentsJson) {
+        if (dynamic != null) {
+            Map<String, Object> arguments = FunctionJson.MAPPER.convertValue(parseArguments(argumentsJson),
+                    new com.fasterxml.jackson.core.type.TypeReference<java.util.LinkedHashMap<String, Object>>() {});
+            dynamic.call((FunctionContinuation<Object>) continuation, arguments);
+            return;
+        }
         Object[] call = new Object[parameters.size() + 2];
         call[0] = target;
         call[1] = continuation;
@@ -92,7 +151,7 @@ public final class FunctionDefinition {
     }
 
     /** The text the model gets for the value a function completed with. */
-    static String render(Object result) {
+    public static String render(Object result) {
         if (result == null) {
             return "OK";
         }
@@ -122,8 +181,11 @@ public final class FunctionDefinition {
             throw new FunctionCallException(Kind.INVALID_ARGUMENTS,
                     "The arguments of " + name + " must be a JSON object with the parameters of the function");
         } catch (JsonProcessingException e) {
+            String message = e.getOriginalMessage() == null ? "" : e.getOriginalMessage();
             throw new FunctionCallException(Kind.INVALID_ARGUMENTS,
-                    "The arguments of " + name + " are not valid JSON: " + e.getOriginalMessage(), e);
+                    "The arguments of " + name + " are not valid JSON: " + message
+                            + (message.contains("end-of-input") ? ". Your answer was cut off in the middle of the call, most likely at the "
+                            + "limit of one answer: nothing was done. Use shorter texts, in several calls." : ""), e);
         }
     }
 

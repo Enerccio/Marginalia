@@ -1,17 +1,21 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.Summary;
 import com.github.enerccio.marginalia.domain.repository.ChatMessageRepository;
-import com.github.enerccio.marginalia.domain.service.ChatMessageService;
-import com.github.enerccio.marginalia.domain.service.ManuscriptService;
-import com.github.enerccio.marginalia.domain.service.SummaryService;
+import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.SummaryService.SummaryBlock;
+import com.github.enerccio.marginalia.domain.service.impl.inference.tokenizer.JavaTokkitStrategy;
 import com.github.enerccio.marginalia.domain.service.search.FulltextHit;
 import com.github.enerccio.marginalia.domain.service.search.FulltextQuery;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.domain.traits.NoTx;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -26,6 +30,24 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
 
     @Autowired
     private SummaryService summaryService;
+
+    @Autowired
+    @Lazy
+    private AgentRunService agentRunService;
+
+    @Autowired
+    @Lazy
+    private InferenceServices inferenceServices;
+
+    /**
+     * A part of a book an agent works on can't be changed, see {@link AgentRunService#checkNotLocked}.
+     */
+    @Override
+    @CommonTx
+    public ChatMessage save(ChatMessage message) throws Exception {
+        agentRunService.checkNotLocked(message.getParentScript());
+        return super.save(message);
+    }
 
     @Override
     @CommonTx
@@ -98,6 +120,40 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     }
 
     @Override
+    @CommonTx
+    public Manuscript branchAndSwitch(Manuscript manuscript, ChatMessage branched) throws Exception {
+        Manuscript book = ownBook(manuscript);
+        ChatMessage clone = branch(book, ownPart(book, branched));
+        book.setActiveLeaf(clone);
+        return manuscriptService.save(book);
+    }
+
+    @Override
+    @CommonTx
+    public Manuscript swipeAndSwitch(Manuscript manuscript, ChatMessage target) throws Exception {
+        Manuscript book = ownBook(manuscript);
+        swipeTo(book, ownPart(book, target));
+        return manuscriptService.save(book);
+    }
+
+    private Manuscript ownBook(Manuscript manuscript) throws Exception {
+        Manuscript book = manuscript == null ? null : (Manuscript) Hibernate.unproxy(manuscriptService.findForUser(manuscript.getUuid()));
+        if (book == null) {
+            throw new IllegalArgumentException("The manuscript does not exist");
+        }
+        return book;
+    }
+
+    private ChatMessage ownPart(Manuscript book, ChatMessage message) throws Exception {
+        // the part may be the lazy proxy of an association loaded earlier, its extended attributes are not read from the proxy
+        ChatMessage stored = message == null ? null : (ChatMessage) Hibernate.unproxy(find(message));
+        if (stored == null || stored.isDeleted() || stored.getParentScript() == null || !stored.getParentScript().getId().equals(book.getId())) {
+            throw new IllegalArgumentException("The part does not exist");
+        }
+        return stored;
+    }
+
+    @Override
     @CommonTxReadOnly
     public List<ChatMessage> getAllMessages(Manuscript manuscript) throws Exception {
         return getRepository().getAllMessages(manuscript);
@@ -116,6 +172,28 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
             hits.add(new FulltextHit((Long) row[0], parsed.snippet((String) row[1], SNIPPET_RADIUS)));
         }
         return hits;
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<MessageFulltext> findFulltextsContaining(Manuscript manuscript, String literal) throws Exception {
+        if (manuscript == null || manuscriptService.findForUser(manuscript.getUuid()) == null) {
+            return Collections.emptyList();
+        }
+        return getRepository().findFulltextsContaining(manuscript, literal).stream()
+                .map(row -> new MessageFulltext((Long) row[0], (String) row[1]))
+                .toList();
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<SummaryFulltext> findSummaryFulltextsContaining(Manuscript manuscript, String literal) throws Exception {
+        if (manuscript == null || manuscriptService.findForUser(manuscript.getUuid()) == null) {
+            return Collections.emptyList();
+        }
+        return getRepository().findSummaryFulltextsContaining(manuscript, literal).stream()
+                .map(row -> new SummaryFulltext((Long) row[0], (Long) row[1], (String) row[2]))
+                .toList();
     }
 
     @Override
@@ -232,6 +310,9 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     @Override
     @CommonTx
     public ChatMessage delete(ChatMessage message, boolean hard) throws Exception {
+        if (message != null) {
+            agentRunService.checkNotLocked(message.getParentScript());
+        }
         if (!hard && message != null && message.getId() != null) {
             List<Long> deleted = getRepository().findDescendantIds(message);
             getRepository().softDeleteByIds(deleted);
@@ -239,6 +320,40 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
             summaryService.softDeleteForMessages(deleted);
         }
         return super.delete(message, hard);
+    }
+
+    @Override
+    @CommonTx
+    public void hardDeleteForManuscript(Manuscript manuscript) throws Exception {
+        List<ChatMessage> messages = new ArrayList<>(getRepository().getAllMessagesIncludingDeleted(manuscript));
+        // the deepest first, so that no part is deleted while another still follows it (a part inserted into the story is newer
+        // than the parts below it, the age tells nothing)
+        Map<Long, Integer> depths = new HashMap<>();
+        Map<Long, ChatMessage> byId = new HashMap<>();
+        messages.forEach(message -> byId.put(message.getId(), message));
+        messages.sort(Comparator.comparingInt((ChatMessage message) -> depthOf(message, byId, depths)).reversed());
+        for (ChatMessage message : messages) {
+            Summary summary = message.getSummary() == null ? null : summaryService.find(message.getSummary());
+            if (summary != null) {
+                message.setSummary(null);
+                saveWithoutEvent(message);
+                summaryService.delete(summary, true);
+            }
+            delete(message, true);
+        }
+    }
+
+    private static int depthOf(ChatMessage message, Map<Long, ChatMessage> byId, Map<Long, Integer> depths) {
+        Integer known = depths.get(message.getId());
+        if (known != null) {
+            return known;
+        }
+        int depth = 0;
+        for (ChatMessage above = message.getParent(); above != null && byId.containsKey(above.getId()); above = byId.get(above.getId()).getParent()) {
+            depth++;
+        }
+        depths.put(message.getId(), depth);
+        return depth;
     }
 
     @Override
@@ -277,6 +392,116 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         int count = 0;
         while (matcher.find()) count++;
         return count;
+    }
+
+
+    @Override
+    @CommonTx
+    public PartEdit updateResponse(Manuscript manuscript, ChatMessage message, String text) throws Exception {
+        Manuscript book = ownBook(manuscript);
+        ChatMessage stored = ownPart(book, message);
+        String newText = text == null ? "" : text;
+
+        // the summaries of the branch the part is on that are outdated already do not count as made so by this edit
+        ChatMessage leaf = findLeafFor(book, stored);
+        List<ChatMessage> newestFirst = leaf == null ? List.of() : new ArrayList<>(getBranchFromLeaf(leaf).reversed());
+        Set<Long> outdatedBefore = outdatedHeads(newestFirst);
+
+        ChatMessage saved = storeResponse(book, stored, newText);
+
+        List<SummaryBlock> outdated = new ArrayList<>();
+        for (SummaryBlock block : summaryService.collectBlocks(newestFirst)) {
+            if (!block.isValid() && !outdatedBefore.contains(block.head().getId())) {
+                outdated.add(block);
+            }
+        }
+        Collections.reverse(outdated);
+        return new PartEdit(saved, outdated);
+    }
+
+    @Override
+    @CommonTx
+    public ChatMessage storeResponse(Manuscript manuscript, ChatMessage message, String text) throws Exception {
+        Manuscript book = ownBook(manuscript);
+        ChatMessage stored = ownPart(book, message);
+        String newText = text == null ? "" : text;
+        stored.setResponse(newText);
+        stored.setTokenCount(countTokens(book, newText));
+        stored.setWordCount(countWords(newText));
+        stored.setEdited(true);
+        return save(stored);
+    }
+
+    private long countTokens(Manuscript book, String text) throws Exception {
+        InferenceService inferenceService = inferenceServices.forAI(book.getAi());
+        return inferenceService == null ? new JavaTokkitStrategy().countTokens(null, text) : inferenceService.countTokens(text);
+    }
+
+    @Override
+    @CommonTx
+    public ChatMessage createPart(Manuscript manuscript, ChatMessage parent, String text, TurnInput input) throws Exception {
+        Manuscript book = ownBook(manuscript);
+        ChatMessage above = parent == null ? null : ownPart(book, parent);
+        if (above == null && hasAnyMessages(book)) {
+            throw new IllegalArgumentException("The book has parts already, say after which part the new one comes");
+        }
+        ChatMessage created = newPart(book, text, input);
+        ChatMessage saved = above == null ? createRoot(book, created) : addChild(above, created);
+        book.setActiveLeaf(saved);
+        manuscriptService.save(book);
+        return saved;
+    }
+
+    @Override
+    @CommonTx
+    public ChatMessage insertPart(Manuscript manuscript, ChatMessage after, String text, TurnInput input) throws Exception {
+        Manuscript book = ownBook(manuscript);
+        ChatMessage above = after == null ? null : ownPart(book, after);
+        if (!hasAnyMessages(book)) {
+            return createPart(book, null, text, input);
+        }
+        ChatMessage created = newPart(book, text, input);
+        ChatMessage saved = above == null ? createRoot(book, created) : addChild(above, created);
+        // what followed the part follows the new one now, the new part is saved first so that it is not moved under itself
+        if (above == null) {
+            getRepository().reparentRootsUnder(book, saved);
+        } else {
+            getRepository().reparentChildrenExcept(above, saved);
+        }
+        if (book.getActiveLeaf() == null || above != null && book.getActiveLeaf().getId().equals(above.getId())) {
+            // the part was the end of the branch: the new one is the end now
+            book.setActiveLeaf(saved);
+            manuscriptService.save(book);
+        }
+        return saved;
+    }
+
+    /**
+     * A part that is not stored yet: the text counted, the turn input it stands for.
+     */
+    private ChatMessage newPart(Manuscript book, String text, TurnInput input) throws Exception {
+        String newText = text == null ? "" : text;
+        ChatMessage created = new ChatMessage();
+        created.setResponse(newText);
+        created.setTokenCount(countTokens(book, newText));
+        created.setWordCount(countWords(newText));
+        if (input != null) {
+            created.setSceneSetting(input.sceneSetting());
+            created.setPovCharacter(input.povCharacter());
+            created.setPresentCharacters(input.presentCharacters());
+            created.setInstructions(input.instructions());
+        }
+        return created;
+    }
+
+    private Set<Long> outdatedHeads(List<ChatMessage> newestFirst) throws Exception {
+        Set<Long> heads = new HashSet<>();
+        for (SummaryBlock block : summaryService.collectBlocks(newestFirst)) {
+            if (!block.isValid()) {
+                heads.add(block.head().getId());
+            }
+        }
+        return heads;
     }
 
 }

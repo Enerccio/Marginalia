@@ -79,10 +79,37 @@ export const bestiary = {
   }],
 };
 
+// A lorebook with two subbooks (for the pictures of Mass edit, Count with subbooks and the tag windows; imported by shoot-books-extra).
+const subbook = (uuid, name, tags, entries) => ({ uuid, name, enabled: true, tags, subbooks: [], entries });
+export const companion = {
+  format: 'marginalia-lorebook',
+  version: 2,
+  root: '33333333-3333-4333-8333-333333333333',
+  lorebooks: [
+    { uuid: '33333333-3333-4333-8333-333333333333', name: 'Hogwarts Companion', enabled: true, tags: ['companion'],
+      subbooks: ['44444444-4444-4444-8444-444444444444', '55555555-5555-4555-8555-555555555555'],
+      entries: [
+        entry('Castle', 10, 'Hogwarts is a castle of seven floors and a thousand staircases; the staircases change places when they feel like it.', { filtering: 'castle|Hogwarts', mode: 'REGEX' }),
+        entry('House points', 20, 'Points are kept in four giant hourglasses in the entrance hall. Prefects and teachers give and take them.', { filtering: 'points' }),
+      ] },
+    subbook('44444444-4444-4444-8444-444444444444', 'Hogwarts Staff', ['staff'], [
+      entry('Professor Slughorn', 10, '**Horace Slughorn** - Potions master, collects promising students and keeps a corner of his office for them.', { filtering: 'Slughorn' }),
+      entry('Madam Pomfrey', 20, '**Poppy Pomfrey** - the matron of the hospital wing; does not like questions about who was hurt and how.', { filtering: 'Pomfrey' }),
+      entry('Argus Filch', 30, '**Argus Filch** - the caretaker, with a cat called Mrs Norris and a list of things that are forbidden.', { filtering: 'Filch' }),
+    ]),
+    subbook('55555555-5555-4555-8555-555555555555', 'Hogsmeade Shops', ['places'], [
+      entry('Honeydukes', 10, 'The sweet shop of Hogsmeade; its cellar leads to the castle by a secret passage.', { filtering: 'Honeydukes' }),
+      entry('Zonko', 20, 'The joke shop; students buy stink pellets there and teachers pretend not to notice.', { filtering: 'Zonko' }),
+      entry('Post Office', 30, 'Owls come and go all day from the post office of the village; Aurors watch it this year.', { filtering: 'post office' }),
+    ]),
+  ],
+};
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const out = path.join(here, 'build');
   fs.mkdirSync(out, { recursive: true });
   fs.writeFileSync(path.join(out, 'lorebook.json'), JSON.stringify(lorebook, null, 2));
   fs.writeFileSync(path.join(out, 'bestiary.json'), JSON.stringify(bestiary, null, 2));
+  fs.writeFileSync(path.join(out, 'companion.json'), JSON.stringify(companion, null, 2));
   console.log('wrote lorebook.json (' + entries.length + ' entries) and bestiary.json to', out);
 }

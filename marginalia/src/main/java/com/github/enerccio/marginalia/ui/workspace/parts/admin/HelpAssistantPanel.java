@@ -1,14 +1,15 @@
 package com.github.enerccio.marginalia.ui.workspace.parts.admin;
 
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.HelpAssistantService;
 import com.github.enerccio.marginalia.domain.service.HelpAssistantService.Settings;
 import com.github.enerccio.marginalia.domain.service.manual.HelpPrompts;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
@@ -30,6 +31,7 @@ import java.util.Objects;
  * and, for a shared model, whether the users' limits apply to it.
  */
 @Configurable
+@Extendable
 public class HelpAssistantPanel implements LLMInteract {
 
     @Autowired
@@ -41,14 +43,16 @@ public class HelpAssistantPanel implements LLMInteract {
     @Autowired
     private AIService aiService;
 
-    private Checkbox enabled;
     private ComboBox<AI> aiCombo;
-    private Checkbox applyLimits;
-    private Checkbox interactions;
     private Checkbox adminData;
     private TextArea adminPrompt;
     private TextArea userPrompt;
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "layout", type = VerticalLayout.class),
+                    @APILocals(name = "description", type = Span.class),
+                    @APILocals(name = "save", type = Button.class)})
     public Component create() throws Exception {
         VerticalLayout layout = new VerticalLayout();
         layout.setSizeFull();
@@ -56,20 +60,10 @@ public class HelpAssistantPanel implements LLMInteract {
         Span description = new Span(loc.getValue(L.HELP_ASSISTANT));
         description.addClassName(CssStyles.TEXT_SECONDARY);
 
-        enabled = new Checkbox(loc.getValue(L.LABEL_ENABLED));
-
         aiCombo = new ComboBox<>(loc.getValue(L.LABEL_MODEL));
         aiCombo.setWidth("24em");
         aiCombo.setItemLabelGenerator(AI::getName);
         aiCombo.setClearButtonVisible(true);
-        aiCombo.addValueChangeListener(e -> updateApplyLimits());
-
-        // only a shared model has limits to apply
-        applyLimits = new Checkbox(loc.getValue(L.LABEL_APPLY_LIMITS));
-        applyLimits.setHelperText(loc.getValue(L.HELP_ASSISTANT_APPLY_LIMITS));
-
-        interactions = new Checkbox(loc.getValue(L.LABEL_HELP_INTERACTIONS));
-        interactions.setHelperText(loc.getValue(L.HELP_ASSISTANT_INTERACTIONS));
 
         adminData = new Checkbox(loc.getValue(L.LABEL_HELP_ADMIN_DATA));
         adminData.setHelperText(loc.getValue(L.HELP_ASSISTANT_ADMIN_DATA));
@@ -80,12 +74,16 @@ public class HelpAssistantPanel implements LLMInteract {
         Button save = new Button(loc.getValue(L.LABEL_SAVE), e -> save());
         save.setThemeName("primary");
 
-        layout.add(description, enabled, aiCombo, applyLimits, interactions, adminData, promptRow(adminPrompt, true), promptRow(userPrompt, false), save);
+        layout.add(description, aiCombo, adminData, promptRow(adminPrompt, true), promptRow(userPrompt, false), save);
 
         load();
         return layout;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = TextArea.class),
+            parameters = {@APIParameter(name = "label", type = L.class)},
+            locals = {@APILocals(name = "area", type = TextArea.class)})
     private TextArea promptArea(L label) {
         TextArea area = new TextArea(loc.getValue(label));
         area.setHelperText(loc.getValue(L.HELP_ASSISTANT_PROMPT));
@@ -95,6 +93,12 @@ public class HelpAssistantPanel implements LLMInteract {
         return area;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = HorizontalLayout.class),
+            parameters = {@APIParameter(name = "area", type = TextArea.class),
+                    @APIParameter(name = "administrator", type = boolean.class)},
+            locals = {@APILocals(name = "reset", type = Button.class),
+                    @APILocals(name = "row", type = HorizontalLayout.class)})
     private HorizontalLayout promptRow(TextArea area, boolean administrator) {
         Button reset = new Button(loc.getValue(L.LABEL_RESET_TO_DEFAULT),
                 e -> area.setValue(HelpPrompts.defaultPrompt(administrator)));
@@ -106,38 +110,32 @@ public class HelpAssistantPanel implements LLMInteract {
         return row;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "models", type = List.class),
+                    @APILocals(name = "settings", type = HelpAssistantService.Settings.class)})
     private void load() throws Exception {
         // the assistant uses the administrator's own models, not the ones other administrators share
         List<AI> models = aiService.findAllForUser().stream().filter(aiService::isOwnedByCurrentUser).toList();
         aiCombo.setItems(models);
 
         Settings settings = helpService.getSettings();
-        enabled.setValue(settings.enabled());
         aiCombo.setValue(models.stream().filter(ai -> Objects.equals(ai.getUuid(), settings.aiUuid())).findFirst().orElse(null));
-        applyLimits.setValue(settings.applyLimits());
-        interactions.setValue(settings.interactions());
         adminData.setValue(settings.adminData());
         // what is in force: the stored prompt or the default
         adminPrompt.setValue(settings.adminPrompt() == null ? HelpPrompts.ADMIN : settings.adminPrompt());
         userPrompt.setValue(settings.userPrompt() == null ? HelpPrompts.USER : settings.userPrompt());
-        updateApplyLimits();
     }
 
-    private void updateApplyLimits() {
-        AI ai = aiCombo.getValue();
-        applyLimits.setEnabled(ai != null && ai.isShared());
-    }
-
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "ai", type = AI.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void save() {
         AI ai = aiCombo.getValue();
-        if (enabled.getValue() && ai == null) {
-            Notification.warning(loc.getValue(L.ERROR_AI_NOT_SET));
-            return;
-        }
         try {
-            helpService.saveSettings(new Settings(enabled.getValue(), ai == null ? null : ai.getUuid(),
-                    applyLimits.getValue(), adminPrompt.getValue(), userPrompt.getValue(), interactions.getValue(),
-                    adminData.getValue()));
+            helpService.saveSettings(new Settings(ai == null ? null : ai.getUuid(),
+                    adminPrompt.getValue(), userPrompt.getValue(), adminData.getValue()));
             Notification.success(loc.getValue(L.MSG_SETTINGS_SAVED));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);

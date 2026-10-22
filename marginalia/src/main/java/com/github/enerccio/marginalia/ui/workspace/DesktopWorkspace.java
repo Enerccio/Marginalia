@@ -1,13 +1,14 @@
 package com.github.enerccio.marginalia.ui.workspace;
 
-import com.github.enerccio.marginalia.ui.LLMInteract;
-import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
+import com.github.enerccio.marginalia.domain.service.AgentService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.components.InvalidExtensionsWarning;
 import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
@@ -26,11 +27,7 @@ import com.vaadin.flow.component.tabs.Tab;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Configurable
 @Extendable
@@ -44,6 +41,9 @@ public class DesktopWorkspace implements Workspace {
 
     @Autowired
     private User currentUser;
+
+    @Autowired
+    private AgentService agentService;
 
     private HTabSheet tabs;
 
@@ -64,13 +64,18 @@ public class DesktopWorkspace implements Workspace {
     private final AIPart aiPart = new AIPart(this);
     private Component aiPartComponent;
 
+    // the tab exists only for users who may use agents
+    private final AgentPart agentPart = new AgentPart(this);
+    private Component agentPartComponent;
+
     private final ResourcesPart resourcesPart = new ResourcesPart(this);
     private Component resourcesPartComponent;
 
     private final TrashPart trashPart = new TrashPart(this);
     private Component trashPartComponent;
 
-    private final AdminPart adminPart = new AdminPart(this);
+    // only an administrator gets the part: it is not even created for the others (its panels refuse them)
+    private AdminPart adminPart;
     private Component adminPartComponent;
 
     // names of the parts in the stored state, so it survives reordering the tabs
@@ -101,6 +106,7 @@ public class DesktopWorkspace implements Workspace {
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = Component.class),
             locals = {@APILocals(name = "vl", type = VerticalLayout.class),
+                    @APILocals(name = "user", type = User.class),
                     @APILocals(name = "manuscriptTabHeader", type = HorizontalLayout.class),
                     @APILocals(name = "manuscriptNameSpan", type = Span.class),
                     @APILocals(name = "manuscriptTab", type = Tab.class),
@@ -116,11 +122,12 @@ public class DesktopWorkspace implements Workspace {
                     @APILocals(name = "aiTabHeader", type = HorizontalLayout.class),
                     @APILocals(name = "connNameSpan", type = Span.class),
                     @APILocals(name = "aiTab", type = Tab.class),
+                    @APILocals(name = "agentsTabHeader", type = HorizontalLayout.class),
+                    @APILocals(name = "agentsTab", type = Tab.class),
                     @APILocals(name = "resourcesTabHeader", type = HorizontalLayout.class),
                     @APILocals(name = "resourcesTab", type = Tab.class),
                     @APILocals(name = "trashTabHeader", type = HorizontalLayout.class),
-                    @APILocals(name = "trashTab", type = Tab.class),
-                    @APILocals(name = "user", type = User.class)})
+                    @APILocals(name = "trashTab", type = Tab.class)})
     @Override
     public Component create() throws Exception {
         VerticalLayout vl = new VerticalLayout();
@@ -137,9 +144,17 @@ public class DesktopWorkspace implements Workspace {
         userPartComponent = userPart.create();
         protocolPartComponent = protocolPart.create();
         aiPartComponent = aiPart.create();
+        boolean agentsAllowed = agentService.isAllowed();
+        if (agentsAllowed) {
+            agentPartComponent = agentPart.create();
+        }
         resourcesPartComponent = resourcesPart.create();
         trashPartComponent = trashPart.create();
-        adminPartComponent = adminPart.create();
+        User user = userService.find(currentUser.getId());
+        if (user != null && user.isAdmin()) {
+            adminPart = new AdminPart(this);
+            adminPartComponent = adminPart.create();
+        }
 
         HorizontalLayout manuscriptTabHeader = new HorizontalLayout();
         manuscriptTabHeader.setAlignItems(Alignment.CENTER);
@@ -186,6 +201,17 @@ public class DesktopWorkspace implements Workspace {
         Tab aiTab = tabs.add(aiTabHeader, aiPartComponent);
         tabToComponent.put(aiTab, aiPart);
 
+        if (agentsAllowed) {
+            HorizontalLayout agentsTabHeader = new HorizontalLayout();
+            agentsTabHeader.setAlignItems(Alignment.CENTER);
+            agentsTabHeader.setSpacing(true);
+            agentsTabHeader.add(new Span(loc.getValue(L.LABEL_AGENTS)), agentPart.getAttentionBadge());
+
+            Tab agentsTab = tabs.add(agentsTabHeader, agentPartComponent);
+            tabToComponent.put(agentsTab, agentPart);
+            partsByKey.put("agents", agentPart);
+        }
+
         HorizontalLayout resourcesTabHeader = new HorizontalLayout();
         resourcesTabHeader.setAlignItems(Alignment.CENTER);
         resourcesTabHeader.setSpacing(true);
@@ -202,7 +228,6 @@ public class DesktopWorkspace implements Workspace {
         Tab trashTab = tabs.add(trashTabHeader, trashPartComponent);
         tabToComponent.put(trashTab, trashPart);
 
-        User user = userService.find(currentUser.getId());
         tabs.setFooterComponent(createFooter(user));
 
         tabs.addSelectedChangeListener(e -> {
@@ -238,9 +263,9 @@ public class DesktopWorkspace implements Workspace {
     @Override
     public String getLLMState() {
         List<String> keys = new ArrayList<>(partsByKey.keySet());
-        String active = activeComponent == adminPart ? "admin" : partsByKey.entrySet().stream()
+        String active = adminPart != null && activeComponent == adminPart ? "admin" : partsByKey.entrySet().stream()
                 .filter(entry -> entry.getValue() == activeComponent).map(Map.Entry::getKey).findFirst().orElse("books");
-        if (adminButton != null) {
+        if (adminPart != null) {
             keys.add("admin");
         }
         return WorkspaceLLMSupport.describe(loc, "desktop", keys, active, navigationLocked);
@@ -258,10 +283,10 @@ public class DesktopWorkspace implements Workspace {
                 sections.put(key, () -> tabs.setSelectedTab(tab));
             }
         }));
-        if (adminButton != null) {
+        if (adminPart != null) {
             sections.put("admin", this::openAdmin);
         }
-        String active = activeComponent == adminPart ? "admin" : partsByKey.entrySet().stream()
+        String active = adminPart != null && activeComponent == adminPart ? "admin" : partsByKey.entrySet().stream()
                 .filter(entry -> entry.getValue() == activeComponent).map(Map.Entry::getKey).findFirst().orElse("books");
         return WorkspaceLLMSupport.openSections(loc, sections, active, navigationLocked);
     }
@@ -278,9 +303,12 @@ public class DesktopWorkspace implements Workspace {
         parts.put(userPart, userPartComponent);
         parts.put(protocolPart, protocolPartComponent);
         parts.put(aiPart, aiPartComponent);
+        if (agentPartComponent != null) {
+            parts.put(agentPart, agentPartComponent);
+        }
         parts.put(resourcesPart, resourcesPartComponent);
         parts.put(trashPart, trashPartComponent);
-        if (adminButton != null) {
+        if (adminPart != null) {
             parts.put(adminPart, adminPartComponent);
         }
         return LLMInteract.parts(parts, activeComponent, deep);
@@ -309,7 +337,7 @@ public class DesktopWorkspace implements Workspace {
         footer.setSpacing(true);
         footer.setWidthFull();
 
-        if (user != null && user.isAdmin()) {
+        if (adminPart != null) {
             footer.add(createAdminFooter());
         }
 
@@ -403,6 +431,13 @@ public class DesktopWorkspace implements Workspace {
         return navigationLocked;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = ManuscriptSection.class))
+    @Override
+    public ManuscriptSection getManuscriptSection() {
+        return manuscriptPart;
+    }
+
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = Runnable.class))
     @Override
@@ -427,10 +462,13 @@ public class DesktopWorkspace implements Workspace {
         userPart.refresh();
         protocolPart.refresh();
         aiPart.refresh();
+        if (agentPartComponent != null) {
+            agentPart.refresh();
+        }
         resourcesPart.refresh();
         trashPart.refresh();
-        // the admin part (backups, cleanup) refuses anybody but administrators; only they get the button
-        if (adminButton != null) {
+        // the admin part (backups, cleanup) refuses anybody but administrators; only they have it
+        if (adminPart != null) {
             adminPart.refresh();
         }
     }

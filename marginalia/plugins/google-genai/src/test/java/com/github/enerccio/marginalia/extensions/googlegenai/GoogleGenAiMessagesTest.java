@@ -142,4 +142,39 @@ class GoogleGenAiMessagesTest {
 
         assertTrue(parts(model).get(0).functionCall().orElseThrow().args().orElseThrow().isEmpty());
     }
+
+    private static LLMChatMessage twoCalls(String firstSignature) {
+        return LLMChatMessage.ofToolCalls(null, List.of(LLMToolCall.of("c1", "read_file", "{\"path\":\"/a\"}", firstSignature),
+                LLMToolCall.of("c2", "list_files", "{}")));
+    }
+
+    private static List<Part> callParts(GoogleGenAiMessages.Prepared prepared) {
+        return parts(prepared.contents().get(0));
+    }
+
+    @Test
+    void theThoughtSignatureOfACallGoesBackWithIt() {
+        String signature = java.util.Base64.getEncoder().encodeToString(new byte[]{1, 2, 3});
+
+        List<Part> parts = callParts(GoogleGenAiMessages.prepare(List.of(twoCalls(signature)), true));
+
+        assertArrayEquals(new byte[]{1, 2, 3}, parts.get(0).thoughtSignature().orElseThrow());
+        assertTrue(parts.get(1).thoughtSignature().isEmpty(), "only the first call of an answer has one, and it is not made up for the rest");
+    }
+
+    @Test
+    void aCallWithoutASignatureGetsTheDocumentedValueWhenAskedTo() {
+        List<Part> parts = callParts(GoogleGenAiMessages.prepare(List.of(twoCalls(null)), true));
+
+        assertArrayEquals(GoogleGenAiMessages.SKIP_SIGNATURE.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                parts.get(0).thoughtSignature().orElseThrow());
+        assertTrue(parts.get(1).thoughtSignature().isEmpty());
+    }
+
+    @Test
+    void withoutTheFallbackACallWithoutASignatureHasNone() {
+        List<Part> parts = callParts(GoogleGenAiMessages.prepare(List.of(twoCalls(null)), false));
+
+        assertTrue(parts.get(0).thoughtSignature().isEmpty());
+    }
 }

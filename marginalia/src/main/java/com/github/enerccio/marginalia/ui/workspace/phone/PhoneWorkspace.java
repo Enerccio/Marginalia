@@ -1,23 +1,22 @@
 package com.github.enerccio.marginalia.ui.workspace.phone;
 
-import com.github.enerccio.marginalia.ui.LLMInteract;
-import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
+import com.github.enerccio.marginalia.domain.service.AgentService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.JavascriptLibrary;
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.components.InvalidExtensionsWarning;
 import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
 import com.github.enerccio.marginalia.ui.widgets.LanguageSelector;
-import com.github.enerccio.marginalia.ui.workspace.DesktopWorkspace;
-import com.github.enerccio.marginalia.ui.workspace.Workspace;
-import com.github.enerccio.marginalia.ui.workspace.WorkspaceAutosave;
-import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
-import com.github.enerccio.marginalia.ui.workspace.WorkspaceLLMSupport;
+import com.github.enerccio.marginalia.ui.workspace.*;
+import com.github.enerccio.marginalia.ui.workspace.parts.AgentPart;
 import com.github.enerccio.marginalia.ui.workspace.parts.ResourcesPart;
 import com.github.enerccio.marginalia.ui.workspace.phone.parts.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -26,6 +25,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
@@ -33,11 +33,7 @@ import com.vaadin.flow.component.tabs.Tabs;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Workspace for phones. The vertical tab sheet of {@link DesktopWorkspace} would take most of the screen, so the
@@ -57,6 +53,9 @@ public class PhoneWorkspace implements Workspace {
     @Autowired
     private User currentUser;
 
+    @Autowired
+    private AgentService agentService;
+
     private final PhoneManuscriptPart manuscriptPart = new PhoneManuscriptPart(this);
     private final PhoneLorebookPart lorebookPart = new PhoneLorebookPart(this);
     private final PhoneSettingsPart settingsPart = new PhoneSettingsPart(this);
@@ -64,6 +63,8 @@ public class PhoneWorkspace implements Workspace {
     private final PhoneAIPart aiPart = new PhoneAIPart(this);
     private final ResourcesPart resourcesPart = new ResourcesPart(this);
     private final PhoneTrashPart trashPart = new PhoneTrashPart(this);
+    // the tab exists only for users who may use agents
+    private AgentPart agentPart;
 
     // names of the parts in the stored state, the same as in the desktop workspace
     private final Map<String, WorkspaceComponent> partsByKey = new LinkedHashMap<>();
@@ -87,6 +88,12 @@ public class PhoneWorkspace implements Workspace {
     private DrawerToggle drawerToggle;
     private Span title;
     private Tabs tabs;
+    // the tab of the agents, null for a user who may not use them
+    private Tab agentsTab;
+    // the count of the agents that wait for the user in the top bar, shown while the drawer (which has the same count) is closed
+    private Button attentionCue;
+    private Span attentionCount;
+    private int agentsWaiting;
     private WorkspaceComponent activeComponent;
     private Button changePasswordButton;
     private Button logoutButton;
@@ -118,6 +125,7 @@ public class PhoneWorkspace implements Workspace {
         addTab(L.LABEL_SETTINGS, settingsPart);
         addTab(L.LABEL_PROTOCOLS, protocolPart);
         addTab(L.LABEL_MODELS, aiPart);
+        addAgentsTab();
         addTab(L.LABEL_RESOURCES, resourcesPart);
         addTab(L.LABEL_TRASH, trashPart);
 
@@ -126,6 +134,11 @@ public class PhoneWorkspace implements Workspace {
             show(tabToComponent.get(selected), tabToContent.get(selected), tabToTitle.get(selected));
             autosave();
         });
+
+        // a swipe sideways over the content goes to the next or the previous part
+        JavascriptLibrary.fireSwipeEvents(layout.getElement());
+        layout.getElement().addEventListener("swipe", event -> swipeTab(event.getEventData().get("event.detail").asString()))
+                .addEventData("event.detail");
 
         VerticalLayout drawer = new VerticalLayout();
         drawer.setSizeFull();
@@ -213,6 +226,80 @@ public class PhoneWorkspace implements Workspace {
         tabToTitle.put(tab, name);
     }
 
+    /**
+     * The tab of the agents, for a user who may use them: the same part as the desktop's, with a card for each agent, and the
+     * count of the agents that need the user beside the name.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "tab", type = Tab.class)})
+    private void addAgentsTab() throws Exception {
+        if (!agentService.isAllowed()) {
+            return;
+        }
+        agentPart = new AgentPart(this, true);
+        Tab tab = new Tab(new Span(loc.getValue(L.LABEL_AGENTS)), agentPart.getAttentionBadge());
+        agentsTab = tab;
+        tabs.add(tab);
+        tabToComponent.put(tab, agentPart);
+        tabToContent.put(tab, agentPart.create());
+        tabToTitle.put(tab, loc.getValue(L.LABEL_AGENTS));
+        partsByKey.put("agents", agentPart);
+
+        // the badge is in the drawer, which is closed most of the time: the top bar has the count too
+        attentionCount = new Span();
+        attentionCount.getElement().getThemeList().add("badge error pill small");
+        attentionCue = new Button(attentionCount, event -> {
+            if (!navigationLocked) {
+                tabs.setSelectedTab(agentsTab);
+            }
+        });
+        attentionCue.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+        attentionCue.addClassName(CssStyles.AGENT_ATTENTION_CUE);
+        attentionCue.setTooltipText(loc.getValue(L.LABEL_AGENTS_WAITING));
+        attentionCue.setAriaLabel(loc.getValue(L.LABEL_AGENTS_WAITING));
+        attentionCue.setVisible(false);
+        layout.addToNavbar(attentionCue);
+        layout.getElement().addPropertyChangeListener("drawerOpened", "drawer-opened-changed", event -> showAttentionCue());
+        agentPart.addAttentionListener(waiting -> {
+            agentsWaiting = waiting;
+            showAttentionCue();
+        });
+    }
+
+    /**
+     * The cue in the top bar: the count of the agents that wait, while there are some, the drawer is closed and the user is not
+     * in the tab of the agents already.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
+    private void showAttentionCue() {
+        if (attentionCue == null) {
+            return;
+        }
+        attentionCount.setText(String.valueOf(agentsWaiting));
+        attentionCue.setVisible(agentsWaiting > 0 && !layout.isDrawerOpened() && activeComponent != agentPart);
+    }
+
+    /**
+     * Goes to the part next to the open one in the drawer, to the left (swiping to the left) or to the right (swiping to the
+     * right); nothing happens at the ends, with the drawer open or while the navigation is locked.
+     *
+     * @param direction {@code left} or {@code right}, the way the finger moved
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "direction", type = String.class)})
+    private void swipeTab(String direction) {
+        if (navigationLocked || layout.isDrawerOpened() || tabs.getSelectedIndex() < 0) {
+            return;
+        }
+        int index = tabs.getSelectedIndex() + ("left".equals(direction) ? 1 : "right".equals(direction) ? -1 : 0);
+        if (index >= 0 && index < tabs.getTabCount() && index != tabs.getSelectedIndex()) {
+            tabs.setSelectedIndex(index);
+        }
+    }
+
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "part", type = WorkspaceComponent.class),
@@ -232,6 +319,7 @@ public class PhoneWorkspace implements Workspace {
         title.setText(name);
         layout.setDrawerOpened(false);
         activeComponent = part;
+        showAttentionCue();
         try {
             part.onTabSwitched();
         } catch (Exception ex) {
@@ -286,6 +374,9 @@ public class PhoneWorkspace implements Workspace {
         aiPart.refresh();
         resourcesPart.refresh();
         trashPart.refresh();
+        if (agentPart != null) {
+            agentPart.refresh();
+        }
     }
 
     @PublicAPI(from = "1.1.0",
@@ -315,6 +406,13 @@ public class PhoneWorkspace implements Workspace {
     @Override
     public boolean isNavigationLocked() {
         return navigationLocked;
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = ManuscriptSection.class))
+    @Override
+    public ManuscriptSection getManuscriptSection() {
+        return manuscriptPart;
     }
 
     @PublicAPI(from = "1.1.0",

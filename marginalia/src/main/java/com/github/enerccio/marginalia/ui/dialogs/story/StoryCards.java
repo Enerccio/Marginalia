@@ -13,13 +13,57 @@ import java.util.*;
 @Extendable
 public class StoryCards<C extends Component & StoryCard> {
 
-    private final Map<Long, C> active = new LinkedHashMap<>();
+    private Map<Long, C> active = new LinkedHashMap<>();
     private C streaming;
+    // how many parts of the branch are before the first card (the story loads the tail of the branch only)
+    private int offset;
 
     @PublicAPI(from = "1.2.0",
             returns = @APIReturn(type = void.class))
     public void clear() {
         active.clear();
+        offset = 0;
+    }
+
+    /**
+     * Number of parts of the branch that have no card because they are before the first one; the cards numbered
+     * after it start counting there.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = int.class))
+    public int getOffset() {
+        return offset;
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "offset", type = int.class)})
+    public void setOffset(int offset) {
+        this.offset = offset;
+    }
+
+    /**
+     * Puts the cards of the earlier parts before the ones that are there, so {@link #last()} stays the last part.
+     *
+     * @param earlier the cards in the order of the branch
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "earlier", type = List.class)},
+            locals = {@APILocals(name = "merged", type = Map.class),
+                    @APILocals(name = "card", type = Component.class),
+                    @APILocals(name = "id", type = Long.class)})
+    public void prependAll(List<C> earlier) {
+        Map<Long, C> merged = new LinkedHashMap<>();
+        for (C card : earlier) {
+            Long id = card.getMessage().getId();
+            if (id != null) {
+                merged.put(id, card);
+            }
+        }
+        merged.putAll(active);
+        active = merged;
+        offset = Math.max(0, offset - earlier.size());
     }
 
     @PublicAPI(from = "1.2.0",

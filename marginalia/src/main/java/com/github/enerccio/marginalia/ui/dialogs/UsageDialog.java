@@ -1,11 +1,15 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.model.impl.Usage;
 import com.github.enerccio.marginalia.domain.service.UsageService;
+import com.github.enerccio.marginalia.domain.traits.APILocals;
+import com.github.enerccio.marginalia.domain.traits.APIReturn;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -22,6 +26,7 @@ import java.util.List;
  * What every user used of every AI, for administrators.
  */
 @Configurable
+@Extendable
 public class UsageDialog extends Dialog implements LLMInteract {
 
     @Autowired
@@ -52,6 +57,8 @@ public class UsageDialog extends Dialog implements LLMInteract {
         getFooter().add(close);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void createColumns() {
         grid.removeAllColumns();
         grid.addColumn(usage -> usage.getOwner().getLogin())
@@ -75,6 +82,10 @@ public class UsageDialog extends Dialog implements LLMInteract {
                 .setFlexGrow(0).setWidth(UIConstants.DATE_COLUMN_SIZE);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "usages", type = List.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void load() {
         try {
             List<Usage> usages = usageService.findAllUsages();

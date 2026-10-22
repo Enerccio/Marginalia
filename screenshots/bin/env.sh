@@ -6,4 +6,4 @@ export SHOT_HOME="$SHOT_ROOT/.data"            # used as -Duser.home, data ends 
 export SHOT_PORT=8099                          # the application
 export SHOT_LLM_PORT=8098                      # the fake inference server
 export SHOT_URL="http://localhost:$SHOT_PORT"
-export SHOT_WAR="$REPO_ROOT/marginalia/target/marginalia-1.3.0.war"
+export SHOT_WAR="$REPO_ROOT/marginalia/target/marginalia-1.4.0.war"

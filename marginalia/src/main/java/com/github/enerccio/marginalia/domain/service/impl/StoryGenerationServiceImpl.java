@@ -3,8 +3,11 @@ package com.github.enerccio.marginalia.domain.service.impl;
 import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.concurrent.AsyncRunnableWrapper;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
+import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.Protocol;
+import com.github.enerccio.marginalia.domain.service.AgentRunService;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.GenerationListener;
 import com.github.enerccio.marginalia.domain.service.StoryGenerationService;
@@ -24,8 +27,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.web.context.request.RequestAttributes;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,6 +45,10 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
 
     @Autowired
     private Configuration configuration;
+
+    @Autowired
+    @Lazy
+    private AgentRunService agentRunService;
 
     private List<GenerationStep> installedSteps;
     private final Map<GenerationStepType, GenerationStep> steps = new LinkedHashMap<>();
@@ -64,16 +71,26 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
 
     @Override
     @NoTx
-    public CancellationToken generateNextTurn(Manuscript manuscript, TurnInput input, GenerationRequest generationRequest, GenerationListener listener) {
+    public CancellationToken generateNextTurn(Manuscript manuscript, TurnInput input, GenerationRequest generationRequest, GenerationListener listener, GenerationOptions options) {
         CancellationToken token = new CancellationToken();
 
-        ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        if (attrs == null) {
-            throw new IllegalStateException("Called out of ui!");
+        try {
+            // a book an agent works on is not continued
+            agentRunService.checkNotLocked(manuscript);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
         }
-        ThreadCopyRequestAttributes attributes = ThreadCopyRequestAttributes.create();
+
+        RequestAttributes attributes = options.context() != null ? options.context() : ThreadCopyRequestAttributes.create();
+        if (attributes == null) {
+            throw new IllegalStateException("Called without a request context (neither in a request nor with one in the options)!");
+        }
         GenerationEngine generationEngine = new GenerationEngine();
         generationEngine.setManuscript(manuscript);
+        generationEngine.ai = options.ai() != null ? options.ai() : manuscript.getAi();
+        generationEngine.protocol = options.protocol() != null ? options.protocol() : manuscript.getProtocol();
         generationEngine.generationRequest = generationRequest;
         generationEngine.turnInput = input;
         generationEngine.cancellationToken = token;
@@ -122,7 +139,9 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         private ChatMessage chatMessage;
         private CancellationToken cancellationToken;
         private GenerationListener uiListener;
-        private ThreadCopyRequestAttributes requestAttributes;
+        private RequestAttributes requestAttributes;
+        private AI ai;
+        private Protocol protocol;
         private PrePromptData prePromptData;
         private List<LLMChatMessage> payload;
         private State state = State.NOT_SUCCESSFUL;
@@ -152,6 +171,26 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         }
 
         @Override
+        public AI getAi() {
+            return ai;
+        }
+
+        @Override
+        public void setAi(AI ai) {
+            this.ai = ai;
+        }
+
+        @Override
+        public Protocol getProtocol() {
+            return protocol;
+        }
+
+        @Override
+        public void setProtocol(Protocol protocol) {
+            this.protocol = protocol;
+        }
+
+        @Override
         public ChatMessage getMessage() {
             return chatMessage;
         }
@@ -177,7 +216,7 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         }
 
         @Override
-        public ThreadCopyRequestAttributes getRequestAttributes() {
+        public RequestAttributes getRequestAttributes() {
             return requestAttributes;
         }
 
@@ -383,6 +422,16 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         @Override
         public void setManuscript(Manuscript manuscript) {
             controller.setManuscript(manuscript);
+        }
+
+        @Override
+        public AI getAi() {
+            return controller.getAi();
+        }
+
+        @Override
+        public Protocol getProtocol() {
+            return controller.getProtocol();
         }
 
         @Override

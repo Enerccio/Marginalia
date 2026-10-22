@@ -63,6 +63,11 @@ public class UsageServiceImpl extends OwnedServiceImpl<Usage, UsageRepository> i
     @Override
     @CommonTx
     public void add(AI ai, long prefillTokens, long generatedTokens) throws Exception {
+        if (currentUser.getId() == null) {
+            // no user to count it for (a thread without a session): not saved as the usage of nobody
+            log.warn("The usage of AI {} was not counted, there is no user", ai.getId());
+            return;
+        }
         AI stored = aiService.find(ai.getId());
         // the tokens since the last reset are counted only for a user with a token limit, and start from zero in a new period
         AILimit limit = limitService.getLimit(stored);

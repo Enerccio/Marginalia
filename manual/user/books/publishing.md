@@ -36,6 +36,15 @@ the top left corner returns to the list.
 
 What you read is the book as it is now: new parts appear the next time the page is opened.
 
+A long book is read in pieces: the parts around where you are are shown, the next (and previous) ones are added as you
+scroll, and the ones far away are dropped again; a *Loading* mark at the edge appears if you scroll faster than they
+arrive. No more than the **Parts loaded at once in the story** setting of [your account](../account.md) are loaded at a
+time; empty loads the whole book at once.
+
+The viewer remembers where you stopped reading each book: it opens the book at that part the next time. The position is
+kept in the local storage of your browser only (per book), it is not saved on the server, so another browser or a cleared
+browser storage starts at the beginning.
+
 [Pictures of the parts](story-editor.md#images) are shown under the text, but only to you, the owner. Readers of a
 [published](#publishing-a-book) book see the text without the pictures.
 

@@ -12,7 +12,7 @@ screenshots/
   SCREENSHOTS.md      this file
   package.json        playwright-core (the browser is the installed Google Chrome, nothing is downloaded)
   bin/                shell scripts: env.sh, start-app.sh, stop-app.sh, start-llm.sh, stop-llm.sh,
-                      snapshot.sh, restore.sh, rebuild.sh (+ chain.txt), shoot-all.sh, publish.sh,
+                      snapshot.sh, restore.sh, refresh-plugins.sh, rebuild.sh (+ chain.txt), shoot-all.sh, publish.sh,
                       make-broken-plugin.py, list-images.py
   flows/              the Playwright scripts (NN-name.mjs = a step of the setup, shoot-*.mjs = only pictures)
   lib/                shot.mjs (browser, login, dialogs, snap helpers), story.mjs (story editor helpers)
@@ -29,7 +29,7 @@ screenshots/
 ## Requirements
 
 * the WAR built from the **same commit** as the plugins: `mvn package -DskipTests` in the repository root builds the
-  application and all plugins (`marginalia/target/marginalia-1.3.0.war`, `marginalia/plugins/*/target/*-1.3.0.jar`). Use
+  application and all plugins (`marginalia/target/marginalia-1.4.0.war`, `marginalia/plugins/*/target/*-1.4.0.jar`). Use
   `mvn clean package -DskipTests -pl <plugin folders>` for the plugins when they were built before: an incremental build
   can leave a plugin without the AspectJ weaving (its `@Autowired` fields are then `null` and its dialogs fail with a
   `NullPointerException` in the log);
@@ -46,7 +46,7 @@ and the user's `~/.m2/settings.xml` is passed with `-s`, because the real home f
 | What | Value |
 |---|---|
 | Administrator | `admin` / `marginalia` (full name *Administrator*) |
-| Regular user | `ginny` / `marginalia` (*Ginny W.*), has the shared provider and a token limit |
+| Regular user | `ginny` / `marginalia` (*Ginny W.*), has the shared provider, a token limit and the permission *Create own models* (the Add button of her Inference Providers tab) |
 | Providers (admin) | **Local LLM** (shared, `http://localhost:8098/v1`, model `marginalia-demo-12b`), **Local Reasoner** (reasoning, `marginalia-demo-reasoner`), **Featherless.ai** (a hosted service, only listed) |
 | Protocols | *Chat Completion* and *Creative Protocol*; defaults in *Settings*: Local LLM + Chat Completion, *No Backups* |
 | Lorebook | *Harry Potter - Half-Blood Prince* (11 entries, tag `genderbend`), imported from `dataset/lorebook.mjs`; *Bestiary* is created and deleted for the trash |
@@ -82,16 +82,21 @@ bin/shoot-all.sh                                  # all pictures that the chain 
 bin/publish.sh --dry ; bin/publish.sh             # compare / copy out/*.png to manual/images/
 bin/restore.sh 13-db-backup                       # go back to a step (stops the app, replaces the data folder, starts the app)
 bin/snapshot.sh <name>                            # save the current data folder as steps/<name>.tar.gz (stops and starts the app)
+bin/refresh-plugins.sh                            # swap the plugin JARs of the data folder for the freshly built ones (app stopped: restore.sh <step> --no-start first)
 bin/start-app.sh | bin/stop-app.sh | bin/start-llm.sh | bin/stop-llm.sh
 node flows/shoot-book.mjs --only turn-details     # one part of a shooting script
 python3 bin/list-images.py                        # the table of all pictures below
 ```
 
+The step snapshots keep the plugin JARs of the day the step was made, which are older than the build after any plugin change
+(the plugin pictures then show old screens). `bin/shoot-all.sh` (after every restore) and `bin/rebuild.sh` (after the first one)
+therefore run `bin/refresh-plugins.sh`, which replaces them by `marginalia/plugins/*/target/<name>-<version>.jar`; build the plugins first.
+
 `bin/snapshot.sh` and `bin/restore.sh` stop the application first, because SQLite keeps a write-ahead log: a copy of the folder
 of a running application is not consistent.
 
 Every flow starts a fresh browser, logs in and works through the real UI. Pictures are written to `out/<name>.png`; names
-starting with `_` are scratch files. `SHOT_TOASTS=1` shows the toasts (they are hidden in all pictures, except the ones that
+starting with `_` are scratch files. The version text in the bottom left corner (`BuildInfoFooter`) is hidden in all pictures. `SHOT_TOASTS=1` shows the toasts (they are hidden in all pictures, except the ones that
 are about a toast).
 
 ## The setup chain (`bin/chain.txt`)
@@ -114,7 +119,7 @@ A flow may also take pictures on the way (names in the last column).
 | `08-images` | `07-images` | uploads the photograph, caption, a second unused upload (Resources) | `images-dialog` |
 | `09r-reasoning` | `reasoning` | a branch from #4 written by Local Reasoner, then back to the main branch | |
 | `09a-backup` | `backup-b` | per-book backup strategy and a second backup (with the picture) | |
-| `10-users` | `09-users` | user `ginny`, her protocol and defaults, her book *Quidditch Tryouts* | |
+| `10-users` | `09-users` | user `ginny` (and her permission *Create own models*, given in her permissions window), her protocol and defaults, her book *Quidditch Tryouts* | |
 | `11-limits` | `10-limits` | a token limit for her, usage, her info dialog, a second part by her | `provider-limit*`, `provider-usage`, `provider-shared-user` |
 | `12-trash` | `trash` | imports *Bestiary* and deletes it, creates and deletes *Scratch book* | |
 | `13-db-backup` | `db-backup` | a manual database backup (**the state of all core pictures**) | |
@@ -124,7 +129,7 @@ A flow may also take pictures on the way (names in the last column).
 | `17-sidequery` | `plugin-sidequery` | two questions in Side Query | `plugin-sidequery` |
 | `18-reviewer` | `plugin-reviewer` | a review of the last part | `plugin-reviewer*` |
 | `19-lorebookvcs` | `plugin-lorebookvcs` | a second revision of the entry of Draconia | `plugin-lorebookvcs` |
-| `20-loregenerator` | `plugin-loregenerator` | a new lore entry made with Lore Generator (generation, compaction, name tools) | `plugin-loregenerator*` |
+| `20-loregenerator` | `plugin-loregenerator` | a new lore entry made with Lore Generator (generation, compaction, the Tools window) | `plugin-loregenerator*`, `tools-dialog`, `tools-hint` |
 | `21-chaptermarker` | `plugin-chaptermarker` | chapter headings in parts 1 and 4 (**the state of the plugin pictures**) | `plugin-chaptermarker` |
 | `22-arcoutline` | `plugin-arcoutline` | installs the Arc Outline JAR (unless it is there), the first arc imported from the five parts of the story with the fake model, a second arc with chapters by hand, a third arc and its chapters made with the fake model (`arcOutline` in `dataset/plugins.mjs`) | `plugin-arcoutline-tab`, `plugin-arcoutline-menu`, `plugin-arcoutline-note`, `plugin-arcoutline-import`, `plugin-arcoutline-generate-arc`, `plugin-arcoutline-generate-chapters`, `plugin-arcoutline-generated` |
 
@@ -141,10 +146,15 @@ characters... would show in the outline, the prompt and the token numbers of the
 | `shoot-book` | `13-db-backup` | the book window: About, Prompts, the story (hero, turn details, prompt, token usage, highlight), Branch view, Backups |
 | `shoot-book-extra` | `13-db-backup` | the reasoning of a part, the backup dialogs, export dialogs (PDF), import of a backup as a new book |
 | `shoot-lorebook-tab` | `13-db-backup` | the read only *Lorebook* tab of the story editor with two entries opened: `story-lorebook-tab` |
-| `shoot-phone` | `13-db-backup` | the phone layout (Chrome as a phone: 402x874, touch, mobile user agent) and the viewer |
+| `shoot-phone` | `13-db-backup` | the phone layout (Chrome as a phone: 402x874, touch, mobile user agent), the search and replace windows of the story and of the lorebook, and the viewer |
 | `shoot-extra --only <part>` | a **copy** of `13-db-backup`, discarded | `language` (selector, Japanese), `quick-start` (a new book, an error of the model), `context-warning`, `verification` (a patched plugin, a stopped one) |
 | `shoot-plugin-characters` | `21-chaptermarker` | Character Tracker: list, dialog, the question when a changed dialog is cancelled, map (2x pixel ratio), import dialog |
-| `shoot-help` | a **copy** of `13-db-backup`, discarded | the help assistant (it is off in all other pictures, so the robot button is not in them): its Admin tab with the model chosen, the chat panel with an answer queued in the fake model, then a second question for which the fake model calls `get_ui_state` and `interact_with_ui` (queued `toolCalls`) so that the assistant really opens the Admin page and a tab, then a third one over the *New Inference Provider* dialog (the assistant stays usable above a dialog): the fake model reads the form with `get_ui_state` and explains the empty required field: `admin-help-assistant`, `help-assistant`, `help-assistant-navigate`, `help-assistant-form` |
+| `shoot-commands` | a **copy** of `13-db-backup`, discarded | the command line of the story editor: the list of commands, the help of one, the result of `/take-backup` (which adds a backup to the book, hence the copy), (the Stop window, `command-running`, is not retaken: `/hello-world-async` is gone), the question of `/search-replace-parts` (answered with No): `command-list`, `command-help`, `command-result`, `command-running`, `command-confirm` |
+| `shoot-search-replace` | a **copy** of `13-db-backup`, discarded | the settings menu with *Search and replace*, the window of the story (empty, with a row opened, the warning about summaries that would become outdated) and of a lorebook; nothing is replaced, but the workspace is left on the Lorebooks tab (the phone flow needs it on Books): `story-settings-menu`, `search-replace-dialog`, `search-replace-found`, `search-replace-warning`, `lorebook-search-replace` |
+| `shoot-help` | a **copy** of `13-db-backup`, discarded | the help assistant (nobody has the permission in the other pictures, so the robot button is not in them): its Admin tab with the model chosen, then the *Help assistant* permission of the administrator with *Allow navigating the interface* (the assistant moves through the interface only for a user whose permission allows it), the chat panel with an answer queued in the fake model, then a second question for which the fake model calls `get_ui_state` and `interact_with_ui` (queued `toolCalls`) so that the assistant really opens the Admin page and a tab, then a third one over the *New Inference Provider* dialog (the assistant stays usable above a dialog): the fake model reads the form with `get_ui_state` and explains the empty required field: `admin-help-assistant`, `help-assistant`, `help-assistant-navigate`, `help-assistant-form` |
+| `shoot-permissions` | a **copy** of `13-db-backup`, discarded | the permissions window of `ginny` (key button of *Admin → Users*; the application gave her *Create own models* when it migrated the old data): the list of the permissions to add, the *Help assistant* permission added with its settings unfolded, the *Agents* one too (the window and its table are made taller for that picture), saved and folded: `permissions-add`, `permissions-settings`, `permissions-settings-agents`, `permissions-dialog` |
+| `shoot-books-extra` | a **copy** of `13-db-backup`, discarded | a book imported from a zip of `.md` files (`archive-upload`), *Tag books*, a lorebook with two subbooks imported from `dataset/lorebook.mjs` (`companion`): *Count with subbooks*, *Mass edit*, *Tag entries*, and the entries imported from a zip (the zip files are made by the flow in `out/_archive/`): `archive-upload`, `multi-tag-books`, `lorebook-sub-lorebooks`, `lorebook-mass-edit`, `multi-tag-entries`, `archive-lorebook-upload`, `archive-entry-names` |
+| `shoot-agents` | a **copy** of `22-arcoutline`, discarded | the Agents tab and what is behind it. The administrator gets three concurrent runs (*Agents* permission), the book is cloned three times (`book-clone`) and four agents are made: *Continuity editor* (a conversation in the console: it asks what to do, works, reports three findings, edits parts, a lorebook entry and an arc of the outline, asks a *Reader* sub-agent, finishes; the author compacts it, finishes it, and changes the same sentence and the same arc meanwhile, so that the review has conflicts and a JSON merge), *Lore keeper* (asks a question with `ask_user`, then is paused), *Style editor* (calls `delete-part`, **Ask first**: waits for the approval) and *Drafter* (the fake model is slow: it works while `agents-tab` is taken). Every answer of the fake model is queued (`toolCalls` of `/_queue`, see `lib/agents.mjs`) before the step that needs it. The handles the agent names (`h:m5`, `h:e9`) are the numbers the run gives the things in the order it first lists them (`list-parts` and `list-lore-entries` first). The window of the approval only comes up when the console is open while the agent works (opened after, it lies under the console), and it can not be closed without a decision, so the flow reloads the page. Phone pictures with a second browser. Pictures: `agent-dialog`, `agent-dialog-prompts`, `agent-models`, `agent-commands`, `agent-start-menu`, `agent-console-start`, `agent-console-run`, `agent-console-report`, `agent-console-plan`, `agent-console-findings`, `agent-console-command`, `agent-console-question`, `agent-console-workspace`, `agent-checkpoints`, `agent-context`, `agent-book-copy`, `agent-diagnostics`, `agent-runs`, `agent-subagents`, `agent-approval`, `agent-resume`, `agent-stop`, `agents-tab`, `agent-locked-book`, `agent-locked-lorebook`, `agent-clone`, `admin-agents`, `agent-review`, `agent-review-conflict`, `agent-review-differences`, `agent-review-json`, `agent-json-merge`, `phone-agents`, `phone-agent-console`, `book-clone` |
 | `plugin-googlegenai` | a **copy** of `13-db-backup`, discarded | installs the Google Gemini JAR, adds a provider of the type *Extension* (nothing is sent to Google): `plugin-googlegenai-type`, `plugin-googlegenai`, `plugin-googlegenai-list` |
 | `shoot-invalid-extensions` | a **copy** of `13-db-backup`, discarded | the Author's Note JAR is replaced by the broken one (`bin/make-broken-plugin.py`) and its `.valid` report deleted before the start (the block in `bin/shoot-all.sh`): the red bar, `invalid-extensions-warning` |
 | `shoot-tabs` | a **copy** of `22-arcoutline`, discarded | drags *Side Query* under the other tabs and *Characters* into a column of its own (the arrangement is saved with the book): `story-editor-tabs` |

@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewerSetting;
 import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewerSettings;
 import com.github.enerccio.marginalia.extensions.reviewer.service.ReviewerService;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -207,6 +208,7 @@ public class ReviewerSettingsForm extends VerticalLayout {
 
         TextField nameField = new TextField("Profile Name");
         nameField.setWidthFull();
+        DialogFocus.onOpen(dialog, nameField);
 
         VerticalLayout dialogLayout = new VerticalLayout(nameField);
         dialogLayout.setPadding(false);
@@ -256,6 +258,7 @@ public class ReviewerSettingsForm extends VerticalLayout {
 
         TextField nameField = new TextField("New Profile Name");
         nameField.setWidthFull();
+        DialogFocus.onOpen(dialog, nameField);
         nameField.setValue(currentProfileName != null ? currentProfileName : "");
 
         VerticalLayout dialogLayout = new VerticalLayout(nameField);

@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
@@ -7,12 +8,14 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.dialog.Dialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
+@Extendable
 public abstract class ThreadAccessDialog extends Dialog implements LLMInteract {
 	private static final Logger log = LoggerFactory.getLogger(ThreadAccessDialog.class);
 
-	private ThreadCopyRequestAttributes attributes;
+	private RequestAttributes attributes;
 	protected UI ui;
 	private final String threadName;
 	protected final boolean push;
@@ -22,6 +25,9 @@ public abstract class ThreadAccessDialog extends Dialog implements LLMInteract {
 		this.push = push;
 	}
 	
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "t", type = Thread.class)})
 	public void run() {
 		ui = UI.getCurrent();
 		attributes = ThreadCopyRequestAttributes.create();
@@ -38,6 +44,9 @@ public abstract class ThreadAccessDialog extends Dialog implements LLMInteract {
 
 	protected abstract void runInThread() throws Exception;
 	
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "r", type = Runnable.class)})
 	public void vaadinLocked(Runnable r) {
 		ui.access(() -> {
 			try (InRequestScope _ = new InRequestScope(attributes)) {
@@ -50,6 +59,9 @@ public abstract class ThreadAccessDialog extends Dialog implements LLMInteract {
 		});
 	}
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "r", type = Runnable.class)})
 	public void vaadinLockedSync(Runnable r) {
 		ui.accessSynchronously(() -> {
 			try (InRequestScope _ = new InRequestScope(attributes)) {;

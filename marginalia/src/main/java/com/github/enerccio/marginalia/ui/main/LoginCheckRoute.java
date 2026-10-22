@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
 import com.github.enerccio.marginalia.ui.widgets.PermissiveLoginOverlay;
+import com.github.enerccio.marginalia.utils.BuildInfo;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.UI;
@@ -28,6 +29,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
@@ -63,6 +67,21 @@ public abstract class LoginCheckRoute extends Div implements ApplicationEntryPoi
             returns = @APIReturn(type = String.class))
     protected String clientAddress() {
         return UIUtils.clientAddress(configuration);
+    }
+
+    /**
+     * A cookie value may not hold a space, a comma, a quote or a non-ASCII letter (RFC 6265), a login may.
+     */
+    static String encodeCookieLogin(String login) {
+        return URLEncoder.encode(login, StandardCharsets.UTF_8).replace("+", "%20");
+    }
+
+    static String decodeCookieLogin(String value) {
+        try {
+            return URLDecoder.decode(value, StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException e) {
+            return value;
+        }
     }
 
     protected abstract String getAppTitle();
@@ -136,7 +155,7 @@ public abstract class LoginCheckRoute extends Div implements ApplicationEntryPoi
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 if ((cookiePrefix + PERSISTED_LOGIN_COOKIE_LOGIN).equals(cookie.getName())) {
-                    cookieLogin = cookie.getValue();
+                    cookieLogin = decodeCookieLogin(cookie.getValue());
                 }
                 if ((cookiePrefix + PERSISTED_LOGIN_COOKIE_IDENTIFIER).equals(cookie.getName())) {
                     cookieIdentifier = cookie.getValue();
@@ -182,7 +201,7 @@ public abstract class LoginCheckRoute extends Div implements ApplicationEntryPoi
         long ttl = configuration.getPersistentLoginInfoTTL() == null ?
                 60 * 60 * 24 * 30 : configuration.getPersistentLoginInfoTTL();
         String cookiePrefix = getCookiePrefix();
-        Cookie cookieLogin = new Cookie(cookiePrefix + PERSISTED_LOGIN_COOKIE_LOGIN, user.getLogin());
+        Cookie cookieLogin = new Cookie(cookiePrefix + PERSISTED_LOGIN_COOKIE_LOGIN, encodeCookieLogin(user.getLogin()));
         Cookie cookieIdentifier = new Cookie(cookiePrefix + PERSISTED_LOGIN_COOKIE_IDENTIFIER, persistedLoginInfo.getIdentifier());
         Cookie cookieSecret = new Cookie(cookiePrefix + PERSISTED_LOGIN_COOKIE_SECRET, persistedLoginInfo.getPlainSecret());
         Cookie cookieSaved = new Cookie(cookiePrefix + PERSISTED_LOGIN_COOKIE_WAS_SAVED, "yes");
@@ -315,6 +334,7 @@ public abstract class LoginCheckRoute extends Div implements ApplicationEntryPoi
         i18n.getForm().setSubmit(loc.getValue(L.LABEL_LOGIN));
 
         i18n.getForm().setForgotPassword(loc.getValue(L.LABEL_FORGOT_PASSWORD));
+        i18n.setAdditionalInformation("Marginalia " + BuildInfo.current().getShortText());
         i18n.getErrorMessage().setTitle(loc.getValue(L.LABEL_AUTHENTICATION_FAILED));
         i18n.getErrorMessage().setMessage(loc.getValue(L.MSG_AUTHENTICATION_FAILED_INFO));
 

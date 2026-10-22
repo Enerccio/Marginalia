@@ -13,9 +13,9 @@ import com.github.enerccio.marginalia.domain.service.DatabaseBackupService.Datab
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.domain.service.OsgiService.ExtensionReport;
 import com.github.enerccio.marginalia.domain.service.manual.AdminDataSource;
-import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import org.osgi.framework.Bundle;
+import org.springframework.web.context.request.RequestAttributes;
 
 import java.lang.management.ManagementFactory;
 import java.time.Instant;
@@ -43,14 +43,14 @@ final class HelpAdminData implements AdminDataSource {
     private final UserService userService;
     private final DatabaseBackupService backupService;
     private final CleanupService cleanupService;
-    private final ThreadCopyRequestAttributes request;
+    private final RequestAttributes request;
 
     /**
      * @param osgiService null where there are no extensions (the application without its OSGi service)
      * @param request     the request of the administrator, to run the reads in
      */
     HelpAdminData(AdminGuard adminGuard, OsgiService osgiService, UserService userService, DatabaseBackupService backupService,
-                  CleanupService cleanupService, ThreadCopyRequestAttributes request) {
+                  CleanupService cleanupService, RequestAttributes request) {
         this.adminGuard = adminGuard;
         this.osgiService = osgiService;
         this.userService = userService;

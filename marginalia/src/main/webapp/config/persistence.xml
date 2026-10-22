@@ -25,6 +25,11 @@
         <class>com.github.enerccio.marginalia.domain.model.impl.TagRelation</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.Summary</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.Usage</class>
+        <class>com.github.enerccio.marginalia.domain.model.impl.Agent</class>
+        <class>com.github.enerccio.marginalia.domain.model.impl.AgentRun</class>
+        <class>com.github.enerccio.marginalia.domain.model.impl.AgentMessage</class>
+        <class>com.github.enerccio.marginalia.domain.model.impl.AgentRunPair</class>
+        <class>com.github.enerccio.marginalia.domain.security.model.Permission</class>
 
         <class>com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.ExtensionAI</class>
@@ -39,6 +44,9 @@
         <properties>
             <property name="hibernate.dialect" value="com.github.enerccio.marginalia.SaneSQLiteDialect" />
             <property name="hibernate.hbm2ddl.auto" value="validate" />
+            <!-- the default (grouped) asks the SQLite driver for the columns of all tables in one compound SELECT,
+                 which SQLite refuses above 500 terms (columns of all tables together); the schema passed it -->
+            <property name="hibernate.hbm2ddl.jdbc_metadata_extraction_strategy" value="individually" />
         </properties>
     </persistence-unit>
 </persistence>
