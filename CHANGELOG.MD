@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-22
+
 Everything below is new since 1.3.0. Migrations `V15` to `V18`; plugins have to be rebuilt with the application (`lore-generator`, `arc-outline` and `character-tracker` use the new command and agent API).
 
 ### Added
@@ -460,7 +462,8 @@ Initial release.
   Side Query plugins.
 - Docker image (amd64, arm64), WAR and desktop archives for five targets.
 
-[Unreleased]: https://github.com/Enerccio/Marginalia/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/Enerccio/Marginalia/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/Enerccio/Marginalia/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/Enerccio/Marginalia/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/Enerccio/Marginalia/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/Enerccio/Marginalia/compare/v1.0.0...v1.1.0
