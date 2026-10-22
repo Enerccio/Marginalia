@@ -126,6 +126,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     private final StoryCards<ChatMessageCard> cards = new StoryCards<>();
     private final StorySupport support = new StorySupport();
     private StoryLazyLoader<ChatMessageCard> lazyLoader;
+    private StoryBranchSearch branchSearch;
     private final StoryBackup backup = new StoryBackup();
     private Long scrollToMessageId;
 
@@ -511,6 +512,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         lazyLoader.clear();
 
         if (currentManuscript == null || currentManuscript.getActiveLeaf() == null) {
+            branchSearch.refresh(List.of());
             Span emptyLabel = new Span(loc.getValue(L.MSG_NO_ACTIVE_BRANCH));
             centerContentPanel.add(UIUtils.centerComponent(emptyLabel));
         } else {
@@ -524,6 +526,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     createSidebarButton(msg, i + 1, msg.getId());
                 }
 
+                branchSearch.refresh(branch);
                 // the cards of the last parts only, the earlier ones are added when the user scrolls up
                 lazyLoader.render(branch, support.partsLimit(), scrollToMessageId, openedReasonings);
             } catch (Exception e) {
@@ -531,6 +534,18 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             }
             scrollToMessageId = null;
         }
+    }
+
+    /**
+     * The branch of the story as it is in the database now, what the search of the outline searches.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = List.class),
+            locals = {@APILocals(name = "manuscript", type = Manuscript.class)})
+    private List<ChatMessage> currentBranch() throws Exception {
+        Manuscript manuscript = parent.refreshManuscript();
+        return manuscript == null || manuscript.getActiveLeaf() == null
+                ? List.of() : chatMessageService.getBranchFromLeaf(manuscript.getActiveLeaf());
     }
 
     /**
@@ -580,7 +595,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         sidebarList.setSpacing(false);
         sidebarList.setWidthFull();
 
-        leftMarginLayout.add(sidebarHeader, sidebarList);
+        branchSearch = new StoryBranchSearch(this::currentBranch,
+                ids -> lazyLoader.renderResponses(ids), id -> lazyLoader.showMatch(id, CssStyles.SEARCH_MATCH_CURRENT));
+
+        leftMarginLayout.add(branchSearch, sidebarHeader, sidebarList);
         leftMarginLayout.setFlexGrow(1, sidebarList);
     }
 
@@ -1276,9 +1294,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 locals = {@APILocals(name = "response", type = String.class)})
         public void renderResponse() {
             String response = StringUtils.defaultString(message.getResponse());
-            responseMarkdown.setContent(showGeneratedDiff
+            responseMarkdown.setContent(branchSearch.mark(message.getId(), showGeneratedDiff
                     ? GeneratedTextHighlighter.highlight(response, message.getOriginalResponse(), CssStyles.GENERATED_TEXT)
-                    : response);
+                    : response));
         }
 
         @PublicAPI(from = "1.1.0",

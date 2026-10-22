@@ -25,6 +25,24 @@ other end are dropped again, so no more than the **Parts loaded at once in the s
 earlier parts* (or *later parts*) mark at the edge says that there is more. Clicking a part in the outline, or finding one
 with the search, loads the parts around it, and starting a new part brings you back to the end of the story.
 
+### Searching the story
+
+Above the outline there is a search field for the text of the **branch you are on** (the search of the story tree
+searches all branches). Because a long book is not loaded all at once, the search of the browser (Ctrl+F) cannot find
+text in the parts that are not loaded; this one can.
+
+- Type what you look for; the search starts when you stop typing. Several words must all be in the same part, a phrase
+  goes in double quotes (`"old key"`) and `*` stands for any characters (`light*house`). The case does not matter.
+- Every place where a word stands is a match, and they are numbered through the whole branch. Below the field you see
+  *Match 3 of 27, in part #5* and a bar with how far you are. The story scrolls to the match and loads the parts around it
+  when they are not loaded.
+- The **up** and **down** buttons go to the previous and the next match (after the last one it goes round to the first).
+  **Enter** in the field does the same as the down button, **Shift+Enter** as the up button.
+- All the matches in the loaded parts are highlighted in the text, the match you are at in a stronger colour. Clear the
+  field to remove the highlight.
+
+On the phone the search is in the outline drawer; the drawer closes when it shows a match, open it again for the next one.
+
 ### The lorebook tab
 
 The **Lorebook** tab of the sidebar shows the lore of the book's lorebook without leaving the story, so you do not have to

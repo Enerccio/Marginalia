@@ -637,6 +637,19 @@ vaadin-markdown.agent-report td {
     border-radius: var(--lumo-border-radius-s);
 }
 
+/* Text the search of the story found; the match the user is at is stronger */
+.search-match {
+    background-color: var(--lumo-warning-color-50pct);
+    color: inherit;
+    border-radius: var(--lumo-border-radius-s);
+}
+
+.search-match-current {
+    background-color: var(--lumo-warning-color);
+    color: var(--lumo-warning-contrast-color);
+    outline: 2px solid var(--lumo-warning-color);
+}
+
 .summary-content {
     position: relative;
     box-sizing: border-box;

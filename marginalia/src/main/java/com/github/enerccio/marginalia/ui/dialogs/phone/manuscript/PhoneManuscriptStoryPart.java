@@ -110,6 +110,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
     private final StoryCards<ChatMessageCard> cards = new StoryCards<>();
     private final StorySupport support = new StorySupport();
     private StoryLazyLoader<ChatMessageCard> lazyLoader;
+    private StoryBranchSearch branchSearch;
     private final StoryBackup backup = new StoryBackup();
     private Long scrollToMessageId;
 
@@ -434,6 +435,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         if (currentManuscript == null || currentManuscript.getActiveLeaf() == null) {
             sidebarHeader.setText("");
             navTitle.setText("");
+            branchSearch.refresh(List.of());
             Span emptyLabel = new Span(loc.getValue(L.MSG_NO_ACTIVE_BRANCH));
             centerContentPanel.add(UIUtils.centerComponent(emptyLabel));
         } else {
@@ -449,6 +451,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                     createSidebarButton(msg, i + 1, msg.getId());
                 }
 
+                branchSearch.refresh(branch);
                 // the cards of the last parts only, the earlier ones are added when the user scrolls up
                 lazyLoader.render(branch, support.partsLimit(), scrollToMessageId, openedReasonings);
             } catch (Exception e) {
@@ -456,6 +459,18 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
             }
             scrollToMessageId = null;
         }
+    }
+
+    /**
+     * The branch of the story as it is in the database now, what the search of the outline searches.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = List.class),
+            locals = {@APILocals(name = "manuscript", type = Manuscript.class)})
+    private List<ChatMessage> currentBranch() throws Exception {
+        Manuscript manuscript = parent.refreshManuscript();
+        return manuscript == null || manuscript.getActiveLeaf() == null
+                ? List.of() : chatMessageService.getBranchFromLeaf(manuscript.getActiveLeaf());
     }
 
     /**
@@ -516,7 +531,14 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         sidebarList.setSpacing(false);
         sidebarList.setWidthFull();
 
-        outlineTab.add(sidebarHeader, sidebarList);
+        branchSearch = new StoryBranchSearch(this::currentBranch,
+                ids -> lazyLoader.renderResponses(ids), id -> {
+                    // the drawer covers the story, the user opens it again for the next match
+                    layout.setDrawerOpened(false);
+                    lazyLoader.showMatch(id, CssStyles.SEARCH_MATCH_CURRENT);
+                });
+
+        outlineTab.add(branchSearch, sidebarHeader, sidebarList);
         outlineTab.setFlexGrow(1, sidebarList);
         leftBar.add(ManuscriptStoryPart.CHAPTERS_TAB, loc.getValue(L.LABEL_CHAPTERS), outlineTab);
 
@@ -763,9 +785,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
 
             responseMarkdown = new Markdown();
             responseMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
-            if (StringUtils.isNotBlank(message.getResponse())) {
-                responseMarkdown.setContent(message.getResponse());
-            }
+            renderResponse();
 
             messageImages = new MessageImages(message.getImages());
 
@@ -1069,7 +1089,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                 try {
                     String newResponse = responseTextArea.getValue();
                     message = support.saveEditedResponse(currentManuscript, message, newResponse);
-                    responseMarkdown.setContent(StringUtils.defaultString(newResponse));
+                    renderResponse();
                     remove(responseTextArea);
                     responseTextArea = null;
                     responseMarkdown.setVisible(true);
@@ -1117,7 +1137,17 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                 parameters = {@APIParameter(name = "responseText", type = String.class)})
         public void updateResponse(String responseText) {
             message.setResponse(responseText);
-            responseMarkdown.setContent(StringUtils.defaultString(responseText));
+            renderResponse();
+        }
+
+        /**
+         * Draws the response of the message, the places the search of the outline found are marked.
+         */
+        @PublicAPI(from = "1.5.0",
+                returns = @APIReturn(type = void.class))
+        @Override
+        public void renderResponse() {
+            responseMarkdown.setContent(branchSearch.mark(message.getId(), StringUtils.defaultString(message.getResponse())));
         }
 
         @PublicAPI(from = "1.2.0",

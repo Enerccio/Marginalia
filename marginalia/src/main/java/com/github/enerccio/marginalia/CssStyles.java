@@ -92,6 +92,8 @@ public final class CssStyles {
     public static final String CHAT_MESSAGE_CONTENT = "chat-message-content";
     public static final String CHAT_MESSAGE_META = "chat-message-meta";
     public static final String GENERATED_TEXT = "generated-text";
+    public static final String SEARCH_MATCH = "search-match";
+    public static final String SEARCH_MATCH_CURRENT = "search-match-current";
     public static final String SUMMARY_CONTENT = "summary-content";
     public static final String SUMMARY_ACTIONS = "summary-actions";
 
