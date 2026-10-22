@@ -14,7 +14,7 @@ Marginalia: a self-hosted tool for co-writing long fiction with OpenAI-compatibl
 All from `marginalia/` (the Maven project; needs JDK 25 + Maven 3.9, build from a git clone — the build reads git info):
 
 ```sh
-mvn package                  # build + tests; production WAR in target/marginalia-1.4.0.war
+mvn package                  # build + tests; production WAR in target/marginalia-1.5.0.war
 mvn package -DskipTests
 mvn install -DskipTests      # also installs the classes JAR into ~/.m2 (required before building plugins)
 mvn test -Dtest=LorebookActivationTest        # one class
