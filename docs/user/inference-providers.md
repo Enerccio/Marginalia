@@ -44,7 +44,11 @@ With the [Docker version](getting-started/docker-server.md), `localhost` means t
 ## Adding a provider
 
 Open the **Inference Providers** tab and click **Add Inference Provider**. Existing providers are edited with the pen
-button and deleted with the trash button.
+button and deleted with the trash button. The clone button (two sheets) makes a copy of a provider under a name you
+confirm (the original's with *(Copy)*): the copy has the same address, model, **API key** (or the settings of the
+extension), reasoning, token limits and parameters, so a second model on the same service takes a name and a click.
+The copy is not shared and has no limits or usage of its own. You can clone only your own providers (not a shared one of
+an administrator, whose key you must not see) and only when you may create providers.
 
 At the top of the dialog:
 

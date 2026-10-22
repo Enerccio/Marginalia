@@ -1,9 +1,5 @@
 package com.github.enerccio.marginalia.ui.workspace.phone.parts;
 
-import java.util.Map;
-import com.github.enerccio.marginalia.ui.workspace.WorkspaceLLMSupport;
-import com.github.enerccio.marginalia.ui.LLMInteraction;
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
@@ -11,10 +7,14 @@ import com.github.enerccio.marginalia.domain.service.ProtocolService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.LLMInteraction;
+import com.github.enerccio.marginalia.ui.dialogs.CloneNameDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ProtocolDialog;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
+import com.github.enerccio.marginalia.ui.workspace.WorkspaceLLMSupport;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The protocol list for phones. Instead of the type, name and action columns of the desktop list it has a text column
@@ -124,6 +125,7 @@ public class PhoneProtocolPart implements WorkspaceComponent {
             returns = @APIReturn(type = Component.class),
             parameters = {@APIParameter(name = "protocol", type = Protocol.class)},
             locals = {@APILocals(name = "editButton", type = Button.class),
+                    @APILocals(name = "cloneButton", type = Button.class),
                     @APILocals(name = "deleteButton", type = Button.class),
                     @APILocals(name = "actions", type = HorizontalLayout.class)})
     private Component createActions(Protocol protocol) {
@@ -133,6 +135,9 @@ public class PhoneProtocolPart implements WorkspaceComponent {
             dialog.create();
             dialog.open();
         });
+
+        Button cloneButton = new Button(Solid.CLONE.create(), event -> cloneProtocol(protocol));
+        cloneButton.setTooltipText(loc.getValue(L.LABEL_CLONE_PROTOCOL));
 
         Button deleteButton = new Button(Solid.TRASH.create(), event ->
                 ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
@@ -145,7 +150,7 @@ public class PhoneProtocolPart implements WorkspaceComponent {
                 }));
         deleteButton.setThemeName("error tertiary");
 
-        HorizontalLayout actions = new HorizontalLayout(editButton, deleteButton);
+        HorizontalLayout actions = new HorizontalLayout(editButton, cloneButton, deleteButton);
         actions.setSpacing(false);
         actions.setAlignItems(FlexComponent.Alignment.CENTER);
         actions.addClassName(CssStyles.FLEX_SHRINK_0);
@@ -174,6 +179,20 @@ public class PhoneProtocolPart implements WorkspaceComponent {
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+    }
+
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "protocol", type = Protocol.class)})
+    private void cloneProtocol(Protocol protocol) {
+        CloneNameDialog.show(loc, loc.getValue(L.LABEL_CLONE_PROTOCOL), protocol.getName(), name -> {
+            try {
+                protocolService.cloneProtocol(protocol, name);
+                refreshGrid();
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        });
     }
 
     @PublicAPI(from = "1.3.0",

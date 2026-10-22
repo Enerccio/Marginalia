@@ -639,6 +639,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_MODIFIED_TO, "更新日（終了）");
         setValue(L.LABEL_PARTS_FROM, "パート数（下限）");
         setValue(L.LABEL_PARTS_TO, "パート数（上限）");
+        setValue(L.LABEL_CLONE_LOREBOOK, "ロアブックを複製");
+        setValue(L.LABEL_CLONE_PROTOCOL, "プロトコルを複製");
+        setValue(L.LABEL_CLONE_PROVIDER, "推論プロバイダーを複製");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");

@@ -1,8 +1,5 @@
 package com.github.enerccio.marginalia.ui.workspace.parts;
 
-import com.github.enerccio.marginalia.ui.workspace.WorkspaceLLMSupport;
-import com.github.enerccio.marginalia.ui.LLMInteraction;
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
@@ -12,15 +9,15 @@ import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
 import com.github.enerccio.marginalia.domain.service.UsageService;
-import com.github.enerccio.marginalia.domain.traits.APILocals;
-import com.github.enerccio.marginalia.domain.traits.APIReturn;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
-import com.github.enerccio.marginalia.domain.traits.PublicAPI;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
+import com.github.enerccio.marginalia.ui.workspace.WorkspaceLLMSupport;
 import com.github.enerccio.marginalia.utils.AITypes;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
@@ -63,6 +60,7 @@ public class AIPart implements WorkspaceComponent {
     private Button addModelButton;
     private final Map<Long, Usage> usages = new HashMap<>();
     private boolean administrator;
+    private boolean canCreate;
     private VerticalLayout mainLayout;
 
     public AIPart(Workspace workspace) {
@@ -150,6 +148,9 @@ public class AIPart implements WorkspaceComponent {
                 dialog.open();
             });
 
+            Button cloneButton = new Button(Solid.CLONE.create(), event -> cloneModel(ai));
+            cloneButton.setTooltipText(loc.getValue(L.LABEL_CLONE_PROVIDER));
+
             Button deleteButton = new Button(Solid.TRASH.create(), event ->
                     ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
                         try {
@@ -173,12 +174,13 @@ public class AIPart implements WorkspaceComponent {
             // AIs shared by somebody else can be used, not seen or changed
             boolean own = aiService.isOwnedByCurrentUser(ai);
             editButton.setVisible(own);
+            cloneButton.setVisible(own && canCreate);
             deleteButton.setVisible(own);
             limitsButton.setVisible(own && ai.isShared() && administrator);
 
-            actions.add(infoButton, limitsButton, editButton, deleteButton);
+            actions.add(infoButton, limitsButton, editButton, cloneButton, deleteButton);
             return actions;
-        }).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE_GIANT);
+        }).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE_FIVE);
 
         mainLayout.add(headerLayout, grid);
         mainLayout.setFlexGrow(1, grid);
@@ -209,11 +211,26 @@ public class AIPart implements WorkspaceComponent {
             administrator = aiService.isAdministrator();
             usages.clear();
             usageService.findAllForUser().forEach(usage -> usages.put(usage.getAi().getId(), usage));
-            addModelButton.setVisible(aiService.canCreate());
+            canCreate = aiService.canCreate();
+            addModelButton.setVisible(canCreate);
             grid.setItems(connections);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+    }
+
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "ai", type = AI.class)})
+    private void cloneModel(AI ai) {
+        CloneNameDialog.show(loc, loc.getValue(L.LABEL_CLONE_PROVIDER), ai.getName(), name -> {
+            try {
+                aiService.cloneAI(ai, name);
+                refreshGrid();
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        });
     }
 
     @PublicAPI(from = "1.3.0",

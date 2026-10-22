@@ -80,6 +80,16 @@ public interface LorebookService extends ExtendableService<Lorebook, LorebookRep
 
     Lorebook fillEntries(Lorebook book) throws Exception;
 
+    /**
+     * Makes a new lorebook of the user with the entries (their settings, tags and negative tags), the tags and the
+     * attributes of the lorebook. The subbooks are not copied, the clone is linked to the same ones.
+     *
+     * @param name the name of the clone, the name of the lorebook when blank
+     * @return the new lorebook
+     * @throws IllegalArgumentException when the lorebook is not the user's or is a working copy of an agent
+     */
+    Lorebook cloneLorebook(Lorebook source, String name) throws Exception;
+
     Lorebook importFromSillytavern(String json, String name) throws Exception;
 
     String exportLorebook(Lorebook lorebook) throws Exception;

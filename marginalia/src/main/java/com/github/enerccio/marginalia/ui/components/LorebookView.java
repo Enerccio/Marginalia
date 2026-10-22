@@ -89,6 +89,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
     private ComboBox<Lorebook> lorebookCombo;
     private Checkbox rootOnlyCheckbox;
     private Button addLorebookButton;
+    private Button cloneLorebookButton;
     private Button deleteLorebookButton;
     private Button importLorebookButton;
     private Button tagLorebooksButton;
@@ -185,6 +186,10 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         addLorebookButton.setThemeName("primary");
         addLorebookButton.setVisible(!pinnedLorebook);
 
+        cloneLorebookButton = new Button(Solid.CLONE.create(), event -> cloneCurrentLorebook());
+        cloneLorebookButton.setTooltipText(loc.getValue(L.LABEL_CLONE_LOREBOOK));
+        cloneLorebookButton.setVisible(!pinnedLorebook);
+
         deleteLorebookButton = new Button(loc.getValue(L.LABEL_DELETE_LOREBOOK), Solid.TRASH.create(), event -> deleteCurrentLorebook());
         deleteLorebookButton.setThemeName("error");
         deleteLorebookButton.setVisible(!pinnedLorebook);
@@ -237,7 +242,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
-        controlsLayout.add(lorebookCombo, rootOnlyCheckbox, addLorebookButton, deleteLorebookButton, importLorebookButton, exportLorebookAnchor, tagLorebooksButton);
+        controlsLayout.add(lorebookCombo, rootOnlyCheckbox, addLorebookButton, cloneLorebookButton, deleteLorebookButton, importLorebookButton, exportLorebookAnchor, tagLorebooksButton);
         controlsLayout.setAlignItems(Alignment.END);
         // the buttons are many: in a narrow window (a book, a small screen) they go to the next line instead of off the edge
         controlsLayout.setWrap(true);
@@ -847,6 +852,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         searchReplaceButton.setEnabled(hasLorebook);
         massEditButton.setEnabled(hasLorebook);
         tagEntriesButton.setEnabled(hasLorebook);
+        cloneLorebookButton.setEnabled(hasLorebook);
         deleteLorebookButton.setEnabled(hasLorebook);
         exportLorebookButton.setEnabled(hasLorebook);
         exportLorebookAnchor.setEnabled(hasLorebook);
@@ -920,6 +926,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         // a new or imported lorebook has nothing to do with the lock, so with every lorebook locked these are the way out;
         // only the delete of the locked one is refused
         addLorebookButton.setVisible(!pinnedLorebook);
+        cloneLorebookButton.setVisible(!pinnedLorebook);
         importLorebookButton.setVisible(!pinnedLorebook);
         deleteLorebookButton.setVisible(!locked && !pinnedLorebook);
         addEntryButton.setVisible(!locked);
@@ -992,6 +999,26 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+    }
+
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "source", type = Lorebook.class)})
+    private void cloneCurrentLorebook() {
+        if (currentLorebook == null) {
+            return;
+        }
+        Lorebook source = currentLorebook;
+        CloneNameDialog.show(loc, loc.getValue(L.LABEL_CLONE_LOREBOOK), source.getName(), name -> {
+            try {
+                currentLorebook = lorebookService.cloneLorebook(source, name);
+                openEntries.clear();
+                loadLorebooks();
+                fireStateChanged();
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        });
     }
 
     @PublicAPI(from = "1.1.0",

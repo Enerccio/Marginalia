@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846020414538">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846024434294">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846020414538" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846024434294" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846020414538" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846024434294" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846020414538" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846020414538" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846024434294" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846024434294" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -645,6 +645,7 @@ their layout and the methods extensions decorate (<code translate="no" v-pre>ren
 | `LazyBranch`, `StoryLazyLoader`, `ReaderLazyLoader` | Lazy loading of the parts, a window that slides over the branch. `LazyBranch` is the plain logic without UI: the size of the window is `UserSetting.storyPartsLimit` (empty loads everything), a chunk is half of it; `tail` starts the story with the last parts, `head` the reader with the first ones, `loadEarlier` / `loadLater` extend the window by a chunk and `trimLater` / `trimEarlier` drop the parts at the other end, `centerOn(id)` moves it around a part that is not loaded, `moveToTail` back to the end, `refresh` swaps in the instance a card holds now (an edit saves a new one). `StoryLazyLoader` fills the panel of a story tab with the cards of the window and answers `edge-top` / `edge-bottom` of the panel: it adds the chunk, drops the other end (an edited card is saved first; nothing is dropped while a part is generated, because the streaming card is the last one and the branch does not have it) and puts the visible part back in place. `scrollTo(id)` is the outline (moves the window when the part is not loaded), `showTail()` is called before a generation starts, so the new part is added after the last one. `ReaderLazyLoader` does the same for the reader (`Viewer`) with plain parts that carry `data-message-id`. Both put a `LazyLoadIndicator` in the header and footer of the `ScrollPanel` (`setHeader` / `setFooter`) while there is more to load at that edge, so a user who outruns the loading sees it. |
 | `StoryBranchSearch` | The search field of the outline of both story tabs: parses a `FulltextQuery`, finds every occurrence (`SearchHighlighter.count` in the `response` of the branch, which it reads through a `BranchSource`, because the browser's search cannot see parts that are not loaded), numbers them through the branch and keeps the current one (previous / next, Enter / Shift+Enter, status text and progress bar). The cards draw their response through `mark(messageId, text)` (`SearchHighlighter` wraps the matches in `&lt;mark class=&quot;search-match&quot;&gt;`, the current one also `search-match-current`, and leaves the `&lt;mark&gt;` tags of *Highlight Generated Text* alone), so `StoryCard.renderResponse` is the one place the text is set; `StoryLazyLoader.showMatch` moves the window to the part, redraws the card and `JavascriptLibrary.scrollToSearchMatch` scrolls to the mark. `refresh(branch)` is called when the story is drawn again. |
 | `ManuscriptSearchDialog` | The advanced search of the book list (the *Search* button of `ManuscriptPart` and the magnifier of `PhoneManuscriptPart`, which pass the callback that opens a found book after the `AgentLockCheck`). It builds a `ManuscriptSearchCriteria` from the fields (a *to* date becomes the start of the next day, the end is exclusive) and lists the result of `ManuscriptService.searchAdvanced`: `ManuscriptRepository.searchManuscripts(criteria, …)` does name, tags (one `EXISTS` per tag; include all/any, exclude any/all), dates and the number of parts in one JPQL query, then `ChatMessageService.findManuscriptsWithText` keeps the books that have a part with all the words (`_fulltext` `LIKE`s, as in `searchFulltext`), restricted to the active branch (`ChatMessageRepository.findActiveBranchIds`) unless *all branches* is on. |
+| `CloneNameDialog` (`ui.dialogs`) | Static helper, not `@Extendable`: a `TextInputDialog` that asks for the name of a copy (the original's name and *(Copy)*, required) and calls back with it. Used by the clone buttons of `LorebookView`, `ProtocolPart` / `PhoneProtocolPart` and `AIPart` / `PhoneAIPart`, which call `LorebookService.cloneLorebook`, `ProtocolService.cloneProtocol` and `AIService.cloneAI` (the `PhoneLorebookView` has no clone). |
 | `StoryGenerationListener` | The `GenerationListener` of a story tab: creates and fills the cards while a generation streams, redraws the story at its end. The tab reacts through `Callbacks`. |
 | `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics` | The fields of the *New Turn Instructions* popover, the turn details of a part, the metadata lines of a part. |
 | `StoryBackup`, `StorySupport` | The automatic backup after N parts / minutes, the limit of parts to load (`partsLimit`) and the saving of an edited part. The story does not remember a scroll position: it always opens at the bottom. |">
@@ -676,6 +677,10 @@ their layout and the methods extensions decorate (<code translate="no" v-pre>ren
 <tr>
 <td><code translate="no" v-pre>ManuscriptSearchDialog</code></td>
 <td>The advanced search of the book list (the <em>Search</em> button of <code translate="no" v-pre>ManuscriptPart</code> and the magnifier of <code translate="no" v-pre>PhoneManuscriptPart</code>, which pass the callback that opens a found book after the <code translate="no" v-pre>AgentLockCheck</code>). It builds a <code translate="no" v-pre>ManuscriptSearchCriteria</code> from the fields (a <em>to</em> date becomes the start of the next day, the end is exclusive) and lists the result of <code translate="no" v-pre>ManuscriptService.searchAdvanced</code>: <code translate="no" v-pre>ManuscriptRepository.searchManuscripts(criteria, …)</code> does name, tags (one <code translate="no" v-pre>EXISTS</code> per tag; include all/any, exclude any/all), dates and the number of parts in one JPQL query, then <code translate="no" v-pre>ChatMessageService.findManuscriptsWithText</code> keeps the books that have a part with all the words (<code translate="no" v-pre>_fulltext</code> <code translate="no" v-pre>LIKE</code>s, as in <code translate="no" v-pre>searchFulltext</code>), restricted to the active branch (<code translate="no" v-pre>ChatMessageRepository.findActiveBranchIds</code>) unless <em>all branches</em> is on.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>CloneNameDialog</code> (<code translate="no" v-pre>ui.dialogs</code>)</td>
+<td>Static helper, not <code translate="no" v-pre>@Extendable</code>: a <code translate="no" v-pre>TextInputDialog</code> that asks for the name of a copy (the original&#x27;s name and <em>(Copy)</em>, required) and calls back with it. Used by the clone buttons of <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>ProtocolPart</code> / <code translate="no" v-pre>PhoneProtocolPart</code> and <code translate="no" v-pre>AIPart</code> / <code translate="no" v-pre>PhoneAIPart</code>, which call <code translate="no" v-pre>LorebookService.cloneLorebook</code>, <code translate="no" v-pre>ProtocolService.cloneProtocol</code> and <code translate="no" v-pre>AIService.cloneAI</code> (the <code translate="no" v-pre>PhoneLorebookView</code> has no clone).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>StoryGenerationListener</code></td>
@@ -1353,7 +1358,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (625ecff2).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (068640a8).</p></div>
             </footer>
         </div>
     </div>

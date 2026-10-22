@@ -12,6 +12,7 @@ The toolbar has two rows, which wrap onto more lines in a narrow window: the fir
 | **Lorebook** | Selects the lorebook to edit. |
 | **Only root lorebooks** | Lists only the lorebooks that are not a sub lorebook of another one (the selected lorebook stays in the list). |
 | **Add Lorebook** | Creates a new lorebook named *New Lorebook* and selects it. |
+| Clone (two sheets icon) | Makes a copy of the selected lorebook: asks for the name (the original's with *(Copy)*) and selects the copy. The copy has the same entries (with their settings, tags and negative tags), tags and data of extensions. Its sub lorebooks are not copied, the copy uses the same ones. The original is not changed. |
 | **Delete Lorebook** | Deletes the selected lorebook (after confirming). |
 | Import (file icon) | **Import Marginalia Lorebook**, **Import from SillyTavern** or **Import from archive** (a zip of `.md` files), see [Import & export](import-export.md). |
 | Export (file icon) | Downloads the lorebook with its sub lorebooks, see [Import & export](import-export.md#exporting). |
