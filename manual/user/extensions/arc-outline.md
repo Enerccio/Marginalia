@@ -81,7 +81,7 @@ On the left:
 |---|---|
 | Prompt | The instructions for the model, with three variables: `{{backgroundLore}}` (the entries of the book's lorebook and its sub lorebooks), `{{existingArcs}}` (your arcs and chapters, with their states and descriptions, but not your private notes) and `{{specification}}`. It starts as the prompt from *Settings → Extension Settings → Arc Outline* (the default prompt when you have not changed it); what you edit here applies to this generation only. |
 | Specification | What you want from the arc: the theme, the characters, where it should lead. Can be empty. |
-| Name tools | Only when the [Name generator](name-generator.md) or the [Name provider](name-provider.md) is loaded: the categories of names the model may use instead of inventing them (`Generator: ` made up, `Provider: ` real), the same as in the [Lore Generator](lore-generator.md). |
+| Tools | Only when a suite of [tools for the model](tools.md) is installed (names, places): which suites, and which of their categories, the model may use instead of inventing things, the same as in the [Lore Generator](lore-generator.md). |
 | Model, Protocols | Start as the model and protocol of the book (your default ones from *Settings* when the book has none). Change them to use another model for this generation only; the choice is not saved. |
 | Generate | Starts the model. While it runs the button is a red **Stop** and everything else in the dialog is disabled. |
 
@@ -115,7 +115,7 @@ the one for arcs, with these choices on the left:
 
 ![Importing an arc from the story](../../images/plugin-arcoutline-import.png)
 
-There are no name tools here, the names are in the story. On the right you see the reasoning, then the arc and its
+There are no tools here, the names are in the story. On the right you see the reasoning, then the arc and its
 chapters as the model writes them. **Save as arc** adds the arc with its chapters at the end of the outline; every one
 of them keeps the reasoning and the answer of the model and has its own robot button. A long story is best imported in
 several steps, one arc for each range.
@@ -167,7 +167,7 @@ changes an arc or a chapter takes only the fields you give it; an empty text cle
 | `/import-arc-from-story [from [to [count [state [save]]]]]` | Asks the model to summarize the messages `from` to `to` of the active branch (numbered among the messages with text, as in *Import from story*) as an arc with chapters. `state` (default `FINISHED`) is the state of the saved arc and its chapters. |
 
 The three generating commands use the same prompts as the dialogs (your *Extension Settings → Arc Outline*, or the
-defaults), the model and protocol of the book (your default model when the book has none) and no name tools: a caller that
+defaults), the model and protocol of the book (your default model when the book has none) and no tools: a caller that
 wants names gets them with the commands of the [Name generator](name-generator.md) or the [Name provider](name-provider.md)
 and writes them into the specification. Like the dialogs they save only when asked: with `save` `false` (the default) they
 return the arc or the chapters as JSON and store nothing, with `save` `true` they add them to the outline (an arc at the end,

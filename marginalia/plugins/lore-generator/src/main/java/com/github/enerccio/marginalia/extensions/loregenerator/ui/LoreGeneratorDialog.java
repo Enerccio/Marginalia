@@ -1,6 +1,5 @@
 package com.github.enerccio.marginalia.extensions.loregenerator.ui;
 
-import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
@@ -9,10 +8,11 @@ import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
+import com.github.enerccio.marginalia.domain.service.tool.ToolSelection;
+import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.extensions.loregenerator.model.LoreEntryGeneration;
 import com.github.enerccio.marginalia.extensions.loregenerator.model.LoreGeneratorData;
-import com.github.enerccio.marginalia.extensions.loregenerator.names.NameToolsBridge;
 import com.github.enerccio.marginalia.extensions.loregenerator.service.Defaults;
 import com.github.enerccio.marginalia.extensions.loregenerator.service.LoreGeneratorService;
 import com.github.enerccio.marginalia.extensions.loregenerator.service.LoreGeneratorService.EntryLimit;
@@ -23,6 +23,7 @@ import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.ModelProtocolPicker;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.ToolSelectionButton;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -75,7 +76,7 @@ public class LoreGeneratorDialog extends Dialog {
     private Button saveButton;
     private Button saveAsButton;
     private Button deleteButton;
-    private Button nameToolsButton;
+    private ToolSelectionButton toolsButton;
     private TextArea promptArea;
     private AttachmentPanel attachmentPanel;
     private TabSheet tabs;
@@ -87,8 +88,6 @@ public class LoreGeneratorDialog extends Dialog {
     private Button copyButton;
 
     private LoreGeneratorData data;
-    /** Categories of the name generator the model gets: the ones of the entry's last generation, else the user's. */
-    private List<String> nameCategories;
     private CancellationToken running;
 
     public LoreGeneratorDialog(LoreGeneratorService service, Lorebook lorebook, LorebookEntry entry, Runnable onEntryChanged) {
@@ -110,13 +109,12 @@ public class LoreGeneratorDialog extends Dialog {
         });
 
         loadData();
-        nameCategories = NameToolsBridge.normalize(data.getNameCategories());
         buildUI();
+        toolsButton.setValue(data.getTools());
         String last = data.getLastGenerationPrompt();
         selectPrompt(last != null && data.getGenerationPrompts().containsKey(last)
                 ? last : data.getGenerationPrompts().keySet().iterator().next());
         restoreEntryGeneration();
-        refreshNameToolsLabel();
         updateControls();
     }
 
@@ -173,14 +171,12 @@ public class LoreGeneratorDialog extends Dialog {
         deleteButton = new Button("Delete", e -> deletePrompt());
         deleteButton.setThemeName("error");
 
-        // only when the Name Generator extension is loaded
-        nameToolsButton = new Button("Name tools", Solid.SIGNATURE.create(), e -> openNameToolsDialog());
-        nameToolsButton.setTooltipText("Let the model get names from the Name Generator (made up names) and the Name Provider (real names) extensions");
-        nameToolsButton.setVisible(service.nameCategories() != null);
-        refreshNameToolsLabel();
+        // only when a tool suite is installed (names, places...)
+        toolsButton = new ToolSelectionButton();
+        toolsButton.addValueChangeListener(this::rememberTools);
 
         // one line: what lore is used, and the prompt
-        HorizontalLayout header = new HorizontalLayout(scopeGroup, limitGroup, promptCombo, saveButton, saveAsButton, deleteButton, nameToolsButton);
+        HorizontalLayout header = new HorizontalLayout(scopeGroup, limitGroup, promptCombo, saveButton, saveAsButton, deleteButton, toolsButton);
         header.setWidthFull();
         header.setAlignItems(FlexComponent.Alignment.CENTER);
         header.setSpacing(true);
@@ -316,8 +312,8 @@ public class LoreGeneratorDialog extends Dialog {
         }
         scopeGroup.setValue(enumOr(LoreScope.class, saved.getScope(), scopeGroup.getValue()));
         limitGroup.setValue(enumOr(EntryLimit.class, saved.getLimit(), limitGroup.getValue()));
-        if (saved.getNameCategories() != null) {
-            nameCategories = NameToolsBridge.normalize(saved.getNameCategories());
+        if (saved.tools() != null) {
+            toolsButton.setValue(saved.tools());
         }
     }
 
@@ -336,11 +332,7 @@ public class LoreGeneratorDialog extends Dialog {
         generation.setPrompt(promptArea.getValue());
         generation.setScope(scopeGroup.getValue().name());
         generation.setLimit(limitGroup.getValue().name());
-        // only the categories that were really offered to the model
-        List<String> available = service.nameCategories();
-        if (nameCategories != null && available != null) {
-            generation.setNameCategories(nameCategories.stream().filter(available::contains).toList());
-        }
+        generation.setTools(toolsButton.getValue());
         return generation;
     }
 
@@ -355,36 +347,17 @@ public class LoreGeneratorDialog extends Dialog {
         }
     }
 
-    // --- name tools ---
+    // --- tools ---
 
-    private void refreshNameToolsLabel() {
-        List<String> available = service.nameCategories();
-        int selected = 0;
-        if (available != null && nameCategories != null) {
-            selected = (int) nameCategories.stream().filter(available::contains).count();
+    /** Saves the choice as the one the dialog opens with next time. */
+    private void rememberTools(ToolSelection selection) {
+        try {
+            data = service.getData();
+            data.setTools(selection);
+            service.saveData(data);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
         }
-        nameToolsButton.setText(selected > 0 ? "Name tools (" + selected + ")" : "Name tools");
-    }
-
-    /** The categories of the name generator to check, with the ones saved before checked. */
-    private void openNameToolsDialog() {
-        List<String> available = service.nameCategories();
-        if (available == null) {
-            Notification.warning("Neither the Name Generator nor the Name Provider extension is loaded");
-            nameToolsButton.setVisible(false);
-            return;
-        }
-        new NameToolsDialog(available, nameCategories, checked -> {
-            try {
-                data = service.getData();
-                nameCategories = checked;
-                data.setNameCategories(nameCategories);
-                service.saveData(data);
-                refreshNameToolsLabel();
-            } catch (Exception ex) {
-                UIUtils.internalServerError(loc, ex);
-            }
-        }).open();
     }
 
     // --- inference ---
@@ -399,10 +372,10 @@ public class LoreGeneratorDialog extends Dialog {
         generationPane.clear();
         try {
             // the hint about the tools is added only when the model gets them
-            FunctionSet nameFunctions = service.nameFunctions(nameCategories);
+            ToolSet tools = service.tools(toolsButton.getValue());
             String prompt = service.buildGenerationPrompt(lorebook, entry, scopeGroup.getValue(), limitGroup.getValue(),
-                    promptArea.getValue(), nameFunctions);
-            start(generationPane, prompt, attachmentPanel.getAttachments(), nameFunctions);
+                    promptArea.getValue(), tools);
+            start(generationPane, prompt, attachmentPanel.getAttachments(), tools.functions());
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
             updateControls();
@@ -511,7 +484,7 @@ public class LoreGeneratorDialog extends Dialog {
         saveButton.setEnabled(!busy);
         saveAsButton.setEnabled(!busy);
         deleteButton.setEnabled(!busy);
-        nameToolsButton.setEnabled(!busy);
+        toolsButton.setEnabled(!busy);
         promptArea.setEnabled(!busy);
         exitButton.setEnabled(!busy);
         attachmentPanel.setBusy(busy);

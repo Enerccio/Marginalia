@@ -6,6 +6,9 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/bound
   - marginalia/src/main/java/com/github/enerccio/marginalia/Configuration.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/extensions
+  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/ToolService.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/tool
+  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/ToolServiceImpl.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/instruct
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/main
   - marginalia/src/main/resources/META-INF/spring
@@ -460,7 +463,8 @@ sequenceDiagram
 - **Languages.** An extension that implements `ExtensionHasLocalization` adds languages to the UI: `OsgiServiceImpl`
   registers its `LocalizationBundle`s in `Localization` after the extension loads and removes them on unload
   ([Localization](#localization)).
-- **Other extensions.** Extensions don't import each other. `IPCService` lets them register providers of text about a
+- **Other extensions.** Extensions don't import each other. `ToolService` lets them offer suites of tools (functions and
+  commands) that a dialog with a **Tools** button gives the model, and `IPCService` lets them register providers of text about a
   book or a story part under their bundle's symbolic name (removed when the extension is unloaded) and ask for it; to
   use one particular extension (the name generator) the others find it among `OsgiService.getLoadedExtensions()` and
   call it by reflection ([Sharing data between extensions](plugins/ipc.md)).

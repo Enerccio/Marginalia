@@ -10,4 +10,11 @@ public interface PermissionUIComponent {
     void component2model(Permission permission);
     void onChange(Runnable runnable);
 
+    /**
+     * Called when the permission is granted or taken away in the dialog, and when the component is made; for settings
+     * that make sense only while it is granted (sub-permissions).
+     */
+    default void onGrantedChanged(boolean granted) {
+    }
+
 }

@@ -1,11 +1,11 @@
 package com.github.enerccio.marginalia.extensions.arcoutline.ui;
 
+import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.structured.SchemaCheck;
 import com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.*;
@@ -84,7 +84,7 @@ public class StoryImportDialog extends GeneratorDialog {
 
     // the names are in the story
     @Override
-    protected boolean supportsNameTools() {
+    protected boolean supportsTools() {
         return false;
     }
 
@@ -243,7 +243,7 @@ public class StoryImportDialog extends GeneratorDialog {
     // --- generation ---
 
     @Override
-    protected String buildPrompt(String template, FunctionSet nameFunctions) throws Exception {
+    protected String buildPrompt(String template, ToolSet tools) throws Exception {
         return service.buildImportPrompt(manuscript, outline, template, selected(), exactCount());
     }
 

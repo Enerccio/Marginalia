@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
+import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.templates.*;
@@ -84,6 +85,9 @@ public class UserPart implements WorkspaceComponent {
 
     @Autowired
     private AgentWebhookService agentWebhookService;
+
+    @Autowired
+    private User currentUser;
 
     private final Workspace workspace;
 
@@ -412,7 +416,8 @@ public class UserPart implements WorkspaceComponent {
         defaultAgentPromptField.setPopoverContent(TemplateHints.create(loc, defaultAgentPromptField,
                 defaultAgentPromptField.getPopover(), null, agentService.getAppDefaultSystemPrompt()));
         defaultAgentInstructionsField.setVisible(defaultAgentPromptField.isVisible());
-        boolean webhook = defaultAgentPromptField.isVisible() && agentWebhookService.isAllowed();
+        // its own permission: a user can get the messages without running agents (and the other way round)
+        boolean webhook = agentWebhookService.isAllowed() && agentWebhookService.mayNotify(currentUser);
         agentWebhookUrlField.setVisible(webhook);
         agentWebhookFormatCombo.setVisible(webhook);
         agentWebhookAlwaysBox.setVisible(webhook);
@@ -440,7 +445,7 @@ public class UserPart implements WorkspaceComponent {
             return;
         }
         String url = agentWebhookUrlField.getValue() == null ? "" : agentWebhookUrlField.getValue().strip();
-        String problem = url.isEmpty() ? null : agentWebhookService.check(url);
+        String problem = url.isEmpty() ? null : agentWebhookService.check(currentUser, url);
         if (problem != null) {
             // the rest of the settings are saved, the address is not
             Notification.warning(problem);
@@ -700,11 +705,11 @@ public class UserPart implements WorkspaceComponent {
             userSetting.setDefaultUserPrompt(userPrompt);
             userSetting.setDefaultSummaryPrompt(summaryPrompt);
             userSetting.setDefaultMetaSummaryPrompt(metaSummaryPrompt);
+            saveWebhook(userSetting);
             if (defaultAgentPromptField.isVisible()) {
                 // hidden for a user who may not use agents: what they once set stays
                 userSetting.setDefaultAgentPrompt(defaultAgentPromptField.getValue());
                 userSetting.setDefaultAgentInstructions(defaultAgentInstructionsField.getValue());
-                saveWebhook(userSetting);
                 userSetting.setDefaultAgentCompactionPrompt(defaultAgentCompactionPromptField.getValue());
             }
 

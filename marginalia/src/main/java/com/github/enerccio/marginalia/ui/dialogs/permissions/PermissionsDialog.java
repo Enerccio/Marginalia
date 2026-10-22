@@ -212,6 +212,7 @@ public class PermissionsDialog extends Dialog implements LLMInteract {
         Row row = new Row(permission, component);
         if (component != null) {
             component.model2component(permission);
+            component.onGrantedChanged(permission.isGranted());
             component.onChange(() -> {
                 row.touched = true;
                 updateState();
@@ -299,6 +300,9 @@ public class PermissionsDialog extends Dialog implements LLMInteract {
                     @APIParameter(name = "granted", type = boolean.class)})
     private void setGranted(Row row, boolean granted) {
         row.permission.setGranted(granted);
+        if (row.component != null) {
+            row.component.onGrantedChanged(granted);
+        }
         updateState();
     }
 

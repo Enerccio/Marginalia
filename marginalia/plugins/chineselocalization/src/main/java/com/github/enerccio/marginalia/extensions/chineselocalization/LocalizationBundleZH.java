@@ -618,6 +618,15 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_CLONE_BOOK, "克隆书籍");
         setValue(L.LABEL_ONLY_CURRENT_BRANCH, "仅当前分支");
         setValue(L.LABEL_AGENT_FINDINGS, "发现");
+        setValue(L.LABEL_NOTIFICATIONS_ALLOW_LOCAL, "允许本机和私有网络的地址");
+        setValue(L.LABEL_TOOLS, "工具");
+        setValue(L.LABEL_TOOLS_COUNT, "工具 (%s)");
+        setValue(L.LABEL_TOOLS_FILTER, "筛选");
+        setValue(L.LABEL_TOOLS_ENABLED, "使用此工具组");
+        setValue(L.LABEL_TOOLS_CHECKED, "已选 %s / %s");
+        setValue(L.LABEL_TOOLS_SELECT_SHOWN, "选择当前显示项");
+        setValue(L.LABEL_TOOLS_CLEAR_SHOWN, "取消选择当前显示项");
+        setValue(L.LABEL_TOOLS_HINT, "给模型的提示");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -729,6 +738,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_AGENT_PLAN_DONE, "已完成");
         setValue(L.ENUM_AGENT_FINDING_WARNING, "警告");
         setValue(L.ENUM_AGENT_FINDING_PROBLEM, "问题");
+        setValue(L.ENUM_PERMISSION_NOTIFICATIONS, "通知");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -1026,6 +1036,10 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_JSON_RESULT_CONFLICTS, "数据中有 %d 个冲突,未决定之处将采用智能体的内容。");
         setValue(L.MSG_JSON_MATCH_PICK, "哪个元素与 %s 相同?");
         setValue(L.MSG_AGENT_NO_PLAN, "智能体还没有制定计划。");
+        setValue(L.MSG_TOOLS_INFO, "模型可以调用此处勾选内容的工具。未勾选任何内容的工具组不会提供给模型。");
+        setValue(L.MSG_TOOLS_TOOLTIP, "让模型使用已安装扩展的工具");
+        setValue(L.MSG_TOOLS_ALSO_COMMANDS, "也可作为命令用于命令栏和代理。");
+        setValue(L.MSG_TOOLS_HINT_INFO, "当模型获得此工具组时添加到提示中。留空则使用工具组自带的文字。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1104,6 +1118,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_RESUME_NOTE, "智能体继续工作时会先读到这条备注，如果你修改过书，则在修改报告之后。对不等待消息的运行同样有效。");
         setValue(L.HELP_AGENT_LANGUAGE, "代理读到的所有文本（命令的说明、结果和错误）所用的语言。它与书的语言无关：无论如何设置，代理都用书的语言写书。命令及其参数在所有语言中都是英文，因此英语最可靠，尤其是对小模型。列表中是已安装的语言；一次运行保持它开始时的语言。");
         setValue(L.HELP_JSON_MERGE, "将智能体、书籍当前和运行开始时的数据叠放在一起。选择一个位置,可以采用其中一方的数据、不保留,或由其内部的各个位置合成。只有一方更改的内容采用该方的,双方都更改的内容按位置合并;双方对同一位置做了不同的更改即为冲突,在您决定之前采用智能体的内容。打开某个位置即可只处理它。列表中的元素按其内容匹配(相同的数据、相同的 id 或名称、相似的元素);猜错时,可拆分元素或与另一个元素匹配。在文本视图中可以手动编写已打开位置的智能体数据,返回树视图时会进行检查。");
+        setValue(L.HELP_NOTIFICATIONS_ALLOW_LOCAL, "仅在已授予权限时有效。服务器随后也会向 localhost、可访问的私有网络和链路本地地址（例如您自己网络中的 ntfy 或 Gotify）发送消息。否则只调用公共地址。管理员不受限制。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

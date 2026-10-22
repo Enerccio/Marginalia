@@ -120,6 +120,15 @@ public class Permission extends ExtendableEntity {
     @ExtendedAttribute
     private Integer agentsMaxConcurrency;
 
+    /**
+     * {@link PermissionType#NOTIFICATIONS}: whether the messages may go to addresses on the machine of the server and
+     * in the private networks it can reach (localhost, 192.168.x.x, 10.x.x.x, link-local ones). Off: only public
+     * addresses are called. It counts only while the permission is granted.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Boolean notificationsAllowLocal = false;
+
     public PermissionType getPermissionType() {
         return permissionType;
     }
@@ -222,6 +231,14 @@ public class Permission extends ExtendableEntity {
 
     public void setAgentsMaxConcurrency(Integer agentsMaxConcurrency) {
         this.agentsMaxConcurrency = agentsMaxConcurrency;
+    }
+
+    public boolean getNotificationsAllowLocal() {
+        return notificationsAllowLocal != null && notificationsAllowLocal;
+    }
+
+    public void setNotificationsAllowLocal(boolean notificationsAllowLocal) {
+        this.notificationsAllowLocal = notificationsAllowLocal;
     }
 
     public Long getAgentsRunTokenBudget() {

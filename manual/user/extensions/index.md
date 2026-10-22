@@ -6,7 +6,7 @@ icon: plug
 
 # Extensions
 
-Extensions add features to Marginalia without changing the application itself. Fourteen extensions come with Marginalia:
+Extensions add features to Marginalia without changing the application itself. Fifteen extensions come with Marginalia:
 
 | Extension | What it adds |
 |---|---|
@@ -19,8 +19,10 @@ Extensions add features to Marginalia without changing the application itself. F
 | [Instruction Exporter](instruction-exporter.md) | Copies the instructions, scene settings and characters of the story to the clipboard. |
 | [Lore Generator](lore-generator.md) | Writes the content of a lorebook entry with the model, from the lore you already have. |
 | [Lorebook VCS](lorebook-vcs.md) | Revision history for lorebook entries. |
+| [Tools for the model](tools.md) | The **Tools** button of the generators: which tool suites (names, places) the model may use, and which of their categories. |
 | [Name generator](name-generator.md) | Names for the model to use instead of inventing them: about 1270 lists of names, as Markov chains. |
 | [Name provider](name-provider.md) | Real names for the model to pick from: forenames and surnames of about 100 countries, with the original spelling. |
+| [Place provider](place-provider.md) | Real places for the model to look up: cities, seas, bays, rivers, mountains and more with coordinates and countries, what is around a place and the distance of two. |
 | [Reviewer](reviewer.md) | Reviews of story parts written by the model - reader reactions, critique. |
 | [Side Query](side-query.md) | A chat with the model about your book, next to the story. |
 | [Chinese localization](chinese-localization.md) | Simplified Chinese as a language of the user interface. |
@@ -39,13 +41,13 @@ Extensions hook into the user interface of one Marginalia version. An extension 
 working or break parts of the application. Use the extensions that come with your version of Marginalia.
 !!!
 
-The fourteen extensions above are part of the Marginalia source code (`marginalia/plugins`) and are built separately;
+The fifteen extensions above are part of the Marginalia source code (`marginalia/plugins`) and are built separately;
 see the [plugins README](https://github.com/Enerccio/Marginalia/blob/master/marginalia/plugins/README.md).
 
 ## Extensions on a phone
 
 The [phone layout](../phone.md) has its own classes, so an extension has to support it. Arc Outline, Author's Note, Chapter Marker,
-Character Tracker, Instruction Exporter and Reviewer do; Side Query, Lore Generator and Lorebook VCS add nothing on a phone (see [Using Marginalia on a phone](../phone.md#extensions)). Name generator, Name provider, Gemma 4 tools fix and Google Gemini have no screens of their own (Google Gemini only adds a provider to the model dialog, which a phone has as well), and Chinese localization is in the language selector of the phone menu. Extensions are installed from the Admin page,
+Character Tracker, Instruction Exporter and Reviewer do; Side Query, Lore Generator and Lorebook VCS add nothing on a phone (see [Using Marginalia on a phone](../phone.md#extensions)). Name generator, Name provider, Place provider, Gemma 4 tools fix and Google Gemini have no screens of their own (Google Gemini only adds a provider to the model dialog, which a phone has as well), and Chinese localization is in the language selector of the phone menu. Extensions are installed from the Admin page,
 which a phone doesn't have.
 
 ## Extension settings

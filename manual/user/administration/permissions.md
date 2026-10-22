@@ -13,7 +13,8 @@ administrators [share](../inference-providers.md#shared-providers)).
 |---|---|---|
 | **Create own models** | Adding [inference providers](../inference-providers.md): without it the user can only use the providers the administrators share, the providers they already have keep working and can still be edited. | |
 | **Help assistant** | Asking the [help assistant](help-assistant.md), the chat that answers from the manual. | **Apply limits** and **Allow navigating the interface**, see [Settings of a permission](#settings-of-a-permission). |
-| **Agents** | The [Agents](../agents.md) tab: creating agents, cloning them and running them on a book. | **Most agents**, **Concurrent runs**, **Requests to the model at once**, **Token budget of a run** and the quotas of copies and files, see [Settings of a permission](#settings-of-a-permission). |
+| **Agents** | (Experimental, see [Agents](../agents.md)) The [Agents](../agents.md) tab: creating agents, cloning them and running them on a book. | **Most agents**, **Concurrent runs**, **Requests to the model at once**, **Token budget of a run** and the quotas of copies and files, see [Settings of a permission](#settings-of-a-permission). |
+| **Notifications** | The [message to a URL](../agents.md#when-you-are-not-there) the server sends when an agent needs the user and no screen is open. The server calls an address the user typed, so it is a permission of its own: without it the fields are not in the user's settings and nothing is sent. | **Allow addresses on this machine and in private networks**, see [Settings of a permission](#settings-of-a-permission). |
 
 Administrators always have every permission, they need none, so there is nothing to give them (the buttons and sections
 of an administrator never depend on a permission). New users have no permission: give them what they need right after
@@ -56,7 +57,7 @@ nothing and does not count as an unsaved change.
 
 ![The settings of the Help assistant permission](../../images/permissions-settings.png)
 
-**Help assistant** and **Agents** have them. The ones of the help assistant:
+**Help assistant**, **Agents** and **Notifications** have them. The ones of the help assistant:
 
 | Setting | |
 |---|---|
@@ -78,6 +79,16 @@ The ones of the agents; an empty field is the default:
 | **Checkpoints of a run (MB)** | How much all the [checkpoints](../agents.md#checkpoints) of one run (restore points of the working copy and its workspace) can take; part of it is kept for the automatic ones. 100 when empty. |
 
 ![The settings of the Agents permission](../../images/permissions-settings-agents.png)
+
+The one of the notifications:
+
+| Setting | |
+|---|---|
+| **Allow addresses on this machine and in private networks** | A sub-permission: the box can be ticked only while **Notifications** is granted (it is greyed out otherwise, and taking the permission away clears it). Without it only addresses on the internet are called: not `localhost`, not a private network (`10.x.x.x`, `172.16-31.x.x`, `192.168.x.x`), not a link-local or shared address (`169.254.x.x`, which is where cloud hosts keep their metadata service, `100.64-127.x.x`), not the unique local addresses of IPv6. Tick it for a user whose ntfy or Gotify runs on the same machine or on your own network. Off by default. A name is checked by the addresses it resolves to, so a name that points to a private address is refused too, and so is one that cannot be found. |
+
+Administrators need neither the permission nor the sub-permission: they get the messages and may use local addresses. On a
+server shared with people you do not fully trust, leave the sub-permission off: the server would otherwise make requests to
+whatever the user types, inside your network.
 
 ## When permissions were introduced
 

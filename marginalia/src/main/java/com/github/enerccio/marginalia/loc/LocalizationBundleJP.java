@@ -610,6 +610,15 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_CLONE_BOOK, "本を複製");
         setValue(L.LABEL_ONLY_CURRENT_BRANCH, "現在の分岐のみ");
         setValue(L.LABEL_AGENT_FINDINGS, "所見");
+        setValue(L.LABEL_NOTIFICATIONS_ALLOW_LOCAL, "このマシンとプライベートネットワークのアドレスを許可");
+        setValue(L.LABEL_TOOLS, "ツール");
+        setValue(L.LABEL_TOOLS_COUNT, "ツール (%s)");
+        setValue(L.LABEL_TOOLS_FILTER, "フィルター");
+        setValue(L.LABEL_TOOLS_ENABLED, "このツール群を使う");
+        setValue(L.LABEL_TOOLS_CHECKED, "%s / %s 選択済み");
+        setValue(L.LABEL_TOOLS_SELECT_SHOWN, "表示中を選択");
+        setValue(L.LABEL_TOOLS_CLEAR_SHOWN, "表示中の選択を解除");
+        setValue(L.LABEL_TOOLS_HINT, "モデル向けヒント");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -721,6 +730,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_AGENT_PLAN_DONE, "完了");
         setValue(L.ENUM_AGENT_FINDING_WARNING, "警告");
         setValue(L.ENUM_AGENT_FINDING_PROBLEM, "問題");
+        setValue(L.ENUM_PERMISSION_NOTIFICATIONS, "通知");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -1018,6 +1028,10 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_JSON_RESULT_CONFLICTS, "データに競合が %d 件あります。決定しない箇所はエージェントの内容が採用されます。");
         setValue(L.MSG_JSON_MATCH_PICK, "%s と同じ要素はどれですか?");
         setValue(L.MSG_AGENT_NO_PLAN, "エージェントはまだ計画を立てていません。");
+        setValue(L.MSG_TOOLS_INFO, "ここで選択したものについて、モデルはツールを呼び出せます。何も選択されていないツール群はモデルに提供されません。");
+        setValue(L.MSG_TOOLS_TOOLTIP, "インストール済み拡張機能のツールをモデルが使えるようにします");
+        setValue(L.MSG_TOOLS_ALSO_COMMANDS, "コマンドバーとエージェント用のコマンドとしても利用できます。");
+        setValue(L.MSG_TOOLS_HINT_INFO, "モデルがこのツール群を受け取るとき、プロンプトに追加されます。空の場合はツール群自身の文面を使います。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1096,6 +1110,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_RESUME_NOTE, "エージェントは再開時にまずこれを読みます。本に加えた変更の報告がある場合は、その後です。メッセージを待たない実行でも使えます。");
         setValue(L.HELP_AGENT_LANGUAGE, "エージェントが読むすべてのテキスト（コマンドの説明、結果、エラー）の言語です。本の言語とは関係ありません。エージェントはこの設定に関わらず、本の言語で本文を書きます。コマンドとそのパラメータはどの言語でも英語なので、特に小さなモデルでは英語がもっとも確実です。一覧にはインストールされている言語が表示されます。実行は開始時の言語を保持します。");
         setValue(L.HELP_JSON_MERGE, "エージェント、現在のブック、実行開始時のデータを重ねて表示します。場所を選んで、そのいずれかのデータを採用する、除外する、または内部の各場所から組み立てることができます。片方だけが変更した内容はそちらから採用され、両方が変更した場合は場所ごとに統合されます。同じ場所を両方が異なる内容に変更した場合は競合となり、決定するまでエージェントの内容が採用されます。場所を開くと、その場所だけを扱えます。リストの要素は内容(同じデータ、同じIDや名前、似ているもの)で対応付けられます。推測が違っていたら、要素を分割するか別の要素と対応付けてください。テキスト表示では、開いている場所のエージェントのデータを手で編集でき、ツリーに戻るときに検証されます。");
+        setValue(L.HELP_NOTIFICATIONS_ALLOW_LOCAL, "権限が付与されている場合のみ有効です。サーバーは localhost、到達可能なプライベートネットワーク、リンクローカルアドレス（自分のネットワークの ntfy や Gotify など）にもメッセージを送ります。許可がなければ公開アドレスだけを呼び出します。管理者は制限されません。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

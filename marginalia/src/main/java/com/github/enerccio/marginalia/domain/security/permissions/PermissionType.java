@@ -24,4 +24,12 @@ public enum PermissionType {
      */
     AGENTS,
 
+    /**
+     * Messages sent by the server to an address the user typed in their settings (a webhook, for example a ntfy topic)
+     * when an agent needs them. Without it nothing is sent, and the settings do not show the address. Only public
+     * addresses are called, unless the setting {@code notificationsAllowLocal} of the permission allows the machine
+     * itself and private networks.
+     */
+    NOTIFICATIONS,
+
 }

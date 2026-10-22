@@ -6,18 +6,20 @@ import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
-import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.service.structured.SchemaCheck;
+import com.github.enerccio.marginalia.domain.service.tool.ToolRequest;
+import com.github.enerccio.marginalia.domain.service.tool.ToolSelection;
+import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.extensions.loregenerator.model.LoreEntryGeneration;
 import com.github.enerccio.marginalia.extensions.loregenerator.model.LoreGeneratorData;
-import com.github.enerccio.marginalia.extensions.loregenerator.names.NameToolsBridge;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
+import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -85,8 +87,11 @@ public class LoreGeneratorService {
     @Autowired
     private InferenceServices inferenceServices;
 
-    /** Set when the extension loads, to find the name generator extension. */
-    private OsgiService osgiService;
+    @Autowired
+    private ToolService toolService;
+
+    /** Set when the extension loads, to tell the tool providers who asks. */
+    private Bundle bundle;
 
     private final Gson gson = new Gson();
 
@@ -94,29 +99,18 @@ public class LoreGeneratorService {
         this.log = log;
     }
 
-    public void setOsgiService(OsgiService osgiService) {
-        this.osgiService = osgiService;
+    public void setBundle(Bundle bundle) {
+        this.bundle = bundle;
     }
 
     /**
-     * The categories of the name extensions (Name Generator and Name Provider, each with the prefix of its source),
-     * null when none is installed (they are looked up on every call, they can be loaded and unloaded while the
-     * application runs).
+     * The functions and the hints of the tools the selection turns on (the suites that are installed, the items that are
+     * still offered); {@link ToolSet#NONE} when there are none.
+     *
+     * @throws IllegalStateException when two suites have a function of the same name
      */
-    public List<String> nameCategories() {
-        return osgiService == null ? null : NameToolsBridge.categories(osgiService);
-    }
-
-    /**
-     * The functions that give the model names of the selected categories: those of the extension of each source that
-     * has a selected category (one, both or, as null, none: nothing selected, or the extensions are gone).
-     */
-    public FunctionSet nameFunctions(Collection<String> selected) {
-        if (selected == null || selected.isEmpty()) {
-            return null;
-        }
-        return osgiService == null ? null
-                : NameToolsBridge.functions(osgiService, inferenceServices.getFunctionRegistry(), selected);
+    public ToolSet tools(ToolSelection selection) {
+        return toolService.resolve(selection, new ToolRequest(bundle, LoreGeneratorService.class.getName()));
     }
 
     /**
@@ -134,6 +128,10 @@ public class LoreGeneratorService {
         }
         if (data == null) {
             data = new LoreGeneratorData();
+        }
+        data.migrateLegacyNameTools();
+        if (data.getTools() == null) {
+            data.setTools(new ToolSelection());
         }
         if (data.getGenerationPrompts() == null) {
             data.setGenerationPrompts(new LinkedHashMap<>());
@@ -208,19 +206,15 @@ public class LoreGeneratorService {
 
     /**
      * The prompt for generating {@code target}: the lore the user selected followed by the generation prompt, and the
-     * hint about each kind of name tools the model has (the user's or {@link Defaults#NAME_TOOLS_PROMPT} for the
-     * generated names, the user's or {@link Defaults#NAME_PROVIDER_PROMPT} for the real ones).
+     * hints of the tools the model has (the user's or the default one of each suite).
      *
-     * @param nameFunctions the functions the model gets, null for none
+     * @param tools what the model gets, {@link ToolSet#NONE} or null for none
      */
     public String buildGenerationPrompt(Lorebook current, LorebookEntry target, LoreScope scope, EntryLimit limit,
-                                        String generationPrompt, FunctionSet nameFunctions) throws Exception {
+                                        String generationPrompt, ToolSet tools) throws Exception {
         String prompt = buildLoreBlock(current, target, scope, limit) + "\n\n" + generationPrompt;
-        if (nameFunctions != null && nameFunctions.contains(NameToolsBridge.GENERATOR_FUNCTION)) {
-            prompt += "\n\n" + StringUtils.defaultIfBlank(getData().getNameToolsPrompt(), Defaults.NAME_TOOLS_PROMPT).strip();
-        }
-        if (nameFunctions != null && nameFunctions.contains(NameToolsBridge.PROVIDER_FUNCTION)) {
-            prompt += "\n\n" + StringUtils.defaultIfBlank(getData().getNameProviderPrompt(), Defaults.NAME_PROVIDER_PROMPT).strip();
+        if (tools != null && !tools.isEmpty() && StringUtils.isNotBlank(tools.hint())) {
+            prompt += "\n\n" + tools.hint();
         }
         return prompt;
     }

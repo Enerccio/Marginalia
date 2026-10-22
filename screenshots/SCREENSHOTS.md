@@ -129,7 +129,7 @@ A flow may also take pictures on the way (names in the last column).
 | `17-sidequery` | `plugin-sidequery` | two questions in Side Query | `plugin-sidequery` |
 | `18-reviewer` | `plugin-reviewer` | a review of the last part | `plugin-reviewer*` |
 | `19-lorebookvcs` | `plugin-lorebookvcs` | a second revision of the entry of Draconia | `plugin-lorebookvcs` |
-| `20-loregenerator` | `plugin-loregenerator` | a new lore entry made with Lore Generator (generation, compaction, name tools) | `plugin-loregenerator*` |
+| `20-loregenerator` | `plugin-loregenerator` | a new lore entry made with Lore Generator (generation, compaction, the Tools window) | `plugin-loregenerator*`, `tools-dialog`, `tools-hint` |
 | `21-chaptermarker` | `plugin-chaptermarker` | chapter headings in parts 1 and 4 (**the state of the plugin pictures**) | `plugin-chaptermarker` |
 | `22-arcoutline` | `plugin-arcoutline` | installs the Arc Outline JAR (unless it is there), the first arc imported from the five parts of the story with the fake model, a second arc with chapters by hand, a third arc and its chapters made with the fake model (`arcOutline` in `dataset/plugins.mjs`) | `plugin-arcoutline-tab`, `plugin-arcoutline-menu`, `plugin-arcoutline-note`, `plugin-arcoutline-import`, `plugin-arcoutline-generate-arc`, `plugin-arcoutline-generate-chapters`, `plugin-arcoutline-generated` |
 

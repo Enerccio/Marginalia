@@ -73,7 +73,7 @@ public class ArcOutlineExtension implements MarginaliaExtension, ExtensionHasCss
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
         log = parentService.createLogger(bundle);
         service.setLogger(log);
-        service.setOsgiService(parentService);
+        service.setBundle(bundle);
         // the outline as a source of data about the book, for the Side Query for one: the terse version (the
         // descriptions) and the full one (with the notes), so the user chooses how much of it the model gets
         ipcService.registerManuscriptProvider(bundle.getSymbolicName(), OUTLINE_SOURCE, "Arc outline",

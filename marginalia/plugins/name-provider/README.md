@@ -45,7 +45,9 @@ an original name takes the romanized one, a pair is kept once per category, and 
 
 `NameProviderFunctions` is the `@LLMFunction` interface, `NameProviderFunctionsImpl` the implementation (`MAX_COUNT`,
 `clampCount`) on `NameLists` (loading and the random choice), `NameEntry` the answer. The extension compiles the interface
-on load; `NameProviderExtension.functions()` returns the bound `FunctionSet` to pass to `InferenceService.stream`.
-The [Lore Generator](../lore-generator/README.md) and the [Arc Outline](../arc-outline/README.md) offer the functions
-to the model for the categories the user checks (prefix `Provider: `); they find this extension by reflection
-(`NameToolsBridge`), so it can be unloaded and installed again without restarting them.
+on load and registers a `NameProviderToolProvider` with the tool service (`ToolService`, key `names`, human name *Name provider*):
+every list is an item, and the functions the model gets (`NameProviderToolProvider.Restricted`) know only the checked ones. The provider
+brings `NameProviderCommands` along, so one registration gives the command bar and agents the commands and the
+[Lore Generator](../lore-generator/README.md) and the [Arc Outline](../arc-outline/README.md) (the **Tools** button) the functions. The
+service removes both when the extension is unloaded. The hint added to the prompt is `NameProviderToolProvider.HINT`; the user can
+replace it in the tool dialog.

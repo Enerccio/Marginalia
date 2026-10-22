@@ -63,7 +63,7 @@ public class LoreGeneratorExtension implements MarginaliaExtension {
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
         log = parentService.createLogger(bundle);
         loreGeneratorService.setLogger(log);
-        loreGeneratorService.setOsgiService(parentService);
+        loreGeneratorService.setBundle(bundle);
         try {
             // the Lore Generator section in the extension settings of the user settings
             userPartDecorator = new ExtensionDecorator() {
