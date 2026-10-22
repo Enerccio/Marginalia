@@ -10,7 +10,7 @@ covers:
   - marginalia/plugins/lore-generator/src/main/java/com/github/enerccio/marginalia/extensions/loregenerator/names
   - marginalia/plugins/name-generator/src/main/java/com/github/enerccio/marginalia/extensions/namegenerator/NameGeneratorExtension.java
   - marginalia/plugins/name-provider/src/main/java/com/github/enerccio/marginalia/extensions/nameprovider/NameProviderExtension.java
-verified: c8267196
+verified: 333d9397
 ---
 
 # Sharing data between extensions
