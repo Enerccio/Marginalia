@@ -18,7 +18,7 @@ Most problems leave a trace in the log:
 Error dialogs in the application (*Internal Server Error*) show the error as well; the log has the full details.
 
 When you report a problem, include the version text in the bottom left corner of the page (for example
-`Marginalia 1.4.0 (93ec118)`: the version and the Git commit of the build).
+`Marginalia 1.5.0 (93ec118)`: the version and the Git commit of the build).
 
 ## Installing and starting
 
