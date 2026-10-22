@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.SummaryService.SummaryBlock
 import com.github.enerccio.marginalia.domain.service.search.FulltextHit;
 import com.github.enerccio.marginalia.domain.service.search.FulltextQuery;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -61,6 +62,15 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
      * @see FulltextQuery
      */
     List<FulltextHit> searchFulltext(Manuscript manuscript, String query) throws Exception;
+
+    /**
+     * Which of the books have a part with every word of the query, the parts in the branch of the active part only or
+     * in all branches. A book of another user is never found.
+     *
+     * @return the ids of the books found
+     * @see FulltextQuery
+     */
+    Set<Long> findManuscriptsWithText(Collection<Long> manuscriptIds, String query, boolean allBranches) throws Exception;
 
     /**
      * The id and {@code _fulltext} of the parts of the book that are not deleted, oldest first.

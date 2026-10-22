@@ -630,6 +630,15 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_SEARCH_THIS_BRANCH, "このブランチのテキストを検索");
         setValue(L.LABEL_SEARCH_PREVIOUS_MATCH, "前の一致");
         setValue(L.LABEL_SEARCH_NEXT_MATCH, "次の一致");
+        setValue(L.LABEL_ADVANCED_SEARCH, "詳細検索");
+        setValue(L.LABEL_TAGS_INCLUDE, "含めるタグ");
+        setValue(L.LABEL_TAGS_EXCLUDE, "除外するタグ");
+        setValue(L.LABEL_CREATED_FROM, "作成日（開始）");
+        setValue(L.LABEL_CREATED_TO, "作成日（終了）");
+        setValue(L.LABEL_MODIFIED_FROM, "更新日（開始）");
+        setValue(L.LABEL_MODIFIED_TO, "更新日（終了）");
+        setValue(L.LABEL_PARTS_FROM, "パート数（下限）");
+        setValue(L.LABEL_PARTS_TO, "パート数（上限）");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -750,6 +759,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_PART_CHANGE_DIFFERENT, "異なる");
         setValue(L.ENUM_PART_CHANGE_ONLY_PREVIOUS, "前のパートのみ");
         setValue(L.ENUM_PART_CHANGE_ONLY_MERGED, "統合するパートのみ");
+        setValue(L.ENUM_TAG_MATCH_ALL, "すべてのタグ");
+        setValue(L.ENUM_TAG_MATCH_ANY, "いずれかのタグ");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -1057,6 +1068,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_PART_MERGE_NOT_POSSIBLE, "このパートは統合できません。本の最初のパートであるか、前のパートに他の続き(スワイプ)があります。先にスワイプを削除するか、ブランチにしてください。");
         setValue(L.MSG_PART_MERGED, "パートを前のパートに統合しました。");
         setValue(L.MSG_BRANCH_SEARCH_RESULT, "一致 %s / %s（パート #%s）");
+        setValue(L.MSG_BOOKS_FOUND, "%s 冊が見つかりました");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

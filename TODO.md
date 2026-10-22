@@ -145,9 +145,11 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     texts, prompt fields combined without their shared start, `attributes` value by value with the choice which wins; refused for a
     first part and for a part with swipes). Still open: the pre-filled "continue" instruction after a length cutoff, "impersonate/draft
     instructions for me".
-16. ✅ **Search inside a book** — the box above the branch tree searches the messages of all branches (`_fulltext`,
+16. ~~**Search inside a book**~~ ✅ Done — the box above the branch tree searches the messages of all branches (`_fulltext`,
     `FulltextQuery`) and jumps to a found part; the outline of the story tab searches the active branch by occurrence
-    (previous/next, progress, highlighted matches; `StoryBranchSearch`). Missing: global search across books.
+    (previous/next, progress, highlighted matches; `StoryBranchSearch`); the book list has an advanced search (`ManuscriptSearchDialog`:
+    name, tags to include/exclude with all/any, created/modified range, number of parts, text in the active branch or in all
+    branches, results with name and tags). Global search across books' contents in one list (text hits per part) was left out.
 
 17. **Duplicate actions** — duplicate book (settings only / with story), lorebook, protocol, provider.
     ✅ Books: the clone button of the book list (`ManuscriptCloneDialog`, `BackupService.cloneManuscript`, optionally only

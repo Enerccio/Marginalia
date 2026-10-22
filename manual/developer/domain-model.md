@@ -221,7 +221,7 @@ should find, in one place, even when the text is spread over columns and JSON. F
 
 ### Full-text search
 
-The only search over `_fulltext` so far is `ChatMessageService.searchFulltext(manuscript, query)`, used by the search of
+The searches over `_fulltext` are `ChatMessageService.searchFulltext(manuscript, query)`, used by the search of
 the story tree. `FulltextQuery.parse` splits the query into words (double quotes make a phrase); a part matches when its
 text contains every word. In SQL (`ChatMessageRepository.findFulltexts`) each word is a
 `_fulltext LIKE :pattern ESCAPE '\'`, built like the name filter of the book list (`LikePatterns.fromWildcards`): `*`
@@ -230,7 +230,9 @@ messages are read, never the whole entity. SQLite's `LIKE` ignores case only for
 lower case, upper case and capitalized (`FulltextQuery.likePatterns`), which covers accented letters in the usual
 spellings; a word written in mixed case in the text (`ŽlutÝ`) is not found by a differently cased query. The snippet
 shown with a hit is cut from the text by `FulltextQuery.snippet`. The service checks that the book belongs to the
-current user.
+current user. The advanced search of the book list uses the same `LIKE`s over all the candidate books at once
+(`ChatMessageRepository.findFulltextHits`, ids only) and, unless it searches all branches, keeps the books whose hit lies on
+the branch of the active part (`findActiveBranchIds`, a walk up the parent links).
 
 Like `extendedContent`, the column is invisible to dirty checking of the fields, so it is only current after a
 service `save`. Marking a field of an entity that already has rows (or changing which fields are marked) leaves old

@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
 import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValues;
+import com.github.enerccio.marginalia.domain.service.search.ManuscriptSearchCriteria;
 import com.github.enerccio.marginalia.domain.service.search.Sorter;
 import com.github.enerccio.marginalia.domain.templates.*;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
@@ -113,6 +114,17 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @CommonTxReadOnly
     public List<Long> searchRegularManuscripts(ManuscriptFilterValues filterValues, Sorter... sorters) throws Exception {
         return getRepository().searchManuscripts(filterValues, List.of(sorters), currentUser, false);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<Long> searchAdvanced(ManuscriptSearchCriteria criteria, Sorter... sorters) throws Exception {
+        List<Long> ids = getRepository().searchManuscripts(criteria, List.of(sorters), currentUser);
+        if (StringUtils.isBlank(criteria.getFulltext()) || ids.isEmpty()) {
+            return ids;
+        }
+        Set<Long> withText = chatMessageService.findManuscriptsWithText(ids, criteria.getFulltext(), criteria.isAllBranches());
+        return ids.stream().filter(withText::contains).toList();
     }
 
     @Override

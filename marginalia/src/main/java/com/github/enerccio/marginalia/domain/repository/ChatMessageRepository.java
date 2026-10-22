@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public interface ChatMessageRepository extends ExtendableRepository<ChatMessage> {
 
@@ -49,6 +50,20 @@ public interface ChatMessageRepository extends ExtendableRepository<ChatMessage>
      *                     match, see {@link com.github.enerccio.marginalia.domain.service.search.FulltextQuery#likePatterns()}
      */
     List<Object[]> findFulltexts(Manuscript manuscript, List<List<String>> likePatterns) throws Exception;
+
+    /**
+     * Id of the message and id of its manuscript ({@code Object[]{Long, Long}}) for the messages of the manuscripts
+     * that are not deleted and match the query, the text of the messages is not read.
+     *
+     * @param likePatterns see {@link #findFulltexts}
+     */
+    List<Object[]> findFulltextHits(Collection<Long> manuscriptIds, List<List<String>> likePatterns) throws Exception;
+
+    /**
+     * Ids of the parts from the first one to the active part of the manuscript (the branch the story shows), empty
+     * when the manuscript has no active part.
+     */
+    Set<Long> findActiveBranchIds(Long manuscriptId) throws Exception;
 
     /**
      * Id and {@code _fulltext} ({@code Object[]{Long, String}}) of the messages of the manuscript that are not deleted,

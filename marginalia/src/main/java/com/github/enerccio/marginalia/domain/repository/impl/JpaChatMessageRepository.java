@@ -228,6 +228,50 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
     }
 
     @Override
+    public List<Object[]> findFulltextHits(Collection<Long> manuscriptIds, List<List<String>> likePatterns) throws Exception {
+        if (manuscriptIds.isEmpty()) {
+            return List.of();
+        }
+        StringBuilder query = new StringBuilder("SELECT m.id, m.parentScript.id FROM ChatMessage m WHERE m.parentScript.id IN :ids AND m.deleted = false");
+        Map<String, Object> parameters = new HashMap<>();
+        for (int word = 0; word < likePatterns.size(); word++) {
+            List<String> ors = new ArrayList<>();
+            for (int variant = 0; variant < likePatterns.get(word).size(); variant++) {
+                String name = "p" + word + "_" + variant;
+                ors.add("m._fulltext LIKE :" + name + " ESCAPE '\\'");
+                parameters.put(name, likePatterns.get(word).get(variant));
+            }
+            query.append(" AND (").append(String.join(" OR ", ors)).append(")");
+        }
+
+        TypedQuery<Object[]> q = getEntityManager().createQuery(query.toString(), Object[].class)
+                .setParameter("ids", manuscriptIds);
+        parameters.forEach(q::setParameter);
+        return q.getResultList();
+    }
+
+    @Override
+    public Set<Long> findActiveBranchIds(Long manuscriptId) throws Exception {
+        List<Long> leaf = getEntityManager().createQuery("SELECT m.activeLeaf.id FROM Manuscript m WHERE m.id = :id AND m.activeLeaf IS NOT NULL", Long.class)
+                .setParameter("id", manuscriptId)
+                .getResultList();
+        if (leaf.isEmpty()) {
+            return Set.of();
+        }
+        Map<Long, Long> parents = new HashMap<>();
+        for (Object[] row : getEntityManager().createQuery("SELECT m.id, m.parent.id FROM ChatMessage m WHERE m.parentScript.id = :manuscript AND m.deleted = false", Object[].class)
+                .setParameter("manuscript", manuscriptId)
+                .getResultList()) {
+            parents.put((Long) row[0], (Long) row[1]);
+        }
+        Set<Long> branch = new HashSet<>();
+        for (Long id = leaf.getFirst(); id != null && parents.containsKey(id) && branch.add(id); id = parents.get(id)) {
+            // walks up to the first part
+        }
+        return branch;
+    }
+
+    @Override
     public List<Object[]> findFulltextsContaining(Manuscript manuscript, String literal) throws Exception {
         return fulltextsContaining("SELECT m.id, m._fulltext FROM ChatMessage m WHERE m.parentScript = :manuscript AND m.deleted = false",
                 "m._fulltext", manuscript, literal);

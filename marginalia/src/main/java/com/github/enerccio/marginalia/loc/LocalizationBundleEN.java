@@ -630,6 +630,15 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_SEARCH_THIS_BRANCH, "Search the text of this branch");
         setValue(L.LABEL_SEARCH_PREVIOUS_MATCH, "Previous match");
         setValue(L.LABEL_SEARCH_NEXT_MATCH, "Next match");
+        setValue(L.LABEL_ADVANCED_SEARCH, "Advanced search");
+        setValue(L.LABEL_TAGS_INCLUDE, "Tags to include");
+        setValue(L.LABEL_TAGS_EXCLUDE, "Tags to exclude");
+        setValue(L.LABEL_CREATED_FROM, "Created from");
+        setValue(L.LABEL_CREATED_TO, "Created to");
+        setValue(L.LABEL_MODIFIED_FROM, "Modified from");
+        setValue(L.LABEL_MODIFIED_TO, "Modified to");
+        setValue(L.LABEL_PARTS_FROM, "Number of parts from");
+        setValue(L.LABEL_PARTS_TO, "Number of parts to");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -750,6 +759,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_PART_CHANGE_DIFFERENT, "Different");
         setValue(L.ENUM_PART_CHANGE_ONLY_PREVIOUS, "Only on the previous part");
         setValue(L.ENUM_PART_CHANGE_ONLY_MERGED, "Only on the merged part");
+        setValue(L.ENUM_TAG_MATCH_ALL, "All of the tags");
+        setValue(L.ENUM_TAG_MATCH_ANY, "Any of the tags");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -1057,6 +1068,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_PART_MERGE_NOT_POSSIBLE, "This part cannot be merged: it is the first part of the book, or the part before it has other continuations (swipes). Delete the swipes or make them a branch first.");
         setValue(L.MSG_PART_MERGED, "The part was merged into the previous one.");
         setValue(L.MSG_BRANCH_SEARCH_RESULT, "Match %s of %s, in part #%s");
+        setValue(L.MSG_BOOKS_FOUND, "%s books found");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

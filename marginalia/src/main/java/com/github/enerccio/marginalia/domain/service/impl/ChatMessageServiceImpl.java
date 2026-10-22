@@ -178,6 +178,40 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
 
     @Override
     @CommonTxReadOnly
+    public Set<Long> findManuscriptsWithText(Collection<Long> manuscriptIds, String query, boolean allBranches) throws Exception {
+        FulltextQuery parsed = FulltextQuery.parse(query);
+        if (parsed.isEmpty() || manuscriptIds == null) {
+            return Collections.emptySet();
+        }
+        Set<Long> own = new HashSet<>();
+        for (Manuscript book : manuscriptService.findAllForUser()) {
+            if (manuscriptIds.contains(book.getId())) {
+                own.add(book.getId());
+            }
+        }
+
+        Map<Long, Set<Long>> hits = new HashMap<>();
+        for (Object[] row : getRepository().findFulltextHits(own, parsed.likePatterns())) {
+            hits.computeIfAbsent((Long) row[1], k -> new HashSet<>()).add((Long) row[0]);
+        }
+        if (allBranches) {
+            return new HashSet<>(hits.keySet());
+        }
+        Set<Long> found = new HashSet<>();
+        hits.forEach((book, parts) -> {
+            try {
+                if (!Collections.disjoint(parts, getRepository().findActiveBranchIds(book))) {
+                    found.add(book);
+                }
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
+        });
+        return found;
+    }
+
+    @Override
+    @CommonTxReadOnly
     public List<MessageFulltext> findFulltextsContaining(Manuscript manuscript, String literal) throws Exception {
         if (manuscript == null || manuscriptService.findForUser(manuscript.getUuid()) == null) {
             return Collections.emptyList();
