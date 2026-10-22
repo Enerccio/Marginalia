@@ -308,6 +308,8 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         sendButton.setTooltipText("Ctrl+Enter");
         if (phone) {
             iconOnly(sendButton, L.LABEL_SEND);
+            // the box takes what is left; the button keeps its size, else the icon is cut
+            sendButton.addClassName(CssStyles.FLEX_SHRINK_0);
         }
         // pictures can go with a message when the model of the agent sees them
         Button attachButton = new Button(loc.getValue(L.LABEL_ATTACH_IMAGE), Solid.IMAGE.create());
@@ -346,7 +348,11 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             commandRow.setVisible(false);
             commandButton = new Button(Solid.TERMINAL.create(), event -> commandRow.setVisible(!commandRow.isVisible()));
             iconOnly(commandButton, L.LABEL_COMMAND);
+            commandButton.addClassName(CssStyles.FLEX_SHRINK_0);
             inputRow = new HorizontalLayout(commandButton, imageUpload, messageField, sendButton);
+            // the box is as wide as what the buttons leave (its own minimal width pushed the send button out of the screen)
+            messageField.setWidth("0");
+            messageField.setMinWidth("0");
         }
         inputRow.setWidthFull();
         inputRow.setPadding(false);
@@ -495,6 +501,12 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         footer.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
         getFooter().add(footer);
 
+        // a command that already waits when the console is opened: its popup opens right after the console, over it
+        addOpenedChangeListener(event -> {
+            if (event.isOpened()) {
+                refreshRun();
+            }
+        });
         refreshRun();
     }
 
@@ -818,7 +830,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             approvalDialog.close();
             approvalDialog = null;
         }
-        if (approvalDialog == null && !waiting.isEmpty()) {
+        // not before the console is opened: a popup that is opened first lies under it (both are modal, the later one is on
+        // top), see the listener in create()
+        if (approvalDialog == null && !waiting.isEmpty() && isOpened()) {
             PendingApproval next = waiting.getFirst();
             AgentRun asked = run;
             approvalDialog = new AgentApprovalDialog(agent.getName(), next, approved -> {

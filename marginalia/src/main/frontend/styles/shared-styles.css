@@ -650,6 +650,13 @@ vaadin-markdown.agent-report td {
     width: 40px;
 }
 
+/* Resizable text area on a phone: the height is the one of the field, the label and the helper text (long on a narrow screen)
+   stay outside of it (ui.widgets.ResizableTextArea sets the two variables) */
+.resizable-text-area-field::part(input-field) {
+    height: var(--resizable-text-area-height, auto);
+    min-height: var(--resizable-text-area-min-height, 0);
+}
+
 /* Resizable text area toggle icon */
 .resizable-text-area-icon {
     cursor: pointer;

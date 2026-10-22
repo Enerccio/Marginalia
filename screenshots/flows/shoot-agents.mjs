@@ -293,15 +293,15 @@ await main(async ({ page }) => {
 
   // ---------------------------------------------------------------- Style editor wants to delete a part
   await section(page, 'run-style', async () => {
-    // the console is opened while the agent works, so that the window of the approval comes up over it (a console opened
-    // after the agent already waits shows no window: it is made first and lies under the console)
+    // the console is opened after the agent already waits: the window of the approval comes up over it
     await queueRounds([
       { delayMs: 7000, toolCalls: [{ name: 'get-book-info', arguments: {} }, { name: 'list-parts', arguments: {} }] },
       { toolCalls: [{ name: 'delete-part', arguments: { part: 'h:m5' } }] },
     ]);
     await startAgent(page, 'Style editor', 'Start immediately');
+    await waitStatus(page, 'Style editor', 'Waiting for approval', 40000);
     await clickRow(page, 'Style editor', 'terminal', 1500);
-    await page.getByText('wants to run the command', { exact: false }).first().waitFor({ timeout: 40000 });
+    await page.getByText('wants to run the command', { exact: false }).first().waitFor({ timeout: 10000 });
     await sleep(1500);
     // the window of the approval stands over the console: the picture is the whole window, with the console behind it
     await snap(page, 'agent-approval');

@@ -74,6 +74,7 @@ An agent is an LLM that works on one book on its own (or with you in a console) 
 
 ### Fixed
 
+- **Text areas on a phone** (`ResizableTextArea`) are as high as set again: the helper text under a field, long on a narrow screen, took most of the height, so a long prompt showed one or two lines.
 - **A story of hundreds of parts froze the browser when it opened** (see the lazy parts and the lazy popovers above).
 - **A book created with Add Book** is remembered by the workspace autosave like a book opened from the list.
 - **Lorebook VCS:** switching, adding or deleting a revision of an entry no longer closes the opened entries.

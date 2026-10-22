@@ -55,6 +55,7 @@ public class AgentStopDialog extends Dialog implements LLMInteract {
         discardButton.setThemeName("error");
         HorizontalLayout footer = new HorizontalLayout(cancelButton, discardButton, keepButton);
         footer.setWidthFull();
+        footer.setWrap(true);
         footer.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
         getFooter().add(footer);
     }

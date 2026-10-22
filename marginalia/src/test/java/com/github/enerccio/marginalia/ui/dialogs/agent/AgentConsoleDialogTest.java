@@ -584,6 +584,21 @@ class AgentConsoleDialogTest extends AgentTestBase {
     }
 
     @Test
+    void thePopupOfACommandThatWaitedBeforeTheConsoleWasOpenedComesAfterTheConsoleOpens() throws Exception {
+        waitingCommand(startedRun());
+        AgentConsoleDialog dialog = new AgentConsoleDialog(agent, false);
+        dialog.create();
+
+        // both are modal and the one opened later is on top: the popup must not be opened before the console
+        assertThat(dialog.getApprovalDialog()).isNull();
+
+        dialog.open();
+
+        assertThat(dialog.getApprovalDialog()).isNotNull();
+        assertThat(dialog.getApprovalDialog().isOpened()).isTrue();
+    }
+
+    @Test
     void theUserCanDeny() throws Exception {
         CompletableFuture<Boolean> decision = waitingCommand(startedRun());
         AgentConsoleDialog dialog = console();

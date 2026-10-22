@@ -88,6 +88,7 @@ public class AgentApprovalDialog extends Dialog implements LLMInteract {
         approveButton.setThemeName("primary");
         HorizontalLayout footer = new HorizontalLayout(denyButton, approveButton);
         footer.setWidthFull();
+        footer.setWrap(true);
         footer.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
         getFooter().add(footer);
     }
