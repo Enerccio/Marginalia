@@ -26,7 +26,6 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
-import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,7 +89,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
     private IntegerField autoCompactField;
     private TextAreaPopoverComponent systemPromptField;
     private TextAreaPopoverComponent compactionPromptField;
-    private TextArea instructionsField;
+    private TextAreaPopoverComponent instructionsField;
     private AgentCommandsEditor commandsEditor;
     private AgentModelsEditor modelsEditor;
     // what the prompt, the instructions and the commands weigh in every request
@@ -243,7 +242,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
         compactionPromptField.setWidthFull();
         ResizableTextArea.install(loc, compactionPromptField, "160px");
 
-        instructionsField = new TextArea(loc.getValue(L.LABEL_AGENT_INSTRUCTIONS));
+        instructionsField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_AGENT_INSTRUCTIONS));
         instructionsField.setHelperText(loc.getValue(L.HELP_AGENT_INSTRUCTIONS));
         instructionsField.setMaxLength(AgentService.MAX_INSTRUCTIONS_LENGTH);
         instructionsField.setValueChangeMode(com.vaadin.flow.data.value.ValueChangeMode.LAZY);
@@ -309,6 +308,8 @@ public class AgentDialog extends Dialog implements LLMInteract {
                 null, defaultPrompt));
         defaultInstructions = StringUtils.defaultString(agentService.getDefaultInstructions());
         instructionsField.setPlaceholder(defaultInstructions);
+        instructionsField.setPopoverContent(TemplateHints.create(loc, instructionsField, instructionsField.getPopover(),
+                null, defaultInstructions));
         String defaultCompaction = agentService.getDefaultCompactionPrompt();
         compactionPromptField.setPlaceholder(defaultCompaction);
         compactionPromptField.setPopoverContent(TemplateHints.create(loc, compactionPromptField,
@@ -597,8 +598,8 @@ public class AgentDialog extends Dialog implements LLMInteract {
     }
 
     @PublicAPI(from = "1.4.0",
-            returns = @APIReturn(type = TextArea.class))
-    TextArea getInstructionsField() {
+            returns = @APIReturn(type = TextAreaPopoverComponent.class))
+    TextAreaPopoverComponent getInstructionsField() {
         return instructionsField;
     }
 
