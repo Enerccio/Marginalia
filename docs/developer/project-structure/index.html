@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846014095953">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846014095953" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846014095953" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846014095953" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -59,7 +59,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.5.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -1150,7 +1150,7 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 <p>Each plugin is a Maven project with <code translate="no" v-pre>bundle</code> packaging and the same layout:</p>
 <div id="plugins-marginaliaplugins-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-none"><code v-pre class="language-none">plugins/&lt;name&gt;/
-├── pom.xml          depends on io.github.enerccio:marginalia:1.4.0:classes (provided)
+├── pom.xml          depends on io.github.enerccio:marginalia:1.5.0:classes (provided)
 ├── README.md        user documentation
 └── src/main/java/com/github/enerccio/marginalia/extensions/&lt;name&gt;/
     ├── &lt;Name&gt;Activator.java   OSGi BundleActivator - registers the extension service
@@ -1271,8 +1271,8 @@ ignored by Git), see <a href="../packaging/#building-the-plugins-in-docker">Pack
 <h2 id="build-output-marginaliatarget">Build output (<code translate="no" v-pre>marginalia/target/</code>)</h2>
 <retype-table copy-text="| Path | |
 |---|---|
-| `marginalia-1.4.0.war`, `marginalia-1.4.0/` | The WAR and its exploded form. |
-| `marginalia-1.4.0-classes.jar` | Classes for plugin builds. |
+| `marginalia-1.5.0.war`, `marginalia-1.5.0/` | The WAR and its exploded form. |
+| `marginalia-1.5.0-classes.jar` | Classes for plugin builds. |
 | `classes/`, `test-classes/` | Woven classes. |
 | `dev-bundle/`, `sw.ts`, `vaadin-dev-server-settings.json` | Vaadin frontend build files. |
 | `surefire-reports/`, `test-home/` | Test reports and test data folders. |
@@ -1287,11 +1287,11 @@ ignored by Git), see <a href="../packaging/#building-the-plugins-in-docker">Pack
 </thead>
 <tbody>
 <tr>
-<td><code translate="no" v-pre>marginalia-1.4.0.war</code>, <code translate="no" v-pre>marginalia-1.4.0/</code></td>
+<td><code translate="no" v-pre>marginalia-1.5.0.war</code>, <code translate="no" v-pre>marginalia-1.5.0/</code></td>
 <td>The WAR and its exploded form.</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>marginalia-1.4.0-classes.jar</code></td>
+<td><code translate="no" v-pre>marginalia-1.5.0-classes.jar</code></td>
 <td>Classes for plugin builds.</td>
 </tr>
 <tr>
@@ -1447,7 +1447,7 @@ ignored by Git), see <a href="../packaging/#building-the-plugins-in-docker">Pack
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (755dbce2).</p></div>
             </footer>
         </div>
     </div>
