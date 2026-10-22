@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845941364190">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845968794382">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845941364190" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845968794382" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845941364190" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845968794382" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845941364190" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845941364190" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845968794382" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845968794382" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -783,11 +783,11 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 | `ManuscriptCloneDialog` (`ui.dialogs`) | The clone button of the book list (`ManuscriptPart`, `PhoneManuscriptPart`): the name of the copy (the book's name and *(Copy)*) and **Only current branch**; **Clone** calls `BackupService.cloneManuscript(source, name, onlyCurrentBranch)` and gives the new book to `setOnClone`, which the book list uses to read itself again. The lorebook is linked, not copied. |
 | `ArchiveUploadDialog`, `ArchiveEntryNamesDialog`, `ArchiveImportRunner` (`ui.dialogs`) | The pieces of the import of `.md` archives (story part, new book, lorebook; the service is `ArchiveImportService`). `ArchiveUploadDialog.show(title, message, handler)` takes a zip file in memory and calls the `Handler`; an `IllegalArgumentException` of the handler (not a usable archive) is a warning and the dialog stays. `ArchiveEntryNamesDialog.show(content, onConfirm)` lists the files with the entry name each would get (`names.txt`, the first heading, the file name) in an editable grid and hands the names over in the order of the files. `ArchiveImportRunner` runs the import behind a progress dialog with **Stop** (what was imported stays, the user is told how much). |
 | `LazyContextMenu` (`ui.widgets`) | A `ContextMenu` whose items are made when it opens: the constructor takes the target and a `beforeOpen` runnable that `onBeforeOpenMenu` runs before Flow sends the menu. The menu of a story card is one (see `createHamburgerMenu` / `prepareMenu` of the cards), so a story of hundreds of parts does not create the items of all of them. |
-| `ModelProtocolPicker` | A model and a protocol combo box (the AIs and protocols of the user, the protocol optional) for a dialog that runs the model with a choice of its own: `setSelection(ai, protocol)` / `getAi()` / `getProtocol()` / `addSelectionListener(Runnable)`. Used by the generator dialogs of the Lore Generator and the Arc Outline. |
+| `ModelProtocolPicker` | A model and a protocol combo box (the AIs and protocols of the user, the protocol optional) for a dialog that runs the model with a choice of its own: `setSelection(ai, protocol)` / `getAi()` / `getProtocol()` / `addSelectionListener(Runnable)`. Used by the generator dialogs of the Lore Generator and the Arc Outline. On a phone the two boxes are full width, the protocol under the model. |
 | `TextAreaPopoverComponent`, `TextFieldPopOverComponent` | Prompt fields with a hints popover. |
 | `TemplateHints` | Content of the hints popover: *Insert Default Template*, the template's variables (from `@LocalizedTemplateDescription`) and the macros (from `Macros.hints()`). |
 | `ScrollPanel`, `HtmlText` | Scrollable container; text with HTML. |
-| `ResizableTextArea` | `ResizableTextArea.install(loc, textArea, &quot;160px&quot;)` on long prompt and description fields: a corner icon toggles between the fixed height (with a scrollbar) and a height that fits the whole content. |
+| `ResizableTextArea` | `ResizableTextArea.install(loc, textArea, &quot;160px&quot;)` on long prompt and description fields: a corner icon toggles between the fixed height (with a scrollbar) and a height that fits the whole content. On a phone the height is the one of the field (CSS class `resizable-text-area-field`, the variables `--resizable-text-area-height` and `--resizable-text-area-min-height`), not of the whole component: the helper text of a narrow screen would eat it. |
 | `GraphView` | A [Cytoscape.js](https://js.cytoscape.org/) graph with rings around a center node and re-centering by double click, see [Custom components](custom-components.md#graphview). |
 | `ChartJs` | A [Chart.js](https://www.chartjs.org/) chart: `setChartConfig(json)` takes a Chart.js configuration (`type`, `data`, `options`) as JSON and draws it responsively into the element (height 320px, the `chart-js` style). Used by `TokenUsageDialog` (doughnut of the prompt sections, bar chart of the payload messages), opened from *Token Usage* in the part menu of the desktop and phone story editors. |
 | `TrashGrid` | Deleted objects with a restore button and a button that deletes parts and entries for good, see [Trash](#trash). |
@@ -855,7 +855,7 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 </tr>
 <tr>
 <td><code translate="no" v-pre>ModelProtocolPicker</code></td>
-<td>A model and a protocol combo box (the AIs and protocols of the user, the protocol optional) for a dialog that runs the model with a choice of its own: <code translate="no" v-pre>setSelection(ai, protocol)</code> / <code translate="no" v-pre>getAi()</code> / <code translate="no" v-pre>getProtocol()</code> / <code translate="no" v-pre>addSelectionListener(Runnable)</code>. Used by the generator dialogs of the Lore Generator and the Arc Outline.</td>
+<td>A model and a protocol combo box (the AIs and protocols of the user, the protocol optional) for a dialog that runs the model with a choice of its own: <code translate="no" v-pre>setSelection(ai, protocol)</code> / <code translate="no" v-pre>getAi()</code> / <code translate="no" v-pre>getProtocol()</code> / <code translate="no" v-pre>addSelectionListener(Runnable)</code>. Used by the generator dialogs of the Lore Generator and the Arc Outline. On a phone the two boxes are full width, the protocol under the model.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>TextAreaPopoverComponent</code>, <code translate="no" v-pre>TextFieldPopOverComponent</code></td>
@@ -871,7 +871,7 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 </tr>
 <tr>
 <td><code translate="no" v-pre>ResizableTextArea</code></td>
-<td><code translate="no" v-pre>ResizableTextArea.install(loc, textArea, &quot;160px&quot;)</code> on long prompt and description fields: a corner icon toggles between the fixed height (with a scrollbar) and a height that fits the whole content.</td>
+<td><code translate="no" v-pre>ResizableTextArea.install(loc, textArea, &quot;160px&quot;)</code> on long prompt and description fields: a corner icon toggles between the fixed height (with a scrollbar) and a height that fits the whole content. On a phone the height is the one of the field (CSS class <code translate="no" v-pre>resizable-text-area-field</code>, the variables <code translate="no" v-pre>--resizable-text-area-height</code> and <code translate="no" v-pre>--resizable-text-area-min-height</code>), not of the whole component: the helper text of a narrow screen would eat it.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>GraphView</code></td>
@@ -1336,7 +1336,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (c8267196).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (a478cbfa).</p></div>
             </footer>
         </div>
     </div>
