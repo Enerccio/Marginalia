@@ -1,11 +1,9 @@
 package com.github.enerccio.marginalia.domain.service.search;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Query of a full-text search over the {@code _fulltext} column: the words (or phrases in double quotes) that must all
@@ -17,6 +15,7 @@ import java.util.regex.Pattern;
  */
 public final class FulltextQuery {
 
+    private static final int TEXT_FLAGS = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
     private static final Pattern TERM = Pattern.compile("\"([^\"]+)\"|(\\S+)");
 
     private final List<String> terms;
@@ -66,6 +65,52 @@ public final class FulltextQuery {
     private static String capitalize(String term) {
         int first = term.offsetByCodePoints(0, 1);
         return term.substring(0, first).toUpperCase() + term.substring(first).toLowerCase();
+    }
+
+    /**
+     * Whether the text has every word of the query (the check of {@link #likePatterns()} done in Java, for a text that is
+     * already loaded).
+     */
+    public boolean matches(String text) {
+        if (text == null || terms.isEmpty()) {
+            return false;
+        }
+        for (String term : terms) {
+            if (!termPattern(term).matcher(text).find()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Finds every place of the text where one of the words stands (ignoring case), to mark them; {@code *} matches any
+     * characters on one line. Null when the query has no words.
+     */
+    public Pattern highlightPattern() {
+        if (terms.isEmpty()) {
+            return null;
+        }
+        // the longer words first, so "stormy" wins over "storm" where both start
+        String alternatives = terms.stream()
+                .sorted(Comparator.comparingInt(String::length).reversed())
+                .map(term -> termPattern(term).pattern())
+                .collect(Collectors.joining("|"));
+        return Pattern.compile(alternatives, TEXT_FLAGS);
+    }
+
+    private static Pattern termPattern(String term) {
+        StringBuilder regex = new StringBuilder();
+        String[] parts = term.split("\\*", -1);
+        for (int i = 0; i < parts.length; i++) {
+            if (i > 0) {
+                regex.append("[^\\n]*?");
+            }
+            if (!parts[i].isEmpty()) {
+                regex.append(Pattern.quote(parts[i]));
+            }
+        }
+        return Pattern.compile(regex.toString(), TEXT_FLAGS);
     }
 
     /**

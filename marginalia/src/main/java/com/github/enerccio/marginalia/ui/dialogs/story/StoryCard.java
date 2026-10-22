@@ -26,6 +26,11 @@ public interface StoryCard {
 
     void updateResponse(String responseText);
 
+    /**
+     * Draws the response of the message again (the marks of a search changed).
+     */
+    void renderResponse();
+
     void updateMetrics(ChatMessage msg);
 
     /**

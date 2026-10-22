@@ -318,6 +318,21 @@ public final class JavascriptLibrary {
     }
 
     /**
+     * Scrolls the middle of the screen to the match of a search inside the element (the {@code mark} with the CSS class),
+     * to the element itself when it has none.
+     */
+    public static void scrollToSearchMatch(Element element, String currentCssClass) {
+        element.executeJs("""
+                requestAnimationFrame(() => {
+                  requestAnimationFrame(() => {
+                    const match = $0.querySelector('mark.' + $1);
+                    (match || $0).scrollIntoView({block: 'center'});
+                  });
+                });
+                """, element, currentCssClass);
+    }
+
+    /**
      * Scrolls the element to the top of its scroll parent once the layout following the current changes is done.
      */
     public static void scrollIntoViewAfterLayout(Element element) {

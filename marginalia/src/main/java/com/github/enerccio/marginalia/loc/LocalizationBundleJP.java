@@ -627,6 +627,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_PART_TAKE_MERGED, "統合するパートの値");
         setValue(L.LABEL_PART_SHOW_UNCHANGED, "変更のないデータも表示");
         setValue(L.LABEL_PART_CHANGE, "変更");
+        setValue(L.LABEL_SEARCH_THIS_BRANCH, "このブランチのテキストを検索");
+        setValue(L.LABEL_SEARCH_PREVIOUS_MATCH, "前の一致");
+        setValue(L.LABEL_SEARCH_NEXT_MATCH, "次の一致");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1053,6 +1056,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_PART_MERGE_NO_DATA, "どちらのパートにもデータがありません。");
         setValue(L.MSG_PART_MERGE_NOT_POSSIBLE, "このパートは統合できません。本の最初のパートであるか、前のパートに他の続き(スワイプ)があります。先にスワイプを削除するか、ブランチにしてください。");
         setValue(L.MSG_PART_MERGED, "パートを前のパートに統合しました。");
+        setValue(L.MSG_BRANCH_SEARCH_RESULT, "一致 %s / %s（パート #%s）");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

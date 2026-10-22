@@ -627,6 +627,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_PART_TAKE_MERGED, "Value of the merged part");
         setValue(L.LABEL_PART_SHOW_UNCHANGED, "Show unchanged data");
         setValue(L.LABEL_PART_CHANGE, "Change");
+        setValue(L.LABEL_SEARCH_THIS_BRANCH, "Search the text of this branch");
+        setValue(L.LABEL_SEARCH_PREVIOUS_MATCH, "Previous match");
+        setValue(L.LABEL_SEARCH_NEXT_MATCH, "Next match");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1053,6 +1056,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_PART_MERGE_NO_DATA, "The two parts keep no data.");
         setValue(L.MSG_PART_MERGE_NOT_POSSIBLE, "This part cannot be merged: it is the first part of the book, or the part before it has other continuations (swipes). Delete the swipes or make them a branch first.");
         setValue(L.MSG_PART_MERGED, "The part was merged into the previous one.");
+        setValue(L.MSG_BRANCH_SEARCH_RESULT, "Match %s of %s, in part #%s");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

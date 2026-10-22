@@ -635,6 +635,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_PART_TAKE_MERGED, "被合并段落的值");
         setValue(L.LABEL_PART_SHOW_UNCHANGED, "显示未变化的数据");
         setValue(L.LABEL_PART_CHANGE, "变化");
+        setValue(L.LABEL_SEARCH_THIS_BRANCH, "搜索当前分支的文本");
+        setValue(L.LABEL_SEARCH_PREVIOUS_MATCH, "上一个匹配");
+        setValue(L.LABEL_SEARCH_NEXT_MATCH, "下一个匹配");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1061,6 +1064,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_PART_MERGE_NO_DATA, "两段都没有数据。");
         setValue(L.MSG_PART_MERGE_NOT_POSSIBLE, "无法合并此段：它是书的第一段，或者上一段还有其他后续（滑动）。请先删除这些滑动或将其设为分支。");
         setValue(L.MSG_PART_MERGED, "该段已合并到上一段。");
+        setValue(L.MSG_BRANCH_SEARCH_RESULT, "第 %s 个匹配，共 %s 个（第 #%s 段）");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

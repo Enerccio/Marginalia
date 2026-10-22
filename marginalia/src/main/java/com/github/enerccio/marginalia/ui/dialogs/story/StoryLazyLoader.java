@@ -9,10 +9,7 @@ import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.dom.DomEvent;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BooleanSupplier;
 
 /**
@@ -119,6 +116,38 @@ public class StoryLazyLoader<C extends Component & StoryCard> {
         C card = cards.get(messageId);
         if (card != null) {
             JavascriptLibrary.scrollToAndHighlight(card.getElement());
+        }
+    }
+
+    /**
+     * Brings the match of a search to the screen: the window moves to the part when it is not loaded, the card is drawn
+     * again when it was (the mark of the current match changed) and the story scrolls to the mark with the CSS class.
+     */
+    public void showMatch(Long messageId, String currentCssClass) {
+        if (window == null || window.indexOf(messageId) < 0) {
+            return;
+        }
+        if (!window.isLoaded(messageId)) {
+            syncLoaded();
+            window.centerOn(messageId);
+            populate(cards.collectOpenedReasonings());
+        }
+        C card = cards.get(messageId);
+        if (card != null) {
+            card.renderResponse();
+            JavascriptLibrary.scrollToSearchMatch(card.getElement(), currentCssClass);
+        }
+    }
+
+    /**
+     * Draws the response of the cards of these parts again, the ones that have no card are skipped.
+     */
+    public void renderResponses(Collection<Long> messageIds) {
+        for (Long id : messageIds) {
+            C card = cards.get(id);
+            if (card != null) {
+                card.renderResponse();
+            }
         }
     }
 
