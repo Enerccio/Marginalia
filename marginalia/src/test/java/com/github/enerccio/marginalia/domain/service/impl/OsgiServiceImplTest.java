@@ -74,6 +74,7 @@ class OsgiServiceImplTest {
         ReflectionTestUtils.setField(service, "extensionService", new ExtensionServiceImpl());
         ipc = new IPCServiceImpl();
         ReflectionTestUtils.setField(service, "ipcService", ipc);
+        ReflectionTestUtils.setField(service, "toolService", new ToolServiceImpl());
         localization = new LocalizationImpl();
         localization.setBundles(List.of(new LocalizationBundleEN()));
         ReflectionTestUtils.setField(service, "localization", localization);
