@@ -74,7 +74,8 @@ public class DesktopWorkspace implements Workspace {
     private final TrashPart trashPart = new TrashPart(this);
     private Component trashPartComponent;
 
-    private final AdminPart adminPart = new AdminPart(this);
+    // only an administrator gets the part: it is not even created for the others (its panels refuse them)
+    private AdminPart adminPart;
     private Component adminPartComponent;
 
     // names of the parts in the stored state, so it survives reordering the tabs
@@ -105,6 +106,7 @@ public class DesktopWorkspace implements Workspace {
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = Component.class),
             locals = {@APILocals(name = "vl", type = VerticalLayout.class),
+                    @APILocals(name = "user", type = User.class),
                     @APILocals(name = "manuscriptTabHeader", type = HorizontalLayout.class),
                     @APILocals(name = "manuscriptNameSpan", type = Span.class),
                     @APILocals(name = "manuscriptTab", type = Tab.class),
@@ -125,8 +127,7 @@ public class DesktopWorkspace implements Workspace {
                     @APILocals(name = "resourcesTabHeader", type = HorizontalLayout.class),
                     @APILocals(name = "resourcesTab", type = Tab.class),
                     @APILocals(name = "trashTabHeader", type = HorizontalLayout.class),
-                    @APILocals(name = "trashTab", type = Tab.class),
-                    @APILocals(name = "user", type = User.class)})
+                    @APILocals(name = "trashTab", type = Tab.class)})
     @Override
     public Component create() throws Exception {
         VerticalLayout vl = new VerticalLayout();
@@ -149,7 +150,11 @@ public class DesktopWorkspace implements Workspace {
         }
         resourcesPartComponent = resourcesPart.create();
         trashPartComponent = trashPart.create();
-        adminPartComponent = adminPart.create();
+        User user = userService.find(currentUser.getId());
+        if (user != null && user.isAdmin()) {
+            adminPart = new AdminPart(this);
+            adminPartComponent = adminPart.create();
+        }
 
         HorizontalLayout manuscriptTabHeader = new HorizontalLayout();
         manuscriptTabHeader.setAlignItems(Alignment.CENTER);
@@ -223,7 +228,6 @@ public class DesktopWorkspace implements Workspace {
         Tab trashTab = tabs.add(trashTabHeader, trashPartComponent);
         tabToComponent.put(trashTab, trashPart);
 
-        User user = userService.find(currentUser.getId());
         tabs.setFooterComponent(createFooter(user));
 
         tabs.addSelectedChangeListener(e -> {
@@ -259,9 +263,9 @@ public class DesktopWorkspace implements Workspace {
     @Override
     public String getLLMState() {
         List<String> keys = new ArrayList<>(partsByKey.keySet());
-        String active = activeComponent == adminPart ? "admin" : partsByKey.entrySet().stream()
+        String active = adminPart != null && activeComponent == adminPart ? "admin" : partsByKey.entrySet().stream()
                 .filter(entry -> entry.getValue() == activeComponent).map(Map.Entry::getKey).findFirst().orElse("books");
-        if (adminButton != null) {
+        if (adminPart != null) {
             keys.add("admin");
         }
         return WorkspaceLLMSupport.describe(loc, "desktop", keys, active, navigationLocked);
@@ -279,10 +283,10 @@ public class DesktopWorkspace implements Workspace {
                 sections.put(key, () -> tabs.setSelectedTab(tab));
             }
         }));
-        if (adminButton != null) {
+        if (adminPart != null) {
             sections.put("admin", this::openAdmin);
         }
-        String active = activeComponent == adminPart ? "admin" : partsByKey.entrySet().stream()
+        String active = adminPart != null && activeComponent == adminPart ? "admin" : partsByKey.entrySet().stream()
                 .filter(entry -> entry.getValue() == activeComponent).map(Map.Entry::getKey).findFirst().orElse("books");
         return WorkspaceLLMSupport.openSections(loc, sections, active, navigationLocked);
     }
@@ -304,7 +308,7 @@ public class DesktopWorkspace implements Workspace {
         }
         parts.put(resourcesPart, resourcesPartComponent);
         parts.put(trashPart, trashPartComponent);
-        if (adminButton != null) {
+        if (adminPart != null) {
             parts.put(adminPart, adminPartComponent);
         }
         return LLMInteract.parts(parts, activeComponent, deep);
@@ -333,7 +337,7 @@ public class DesktopWorkspace implements Workspace {
         footer.setSpacing(true);
         footer.setWidthFull();
 
-        if (user != null && user.isAdmin()) {
+        if (adminPart != null) {
             footer.add(createAdminFooter());
         }
 
@@ -463,8 +467,8 @@ public class DesktopWorkspace implements Workspace {
         }
         resourcesPart.refresh();
         trashPart.refresh();
-        // the admin part (backups, cleanup) refuses anybody but administrators; only they get the button
-        if (adminButton != null) {
+        // the admin part (backups, cleanup) refuses anybody but administrators; only they have it
+        if (adminPart != null) {
             adminPart.refresh();
         }
     }

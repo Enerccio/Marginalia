@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845968815553">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845997290078">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -24,7 +24,7 @@
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/extensions/name-generator/">
     <meta property="og:title" content="Name generator">
     <meta property="og:description" content="Gives the model a way to ask for names instead of inventing them. The names come from lists of real names - given names and surnames of many countries,">
-    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/plugin-loregenerator-names.png">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/tools-dialog.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="Name generator">
@@ -36,7 +36,7 @@
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/extensions/name-generator/">
     <meta name="twitter:title" content="Name generator">
     <meta name="twitter:description" content="Gives the model a way to ask for names instead of inventing them. The names come from lists of real names - given names and surnames of many countries,">
-    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/plugin-loregenerator-names.png">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/tools-dialog.png">
     <meta name="twitter:image:alt" content="Name generator">
 
     <!-- Alternate Markdown -->
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845968815553" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845997290078" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845968815553" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845997290078" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845968815553" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845997290078" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -175,12 +175,12 @@
 names and surnames of many countries, places, deities, monsters, drugs, companies, foods, and more - and are made new by
 a Markov chain, so they sound like the category without being copies of it.</p>
 <p>The extension has no screen of its own and nothing to configure. Other extensions offer its functions to the model; at
-the moment that are the <a href="../lore-generator/#name-tools">Lore Generator</a> and the <a href="../arc-outline/">Arc Outline</a>, where you
-choose which categories the model may use; their categories have the prefix <code translate="no" v-pre>Generator: </code> there, next to the <code translate="no" v-pre>Provider: </code>
-ones of the <a href="../name-provider/">Name provider</a>, which hands out real names instead of made up ones.</p>
+the moment that are the <a href="../lore-generator/#tools">Lore Generator</a> and the <a href="../arc-outline/">Arc Outline</a>, where you
+choose which categories the model may use (see <a href="../tools/">Tools for the model</a>); its suite is <em>Name generator</em>, next to the
+<em>Name provider</em> of the <a href="../name-provider/">Name provider</a>, which hands out real names instead of made up ones.</p>
 <figure class="content-center">
-    <img src="../../../images/plugin-loregenerator-names.png" alt="Choosing the categories of names in the Lore Generator" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="720" height="745" />
-    <figcaption class="caption">Choosing the categories of names in the Lore Generator</figcaption>
+    <img src="../../../images/tools-dialog.png" alt="Choosing the categories of names in the Tools window of the Lore Generator" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="720" height="745" />
+    <figcaption class="caption">Choosing the categories of names in the Tools window of the Lore Generator</figcaption>
 </figure>
 <h2 id="what-the-model-can-do">What the model can do</h2>
 <retype-table copy-text="| Function | What it does |
@@ -211,7 +211,7 @@ ones of the <a href="../name-provider/">Name provider</a>, which hands out real 
 <p>Without a length, the names are as long as the names of that category usually are (a category of long company names gives
 long names, one of short forenames short ones). The model can ask for other lengths between 2 and 30 letters. A small
 category may return fewer names than asked for, because the chain runs out of different ones. The model is free to
-pick one of the names, change it or combine two of them; see the <em>Name generator hint</em> of the Lore Generator.</p>
+pick one of the names, change it or combine two of them; see the hint of the <em>Name generator</em> suite in the <a href="../tools/#choosing-the-tools">tools window</a>.</p>
 <h2 id="commands">Commands</h2>
 <p>The same names are available as <a href="../../commands/">commands</a>, for the command line and for <a href="../../agents/">agents</a>,
 which can use them in their own prompts (for example for <code translate="no" v-pre>/generate-lore-entry</code> of the <a href="../lore-generator/">Lore Generator</a>):</p>
@@ -267,7 +267,7 @@ are, so the original names can&#x27;t be read out of the extension. Some of the 
 <h2 id="usage">Usage</h2>
 <p>Load the extension in <em>Admin → Extensions</em>. It applies to the next generation; extensions that use it find it when it is
 loaded, also if it is installed after them or unloaded and installed again - there is no need to restart the Lore
-Generator. Without it, the Lore Generator has no <em>Name tools</em> button.</p>
+Generator. Without it and the other suites, the Lore Generator has no <em>Tools</em> button.</p>
 
                 
                 <!-- Required only on API pages -->
@@ -305,7 +305,7 @@ Generator. Without it, the Lore Generator has no <em>Name tools</em> button.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (333d9397).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (fcdfc889).</p></div>
             </footer>
         </div>
     </div>

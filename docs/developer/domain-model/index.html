@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845968815553">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845997290078">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845968815553" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845997290078" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845968815553" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845997290078" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845968815553" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845968815553" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845997290078" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845997290078" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -1330,11 +1330,12 @@ more.</p>
 holder and <code translate="no" v-pre>PermissionType</code>; a user without one does not have the permission.</p>
 <retype-table copy-text="| Field | |
 |---|---|
-| `permissionType` | `PermissionType`, stored by name (`@Enumerated(STRING)`): `HELPER` (use the help assistant), `CREATE_AI` (create their own AIs), `AGENTS` (create and run agents). Never rename a constant. |
+| `permissionType` | `PermissionType`, stored by name (`@Enumerated(STRING)`): `HELPER` (use the help assistant), `CREATE_AI` (create their own AIs), `AGENTS` (create and run agents), `NOTIFICATIONS` (messages of the server to the user's webhook). Never rename a constant. |
 | `permissionHolder` | Column `holder_id`, the `User` who has (or has not) the permission. `@CleanupReference(OWNED_BY)`: purged with the user; nullable because the cleanup nulls the reference before it purges the user. |
 | `granted` | Whether it is given; `false` keeps the row as an explicit refusal. |
 | `helperApplyLimits`, `helperInteractions` | Extended attributes of the type `HELPER` (booleans, off by default): do the limits of the user apply to their questions to the help assistant, may the assistant move through the interface for them (they were application settings before). Edited in `PermissionsDialog`. |
 | `agentsMaxConcurrentRuns`, `agentsRunTokenBudget`, `agentsMaxAgents` | Extended attributes of the type `AGENTS`: how many runs of the user can work at once (1 when not set), the most tokens one run can spend (none or 0 is no limit) and how many agents the user can have, clones included (5 when not set). Read by `AgentService.getGrant`; `AgentsPermissionComponent` edits them in the permissions dialog. |
+| `notificationsAllowLocal` | Extended attribute of the type `NOTIFICATIONS` (boolean, off by default): the messages may go to the machine of the server and to private networks. Counts only while `granted` (`AgentWebhookService.mayUseLocalAddresses`); `NotificationsPermissionComponent` greys the box out without the permission and `component2model` clears it. |
 | `owner` | Inherited from `OwnedEntity`: the administrator who gave it, `null` for the ones the migration created. It plays no part when a permission is looked up, see [Permissions](services.md#permissions). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -1347,7 +1348,7 @@ holder and <code translate="no" v-pre>PermissionType</code>; a user without one 
 <tbody>
 <tr>
 <td><code translate="no" v-pre>permissionType</code></td>
-<td><code translate="no" v-pre>PermissionType</code>, stored by name (<code translate="no" v-pre>@Enumerated(STRING)</code>): <code translate="no" v-pre>HELPER</code> (use the help assistant), <code translate="no" v-pre>CREATE_AI</code> (create their own AIs), <code translate="no" v-pre>AGENTS</code> (create and run agents). Never rename a constant.</td>
+<td><code translate="no" v-pre>PermissionType</code>, stored by name (<code translate="no" v-pre>@Enumerated(STRING)</code>): <code translate="no" v-pre>HELPER</code> (use the help assistant), <code translate="no" v-pre>CREATE_AI</code> (create their own AIs), <code translate="no" v-pre>AGENTS</code> (create and run agents), <code translate="no" v-pre>NOTIFICATIONS</code> (messages of the server to the user&#x27;s webhook). Never rename a constant.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>permissionHolder</code></td>
@@ -1364,6 +1365,10 @@ holder and <code translate="no" v-pre>PermissionType</code>; a user without one 
 <tr>
 <td><code translate="no" v-pre>agentsMaxConcurrentRuns</code>, <code translate="no" v-pre>agentsRunTokenBudget</code>, <code translate="no" v-pre>agentsMaxAgents</code></td>
 <td>Extended attributes of the type <code translate="no" v-pre>AGENTS</code>: how many runs of the user can work at once (1 when not set), the most tokens one run can spend (none or 0 is no limit) and how many agents the user can have, clones included (5 when not set). Read by <code translate="no" v-pre>AgentService.getGrant</code>; <code translate="no" v-pre>AgentsPermissionComponent</code> edits them in the permissions dialog.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>notificationsAllowLocal</code></td>
+<td>Extended attribute of the type <code translate="no" v-pre>NOTIFICATIONS</code> (boolean, off by default): the messages may go to the machine of the server and to private networks. Counts only while <code translate="no" v-pre>granted</code> (<code translate="no" v-pre>AgentWebhookService.mayUseLocalAddresses</code>); <code translate="no" v-pre>NotificationsPermissionComponent</code> greys the box out without the permission and <code translate="no" v-pre>component2model</code> clears it.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>owner</code></td>
@@ -1743,7 +1748,7 @@ define both beans in <code translate="no" v-pre>services-config.xml</code>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (333d9397).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (fcdfc889).</p></div>
             </footer>
         </div>
     </div>

@@ -494,11 +494,12 @@ holder and `PermissionType`; a user without one does not have the permission.
 
 | Field | |
 |---|---|
-| `permissionType` | `PermissionType`, stored by name (`@Enumerated(STRING)`): `HELPER` (use the help assistant), `CREATE_AI` (create their own AIs), `AGENTS` (create and run agents). Never rename a constant. |
+| `permissionType` | `PermissionType`, stored by name (`@Enumerated(STRING)`): `HELPER` (use the help assistant), `CREATE_AI` (create their own AIs), `AGENTS` (create and run agents), `NOTIFICATIONS` (messages of the server to the user's webhook). Never rename a constant. |
 | `permissionHolder` | Column `holder_id`, the `User` who has (or has not) the permission. `@CleanupReference(OWNED_BY)`: purged with the user; nullable because the cleanup nulls the reference before it purges the user. |
 | `granted` | Whether it is given; `false` keeps the row as an explicit refusal. |
 | `helperApplyLimits`, `helperInteractions` | Extended attributes of the type `HELPER` (booleans, off by default): do the limits of the user apply to their questions to the help assistant, may the assistant move through the interface for them (they were application settings before). Edited in `PermissionsDialog`. |
 | `agentsMaxConcurrentRuns`, `agentsRunTokenBudget`, `agentsMaxAgents` | Extended attributes of the type `AGENTS`: how many runs of the user can work at once (1 when not set), the most tokens one run can spend (none or 0 is no limit) and how many agents the user can have, clones included (5 when not set). Read by `AgentService.getGrant`; `AgentsPermissionComponent` edits them in the permissions dialog. |
+| `notificationsAllowLocal` | Extended attribute of the type `NOTIFICATIONS` (boolean, off by default): the messages may go to the machine of the server and to private networks. Counts only while `granted` (`AgentWebhookService.mayUseLocalAddresses`); `NotificationsPermissionComponent` greys the box out without the permission and `component2model` clears it. |
 | `owner` | Inherited from `OwnedEntity`: the administrator who gave it, `null` for the ones the migration created. It plays no part when a permission is looked up, see [Permissions](services.md#permissions). |
 
 ## Agents

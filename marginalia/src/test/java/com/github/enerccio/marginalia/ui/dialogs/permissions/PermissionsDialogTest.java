@@ -87,7 +87,7 @@ class PermissionsDialogTest extends MarginaliaTestBase {
 
         // the test user was given CREATE_AI
         assertThat(dialog.getTypes()).containsExactlyInAnyOrder(PermissionType.HELPER, PermissionType.CREATE_AI);
-        assertThat(dialog.getAvailableTypes()).containsExactly(PermissionType.AGENTS);
+        assertThat(dialog.getAvailableTypes()).containsExactlyInAnyOrder(PermissionType.AGENTS, PermissionType.NOTIFICATIONS);
         assertThat(combo(dialog).isEnabled()).isTrue();
         assertThat(button(dialog, "Save").isEnabled()).isFalse();
         assertThat(dialog.isDirty()).isFalse();
@@ -143,7 +143,8 @@ class PermissionsDialogTest extends MarginaliaTestBase {
     @Test
     void addingOffersOnlyTheTypesTheUserHasNoneOf() throws Exception {
         PermissionsDialog dialog = dialog();
-        assertThat(dialog.getAvailableTypes()).containsExactlyInAnyOrder(PermissionType.HELPER, PermissionType.AGENTS);
+        assertThat(dialog.getAvailableTypes()).containsExactlyInAnyOrder(PermissionType.HELPER, PermissionType.AGENTS,
+                PermissionType.NOTIFICATIONS);
         assertThat(button(dialog, "Add permission").isEnabled()).isFalse();
 
         combo(dialog).setValue(PermissionType.HELPER);
@@ -151,7 +152,7 @@ class PermissionsDialogTest extends MarginaliaTestBase {
         button(dialog, "Add permission").click();
 
         assertThat(dialog.getTypes()).contains(PermissionType.HELPER);
-        assertThat(dialog.getAvailableTypes()).containsExactly(PermissionType.AGENTS);
+        assertThat(dialog.getAvailableTypes()).containsExactlyInAnyOrder(PermissionType.AGENTS, PermissionType.NOTIFICATIONS);
         assertThat(button(dialog, "Save").isEnabled()).isTrue();
         assertThat(permissionService.getPermission(user, PermissionType.HELPER)).as("not stored yet").isNull();
 
@@ -232,6 +233,38 @@ class PermissionsDialogTest extends MarginaliaTestBase {
         AgentsPermissionComponent reopened = (AgentsPermissionComponent) dialog().getSettings(PermissionType.AGENTS);
         assertThat(field(reopened, "Working copies").getValue()).isEqualTo(2);
         assertThat(field(reopened, "Largest file (KB)").getValue()).isEqualTo(512);
+    }
+
+    @Test
+    void localAddressesAreASubPermissionOfTheNotifications() throws Exception {
+        permissionService.setGranted(user, PermissionType.NOTIFICATIONS, true);
+        PermissionsDialog dialog = dialog();
+        dialog.setExpanded(PermissionType.NOTIFICATIONS, true);
+        NotificationsPermissionComponent settings = (NotificationsPermissionComponent) dialog.getSettings(PermissionType.NOTIFICATIONS);
+        Checkbox local = all(settings.getComponent()).filter(Checkbox.class::isInstance).map(Checkbox.class::cast)
+                .filter(c -> c.getLabel().startsWith("Allow addresses")).findFirst().orElseThrow();
+        assertThat(local.getValue()).isFalse();
+        assertThat(local.isEnabled()).as("the permission is granted").isTrue();
+        assertThat(dialog.isDirty()).isFalse();
+
+        local.setValue(true);
+        button(dialog, "Save").click();
+        assertThat(permissionService.getPermission(user, PermissionType.NOTIFICATIONS).getNotificationsAllowLocal()).isTrue();
+
+        // taking the permission away disables the box and does not keep the sub-permission
+        PermissionsDialog again = dialog();
+        again.setExpanded(PermissionType.NOTIFICATIONS, true);
+        Checkbox reopened = all(((NotificationsPermissionComponent) again.getSettings(PermissionType.NOTIFICATIONS)).getComponent())
+                .filter(Checkbox.class::isInstance).map(Checkbox.class::cast)
+                .filter(c -> c.getLabel().startsWith("Allow addresses")).findFirst().orElseThrow();
+        assertThat(reopened.getValue()).isTrue();
+        again.setGranted(PermissionType.NOTIFICATIONS, false);
+        assertThat(reopened.isEnabled()).isFalse();
+        button(again, "Save").click();
+
+        Permission stored = permissionService.getPermission(user, PermissionType.NOTIFICATIONS);
+        assertThat(stored.isGranted()).isFalse();
+        assertThat(stored.getNotificationsAllowLocal()).isFalse();
     }
 
     private static IntegerField field(AgentsPermissionComponent settings, String label) {

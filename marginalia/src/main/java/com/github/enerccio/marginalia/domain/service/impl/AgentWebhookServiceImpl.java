@@ -4,7 +4,10 @@ import com.github.enerccio.marginalia.domain.collections.WebhookFormat;
 import com.github.enerccio.marginalia.domain.model.impl.settings.AppSettings;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.security.AdminGuard;
+import com.github.enerccio.marginalia.domain.security.model.Permission;
 import com.github.enerccio.marginalia.domain.security.model.User;
+import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
+import com.github.enerccio.marginalia.domain.security.service.PermissionService;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
 import com.github.enerccio.marginalia.domain.service.AgentAttentionService.Notice;
 import com.github.enerccio.marginalia.domain.service.AgentWebhookService;
@@ -20,6 +23,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -50,6 +54,14 @@ public class AgentWebhookServiceImpl implements AgentWebhookService, DisposableB
 
     @Autowired
     private AdminGuard adminGuard;
+
+    @Autowired
+    @Lazy
+    private PermissionService permissionService;
+
+    // the user of the session, for the test message; the delivery thread has the user of the notice
+    @Autowired
+    private User currentUser;
 
     // a redirect would send the message somewhere the user did not type
     private final HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NEVER)
@@ -92,7 +104,7 @@ public class AgentWebhookServiceImpl implements AgentWebhookService, DisposableB
         // read only: this thread must not write while the others do
         UserSetting setting = settingService.find(UserSetting.class, user);
         String url = setting == null ? null : setting.getAgentWebhookUrl();
-        if (StringUtils.isBlank(url) || check(url.strip()) != null) {
+        if (StringUtils.isBlank(url) || !mayNotify(user) || check(user, url.strip()) != null) {
             return;
         }
         if (screenOpen && !Boolean.TRUE.equals(setting.getAgentWebhookAlways())) {
@@ -121,7 +133,14 @@ public class AgentWebhookServiceImpl implements AgentWebhookService, DisposableB
 
     @Override
     public String sendTest(String url, WebhookFormat format) {
-        String problem = check(url);
+        try {
+            if (!mayNotify(currentUser)) {
+                return "You may not get messages";
+            }
+        } catch (Exception e) {
+            return "The permission could not be checked";
+        }
+        String problem = check(currentUser, url);
         if (problem != null) {
             return problem;
         }
@@ -148,6 +167,86 @@ public class AgentWebhookServiceImpl implements AgentWebhookService, DisposableB
         } catch (IllegalArgumentException e) {
             return "The URL is not valid";
         }
+    }
+
+    @Override
+    public String check(User user, String url) {
+        String problem = check(url);
+        if (problem != null) {
+            return problem;
+        }
+        try {
+            if (mayUseLocalAddresses(user)) {
+                return null;
+            }
+            // one answer for a local address and for a name that does not resolve, so the answer says nothing about internal names
+            String onlyPublic = "Only addresses on the internet are called: this one is on the machine of the server, in a private network or can not be found";
+            InetAddress[] addresses;
+            try {
+                addresses = InetAddress.getAllByName(URI.create(url.strip()).getHost());
+            } catch (java.net.UnknownHostException e) {
+                return onlyPublic;
+            }
+            for (InetAddress address : addresses) {
+                if (isLocal(address)) {
+                    return onlyPublic;
+                }
+            }
+            return null;
+        } catch (Exception e) {
+            return "The address could not be checked";
+        }
+    }
+
+    /**
+     * Whether the address is not one of the internet: this machine, a private or link-local network (the address of the
+     * metadata service of a cloud host is one), the shared range of carriers, a unique local IPv6 address, multicast or
+     * unspecified.
+     */
+    public static boolean isLocal(InetAddress address) {
+        if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress()
+                || address.isSiteLocalAddress() || address.isMulticastAddress()) {
+            return true;
+        }
+        byte[] bytes = address.getAddress();
+        if (bytes.length == 4) {
+            int first = bytes[0] & 0xff;
+            int second = bytes[1] & 0xff;
+            return first == 0 || (first == 100 && second >= 64 && second <= 127);
+        }
+        return (bytes[0] & 0xfe) == 0xfc;
+    }
+
+    @Override
+    public boolean mayNotify(User user) throws Exception {
+        User holder = holder(user);
+        if (holder == null) {
+            return false;
+        }
+        if (holder.isAdmin()) {
+            return true;
+        }
+        Permission permission = permissionService.getPermission(holder, PermissionType.NOTIFICATIONS);
+        return permission != null && permission.isGranted();
+    }
+
+    @Override
+    public boolean mayUseLocalAddresses(User user) throws Exception {
+        User holder = holder(user);
+        if (holder == null) {
+            return false;
+        }
+        if (holder.isAdmin()) {
+            return true;
+        }
+        Permission permission = permissionService.getPermission(holder, PermissionType.NOTIFICATIONS);
+        return permission != null && permission.isGranted() && permission.getNotificationsAllowLocal();
+    }
+
+    // the loaded user has the flag of the administrator, the session's proxy does not
+    private User holder(User user) throws Exception {
+        User holder = user == null || user.getId() == null ? null : userService.find(user.getId());
+        return holder == null || holder.isDeleted() ? null : holder;
     }
 
     /**

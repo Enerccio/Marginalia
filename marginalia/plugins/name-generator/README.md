@@ -2,8 +2,6 @@
 
 Gives the model functions to get names instead of inventing them, from Markov chains trained on lists of names.
 
-![Name tools of the Lore Generator, the categories of this extension](../../../manual/images/plugin-loregenerator-names.png)
-
 ## Functions
 
 | Function | Arguments | Answer |
@@ -18,11 +16,12 @@ The same names for the command bar and for agents (`NameGeneratorCommands`, both
 ## For developers
 
 `NameGeneratorFunctions` is the `@LLMFunction` interface, `NameGeneratorFunctionsImpl` the implementation (`MAX_COUNT`,
-`clampCount`) on `NameTables` (loading and sampling). The extension compiles the interface on load; `NameGeneratorExtension.functions()` returns the bound
-`FunctionSet` to pass to `InferenceService.stream`. The [Lore Generator](../lore-generator/README.md) and the
-[Arc Outline](../arc-outline/README.md) offer the functions to the model for the categories the user checks (prefix
-`Generator: `, the categories of the [Name provider](../name-provider/README.md) have `Provider: `); they find this extension by
-reflection (`NameToolsBridge`), so this one can be unloaded and installed again without restarting them.
+`clampCount`) on `NameTables` (loading and sampling). The extension compiles the interface on load and registers a `NameGeneratorToolProvider` with the tool service (`ToolService`, key
+`names`, human name *Name generator*): every category is an item, and the functions the model gets (`NameGeneratorToolProvider.Restricted`)
+know only the checked ones. The provider brings `NameGeneratorCommands` along, so one registration gives the command bar and agents the
+commands and the [Lore Generator](../lore-generator/README.md) and the [Arc Outline](../arc-outline/README.md) (the **Tools** button) the
+functions. The service removes both when the extension is unloaded, so it can be unloaded and installed again without restarting the
+others. The hint added to the prompt is `NameGeneratorToolProvider.HINT`; the user can replace it in the tool dialog.
 
 ## Name tables
 

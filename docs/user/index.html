@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845968815553">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845997290078">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../resources/css/retype.css?v=4.6.0.845968815553" rel="stylesheet">
+    <link href="../resources/css/retype.css?v=4.6.0.845997290078" rel="stylesheet">
 
-    <script data-cfasync="false" src="../resources/js/config.js?v=4.6.0.845968815553" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../resources/js/config.js?v=4.6.0.845997290078" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=4.6.0.845968815553" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=4.6.0.845997290078" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -303,7 +303,7 @@ providers or settings - only books you choose to <a href="books/publishing/">pub
 | **Inference Providers** | Connections to models. See [Inference providers](inference-providers.md).                                   |
 | **Resources**           | The files you uploaded, such as pictures of parts. See [Resources](resources.md).                           |
 | **Trash**               | What you deleted, until an administrator cleans up. Restore it from here. See [Trash](trash.md).            |
-| **Agents**              | Your agents, their runs and the results to review. Only for users who may use agents. See [Agents](agents.md). |">
+| **Agents**              | (Experimental) Your agents, their runs and the results to review. Only for users who may use agents. See [Agents](agents.md). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -343,7 +343,7 @@ providers or settings - only books you choose to <a href="books/publishing/">pub
 </tr>
 <tr>
 <td><strong>Agents</strong></td>
-<td>Your agents, their runs and the results to review. Only for users who may use agents. See <a href="agents/">Agents</a>.</td>
+<td>(Experimental) Your agents, their runs and the results to review. Only for users who may use agents. See <a href="agents/">Agents</a>.</td>
 </tr>
 </tbody>
 </table>
@@ -365,8 +365,8 @@ reload the page to get the other one.</p>
 | [Books](books/index.md)                       | Managing books (clone, tags, import from an archive), the story editor (search and replace), branches, book prompts, summaries, backups and publishing.                                                                                                                         |
 | [Lorebooks](lorebooks/index.md)               | Creating lorebooks, entries and how they are activated, import and export (including SillyTavern).                                                                                                                   |
 | [Templates &amp; macros](templates/index.md)      | What is sent to the model and how to change it; the macro reference.                                                                                                                                                 |
-| [Extensions](extensions/index.md)             | The bundled extensions: Author's Note, Chapter Marker, Gemma 4 tools fix, Google Gemini, Instruction Exporter, Lore Generator, Lorebook VCS, Name generator, Name provider, Reviewer, Side Query, Arc Outline, Character Tracker and the Chinese localization.                                                                                                                                          |
-| [Agents](agents.md) | Letting a model work on a book on its own: agents, the console, reviewing and applying the result, limits. |
+| [Extensions](extensions/index.md)             | The bundled extensions: Author's Note, Chapter Marker, Gemma 4 tools fix, Google Gemini, Instruction Exporter, Lore Generator, Lorebook VCS, Name generator, Name provider, Place provider, Reviewer, Side Query, Arc Outline, Character Tracker and the Chinese localization.                                                                                                                                          |
+| [Agents](agents.md) | (Experimental) Letting a model work on a book on its own: agents, the console, reviewing and applying the result, limits. |
 | [Commands](commands/index.md) | The command line next to the story menu: running commands, writing arguments, stopping a long command. |
 | [Regular expressions](regular-expressions.md) | The regular expressions of search and replace and of the filters, and the time limit. |
 | [Account &amp; settings](account.md)              | Your password, user name and default settings.                                                                                                                                                                       |
@@ -416,11 +416,11 @@ reload the page to get the other one.</p>
 </tr>
 <tr>
 <td><a href="extensions/">Extensions</a></td>
-<td>The bundled extensions: Author&#x27;s Note, Chapter Marker, Gemma 4 tools fix, Google Gemini, Instruction Exporter, Lore Generator, Lorebook VCS, Name generator, Name provider, Reviewer, Side Query, Arc Outline, Character Tracker and the Chinese localization.</td>
+<td>The bundled extensions: Author&#x27;s Note, Chapter Marker, Gemma 4 tools fix, Google Gemini, Instruction Exporter, Lore Generator, Lorebook VCS, Name generator, Name provider, Place provider, Reviewer, Side Query, Arc Outline, Character Tracker and the Chinese localization.</td>
 </tr>
 <tr>
 <td><a href="agents/">Agents</a></td>
-<td>Letting a model work on a book on its own: agents, the console, reviewing and applying the result, limits.</td>
+<td>(Experimental) Letting a model work on a book on its own: agents, the console, reviewing and applying the result, limits.</td>
 </tr>
 <tr>
 <td><a href="commands/">Commands</a></td>
@@ -501,7 +501,7 @@ server it is the <code translate="no" v-pre>./data</code> folder next to <code t
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (333d9397).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (fcdfc889).</p></div>
             </footer>
         </div>
     </div>

@@ -70,7 +70,7 @@ After logging in you see the workspace. The tabs on the left are the main areas 
 | **Inference Providers** | Connections to models. See [Inference providers](inference-providers.md).                                   |
 | **Resources**           | The files you uploaded, such as pictures of parts. See [Resources](resources.md).                           |
 | **Trash**               | What you deleted, until an administrator cleans up. Restore it from here. See [Trash](trash.md).            |
-| **Agents**              | Your agents, their runs and the results to review. Only for users who may use agents. See [Agents](agents.md). |
+| **Agents**              | (Experimental) Your agents, their runs and the results to review. Only for users who may use agents. See [Agents](agents.md). |
 
 At the bottom are **Change Password**, **Logout** and, for administrators, **Admin**. Extensions may add more tabs
 and buttons.
@@ -91,8 +91,8 @@ reload the page to get the other one.
 | [Books](books/index.md)                       | Managing books (clone, tags, import from an archive), the story editor (search and replace), branches, book prompts, summaries, backups and publishing.                                                                                                                         |
 | [Lorebooks](lorebooks/index.md)               | Creating lorebooks, entries and how they are activated, import and export (including SillyTavern).                                                                                                                   |
 | [Templates & macros](templates/index.md)      | What is sent to the model and how to change it; the macro reference.                                                                                                                                                 |
-| [Extensions](extensions/index.md)             | The bundled extensions: Author's Note, Chapter Marker, Gemma 4 tools fix, Google Gemini, Instruction Exporter, Lore Generator, Lorebook VCS, Name generator, Name provider, Reviewer, Side Query, Arc Outline, Character Tracker and the Chinese localization.                                                                                                                                          |
-| [Agents](agents.md) | Letting a model work on a book on its own: agents, the console, reviewing and applying the result, limits. |
+| [Extensions](extensions/index.md)             | The bundled extensions: Author's Note, Chapter Marker, Gemma 4 tools fix, Google Gemini, Instruction Exporter, Lore Generator, Lorebook VCS, Name generator, Name provider, Place provider, Reviewer, Side Query, Arc Outline, Character Tracker and the Chinese localization.                                                                                                                                          |
+| [Agents](agents.md) | (Experimental) Letting a model work on a book on its own: agents, the console, reviewing and applying the result, limits. |
 | [Commands](commands/index.md) | The command line next to the story menu: running commands, writing arguments, stopping a long command. |
 | [Regular expressions](regular-expressions.md) | The regular expressions of search and replace and of the filters, and the time limit. |
 | [Account & settings](account.md)              | Your password, user name and default settings.                                                                                                                                                                       |

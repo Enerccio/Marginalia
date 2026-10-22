@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845968815553">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845997290078">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845968815553" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845997290078" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845968815553" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845997290078" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845968815553" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845968815553" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845997290078" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845997290078" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -298,7 +298,7 @@ user opens the screen the plugin extends.</p>
 <p><code translate="no" v-pre>onExtensionUnload</code> undoes all of it: unregister every decorator and listener, remove the components the plugin
 added to open screens (<a href="../ui-extensions/#unloading">Unloading</a>), stop background work. Nothing is removed
 automatically - a decorator left registered keeps running, from a bundle that no longer exists. The one exception:
-the data providers registered with <code translate="no" v-pre>IPCService</code> under the symbolic name of the bundle are removed by the
+the data providers registered with <code translate="no" v-pre>IPCService</code> and the tool providers (with their commands) registered with <code translate="no" v-pre>ToolService</code> under the symbolic name of the bundle are removed by the
 application when the extension is unloaded (<a href="../ipc/">Sharing data between extensions</a>).</p>
 </li>
 </ul>
@@ -502,7 +502,7 @@ Do not import its packages (<code translate="no" v-pre>Import-Package</code>, <c
 wiring is to one revision of the other bundle, so after it is unloaded and installed again your bundle keeps the old
 classes and does not recognize the new objects, and the JVM remembers a class reference that failed to resolve
 (<code translate="no" v-pre>NoClassDefFoundError</code>), so a reference used while the other bundle was missing keeps failing after it is installed.
-The Lore Generator and the Arc Outline do it with the Name generator and the Name provider, see <code translate="no" v-pre>NameToolsBridge</code>.</p>
+For tools for the model use <code translate="no" v-pre>ToolService</code> instead, no reflection is needed (<a href="../ipc/">Sharing data between extensions</a>).</p>
 </li>
 <li>
 <p>The plugin&#x27;s own classes are loaded by the bundle&#x27;s class loader, so the class names you pass to
@@ -569,7 +569,7 @@ exceptions are logged as <code translate="no" v-pre>Unhandled exception in exten
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (333d9397).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (fcdfc889).</p></div>
             </footer>
         </div>
     </div>

@@ -1,9 +1,9 @@
 package com.github.enerccio.marginalia.extensions.arcoutline.ui;
 
+import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.structured.SchemaCheck;
 import com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.*;
@@ -72,8 +72,8 @@ public class ArcGeneratorDialog extends GeneratorDialog {
     }
 
     @Override
-    protected String buildPrompt(String template, FunctionSet nameFunctions) throws Exception {
-        return service.buildPrompt(manuscript, outline, template, specificationArea.getValue(), nameFunctions);
+    protected String buildPrompt(String template, ToolSet tools) throws Exception {
+        return service.buildPrompt(manuscript, outline, template, specificationArea.getValue(), tools);
     }
 
     @Override

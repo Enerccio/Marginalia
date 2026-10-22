@@ -5,11 +5,11 @@ names and surnames of many countries, places, deities, monsters, drugs, companie
 a Markov chain, so they sound like the category without being copies of it.
 
 The extension has no screen of its own and nothing to configure. Other extensions offer its functions to the model; at
-the moment that are the [Lore Generator](lore-generator.md#name-tools) and the [Arc Outline](arc-outline.md), where you
-choose which categories the model may use; their categories have the prefix `Generator: ` there, next to the `Provider: `
-ones of the [Name provider](name-provider.md), which hands out real names instead of made up ones.
+the moment that are the [Lore Generator](lore-generator.md#tools) and the [Arc Outline](arc-outline.md), where you
+choose which categories the model may use (see [Tools for the model](tools.md)); its suite is *Name generator*, next to the
+*Name provider* of the [Name provider](name-provider.md), which hands out real names instead of made up ones.
 
-![Choosing the categories of names in the Lore Generator](../../images/plugin-loregenerator-names.png)
+![Choosing the categories of names in the Tools window of the Lore Generator](../../images/tools-dialog.png)
 
 ## What the model can do
 
@@ -21,7 +21,7 @@ ones of the [Name provider](name-provider.md), which hands out real names instea
 Without a length, the names are as long as the names of that category usually are (a category of long company names gives
 long names, one of short forenames short ones). The model can ask for other lengths between 2 and 30 letters. A small
 category may return fewer names than asked for, because the chain runs out of different ones. The model is free to
-pick one of the names, change it or combine two of them; see the *Name generator hint* of the Lore Generator.
+pick one of the names, change it or combine two of them; see the hint of the *Name generator* suite in the [tools window](tools.md#choosing-the-tools).
 
 ## Commands
 
@@ -58,4 +58,4 @@ are, so the original names can't be read out of the extension. Some of the sourc
 
 Load the extension in *Admin → Extensions*. It applies to the next generation; extensions that use it find it when it is
 loaded, also if it is installed after them or unloaded and installed again - there is no need to restart the Lore
-Generator. Without it, the Lore Generator has no *Name tools* button.
+Generator. Without it and the other suites, the Lore Generator has no *Tools* button.

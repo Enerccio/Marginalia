@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845968815553">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845997290078">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845968815553" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845997290078" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845968815553" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845997290078" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845968815553" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845997290078" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -178,7 +178,8 @@ administrators <a href="../../inference-providers/#shared-providers">share</a>).
 |---|---|---|
 | **Create own models** | Adding [inference providers](../inference-providers.md): without it the user can only use the providers the administrators share, the providers they already have keep working and can still be edited. | |
 | **Help assistant** | Asking the [help assistant](help-assistant.md), the chat that answers from the manual. | **Apply limits** and **Allow navigating the interface**, see [Settings of a permission](#settings-of-a-permission). |
-| **Agents** | The [Agents](../agents.md) tab: creating agents, cloning them and running them on a book. | **Most agents**, **Concurrent runs**, **Requests to the model at once**, **Token budget of a run** and the quotas of copies and files, see [Settings of a permission](#settings-of-a-permission). |">
+| **Agents** | (Experimental, see [Agents](../agents.md)) The [Agents](../agents.md) tab: creating agents, cloning them and running them on a book. | **Most agents**, **Concurrent runs**, **Requests to the model at once**, **Token budget of a run** and the quotas of copies and files, see [Settings of a permission](#settings-of-a-permission). |
+| **Notifications** | The [message to a URL](../agents.md#when-you-are-not-there) the server sends when an agent needs the user and no screen is open. The server calls an address the user typed, so it is a permission of its own: without it the fields are not in the user's settings and nothing is sent. | **Allow addresses on this machine and in private networks**, see [Settings of a permission](#settings-of-a-permission). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -201,8 +202,13 @@ administrators <a href="../../inference-providers/#shared-providers">share</a>).
 </tr>
 <tr>
 <td><strong>Agents</strong></td>
-<td>The <a href="../../agents/">Agents</a> tab: creating agents, cloning them and running them on a book.</td>
+<td>(Experimental, see <a href="../../agents/">Agents</a>) The <a href="../../agents/">Agents</a> tab: creating agents, cloning them and running them on a book.</td>
 <td><strong>Most agents</strong>, <strong>Concurrent runs</strong>, <strong>Requests to the model at once</strong>, <strong>Token budget of a run</strong> and the quotas of copies and files, see <doc-anchor-trigger to="#settings-of-a-permission">Settings of a permission</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td><strong>Notifications</strong></td>
+<td>The <a href="../../agents/#when-you-are-not-there">message to a URL</a> the server sends when an agent needs the user and no screen is open. The server calls an address the user typed, so it is a permission of its own: without it the fields are not in the user&#x27;s settings and nothing is sent.</td>
+<td><strong>Allow addresses on this machine and in private networks</strong>, see <doc-anchor-trigger to="#settings-of-a-permission">Settings of a permission</doc-anchor-trigger>.</td>
 </tr>
 </tbody>
 </table>
@@ -278,7 +284,7 @@ nothing and does not count as an unsaved change.</p>
     <img src="../../../images/permissions-settings.png" alt="The settings of the Help assistant permission" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="720" height="659" />
     <figcaption class="caption">The settings of the Help assistant permission</figcaption>
 </figure>
-<p><strong>Help assistant</strong> and <strong>Agents</strong> have them. The ones of the help assistant:</p>
+<p><strong>Help assistant</strong>, <strong>Agents</strong> and <strong>Notifications</strong> have them. The ones of the help assistant:</p>
 <retype-table copy-text="| Setting | |
 |---|---|
 | **Apply limits** | For a shared model, whether the questions of the user count against their limit and usage like any other request, see [Who pays](help-assistant.md#who-pays). Off by default. |
@@ -369,6 +375,30 @@ nothing and does not count as an unsaved change.</p>
     <img src="../../../images/permissions-settings-agents.png" alt="The settings of the Agents permission" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="720" height="1250" />
     <figcaption class="caption">The settings of the Agents permission</figcaption>
 </figure>
+<p>The one of the notifications:</p>
+<retype-table copy-text="| Setting | |
+|---|---|
+| **Allow addresses on this machine and in private networks** | A sub-permission: the box can be ticked only while **Notifications** is granted (it is greyed out otherwise, and taking the permission away clears it). Without it only addresses on the internet are called: not `localhost`, not a private network (`10.x.x.x`, `172.16-31.x.x`, `192.168.x.x`), not a link-local or shared address (`169.254.x.x`, which is where cloud hosts keep their metadata service, `100.64-127.x.x`), not the unique local addresses of IPv6. Tick it for a user whose ntfy or Gotify runs on the same machine or on your own network. Off by default. A name is checked by the addresses it resolves to, so a name that points to a private address is refused too, and so is one that cannot be found. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Setting</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Allow addresses on this machine and in private networks</strong></td>
+<td>A sub-permission: the box can be ticked only while <strong>Notifications</strong> is granted (it is greyed out otherwise, and taking the permission away clears it). Without it only addresses on the internet are called: not <code translate="no" v-pre>localhost</code>, not a private network (<code translate="no" v-pre>10.x.x.x</code>, <code translate="no" v-pre>172.16-31.x.x</code>, <code translate="no" v-pre>192.168.x.x</code>), not a link-local or shared address (<code translate="no" v-pre>169.254.x.x</code>, which is where cloud hosts keep their metadata service, <code translate="no" v-pre>100.64-127.x.x</code>), not the unique local addresses of IPv6. Tick it for a user whose ntfy or Gotify runs on the same machine or on your own network. Off by default. A name is checked by the addresses it resolves to, so a name that points to a private address is refused too, and so is one that cannot be found.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Administrators need neither the permission nor the sub-permission: they get the messages and may use local addresses. On a
+server shared with people you do not fully trust, leave the sub-permission off: the server would otherwise make requests to
+whatever the user types, inside your network.</p>
 <h2 id="when-permissions-were-introduced">When permissions were introduced</h2>
 <p>Before the permissions, <strong>Users can create their own models</strong> and the <strong>Enabled</strong> switch of the help assistant (with
 <strong>Apply limits</strong> and <strong>Allow navigating the interface</strong>) were settings of the whole installation. Marginalia moved them
@@ -412,7 +442,7 @@ changes for them until you change it; users you add from now on start with no pe
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (333d9397).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (fcdfc889).</p></div>
             </footer>
         </div>
     </div>

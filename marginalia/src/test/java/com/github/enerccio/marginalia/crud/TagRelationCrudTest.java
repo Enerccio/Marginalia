@@ -151,7 +151,10 @@ class TagRelationCrudTest extends ExtendableCrudContract<TagRelation> {
         assertThat(tags.get(first.getId())).extracting(Tag::getValue).containsExactlyInAnyOrder("magic", "other");
         assertThat(tags.get(second.getId())).extracting(Tag::getValue).containsExactly("other");
         assertThat(tags).doesNotContainKey(untagged.getId());
-        assertThat(tagRelationService.getTagsForObjects(java.util.List.of(first.getId()), Lorebook.class)).isEmpty();
+        // the class counts: the same number as the id of a lorebook does not bring the tags of the entry. Other tests of the
+        // JVM may have tagged a lorebook with that number, so the answer is not asked to be empty, only free of this test's tag
+        assertThat(tagRelationService.getTagsForObjects(java.util.List.of(first.getId()), Lorebook.class).values().stream()
+                .flatMap(java.util.List::stream).map(Tag::getId)).doesNotContain(other.getId());
         assertThat(tagRelationService.getTagsForObjects(java.util.List.of(), LorebookEntry.class)).isEmpty();
     }
 

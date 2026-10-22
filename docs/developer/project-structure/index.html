@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845968815553">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845997290078">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845968815553" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845997290078" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845968815553" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845997290078" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845968815553" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845997290078" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -364,7 +364,7 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 | `ui.dialogs.story` | What the desktop and the phone story tab share: `StoryHost` (implemented by both book dialogs), `StoryCard` / `StoryCards`, `StoryGenerationListener`, `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics`, `StoryBackup`, `StorySupport`, and the lazy loading of long stories: `LazyBranch`, `StoryLazyLoader`, `ReaderLazyLoader`. |
 | `ui.dialogs.manuscript` | The tabs of the book window, each a `ManuscriptDialogPart`: `ManuscriptStoryPart` (story editor - the largest UI class), `ManuscriptTreePart`, `ManuscriptInfoPart` (About), `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptBackupPart`; and the summary dialogs: `SummariesDialog` (overview of the summaries of the branch, opened from the story editor), `SummaryDialog` (one summary or meta summary, generating or viewing) and `SummaryRemoval` (asking before a summary is removed); and `ImagesDialog` (add, caption and remove the images of a part, opened from its card). |
 | `ui.components` | Larger reusable components: `TagsView` (the Tags tab of the settings: tags with their usage, rename, merge, delete), `LorebookView` (the lorebook editor, used in the Lorebooks tab and in books), `PhoneLorebookView` (its reduced phone version), `LorebookPreview` (the read only Lorebook tab of the desktop story editor), `InvalidExtensionsWarning` (the red bar of the workspace about invalid extensions), `TreantTree` (story tree drawn with treant.js), `MessageImages` (the images of a part under its text - in the story editor, the Viewer, the image dialog and the Resources tab preview; the files are read when the browser asks for them), `ThreadCopyRequestAttributes` (carries the session to worker threads). `HelpAssistantWidget` (the robot button and chat panel `Main` adds after the workspace; it answers the model's requests to read and move through the page on the page's thread)., `BuildInfoFooter` (the version text in the corner), `CommandBar` (the command line, see [Commands](commands/index.md)). |
-| `ui.widgets` | Small widgets: `ChartJs` (a Chart.js chart drawn from a JSON configuration, see [UI](ui.md)), `GraphView` (a Cytoscape.js graph, see [Custom components](custom-components.md)), `HTabSheet` (tab sheet with the tabs on the left and room for custom content, used by the workspace), `TabDock` (columns of tab sheets whose tabs can be dragged apart and together, the left bar of the story editor), `BackendTableProvider*` / `BackendTableItem` (lazy grids backed by a repository query), `TagMultiComboBox`, `LazyContextMenu` (a context menu filled when it opens), `LazyLoadIndicator`, `WordDiffView` (the word by word differences of the review), `TrashGrid` (restoring deleted objects and deleting parts and entries for good, used by `TrashPart` and `CleanupPanel`), `PhoneTrashGrid` (its phone layout, used by `PhoneTrashPart`), `TemplateHints` (hint popovers of prompt fields), `TextAreaPopoverComponent` / `TextFieldPopOverComponent`, `HtmlText`, `ScrollPanel`, `ModelProtocolPicker` (a model and a protocol to choose from, for dialogs that run the model with a choice of their own), `ResizableTextArea` (`install(loc, area, fixedHeight)` adds a corner icon that switches a text area between a fixed height and growing with its content; used by the prompt, description and lorebook fields), `Notification`, `PermissiveLoginOverlay` (allows empty passwords). |">
+| `ui.widgets` | Small widgets: `ChartJs` (a Chart.js chart drawn from a JSON configuration, see [UI](ui.md)), `GraphView` (a Cytoscape.js graph, see [Custom components](custom-components.md)), `HTabSheet` (tab sheet with the tabs on the left and room for custom content, used by the workspace), `TabDock` (columns of tab sheets whose tabs can be dragged apart and together, the left bar of the story editor), `BackendTableProvider*` / `BackendTableItem` (lazy grids backed by a repository query), `TagMultiComboBox`, `LazyContextMenu` (a context menu filled when it opens), `LazyLoadIndicator`, `WordDiffView` (the word by word differences of the review), `TrashGrid` (restoring deleted objects and deleting parts and entries for good, used by `TrashPart` and `CleanupPanel`), `PhoneTrashGrid` (its phone layout, used by `PhoneTrashPart`), `TemplateHints` (hint popovers of prompt fields), `TextAreaPopoverComponent` / `TextFieldPopOverComponent`, `HtmlText`, `ScrollPanel`, `ModelProtocolPicker` (a model and a protocol to choose from, for dialogs that run the model with a choice of their own), `ToolSelectionButton` (choosing the tools the model may use, with `ui.dialogs.ToolSelectionDialog`), `ResizableTextArea` (`install(loc, area, fixedHeight)` adds a corner icon that switches a text area between a fixed height and growing with its content; used by the prompt, description and lorebook fields), `Notification`, `PermissiveLoginOverlay` (allows empty passwords). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -432,7 +432,7 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.widgets</code></td>
-<td>Small widgets: <code translate="no" v-pre>ChartJs</code> (a Chart.js chart drawn from a JSON configuration, see <a href="../ui/">UI</a>), <code translate="no" v-pre>GraphView</code> (a Cytoscape.js graph, see <a href="../custom-components/">Custom components</a>), <code translate="no" v-pre>HTabSheet</code> (tab sheet with the tabs on the left and room for custom content, used by the workspace), <code translate="no" v-pre>TabDock</code> (columns of tab sheets whose tabs can be dragged apart and together, the left bar of the story editor), <code translate="no" v-pre>BackendTableProvider*</code> / <code translate="no" v-pre>BackendTableItem</code> (lazy grids backed by a repository query), <code translate="no" v-pre>TagMultiComboBox</code>, <code translate="no" v-pre>LazyContextMenu</code> (a context menu filled when it opens), <code translate="no" v-pre>LazyLoadIndicator</code>, <code translate="no" v-pre>WordDiffView</code> (the word by word differences of the review), <code translate="no" v-pre>TrashGrid</code> (restoring deleted objects and deleting parts and entries for good, used by <code translate="no" v-pre>TrashPart</code> and <code translate="no" v-pre>CleanupPanel</code>), <code translate="no" v-pre>PhoneTrashGrid</code> (its phone layout, used by <code translate="no" v-pre>PhoneTrashPart</code>), <code translate="no" v-pre>TemplateHints</code> (hint popovers of prompt fields), <code translate="no" v-pre>TextAreaPopoverComponent</code> / <code translate="no" v-pre>TextFieldPopOverComponent</code>, <code translate="no" v-pre>HtmlText</code>, <code translate="no" v-pre>ScrollPanel</code>, <code translate="no" v-pre>ModelProtocolPicker</code> (a model and a protocol to choose from, for dialogs that run the model with a choice of their own), <code translate="no" v-pre>ResizableTextArea</code> (<code translate="no" v-pre>install(loc, area, fixedHeight)</code> adds a corner icon that switches a text area between a fixed height and growing with its content; used by the prompt, description and lorebook fields), <code translate="no" v-pre>Notification</code>, <code translate="no" v-pre>PermissiveLoginOverlay</code> (allows empty passwords).</td>
+<td>Small widgets: <code translate="no" v-pre>ChartJs</code> (a Chart.js chart drawn from a JSON configuration, see <a href="../ui/">UI</a>), <code translate="no" v-pre>GraphView</code> (a Cytoscape.js graph, see <a href="../custom-components/">Custom components</a>), <code translate="no" v-pre>HTabSheet</code> (tab sheet with the tabs on the left and room for custom content, used by the workspace), <code translate="no" v-pre>TabDock</code> (columns of tab sheets whose tabs can be dragged apart and together, the left bar of the story editor), <code translate="no" v-pre>BackendTableProvider*</code> / <code translate="no" v-pre>BackendTableItem</code> (lazy grids backed by a repository query), <code translate="no" v-pre>TagMultiComboBox</code>, <code translate="no" v-pre>LazyContextMenu</code> (a context menu filled when it opens), <code translate="no" v-pre>LazyLoadIndicator</code>, <code translate="no" v-pre>WordDiffView</code> (the word by word differences of the review), <code translate="no" v-pre>TrashGrid</code> (restoring deleted objects and deleting parts and entries for good, used by <code translate="no" v-pre>TrashPart</code> and <code translate="no" v-pre>CleanupPanel</code>), <code translate="no" v-pre>PhoneTrashGrid</code> (its phone layout, used by <code translate="no" v-pre>PhoneTrashPart</code>), <code translate="no" v-pre>TemplateHints</code> (hint popovers of prompt fields), <code translate="no" v-pre>TextAreaPopoverComponent</code> / <code translate="no" v-pre>TextFieldPopOverComponent</code>, <code translate="no" v-pre>HtmlText</code>, <code translate="no" v-pre>ScrollPanel</code>, <code translate="no" v-pre>ModelProtocolPicker</code> (a model and a protocol to choose from, for dialogs that run the model with a choice of their own), <code translate="no" v-pre>ToolSelectionButton</code> (choosing the tools the model may use, with <code translate="no" v-pre>ui.dialogs.ToolSelectionDialog</code>), <code translate="no" v-pre>ResizableTextArea</code> (<code translate="no" v-pre>install(loc, area, fixedHeight)</code> adds a corner icon that switches a text area between a fixed height and growing with its content; used by the prompt, description and lorebook fields), <code translate="no" v-pre>Notification</code>, <code translate="no" v-pre>PermissiveLoginOverlay</code> (allows empty passwords).</td>
 </tr>
 </tbody>
 </table>
@@ -588,6 +588,7 @@ no state besides their fields.</p>
 | `TemplateService` | Rendering Handlebars templates with macros. |
 | `BackupService`, `DatabaseBackupService` | Book backups (restore, clone, export); database backups and their schedule. |
 | `CleanupService`, `TrashService` | Purging soft-deleted data that is no longer referenced; listing, restoring and (parts, entries) permanently deleting it (one bean, `CleanupServiceImpl`, shares the reference model). |
+| `ToolService` | Suites of tools (functions, items to check, commands) that extensions offer to the model, and the user's `ToolSelection` turned into functions and hints (in memory, removed with the bundle). |
 | `IPCService` | Providers of text about a book or a story part that extensions register for each other (in memory, removed with the bundle). |
 | `OsgiService`, `ExtensionService` | Loading, stopping and starting extensions (the `.STOPPED` flag), the logger of an extension (`createLogger`, implemented by the package-private `ExtensionLogger`) and its log file; `@Extendable` decorators. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -662,6 +663,10 @@ no state besides their fields.</p>
 <tr>
 <td><code translate="no" v-pre>CleanupService</code>, <code translate="no" v-pre>TrashService</code></td>
 <td>Purging soft-deleted data that is no longer referenced; listing, restoring and (parts, entries) permanently deleting it (one bean, <code translate="no" v-pre>CleanupServiceImpl</code>, shares the reference model).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ToolService</code></td>
+<td>Suites of tools (functions, items to check, commands) that extensions offer to the model, and the user&#x27;s <code translate="no" v-pre>ToolSelection</code> turned into functions and hints (in memory, removed with the bundle).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>IPCService</code></td>
@@ -1156,17 +1161,18 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 </doc-codeblock></div>
 <retype-table copy-text="| Plugin | Package | Size |
 |---|---|---|
-| Arc Outline | `extensions.arcoutline` | Model (arcs, chapters, the in-memory `ArcOutline`, settings, the schema of a generated arc), service (outline, prompt building), a sidebar tab, dialogs (arc, the generators of arcs and chapters on a common `GeneratorDialog`, name tools), a settings form, the name generator bridge and `arcoutline.css`. |
+| Arc Outline | `extensions.arcoutline` | Model (arcs, chapters, the in-memory `ArcOutline`, settings, the schema of a generated arc), service (outline, prompt building), a sidebar tab, dialogs (arc, the generators of arcs and chapters on a common `GeneratorDialog`), a settings form, `LegacyNameTools` (reads the name categories saved before the tool dialog) and `arcoutline.css`. |
 | Author's Note | `extensions.authorsnote` | Model, service, a sidebar panel and a generation listener. |
 | Chapter Marker | `extensions.chaptermarking` | Activator and extension only - the smallest example. |
 | Character Tracker | `extensions.charactertracker` | Model (characters, relationships, the in-memory `CharacterBook`), service, a sidebar tab, dialogs (character, import from the lorebook, relationship map on `GraphView`) and `charactertracker.css`. |
 | Gemma 4 tools fix | `extensions.gemma4toolsfix` | Activator and extension only; registers a `ToolRoleResolver`. |
 | Google Gemini | `extensions.googlegenai` | Activator and extension, `GoogleGenAiFactory` (the `ExtensionAIFactory`), the settings form, the inference service over the Google Gen AI SDK (embedded in the JAR) and helpers for the messages, the errors and the settings; has unit tests. |
 | Instruction Exporter | `extensions.instructionexporter` | Activator and extension only. |
-| Lore Generator | `extensions.loregenerator` | Model (the prompts), service (lore selection, prompts), a dialog split into `NameToolsDialog`, `SavePromptAsDialog`, `AttachmentPanel` and `GenerationPane`, a settings form, and `NameToolsBridge` (the Name generator and the Name provider by reflection). |
+| Lore Generator | `extensions.loregenerator` | Model (the prompts), service (lore selection, prompts), a dialog split into `SavePromptAsDialog`, `AttachmentPanel` and `GenerationPane`, a settings form, and `LegacyNameTools` (reads the name categories and hints saved before the tool dialog). |
 | Lorebook VCS | `extensions.lorebookvcs` | Model, service, two UI panels. |
-| Name generator | `extensions.namegenerator` | The extension, the `@LLMFunction` interface and its implementation, `NameTables` (the chains and the sampling). `src/build` holds the Java programs of the build: importers of the sources of names, the tuner and the trainer, see its README. |
-| Name provider | `extensions.nameprovider` | The extension, the `@LLMFunction` interface and its implementation, `NameLists` (the lists of real names and the random choice), `NameEntry` (a pair of the romanized and the original name). `src/build/ImportPopularNames.java` writes `name-lists.json` from the popular names by country dataset, see its README. |
+| Name generator | `extensions.namegenerator` | The extension, the `@LLMFunction` interface and its implementation, `NameGeneratorToolProvider` (the suite for `ToolService`), `NameTables` (the chains and the sampling). `src/build` holds the Java programs of the build: importers of the sources of names, the tuner and the trainer, see its README. |
+| Name provider | `extensions.nameprovider` | The extension, the `@LLMFunction` interface and its implementation, `NameProviderToolProvider` (the suite for `ToolService`), `NameLists` (the lists of real names and the random choice), `NameEntry` (a pair of the romanized and the original name). `src/build/ImportPopularNames.java` writes `name-lists.json` from the popular names by country dataset, see its README. |
+| Place provider | `extensions.placeprovider` | The extension, the `@LLMFunction` interface and its implementation, `PlaceIndex` (the places read from `places.json`: search, nearby, distance), the records of the answers, `PlaceProviderToolProvider` (the suite for `ToolService`) and `PlaceProviderCommands`. `src/build` holds the two Java programs that download Natural Earth and reduce it to `places.json` (profile `import-places`), see its README. |
 | Reviewer | `extensions.reviewer` | Model (`ReviewerProfile` with a stable uuid), service, dialogs, a settings form and `ManuscriptProfileSelect`, the profile picker of a book's info tab. |
 | Side Query | `extensions.sidequery` | Model, service, a chat panel and a settings form; `SideQueryLog` holds its logger for classes the extension class does not create. |
 | Chinese localization | `extensions.chineselocalization` | Activator, extension and one `LocalizationBundle` - a language, no UI code. |">
@@ -1183,7 +1189,7 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 <tr>
 <td>Arc Outline</td>
 <td><code translate="no" v-pre>extensions.arcoutline</code></td>
-<td>Model (arcs, chapters, the in-memory <code translate="no" v-pre>ArcOutline</code>, settings, the schema of a generated arc), service (outline, prompt building), a sidebar tab, dialogs (arc, the generators of arcs and chapters on a common <code translate="no" v-pre>GeneratorDialog</code>, name tools), a settings form, the name generator bridge and <code translate="no" v-pre>arcoutline.css</code>.</td>
+<td>Model (arcs, chapters, the in-memory <code translate="no" v-pre>ArcOutline</code>, settings, the schema of a generated arc), service (outline, prompt building), a sidebar tab, dialogs (arc, the generators of arcs and chapters on a common <code translate="no" v-pre>GeneratorDialog</code>), a settings form, <code translate="no" v-pre>LegacyNameTools</code> (reads the name categories saved before the tool dialog) and <code translate="no" v-pre>arcoutline.css</code>.</td>
 </tr>
 <tr>
 <td>Author&#x27;s Note</td>
@@ -1218,7 +1224,7 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 <tr>
 <td>Lore Generator</td>
 <td><code translate="no" v-pre>extensions.loregenerator</code></td>
-<td>Model (the prompts), service (lore selection, prompts), a dialog split into <code translate="no" v-pre>NameToolsDialog</code>, <code translate="no" v-pre>SavePromptAsDialog</code>, <code translate="no" v-pre>AttachmentPanel</code> and <code translate="no" v-pre>GenerationPane</code>, a settings form, and <code translate="no" v-pre>NameToolsBridge</code> (the Name generator and the Name provider by reflection).</td>
+<td>Model (the prompts), service (lore selection, prompts), a dialog split into <code translate="no" v-pre>SavePromptAsDialog</code>, <code translate="no" v-pre>AttachmentPanel</code> and <code translate="no" v-pre>GenerationPane</code>, a settings form, and <code translate="no" v-pre>LegacyNameTools</code> (reads the name categories and hints saved before the tool dialog).</td>
 </tr>
 <tr>
 <td>Lorebook VCS</td>
@@ -1228,12 +1234,17 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 <tr>
 <td>Name generator</td>
 <td><code translate="no" v-pre>extensions.namegenerator</code></td>
-<td>The extension, the <code translate="no" v-pre>@LLMFunction</code> interface and its implementation, <code translate="no" v-pre>NameTables</code> (the chains and the sampling). <code translate="no" v-pre>src/build</code> holds the Java programs of the build: importers of the sources of names, the tuner and the trainer, see its README.</td>
+<td>The extension, the <code translate="no" v-pre>@LLMFunction</code> interface and its implementation, <code translate="no" v-pre>NameGeneratorToolProvider</code> (the suite for <code translate="no" v-pre>ToolService</code>), <code translate="no" v-pre>NameTables</code> (the chains and the sampling). <code translate="no" v-pre>src/build</code> holds the Java programs of the build: importers of the sources of names, the tuner and the trainer, see its README.</td>
 </tr>
 <tr>
 <td>Name provider</td>
 <td><code translate="no" v-pre>extensions.nameprovider</code></td>
-<td>The extension, the <code translate="no" v-pre>@LLMFunction</code> interface and its implementation, <code translate="no" v-pre>NameLists</code> (the lists of real names and the random choice), <code translate="no" v-pre>NameEntry</code> (a pair of the romanized and the original name). <code translate="no" v-pre>src/build/ImportPopularNames.java</code> writes <code translate="no" v-pre>name-lists.json</code> from the popular names by country dataset, see its README.</td>
+<td>The extension, the <code translate="no" v-pre>@LLMFunction</code> interface and its implementation, <code translate="no" v-pre>NameProviderToolProvider</code> (the suite for <code translate="no" v-pre>ToolService</code>), <code translate="no" v-pre>NameLists</code> (the lists of real names and the random choice), <code translate="no" v-pre>NameEntry</code> (a pair of the romanized and the original name). <code translate="no" v-pre>src/build/ImportPopularNames.java</code> writes <code translate="no" v-pre>name-lists.json</code> from the popular names by country dataset, see its README.</td>
+</tr>
+<tr>
+<td>Place provider</td>
+<td><code translate="no" v-pre>extensions.placeprovider</code></td>
+<td>The extension, the <code translate="no" v-pre>@LLMFunction</code> interface and its implementation, <code translate="no" v-pre>PlaceIndex</code> (the places read from <code translate="no" v-pre>places.json</code>: search, nearby, distance), the records of the answers, <code translate="no" v-pre>PlaceProviderToolProvider</code> (the suite for <code translate="no" v-pre>ToolService</code>) and <code translate="no" v-pre>PlaceProviderCommands</code>. <code translate="no" v-pre>src/build</code> holds the two Java programs that download Natural Earth and reduce it to <code translate="no" v-pre>places.json</code> (profile <code translate="no" v-pre>import-places</code>), see its README.</td>
 </tr>
 <tr>
 <td>Reviewer</td>
@@ -1436,7 +1447,7 @@ ignored by Git), see <a href="../packaging/#building-the-plugins-in-docker">Pack
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (333d9397).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (fcdfc889).</p></div>
             </footer>
         </div>
     </div>

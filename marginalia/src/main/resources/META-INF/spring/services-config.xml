@@ -212,6 +212,8 @@
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.IPCServiceImpl" />
 
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ToolServiceImpl" />
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.OsgiServiceImpl" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.ExtensionServiceImpl" />

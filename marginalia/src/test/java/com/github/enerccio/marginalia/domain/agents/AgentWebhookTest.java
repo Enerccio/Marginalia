@@ -6,10 +6,12 @@ import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.security.model.User;
+import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
 import com.github.enerccio.marginalia.domain.service.AgentAttentionService;
 import com.github.enerccio.marginalia.domain.service.AgentAttentionService.Notice;
 import com.github.enerccio.marginalia.domain.service.AgentWebhookService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
+import com.github.enerccio.marginalia.domain.service.impl.AgentWebhookServiceImpl;
 import com.github.enerccio.marginalia.test.AgentTestBase;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -19,6 +21,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -56,6 +59,8 @@ class AgentWebhookTest extends AgentTestBase {
     @BeforeEach
     void setUp() throws Exception {
         user = loginAgentUser();
+        // the fake service is on 127.0.0.1
+        grantNotifications(true, true);
         agent = agent();
         server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.createContext("/hook", exchange -> {
@@ -76,6 +81,13 @@ class AgentWebhookTest extends AgentTestBase {
         server.stop(0);
         loginAdmin();
         webhooks.setAllowed(true);
+    }
+
+    private void grantNotifications(boolean granted, boolean local) {
+        updatePermission(user, PermissionType.NOTIFICATIONS, permission -> {
+            permission.setGranted(granted);
+            permission.setNotificationsAllowLocal(local);
+        });
     }
 
     private String url() {
@@ -207,6 +219,75 @@ class AgentWebhookTest extends AgentTestBase {
         assertThat(webhooks.check("http:///nohost")).isNotNull();
         assertThat(webhooks.check("not a url")).isNotNull();
         assertThat(webhooks.check("http://example.org/" + "a".repeat(2100))).contains("longer");
+    }
+
+    @Test
+    void aUserWithoutThePermissionGetsNothingAndCannotTest() throws Exception {
+        configure(WebhookFormat.PLAIN, false);
+        grantNotifications(false, true);
+
+        webhooks.notify(waits(), false);
+
+        expectNothing();
+        assertThat(webhooks.mayNotify(user)).isFalse();
+        assertThat(webhooks.sendTest(url(), WebhookFormat.PLAIN)).contains("may not");
+        assertThat(received).isEmpty();
+    }
+
+    @Test
+    void anAddressOnTheMachineNeedsTheSubPermission() throws Exception {
+        configure(WebhookFormat.PLAIN, false);
+        grantNotifications(true, false);
+        assertThat(webhooks.mayNotify(user)).isTrue();
+        assertThat(webhooks.mayUseLocalAddresses(user)).isFalse();
+
+        webhooks.notify(waits(), false);
+
+        expectNothing();
+        assertThat(webhooks.check(user, url())).contains("Only addresses on the internet");
+        assertThat(webhooks.sendTest(url(), WebhookFormat.PLAIN)).contains("Only addresses on the internet");
+        assertThat(received).as("no request was made").isEmpty();
+    }
+
+    @Test
+    void theSubPermissionCountsOnlyWhileThePermissionIsGranted() throws Exception {
+        grantNotifications(false, true);
+
+        assertThat(webhooks.mayUseLocalAddresses(user)).isFalse();
+    }
+
+    @Test
+    void anAdministratorNeedsNeitherPermission() throws Exception {
+        loginAdmin();
+
+        assertThat(webhooks.mayNotify(currentUser)).isTrue();
+        assertThat(webhooks.mayUseLocalAddresses(currentUser)).isTrue();
+        assertThat(webhooks.check(currentUser, url())).isNull();
+        assertThat(webhooks.sendTest(url(), WebhookFormat.PLAIN)).isNull();
+    }
+
+    @Test
+    void localMeansEverythingThatIsNotTheInternet() throws Exception {
+        for (String local : new String[]{"127.0.0.1", "127.1.2.3", "10.0.0.5", "172.16.4.1", "192.168.1.20", "169.254.169.254",
+                "100.64.0.1", "0.0.0.0", "0.1.2.3", "224.0.0.1", "::1", "fe80::1", "fd12:3456::1", "fc00::1", "::", "::ffff:127.0.0.1",
+                "::ffff:10.1.1.1"}) {
+            assertThat(AgentWebhookServiceImpl.isLocal(InetAddress.getByName(local))).as(local).isTrue();
+        }
+        for (String internet : new String[]{"8.8.8.8", "1.1.1.1", "93.184.216.34", "172.32.0.1", "100.128.0.1", "2606:4700:4700::1111"}) {
+            assertThat(AgentWebhookServiceImpl.isLocal(InetAddress.getByName(internet))).as(internet).isFalse();
+        }
+    }
+
+    @Test
+    void literalAddressesOfThePublicInternetPassAndLocalOnesDoNot() throws Exception {
+        grantNotifications(true, false);
+
+        assertThat(webhooks.check(user, "https://8.8.8.8/topic")).isNull();
+        assertThat(webhooks.check(user, "http://localhost:8080/x")).isNotNull();
+        assertThat(webhooks.check(user, "http://[::1]/x")).isNotNull();
+        assertThat(webhooks.check(user, "http://169.254.169.254/latest/meta-data")).isNotNull();
+        assertThat(webhooks.check(user, "http://192.168.0.10/x")).isNotNull();
+        assertThat(webhooks.check(user, "ftp://8.8.8.8/x")).contains("http");
     }
 
     @Test

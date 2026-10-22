@@ -212,6 +212,7 @@ You see these in the list as long as the extension is loaded; each is described 
 | `/compact-lore-entry <text> [...]` | [Lore Generator](../extensions/lore-generator.md) | Compacts a generated text into a dense lore entry text and returns it. Stores nothing. |
 | `/list-name-categories [<filter>]`, `/generate-names <category> <count> [...]` | [Name generator](../extensions/name-generator.md) | The categories of made up names, and names of one of them. |
 | `/list-real-name-lists`, `/pick-real-names <list> <count>` | [Name provider](../extensions/name-provider.md) | The lists of real names, and names picked from one of them. |
+| `/list-place-types`, `/search-places <query> [...]`, `/places-near <place> <radius_km> [...]`, `/distance-between <from> <to>` | [Place provider](../extensions/place-provider.md) | The types of real places, a search by name, type and country, the places around a point, and the distance of two places. |
 | `/get-arc-outline [<arc> [<notes>]]` | [Arc Outline](../extensions/arc-outline.md) | The arcs and chapters of the outline. |
 | `/add-arc`, `/update-arc`, `/move-arc`, `/delete-arc` | [Arc Outline](../extensions/arc-outline.md) | Add, change, move and delete an arc (`<arc>` is its number). |
 | `/add-outline-chapter`, `/update-outline-chapter`, `/move-outline-chapter`, `/delete-outline-chapter` | [Arc Outline](../extensions/arc-outline.md) | The same for the chapters of an arc. |
@@ -220,7 +221,7 @@ You see these in the list as long as the extension is loaded; each is described 
 | `/create-character`, `/update-character`, `/delete-character` | [Character Tracker](../extensions/character-tracker.md) | Add, change and delete a character. |
 | `/list-character-relations`, `/add-character-relation`, `/update-character-relation`, `/delete-character-relation` | [Character Tracker](../extensions/character-tracker.md) | The relationships between characters. |
 
-The commands of the Lore Generator, the Name generator and the Name provider only read: the generating ones return text and
+The commands of the Lore Generator, the Name generator, the Name provider and the Place provider only read: the generating ones return text and
 leave it to you, or to the agent that called them, to put it into an entry. The commands of the Arc Outline and the
 Character Tracker also change the outline and the characters of the open book; only their `delete` commands are destructive.
 

@@ -26,6 +26,7 @@
     <module>marginalia/plugins/lorebookvcs</module>
     <module>marginalia/plugins/name-generator</module>
     <module>marginalia/plugins/name-provider</module>
+    <module>marginalia/plugins/place-provider</module>
     <module>marginalia/plugins/reviewer</module>
     <module>marginalia/plugins/sidequery</module>
   </modules>

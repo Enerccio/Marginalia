@@ -1,10 +1,18 @@
 ---
-label: Agents
+label: Agents (Experimental)
 order: 958
 icon: cpu
 ---
 
-# Agents
+# Agents (Experimental)
+
+!!!warning Experimental
+Agents are new in 1.4.0 and have had little use with real models. Expect rough edges: tool calls a weak model gets wrong,
+runs that cost more tokens than you thought, a review screen that is more work than it should be, and behaviour that changes
+between versions. Your book is protected (the agent works on a copy, the result is reviewed and a backup is taken before it is
+applied), but **keep your own backup of a book before you take over an agent's result**, set a token budget, and watch the
+first runs in the [console](#the-console). Reports of what went wrong are welcome.
+!!!
 
 An **agent** is a model that works on one of your books on its own, for a long time, calling the [commands](commands/index.md)
 you allow it as its tools: it can read the story, check it against the lorebook and report to you. The **Agents** tab is
@@ -248,9 +256,9 @@ A local server often has one slot (one GPU): ask it for two answers at once and 
 
 ## When you are not there
 
-An agent that needs you, finishes or fails tells the open screens of the application (the badge on the tab, a notice). When no screen of yours is open it can also send a short message to an address you give in [Settings](account.md) ("Message to a URL when an agent needs you"): your **ntfy** topic (the ntfy app on the phone shows it at once), a **Gotify** message URL or a **Discord** webhook; pick the **Format** the service wants. **Send a test message** tries it with what is in the fields. The message names the agent and says what it wants ("waits for you", "finished", "asks for the approval of the command ...", "failed", "was paused: reason") in your language. **Also when the application is open** sends it in any case.
+An agent that needs you, finishes or fails tells the open screens of the application (the badge on the tab, a notice). When no screen of yours is open it can also send a short message to an address you give in [Settings](account.md), if an administrator gave you the [permission *Notifications*](administration/permissions.md) (administrators have it) ("Message to a URL when an agent needs you"): your **ntfy** topic (the ntfy app on the phone shows it at once), a **Gotify** message URL or a **Discord** webhook; pick the **Format** the service wants. **Send a test message** tries it with what is in the fields. The message names the agent and says what it wants ("waits for you", "finished", "asks for the approval of the command ...", "failed", "was paused: reason") in your language. **Also when the application is open** sends it in any case.
 
-The server calls the address, so an administrator can turn this off for everybody (Admin, *Agents*). Treat the address as a password when it holds a secret: anyone who knows it can read what is sent, the server never writes it to its log, redirects are not followed, and only `http` and `https` are called.
+The server calls the address, so an administrator can turn this off for everybody (Admin, *Agents*), and only addresses on the internet are called unless the administrator also ticked **Allow addresses on this machine and in private networks** in your permission: for a ntfy or Gotify on the same machine or on your own network ask for that. The test message says when the address is refused. Treat the address as a password when it holds a secret: anyone who knows it can read what is sent, the server never writes it to its log, redirects are not followed, and only `http` and `https` are called.
 
 ## Asking you
 

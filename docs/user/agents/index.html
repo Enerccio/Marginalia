@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845968815553">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845997290078">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
 
     <!-- Primary Meta Tags -->
-    <title>Agents</title>
-    <meta name="title" content="Agents">
-    <meta name="description" content="An agent is a model that works on one of your books on its own, for a long time, calling the commands you allow it as its tools: it can read the story, check it against the lorebook and report to you.">
+    <title>Agents (Experimental)</title>
+    <meta name="title" content="Agents (Experimental)">
+    <meta name="description" content="Agents are new in 1.4.0 and have had little use with real models. Expect rough edges: tool calls a weak model gets wrong, runs that cost more tokens than you thought, a review screen that is more work than it should be, and behaviour that changes between versions.">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://enerccio.github.io/Marginalia/user/agents/">
@@ -22,33 +22,33 @@
     <!-- Open Graph -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/agents/">
-    <meta property="og:title" content="Agents">
-    <meta property="og:description" content="An agent is a model that works on one of your books on its own, for a long time, calling the commands you allow it as its tools: it can read the story, check it against the lorebook and report to you.">
+    <meta property="og:title" content="Agents (Experimental)">
+    <meta property="og:description" content="Agents are new in 1.4.0 and have had little use with real models. Expect rough edges: tool calls a weak model gets wrong, runs that cost more tokens than you thought, a review screen that is more work than it should be, and behaviour that changes between versions.">
     <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/agents-tab.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="Agents">
+    <meta property="og:image:alt" content="Agents (Experimental)">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/agents/">
-    <meta name="twitter:title" content="Agents">
-    <meta name="twitter:description" content="An agent is a model that works on one of your books on its own, for a long time, calling the commands you allow it as its tools: it can read the story, check it against the lorebook and report to you.">
+    <meta name="twitter:title" content="Agents (Experimental)">
+    <meta name="twitter:description" content="Agents are new in 1.4.0 and have had little use with real models. Expect rough edges: tool calls a weak model gets wrong, runs that cost more tokens than you thought, a review screen that is more work than it should be, and behaviour that changes between versions.">
     <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/agents-tab.png">
-    <meta name="twitter:image:alt" content="Agents">
+    <meta name="twitter:image:alt" content="Agents (Experimental)">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/user/agents.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845968815553" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845997290078" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845968815553" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845997290078" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845968815553" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845997290078" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -170,7 +170,28 @@
                 <doc-page-actions></doc-page-actions>
 
                 <!-- Page content  -->
-<h1 id="agents">Agents</h1>
+<h1 id="agents-experimental">Agents (Experimental)</h1>
+<div class="flex mb-6">
+    <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-warning"></div>
+    <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
+        <div class="flex items-center ml-4 h-7">
+            <svg xmlns="http://www.w3.org/2000/svg" class="block text-callout-warning" width="22" height="22" viewBox="0 0 24 24" role="presentation">
+                <g fill="currentColor"><g>
+                    <path d="M22.48 15.59L14.01 1.45A2.968 2.968 0 0012.16.09c-.78-.19-1.58-.07-2.27.35-.41.25-.76.6-1.01 1.01v.01L.4 15.6c-.83 1.43-.33 3.27 1.1 4.1.45.26.95.4 1.48.4h16.95c.8-.01 1.55-.33 2.11-.9.56-.57.87-1.33.86-2.13a3.04 3.04 0 00-.42-1.48zm-1.87 2.21c-.19.19-.44.3-.69.3H2.99c-.17 0-.34-.05-.49-.13a.992.992 0 01-.37-1.35L10.6 2.48c.08-.14.2-.25.34-.33a.992.992 0 011.37.33l8.46 14.13c.09.15.13.32.13.49 0 .26-.1.51-.29.7z"></path>
+                    <path d="M11.45 12.1c.55 0 1-.45 1-1v-4c0-.55-.45-1-1-1s-1 .45-1 1v4c0 .56.45 1 1 1zM11.46 14.1c-.56 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"></path>
+                </g></g>
+            </svg>
+        </div>
+        <div class="pr-5 ml-3 w-full">
+            <h5>Experimental</h5>
+<p>Agents are new in 1.4.0 and have had little use with real models. Expect rough edges: tool calls a weak model gets wrong,
+runs that cost more tokens than you thought, a review screen that is more work than it should be, and behaviour that changes
+between versions. Your book is protected (the agent works on a copy, the result is reviewed and a backup is taken before it is
+applied), but <strong>keep your own backup of a book before you take over an agent&#x27;s result</strong>, set a token budget, and watch the
+first runs in the <doc-anchor-trigger to="#the-console">console</doc-anchor-trigger>. Reports of what went wrong are welcome.</p>
+        </div>
+    </div>
+</div>
 <p>An <strong>agent</strong> is a model that works on one of your books on its own, for a long time, calling the <a href="../commands/">commands</a>
 you allow it as its tools: it can read the story, check it against the lorebook and report to you. The <strong>Agents</strong> tab is
 where you create them, set what each may do, start and stop their runs, talk to them in the <doc-anchor-trigger to="#the-console">console</doc-anchor-trigger> and clone them.</p>
@@ -564,8 +585,8 @@ differing in case), a name that is both a file and a folder, more than 5 000 ent
 <h2 id="one-model-several-agents">One model, several agents</h2>
 <p>A local server often has one slot (one GPU): ask it for two answers at once and both crawl or time out. Set <strong>Concurrent requests of agents</strong> in the <a href="../inference-providers/#general-settings">settings of the model</a> (1 for one slot) and the requests of your agents to it take turns, in the order they came: the others wait, their runs stay <em>Running</em>, and a <strong>Pause</strong> or <strong>Stop</strong> ends the wait. It counts the model requests of all the agents of all users who use that model, the commands that write with it included. It does not hold up your own writing in the story window, and that does not count against the agents either.</p>
 <h2 id="when-you-are-not-there">When you are not there</h2>
-<p>An agent that needs you, finishes or fails tells the open screens of the application (the badge on the tab, a notice). When no screen of yours is open it can also send a short message to an address you give in <a href="../account/">Settings</a> (&quot;Message to a URL when an agent needs you&quot;): your <strong>ntfy</strong> topic (the ntfy app on the phone shows it at once), a <strong>Gotify</strong> message URL or a <strong>Discord</strong> webhook; pick the <strong>Format</strong> the service wants. <strong>Send a test message</strong> tries it with what is in the fields. The message names the agent and says what it wants (&quot;waits for you&quot;, &quot;finished&quot;, &quot;asks for the approval of the command ...&quot;, &quot;failed&quot;, &quot;was paused: reason&quot;) in your language. <strong>Also when the application is open</strong> sends it in any case.</p>
-<p>The server calls the address, so an administrator can turn this off for everybody (Admin, <em>Agents</em>). Treat the address as a password when it holds a secret: anyone who knows it can read what is sent, the server never writes it to its log, redirects are not followed, and only <code translate="no" v-pre>http</code> and <code translate="no" v-pre>https</code> are called.</p>
+<p>An agent that needs you, finishes or fails tells the open screens of the application (the badge on the tab, a notice). When no screen of yours is open it can also send a short message to an address you give in <a href="../account/">Settings</a>, if an administrator gave you the <a href="../administration/permissions/">permission <em>Notifications</em></a> (administrators have it) (&quot;Message to a URL when an agent needs you&quot;): your <strong>ntfy</strong> topic (the ntfy app on the phone shows it at once), a <strong>Gotify</strong> message URL or a <strong>Discord</strong> webhook; pick the <strong>Format</strong> the service wants. <strong>Send a test message</strong> tries it with what is in the fields. The message names the agent and says what it wants (&quot;waits for you&quot;, &quot;finished&quot;, &quot;asks for the approval of the command ...&quot;, &quot;failed&quot;, &quot;was paused: reason&quot;) in your language. <strong>Also when the application is open</strong> sends it in any case.</p>
+<p>The server calls the address, so an administrator can turn this off for everybody (Admin, <em>Agents</em>), and only addresses on the internet are called unless the administrator also ticked <strong>Allow addresses on this machine and in private networks</strong> in your permission: for a ntfy or Gotify on the same machine or on your own network ask for that. The test message says when the address is refused. Treat the address as a password when it holds a secret: anyone who knows it can read what is sent, the server never writes it to its log, redirects are not followed, and only <code translate="no" v-pre>http</code> and <code translate="no" v-pre>https</code> are called.</p>
 <h2 id="asking-you">Asking you</h2>
 <p>When the agent needs you, you are told wherever you are in the app:</p>
 <ul>
@@ -1013,7 +1034,7 @@ editing again after you paused or stopped the run. Other lorebooks are not affec
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (333d9397).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (fcdfc889).</p></div>
             </footer>
         </div>
     </div>
@@ -1042,6 +1063,6 @@ editing again after you paused or stopped the run. Other lorebooks are not affec
 
     <div id="retype-overlay-target"></div>
 
-        <script data-cfasync="false">window.__DOCS__ = { "title": "Agents", level: 2, icon: "file", hasPrism: false, hasInstagram: false, hasMermaid: false, hasMath: false, tocDepth: 23, "md": "/user/agents.md" }</script>
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Agents (Experimental)", level: 2, icon: "file", hasPrism: false, hasInstagram: false, hasMermaid: false, hasMath: false, tocDepth: 23, "md": "/user/agents.md" }</script>
 </body>
 </html>

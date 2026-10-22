@@ -9,6 +9,7 @@ public class PermissionUIFactoryImpl implements PermissionUIFactory {
         return switch (permissionType) {
             case HELPER -> new HelperPermissionComponent();
             case AGENTS -> new AgentsPermissionComponent();
+            case NOTIFICATIONS -> new NotificationsPermissionComponent();
             default -> null;
         };
     }

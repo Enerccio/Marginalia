@@ -3,6 +3,13 @@
 Google's Gemini models as an inference provider, over the [Google Gen AI Java SDK](https://github.com/googleapis/java-genai)
 instead of an OpenAI-compatible endpoint.
 
+**Your story text goes to Google.** Every request of an AI that uses this provider (the prompt with the story, the lorebook
+entries and the summaries, the answers of the model, the files and pictures an agent or a command sends) is sent to Google's servers (`generativelanguage.googleapis.com`, or the proxy you set), and Google's terms and
+privacy policy for the Gemini API decide what happens to it there (retention, whether it is used to improve models, which
+depends on the plan of your API key). The other providers send to the server you chose, which may be your own. Do not use
+this provider for text you may not send to Google. On a server shared with other users, an administrator who shares an AI of
+this provider sends the story text of everybody who uses it to Google.
+
 Once the plugin is loaded, the **Type** list of the inference provider dialog offers **Extension**, and the **Provider**
 list of the *Per Type Settings* tab **Google Gemini**. The settings are the API key of [Google AI Studio](https://aistudio.google.com/apikey)
 (stored encrypted), the model (with a **Refresh** that lists the models the key can use), an optional URL for a proxy, the

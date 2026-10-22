@@ -134,7 +134,7 @@ but follow the same pattern: construct with the entity, call `create()`, then `o
 `isNavigationLocked`, `getOnLogout`, `setOnLogout`). `Main`, the parts, `ApplicationPoint` and `SessionInformation`
 only depend on this interface. `DesktopWorkspace` is the implementation (`@Configurable`, `@Extendable`): it builds an
 `HTabSheet` (tabs on the left, a footer with *Admin*, the language selector, *Change Password*, *Logout*) and puts the red `InvalidExtensionsWarning` bar (`ui.components`; hidden while no installed extension is invalid, the administrator gets the names as its tooltip, other users a note to tell the administrator, from `OsgiService.getInvalidExtensions()`) above it - the phone workspace has it in the navbar - and creates all tab components up
-front (the admin part is refreshed only when the user is an administrator and has the *Admin* button: it refuses anybody else). Each tab is a `WorkspaceComponent`:
+front (the admin part is created, and refreshed, only when the user is an administrator, who has the *Admin* button: its panels refuse anybody else). Each tab is a `WorkspaceComponent`:
 
 | Method | Called |
 |---|---|
@@ -402,6 +402,7 @@ page (`service.find(id)`) and wraps them in a `BackendTableItem` subclass. It al
 | `ArchiveUploadDialog`, `ArchiveEntryNamesDialog`, `ArchiveImportRunner` (`ui.dialogs`) | The pieces of the import of `.md` archives (story part, new book, lorebook; the service is `ArchiveImportService`). `ArchiveUploadDialog.show(title, message, handler)` takes a zip file in memory and calls the `Handler`; an `IllegalArgumentException` of the handler (not a usable archive) is a warning and the dialog stays. `ArchiveEntryNamesDialog.show(content, onConfirm)` lists the files with the entry name each would get (`names.txt`, the first heading, the file name) in an editable grid and hands the names over in the order of the files. `ArchiveImportRunner` runs the import behind a progress dialog with **Stop** (what was imported stays, the user is told how much). |
 | `LazyContextMenu` (`ui.widgets`) | A `ContextMenu` whose items are made when it opens: the constructor takes the target and a `beforeOpen` runnable that `onBeforeOpenMenu` runs before Flow sends the menu. The menu of a story card is one (see `createHamburgerMenu` / `prepareMenu` of the cards), so a story of hundreds of parts does not create the items of all of them. |
 | `ModelProtocolPicker` | A model and a protocol combo box (the AIs and protocols of the user, the protocol optional) for a dialog that runs the model with a choice of its own: `setSelection(ai, protocol)` / `getAi()` / `getProtocol()` / `addSelectionListener(Runnable)`. Used by the generator dialogs of the Lore Generator and the Arc Outline. On a phone the two boxes are full width, the protocol under the model. |
+| `ToolSelectionButton` (`ui.widgets`), `ToolSelectionDialog` (`ui.dialogs`) | The common way to let the user choose the tools the model may use (`ToolService`). The button keeps a `ToolSelection` (`setValue` / `getValue` / `addValueChangeListener`, the listener gets the new choice when the user saves), shows `Tools (n)` with the number of things that are on, hides itself while no suite is installed (`refresh()` looks again; it also does on attach) and opens the dialog. The dialog has a `Details` section for each `ToolProviderInfo` under its human name with the number checked: a lazy multi-select grid with a filter field of its own (the checked items stay whatever the filter says; *Check shown* / *Uncheck shown* instead of a select-all, which would check the hidden rows) for a suite with items, one check box for a suite without, and a collapsed text area for the hint of the suite (its placeholder is the default hint). It edits a copy and gives the new `ToolSelection` to its callback on *Save*. Used by the Lore Generator and the Arc Outline generators. |
 | `TextAreaPopoverComponent`, `TextFieldPopOverComponent` | Prompt fields with a hints popover. |
 | `TemplateHints` | Content of the hints popover: *Insert Default Template*, the template's variables (from `@LocalizedTemplateDescription`) and the macros (from `Macros.hints()`). |
 | `ScrollPanel`, `HtmlText` | Scrollable container; text with HTML. |
@@ -659,7 +660,9 @@ A permission type with settings of its own has a `PermissionUIComponent` that `P
 (`null` for a type without; the implementation is `PermissionUIFactoryImpl`, a switch on the type): `getComponent()` is shown in the detail
 row of the grid, `model2component` / `component2model` copy the settings between the component and the `Permission` (they are extended
 attributes of `Permission`, `helperApplyLimits` / `helperInteractions`; `HelperPermissionComponent` for `HELPER`), `onChange` tells the
-dialog the user edited it (not fired by `model2component`). To add a type: a constant in `PermissionType`, `ENUM_PERMISSION_*` in `L`
+dialog the user edited it (not fired by `model2component`), and the default method `onGrantedChanged(granted)` (called when the component is made and
+when the *Granted* box changes) lets a setting that makes sense only while the permission is given (a sub-permission, `NotificationsPermissionComponent`
+for `NOTIFICATIONS`) follow it. To add a type: a constant in `PermissionType`, `ENUM_PERMISSION_*` in `L`
 and the bundles and the map of `LocalizationImpl`, and, if it has settings, an `@ExtendedAttribute` field in `Permission` and a component.
 
 ### Interactions

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845968815553">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845997290078">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845968815553" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845997290078" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845968815553" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845997290078" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845968815553" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845997290078" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -1119,7 +1119,7 @@ every open UI subscribes in <code translate="no" v-pre>create()</code> and runs 
 the console acknowledges the run.</p>
 </li>
 <li>
-<p><strong>Webhook.</strong> <code translate="no" v-pre>AgentAttentionServiceImpl.publish</code> also hands the notice to <code translate="no" v-pre>AgentWebhookService.notify(notice, screenOpen)</code> (<code translate="no" v-pre>screenOpen</code>: some UI of the user is subscribed). On its own thread (<code translate="no" v-pre>agent-webhook</code>, the publishing thread is inside the commit of the change) it checks that the administrator allows it (<code translate="no" v-pre>AppSettings.agentWebhooksDisabled</code>, null is allowed; <code translate="no" v-pre>setAllowed</code> is admin only), that the change needs the user (<code translate="no" v-pre>Notice.attention</code>), that the user has <code translate="no" v-pre>UserSetting.agentWebhookUrl</code> (<code translate="no" v-pre>check</code>: <code translate="no" v-pre>http</code> / <code translate="no" v-pre>https</code> with a host, at most 2000 characters) and, with a screen open, <code translate="no" v-pre>agentWebhookAlways</code>; the text is the <code translate="no" v-pre>MSG_AGENT_NOTICE_*</code> of the user&#x27;s language (<code translate="no" v-pre>Localization.getValue(Language, L)</code>, the default language where a bundle lacks it) and goes out as <code translate="no" v-pre>WebhookFormat.PLAIN</code> (the body, the agent name as the <code translate="no" v-pre>Title</code> header when it is printable ASCII), <code translate="no" v-pre>DISCORD</code> (<code translate="no" v-pre>{&quot;content&quot;}</code>) or <code translate="no" v-pre>GOTIFY</code> (<code translate="no" v-pre>{&quot;title&quot;,&quot;message&quot;,&quot;priority&quot;}</code>) with <code translate="no" v-pre>java.net.http</code> (no redirects, 5 s to connect, 10 s for the answer, the answer is not read). Nothing that holds the URL is logged or returned: the URL may hold a secret, and the call is a request of the server to an address a user typed. <code translate="no" v-pre>sendTest</code> is the button of the settings. A failure is a line in the log.</p>
+<p><strong>Webhook.</strong> <code translate="no" v-pre>AgentAttentionServiceImpl.publish</code> also hands the notice to <code translate="no" v-pre>AgentWebhookService.notify(notice, screenOpen)</code> (<code translate="no" v-pre>screenOpen</code>: some UI of the user is subscribed). On its own thread (<code translate="no" v-pre>agent-webhook</code>, the publishing thread is inside the commit of the change) it checks that the administrator allows it (<code translate="no" v-pre>AppSettings.agentWebhooksDisabled</code>, null is allowed; <code translate="no" v-pre>setAllowed</code> is admin only), that the change needs the user (<code translate="no" v-pre>Notice.attention</code>), that the user may get messages (<code translate="no" v-pre>mayNotify</code>: an administrator, or the permission <code translate="no" v-pre>NOTIFICATIONS</code> granted) and that the user has <code translate="no" v-pre>UserSetting.agentWebhookUrl</code> (<code translate="no" v-pre>check</code>: <code translate="no" v-pre>http</code> / <code translate="no" v-pre>https</code> with a host, at most 2000 characters; <code translate="no" v-pre>check(user, url)</code> adds the address rule: unless <code translate="no" v-pre>mayUseLocalAddresses</code> - an administrator, or the granted permission with <code translate="no" v-pre>notificationsAllowLocal</code> - the host must resolve and none of its addresses may be loopback, link-local, private, shared (100.64/10), unique local, multicast or unspecified (<code translate="no" v-pre>AgentWebhookServiceImpl.isLocal</code>); a local address and an unresolvable name get the same answer so it tells nothing about internal names; the name is resolved again by the HTTP client, so DNS rebinding is not covered) and, with a screen open, <code translate="no" v-pre>agentWebhookAlways</code>; the text is the <code translate="no" v-pre>MSG_AGENT_NOTICE_*</code> of the user&#x27;s language (<code translate="no" v-pre>Localization.getValue(Language, L)</code>, the default language where a bundle lacks it) and goes out as <code translate="no" v-pre>WebhookFormat.PLAIN</code> (the body, the agent name as the <code translate="no" v-pre>Title</code> header when it is printable ASCII), <code translate="no" v-pre>DISCORD</code> (<code translate="no" v-pre>{&quot;content&quot;}</code>) or <code translate="no" v-pre>GOTIFY</code> (<code translate="no" v-pre>{&quot;title&quot;,&quot;message&quot;,&quot;priority&quot;}</code>) with <code translate="no" v-pre>java.net.http</code> (no redirects, 5 s to connect, 10 s for the answer, the answer is not read). Nothing that holds the URL is logged or returned: the URL may hold a secret, and the call is a request of the server to an address a user typed. <code translate="no" v-pre>sendTest</code> is the button of the settings. A failure is a line in the log.</p>
 </li>
 <li>
 <p><strong>Approvals.</strong> For an agent in the <code translate="no" v-pre>ASK</code> mode a destructive command waits. <code translate="no" v-pre>CommandFunctions</code> calls the <code translate="no" v-pre>Approval</code> the runner gave it (<code translate="no" v-pre>Worker.approve</code>),
@@ -1385,7 +1385,7 @@ older rounds when the context is full (the run pauses instead).</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (333d9397).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (fcdfc889).</p></div>
             </footer>
         </div>
     </div>

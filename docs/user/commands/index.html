@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845968815553">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845997290078">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845968815553" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845997290078" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845968815553" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845997290078" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845968815553" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845997290078" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -660,6 +660,7 @@ describes): the answer lists them and says what to do, <code translate="no" v-pr
 | `/compact-lore-entry &lt;text&gt; [...]` | [Lore Generator](../extensions/lore-generator.md) | Compacts a generated text into a dense lore entry text and returns it. Stores nothing. |
 | `/list-name-categories [&lt;filter&gt;]`, `/generate-names &lt;category&gt; &lt;count&gt; [...]` | [Name generator](../extensions/name-generator.md) | The categories of made up names, and names of one of them. |
 | `/list-real-name-lists`, `/pick-real-names &lt;list&gt; &lt;count&gt;` | [Name provider](../extensions/name-provider.md) | The lists of real names, and names picked from one of them. |
+| `/list-place-types`, `/search-places &lt;query&gt; [...]`, `/places-near &lt;place&gt; &lt;radius_km&gt; [...]`, `/distance-between &lt;from&gt; &lt;to&gt;` | [Place provider](../extensions/place-provider.md) | The types of real places, a search by name, type and country, the places around a point, and the distance of two places. |
 | `/get-arc-outline [&lt;arc&gt; [&lt;notes&gt;]]` | [Arc Outline](../extensions/arc-outline.md) | The arcs and chapters of the outline. |
 | `/add-arc`, `/update-arc`, `/move-arc`, `/delete-arc` | [Arc Outline](../extensions/arc-outline.md) | Add, change, move and delete an arc (`&lt;arc&gt;` is its number). |
 | `/add-outline-chapter`, `/update-outline-chapter`, `/move-outline-chapter`, `/delete-outline-chapter` | [Arc Outline](../extensions/arc-outline.md) | The same for the chapters of an arc. |
@@ -703,6 +704,11 @@ describes): the answer lists them and says what to do, <code translate="no" v-pr
 <td>The lists of real names, and names picked from one of them.</td>
 </tr>
 <tr>
+<td><code translate="no" v-pre>/list-place-types</code>, <code translate="no" v-pre>/search-places &lt;query&gt; [...]</code>, <code translate="no" v-pre>/places-near &lt;place&gt; &lt;radius_km&gt; [...]</code>, <code translate="no" v-pre>/distance-between &lt;from&gt; &lt;to&gt;</code></td>
+<td><a href="../extensions/place-provider/">Place provider</a></td>
+<td>The types of real places, a search by name, type and country, the places around a point, and the distance of two places.</td>
+</tr>
+<tr>
 <td><code translate="no" v-pre>/get-arc-outline [&lt;arc&gt; [&lt;notes&gt;]]</code></td>
 <td><a href="../extensions/arc-outline/">Arc Outline</a></td>
 <td>The arcs and chapters of the outline.</td>
@@ -741,7 +747,7 @@ describes): the answer lists them and says what to do, <code translate="no" v-pr
 </table>
 </div>
 </retype-table>
-<p>The commands of the Lore Generator, the Name generator and the Name provider only read: the generating ones return text and
+<p>The commands of the Lore Generator, the Name generator, the Name provider and the Place provider only read: the generating ones return text and
 leave it to you, or to the agent that called them, to put it into an entry. The commands of the Arc Outline and the
 Character Tracker also change the outline and the characters of the open book; only their <code translate="no" v-pre>delete</code> commands are destructive.</p>
 <h2 id="limits">Limits</h2>
@@ -786,7 +792,7 @@ Character Tracker also change the outline and the characters of the open book; o
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (333d9397).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (fcdfc889).</p></div>
             </footer>
         </div>
     </div>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845968815553">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845997290078">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845968815553" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845997290078" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845968815553" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845997290078" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845968815553" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845968815553" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845997290078" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845997290078" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -389,7 +389,7 @@ but follow the same pattern: construct with the entity, call <code translate="no
 <code translate="no" v-pre>isNavigationLocked</code>, <code translate="no" v-pre>getOnLogout</code>, <code translate="no" v-pre>setOnLogout</code>). <code translate="no" v-pre>Main</code>, the parts, <code translate="no" v-pre>ApplicationPoint</code> and <code translate="no" v-pre>SessionInformation</code>
 only depend on this interface. <code translate="no" v-pre>DesktopWorkspace</code> is the implementation (<code translate="no" v-pre>@Configurable</code>, <code translate="no" v-pre>@Extendable</code>): it builds an
 <code translate="no" v-pre>HTabSheet</code> (tabs on the left, a footer with <em>Admin</em>, the language selector, <em>Change Password</em>, <em>Logout</em>) and puts the red <code translate="no" v-pre>InvalidExtensionsWarning</code> bar (<code translate="no" v-pre>ui.components</code>; hidden while no installed extension is invalid, the administrator gets the names as its tooltip, other users a note to tell the administrator, from <code translate="no" v-pre>OsgiService.getInvalidExtensions()</code>) above it - the phone workspace has it in the navbar - and creates all tab components up
-front (the admin part is refreshed only when the user is an administrator and has the <em>Admin</em> button: it refuses anybody else). Each tab is a <code translate="no" v-pre>WorkspaceComponent</code>:</p>
+front (the admin part is created, and refreshed, only when the user is an administrator, who has the <em>Admin</em> button: its panels refuse anybody else). Each tab is a <code translate="no" v-pre>WorkspaceComponent</code>:</p>
 <retype-table copy-text="| Method | Called |
 |---|---|
 | `create()` | Once, when the workspace is built. |
@@ -784,6 +784,7 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 | `ArchiveUploadDialog`, `ArchiveEntryNamesDialog`, `ArchiveImportRunner` (`ui.dialogs`) | The pieces of the import of `.md` archives (story part, new book, lorebook; the service is `ArchiveImportService`). `ArchiveUploadDialog.show(title, message, handler)` takes a zip file in memory and calls the `Handler`; an `IllegalArgumentException` of the handler (not a usable archive) is a warning and the dialog stays. `ArchiveEntryNamesDialog.show(content, onConfirm)` lists the files with the entry name each would get (`names.txt`, the first heading, the file name) in an editable grid and hands the names over in the order of the files. `ArchiveImportRunner` runs the import behind a progress dialog with **Stop** (what was imported stays, the user is told how much). |
 | `LazyContextMenu` (`ui.widgets`) | A `ContextMenu` whose items are made when it opens: the constructor takes the target and a `beforeOpen` runnable that `onBeforeOpenMenu` runs before Flow sends the menu. The menu of a story card is one (see `createHamburgerMenu` / `prepareMenu` of the cards), so a story of hundreds of parts does not create the items of all of them. |
 | `ModelProtocolPicker` | A model and a protocol combo box (the AIs and protocols of the user, the protocol optional) for a dialog that runs the model with a choice of its own: `setSelection(ai, protocol)` / `getAi()` / `getProtocol()` / `addSelectionListener(Runnable)`. Used by the generator dialogs of the Lore Generator and the Arc Outline. On a phone the two boxes are full width, the protocol under the model. |
+| `ToolSelectionButton` (`ui.widgets`), `ToolSelectionDialog` (`ui.dialogs`) | The common way to let the user choose the tools the model may use (`ToolService`). The button keeps a `ToolSelection` (`setValue` / `getValue` / `addValueChangeListener`, the listener gets the new choice when the user saves), shows `Tools (n)` with the number of things that are on, hides itself while no suite is installed (`refresh()` looks again; it also does on attach) and opens the dialog. The dialog has a `Details` section for each `ToolProviderInfo` under its human name with the number checked: a lazy multi-select grid with a filter field of its own (the checked items stay whatever the filter says; *Check shown* / *Uncheck shown* instead of a select-all, which would check the hidden rows) for a suite with items, one check box for a suite without, and a collapsed text area for the hint of the suite (its placeholder is the default hint). It edits a copy and gives the new `ToolSelection` to its callback on *Save*. Used by the Lore Generator and the Arc Outline generators. |
 | `TextAreaPopoverComponent`, `TextFieldPopOverComponent` | Prompt fields with a hints popover. |
 | `TemplateHints` | Content of the hints popover: *Insert Default Template*, the template's variables (from `@LocalizedTemplateDescription`) and the macros (from `Macros.hints()`). |
 | `ScrollPanel`, `HtmlText` | Scrollable container; text with HTML. |
@@ -856,6 +857,10 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 <tr>
 <td><code translate="no" v-pre>ModelProtocolPicker</code></td>
 <td>A model and a protocol combo box (the AIs and protocols of the user, the protocol optional) for a dialog that runs the model with a choice of its own: <code translate="no" v-pre>setSelection(ai, protocol)</code> / <code translate="no" v-pre>getAi()</code> / <code translate="no" v-pre>getProtocol()</code> / <code translate="no" v-pre>addSelectionListener(Runnable)</code>. Used by the generator dialogs of the Lore Generator and the Arc Outline. On a phone the two boxes are full width, the protocol under the model.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ToolSelectionButton</code> (<code translate="no" v-pre>ui.widgets</code>), <code translate="no" v-pre>ToolSelectionDialog</code> (<code translate="no" v-pre>ui.dialogs</code>)</td>
+<td>The common way to let the user choose the tools the model may use (<code translate="no" v-pre>ToolService</code>). The button keeps a <code translate="no" v-pre>ToolSelection</code> (<code translate="no" v-pre>setValue</code> / <code translate="no" v-pre>getValue</code> / <code translate="no" v-pre>addValueChangeListener</code>, the listener gets the new choice when the user saves), shows <code translate="no" v-pre>Tools (n)</code> with the number of things that are on, hides itself while no suite is installed (<code translate="no" v-pre>refresh()</code> looks again; it also does on attach) and opens the dialog. The dialog has a <code translate="no" v-pre>Details</code> section for each <code translate="no" v-pre>ToolProviderInfo</code> under its human name with the number checked: a lazy multi-select grid with a filter field of its own (the checked items stay whatever the filter says; <em>Check shown</em> / <em>Uncheck shown</em> instead of a select-all, which would check the hidden rows) for a suite with items, one check box for a suite without, and a collapsed text area for the hint of the suite (its placeholder is the default hint). It edits a copy and gives the new <code translate="no" v-pre>ToolSelection</code> to its callback on <em>Save</em>. Used by the Lore Generator and the Arc Outline generators.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>TextAreaPopoverComponent</code>, <code translate="no" v-pre>TextFieldPopOverComponent</code></td>
@@ -1220,7 +1225,9 @@ saves. After the save the rows are read again and, unless the user is the curren
 (<code translate="no" v-pre>null</code> for a type without; the implementation is <code translate="no" v-pre>PermissionUIFactoryImpl</code>, a switch on the type): <code translate="no" v-pre>getComponent()</code> is shown in the detail
 row of the grid, <code translate="no" v-pre>model2component</code> / <code translate="no" v-pre>component2model</code> copy the settings between the component and the <code translate="no" v-pre>Permission</code> (they are extended
 attributes of <code translate="no" v-pre>Permission</code>, <code translate="no" v-pre>helperApplyLimits</code> / <code translate="no" v-pre>helperInteractions</code>; <code translate="no" v-pre>HelperPermissionComponent</code> for <code translate="no" v-pre>HELPER</code>), <code translate="no" v-pre>onChange</code> tells the
-dialog the user edited it (not fired by <code translate="no" v-pre>model2component</code>). To add a type: a constant in <code translate="no" v-pre>PermissionType</code>, <code translate="no" v-pre>ENUM_PERMISSION_*</code> in <code translate="no" v-pre>L</code>
+dialog the user edited it (not fired by <code translate="no" v-pre>model2component</code>), and the default method <code translate="no" v-pre>onGrantedChanged(granted)</code> (called when the component is made and
+when the <em>Granted</em> box changes) lets a setting that makes sense only while the permission is given (a sub-permission, <code translate="no" v-pre>NotificationsPermissionComponent</code>
+for <code translate="no" v-pre>NOTIFICATIONS</code>) follow it. To add a type: a constant in <code translate="no" v-pre>PermissionType</code>, <code translate="no" v-pre>ENUM_PERMISSION_*</code> in <code translate="no" v-pre>L</code>
 and the bundles and the map of <code translate="no" v-pre>LocalizationImpl</code>, and, if it has settings, an <code translate="no" v-pre>@ExtendedAttribute</code> field in <code translate="no" v-pre>Permission</code> and a component.</p>
 <h3 id="interactions">Interactions</h3>
 <p>When the permission <code translate="no" v-pre>HELPER</code> of the user allows it (<strong>Allow navigating the interface</strong> in their permissions, <code translate="no" v-pre>Permission.helperInteractions</code>,
@@ -1336,7 +1343,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (333d9397).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (fcdfc889).</p></div>
             </footer>
         </div>
     </div>
