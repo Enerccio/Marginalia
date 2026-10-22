@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846017431798">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846020414538">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846017431798" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846020414538" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846017431798" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846020414538" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846017431798" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846020414538" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -226,6 +226,62 @@ the list is sorted by all of them in order.</p>
 </ul>
 <p>The refresh button at the end of the filter row reloads the list.</p>
 <p>Each row has three buttons: the pen opens the book, the clone button makes a copy of it and the trash button deletes it.</p>
+<h3 id="advanced-search">Advanced search</h3>
+<p><strong>Search</strong> (next to <strong>Tag books</strong>; the magnifier in the header on a phone) opens a window that finds books by more than
+the filter row can. Fill in what you want to check, leave the rest empty, and press <strong>Search</strong> (or Enter in a text field):</p>
+<retype-table copy-text="| Field | Finds books... |
+| ----- | -------------- |
+| **Name** | whose name contains the text (`*` is a wildcard). |
+| **Tags to include** | that have the tags: *All of the tags* or *Any of the tags*, as you choose next to the field. |
+| **Tags to exclude** | that do not have the tags: with *Any of the tags* a book with at least one of them is left out, with *All of the tags* only a book that has every one of them. |
+| **Created from / to**, **Modified from / to** | created or last changed in the range; the day of a *to* date is included. |
+| **Number of parts from / to** | with that many parts in all its branches (parts in the trash are not counted). |
+| **Text** | with a part that has every word of the text. Words, `&quot;phrases&quot;` and `*` work as in [the search of the story](story-editor.md#searching-the-story). |
+| **Search in all branches** | off (the default): the text is searched only in the branch the book is at (the story as you see it when you open the book); on: in the parts of all branches. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Field</th>
+<th>Finds books...</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Name</strong></td>
+<td>whose name contains the text (<code translate="no" v-pre>*</code> is a wildcard).</td>
+</tr>
+<tr>
+<td><strong>Tags to include</strong></td>
+<td>that have the tags: <em>All of the tags</em> or <em>Any of the tags</em>, as you choose next to the field.</td>
+</tr>
+<tr>
+<td><strong>Tags to exclude</strong></td>
+<td>that do not have the tags: with <em>Any of the tags</em> a book with at least one of them is left out, with <em>All of the tags</em> only a book that has every one of them.</td>
+</tr>
+<tr>
+<td><strong>Created from / to</strong>, <strong>Modified from / to</strong></td>
+<td>created or last changed in the range; the day of a <em>to</em> date is included.</td>
+</tr>
+<tr>
+<td><strong>Number of parts from / to</strong></td>
+<td>with that many parts in all its branches (parts in the trash are not counted).</td>
+</tr>
+<tr>
+<td><strong>Text</strong></td>
+<td>with a part that has every word of the text. Words, <code translate="no" v-pre>&quot;phrases&quot;</code> and <code translate="no" v-pre>*</code> work as in <a href="../story-editor/#searching-the-story">the search of the story</a>.</td>
+</tr>
+<tr>
+<td><strong>Search in all branches</strong></td>
+<td>off (the default): the text is searched only in the branch the book is at (the story as you see it when you open the book); on: in the parts of all branches.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>A book has to pass every check you filled in. The books found are listed below with their tags, the last changed first;
+a click on a column header sorts them. The folder button opens a book (in its window above the search, so closing the
+book brings you back to the results). <strong>Clear</strong> empties the fields.</p>
 <h3 id="cloning-a-book">Cloning a book</h3>
 <p>The clone button asks for the <strong>Name</strong> of the new book (the name of the original with <em>(Copy)</em> by default) and has the
 check box <strong>Only current branch</strong>, checked by default. The new book is a separate book that gets:</p>
@@ -405,7 +461,7 @@ where they are.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (da5a9568).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (625ecff2).</p></div>
             </footer>
         </div>
     </div>

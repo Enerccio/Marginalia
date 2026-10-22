@@ -26,6 +26,25 @@ The refresh button at the end of the filter row reloads the list.
 
 Each row has three buttons: the pen opens the book, the clone button makes a copy of it and the trash button deletes it.
 
+### Advanced search
+
+**Search** (next to **Tag books**; the magnifier in the header on a phone) opens a window that finds books by more than
+the filter row can. Fill in what you want to check, leave the rest empty, and press **Search** (or Enter in a text field):
+
+| Field | Finds books... |
+| ----- | -------------- |
+| **Name** | whose name contains the text (`*` is a wildcard). |
+| **Tags to include** | that have the tags: *All of the tags* or *Any of the tags*, as you choose next to the field. |
+| **Tags to exclude** | that do not have the tags: with *Any of the tags* a book with at least one of them is left out, with *All of the tags* only a book that has every one of them. |
+| **Created from / to**, **Modified from / to** | created or last changed in the range; the day of a *to* date is included. |
+| **Number of parts from / to** | with that many parts in all its branches (parts in the trash are not counted). |
+| **Text** | with a part that has every word of the text. Words, `"phrases"` and `*` work as in [the search of the story](story-editor.md#searching-the-story). |
+| **Search in all branches** | off (the default): the text is searched only in the branch the book is at (the story as you see it when you open the book); on: in the parts of all branches. |
+
+A book has to pass every check you filled in. The books found are listed below with their tags, the last changed first;
+a click on a column header sorts them. The folder button opens a book (in its window above the search, so closing the
+book brings you back to the results). **Clear** empties the fields.
+
 ### Cloning a book
 
 The clone button asks for the **Name** of the new book (the name of the original with *(Copy)* by default) and has the

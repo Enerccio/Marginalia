@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.repository.ManuscriptRepository;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
 import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValues;
+import com.github.enerccio.marginalia.domain.service.search.ManuscriptSearchCriteria;
 import com.github.enerccio.marginalia.domain.service.search.Sorter;
 import com.google.gson.JsonObject;
 
@@ -23,6 +24,12 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
      * The same search over the books of the user only, the working copies of agents are left out. What the UI lists.
      */
     List<Long> searchRegularManuscripts(ManuscriptFilterValues filterValues, Sorter... sorters) throws Exception;
+
+    /**
+     * The advanced search of the book list: the books of the user (not the working copies of agents) that pass all the
+     * checks of the criteria, the text included.
+     */
+    List<Long> searchAdvanced(ManuscriptSearchCriteria criteria, Sorter... sorters) throws Exception;
 
     /**
      * The same search over the working copies of agents only.

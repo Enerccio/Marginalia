@@ -42,7 +42,7 @@ While the *Settings* tab has unsaved changes, the drawer is locked as on the des
 ### Books
 
 The book list is one column. Above it are the name filter, the tag filter and the sort buttons (*Last Modified*,
-*Created*, *Name*; tap the active one again to reverse the order), then **Add Book** and refresh. Each book has two
+*Created*, *Name*; tap the active one again to reverse the order), then **Add Book**, the magnifier (the [advanced search](books/managing-books.md#advanced-search): tags to include and exclude, dates, number of parts and text) and refresh. Each book has two
 buttons: the pencil opens it, the trash deletes it (into the [Trash](trash.md)).
 
 ![The book list on a phone](../images/phone-book-list.png)

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846017431798">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846020414538">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846017431798" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846020414538" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846017431798" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846020414538" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846017431798" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846017431798" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846020414538" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846020414538" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -567,7 +567,7 @@ fields from the restored JSON, and <code translate="no" v-pre>FulltextMigration<
 </div>
 </retype-table>
 <h3 id="full-text-search">Full-text search</h3>
-<p>The only search over <code translate="no" v-pre>_fulltext</code> so far is <code translate="no" v-pre>ChatMessageService.searchFulltext(manuscript, query)</code>, used by the search of
+<p>The searches over <code translate="no" v-pre>_fulltext</code> are <code translate="no" v-pre>ChatMessageService.searchFulltext(manuscript, query)</code>, used by the search of
 the story tree. <code translate="no" v-pre>FulltextQuery.parse</code> splits the query into words (double quotes make a phrase); a part matches when its
 text contains every word. In SQL (<code translate="no" v-pre>ChatMessageRepository.findFulltexts</code>) each word is a
 <code translate="no" v-pre>_fulltext LIKE :pattern ESCAPE '\'</code>, built like the name filter of the book list (<code translate="no" v-pre>LikePatterns.fromWildcards</code>): <code translate="no" v-pre>*</code>
@@ -576,7 +576,9 @@ messages are read, never the whole entity. SQLite&#x27;s <code translate="no" v-
 lower case, upper case and capitalized (<code translate="no" v-pre>FulltextQuery.likePatterns</code>), which covers accented letters in the usual
 spellings; a word written in mixed case in the text (<code translate="no" v-pre>ŽlutÝ</code>) is not found by a differently cased query. The snippet
 shown with a hit is cut from the text by <code translate="no" v-pre>FulltextQuery.snippet</code>. The service checks that the book belongs to the
-current user.</p>
+current user. The advanced search of the book list uses the same <code translate="no" v-pre>LIKE</code>s over all the candidate books at once
+(<code translate="no" v-pre>ChatMessageRepository.findFulltextHits</code>, ids only) and, unless it searches all branches, keeps the books whose hit lies on
+the branch of the active part (<code translate="no" v-pre>findActiveBranchIds</code>, a walk up the parent links).</p>
 <p>Like <code translate="no" v-pre>extendedContent</code>, the column is invisible to dirty checking of the fields, so it is only current after a
 service <code translate="no" v-pre>save</code>. Marking a field of an entity that already has rows (or changing which fields are marked) leaves old
 rows out of date: add an app migration that calls <code translate="no" v-pre>updateFulltext</code> for the entity, as <code translate="no" v-pre>FulltextMigration</code> does (see
@@ -1753,7 +1755,7 @@ define both beans in <code translate="no" v-pre>services-config.xml</code>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (da5a9568).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (625ecff2).</p></div>
             </footer>
         </div>
     </div>
