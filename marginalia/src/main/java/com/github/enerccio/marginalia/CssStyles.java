@@ -104,6 +104,7 @@ public final class CssStyles {
 
     // --- Resizable text area toggle icon ---
     public static final String RESIZABLE_TEXT_AREA_ICON = "resizable-text-area-icon";
+    public static final String RESIZABLE_TEXT_AREA_FIELD = "resizable-text-area-field";
 
     // --- Phone manuscript dialog ---
     public static final String PHONE_DIALOG = "phone-dialog";

@@ -63,6 +63,7 @@ public class AgentResumeDialog extends Dialog implements LLMInteract {
         resumeButton.setThemeName("primary");
         HorizontalLayout footer = new HorizontalLayout(cancelButton, resumeButton);
         footer.setWidthFull();
+        footer.setWrap(true);
         footer.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
         getFooter().add(footer);
     }

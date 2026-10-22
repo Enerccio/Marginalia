@@ -62,6 +62,14 @@ public class ModelProtocolPicker extends HorizontalLayout {
 
         setAlignItems(FlexComponent.Alignment.BASELINE);
         setPadding(false);
+        if (UIUtils.isPhone()) {
+            // two boxes of 260 pixels do not fit next to each other: the protocol goes under the model
+            setWrap(true);
+            setSpacing(false);
+            setWidthFull();
+            aiCombo.setWidthFull();
+            protocolCombo.setWidthFull();
+        }
         add(aiCombo, protocolCombo);
     }
 

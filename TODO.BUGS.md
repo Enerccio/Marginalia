@@ -1110,7 +1110,7 @@ old value is lost if the dialog is saved without noticing.
 
 **Expected:** the saved model stays selected; the list only becomes available.
 
-## BUG-65 - The window of the approval of an agent lies under the console that was opened while the agent already waited (medium)
+~~## BUG-65 - The window of the approval of an agent lies under the console that was opened while the agent already waited (medium)~~
 
 **Where:** `ui/dialogs/agent/AgentConsoleDialog.java`, `showApproval()`. Found while taking the screenshots.
 
@@ -1127,3 +1127,5 @@ opens the console while the agent still works, which works).
 
 **Expected:** the window of the approval is on top of the console. **Actual:** only the console is seen; the buttons of the console
 are disabled and there is no way to decide (the approval dialog can not be closed with Esc or a click outside either).
+
+**Fixed:** `showApproval()` opens the window only when the console is open (`isOpened()`), and an opened-change listener of the console asks again when it opens, so the window is opened after the console and lies over it. `AgentConsoleDialogTest` has the case.
