@@ -2,22 +2,24 @@ package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncCallback;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
-import com.github.enerccio.marginalia.domain.service.manual.UiStateSource;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
+import com.github.enerccio.marginalia.domain.service.manual.UiStateSource;
 
 import java.util.List;
 
 /**
- * The model behind the help assistant, a chat about the manual ({@link ManualService}). An administrator turns it on
- * and picks the AI it uses (application settings); then every user can ask it, with no AI of their own. The requests
- * have no protocol: the AI's own limits and defaults apply.
+ * The model behind the help assistant, a chat about the manual ({@link ManualService}). An administrator picks the AI it
+ * uses (application settings) and gives the permission {@link
+ * com.github.enerccio.marginalia.domain.security.permissions.PermissionType#HELPER} to the users who can ask it (they
+ * need no AI of their own, administrators always can). The requests have no protocol: the AI's own limits and defaults
+ * apply.
  * <p>
  * The AI is one of the administrator's own, shared or not, so a user never sees or owns it: this service gets it
  * from the settings and the user's request goes through it. Who pays depends on the AI:
  * <ul>
- *   <li>a shared AI with {@code applyLimits}: the request is like any other to the AI, the limit the administrator
+ *   <li>a shared AI and the {@code HELPER} permission of the user with {@code helperApplyLimits}: the request is like any other to the AI, the limit the administrator
  *   set for the user is checked and the tokens are added to the user's usage;</li>
- *   <li>otherwise (an AI that is not shared, or without {@code applyLimits}): the owner of the AI pays, the request
+ *   <li>otherwise (an AI that is not shared, or without {@code helperApplyLimits}): the owner of the AI pays, the request
  *   is not limited and not counted for the user ({@link UnmeteredScope}).</li>
  * </ul>
  * The assistant stops working (is not {@link #isAvailable() available}) when the AI is deleted or its owner is no
@@ -26,37 +28,28 @@ import java.util.List;
 public interface HelpAssistantService {
 
     /**
-     * The settings.
+     * The settings. What depends on the user (do the limits apply to them, may the model move through the interface
+     * for them) is in the permission {@code HELPER} of the user, see {@link
+     * com.github.enerccio.marginalia.domain.security.model.Permission#getHelperApplyLimits()}.
      *
-     * @param enabled      whether the assistant is on
-     * @param aiUuid       uuid of the AI, null for none
-     * @param applyLimits  see {@link HelpAssistantService}, only has an effect on a shared AI
-     * @param adminPrompt  the instructions for administrators, null for the default ({@link
-     *                     com.github.enerccio.marginalia.domain.service.manual.HelpPrompts#ADMIN})
-     * @param userPrompt   the instructions for the other users, null for the default
-     * @param interactions whether the model may move through the interface for the user (open a section, select a
-     *                     tab), see {@link #ask(List, UiStateSource, InferenceAsyncCallback)}
-     * @param adminData    whether the model may read the data of the Admin page (extensions and their logs, backups,
-     *                     cleanup, user counts) for an administrator, see {@link
-     *                     com.github.enerccio.marginalia.domain.service.manual.AdminHelpTools}
+     * @param aiUuid      uuid of the AI, null for none
+     * @param adminPrompt the instructions for administrators, null for the default ({@link
+     *                    com.github.enerccio.marginalia.domain.service.manual.HelpPrompts#ADMIN})
+     * @param userPrompt  the instructions for the other users, null for the default
+     * @param adminData   whether the model may read the data of the Admin page (extensions and their logs, backups,
+     *                    cleanup, user counts) for an administrator, see {@link
+     *                    com.github.enerccio.marginalia.domain.service.manual.AdminHelpTools}
      */
-    record Settings(boolean enabled, String aiUuid, boolean applyLimits, String adminPrompt, String userPrompt,
-                    boolean interactions, boolean adminData) {
+    record Settings(String aiUuid, String adminPrompt, String userPrompt, boolean adminData) {
 
         /** Settings without the data of the Admin page. */
-        public Settings(boolean enabled, String aiUuid, boolean applyLimits, String adminPrompt, String userPrompt,
-                        boolean interactions) {
-            this(enabled, aiUuid, applyLimits, adminPrompt, userPrompt, interactions, false);
+        public Settings(String aiUuid, String adminPrompt, String userPrompt) {
+            this(aiUuid, adminPrompt, userPrompt, false);
         }
 
-        /** Settings with the default prompts and no interactions. */
-        public Settings(boolean enabled, String aiUuid, boolean applyLimits) {
-            this(enabled, aiUuid, applyLimits, null, null);
-        }
-
-        /** Settings without interactions. */
-        public Settings(boolean enabled, String aiUuid, boolean applyLimits, String adminPrompt, String userPrompt) {
-            this(enabled, aiUuid, applyLimits, adminPrompt, userPrompt, false);
+        /** Settings with the default prompts. */
+        public Settings(String aiUuid) {
+            this(aiUuid, null, null);
         }
     }
 
@@ -75,16 +68,17 @@ public interface HelpAssistantService {
     Settings getSettings() throws Exception;
 
     /**
-     * Saves the settings. The AI (when set) has to be the current administrator's own, an enabled assistant needs one.
+     * Saves the settings. The AI (when set) has to be the current administrator's own.
      * A prompt that is blank or the same as the default is stored as "default".
      *
      * @throws SecurityException        for anybody but an administrator
-     * @throws IllegalArgumentException when the AI is not the administrator's, or is missing while {@code enabled}
+     * @throws IllegalArgumentException when the AI is not the administrator's
      */
     void saveSettings(Settings settings) throws Exception;
 
     /**
-     * Whether the assistant is on and its AI can be used now, for every user.
+     * Whether the current user can ask the assistant: it has an AI that can be used now, and the user is an
+     * administrator or has the permission {@code HELPER}.
      */
     boolean isAvailable() throws Exception;
 
@@ -97,7 +91,7 @@ public interface HelpAssistantService {
 
     /**
      * Whether a request of the current user is limited and counted: the AI is shared and the administrator chose
-     * {@code applyLimits}. False when the assistant is not available.
+     * {@code helperApplyLimits}. False when the assistant is not available.
      */
     boolean isMetered() throws Exception;
 
@@ -128,7 +122,7 @@ public interface HelpAssistantService {
 
     /**
      * Like {@link #ask(List, InferenceAsyncCallback)}, and the model can also read the screen of the user (the
-     * function {@code get_ui_state}) from the source; when the administrator allowed {@link Settings#interactions()},
+     * function {@code get_ui_state}) from the source; when the permission {@code HELPER} of the user has {@code helperInteractions},
      * it also sees what the elements offer to do and can apply it ({@code interact_with_ui}). The instructions are the prompt for administrators or for the
      * other users, whichever the current user is, with {@code {{manualIndex}}} replaced by the list of the manual's pages.
      *

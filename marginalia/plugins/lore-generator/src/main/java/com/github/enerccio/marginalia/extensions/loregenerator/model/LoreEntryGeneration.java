@@ -1,5 +1,8 @@
 package com.github.enerccio.marginalia.extensions.loregenerator.model;
 
+import com.github.enerccio.marginalia.domain.service.tool.ToolSelection;
+import com.github.enerccio.marginalia.extensions.loregenerator.names.LegacyNameTools;
+
 import java.util.List;
 
 /**
@@ -15,7 +18,9 @@ public class LoreEntryGeneration {
     private String scope;
     /** {@code EntryLimit} name. */
     private String limit;
-    /** Categories of the name generator the model had. */
+    /** The tools the model had. */
+    private ToolSelection tools;
+    /** The name categories the model had, saved before the tool dialog (with the prefix of their source); read only. */
     private List<String> nameCategories;
 
     public String getPromptName() {
@@ -50,11 +55,16 @@ public class LoreEntryGeneration {
         this.limit = limit;
     }
 
-    public List<String> getNameCategories() {
-        return nameCategories;
+    public ToolSelection getTools() {
+        return tools;
     }
 
-    public void setNameCategories(List<String> nameCategories) {
-        this.nameCategories = nameCategories;
+    public void setTools(ToolSelection tools) {
+        this.tools = tools;
+    }
+
+    /** The tools of this generation: the saved ones, else the ones made from the categories saved before the tool dialog; null for none saved. */
+    public ToolSelection tools() {
+        return tools != null ? tools : LegacyNameTools.migrate(nameCategories, null, null);
     }
 }

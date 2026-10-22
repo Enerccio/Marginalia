@@ -1,14 +1,15 @@
 package com.github.enerccio.marginalia.extensions.arcoutline.ui;
 
+import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.structured.SchemaCheck;
 import com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.*;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.Defaults;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.textfield.TextArea;
 import org.apache.commons.lang3.StringUtils;
@@ -58,6 +59,7 @@ public class ArcGeneratorDialog extends GeneratorDialog {
     protected Component createInputs() {
         specificationArea = new TextArea("Specification");
         specificationArea.setWidthFull();
+        DialogFocus.onOpen(this, specificationArea);
         specificationArea.setMinHeight("140px");
         specificationArea.setMaxHeight("30vh");
         specificationArea.setPlaceholder("What you want from the arc: its theme, the characters, where it should lead...");
@@ -70,8 +72,8 @@ public class ArcGeneratorDialog extends GeneratorDialog {
     }
 
     @Override
-    protected String buildPrompt(String template, FunctionSet nameFunctions) throws Exception {
-        return service.buildPrompt(manuscript, outline, template, specificationArea.getValue(), nameFunctions);
+    protected String buildPrompt(String template, ToolSet tools) throws Exception {
+        return service.buildPrompt(manuscript, outline, template, specificationArea.getValue(), tools);
     }
 
     @Override

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845494342077">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -24,10 +24,6 @@
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/extensions/name-provider/">
     <meta property="og:title" content="Name provider">
     <meta property="og:description" content="Gives the model real names to pick from instead of inventing them: the most common forenames and surnames of many countries. Where the Name generator makes">
-    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/plugin-loregenerator-names.png">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="Name provider">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -36,19 +32,17 @@
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/extensions/name-provider/">
     <meta name="twitter:title" content="Name provider">
     <meta name="twitter:description" content="Gives the model real names to pick from instead of inventing them: the most common forenames and surnames of many countries. Where the Name generator makes">
-    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/plugin-loregenerator-names.png">
-    <meta name="twitter:image:alt" content="Name provider">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/user/extensions/name-provider.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845494342077" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -65,7 +59,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -175,13 +169,9 @@
 countries. Where the <a href="../name-generator/">Name generator</a> makes up new names that only sound like a category, this
 extension hands out names that exist, each with the original spelling next to the romanized one: <code translate="no" v-pre>Satō</code> and <code translate="no" v-pre>佐藤</code>.</p>
 <p>The extension has no screen of its own and nothing to configure. Other extensions offer its functions to the model: the
-<a href="../lore-generator/#name-tools">Lore Generator</a> and the <a href="../arc-outline/">Arc Outline</a>, where you choose which lists the
-model may use. Its lists have the prefix <code translate="no" v-pre>Provider: </code> there, the ones of the Name generator <code translate="no" v-pre>Generator: </code>, and you can
+<a href="../lore-generator/#tools">Lore Generator</a> and the <a href="../arc-outline/">Arc Outline</a>, where you choose which lists the
+model may use. Its suite is <em>Name provider</em> in the <a href="../tools/">tools window</a>, next to the <em>Name generator</em> one, and you can
 check lists of both, of one of them or of none.</p>
-<figure class="content-center">
-    <img src="../../../images/plugin-loregenerator-names.png" alt="The Name tools of the Lore Generator with one list of each extension checked" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="720" height="745" />
-    <figcaption class="caption">The Name tools of the Lore Generator with one list of each extension checked</figcaption>
-</figure>
 <h2 id="what-the-model-can-do">What the model can do</h2>
 <retype-table copy-text="| Function | What it does |
 |---|---|
@@ -208,9 +198,38 @@ check lists of both, of one of them or of none.</p>
 </table>
 </div>
 </retype-table>
-<p>A list with fewer names than asked for returns all of them. The model is told (see the <em>Name provider hint</em> of the Lore
-Generator and the Arc Outline) to pick a name from what it gets and to write it as it was returned, with the original next
+<p>A list with fewer names than asked for returns all of them. The model is told (see the hint of the <em>Name provider</em> suite
+in the <a href="../tools/#choosing-the-tools">tools window</a>) to pick a name from what it gets and to write it as it was returned, with the original next
 to it when that suits the setting; it may combine a forename with a surname of the same country.</p>
+<h2 id="commands">Commands</h2>
+<p>The same names are available as <a href="../../commands/">commands</a>, for the command line and for <a href="../../agents/">agents</a>,
+which can use them in their own prompts (for example for <code translate="no" v-pre>/generate-lore-entry</code> of the <a href="../lore-generator/">Lore Generator</a>):</p>
+<retype-table copy-text="| Command | What it does |
+|---|---|
+| `/list-real-name-lists` | Lists the lists as a JSON array. |
+| `/pick-real-names list count` | Picks up to 100 names of the list at random and returns them as a JSON array of pairs, the romanized name and the original one. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Command</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>/list-real-name-lists</code></td>
+<td>Lists the lists as a JSON array.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/pick-real-names list count</code></td>
+<td>Picks up to 100 names of the list at random and returns them as a JSON array of pairs, the romanized name and the original one.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Both only read.</p>
 <h2 id="lists">Lists</h2>
 <p>There are about 180 lists, named <code translate="no" v-pre>&lt;Country&gt; - Surnames</code> and <code translate="no" v-pre>&lt;Country&gt; - Forenames</code>: surnames of 75 countries and forenames of
 106 (<code translate="no" v-pre>Japan - Surnames</code>, <code translate="no" v-pre>Czechia - Forenames</code>, <code translate="no" v-pre>Kosovo - Surnames</code>). Forenames of both genders are in one list. A list has
@@ -222,7 +241,7 @@ non-Latin scripts (Chinese, Japanese, Korean, Arabic, Cyrillic...) have a romani
 one made by machine translation, so check the spelling when it matters.</p>
 <h2 id="usage">Usage</h2>
 <p>Load the extension in <em>Admin → Extensions</em>. It applies to the next generation, also when it is installed after the
-extensions that use it or unloaded and installed again. Without it and without the Name generator there is no <em>Name tools</em>
+extensions that use it or unloaded and installed again. Without it and the other suites there is no <em>Tools</em>
 button.</p>
 
                 
@@ -261,7 +280,7 @@ button.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License.</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
             </footer>
         </div>
     </div>

@@ -21,7 +21,7 @@ The table loads as you scroll. The most recently deleted objects are first.
 | Column | |
 |---|---|
 | (tick box) | Selects the object for restoring. The box in the header selects all objects. |
-| **Type** | The kind of object: book, lorebook, lorebook entry, message (a story part), summary, model (inference provider), protocol, tag, resource... |
+| **Type** | The kind of object: book, lorebook, lorebook entry, message (a story part), summary, model (inference provider), protocol, tag, agent, agent run, resource... |
 | **Name** | The name of the object. Story parts and tag links have no name and show their id; use *Extended Content* to read a story part. |
 | **User** | Whose object it is. Only administrators see this column. |
 | **Deleted** | When the object was deleted. |

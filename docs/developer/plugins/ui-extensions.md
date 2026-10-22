@@ -38,8 +38,8 @@ public void onMethodLeave(Object instrumented, ExtendableMethodContext context, 
 
 ### Menu items on a story part
 
-Decorate `ManuscriptStoryPart$ChatMessageCard.createMenuItems` (called by the card's constructor) and add to the
-`hamburgerMenu` field. The card's `message` field is the part. Reviewer adds a sub-menu:
+Decorate `ManuscriptStoryPart$ChatMessageCard.createMenuItems` (called when the menu of the card is opened for the first
+time, not when the card is created) and add to the `hamburgerMenu` field. The card's `message` field is the part. Reviewer adds a sub-menu:
 
 ```java
 MenuItem reviewMenuItem = hamburgerMenu.addItem("Review");
@@ -47,8 +47,9 @@ reviewMenuItem.addComponentAsFirst(VaadinIcon.STAR.create());
 reviewMenuItem.getSubMenu().addItem("View / Generate Review", e -> openReviewDialog(message));
 ```
 
-To update items each time the menu opens, decorate `refreshSummaryMenuItems`, which the card runs from the menu's
-opened listener.
+To update items each time the menu opens, decorate `refreshSummaryMenuItems`, which the card runs each time the menu is about to open (after
+`createMenuItems` the first time). It can also run before the menu was ever opened: the items are not created then, so
+check what you read from the menu for `null`.
 
 The card replaces its `message` with the saved copy whenever the part is edited, so read the field again in the click
 listener (`context.getReflectiveFieldValue(card, "message", ...)`) rather than capturing it when the menu is built.
@@ -244,7 +245,7 @@ public class MyPanel extends VerticalLayout implements LLMInteract {
   Give your fields labels and mark the required ones, then the model can name them.
 - To add to a class of the application, decorate its `getLLMState` (or `getInteraction`) with `getCurrentReturn` /
   `setCurrentReturn` (see [Changing the return value](extendable.md#changing-the-return-value)); append to the text and put your
-  entries into a copy of the map. Only the classes that override those methods can be decorated: both workspaces, `AdminPart`,
+  entries into a copy of the map. Only the classes that override those methods can be decorated: both workspaces, `AdminPart` (it exists only for administrators),
   both story editor dialogs, `Main`, `UserPart` and the lists of models, protocols and books (`getLLMState`, `getInteraction`) and
   `AIDialog` (`getLLMProblems`); the other elements use the defaults of the interface.
 - What a user was shown that went wrong is recorded for you: your `Notification.error` / `warning` (the application's

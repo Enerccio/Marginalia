@@ -5,21 +5,25 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
-import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
+import com.github.enerccio.marginalia.domain.service.tool.ToolRequest;
+import com.github.enerccio.marginalia.domain.service.tool.ToolSelection;
+import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
+import com.github.enerccio.marginalia.domain.service.structured.SchemaCheck;
 import com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.*;
-import com.github.enerccio.marginalia.extensions.arcoutline.names.NameToolsBridge;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
+import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.*;
+import java.util.concurrent.*;
 
 @Configurable
 public class ArcOutlineService {
@@ -36,6 +40,15 @@ public class ArcOutlineService {
      * @param tokens the approximate number of tokens of the text
      */
     public record StoryMessage(int number, String text, long tokens) {
+    }
+
+    /**
+     * What a blocking generation returned.
+     *
+     * @param value  the answer, read into the class asked for
+     * @param answer the answer of the model as it came (JSON)
+     */
+    public record Generated<T>(T value, String answer) {
     }
 
     /** The logger of the extension (Admin → Extensions → Log), set when the extension loads. */
@@ -71,17 +84,23 @@ public class ArcOutlineService {
     @Autowired
     private InferenceServices inferenceServices;
 
-    /** Set when the extension loads, to find the name generator extension. */
-    private OsgiService osgiService;
+    @Autowired
+    private ToolService toolService;
+
+    /** Set when the extension loads, to tell the tool providers who asks. */
+    private Bundle bundle;
 
     private final Gson gson = new Gson();
+
+    /** Who wants to know that the outline of a book was changed from outside of its view, by the uuid of the book. */
+    private final Map<String, Set<Runnable>> changeListeners = new ConcurrentHashMap<>();
 
     public void setLogger(Logger log) {
         this.log = log;
     }
 
-    public void setOsgiService(OsgiService osgiService) {
-        this.osgiService = osgiService;
+    public void setBundle(Bundle bundle) {
+        this.bundle = bundle;
     }
 
     // --- the outline of a book ---
@@ -127,6 +146,39 @@ public class ArcOutlineService {
         manuscriptService.save(manuscript);
     }
 
+    /**
+     * Tells {@code listener} whenever {@link #changed} is called for the book, from the thread of the caller. For a view
+     * that keeps the outline in memory and has to read it again when a command changed it.
+     *
+     * @return what removes the listener
+     */
+    public Runnable onChange(Manuscript manuscript, Runnable listener) {
+        String key = manuscript.getUuid();
+        changeListeners.computeIfAbsent(key, _ -> new CopyOnWriteArraySet<>()).add(listener);
+        return () -> changeListeners.computeIfPresent(key, (_, set) -> {
+            set.remove(listener);
+            return set.isEmpty() ? null : set;
+        });
+    }
+
+    /**
+     * Tells the views of the book that its outline was stored by someone else than the view (a command).
+     */
+    public void changed(Manuscript manuscript) {
+        Set<Runnable> listeners = changeListeners.get(manuscript.getUuid());
+        if (listeners != null) {
+            listeners.forEach(listener -> {
+                try {
+                    listener.run();
+                } catch (RuntimeException e) {
+                    if (log != null) {
+                        log.warn("A view of the outline failed to refresh: {}", e.getMessage());
+                    }
+                }
+            });
+        }
+    }
+
     // --- settings of the user ---
 
     /**
@@ -142,7 +194,14 @@ public class ArcOutlineService {
         if (attrs != null && attrs.has(ArcOutlineSettings.KEY)) {
             settings = gson.fromJson(attrs.get(ArcOutlineSettings.KEY), ArcOutlineSettings.class);
         }
-        return settings != null ? settings : new ArcOutlineSettings();
+        if (settings == null) {
+            settings = new ArcOutlineSettings();
+        }
+        settings.migrateLegacyNameTools();
+        if (settings.getTools() == null) {
+            settings.setTools(new ToolSelection());
+        }
+        return settings;
     }
 
     public void saveSettings(ArcOutlineSettings settings) throws Exception {
@@ -184,27 +243,16 @@ public class ArcOutlineService {
         return StringUtils.defaultIfBlank(settings.getImportPrompt(), Defaults.IMPORT_PROMPT);
     }
 
-    // --- name tools ---
+    // --- tools ---
 
     /**
-     * The categories of the name extensions (Name Generator and Name Provider, each with the prefix of its source),
-     * null when none is installed (they are looked up on every call, they can be loaded and unloaded while the
-     * application runs).
+     * The functions and the hints of the tools the selection turns on (the suites that are installed, the items that are
+     * still offered); {@link ToolSet#NONE} when there are none.
+     *
+     * @throws IllegalStateException when two suites have a function of the same name
      */
-    public List<String> nameCategories() {
-        return osgiService == null ? null : NameToolsBridge.categories(osgiService);
-    }
-
-    /**
-     * The functions that give the model names of the selected categories: those of the extension of each source that
-     * has a selected category (one, both or, as null, none: nothing selected, or the extensions are gone).
-     */
-    public FunctionSet nameFunctions(Collection<String> selected) {
-        if (selected == null || selected.isEmpty()) {
-            return null;
-        }
-        return osgiService == null ? null
-                : NameToolsBridge.functions(osgiService, inferenceServices.getFunctionRegistry(), selected);
+    public ToolSet tools(ToolSelection selection) {
+        return toolService.resolve(selection, new ToolRequest(bundle, ArcOutlineService.class.getName()));
     }
 
     // --- generation ---
@@ -244,6 +292,57 @@ public class ArcOutlineService {
     }
 
     /**
+     * Asks the model for an answer in the schema and waits for it (the dialogs stream it; a command has no one to show
+     * it to).
+     *
+     * @param type the class the answer is read into, the one the schema was made of
+     * @throws CancellationException when the request was cancelled
+     * @throws IllegalStateException when the answer does not match the schema
+     */
+    public <T> Generated<T> generate(ModelSelection model, String prompt, JsonNode schema, Class<T> type) throws Exception {
+        record Answer(String text, SchemaCheck check) {
+        }
+        CompletableFuture<Answer> answer = new CompletableFuture<>();
+        CancellationToken token = inferenceServices.forAIOrThrow(model.ai()).infer(toPayload(prompt), model.protocol(), schema,
+                new InferenceService.InferenceResultCallback() {
+                    @Override
+                    public void onResult(String text, SchemaCheck check) {
+                        answer.complete(new Answer(text, check));
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        answer.cancel(false);
+                    }
+
+                    @Override
+                    public void onError(Throwable exception) {
+                        answer.completeExceptionally(exception);
+                    }
+
+                    @Override
+                    public boolean isDead() {
+                        return answer.isDone();
+                    }
+                });
+        Answer result;
+        try {
+            result = answer.get();
+        } catch (InterruptedException e) {
+            token.cancel();
+            Thread.currentThread().interrupt();
+            throw new CancellationException("The request was stopped");
+        } catch (ExecutionException e) {
+            throw e.getCause() instanceof Exception cause ? cause : e;
+        }
+        SchemaCheck check = StructuredOutputs.validate(schema, result.text());
+        if (!check.valid()) {
+            throw new IllegalStateException("The model's answer does not match what was asked for: " + String.join("; ", check.errors()));
+        }
+        return new Generated<>(StructuredOutputs.parse(result.text(), type), result.text());
+    }
+
+    /**
      * The JSON schema the model is asked to answer in.
      */
     public JsonNode schema() {
@@ -252,38 +351,30 @@ public class ArcOutlineService {
 
     /**
      * The prompt for generating an arc: the template with the lore of the book, its arcs and the specification put in,
-     * followed by the hint about each kind of name tools the model has (see {@link #withNameHints}).
+     * followed by the hints of the tools the model has (see {@link #withToolHints}).
      *
      * @param template      the prompt template, with {{backgroundLore}}, {{existingArcs}} and {{specification}}
      * @param specification what the author wants from the arc
-     * @param nameFunctions the name functions the model gets, null for none
+     * @param tools         what the model gets, null for none
      * @throws Exception when the template is not valid
      */
     public String buildPrompt(Manuscript manuscript, ArcOutline outline, String template, String specification,
-                              FunctionSet nameFunctions) throws Exception {
+                              ToolSet tools) throws Exception {
         ArcGenerationTemplateData data = new ArcGenerationTemplateData();
         data.setBackgroundLore(buildBackgroundLore(manuscript));
         data.setExistingArcs(describeArcs(outline));
         data.setSpecification(StringUtils.defaultIfBlank(specification, "(nothing in particular, decide yourself)").strip());
 
-        return withNameHints(templateService.processTemplate(template, "arcGeneration", data), nameFunctions);
+        return withToolHints(templateService.processTemplate(template, "arcGeneration", data), tools);
     }
 
     /**
-     * The prompt followed by the hint about each kind of name tools the model has (the user's or
-     * {@link Defaults#NAME_TOOLS_PROMPT} for the generated names, the user's or {@link Defaults#NAME_PROVIDER_PROMPT}
-     * for the real ones).
+     * The prompt followed by the hints of the tools the model has (the user's or the default one of each suite).
      *
-     * @param nameFunctions the functions the model gets, null for none
+     * @param tools what the model gets, null for none
      */
-    private String withNameHints(String prompt, FunctionSet nameFunctions) throws Exception {
-        if (nameFunctions != null && nameFunctions.contains(NameToolsBridge.GENERATOR_FUNCTION)) {
-            prompt += "\n\n" + StringUtils.defaultIfBlank(getSettings().getNameToolsPrompt(), Defaults.NAME_TOOLS_PROMPT).strip();
-        }
-        if (nameFunctions != null && nameFunctions.contains(NameToolsBridge.PROVIDER_FUNCTION)) {
-            prompt += "\n\n" + StringUtils.defaultIfBlank(getSettings().getNameProviderPrompt(), Defaults.NAME_PROVIDER_PROMPT).strip();
-        }
-        return prompt;
+    private String withToolHints(String prompt, ToolSet tools) {
+        return tools != null && !tools.isEmpty() && StringUtils.isNotBlank(tools.hint()) ? prompt + "\n\n" + tools.hint() : prompt;
     }
 
     /**
@@ -336,7 +427,7 @@ public class ArcOutlineService {
      */
     public String buildChapterPrompt(Manuscript manuscript, ArcOutline outline, Arc arc, ChapterContext context,
                                      String template, String numberOfChapters, String generalSpecification,
-                                     String chapterSpecification, FunctionSet nameFunctions) throws Exception {
+                                     String chapterSpecification, ToolSet tools) throws Exception {
         ChapterGenerationTemplateData data = new ChapterGenerationTemplateData();
         data.setBackgroundLore(buildBackgroundLore(manuscript));
         data.setOutline(describeOutline(outline, arc, context));
@@ -344,7 +435,7 @@ public class ArcOutlineService {
         data.setGeneralSpecification(StringUtils.defaultIfBlank(generalSpecification, "(nothing in particular, decide yourself)").strip());
         data.setChapterSpecification(chapterSpecification);
 
-        return withNameHints(templateService.processTemplate(template, "chapterGeneration", data), nameFunctions);
+        return withToolHints(templateService.processTemplate(template, "chapterGeneration", data), tools);
     }
 
     /**

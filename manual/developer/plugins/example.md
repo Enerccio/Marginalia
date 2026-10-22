@@ -1,7 +1,7 @@
 ---
 label: Example plugin
 order: 60
-verified: 91693e9b
+verified: b7b55df1
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/extensions
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/ExtensionService.java
@@ -242,8 +242,9 @@ public class BookmarksExtension implements MarginaliaExtension {
 
 How it works:
 
-- **Two decorators.** `menuDecorator` runs after `ChatMessageCard.createMenuItems()` - the card's constructor calls
-  it, so every card gets the item. `sidebarDecorator` runs after `ManuscriptStoryPart.createSidebarButton(msg,
+- **Two decorators.** `menuDecorator` runs after `ChatMessageCard.createMenuItems()` - the card runs it when its menu
+  is opened for the first time (not when the card is created, so the cards of a long story stay cheap), so every menu
+  that is opened gets the item. `sidebarDecorator` runs after `ManuscriptStoryPart.createSidebarButton(msg,
   orderId, dbId)`, which `renderStoryContent()` calls for each part of the branch.
 - **Reaching the components.** The menu is the card's field `hamburgerMenu`; the sidebar button is the local
   variable `sidebarBtn` of `createSidebarButton`, the part is its argument `msg`. Both names are checked before use
@@ -273,10 +274,10 @@ edited).
 
 ```sh
 cd bookmarks
-mvn package                     # target/bookmarks-1.3.0.jar
+mvn package                     # target/bookmarks-1.4.0.jar
 ```
 
-Load `target/bookmarks-1.3.0.jar` in *Admin → Extensions* and open a book (books that were already open need to be
+Load `target/bookmarks-1.4.0.jar` in *Admin → Extensions* and open a book (books that were already open need to be
 closed and opened again). Open a part's menu, choose *Toggle bookmark* - the part's sidebar entry gets the ★.
 
 If nothing appears, look in the log for `Mod 'com.example.marginalia.bookmarks.BookmarksExtension$...' skipped on
@@ -509,4 +510,4 @@ What to take from it:
   user's setting stays and works again when the plugin is loaded.
 
 To try it, build and load it like any plugin ([Build and load](#5-build-and-load)): in *Admin → Extensions* load
-`chineselocalization-1.3.0.jar`, then pick *中文（简体）* in the language selector.
+`chineselocalization-1.4.0.jar`, then pick *中文（简体）* in the language selector.

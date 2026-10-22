@@ -58,10 +58,16 @@ The last administrator can't lose the administrator flag: *The last administrato
 
 ## Users and providers
 
-By default every user adds their own [inference providers](../inference-providers.md). Uncheck **Users can create
-their own models** above the user list to stop that: users can then only use the providers the administrators
+Adding an [inference provider](../inference-providers.md) needs the permission **Create own models**; administrators
+always have it. A user without it can only use the providers the administrators
 [share](../inference-providers.md#shared-providers). The providers a user already has keep working and can still be
-edited; administrators can always add providers.
+edited. See [Permissions](permissions.md).
+
+## Permissions
+
+The key button in the row of a user opens their [permissions](permissions.md): what the user may do beyond the
+ordinary, such as adding their own models or asking the help assistant. A new user has none, give them what they need
+after adding them.
 
 ## Deleting a user
 

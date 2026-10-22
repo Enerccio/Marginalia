@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845494342077">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845494342077" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845494342077" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846005664026" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -61,7 +61,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -174,9 +174,9 @@ and how to write a migration. What the tables contain is described in <a href=".
 <retype-table copy-text="| | |
 |---|---|
 | File | `&lt;user.home&gt;/.marginalia/marginalia.sqlite`, with `marginalia.sqlite-wal` and `-shm` while it runs |
-| JDBC URL | `jdbc:sqlite:&lt;file&gt;?busy_timeout=10000&amp;journal_mode=WAL` (built by `Configuration.resolveDb`) |
+| JDBC URL | `jdbc:sqlite:&lt;file&gt;?busy_timeout=10000&amp;journal_mode=WAL` (built by `Configuration.resolveDb`); the pool of read-write transactions adds `&amp;transaction_mode=IMMEDIATE` (`Configuration.resolveWriteDb`) |
 | Driver | `org.sqlite.JDBC` (`sqlite-jdbc`) |
-| Pool | commons-dbcp `BasicDataSource`, 10-20 connections, validated with `SELECT 1` |
+| Pool | commons-dbcp `BasicDataSource`, 10-20 connections, validated with `SELECT 1`; a second one (`writeDataSource`, 2-20) for read-write transactions |
 | Journal | WAL - readers don't block the writer; writers wait up to 10 s (`busy_timeout`) for each other |
 | Foreign keys | Not enforced (`PRAGMA foreign_keys` is off), see [Conventions](#schema-conventions) |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -194,7 +194,7 @@ and how to write a migration. What the tables contain is described in <a href=".
 </tr>
 <tr>
 <td>JDBC URL</td>
-<td><code translate="no" v-pre>jdbc:sqlite:&lt;file&gt;?busy_timeout=10000&amp;journal_mode=WAL</code> (built by <code translate="no" v-pre>Configuration.resolveDb</code>)</td>
+<td><code translate="no" v-pre>jdbc:sqlite:&lt;file&gt;?busy_timeout=10000&amp;journal_mode=WAL</code> (built by <code translate="no" v-pre>Configuration.resolveDb</code>); the pool of read-write transactions adds <code translate="no" v-pre>&amp;transaction_mode=IMMEDIATE</code> (<code translate="no" v-pre>Configuration.resolveWriteDb</code>)</td>
 </tr>
 <tr>
 <td>Driver</td>
@@ -202,7 +202,7 @@ and how to write a migration. What the tables contain is described in <a href=".
 </tr>
 <tr>
 <td>Pool</td>
-<td>commons-dbcp <code translate="no" v-pre>BasicDataSource</code>, 10-20 connections, validated with <code translate="no" v-pre>SELECT 1</code></td>
+<td>commons-dbcp <code translate="no" v-pre>BasicDataSource</code>, 10-20 connections, validated with <code translate="no" v-pre>SELECT 1</code>; a second one (<code translate="no" v-pre>writeDataSource</code>, 2-20) for read-write transactions</td>
 </tr>
 <tr>
 <td>Journal</td>
@@ -219,8 +219,11 @@ and how to write a migration. What the tables contain is described in <a href=".
 <p>The beans are in <code translate="no" v-pre>src/main/resources/META-INF/spring/datasources-config.xml</code>:</p>
 <div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">flowchart LR
     conf[&quot;configuration&lt;br/&gt;resolveDb()&quot;] --&gt; ds[&quot;dataSource&lt;br/&gt;BasicDataSource&quot;]
+    conf --&gt; wds[&quot;writeDataSource&lt;br/&gt;BEGIN IMMEDIATE&quot;]
     ds --&gt; fw[&quot;flyway&lt;br/&gt;init-method=migrate&quot;]
-    ds --&gt; proxy[&quot;ds&lt;br/&gt;TransactionAwareDataSourceProxy&quot;]
+    ds --&gt; routing[&quot;routingDataSource&lt;br/&gt;ReadWriteRoutingDataSource&quot;]
+    wds --&gt; routing
+    routing --&gt; proxy[&quot;ds&lt;br/&gt;TransactionAwareDataSourceProxy&quot;]
     fw -. &quot;depends-on&quot; .-&gt; emf
     proxy --&gt; emf[&quot;emf&lt;br/&gt;EntityManagerFactory (PU)&quot;]
     proxy --&gt; jdbc[&quot;jdbcTemplate&quot;]
@@ -234,6 +237,17 @@ schema.</p>
 <li>
 <p>Hibernate and <code translate="no" v-pre>jdbcTemplate</code> use the data source through <code translate="no" v-pre>TransactionAwareDataSourceProxy</code>, so plain JDBC code
 joins the current JPA transaction.</p>
+</li>
+<li>
+<p><strong>Read-write transactions take the write lock when they begin.</strong> A deferred transaction reads, takes its snapshot and
+needs the lock at its first write; when another connection has committed in between, the write fails at once with
+<code translate="no" v-pre>SQLITE_BUSY</code> or <code translate="no" v-pre>SQLITE_BUSY_SNAPSHOT</code> and <code translate="no" v-pre>busy_timeout</code> does not help. So <code translate="no" v-pre>routingDataSource</code>
+(<code translate="no" v-pre>ReadWriteRoutingDataSource</code>) gives a read-write transaction a connection of <code translate="no" v-pre>writeDataSource</code>
+(<code translate="no" v-pre>transaction_mode=IMMEDIATE</code>, writers queue for the busy timeout) and a read-only one
+(<code translate="no" v-pre>@CommonTxReadOnly</code>) a plain connection of <code translate="no" v-pre>dataSource</code> (never waits for a writer). The transaction manager asks for
+the connection before it publishes the read-only flag, so the <code translate="no" v-pre>jpaDialect</code> bean (<code translate="no" v-pre>ReadWriteRoutingDataSource.Dialect</code>)
+notes it while the transaction begins. Flyway and code outside a transaction use <code translate="no" v-pre>dataSource</code>. <code translate="no" v-pre>ConcurrentTransactionsTest</code>
+covers both sides.</p>
 </li>
 <li>
 <p>The persistence unit <code translate="no" v-pre>PU</code> is defined in <code translate="no" v-pre>src/main/webapp/config/persistence.xml</code>: the list of entity classes
@@ -318,7 +332,8 @@ migration is written for one version step and ignores the others.</p>
 |---|---|---|---|
 | APP | 1 → 2 | `bound/migration/EncryptApiKeysMigration` | Encrypts the plain text `ais_openaicompat.apiKey` values, see [Encrypted columns](#encrypted-columns). |
 | APP | 2 → 3 | `bound/migration/FulltextMigration` | Fills `_fulltext` (added by V9) of the existing rows of every entity with `@Fulltextable` fields, deleted rows included: walks the table by id in batches of 200, one transaction per batch, and calls `ExtendableEntityListener.updateFulltext` on the loaded entity, so `extendedContent` and `modification` stay as they are. Repeating it is harmless. See [Full-text column](domain-model.md#full-text-column). |
-| APP | 3 → 4 | `bound/migration/OriginalResponseMigration` | Copies `response` of every `ChatMessage` (deleted ones too) into the extended attribute `originalResponse` when it has none: batches of 200 by id, one transaction per batch, the entity is re-serialized with `ExtendableEntityListener.serialize`, `modification` stays as it is. Repeating it is harmless. |">
+| APP | 3 → 4 | `bound/migration/OriginalResponseMigration` | Copies `response` of every `ChatMessage` (deleted ones too) into the extended attribute `originalResponse` when it has none: batches of 200 by id, one transaction per batch, the entity is re-serialized with `ExtendableEntityListener.serialize`, `modification` stays as it is. Repeating it is harmless. |
+| APP | 4 → 5 | `bound/migration/PermissionsMigration` | Gives the permissions `CREATE_AI` and `HELPER` to every existing (not deleted) user when the switches they replace (`AppSettings.userAisAllowed`, `helpEnabled`) were on; the permission has no owner. The new `HELPER` permissions also get `helperApplyLimits` and `helperInteractions` from `AppSettings.helpApplyLimits` / `helpInteractions`. Users that already have the permission are skipped (repeatable). Reads in one session and writes in another: the id generator updates its sequence table on a second connection and SQLite locks it out while the first holds a read lock. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -348,6 +363,12 @@ migration is written for one version step and ignores the others.</p>
 <td><code translate="no" v-pre>bound/migration/OriginalResponseMigration</code></td>
 <td>Copies <code translate="no" v-pre>response</code> of every <code translate="no" v-pre>ChatMessage</code> (deleted ones too) into the extended attribute <code translate="no" v-pre>originalResponse</code> when it has none: batches of 200 by id, one transaction per batch, the entity is re-serialized with <code translate="no" v-pre>ExtendableEntityListener.serialize</code>, <code translate="no" v-pre>modification</code> stays as it is. Repeating it is harmless.</td>
 </tr>
+<tr>
+<td>APP</td>
+<td>4 → 5</td>
+<td><code translate="no" v-pre>bound/migration/PermissionsMigration</code></td>
+<td>Gives the permissions <code translate="no" v-pre>CREATE_AI</code> and <code translate="no" v-pre>HELPER</code> to every existing (not deleted) user when the switches they replace (<code translate="no" v-pre>AppSettings.userAisAllowed</code>, <code translate="no" v-pre>helpEnabled</code>) were on; the permission has no owner. The new <code translate="no" v-pre>HELPER</code> permissions also get <code translate="no" v-pre>helperApplyLimits</code> and <code translate="no" v-pre>helperInteractions</code> from <code translate="no" v-pre>AppSettings.helpApplyLimits</code> / <code translate="no" v-pre>helpInteractions</code>. Users that already have the permission are skipped (repeatable). Reads in one session and writes in another: the id generator updates its sequence table on a second connection and SQLite locks it out while the first holds a read lock.</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -370,7 +391,11 @@ migration is written for one version step and ignores the others.</p>
 | V11 | `V11__usages.sql` | The `usages` table (tokens a user used with an AI, one row per AI and user, unique `(ai_id, userId)`), its `usages_SEQ` id table and the index of the owner lookup. See [`Usage`](domain-model.md#usage-tokens-used-with-an-ai). |
 | V12 | `V12__usage_limit_period.sql` | `usages.periodPrefillTokens` and `usages.periodGeneratedTokens` (`bigint not null default 0`): the tokens a user used since the last reset of their token limit on a shared AI. The limits themselves are not columns, they are the extended attribute `AI.limits`. See [Limits of the users of a shared AI](domain-model.md#limits-of-the-users-of-a-shared-ai). |
 | V13 | `V13__usage_ai_nullable.sql` | `usages.ai_id` allows NULL (table rebuilt, SQLite cannot drop NOT NULL): the cleanup nulls the reference to an AI before it purges it, which failed for an AI with usage rows. |
-| V14 | `V14__extension_ai.sql` | New table `ais_extension` (`extensionId`, `id`): the subclass `ExtensionAI` of `AI`, an AI provided by an extension. The settings of the provider are not columns, they are in the attributes of the AI. |">
+| V14 | `V14__extension_ai.sql` | New table `ais_extension` (`extensionId`, `id`): the subclass `ExtensionAI` of `AI`, an AI provided by an extension. The settings of the provider are not columns, they are in the attributes of the AI. |
+| V15 | `V15__permissions.sql` | New table `permissions` (`permissionType`, `holder_id`, `granted`, owner `userId`, extended content) and its `permissions_SEQ`, the index `(holder_id, permissionType, is_deleted)`: the entity `Permission`. See [`Permission`](domain-model.md#permission-what-a-user-was-allowed). |
+| V16 | `V16__agents.sql` | New tables `agents` (`name`, `enabled`, `manuscript_id`, owner `userId`, extended content), `agent_runs` (`agent_id`, `status`, `statusReason`, `workingCopy_id`, `prefillTokens`, `generatedTokens`, `rounds`, `startedAt`, `finishedAt`) and `agent_messages` (`run_id`, `ordinal`: the transcript of a run) with their `_SEQ` tables and indexes: the entities `Agent`, `AgentRun` and `AgentMessage`; the column `agentic` of `manuscripts` and `lorebooks` (a working copy of an agent). `manuscript_id`, `agent_id` are nullable (the cleanup nulls an `OWNED_BY` reference before the purge). A partial unique index `ux_agent_runs_unfinished` keeps one run per agent that is not over (the statuses are listed in the index, a new status that is not terminal needs a new migration). See [`Agent`](domain-model.md#agent-and-agentrun-agents). |
+| V17 | `V17__agent_run_pairs.sql` | New table `agent_run_pairs` (`run_id`, `kind`, `copyUuid`, `originalUuid`, `handle`) with its `_SEQ` table: the entity `AgentRunPair`, which item of the working copy of an agent run is which item of the original. Not a `BaseEntity` (no uuid, `is_deleted` or extended content columns). Unique indexes on `(run_id, copyUuid)` and `(run_id, handle)`, an index on `(run_id, originalUuid)`; there is no foreign key to `agent_runs` (the project uses none), the rows are deleted by `AgentRunPairService.deleteForRun`. See [`AgentRunPair`](domain-model.md#agent-and-agentrun-agents). |
+| V18 | `V18__agent_message_threads.sql` | The nullable column `thread` (varchar 16) of `agent_messages`, the handle of the sub-agent whose conversation a row belongs to (null: the agent's own), and the index `ix_agent_messages_thread` on `(run_id, thread, is_deleted, ordinal)`. See [`AgentMessage`](domain-model.md#agent-and-agentrun-agents). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -450,6 +475,26 @@ migration is written for one version step and ignores the others.</p>
 <td>V14</td>
 <td><code translate="no" v-pre>V14__extension_ai.sql</code></td>
 <td>New table <code translate="no" v-pre>ais_extension</code> (<code translate="no" v-pre>extensionId</code>, <code translate="no" v-pre>id</code>): the subclass <code translate="no" v-pre>ExtensionAI</code> of <code translate="no" v-pre>AI</code>, an AI provided by an extension. The settings of the provider are not columns, they are in the attributes of the AI.</td>
+</tr>
+<tr>
+<td>V15</td>
+<td><code translate="no" v-pre>V15__permissions.sql</code></td>
+<td>New table <code translate="no" v-pre>permissions</code> (<code translate="no" v-pre>permissionType</code>, <code translate="no" v-pre>holder_id</code>, <code translate="no" v-pre>granted</code>, owner <code translate="no" v-pre>userId</code>, extended content) and its <code translate="no" v-pre>permissions_SEQ</code>, the index <code translate="no" v-pre>(holder_id, permissionType, is_deleted)</code>: the entity <code translate="no" v-pre>Permission</code>. See <a href="../domain-model/#permission-what-a-user-was-allowed"><code translate="no" v-pre>Permission</code></a>.</td>
+</tr>
+<tr>
+<td>V16</td>
+<td><code translate="no" v-pre>V16__agents.sql</code></td>
+<td>New tables <code translate="no" v-pre>agents</code> (<code translate="no" v-pre>name</code>, <code translate="no" v-pre>enabled</code>, <code translate="no" v-pre>manuscript_id</code>, owner <code translate="no" v-pre>userId</code>, extended content), <code translate="no" v-pre>agent_runs</code> (<code translate="no" v-pre>agent_id</code>, <code translate="no" v-pre>status</code>, <code translate="no" v-pre>statusReason</code>, <code translate="no" v-pre>workingCopy_id</code>, <code translate="no" v-pre>prefillTokens</code>, <code translate="no" v-pre>generatedTokens</code>, <code translate="no" v-pre>rounds</code>, <code translate="no" v-pre>startedAt</code>, <code translate="no" v-pre>finishedAt</code>) and <code translate="no" v-pre>agent_messages</code> (<code translate="no" v-pre>run_id</code>, <code translate="no" v-pre>ordinal</code>: the transcript of a run) with their <code translate="no" v-pre>_SEQ</code> tables and indexes: the entities <code translate="no" v-pre>Agent</code>, <code translate="no" v-pre>AgentRun</code> and <code translate="no" v-pre>AgentMessage</code>; the column <code translate="no" v-pre>agentic</code> of <code translate="no" v-pre>manuscripts</code> and <code translate="no" v-pre>lorebooks</code> (a working copy of an agent). <code translate="no" v-pre>manuscript_id</code>, <code translate="no" v-pre>agent_id</code> are nullable (the cleanup nulls an <code translate="no" v-pre>OWNED_BY</code> reference before the purge). A partial unique index <code translate="no" v-pre>ux_agent_runs_unfinished</code> keeps one run per agent that is not over (the statuses are listed in the index, a new status that is not terminal needs a new migration). See <a href="../domain-model/#agent-and-agentrun-agents"><code translate="no" v-pre>Agent</code></a>.</td>
+</tr>
+<tr>
+<td>V17</td>
+<td><code translate="no" v-pre>V17__agent_run_pairs.sql</code></td>
+<td>New table <code translate="no" v-pre>agent_run_pairs</code> (<code translate="no" v-pre>run_id</code>, <code translate="no" v-pre>kind</code>, <code translate="no" v-pre>copyUuid</code>, <code translate="no" v-pre>originalUuid</code>, <code translate="no" v-pre>handle</code>) with its <code translate="no" v-pre>_SEQ</code> table: the entity <code translate="no" v-pre>AgentRunPair</code>, which item of the working copy of an agent run is which item of the original. Not a <code translate="no" v-pre>BaseEntity</code> (no uuid, <code translate="no" v-pre>is_deleted</code> or extended content columns). Unique indexes on <code translate="no" v-pre>(run_id, copyUuid)</code> and <code translate="no" v-pre>(run_id, handle)</code>, an index on <code translate="no" v-pre>(run_id, originalUuid)</code>; there is no foreign key to <code translate="no" v-pre>agent_runs</code> (the project uses none), the rows are deleted by <code translate="no" v-pre>AgentRunPairService.deleteForRun</code>. See <a href="../domain-model/#agent-and-agentrun-agents"><code translate="no" v-pre>AgentRunPair</code></a>.</td>
+</tr>
+<tr>
+<td>V18</td>
+<td><code translate="no" v-pre>V18__agent_message_threads.sql</code></td>
+<td>The nullable column <code translate="no" v-pre>thread</code> (varchar 16) of <code translate="no" v-pre>agent_messages</code>, the handle of the sub-agent whose conversation a row belongs to (null: the agent&#x27;s own), and the index <code translate="no" v-pre>ix_agent_messages_thread</code> on <code translate="no" v-pre>(run_id, thread, is_deleted, ordinal)</code>. See <a href="../domain-model/#agent-and-agentrun-agents"><code translate="no" v-pre>AgentMessage</code></a>.</td>
 </tr>
 </tbody>
 </table>
@@ -693,11 +738,12 @@ converter for any new secret column.</p>
 <h2 id="sqlite-limitations">SQLite limitations</h2>
 <retype-table copy-text="| Limitation | Consequence |
 |---|---|
-| One writer at a time | Writes are serialized; long transactions block other users' writes (up to `busy_timeout`, then `SQLITE_BUSY`). Keep transactions short and never call a model inside one - generation runs outside transactions (`@NoTx`). |
+| One writer at a time | Writes are serialized; a read-write transaction holds the write lock from its start (see above), so a long one blocks other users' writes (up to `busy_timeout`, then `SQLITE_BUSY`); read-only transactions are not blocked. Keep transactions short and never call a model inside one - generation runs outside transactions (`@NoTx`). |
 | `ALTER TABLE` is limited | Type, nullability and constraint changes need a table rebuild. |
 | DDL in transactions | SQLite supports transactional DDL, so a failing migration is rolled back completely. |
 | No `VACUUM` inside a transaction | `VACUUM INTO` for backups runs with `@NoTx`. |
-| Dynamic typing | A column accepts any value; the entity mapping is what keeps types consistent. |">
+| Dynamic typing | A column accepts any value; the entity mapping is what keeps types consistent. |
+| 500 terms in a compound SELECT | The driver answers `getColumns` of all tables with one compound SELECT, so the columns of all tables together would be limited to 500 (the validation after the migrations hit it with `V16`). `persistence.xml` therefore sets `hibernate.hbm2ddl.jdbc_metadata_extraction_strategy` to `individually`, validate table by table - keep it. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -709,7 +755,7 @@ converter for any new secret column.</p>
 <tbody>
 <tr>
 <td>One writer at a time</td>
-<td>Writes are serialized; long transactions block other users&#x27; writes (up to <code translate="no" v-pre>busy_timeout</code>, then <code translate="no" v-pre>SQLITE_BUSY</code>). Keep transactions short and never call a model inside one - generation runs outside transactions (<code translate="no" v-pre>@NoTx</code>).</td>
+<td>Writes are serialized; a read-write transaction holds the write lock from its start (see above), so a long one blocks other users&#x27; writes (up to <code translate="no" v-pre>busy_timeout</code>, then <code translate="no" v-pre>SQLITE_BUSY</code>); read-only transactions are not blocked. Keep transactions short and never call a model inside one - generation runs outside transactions (<code translate="no" v-pre>@NoTx</code>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ALTER TABLE</code> is limited</td>
@@ -726,6 +772,10 @@ converter for any new secret column.</p>
 <tr>
 <td>Dynamic typing</td>
 <td>A column accepts any value; the entity mapping is what keeps types consistent.</td>
+</tr>
+<tr>
+<td>500 terms in a compound SELECT</td>
+<td>The driver answers <code translate="no" v-pre>getColumns</code> of all tables with one compound SELECT, so the columns of all tables together would be limited to 500 (the validation after the migrations hit it with <code translate="no" v-pre>V16</code>). <code translate="no" v-pre>persistence.xml</code> therefore sets <code translate="no" v-pre>hibernate.hbm2ddl.jdbc_metadata_extraction_strategy</code> to <code translate="no" v-pre>individually</code>, validate table by table - keep it.</td>
 </tr>
 </tbody>
 </table>
@@ -817,7 +867,7 @@ A backup restored on another installation loses them unless <code translate="no"
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License.</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
             </footer>
         </div>
     </div>

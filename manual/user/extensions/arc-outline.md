@@ -81,7 +81,7 @@ On the left:
 |---|---|
 | Prompt | The instructions for the model, with three variables: `{{backgroundLore}}` (the entries of the book's lorebook and its sub lorebooks), `{{existingArcs}}` (your arcs and chapters, with their states and descriptions, but not your private notes) and `{{specification}}`. It starts as the prompt from *Settings → Extension Settings → Arc Outline* (the default prompt when you have not changed it); what you edit here applies to this generation only. |
 | Specification | What you want from the arc: the theme, the characters, where it should lead. Can be empty. |
-| Name tools | Only when the [Name generator](name-generator.md) or the [Name provider](name-provider.md) is loaded: the categories of names the model may use instead of inventing them (`Generator: ` made up, `Provider: ` real), the same as in the [Lore Generator](lore-generator.md). |
+| Tools | Only when a suite of [tools for the model](tools.md) is installed (names, places): which suites, and which of their categories, the model may use instead of inventing things, the same as in the [Lore Generator](lore-generator.md). |
 | Model, Protocols | Start as the model and protocol of the book (your default ones from *Settings* when the book has none). Change them to use another model for this generation only; the choice is not saved. |
 | Generate | Starts the model. While it runs the button is a red **Stop** and everything else in the dialog is disabled. |
 
@@ -115,7 +115,7 @@ the one for arcs, with these choices on the left:
 
 ![Importing an arc from the story](../../images/plugin-arcoutline-import.png)
 
-There are no name tools here, the names are in the story. On the right you see the reasoning, then the arc and its
+There are no tools here, the names are in the story. On the right you see the reasoning, then the arc and its
 chapters as the model writes them. **Save as arc** adds the arc with its chapters at the end of the outline; every one
 of them keeps the reasoning and the answer of the model and has its own robot button. A long story is best imported in
 several steps, one arc for each range.
@@ -142,3 +142,36 @@ An arc or chapter written by the model keeps its **reasoning** and the **answer*
 opens them in a small popover, out of the way.
 
 ![What the model wrote for an arc](../../images/plugin-arcoutline-generated.png)
+
+## Commands
+
+The outline and its generators are also [commands](../commands/index.md), for the command line and for
+[agents](../agents.md). They work on the book that is open (an agent: on its working copy), and an open Arcs tab shows
+the change at once. Arcs and chapters are given by **number**, as the outline shows them: the first arc is `1`, the first
+chapter of an arc is `1` (the numbers change when something before them is added, removed or moved). A command that
+changes an arc or a chapter takes only the fields you give it; an empty text clears a description or a note.
+
+| Command | What it does |
+|---|---|
+| `/get-arc-outline [arc [notes]]` | The arcs with their chapters, states and descriptions as JSON. The private notes only with `notes` `true`; `arc` returns that arc alone. Reads only. |
+| `/add-arc title [description [note [state [position]]]]` | Adds an arc, at the end or at `position`. |
+| `/update-arc arc [title [description [note [state]]]]` | Changes an arc. `state` is `PLANNED`, `CURRENT` or `FINISHED` (finishing an arc finishes its chapters). |
+| `/move-arc arc position` | Moves an arc to the place `position` (1 is the first). |
+| `/delete-arc arc` | Deletes an arc with its chapters, after a confirmation. |
+| `/add-outline-chapter arc title [description [note [state [position]]]]` | Adds a chapter to an arc. |
+| `/update-outline-chapter arc chapter [title [description [note [state]]]]` | Changes a chapter. |
+| `/move-outline-chapter arc chapter position [to_arc]` | Moves a chapter inside its arc, or into the arc `to_arc`. |
+| `/delete-outline-chapter arc chapter` | Deletes a chapter, after a confirmation. |
+| `/generate-arc [specification [save]]` | Asks the model for a new arc, as *Generate an arc* does. |
+| `/generate-outline-chapters arc [specification [count [context [save]]]]` | Asks the model for the chapters of an arc, as the wand of the arc does. `count` is an exact number of chapters, `context` is `EVERYTHING` (the default), `ARCS_ONLY` or `ARCS_AND_FINISHED`, as the choice *What the model knows of the story*. |
+| `/import-arc-from-story [from [to [count [state [save]]]]]` | Asks the model to summarize the messages `from` to `to` of the active branch (numbered among the messages with text, as in *Import from story*) as an arc with chapters. `state` (default `FINISHED`) is the state of the saved arc and its chapters. |
+
+The three generating commands use the same prompts as the dialogs (your *Extension Settings → Arc Outline*, or the
+defaults), the model and protocol of the book (your default model when the book has none) and no tools: a caller that
+wants names gets them with the commands of the [Name generator](name-generator.md) or the [Name provider](name-provider.md)
+and writes them into the specification. Like the dialogs they save only when asked: with `save` `false` (the default) they
+return the arc or the chapters as JSON and store nothing, with `save` `true` they add them to the outline (an arc at the end,
+chapters at the end of the arc) and the answer has their numbers. A story that is too long for the model is refused by
+`/import-arc-from-story`: choose fewer messages. The generating commands take a while, and stop when the run is stopped.
+
+Adding and changing is not destructive; only the two `delete` commands are, which an agent may be set to ask you about.

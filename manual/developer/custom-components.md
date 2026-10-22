@@ -7,7 +7,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/GraphView.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/JavascriptLibrary.java
   - marginalia/src/main/frontend
-verified: 91693e9b
+verified: 333d9397
 ---
 
 # Custom components
@@ -20,7 +20,7 @@ another one. Plugins can use all three; a plugin can't bring a library of its ow
 | Component | Library | Draws | Used by |
 |---|---|---|---|
 | [`TreantTree`](#treanttree) | [Treant.js](https://fperucic.github.io/treant-js/) (and Raphaël) | A tree of HTML nodes. | The story tree (`ManuscriptTreePart`, `PhoneManuscriptTreePart`). |
-| [`ChartJs`](#chartjs) | [Chart.js](https://www.chartjs.org/) | Bar, doughnut and other charts. | `TokenUsageDialog`. |
+| [`ChartJs`](#chartjs) | [Chart.js](https://www.chartjs.org/) | Bar, doughnut and other charts. | `TokenUsageDialog`, `AgentContextView` (the three charts of the Context tab of an agent's console). |
 | [`GraphView`](#graphview) | [Cytoscape.js](https://js.cytoscape.org/) | A graph (nodes and edges, cycles allowed). | The *Character Tracker* plugin (relationship map). |
 
 All three work the same way:
@@ -81,8 +81,8 @@ and repeated nodes, which is why the graph below exists.
 
 `setChartConfig(json)` takes a Chart.js configuration (`type`, `data`, `options`) and draws it responsively into the
 element (320px high, `chart-js` style in `shared-styles.css`; `setHeight` changes it). The connector takes the text and
-grid colors from the Lumo variables of the page, so charts follow the theme. Example: the doughnut and bar charts of
-`TokenUsageDialog`.
+grid colors from the Lumo variables of the page, so charts follow the theme. Examples: the doughnut and bar charts of
+`TokenUsageDialog` and the charts of `AgentContextView`.
 
 ## GraphView
 

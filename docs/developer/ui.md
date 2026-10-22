@@ -59,12 +59,13 @@ flowchart TB
 - `AppShellConfig` (`AppShellConfigurator`) sets up the page once: `@Push`, Lumo stylesheet, `@ColorScheme(DARK)`,
   full-viewport body, `shared-styles.css`, page title, PWA metadata.
 - `MarginaliaServlet` is the `VaadinServlet` mapped to `/*` (with `asyncSupported` for push).
-- There are two routes, both extending `LoginCheckRoute`:
+- There are three routes, all extending `LoginCheckRoute`:
 
   | Route | Class | Shows |
   |---|---|---|
   | `/` | `Main` | The workspace. |
   | `/view`, `/view/<uuid>` | `Viewer` | The reader: a list of the user's own books, and a book's active branch as text (own or published books, by link). |
+  | `/reset` | `Reset` | No page: after the login it empties `UserSetting.workspaceState` and sends the browser to `/`, the way back into a workspace whose restored state freezes the browser. It builds no workspace. |
 
 `LoginCheckRoute` runs in the route's constructor (`showLogin()`):
 
@@ -133,7 +134,7 @@ but follow the same pattern: construct with the entity, call `create()`, then `o
 `isNavigationLocked`, `getOnLogout`, `setOnLogout`). `Main`, the parts, `ApplicationPoint` and `SessionInformation`
 only depend on this interface. `DesktopWorkspace` is the implementation (`@Configurable`, `@Extendable`): it builds an
 `HTabSheet` (tabs on the left, a footer with *Admin*, the language selector, *Change Password*, *Logout*) and puts the red `InvalidExtensionsWarning` bar (`ui.components`; hidden while no installed extension is invalid, the administrator gets the names as its tooltip, other users a note to tell the administrator, from `OsgiService.getInvalidExtensions()`) above it - the phone workspace has it in the navbar - and creates all tab components up
-front (the admin part is refreshed only when the user is an administrator and has the *Admin* button: it refuses anybody else). Each tab is a `WorkspaceComponent`:
+front (the admin part is created, and refreshed, only when the user is an administrator, who has the *Admin* button: its panels refuse anybody else). Each tab is a `WorkspaceComponent`:
 
 | Method | Called |
 |---|---|
@@ -164,29 +165,66 @@ action columns of their desktop lists with a text column (*Type:* and *Name:* on
 working) and only overrides `createHeader()`: the title, the unsaved changes hint and the *Discard*/*Save* buttons are
 stacked, and *Import backup as new book* is left out. The other parts are the desktop ones.
 
+Code that must not care which layout the user has works with the common interfaces: `ManuscriptWindow` (package `ui.dialogs`, implemented
+by `ManuscriptDialog` and `PhoneManuscriptDialog`: the book, its model, open/close, the story tab, the state callbacks, `asDialog()`),
+`ManuscriptSection` (package `ui.workspace`, implemented by `ManuscriptPart` and `PhoneManuscriptPart`: `getOpenWindow()`, the window of
+the book that is open or `null`) and `Workspace.getManuscriptSection()` / `getOpenManuscriptWindow()`. The session's `SessionPoint` holds the
+workspace, and `CommandUtils` (package `utils`) reads it for commands: `getWorkspace()`, `getManuscriptSection()`, `getManuscriptWindow()`,
+`getCurrentManuscript()` and `getCurrentAI()` return `null` when there is no session, workspace or open book. The book-related methods delegate to
+`SessionPoint` (`getManuscriptWindow()`, `getCurrentManuscript()`, `getCurrentAI()`), which `AgenticSessionPoint` overrides for a session without
+a browser: the book is held directly and there is no window.
+
+**Command bar** (see [The command bar](commands/command-bar.md)). `CommandBar` (package `ui.components`, a `Composite`) is the input line for the commands of `CommandService`, to be placed anywhere:
+a `ComboBox` with custom values, where the user types `/name arg arg`, plus a run button. The list is filled lazily from the registry (`CommandHelp.matchingNames`),
+the help is a `Popover` above the bar (it covers what is above and moves nothing in the layout), rebuilt as the text changes (description, the forms that fit, the next parameter highlighted, the return value, "too many arguments"); it opens for the arguments, for text that is not a command and for a name nothing matches, and while the name is typed the list (with the descriptions) is the help;
+picking a command writes `/name ` into the field, or runs it when it takes no arguments. The bar shows no results: it hands them to its
+`CommandResultTarget` (`setResultTarget`), an interface (`onCommandResult`, and `clearCommandResult` when the user types or runs something else) that each place implements as it needs; the story tab (`ManuscriptStoryPart.createCommandBox()`, next to
+the menu bar) uses `CommandResultView`, a popover above the bar with a close button, and other places can consume the value differently. An `async` command opens
+`CommandProgressDialog` (modal, the two status lines of the command, Stop cancels the future); failures and stops are shown by the bar. Not on the phone story tab yet.
+
 Opening a book on a phone shows the `PhoneManuscriptDialog` (package `ui.dialogs.phone`) instead of `ManuscriptDialog`;
-`NewBookAction(onClose, true)` opens it after *Add Book*. It is a separate class, not a subclass, so extensions know
+*Add Book* (`NewBookAction`) creates the book and hands it to `openManuscript` of the list, which opens the window of its layout and remembers it. It is a separate class, not a subclass, so extensions know
 which dialog they decorate (decorators of `ManuscriptDialog` and the desktop parts do not run on a phone). It fills the
 screen (the `phone-dialog` class), the exit button is an icon in the header and the tabs are one scrolling `Tabs` row
 above the content of the selected tab. Every tab is a `PhoneManuscriptDialogPart` of `ui.dialogs.phone.manuscript`
 (the desktop `ManuscriptDialogPart` without the tab sheet argument): `PhoneManuscriptInfoPart` and
 `PhoneManuscriptPromptPart` (one column of fields), `PhoneManuscriptLorebookPart` (the lorebook of the book and
-`PhoneLorebookView(true)`, which hides its own lorebook selection like the pinned `LorebookView`),
+`PhoneLorebookView(true)`, which hides its own lorebook selection like the pinned `LorebookView`; both lorebook parts
+have a second box, *Shown lorebook*, with the lorebook of the book and its subbooks (`LorebookService.getLorebookTree`, shown only when there is a subbook), which
+sets the lorebook of the pinned view without touching `Manuscript.lorebook`: the desktop part also gets the click on a subbook chip through
+`LorebookView.setOnOpenSubbook`, and both rebuild the box in `onTabEnter` as the subbooks can be changed in the view),
 `PhoneManuscriptTreePart` (stacked search bar), `PhoneManuscriptBackupPart` (one row per backup) and
 `PhoneManuscriptStoryPart`. The story is a single column in an `AppLayout`: the outline is its drawer (slid in by the
 toggle in the navbar, which also holds the summaries/settings menu bar), the new turn button is at the bottom. Its
 `ChatMessageCard` is only the text of the part under a small header line with two icons: the menu (with *Show Prompt*)
 and a popover with the metadata of the inference (ids, model, protocol, tokens, words) and the turn details (the
-right-hand column of the desktop card). Its summaries item opens `PhoneSummariesDialog`, the `SummariesDialog` with a fixed 640 px, taller content column (the grid scrolls sideways anyway, so the summaries stay readable and editable). The fixed navbar and drawer of the
+right-hand column of the desktop card; on both cards the popover is filled by `createDetails` and opened by the server when its button is clicked, and the editing text area exists only while the part is edited, because the text areas of `TurnDetailsForm` measure their height as soon as they are in the page and hundreds of them freeze the browser). Its summaries item opens `PhoneSummariesDialog`, the `SummariesDialog` with a fixed 640 px, taller content column (the grid scrolls sideways anyway, so the summaries stay readable and editable). The fixed navbar and drawer of the
 `AppLayout` are kept inside the dialog by the `phone-story-layout` class.
 
-On the desktop the *Admin* button is only added for administrators; `AdminPart` shows the users grid (with the *Users can create their own models* checkbox, `AIService.setUserCreationAllowed`) and the
+On the desktop the *Admin* button is only added for administrators; `AdminPart` shows the users grid and the
 `DatabaseBackupPanel`, `CleanupPanel` and extensions tab (with the SHA-256 of each JAR behind a `#` button next to the version - tooltip, click copies it with
 `JavascriptLibrary.copyToClipboard` - the verification report of each extension and, per
 extension, the buttons *Stop* / *Start* (`OsgiService.stopExtension` / `startExtension`, state *Stopped*), *Log*
 (`ExtensionLogDialog`: the end of the extension's log with refresh and clear) and *Unload*). Note that the admin UI being hidden is not a permission
 check - the administrator-only services call `AdminGuard.requireAdmin()` themselves (see
 [Services](services.md#administration)).
+
+### The agents tab
+
+`AgentPart` (`ui.workspace.parts`, a `WorkspaceComponent` like the others) is a table of the agents of the user (a card for each on the phone,
+`new AgentPart(workspace, true)`): the name, the book and the status of the unfinished run (`Localization.getAgentRunStatus`), and a row of
+buttons whose visibility follows the status of the run (**Start** with *Start immediately* / *Start in console*, **Resume**, **Pause**,
+**Pause now**, **Stop**, the console, **Review changes**, **Edit**, **Clone**, **Delete**). They call `AgentRunService` and `AgentRunner`; the
+refusals of the service (`IllegalStateException`, `SecurityException`, `IllegalArgumentException`) are shown as a warning with the text of the
+exception, everything else as an internal error, and the table is read again after every action. `DesktopWorkspace.create` and
+`PhoneWorkspace.addAgentsTab` build the tab only when `AgentService.isAllowed()`, once per login (a permission given or taken later shows after
+the next login); a count of the agents that wait for the user is in the tab and, on the phone, in the top bar. **New agent** and **Clone** are
+off when `AgentService.canCreate()` is false. The dialogs (the editor of an agent with the roles of commands and the models for sub-agents, the
+console, the review of the result, the checkpoints...) are in `ui.dialogs.agent`; **they are described in [Agents](agents.md#the-screens)**,
+with the services they call. The administrator's settings of agents are `AgentSettingsPanel` (`ui.workspace.parts.admin`, the *Agents* tab of
+*Admin*: the default system prompt and compaction prompt of the application, and whether agents may send a message to a URL).
+
+The settings of the `AGENTS` permission are edited by `AgentsPermissionComponent`, see [Permissions dialog](#permissions-dialog).
 
 ### Remembering where the user was
 
@@ -204,7 +242,7 @@ and `PhoneManuscriptDialogPart` (default: no state), both book dialogs, `Loreboo
 | `ManuscriptPart`, `PhoneManuscriptPart` | `filters` (`name`, `tags` as tag uuids) and `dialog`, the state of the open book window. |
 | `ManuscriptDialog`, `PhoneManuscriptDialog` | `manuscript` (uuid), `tab` (`info`, `prompt`, `lorebook`, `story`, `tree`, `backup`) and `parts`, the state of the tabs. |
 | `ManuscriptStoryPart`, `PhoneManuscriptStoryPart` | `newTurn`, the `NewTurnForm`: `scene`, `pov`, `present`, `instructions` and `edited`. The desktop part also stores `tabs`, the `TabDock` state: `selected`, the ids of the tab each sidebar panel shows. |
-| `LorebookPart`, `LorebookView`, `PhoneLorebookView` and the lorebook tab of the book window | `lorebook` (uuid, not for the view pinned to the lorebook of a book) and `entries`, the uuids of the entries whose details are open. |
+| `LorebookPart`, `LorebookView`, `PhoneLorebookView` and the lorebook tab of the book window | `lorebook` (uuid, not for the view pinned to the lorebook of a book), `rootOnly` (the *Only root lorebooks* box, `LorebookView` only, not when pinned) and `entries`, the uuids of the entries whose details are open. The lorebook tab of the book window (`ManuscriptLorebookPart`, `PhoneManuscriptLorebookPart`) adds `shown`, the uuid of the lorebook it shows when it is not the one of the book (see the lorebook parts above); it is restored before the rest, as the open entries are the ones of that lorebook. |
 
 Everything is stored by uuid and looked up when it is restored (`findForUser`), so a book, lorebook, entry or tag that
 is gone is skipped: a book that does not exist is not opened, the lorebook stays the default one. The state of an older
@@ -282,11 +320,12 @@ their layout and the methods extensions decorate (`renderStoryContent`, `createS
 
 | Class | Does |
 |---|---|
-| `StoryHost` | What a story tab needs from its dialog (`refreshManuscript`, `save`, `freeze`, `unfreeze`); `ManuscriptDialog` and `PhoneManuscriptDialog` implement it. |
-| `StoryCard`, `StoryCards` | The card interface both `ChatMessageCard` classes implement, and the registry of the cards of the branch and the streaming one (opened reasonings, last flags, freezing, autosave). |
+| `StoryHost` | What a story tab needs from its dialog (`refreshManuscript`, `save`, `freeze`, `unfreeze`); `ManuscriptDialog` and `PhoneManuscriptDialog` implement it (through `ManuscriptWindow`). |
+| `StoryCard`, `StoryCards` | The card interface both `ChatMessageCard` classes implement, and the registry of the cards of the branch and the streaming one (opened reasonings, last flags, freezing, autosave; `getOffset` is how many parts of the branch have no card because they are before the first one, `prependAll` puts earlier cards in front; the loader sets the offset after it drops cards at the start). |
+| `LazyBranch`, `StoryLazyLoader`, `ReaderLazyLoader` | Lazy loading of the parts, a window that slides over the branch. `LazyBranch` is the plain logic without UI: the size of the window is `UserSetting.storyPartsLimit` (empty loads everything), a chunk is half of it; `tail` starts the story with the last parts, `head` the reader with the first ones, `loadEarlier` / `loadLater` extend the window by a chunk and `trimLater` / `trimEarlier` drop the parts at the other end, `centerOn(id)` moves it around a part that is not loaded, `moveToTail` back to the end, `refresh` swaps in the instance a card holds now (an edit saves a new one). `StoryLazyLoader` fills the panel of a story tab with the cards of the window and answers `edge-top` / `edge-bottom` of the panel: it adds the chunk, drops the other end (an edited card is saved first; nothing is dropped while a part is generated, because the streaming card is the last one and the branch does not have it) and puts the visible part back in place. `scrollTo(id)` is the outline (moves the window when the part is not loaded), `showTail()` is called before a generation starts, so the new part is added after the last one. `ReaderLazyLoader` does the same for the reader (`Viewer`) with plain parts that carry `data-message-id`. Both put a `LazyLoadIndicator` in the header and footer of the `ScrollPanel` (`setHeader` / `setFooter`) while there is more to load at that edge, so a user who outruns the loading sees it. |
 | `StoryGenerationListener` | The `GenerationListener` of a story tab: creates and fills the cards while a generation streams, redraws the story at its end. The tab reacts through `Callbacks`. |
 | `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics` | The fields of the *New Turn Instructions* popover, the turn details of a part, the metadata lines of a part. |
-| `StoryBackup`, `StorySupport` | The automatic backup after N parts / minutes, and the scroll position tracking and saving of an edited part. |
+| `StoryBackup`, `StorySupport` | The automatic backup after N parts / minutes, the limit of parts to load (`partsLimit`) and the saving of an edited part. The story does not remember a scroll position: it always opens at the bottom. |
 
 The helpers are `@Extendable` instances (the tabs create them with `new`, `StoryBackup` and `StorySupport` are
 `@Configurable`), so a decorator of one of their methods applies to the desktop and the phone tab alike. The inner
@@ -301,7 +340,7 @@ to it (see [Extending the UI](plugins/ui-extensions.md#the-story-menu-bar)):
 |---|---|
 | `createMenuBar()` | The bar: calls the three methods below. Stored in the field `menuBar`. |
 | `createSummariesMenuItem(bar)` | The **Summaries** item (field `summariesMenuItem`), which opens `SummariesDialog`. Its tooltip shows the tokens of the summaries in use (`refreshSummariesMenuItem()`, run when the story is loaded, after a summary is deleted and when a summary dialog is closed). |
-| `createCogsMenuItem(bar)` | The settings item (field `cogsMenuItem`, local `cogs`) and its sub menu: `createChangeStylesMenuItem(cogs)`, `createHighlightGeneratedMenuItem(cogs)`, `createExportMenuItem(cogs)`. |
+| `createCogsMenuItem(bar)` | The settings item (field `cogsMenuItem`, local `cogs`) and its sub menu: `createChangeStylesMenuItem(cogs)`, `createHighlightGeneratedMenuItem(cogs)`, `createSearchReplaceMenuItem(cogs)` (opens `ManuscriptSearchReplaceDialog`), `createImportArchiveMenuItem(cogs)` (an `ArchiveUploadDialog`, then `ArchiveImportRunner.appendParts`) and `createExportMenuItem(cogs)`. The phone tab has the same, without the highlight. |
 | `populateMenuBar(bar)` | Empty, runs last: the hook for new items of the bar. |
 
 The checkable **Highlight Generated Text** item is the diff view: `setShowGeneratedDiff(show)` stores the flag (a field
@@ -353,14 +392,21 @@ page (`service.find(id)`) and wraps them in a `BackendTableItem` subclass. It al
 | `LanguageSelector` | The language combo box of the workspace footers: saves the choice in `UserSetting.language`, sets `SessionPoint.language` and reloads every page of the user ([Localization](architecture.md#localization)). |
 | `TagsView` (`ui.components`) | The Tags tab of `UserPart`: a grid of the tags with their relation counts, rename (a name that exists asks to merge) and delete. It acts at once and is not tracked as an unsaved setting. |
 | `LLMInteract` / `LLMSnapshot` (`ui`) | What the help assistant's model can read of the screen, see [Letting the help assistant see the UI](#letting-the-help-assistant-see-the-ui). |
+| `BuildInfoFooter` | The version text (`Marginalia 1.4.0 (93ec118)`) as a `Span` fixed in the bottom left corner (`CssStyles.BUILD_INFO_FOOTER`, 10 px, faded, outside the layout); the tooltip has the full commit id, the commit time and the build time. Added to `Main` after the workspace (the phone layout has it too). The login overlay shows the same text as `LoginI18n.additionalInformation` (`LoginCheckRoute.getLoginI18n`). The values come from `utils.BuildInfo`, see [Building](building.md#building-the-application). |
 | `HelpAssistantWidget` | The help chat: a round robot `Button` fixed in the bottom right corner (`CssStyles.HELP_FAB`) opening a fixed panel above it (`HELP_PANEL`: header with clear and close, which AI answers, a warning when `Info.metered()`, the messages, an input row whose send button turns into stop). Added to `Main` after the workspace, so the phone layout has it too; hidden unless `HelpAssistantService.isAvailable()` when the page is built, the panel reads `getInfo()` at each opening. Answers stream into a `Markdown` card with `ui.access` + `UIPushGuard.push`; the conversation is `SessionPoint.getHelpChat()` (the widget keeps the list, the callbacks have no session). A request that fails or is refused (limit) takes the question back into the input field and shows the reason in the card. Reasoning chunks are not shown. |
 | `LorebookPreview` | The read only *Lorebook* tab of the desktop story editor: a tree grid of the lorebook (optionally with its sub lorebooks as top level rows) and its entries, opening to the content and the text activation. `create()`, then `refresh(lorebook)`. |
 | `TagMultiComboBox` | Tag selection with lazy search (`TagService.searchTagsForUser`) and creation of new tags. |
-| `ModelProtocolPicker` | A model and a protocol combo box (the AIs and protocols of the user, the protocol optional) for a dialog that runs the model with a choice of its own: `setSelection(ai, protocol)` / `getAi()` / `getProtocol()` / `addSelectionListener(Runnable)`. Used by the generator dialogs of the Lore Generator and the Arc Outline. |
+| `LorebookMassEditDialog` (`ui.dialogs`) | The *Mass edit* of `LorebookView`: one `Grid<Row>` with the entries of a lorebook and of its subbooks (`LorebookService.getLorebookTree`, the lorebook first, each once), sorted by `LorebookEntry.order`, then by the position of the lorebook in the tree, then by name. A `Row` is an entry with the lorebook it is in and whether that lorebook is locked (`AgentRunService.findLockingRun(Lorebook)`, asked for each lorebook of the tree, as a subbook can be used by another book than the root). The cells change the enabled flag, name, order (the grid is sorted again), tags, filtering mode, filtering, insertion mode, negative tags and note (the fields of the detail row of `LorebookView`) in place through `LorebookEntryService.save`; the lorebook cell and the *Move checked* button call `LorebookEntryService.move`, which refuses (`LorebookLockedException`, shown by `UIUtils.internalServerError` as a warning) both a locked source and, since this dialog, a locked target lorebook. The text is `StringUtils.abbreviate`d to `CONTENT_PREVIEW_LENGTH` and kept on one line by `CssStyles.MASS_EDIT_CONTENT`. Locked rows use `CssStyles.MULTI_TAG_LOCKED` and are never targets. The `onChange` runnable (the view's `refreshEntries`) runs when the dialog is closed after a change. |
+| `MultiTagDialog` (`ui.dialogs`) | Puts one tag on many books, lorebooks or the entries of a lorebook (`Kind.BOOKS`, `Kind.LOREBOOKS`, or the constructor with a `Lorebook`), opened from `ManuscriptPart` and `LorebookView`. A `ComboBox<Tag>` (an unknown typed value is made with `TagService.getOrCreateForUser`) and a grid of rows (check box, name, chips of the tags with the picked one marked, apply / remove buttons); the rows with the picked tag sort first. The tags of all rows come from one `TagRelationService.getTagsForObjects`; apply and remove go through `createRelation` / `removeRelation` with the class of the entity (`Manuscript`, `Lorebook`, `LorebookEntry`), positive relations only. A row is locked when `AgentRunService.findLockingRun` returns a run (an entry is locked with its lorebook); locked rows are grayed out (`CssStyles.MULTI_TAG_LOCKED`), can not be ticked and are skipped when the change is made, which asks the lock again as the run may have started since the list was read. The tag relations themselves are not guarded by the services, so the lock is checked here. |
+| `ManuscriptCloneDialog` (`ui.dialogs`) | The clone button of the book list (`ManuscriptPart`, `PhoneManuscriptPart`): the name of the copy (the book's name and *(Copy)*) and **Only current branch**; **Clone** calls `BackupService.cloneManuscript(source, name, onlyCurrentBranch)` and gives the new book to `setOnClone`, which the book list uses to read itself again. The lorebook is linked, not copied. |
+| `ArchiveUploadDialog`, `ArchiveEntryNamesDialog`, `ArchiveImportRunner` (`ui.dialogs`) | The pieces of the import of `.md` archives (story part, new book, lorebook; the service is `ArchiveImportService`). `ArchiveUploadDialog.show(title, message, handler)` takes a zip file in memory and calls the `Handler`; an `IllegalArgumentException` of the handler (not a usable archive) is a warning and the dialog stays. `ArchiveEntryNamesDialog.show(content, onConfirm)` lists the files with the entry name each would get (`names.txt`, the first heading, the file name) in an editable grid and hands the names over in the order of the files. `ArchiveImportRunner` runs the import behind a progress dialog with **Stop** (what was imported stays, the user is told how much). |
+| `LazyContextMenu` (`ui.widgets`) | A `ContextMenu` whose items are made when it opens: the constructor takes the target and a `beforeOpen` runnable that `onBeforeOpenMenu` runs before Flow sends the menu. The menu of a story card is one (see `createHamburgerMenu` / `prepareMenu` of the cards), so a story of hundreds of parts does not create the items of all of them. |
+| `ModelProtocolPicker` | A model and a protocol combo box (the AIs and protocols of the user, the protocol optional) for a dialog that runs the model with a choice of its own: `setSelection(ai, protocol)` / `getAi()` / `getProtocol()` / `addSelectionListener(Runnable)`. Used by the generator dialogs of the Lore Generator and the Arc Outline. On a phone the two boxes are full width, the protocol under the model. |
+| `ToolSelectionButton` (`ui.widgets`), `ToolSelectionDialog` (`ui.dialogs`) | The common way to let the user choose the tools the model may use (`ToolService`). The button keeps a `ToolSelection` (`setValue` / `getValue` / `addValueChangeListener`, the listener gets the new choice when the user saves), shows `Tools (n)` with the number of things that are on, hides itself while no suite is installed (`refresh()` looks again; it also does on attach) and opens the dialog. The dialog has a `Details` section for each `ToolProviderInfo` under its human name with the number checked: a lazy multi-select grid with a filter field of its own (the checked items stay whatever the filter says; *Check shown* / *Uncheck shown* instead of a select-all, which would check the hidden rows) for a suite with items, one check box for a suite without, and a collapsed text area for the hint of the suite (its placeholder is the default hint). It edits a copy and gives the new `ToolSelection` to its callback on *Save*. Used by the Lore Generator and the Arc Outline generators. |
 | `TextAreaPopoverComponent`, `TextFieldPopOverComponent` | Prompt fields with a hints popover. |
 | `TemplateHints` | Content of the hints popover: *Insert Default Template*, the template's variables (from `@LocalizedTemplateDescription`) and the macros (from `Macros.hints()`). |
 | `ScrollPanel`, `HtmlText` | Scrollable container; text with HTML. |
-| `ResizableTextArea` | `ResizableTextArea.install(loc, textArea, "160px")` on long prompt and description fields: a corner icon toggles between the fixed height (with a scrollbar) and a height that fits the whole content. |
+| `ResizableTextArea` | `ResizableTextArea.install(loc, textArea, "160px")` on long prompt and description fields: a corner icon toggles between the fixed height (with a scrollbar) and a height that fits the whole content. On a phone the height is the one of the field (CSS class `resizable-text-area-field`, the variables `--resizable-text-area-height` and `--resizable-text-area-min-height`), not of the whole component: the helper text of a narrow screen would eat it. |
 | `GraphView` | A [Cytoscape.js](https://js.cytoscape.org/) graph with rings around a center node and re-centering by double click, see [Custom components](custom-components.md#graphview). |
 | `ChartJs` | A [Chart.js](https://www.chartjs.org/) chart: `setChartConfig(json)` takes a Chart.js configuration (`type`, `data`, `options`) as JSON and draws it responsively into the element (height 320px, the `chart-js` style). Used by `TokenUsageDialog` (doughnut of the prompt sections, bar chart of the payload messages), opened from *Token Usage* in the part menu of the desktop and phone story editors. |
 | `TrashGrid` | Deleted objects with a restore button and a button that deletes parts and entries for good, see [Trash](#trash). |
@@ -387,8 +433,24 @@ table (`createDescription()`), and the table has only the check box column and o
 shows name, type, owner (`allUsers`), delete time and the *Extended Content* link below each other.
 
 Generic dialogs: `ConfirmDialog.show(message, onYes)`, `TextInputDialog.Builder`, `ListSelectDialog`,
-`ErrorDialog` (message and expandable stack trace), `ProgressBarDialog`. `ExtensionLogDialog.show(bundle, name)` is the
+`ErrorDialog` (message and expandable stack trace), `ProgressBarDialog`, `SearchReplaceDialog`. `DialogFocus.onOpen(dialog, field)` (`ui.widgets`) puts the cursor into the field a dialog is about every time it opens, so the user can type at once; the form dialogs (`AIDialog`, `ProtocolDialog`, `UserDialog`, `ExportDialog`, `TextInputDialog`, `ListSelectDialog`, `AILimitEditDialog`, `SearchReplaceDialog`) call it. `ExtensionLogDialog.show(bundle, name)` is the
 read-only, monospace view of an extension's log. `UsageDialog.show()` is the read-only table of every user's `Usage` (administrators). `AILimitsDialog.show(ai)` is the table of the limits of a shared AI with add / edit (`AILimitEditDialog`) / delete, `AILimitInfoDialog.show(ai)` the current user's limit and usage of it.
+
+`SearchReplaceDialog` (`ui.dialogs.search`) is the search and replace window without any knowledge of what it searches.
+A subclass supplies the title, its own options (`createOptions()`, shown next to the regex option and locked with it)
+and `createSearcher(SearchRequest)`, which runs on the UI thread (the place to read the options) and returns a `Searcher`
+for the worker thread; that gives a `SearchResult` (the rows as `SearchReplaceItem`s with their `TextHit`s, an optional
+warning to confirm before the replace, and the `Replacer` that does the work). The dialog goes through the states
+`INPUT` → `SEARCHING` (inputs frozen, only Stop works) → `PREPARED` (inputs locked, Search is Search again, which drops
+the result, and Replace works; a warning goes through `confirm`) → `REPLACING` (everything frozen) → `INPUT`; the work
+runs on a `ThreadAccessDialog` thread and reports to the progress bar through `TaskProgress`. The constructor flag `phone`
+selects the layout (the fields and buttons below each other, one column in the table), so one class serves both
+layouts. `ManuscriptSearchReplaceDialog` adds the summaries and all branches options and calls `ManuscriptReplaceService`;
+the story parts of both layouts open it from the settings menu and show the story again when `onReplaced` fires. `LorebookSearchReplaceDialog` is the second subclass, for the entries of a lorebook (no extra options, `getIdColumnHeader()` makes the table show entry names); `LorebookView` has a button for it after *Add Entry* and `PhoneLorebookView` an icon button.
+
+![The ManuscriptSearchReplaceDialog with a part opened](../images/search-replace-found.png)
+
+![The same dialog in the phone layout](../images/phone-search-replace.png)
 
 ## Conventions
 
@@ -439,7 +501,9 @@ The story editor is the main example: `startGeneration` freezes the book window,
 Prefer Java components. When the browser has to do something (scroll positions, element sizes), the script is a
 static method of `ui.JavascriptLibrary` - UI classes don't call `executeJs` themselves. The element is passed
 explicitly (`$0`, not `this`), and a script that returns a value returns the `PendingJavaScriptResult`, read with
-`.then(...)`; see `UIUtils.getPositionAndSizeOfElement`, the scroll handling in `ManuscriptStoryPart` and
+`.then(...)`; see `UIUtils.getPositionAndSizeOfElement`, `JavascriptLibrary.watchEdge` (fires `edge-top` /
+`edge-bottom` when a scroll element gets close to that edge, with the distance of the opposite edge in `detail.far`; it remembers the part the user sees first, and `restoreAnchor` puts it back after the server added or dropped parts, which keeps the position while the lazy loading of the story and the viewer works; the story and the reader panels set `overflow-anchor: none` so the browser does not correct it a second time),
+`JavascriptLibrary.rememberReaderPosition` / `readReaderPosition` (the viewer keeps the id of the first visible part per book uuid in the `localStorage` of the browser, key `marginalia.reader.position.<uuid>`; the server only reads it once when the book opens, it is never stored in the database) and
 `JavascriptLibrary.scrollTextAreaToBottom` (the extension log is shown scrolled to its newest line).
 Extensions keep their own scripts.
 
@@ -466,7 +530,7 @@ The link fires `NodeGotoEvent`. `onNodeGoto` resolves the id among the messages 
 `ChatMessageService.findLeafFor` for the end of the branch to show, makes it the book's active leaf when it is not
 (`ManuscriptDialog.save`) and calls `ManuscriptDialog.showMessage(id)`. That tells `ManuscriptStoryPart` which part to
 scroll to (`scrollToMessageOnNextRender`) and selects the story tab; entering the tab renders the story, which scrolls to
-the part (and flashes it) instead of restoring the saved scroll position.
+the part (and flashes it) instead of scrolling to the bottom; the window of parts is moved around it (`StoryLazyLoader`).
 
 ### Styles
 
@@ -496,13 +560,15 @@ runs before and after that method and can read its arguments and local variables
 | Workspace | `Workspace`, `DesktopWorkspace`, `PhoneWorkspace`, `ManuscriptPart`, `PhoneManuscriptPart`, `PhoneLorebookPart`, `PhoneProtocolPart`, `PhoneAIPart`, `PhoneSettingsPart`, `PhoneTrashPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `ResourcesPart`, `TrashPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
 | Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), the shared story helpers (`StoryCards`, `StoryGenerationListener`, `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics`, `StoryBackup`, `StorySupport`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart`, `SummariesDialog` (and its `SummaryContent`), `SummaryDialog`, `ImagesDialog`; the phone twins of the tabs (`PhoneManuscriptStoryPart` and its `ChatMessageCard`, `PhoneManuscriptInfoPart`, `PhoneManuscriptPromptPart`, `PhoneManuscriptLorebookPart`, `PhoneManuscriptTreePart`, `PhoneManuscriptBackupPart`), see [the phone twins](plugins/extendable.md#the-phone-twins) |
 | Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `TokenUsageDialog`, `UsageDialog`, `ExportDialog`, `PhoneManuscriptDialog`, `PhoneSummariesDialog`, `LorebookView`, `PhoneLorebookView`, `TreantTree`, `MessageImages`, `TagMultiComboBox`, `ChartJs`, `TrashGrid`, `PhoneTrashGrid` |
+| Agents (since 1.4.0) | The tab `AgentPart` and the admin panel `AgentSettingsPanel`; the screens of `ui.dialogs.agent`: `AgentDialog`, `AgentCommandsEditor` (with `AgentCommandPreset`, the roles of its Selection box), `AgentModelsEditor`, `AgentModelDialog`, `AgentCloneDialog`, `AgentStopDialog`, `AgentResumeDialog`, `AgentApprovalDialog`, `AgentLockCheck`, `AgentCard` (an agent on a phone), `AgentConsoleDialog` with its tabs (`AgentRunHistory`, `AgentWorkspaceBrowser`, `AgentCheckpointBrowser`, `AgentContextView`, `AgentCopyView`, `AgentSubAgentsView`, `AgentDiagnosticsView`, `AgentFindingsView`, `AgentTranscriptRenderer`), the review `AgentMergeDialog` and `JsonMergeDialog`, and `WordDiffView` |
+| Commands, search and other new dialogs (since 1.4.0) | `CommandBar`, `CommandResultView`, `CommandProgressDialog`; `SearchReplaceDialog` with `ManuscriptSearchReplaceDialog` and `LorebookSearchReplaceDialog`; `ManuscriptCloneDialog`, `ArchiveUploadDialog`, `ArchiveEntryNamesDialog`, `ArchiveImportRunner`, `NewBookAction`; `MultiTagDialog`, `LorebookMassEditDialog`, `LorebookPreview`; `PermissionsDialog`, `HelperPermissionComponent`, `AgentsPermissionComponent`; `HelpAssistantWidget`, `HelpAssistantPanel`; `Reset` (route `/reset`) |
+| Also | `TagsView`, `AILimitsDialog`, `AILimitEditDialog`, `AILimitInfoDialog`, `ExtensionLogDialog`, `InvalidExtensionsWarning`, `TextInputDialog`, `ListSelectDialog`, `ThreadAccessDialog`, `GraphView`, `LanguageSelector`, `ModelProtocolPicker`, `TabDock` |
 | Routes | `LoginCheckRoute` (login, saved logins), `Main` (creates the `DesktopWorkspace` or `PhoneWorkspace` in `proceedWithLogin`), `Viewer` |
 
 New screens, dialogs and components with their own logic get `@Extendable` too (a nested class needs its own
 annotation), and each of their instrumented methods gets a [`@PublicAPI`](plugins/extendable.md#the-public-api) that
 declares its arguments, local variables and return type. Left out on purpose: classes with only static methods (`TemplateHints`, `SummaryRemoval`, `UIUtils`; static
-methods are not instrumented), the generic dialogs and widgets used everywhere (`ConfirmDialog`, `ErrorDialog`,
-`ProgressBarDialog`, `Notification`, `HTabSheet`, the `BackendTable*` providers), the plumbing (servlet, app shell,
+methods are not instrumented), the generic widgets used everywhere (`Notification`, `HTabSheet`, `LazyContextMenu`, the `BackendTable*` providers; the dialogs `ConfirmDialog`, `ErrorDialog` and `ProgressBarDialog` are `@Extendable` too, see the list above for the others), the plumbing (servlet, app shell,
 initializer, `ThreadCopyRequestAttributes`) and small data wrappers.
 
 The bundled plugins hook into these methods:
@@ -579,11 +645,31 @@ page appear next to `Main`; `Main` reports the workspace of its UI (from `Applic
 function is `HelpTools.getUiState`, bound with the manual tools by `HelpAssistantService.ask(history, uiState, callback)`;
 `UiStateSource` is how the widget answers it.
 
+### Permissions dialog
+
+`PermissionsDialog` (`ui.dialogs.permissions`, opened by `AdminPart.openPermissionsDialog` from the key button of the user list) edits
+the `Permission`s of a user: a modal dialog (`ModalityMode.STRICT`, no close on Esc or outside click) with a grid of the permissions
+(name from `Localization.getPermissionType`, a *Granted* checkbox, a delete button), a combo box of the types the user has none of with
+**Add permission**, and **Exit** / **Save** in the footer. The columns have fixed widths (name takes the rest, `Granted` and the delete button `TOOL_COLUMN_SIZE_LARGE`: an icon button does not fit the narrower `TOOL_COLUMN_SIZE`; the rows are kept in the order of `PermissionType`); the settings component of a permission is the detail row of the grid, folded by the arrow button in front of the name (`expanded`, a set of types that survives re-reading the rows; a row without settings has the `fold-spacer` class in its place, a new permission is unfolded). It edits a copy in memory: **Save** is on only when something differs
+(`isDirty`: a new permission, a changed `granted`, an edited settings component or a deleted permission), **Exit** asks with
+`MSG_UNSAVED_CHANGES_EXIT` when it is, and a delete is a hard delete (`PermissionService.delete(permission, true)`) done by **Save**, before the
+saves. After the save the rows are read again and, unless the user is the current one, `SessionManager.reloadUser` reloads their pages
+(`Page.reload` in each live session, the caller's own session is skipped).
+
+A permission type with settings of its own has a `PermissionUIComponent` that `PermissionUIFactory.createComponent(type)` returns
+(`null` for a type without; the implementation is `PermissionUIFactoryImpl`, a switch on the type): `getComponent()` is shown in the detail
+row of the grid, `model2component` / `component2model` copy the settings between the component and the `Permission` (they are extended
+attributes of `Permission`, `helperApplyLimits` / `helperInteractions`; `HelperPermissionComponent` for `HELPER`), `onChange` tells the
+dialog the user edited it (not fired by `model2component`), and the default method `onGrantedChanged(granted)` (called when the component is made and
+when the *Granted* box changes) lets a setting that makes sense only while the permission is given (a sub-permission, `NotificationsPermissionComponent`
+for `NOTIFICATIONS`) follow it. To add a type: a constant in `PermissionType`, `ENUM_PERMISSION_*` in `L`
+and the bundles and the map of `LocalizationImpl`, and, if it has settings, an `@ExtendedAttribute` field in `Permission` and a component.
+
 ### Interactions
 
-When an administrator allows it (**Allow navigating the interface** in the *Help assistant* tab, `AppSettings.helpInteractions`,
+When the permission `HELPER` of the user allows it (**Allow navigating the interface** in their permissions, `Permission.helperInteractions`,
 off by default) the model can also move through the UI for the user, with a second function, `interact_with_ui(path,
-interactions)` (`InteractiveHelpTools`, bound instead of `HelpTools` only when the setting is on **and** the question comes
+interactions)` (`InteractiveHelpTools`, bound instead of `HelpTools` only when the permission setting is on **and** the question comes
 from a page). An element offers interactions by overriding `getInteraction()`: a map from a key to an `LLMInteraction`
 (`description` for the model, `action` a `Runnable`). The map is what is possible *now*: the section that is open is not
 offered again, nothing while the navigation is locked, no disabled tab. `applyInteraction(key)` and

@@ -20,6 +20,21 @@ Each row of the lorebook editor is one entry:
 
 **Add Entry** in the toolbar adds an entry with order `100`. Changes are saved as you type.
 
+
+## Search and replace
+
+**Search and replace** (right of **Add Entry**) changes a word, a name or a phrase in the name, the text and the comment of
+all the entries of the lorebook at once. It works like the [search and replace of the story](../books/story-editor.md#search-and-replace),
+without the options for summaries and branches: **Search** lists the entries with matches (the table shows their names) and
+the matches in them as they are and as they will be, **Replace** changes the entries. It has the options **Search by regex** (see [Regular expressions](../regular-expressions.md)) and **Case sensitive** (on by default; locked while the regex is on, which
+can use `(?i)` to ignore the case). Entries that are disabled are searched too. On the phone the button (an icon next to the
+*Enabled* check box) opens the same window in the phone layout.
+
+![The Search and replace window of a lorebook, the matches in one entry opened](../../images/lorebook-search-replace.png)
+
+The command line of the story editor has `/search-replace-lore-entries` for the lorebook of the open book, see
+[Commands](../commands/index.md#commands-that-come-with-marginalia).
+
 ## Entry details
 
 The ⌄ button opens the details:
@@ -29,7 +44,7 @@ The ⌄ button opens the details:
 | Field | |
 |---|---|
 | **Content** | The text that goes into the prompt. A [template](#templates-in-entries): it can use variables and macros. |
-| **Filtering Mode** | **Text** or **Regex**, how *Filtering Text/Pattern* is matched. |
+| **Filtering Mode** | **Keywords (any)**, **Keywords (all)**, **Text** or **Regex**, how *Filtering Text/Pattern* is matched. |
 | **Filtering Text/Pattern** | The filter, see [Filters](#filters). Empty means no filter. |
 | **Insertion Mode** | **In Lore Block** or **Before User Prompt**, see [Order and insertion](#order-and-insertion). |
 | **Negative Tags (Exclusion)** | Tags that switch the entry off, see [Tags](#tags). |
@@ -78,8 +93,10 @@ A filter activates the entry only when the **request for the part** mentions it.
 
 | Mode | Matches when |
 |---|---|
+| **Keywords (any)** | The filter is a list of keywords separated by commas (`Varro, Ostra`); the request contains at least one of them, ignoring case. Spaces around a keyword are ignored. |
+| **Keywords (all)** | The same list, but the request must contain every keyword. |
 | **Text** | The text appears anywhere in the request, ignoring upper and lower case. `varro` matches *Captain Varro*. |
-| **Regex** | The [regular expression](https://regex101.com/) matches anywhere in the request, ignoring case, across lines. |
+| **Regex** | The [regular expression](../regular-expressions.md#in-a-lorebook-entry-filter) matches anywhere in the request, ignoring case, across lines. |
 
 For example, the regex `\b(varro|captain)\b` matches the whole word *Varro* or *Captain*, and
 `varro.*(harbor|docks)` matches only when Varro and the harbor or the docks are both mentioned, in that order.

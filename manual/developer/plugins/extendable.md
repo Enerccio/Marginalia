@@ -1,7 +1,7 @@
 ---
 label: "@Extendable hooks"
 order: 90
-verified: 91693e9b
+verified: b7b55df1
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/instruct
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/ExtensionService.java
@@ -256,7 +256,7 @@ log.
 - **Replace the result of a method that throws**, or throw instead of a return: a decorator can read the exception in
   `onMethodLeave` but it is always rethrown.
 - **Decorate constructors, static methods or lambda bodies.** Decorate the method the constructor calls (for example
-  `ChatMessageCard`'s constructor calls `createMenuItems()`), or the method that registers the listener.
+  the constructor of `ChatMessageCard` calls `createHamburgerMenu()`, the items come later from `createMenuItems()`), or the method that registers the listener.
 - **Decorate classes that aren't `@Extendable`**, plugin classes, or library classes.
 - **Read primitive locals.** Read the fields or objects they end up in.
 
@@ -282,15 +282,16 @@ Methods the bundled plugins use, as examples:
 | `ManuscriptStoryPart` | `createSidebarButton(msg, orderId, dbId)` | arguments; local `sidebarBtn`; field `sidebarList` | Change the sidebar entry of a part (Chapter Marker). |
 | `ManuscriptStoryPart` | `renderStoryContent()` | fields `leftBar` (a `TabDock`), `currentManuscript` | Add a tab next to the story outline (Side Query). Runs on every redraw of the story. |
 | `ManuscriptStoryPart` | `populateMenuBar(bar)` / `createCogsMenuItem(bar)` | argument `bar`; local `cogs` | Add items to the menu bar of the story editor / to its settings menu. Not used by a bundled plugin yet. |
+| `ManuscriptStoryPart` | `createCommandBox()` (from 1.4.0) | return value (a `Component`, the `CommandBar`) | Replace or wrap the command line (`CommandBar` with its `CommandResultView` popover), for example to put another `CommandResultTarget` on the bar. |
 | `SummariesDialog` | `populateMenuBar(bar)` | argument `bar` | Add tools to the (empty) menu bar of the summaries overview. Not used by a bundled plugin yet. |
-| `ManuscriptStoryPart$ChatMessageCard` | `createMenuItems()` | fields `hamburgerMenu`, `message` | Add items to a part's menu (Reviewer). |
-| `ManuscriptStoryPart$ChatMessageCard` | `refreshSummaryMenuItems()` | fields `hamburgerMenu`, `message` | Update menu items when the menu opens (Reviewer). |
+| `ManuscriptStoryPart$ChatMessageCard` | `createMenuItems()` | fields `hamburgerMenu`, `message` | Add items to a part's menu; runs when the menu of the part is first opened (Reviewer). |
+| `ManuscriptStoryPart$ChatMessageCard` | `refreshSummaryMenuItems()` | fields `hamburgerMenu`, `message` | Update menu items each time the menu is about to open (Reviewer). |
 | `ManuscriptStoryPart$ChatMessageCard` | `autosaveAndSwapToMarkdown()` | fields `message`, `this$0` (the outer `ManuscriptStoryPart`) | React to an edited part (Chapter Marker). |
 | `UserPart` | `refresh()` / `save()` | fields `extensionSettings`, `userSetting` | Add a settings panel; save its values (Reviewer, Side Query, Lore Generator). |
 | `LorebookView` | `create()` | local `lorebookHeaderLayout`; field `grid` | Add a panel above the lorebook header (Lorebook VCS); add a column to the entry grid (Lore Generator). |
 | `LorebookPart` | `refresh()` | field `lorebookView` | Reach the view of the workspace tab, which was built when the page opened (Lore Generator). |
 | `LorebookView` | `createEntryDetailLayout(entry)` | argument `entry`; local `detailsLayout` | Add a panel to each entry's details (Lorebook VCS). |
-| `DesktopWorkspace`, `PhoneWorkspace`, `AdminPart`, `ManuscriptDialog`, `PhoneManuscriptDialog` | `getLLMState()` / `getInteraction()` | `getCurrentReturn` / `setCurrentReturn` | Tell the help assistant about what the plugin added to the screen, or let it open it. Not used by a bundled plugin yet. |
+| `DesktopWorkspace`, `PhoneWorkspace`, `AdminPart`, `ManuscriptDialog`, `PhoneManuscriptDialog` | `getLLMState()` / `getInteraction()` | `getCurrentReturn` / `setCurrentReturn` | Tell the help assistant about what the plugin added to the screen, or let it open it. Not used by a bundled plugin yet. `AdminPart` is created only for administrators (`DesktopWorkspace.create()`), so it is decorated only on their pages. |
 | `UserPart` (and `PhoneSettingsPart`), `AIPart`, `ProtocolPart`, `ManuscriptPart` and their phone versions | `getLLMState()` / `getInteraction()` | `getCurrentReturn` / `setCurrentReturn` | The same for the settings tabs and the lists of models, protocols and books (`open-tab:`, `open-dialog:`). Not used by a bundled plugin yet. |
 | `AIDialog` | `getLLMProblems()` | `getCurrentReturn` / `setCurrentReturn` | Add what a plugin's own checks find wrong with the form (a list of lines, never a value). Not used by a bundled plugin yet. |
 
@@ -366,7 +367,7 @@ checked:
 
 ```
 Extension: chaptermarker.jar
-Bundle: chaptermarker 1.3.0
+Bundle: chaptermarker 1.4.0
 Verified: 2026-10-10T18:18:31.781673Z
 Result: INVALID
 

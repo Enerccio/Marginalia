@@ -23,6 +23,8 @@ public final class CssStyles {
     public static final String TEXT_MONOSPACE_LUMO = "text-monospace-lumo";
     public static final String TEXT_SECONDARY = "text-secondary";
     public static final String TEXT_ERROR = "text-error";
+    /** Takes the place of the fold button in a row that has nothing to fold. */
+    public static final String FOLD_SPACER = "fold-spacer";
     public static final String TEXT_DANGER = "text-danger";
     public static final String TEXT_SUCCESS = "text-success";
     public static final String TEXT_PRIMARY = "text-primary";
@@ -47,6 +49,7 @@ public final class CssStyles {
     public static final String GAP_S = "gap-s";
     public static final String MARGIN_LEFT_AUTO = "margin-left-auto";
     public static final String CURSOR_POINTER = "cursor-pointer";
+    public static final String CLICKABLE_CHIPS = "clickable-chips";
     public static final String FORM_PADDING_BOTTOM = "form-padding-bottom";
     public static final String PADDING_COMPACT = "padding-compact";
     public static final String PADDING_COMPACT_NARROW = "padding-compact-narrow";
@@ -77,6 +80,7 @@ public final class CssStyles {
     public static final String TAB_DOCK_DRAGGING = "tab-dock-dragging";
     public static final String STORY_SCROLL_PANEL = "story-scroll-panel";
     public static final String READER_SCROLL_PANEL = "reader-scroll-panel";
+    public static final String LAZY_LOAD_INDICATOR = "lazy-load-indicator";
     public static final String READER_CONTENT = "reader-content";
     public static final String FLOATING_BACK_BUTTON = "floating-back-button";
 
@@ -100,6 +104,7 @@ public final class CssStyles {
 
     // --- Resizable text area toggle icon ---
     public static final String RESIZABLE_TEXT_AREA_ICON = "resizable-text-area-icon";
+    public static final String RESIZABLE_TEXT_AREA_FIELD = "resizable-text-area-field";
 
     // --- Phone manuscript dialog ---
     public static final String PHONE_DIALOG = "phone-dialog";
@@ -117,8 +122,73 @@ public final class CssStyles {
     public static final String HELP_MESSAGES = "help-messages";
     public static final String HELP_MESSAGE = "help-message";
     public static final String HELP_MESSAGE_USER = "help-message-user";
+    public static final String HELP_MESSAGE_QUEUED = "help-message-queued";
+    public static final String HELP_MESSAGE_FOLDED = "help-message-folded";
     public static final String HELP_MESSAGE_ERROR = "help-message-error";
+    public static final String AGENT_REWOUND = "agent-rewound";
+    public static final String AGENT_CONSOLE_PHONE = "agent-console-phone";
+    public static final String AGENT_CARD = "agent-card";
+    public static final String AGENT_REPORT = "agent-report";
+    public static final String AGENT_TIME = "agent-time";
+    public static final String MERGE_DIFF = "merge-diff";
+    public static final String MERGE_DIFF_ADDED = "merge-diff-added";
+    public static final String MERGE_DIFF_REMOVED = "merge-diff-removed";
+    public static final String JSON_MERGE_CELL = "json-merge-cell";
+    public static final String JSON_MERGE_CELL_AGENT = "json-merge-cell-agent";
+    public static final String JSON_MERGE_CELL_BOOK = "json-merge-cell-book";
+    public static final String JSON_MERGE_CELL_CONFLICT = "json-merge-cell-conflict";
+    public static final String JSON_MERGE_ABSENT = "json-merge-absent";
+    public static final String JSON_MERGE_TEXT = "json-merge-text";
+    public static final String AGENT_COPY_PART = "agent-copy-part";
+    public static final String AGENT_COPY_PART_HEAD = "agent-copy-part-head";
+    public static final String AGENT_PLAN = "agent-plan";
+    public static final String AGENT_PLAN_ITEM = "agent-plan-item";
+    public static final String AGENT_PLAN_DONE = "agent-plan-done";
+    public static final String AGENT_PLAN_ACTIVE = "agent-plan-active";
+    public static final String AGENT_FINDINGS = "agent-findings";
+    public static final String AGENT_FINDINGS_COMPACT = "agent-findings-compact";
+    public static final String AGENT_FINDING = "agent-finding";
+    public static final String AGENT_FINDING_WARNING = "agent-finding-warning";
+    public static final String AGENT_FINDING_PROBLEM = "agent-finding-problem";
+    public static final String AGENT_ATTENTION_CUE = "agent-attention-cue";
     public static final String HELP_INPUT = "help-input";
+
+    // --- Commands (ui.components.CommandBar, CommandResultView) ---
+    public static final String COMMAND_BOX = "command-box";
+    public static final String COMMAND_BAR = "command-bar";
+    public static final String COMMAND_HELP = "command-help";
+    public static final String COMMAND_HELP_USAGE = "command-help-usage";
+    public static final String COMMAND_HELP_CURRENT = "command-help-current";
+    public static final String COMMAND_HELP_ERROR = "command-help-error";
+    public static final String COMMAND_ITEM_NAME = "command-item-name";
+    public static final String COMMAND_ITEM_DESCRIPTION = "command-item-description";
+    public static final String COMMAND_SEVERITY = "command-severity";
+    public static final String COMMAND_SEVERITY_DESTRUCTIVE = "command-severity-destructive";
+    public static final String COMMAND_SEVERITY_NON_DESTRUCTIVE = "command-severity-non-destructive";
+    public static final String COMMAND_RESULT = "command-result";
+    public static final String COMMAND_RESULT_TEXT = "command-result-text";
+
+    // --- Search and replace (ui.dialogs.search) ---
+    public static final String SEARCH_BUTTON_ROW = "search-button-row";
+    public static final String SEARCH_INPUT_GRID = "search-input-grid";
+    public static final String SEARCH_HIT_CONTEXT = "search-hit-context";
+    public static final String SEARCH_HIT_MATCH = "search-hit-match";
+    public static final String SEARCH_HIT_REPLACEMENT = "search-hit-replacement";
+    public static final String SEARCH_HIT_PLACEHOLDER = "search-hit-placeholder";
+
+    // --- Agent console (ui.dialogs.agent) ---
+    public static final String WORKSPACE_BROWSER = "workspace-browser";
+
+    // --- Tags of many items at once (ui.dialogs.MultiTagDialog) ---
+    public static final String MULTI_TAG_LOCKED = "multi-tag-locked";
+    public static final String MULTI_TAG_CHIP = "multi-tag-chip";
+    public static final String MULTI_TAG_CHIP_MARKED = "multi-tag-chip-marked";
+
+    // --- Mass edit of the entries of a lorebook (ui.dialogs.LorebookMassEditDialog) ---
+    public static final String MASS_EDIT_CONTENT = "mass-edit-content";
+
+    // --- Version footer (ui.components.BuildInfoFooter) ---
+    public static final String BUILD_INFO_FOOTER = "build-info-footer";
 
     private CssStyles() {
     }

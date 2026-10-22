@@ -32,6 +32,7 @@
 - [Book backups](https://enerccio.github.io/Marginalia/user/books/backups.md): A book backup is a snapshot of one book: its settings and prompts, all parts in all branches, summaries, tags and the lorebook. Use backups to go back to an earlier state of the story, to make a copy of a book, or to move a book to another Marginalia installation or user.
 - [Publishing & viewer](https://enerccio.github.io/Marginalia/user/books/publishing.md): The viewer is a reading view of your books: just the text of the story, without the editor around it. It works well on phones and tablets. Publishing a book lets other users of the same Marginalia installation read it in the viewer.
 - [Resources](https://enerccio.github.io/Marginalia/user/resources.md): The Resources tab lists the files you have uploaded to Marginalia. For now these are the pictures of the parts of your books. The tab is the place to find a picture again, to download it, to swap it for a better one without touching the books that use it, and to throw away what you no longer need.
+- [Agents (Experimental)](https://enerccio.github.io/Marginalia/user/agents.md): Agents are new in 1.4.0 and have had little use with real models. Expect rough edges: tool calls a weak model gets wrong, runs that cost more tokens than you thought, a review screen that is more work than it should be, and behaviour that changes between versions.
 - [Trash](https://enerccio.github.io/Marginalia/user/trash.md): Deleting in Marginalia does not destroy anything right away: a deleted book, lorebook, story part or inference provider is only marked as deleted and hidden from your lists.
 
 ### Lorebooks
@@ -40,16 +41,18 @@
 - [Creating lorebooks](https://enerccio.github.io/Marginalia/user/lorebooks/lorebooks.md): Open the Lorebooks tab. The editor shows one lorebook at a time; pick it in the Lorebook field at the top. Lorebooks belong to your account: other users don't see them.
 - [Entries & activation](https://enerccio.github.io/Marginalia/user/lorebooks/entries.md): Each row of the lorebook editor is one entry:
 - [Import & export](https://enerccio.github.io/Marginalia/user/lorebooks/import-export.md): Select the lorebook in the editor and click the export button (file icon, Export Lorebook). The browser downloads lorebook name.json with:
+- [Commands](https://enerccio.github.io/Marginalia/user/commands/index.md): Commands are small actions you run by typing them, instead of clicking through menus: look something up in the story or the lorebooks, search and replace, take a backup.
 
 ### Templates & macros
 
 - [Templates & macros](https://enerccio.github.io/Marginalia/user/templates/index.md): Everything Marginalia sends to the model is built from templates: texts with placeholders that are filled in for each generated part. You can change them all, from the frame of the prompt down to a single lorebook entry.
 - [Prompt templates](https://enerccio.github.io/Marginalia/user/templates/templates.md): Templates use Handlebars syntax, extended with SillyTavern macros. This page covers the variables each template gets and the Handlebars part of the syntax.
 - [Macro reference](https://enerccio.github.io/Marginalia/user/templates/macros.md): Marginalia understands the macros of SillyTavern, so prompts and world info written for SillyTavern work without changes. Macros work in every template: master template, user prompt, summary prompt and lorebook entries.
+- [Regular expressions](https://enerccio.github.io/Marginalia/user/regular-expressions.md): A regular expression (regex) is a short pattern that describes text instead of spelling it out: "the word Harry, but not Harrys", "any two words in quotes", "three or more spaces in a row".
 
 ### Extensions
 
-- [Extensions](https://enerccio.github.io/Marginalia/user/extensions/index.md): Extensions add features to Marginalia without changing the application itself. Thirteen extensions come with Marginalia:
+- [Extensions](https://enerccio.github.io/Marginalia/user/extensions/index.md): Extensions add features to Marginalia without changing the application itself. Fifteen extensions come with Marginalia:
 - [Author's Note](https://enerccio.github.io/Marginalia/user/extensions/authors-note.md): A note to the model that is sent with every generation of the book: the tone you want right now, what the current chapter is about, a reminder the model keeps forgetting.
 - [Chinese localization](https://enerccio.github.io/Marginalia/user/extensions/chinese-localization.md): Adds Simplified Chinese (中文（简体）) to the languages of the user interface.
 - [Arc Outline](https://enerccio.github.io/Marginalia/user/extensions/arc-outline.md): The plan of your book in the sidebar: arcs, each split into chapters, with the state of every one of them, and a model that can write arcs and chapters for you.
@@ -59,10 +62,12 @@
 - [Gemma 4 tools fix](https://enerccio.github.io/Marginalia/user/extensions/gemma-4-tools-fix.md): Makes function calling work with Gemma 4 models whose API expects another role for the results of the calls.
 - [Google Gemini](https://enerccio.github.io/Marginalia/user/extensions/google-genai.md): Adds Google's Gemini models as an inference provider, over Google's own API instead of an OpenAI-compatible one.
 - [Lorebook VCS](https://enerccio.github.io/Marginalia/user/extensions/lorebook-vcs.md): Revision history for lorebook entries: keep earlier versions of your lore and switch between them - for example the state of the world before and after a war, or a character at different points of the story.
+- [Place provider](https://enerccio.github.io/Marginalia/user/extensions/place-provider.md): Gives the model real places of the Earth to look up instead of inventing them: cities, countries, seas and bays, rivers, lakes, islands, mountains, deserts, ports and airports, with their coordinates and the countries they are in.
 - [Lore Generator](https://enerccio.github.io/Marginalia/user/extensions/lore-generator.md): Lets the model write the content of a lorebook entry for you. It reads the lore you already have, so the new entry fits the world, and compacts the result into the short, dense form lore entries work best in.
 - [Name provider](https://enerccio.github.io/Marginalia/user/extensions/name-provider.md): Gives the model real names to pick from instead of inventing them: the most common forenames and surnames of many countries. Where the Name generator makes
 - [Name generator](https://enerccio.github.io/Marginalia/user/extensions/name-generator.md): Gives the model a way to ask for names instead of inventing them. The names come from lists of real names - given names and surnames of many countries,
 - [Reviewer](https://enerccio.github.io/Marginalia/user/extensions/reviewer.md): Lets the model review what you've written: reader reactions, an editor's critique, a continuity check - whatever you prompt it for. Reviews are kept with the part, next to the story, and never become part of the book.
+- [Tools for the model](https://enerccio.github.io/Marginalia/user/extensions/tools.md): Some extensions give the model tools: functions it can call while it writes, to get names, to look up real places, and so on, instead of inventing them.
 - [Side Query](https://enerccio.github.io/Marginalia/user/extensions/side-query.md): A chat with the model next to your story: ask about the plot, check continuity, brainstorm names or the next chapter - without adding anything to the book.
 - [Account & settings](https://enerccio.github.io/Marginalia/user/account.md): Everything you create in Marginalia belongs to your account: books, lorebooks, tags, inference providers, protocols and settings. Other users don't see them (except books you publish), and you don't see theirs.
 
@@ -70,10 +75,11 @@
 
 - [Administration](https://enerccio.github.io/Marginalia/user/administration/index.md): Administrators manage the Marginalia installation: user accounts, database backups, cleanup of deleted data and extensions. The first account, created on the first start, is an administrator; it can make other users administrators too.
 - [Users](https://enerccio.github.io/Marginalia/user/administration/users.md): The Users tab of the admin page lists all accounts with their Username, Full Name and whether they are an Administrator.
+- [Permissions](https://enerccio.github.io/Marginalia/user/administration/permissions.md): A permission lets one user do something that is not for everybody. Administrators give permissions to users one by one; a user who has none can do everything else in Marginalia as usual (write books, build lorebooks, use the models that administrators share).
 - [Database backups](https://enerccio.github.io/Marginalia/user/administration/database-backups.md): A database backup is a complete copy of the Marginalia database: all users with all their books, lorebooks, settings and extension data. Use it to protect the installation against mistakes and failures, and to move it to another computer.
 - [Cleanup](https://enerccio.github.io/Marginalia/user/administration/cleanup.md): When users delete something in Marginalia - a book, a story part, a lorebook, an inference provider - it disappears from their lists, but stays in the database.
 - [Managing extensions](https://enerccio.github.io/Marginalia/user/administration/extensions.md): The Extensions tab of the admin page installs and removes extensions for the whole installation.
-- [Help assistant](https://enerccio.github.io/Marginalia/user/administration/help-assistant.md): The help assistant is a chat that answers questions about Marginalia from its manual. An administrator turns it on and chooses which model it uses; after that every user can ask it, without a model of their own.
+- [Help assistant](https://enerccio.github.io/Marginalia/user/administration/help-assistant.md): The help assistant is a chat that answers questions about Marginalia from its manual. An administrator chooses which model it uses and gives the permission Help assistant to the users who can ask it, in their permissions (administrators always can); they need no model of their own.
 - [Troubleshooting & FAQ](https://enerccio.github.io/Marginalia/user/troubleshooting.md): Most problems leave a trace in the log:
 
 ## Developer guide
@@ -84,6 +90,13 @@
 - [Domain model](https://enerccio.github.io/Marginalia/developer/domain-model.md): The entities Marginalia stores, how they relate, and the rules every entity follows: identity, ownership, soft delete, extended attributes and cleanup. Entities are in domain/model/ (base classes), domain/model/impl/ and domain/security/model/User.java.
 - [Database & migrations](https://enerccio.github.io/Marginalia/developer/database.md): Marginalia keeps all its data in one SQLite file. The schema is created and upgraded by Flyway migrations, and Hibernate maps the entities onto it but never changes it.
 - [Services](https://enerccio.github.io/Marginalia/developer/services.md): The service layer holds Marginalia's logic: everything the UI does to data goes through a service, and services are the main API extensions use. This page describes how services and repositories are built, how transactions and the current user work, and what each service is for.
+
+### Commands
+
+- [Commands](https://enerccio.github.io/Marginalia/developer/commands/index.md): A command is a named action with typed arguments and a return value, run by name: from the command bar the user types, from code in the application or in an extension, and later by agents (each command carries a description written for a model).
+- [Writing commands](https://enerccio.github.io/Marginalia/developer/commands/writing-commands.md): This page shows how to add commands, in the application and in a plugin. Read Commands first for the model.
+- [The command bar](https://enerccio.github.io/Marginalia/developer/commands/command-bar.md): CommandBar (package ui.components) is the input line for commands, a CompositeHorizontalLayout with a ComboBox and a run button. It is a separate component: it can be placed anywhere (a dialog, a sidebar, a toolbar).
+- [Agents](https://enerccio.github.io/Marginalia/developer/agents.md): An agent is an LLM that works on one book on its own, for a long time, and calls commands as its tools; one execution of it is a run. This page is how it all works inside: the pieces, the life of a run, what the model sees and can call, how the user is brought in, and how to add to it.
 - [Generation pipeline](https://enerccio.github.io/Marginalia/developer/generation-pipeline.md): How Marginalia turns the instruction panel into a new story part: the steps that build the prompt, how the prompt is fitted into the model's context, how the answer is streamed into the part, and the events extensions can use to change any of it.
 - [Templating & macros](https://enerccio.github.io/Marginalia/developer/templating.md): Every prompt Marginalia sends is rendered from a template: the master template, the user prompt, lorebook entries and the summary prompt. Templates are Handlebars with SillyTavern-compatible macros on top.
 - [User interface](https://enerccio.github.io/Marginalia/developer/ui.md): Marginalia's UI is written in Java with Vaadin Flow 25: the component tree lives on the server, the browser renders it with Vaadin's web components (Lumo theme, dark color scheme) and sends events back over HTTP and a push WebSocket.

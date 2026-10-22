@@ -56,9 +56,9 @@ The wand next to *Add new arc* opens a menu: *Generate an arc* and *Import from 
   lorebooks), `{{existingArcs}}` (the arcs and chapters of the outline with their states and descriptions, without
   the private notes) and `{{specification}}` (the text below). Edits here apply to this generation only.
 - *Specification* - what you want from the arc.
-- *Name tools* - shown when the Name Generator or the Name Provider plugin is loaded: the categories (with the prefix
-  `Generator: ` or `Provider: `) the model may ask names of, as in the Lore Generator. The hint about the tools of each
-  source (*Name generator hint*, *Name provider hint*, editable in the settings) is added to the end of the prompt.
+- *Tools* - the common `ToolSelectionButton`, shown while a suite of tools for the model is installed (names, places): which
+  suites and which of their categories the model may use, as in the Lore Generator. The hints of the suites (editable in the
+  tool dialog) are added to the end of the prompt. Not in the story import, the names are in the story.
 - *Generate*, which becomes a red *Stop* while the model runs. Everything else is disabled meanwhile.
 
 On the right the reasoning of the model streams in as Markdown, and once the answer starts the arc shows as it would
@@ -84,7 +84,7 @@ left, besides the model, protocol and prompt:
   highlighted when the prompt does not fit. It follows the range, the number of chapters, the prompt and the model.
 - *Prompt* - `{{backgroundLore}}`, `{{existingArcs}}`, `{{story}}` (the messages, each under a `--- Message N ---`
   heading) and `{{numberOfChapters}}`. It starts as the *Story import prompt* of the settings (default
-  `Defaults.IMPORT_PROMPT`). There are no name tools, the names are in the story.
+  `Defaults.IMPORT_PROMPT`). There are no tools, the names are in the story.
 
 ![Importing an arc from the story](../../../manual/images/plugin-arcoutline-import.png)
 
@@ -108,7 +108,7 @@ The wand on an arc opens the same kind of dialog for the chapters of that arc. O
 - *Prompt* - a template with `{{backgroundLore}}`, `{{outline}}` (the arc being worked on is marked in it),
   `{{numberOfChapters}}`, `{{generalSpecification}}` and `{{chapterSpecification}}` (one string, a numbered list of what
   you wrote for each chapter). It starts as the chapter prompt of the settings (default `Defaults.CHAPTER_GENERATION_PROMPT`).
-- Model, protocol and name tools work as for arcs.
+- Model, protocol and tools work as for arcs.
 
 On the right the arc is shown with its chapters, and the chapters the model writes are added below them as the JSON
 streams in. The answer is `{chapters: [{name, description, note}, ...]}` (terse description, full version in the note, like for
@@ -116,6 +116,19 @@ arcs); when it is valid, *Save as chapters* adds them to
 the **end of the arc**, each with the full reasoning and JSON of the request (the robot button on a chapter shows them).
 
 An arc made this way has a robot button (so has a generated chapter) that opens a popover with the reasoning and the JSON the model wrote.
+
+## Commands
+
+`ArcOutlineCommands` and `ArcGenerationCommands` register the outline and its generators for the command bar and for agents:
+`/get-arc-outline`, `/add-arc`, `/update-arc`, `/move-arc`, `/delete-arc`, `/add-outline-chapter`, `/update-outline-chapter`,
+`/move-outline-chapter`, `/delete-outline-chapter` and `/generate-arc`, `/generate-outline-chapters`, `/import-arc-from-story`
+(see the user manual for the arguments). They work on `CommandContext.getScope().getManuscript()` (the open book, or the
+working copy of an agent), address arcs and chapters by their numbers (no uuid leaves the plugin) and store the outline with
+`ArcOutlineService.save`, then `ArcOutlineService.changed(manuscript)` tells the open `ArcOutlineView` of the book to read the
+outline again (`onChange`; the view keeps the outline in memory and would overwrite the change otherwise). Updates take the
+fields they are given, deleting is the only `DESTRUCTIVE` kind and asks `context.confirm`. The generators build the prompt
+with the same `ArcOutlineService.build*Prompt` methods and schemas as the dialogs and ask the model with `ArcOutlineService.generate`
+(a blocking `infer` that checks the answer against the schema); with `save` false they only return the result.
 
 ## How it works
 
@@ -129,5 +142,5 @@ extension is loaded (`ExtensionHasCss`).
 The arcs, with their chapters inside, are stored with the book (`com.github.enerccio.marginalia.extensions.arcoutline`
 in its attributes: `arcs`), so they are included in book backups and copies. Every arc and chapter has a stable `uuid`;
 a generated arc or chapter also has `generationReasoning` and `generationResult` (the raw reasoning and JSON of the
-model). The prompts, the name generator and name provider hints and the name categories are in the user settings
+model). The prompts and the chosen tools (`tools`) are in the user settings
 (`com.github.enerccio.marginalia.extensions.arcoutline.settings` in their attributes).

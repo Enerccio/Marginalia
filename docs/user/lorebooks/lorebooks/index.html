@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845494342077">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -24,6 +24,10 @@
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/lorebooks/lorebooks/">
     <meta property="og:title" content="Creating lorebooks">
     <meta property="og:description" content="Open the Lorebooks tab. The editor shows one lorebook at a time; pick it in the Lorebook field at the top. Lorebooks belong to your account: other users don't see them.">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/lorebook-mass-edit.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Creating lorebooks">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -32,17 +36,19 @@
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/lorebooks/lorebooks/">
     <meta name="twitter:title" content="Creating lorebooks">
     <meta name="twitter:description" content="Open the Lorebooks tab. The editor shows one lorebook at a time; pick it in the Lorebook field at the top. Lorebooks belong to your account: other users don't see them.">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/lorebook-mass-edit.png">
+    <meta name="twitter:image:alt" content="Creating lorebooks">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/user/lorebooks/lorebooks.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845494342077" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -59,7 +65,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -168,15 +174,20 @@
 <h2 id="the-lorebook-editor">The lorebook editor</h2>
 <p>Open the <strong>Lorebooks</strong> tab. The editor shows one lorebook at a time; pick it in the <strong>Lorebook</strong> field at the top.
 Lorebooks belong to your account: other users don&#x27;t see them.</p>
-<p>The toolbar:</p>
+<p>The toolbar has two rows, which wrap onto more lines in a narrow window: the first for the lorebooks (<strong>Lorebook</strong> to <strong>Tag lorebooks</strong>), the second for the entries of the selected lorebook (<strong>Add Entry</strong> to <strong>Refresh</strong>).</p>
 <retype-table copy-text="| Button | |
 |---|---|
 | **Lorebook** | Selects the lorebook to edit. |
+| **Only root lorebooks** | Lists only the lorebooks that are not a sub lorebook of another one (the selected lorebook stays in the list). |
 | **Add Lorebook** | Creates a new lorebook named *New Lorebook* and selects it. |
 | **Delete Lorebook** | Deletes the selected lorebook (after confirming). |
-| Import (file icon) | **Import Marginalia Lorebook** or **Import from SillyTavern**, see [Import &amp; export](import-export.md). |
+| Import (file icon) | **Import Marginalia Lorebook**, **Import from SillyTavern** or **Import from archive** (a zip of `.md` files), see [Import &amp; export](import-export.md). |
 | Export (file icon) | Downloads the lorebook with its sub lorebooks, see [Import &amp; export](import-export.md#exporting). |
+| Tags (tags icon, last of the first row) | **Tag lorebooks**: puts a tag on many lorebooks at once, see [below](#tagging-many-at-once). Not shown for a lorebook that is open in a book. |
 | **Add Entry** | Adds an entry to the lorebook, see [Entries &amp; activation](entries.md). |
+| **Search and replace** | Changes a text in the name, text and comment of the entries of the lorebook, see [Search and replace](entries.md#search-and-replace). |
+| **Mass edit** | Opens all the entries of the lorebook and of its sub lorebooks in one table, see [Mass edit](#mass-edit). |
+| Tags (tags icon, right of **Search and replace**, second row) | **Tag entries**: puts a tag on many entries of the selected lorebook at once, see [below](#tagging-many-at-once). |
 | **Refresh** | Reloads the entries. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -192,6 +203,10 @@ Lorebooks belong to your account: other users don&#x27;t see them.</p>
 <td>Selects the lorebook to edit.</td>
 </tr>
 <tr>
+<td><strong>Only root lorebooks</strong></td>
+<td>Lists only the lorebooks that are not a sub lorebook of another one (the selected lorebook stays in the list).</td>
+</tr>
+<tr>
 <td><strong>Add Lorebook</strong></td>
 <td>Creates a new lorebook named <em>New Lorebook</em> and selects it.</td>
 </tr>
@@ -201,15 +216,31 @@ Lorebooks belong to your account: other users don&#x27;t see them.</p>
 </tr>
 <tr>
 <td>Import (file icon)</td>
-<td><strong>Import Marginalia Lorebook</strong> or <strong>Import from SillyTavern</strong>, see <a href="../import-export/">Import &amp; export</a>.</td>
+<td><strong>Import Marginalia Lorebook</strong>, <strong>Import from SillyTavern</strong> or <strong>Import from archive</strong> (a zip of <code translate="no" v-pre>.md</code> files), see <a href="../import-export/">Import &amp; export</a>.</td>
 </tr>
 <tr>
 <td>Export (file icon)</td>
 <td>Downloads the lorebook with its sub lorebooks, see <a href="../import-export/#exporting">Import &amp; export</a>.</td>
 </tr>
 <tr>
+<td>Tags (tags icon, last of the first row)</td>
+<td><strong>Tag lorebooks</strong>: puts a tag on many lorebooks at once, see <doc-anchor-trigger to="#tagging-many-at-once">below</doc-anchor-trigger>. Not shown for a lorebook that is open in a book.</td>
+</tr>
+<tr>
 <td><strong>Add Entry</strong></td>
 <td>Adds an entry to the lorebook, see <a href="../entries/">Entries &amp; activation</a>.</td>
+</tr>
+<tr>
+<td><strong>Search and replace</strong></td>
+<td>Changes a text in the name, text and comment of the entries of the lorebook, see <a href="../entries/#search-and-replace">Search and replace</a>.</td>
+</tr>
+<tr>
+<td><strong>Mass edit</strong></td>
+<td>Opens all the entries of the lorebook and of its sub lorebooks in one table, see <doc-anchor-trigger to="#mass-edit">Mass edit</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td>Tags (tags icon, right of <strong>Search and replace</strong>, second row)</td>
+<td><strong>Tag entries</strong>: puts a tag on many entries of the selected lorebook at once, see <doc-anchor-trigger to="#tagging-many-at-once">below</doc-anchor-trigger>.</td>
 </tr>
 <tr>
 <td><strong>Refresh</strong></td>
@@ -223,7 +254,7 @@ Lorebooks belong to your account: other users don&#x27;t see them.</p>
 <retype-table copy-text="| Field | |
 |---|---|
 | **Name** | The name of the lorebook, shown when you pick it for a book or as a sub lorebook. |
-| **Sub Lorebooks** | Other lorebooks whose entries are included with this one, see [below](#sub-lorebooks). |
+| **Sub Lorebooks** | Other lorebooks whose entries are included with this one, see [below](#sub-lorebooks). Click the name of a selected sub lorebook to open it. |
 | **Tags** | Tags of the whole lorebook; they count as tags of each of its entries, see [Tags](entries.md#tags). |
 | **Enabled** | When unchecked, the lorebook contributes nothing - neither its entries nor those of its sub lorebooks. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -241,7 +272,7 @@ Lorebooks belong to your account: other users don&#x27;t see them.</p>
 </tr>
 <tr>
 <td><strong>Sub Lorebooks</strong></td>
-<td>Other lorebooks whose entries are included with this one, see <doc-anchor-trigger to="#sub-lorebooks">below</doc-anchor-trigger>.</td>
+<td>Other lorebooks whose entries are included with this one, see <doc-anchor-trigger to="#sub-lorebooks">below</doc-anchor-trigger>. Click the name of a selected sub lorebook to open it.</td>
 </tr>
 <tr>
 <td><strong>Tags</strong></td>
@@ -256,6 +287,51 @@ Lorebooks belong to your account: other users don&#x27;t see them.</p>
 </div>
 </retype-table>
 <p>The rest of the editor is the list of <a href="../entries/">entries</a>. All changes are saved as you make them.</p>
+<p>Under the settings, the estimate of the tokens of the enabled entries of the lorebook is shown. The link <strong>Count with subbooks</strong> next to it adds up
+the tokens of the enabled entries of the lorebook and of all its sub lorebooks, however deep, and shows the total next to it. As when a
+story is written, a disabled sub lorebook is left out together with the lorebooks under it, and a lorebook that is a sub lorebook in more than one place counts once.
+The total is a count of the moment you click: change an entry and it disappears, click again to count again.</p>
+<p>A lorebook of a book an agent works on is shown read only (see <a href="../../agents/">Agents</a>), without <strong>Add Entry</strong>, <strong>Search and replace</strong>, <strong>Mass edit</strong>, <strong>Delete Lorebook</strong> and the settings; <strong>Add Lorebook</strong>, import, export and <strong>Refresh</strong> stay, so you can always start another lorebook.</p>
+<h2 id="mass-edit">Mass edit</h2>
+<p><strong>Mass edit</strong> opens a window with every entry of the selected lorebook <strong>and of its sub lorebooks</strong> (however deep) in one table,
+ordered by the <strong>Order</strong> of the entries (entries with the same order by lorebook, then by name). It is for tidying a big lorebook:</p>
+<ul>
+<li>
+<p>Change the <em>enabled</em> box, the <strong>Entry Name</strong>, the <strong>Order</strong>, the <strong>Tags</strong>, the <strong>Filtering Mode</strong>, the <strong>Filtering</strong>, the <strong>Insertion Mode</strong>, the
+<strong>Negative Tags</strong> and the <strong>Note</strong> of an entry in place, as in the editor. Every entry is one line; the table scrolls down (and to the side when the
+window is narrow). The row moves to its new place when you change the order. The text of an entry is shortened in the table; open the entry in
+the lorebook to read or edit all of it.</p>
+</li>
+<li>
+<p>The <strong>Lorebook</strong> box of a row says in which lorebook the entry is. Pick another one (the lorebook itself or any of its sub lorebooks) to move the entry there.</p>
+</li>
+<li>
+<p>To move many entries, tick them (the box in the header ticks all), pick <strong>Move to lorebook</strong> at the bottom and press <strong>Move checked</strong>.</p>
+</li>
+<li>
+<p>A lorebook that an agent works on is locked: its entries are grayed out and can not be changed or moved, and nothing can be moved into
+it. This is checked for each lorebook, so a lorebook can be free while one of its sub lorebooks is locked (it is used by another book).
+<strong>Refresh</strong> reads the window again to see whether a lock is gone.</p>
+</li>
+</ul>
+<p>The lorebook in the editor is refreshed when the window is closed after a change.</p>
+<figure class="content-center">
+    <img src="../../../images/lorebook-mass-edit.png" alt="Mass edit of a lorebook and its sub lorebooks" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1400" height="765" />
+    <figcaption class="caption">Mass edit of a lorebook and its sub lorebooks</figcaption>
+</figure>
+<h2 id="tagging-many-at-once">Tagging many at once</h2>
+<p>The two tags buttons of the toolbar open one window that puts a tag on many items, or takes it off them: <strong>Tag lorebooks</strong> lists
+your lorebooks, <strong>Tag entries</strong> the entries of the selected lorebook. Pick the <strong>Tag</strong> (or type a new one and press Enter);
+the list shows every item with its tags, and the items that have the picked tag come first with the tag highlighted. A row&#x27;s
+<strong>+</strong> and <strong>-</strong> buttons apply or remove the tag for that item; tick several items (the box in the header ticks all) and
+use <strong>Apply the tag to the checked</strong> or <strong>Remove the tag from the checked</strong> at the bottom to do it for all of them. An item
+an agent works on (a lorebook of a book with a running agent, and so all its entries) is grayed out and can not be changed
+until the run is paused or stopped. The window also tags <a href="../../books/managing-books/#tagging-many-books-at-once">books</a>.
+The tags it puts on entries are the ordinary ones, see <a href="../entries/#tags">Tags</a>; negative tags are set on the entry itself.</p>
+<figure class="content-center">
+    <img src="../../../images/multi-tag-entries.png" alt="Tagging the entries of a lorebook" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="900" height="720" />
+    <figcaption class="caption">Tagging the entries of a lorebook</figcaption>
+</figure>
 <h2 id="using-a-lorebook-in-a-book">Using a lorebook in a book</h2>
 <p>Open the book and its <strong>Lorebook</strong> tab, and pick the lorebook in the <strong>Lorebook</strong> field. The editor below shows the
 lorebook, so you can add and change entries while you write. Clear the field to write without a lorebook.</p>
@@ -286,6 +362,10 @@ only once.</p>
 <p>A disabled sub lorebook is left out together with everything it includes.</p>
 </li>
 </ul>
+<figure class="content-center">
+    <img src="../../../images/lorebook-sub-lorebooks.png" alt="A lorebook with two sub lorebooks: the tokens with and without them" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">A lorebook with two sub lorebooks: the tokens with and without them</figcaption>
+</figure>
 <p>The entries of all included lorebooks are put together and sorted by their <a href="../entries/#order-and-insertion">order</a>,
 regardless of which lorebook they come from.</p>
 <h2 id="disabling-and-deleting">Disabling and deleting</h2>
@@ -332,7 +412,7 @@ affected.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License.</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
             </footer>
         </div>
     </div>

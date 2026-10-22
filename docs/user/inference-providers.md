@@ -7,6 +7,10 @@ local one for experiments, and switch a book between them at any time.
 Providers belong to your account. Other users don't see them or their API keys. API keys are stored encrypted (see
 [The data folder](administration/index.md#the-data-folder)).
 
+Adding a provider needs the permission **Create own models**, which an administrator gives you (administrators always
+have it, see [Permissions](administration/permissions.md)). Without it you can only use the providers the
+administrators [share](#shared-providers) with you; the **Add Inference Provider** button is not shown.
+
 ![The Inference Providers tab](../images/inference-providers-list.png)
 
 ## Supported APIs
@@ -63,7 +67,7 @@ The tab is taller than the dialog and scrolls. The lower fields:
 | **OpenAI URL (ends with /v1)** | The base address of the API, see [the table above](#supported-apis). Without `/chat/completions`. |
 | **Api Key** | The key of the service. A local server usually doesn't check it: leave the field empty and Marginalia sends the placeholder `none`. |
 | **Model** | The model to use. Click **Refresh** to load the list of models from the API, or type the model ID yourself (e.g. `anthropic/claude-sonnet-4.5` on OpenRouter). |
-| **Timeout (seconds)** | How long to wait for the API to answer, and for more text once it started writing. The default is 300. Reasoning models may need minutes before the first text; a request that hears nothing for this long fails with a timeout message. |
+| **Timeout (seconds)** | How long to wait for the API to answer, and for more text once it started writing. The default is 300. Reasoning models may need minutes before the first text; a request that hears nothing for this long fails with a timeout message (the thinking of a model counts as text, so a model that keeps thinking is not cut). A change is used by the next request, also of an agent that is working. |
 | **Retries** | How often a request is repeated when the API answers with a rate limit (429) or a server error (5xx), or cannot be reached. The wait between attempts grows, and a `Retry-After` header of the API is respected. The default is 2, 0 turns retrying off. Only the start of a request is retried, text that already arrived is never written twice. |
 | **Additional Parameters** | A JSON object with extra fields for every request to this provider, e.g. `{"top_k": 40, "min_p": 0.05}` for a local server, or `{"provider": {"order": ["anthropic"]}}` for OpenRouter. A field set here wins over the same setting from the [protocol](protocols.md) (e.g. `temperature`) or the response limit (`max_completion_tokens`). Must be a valid JSON object or empty. |
 
@@ -87,6 +91,7 @@ test then only needs the one-token answer.
 |---|---|
 | **Max Context Size** | Required. How many tokens the model accepts in total, prompt and response together. |
 | **Max Response Tokens** | Required. The longest response the model may write. Sent to the API as `max_completion_tokens`, and this much of the context is kept free for the response. Must be lower than *Max Context Size*. |
+| **Concurrent requests of agents** | Optional, for a server that answers one request (or a few) at a time. How many requests of [agents](agents.md#one-model-several-agents) may be on the way to this provider at once, the others wait their turn. Empty is no limit. Your own writing in the story window is not queued. |
 | **Needs Jailbreak**, **Jailbreak Prompt** | An extra prompt for models that refuse to write some content. When checked, the jailbreak prompt is put at the very beginning of the prompt. |
 | **Enable Reasoning**, **Reasoning Effort** | For reasoning ("thinking") models, see [Reasoning models](#reasoning-models). |
 

@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.ChatMessageRepository;
+import com.github.enerccio.marginalia.domain.service.search.LikePatterns;
 import jakarta.persistence.TypedQuery;
 
 import java.util.*;
@@ -107,6 +108,32 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
     }
 
     @Override
+    public void reparentChildrenExcept(ChatMessage targetNode, ChatMessage newParent) throws Exception {
+        if (targetNode == null || newParent == null) {
+            return;
+        }
+        entityManager.createQuery(
+                        "UPDATE ChatMessage m SET m.parent = :newParent WHERE m.parent = :targetNode AND m <> :newParent"
+                )
+                .setParameter("newParent", newParent)
+                .setParameter("targetNode", targetNode)
+                .executeUpdate();
+    }
+
+    @Override
+    public void reparentRootsUnder(Manuscript manuscript, ChatMessage newRoot) throws Exception {
+        if (manuscript == null || newRoot == null) {
+            return;
+        }
+        entityManager.createQuery(
+                        "UPDATE ChatMessage m SET m.parent = :newRoot WHERE m.parent IS NULL AND m.parentScript = :manuscript AND m <> :newRoot"
+                )
+                .setParameter("newRoot", newRoot)
+                .setParameter("manuscript", manuscript)
+                .executeUpdate();
+    }
+
+    @Override
     public List<Long> findDescendantIds(ChatMessage message) throws Exception {
         List<Long> descendants = new ArrayList<>();
         if (message == null || message.getId() == null) {
@@ -173,6 +200,13 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
     }
 
     @Override
+    public List<ChatMessage> getAllMessagesIncludingDeleted(Manuscript manuscript) throws Exception {
+        return getEntityManager().createQuery("SELECT m FROM ChatMessage m WHERE m.parentScript = ?1 ORDER BY m.id", ChatMessage.class)
+                .setParameter(1, manuscript)
+                .getResultList();
+    }
+
+    @Override
     public List<Object[]> findFulltexts(Manuscript manuscript, List<List<String>> likePatterns) throws Exception {
         StringBuilder query = new StringBuilder("SELECT m.id, m._fulltext FROM ChatMessage m WHERE m.parentScript = :manuscript AND m.deleted = false");
         Map<String, Object> parameters = new HashMap<>();
@@ -190,6 +224,33 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
         TypedQuery<Object[]> q = getEntityManager().createQuery(query.toString(), Object[].class)
                 .setParameter("manuscript", manuscript);
         parameters.forEach(q::setParameter);
+        return q.getResultList();
+    }
+
+    @Override
+    public List<Object[]> findFulltextsContaining(Manuscript manuscript, String literal) throws Exception {
+        return fulltextsContaining("SELECT m.id, m._fulltext FROM ChatMessage m WHERE m.parentScript = :manuscript AND m.deleted = false",
+                "m._fulltext", manuscript, literal);
+    }
+
+    @Override
+    public List<Object[]> findSummaryFulltextsContaining(Manuscript manuscript, String literal) throws Exception {
+        return fulltextsContaining("SELECT m.id, m.summary.id, m.summary._fulltext FROM ChatMessage m WHERE m.parentScript = :manuscript"
+                        + " AND m.deleted = false AND m.summary IS NOT NULL AND m.summary.deleted = false",
+                "m.summary._fulltext", manuscript, literal);
+    }
+
+    private List<Object[]> fulltextsContaining(String select, String column, Manuscript manuscript, String literal) {
+        StringBuilder query = new StringBuilder(select);
+        if (literal != null) {
+            query.append(" AND ").append(column).append(" LIKE :pattern ESCAPE '\\'");
+        }
+        query.append(" ORDER BY m.creation");
+        TypedQuery<Object[]> q = getEntityManager().createQuery(query.toString(), Object[].class)
+                .setParameter("manuscript", manuscript);
+        if (literal != null) {
+            q.setParameter("pattern", "%" + LikePatterns.literal(literal) + "%");
+        }
         return q.getResultList();
     }
 

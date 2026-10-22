@@ -334,6 +334,13 @@ public class MockLLMServer implements AutoCloseable {
         body.addProperty("created", System.currentTimeMillis() / 1000);
         body.addProperty("model", model);
         body.add("choices", choices);
+        if (response.getPromptTokens() != null) {
+            JsonObject usage = new JsonObject();
+            usage.addProperty("prompt_tokens", response.getPromptTokens());
+            usage.addProperty("completion_tokens", response.getCompletionTokens());
+            usage.addProperty("total_tokens", response.getPromptTokens() + response.getCompletionTokens());
+            body.add("usage", usage);
+        }
         return body;
     }
 

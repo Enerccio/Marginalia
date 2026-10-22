@@ -1,5 +1,8 @@
 package com.github.enerccio.marginalia.extensions.arcoutline.model;
 
+import com.github.enerccio.marginalia.domain.service.tool.ToolSelection;
+import com.github.enerccio.marginalia.extensions.arcoutline.names.LegacyNameTools;
+
 import java.util.List;
 
 /**
@@ -15,10 +18,14 @@ public class ArcOutlineSettings {
     private String chapterGenerationPrompt;
     /** The template of the prompt for importing an arc from the story, see {@code Defaults.IMPORT_PROMPT}. */
     private String importPrompt;
-    /** Hint about the name tools added to the prompt when name categories are selected. */
-    private String nameToolsPrompt;
-    /** Categories of the name generator and name provider (with the prefix of the source) the model may use; none selected means no tools. */
+    /** The tools the model may use, chosen in the tool dialog; none checked means no tools. */
+    private ToolSelection tools;
+    /** The name categories (with the prefix of their source) saved before the tools were chosen in the tool dialog; read once. */
     private List<String> nameCategories;
+    /** The hint the user wrote for the name generator, saved before the tool dialog; read once. */
+    private String nameToolsPrompt;
+    /** The hint the user wrote for the name provider, saved before the tool dialog; read once. */
+    private String nameProviderPrompt;
 
     public String getGenerationPrompt() {
         return generationPrompt;
@@ -44,30 +51,24 @@ public class ArcOutlineSettings {
         this.importPrompt = importPrompt;
     }
 
-    public String getNameToolsPrompt() {
-        return nameToolsPrompt;
+    public ToolSelection getTools() {
+        return tools;
     }
 
-    public void setNameToolsPrompt(String nameToolsPrompt) {
-        this.nameToolsPrompt = nameToolsPrompt;
+    public void setTools(ToolSelection tools) {
+        this.tools = tools;
     }
 
-    /** Hint about the real name tools added to the generation prompt; blank means {@code Defaults.NAME_PROVIDER_PROMPT}. */
-    private String nameProviderPrompt;
-
-    public String getNameProviderPrompt() {
-        return nameProviderPrompt;
-    }
-
-    public void setNameProviderPrompt(String nameProviderPrompt) {
-        this.nameProviderPrompt = nameProviderPrompt;
-    }
-
-    public List<String> getNameCategories() {
-        return nameCategories;
-    }
-
-    public void setNameCategories(List<String> nameCategories) {
-        this.nameCategories = nameCategories;
+    /**
+     * Turns what was saved before the tool dialog into {@link #getTools()} when there is no choice yet, and forgets it:
+     * what is saved next has only the new form.
+     */
+    public void migrateLegacyNameTools() {
+        if (tools == null) {
+            tools = LegacyNameTools.migrate(nameCategories, nameToolsPrompt, nameProviderPrompt);
+        }
+        nameCategories = null;
+        nameToolsPrompt = null;
+        nameProviderPrompt = null;
     }
 }

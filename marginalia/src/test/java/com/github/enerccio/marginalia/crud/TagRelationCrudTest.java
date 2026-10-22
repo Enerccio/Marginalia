@@ -135,6 +135,30 @@ class TagRelationCrudTest extends ExtendableCrudContract<TagRelation> {
     }
 
     @Test
+    void theTagsOfManyObjectsComeInOneGoWithoutTheNegativeOnes() throws Exception {
+        LorebookEntry first = entry("first");
+        LorebookEntry second = entry("second");
+        LorebookEntry untagged = entry("untagged");
+        Tag other = tag("other");
+        tagRelationService.createRelation(tag, first);
+        tagRelationService.createRelation(other, first);
+        tagRelationService.createRelation(tag, second, true);
+        tagRelationService.createRelation(other, second);
+
+        java.util.Map<Long, java.util.List<Tag>> tags = tagRelationService
+                .getTagsForObjects(java.util.List.of(first.getId(), second.getId(), untagged.getId()), LorebookEntry.class);
+
+        assertThat(tags.get(first.getId())).extracting(Tag::getValue).containsExactlyInAnyOrder("magic", "other");
+        assertThat(tags.get(second.getId())).extracting(Tag::getValue).containsExactly("other");
+        assertThat(tags).doesNotContainKey(untagged.getId());
+        // the class counts: the same number as the id of a lorebook does not bring the tags of the entry. Other tests of the
+        // JVM may have tagged a lorebook with that number, so the answer is not asked to be empty, only free of this test's tag
+        assertThat(tagRelationService.getTagsForObjects(java.util.List.of(first.getId()), Lorebook.class).values().stream()
+                .flatMap(java.util.List::stream).map(Tag::getId)).doesNotContain(other.getId());
+        assertThat(tagRelationService.getTagsForObjects(java.util.List.of(), LorebookEntry.class)).isEmpty();
+    }
+
+    @Test
     void unsavedObjectsAreRejectedOrEmpty() throws Exception {
         assertThatThrownBy(() -> tagRelationService.createRelation(tag, new Lorebook()))
                 .isInstanceOf(IllegalArgumentException.class);

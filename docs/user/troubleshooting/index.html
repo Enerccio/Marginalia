@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845494342077">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845494342077" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845494342077" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846005664026" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -60,7 +60,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -194,6 +194,8 @@
 </div>
 </retype-table>
 <p>Error dialogs in the application (<em>Internal Server Error</em>) show the error as well; the log has the full details.</p>
+<p>When you report a problem, include the version text in the bottom left corner of the page (for example
+<code translate="no" v-pre>Marginalia 1.4.0 (93ec118)</code>: the version and the Git commit of the build).</p>
 <h2 id="installing-and-starting">Installing and starting</h2>
 <p><strong>macOS says the app &quot;is damaged&quot; or &quot;can&#x27;t be opened&quot;.</strong>
 The app isn&#x27;t signed yet. Right-click it and choose <em>Open</em>, or run
@@ -209,7 +211,7 @@ extension (see <doc-anchor-trigger to="#extensions">below</doc-anchor-trigger>).
 <p><strong>Docker: port 8080 is already in use.</strong>
 Change the left side of the port mapping in <code translate="no" v-pre>docker-compose.yml</code>, e.g. <code translate="no" v-pre>&quot;8081:8080&quot;</code>, and open port 8081.</p>
 <p><strong>Marginalia is slow or stops with &quot;OutOfMemoryError&quot;.</strong>
-Raise the memory: <code translate="no" v-pre>-Xmx1g</code> (or more) in <code translate="no" v-pre>JAVA_TOOL_OPTIONS</code> in <code translate="no" v-pre>docker-compose.yml</code>.</p>
+Raise the memory: <code translate="no" v-pre>-Xmx2g</code> (or more) in <code translate="no" v-pre>JAVA_TOOL_OPTIONS</code> in <code translate="no" v-pre>docker-compose.yml</code>.</p>
 <h2 id="logging-in">Logging in</h2>
 <p><strong>&quot;Save login&quot; doesn&#x27;t keep me logged in.</strong>
 Saved logins need HTTPS on a server. Put Marginalia behind a reverse proxy with HTTPS, see
@@ -235,6 +237,12 @@ backup.</li>
 Behind a reverse proxy, the proxy must forward WebSockets and allow long requests - see the nginx example in
 <a href="../getting-started/docker-server/#https-and-reverse-proxy">Server (Docker)</a>. With the desktop app, the app was probably
 quit; start it again.</p>
+<p><strong>The workspace freezes the browser when it opens.</strong>
+Marginalia opens again what you had open when you left, so a very long book (for example one imported from an
+archive) can freeze the page before you can change anything. Open <code translate="no" v-pre>/reset</code> on your Marginalia address (for example
+<code translate="no" v-pre>https://marginalia.example.com/reset</code>) and log in: the saved state of the workspace (open books, selected tabs,
+filters) is forgotten and you land in an empty workspace. Then set <strong>Parts loaded at once in the story</strong> in your
+<a href="../account/">account</a> before you open the book again.</p>
 <h2 id="models-and-generation">Models and generation</h2>
 <p><strong>&quot;Failed to download model list&quot;.</strong>
 Check that the URL ends with <code translate="no" v-pre>/v1</code>, the API key is right and the model server is running. Some services don&#x27;t list
@@ -372,7 +380,7 @@ Not yet: the interface is in English, with a dark theme.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License.</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
             </footer>
         </div>
     </div>

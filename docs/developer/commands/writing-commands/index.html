@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="turbo-root" content="/Marginalia">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
+
+    <!-- See retype.com -->
+    <meta name="generator" content="Retype 4.6.0">
+
+    <!-- Primary Meta Tags -->
+    <title>Writing commands</title>
+    <meta name="title" content="Writing commands">
+    <meta name="description" content="This page shows how to add commands, in the application and in a plugin. Read Commands first for the model.">
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://enerccio.github.io/Marginalia/developer/commands/writing-commands/">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="https://enerccio.github.io/Marginalia/sitemap.xml">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://enerccio.github.io/Marginalia/developer/commands/writing-commands/">
+    <meta property="og:title" content="Writing commands">
+    <meta property="og:description" content="This page shows how to add commands, in the application and in a plugin. Read Commands first for the model.">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/command-confirm.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Writing commands">
+    <meta property="og:site_name" content="Marginalia">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/developer/commands/writing-commands/">
+    <meta name="twitter:title" content="Writing commands">
+    <meta name="twitter:description" content="This page shows how to add commands, in the application and in a plugin. Read Commands first for the model.">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/command-confirm.png">
+    <meta name="twitter:image:alt" content="Writing commands">
+
+    <!-- Alternate Markdown -->
+    <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/developer/commands/writing-commands.md">
+
+    <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
+
+    <link href="../../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
+
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846005664026" defer></script>
+</head>
+<body>
+    <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
+    <div class="absolute bottom-0 left-0" style="top: 5rem; right: 50%"></div>
+
+    <header id="retype-header" class="sticky top-0 z-30 flex w-full h-16 bg-header-bg border-b border-header-border md:h-20">
+        <div class="container relative flex items-center justify-between pr-6 grow md:justify-start">
+            <!-- Mobile menu button skeleton -->
+            <button v-cloak class="skeleton retype-mobile-menu-button flex items-center justify-center shrink-0 overflow-hidden dark:text-white focus:outline-hidden rounded-full w-10 h-10 ml-3.5 md:hidden"><svg xmlns="http://www.w3.org/2000/svg" class="mb-px shrink-0" width="24" height="24" viewBox="0 0 24 24" role="presentation" style="margin-bottom: 0px;"><g fill="currentColor"><path d="M2 4h20v2H2zM2 11h20v2H2zM2 18h20v2H2z"></path></g></svg></button>
+            <div v-cloak id="retype-sidebar-left-toggle-button"></div>
+    
+            <!-- Logo -->
+            <div class="flex items-center justify-between h-full py-2 md:w-75">
+                <div class="flex items-center px-2 md:px-6">
+                    <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
+                        <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
+                </div>
+    
+                <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
+            </div>
+    
+            <div class="flex justify-between md:grow">
+                <!-- Top Nav -->
+                <nav id="retype-header-nav" class="hidden md:flex">
+                    <ul class="flex flex-col mb-4 md:pl-16 md:mb-0 md:flex-row md:items-center">
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                    <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                </svg>
+                                <span>GitHub</span>
+                            </a>
+                        </li>
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                        </li>
+    
+                    </ul>
+                </nav>
+    
+                <div v-cloak class="flex justify-end grow">
+                    <div id="retype-mobile-search-button"></div>
+                    <doc-search-desktop></doc-search-desktop>
+    
+                    <doc-theme-switch class="lg:ml-2"></doc-theme-switch>
+                    <doc-history></doc-history>
+                </div>
+            </div>
+        </div>
+    </header>
+
+
+    <div id="retype-container" class="container relative flex bg-white">
+        <!-- Sidebar Skeleton -->
+        <div v-cloak class="fixed flex flex-col shrink-0 duration-300 ease-in-out bg-sidebar-left-bg border-sidebar-left-border sidebar top-20 w-75 border-r h-screen md:sticky transition-transform skeleton">
+        
+            <div class="flex items-center h-16 px-6">
+                <input id="retype-filter-input-mock" class="w-full h-10 pl-8 px-3 py-2 transition-colors duration-200 ease-linear bg-filter-bg border border-filter-border rounded-lg shadow-none md:text-sm hover:border-filter-border-hover focus:outline-hidden focus:border-filter-border-focus placeholder-filter-placeholder" type="text">
+            </div>
+        
+            <div class="pl-6 mt-1 mb-4">
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            </div>
+        
+            <div class="shrink-0 mt-auto bg-transparent dark:border-base-border">
+                <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                    <span class="text-xs whitespace-nowrap">Powered by</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Sidebar component -->
+        <doc-sidebar v-cloak>
+            <template #sidebar-footer>
+                <div class="shrink-0 mt-auto border-t md:bg-transparent md:border-none dark:border-base-border">
+        
+                    <div class="py-3 px-6 md:hidden border-b dark:border-base-border">
+                        <nav>
+                            <ul class="flex flex-wrap justify-center items-center">
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                            <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                        </svg>
+                                        <span>GitHub</span>
+                                    </a>
+                                </li>
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                                </li>
+        
+                            </ul>
+                        </nav>
+                    </div>
+        
+                    <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                        <span class="text-xs whitespace-nowrap">Powered by</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                    </a>
+                </div>
+            </template>
+        </doc-sidebar>
+
+        <div class="grow min-w-0 bg-body-bg">
+            <!-- Render "toolbar" template here on api pages --><!-- Render page content -->
+<div class="flex">
+    <div id="retype-main" class="min-w-0 p-4 grow md:px-16">
+        <main class="relative pb-12 lg:pt-2">
+            <div class="relative retype-markdown" id="retype-content">
+                <!-- Rendered if sidebar right is enabled -->
+                <div id="retype-sidebar-right-toggle"></div>
+                <doc-page-actions></doc-page-actions>
+
+                <!-- Page content  -->
+<h1 id="writing-commands">Writing commands</h1>
+<p>This page shows how to add commands, in the application and in a plugin. Read <a href="../">Commands</a> first for the model.</p>
+<h2 id="a-suite">A suite</h2>
+<p>A suite is a plain class (no interface, no base class) with public methods annotated with <code translate="no" v-pre>@Command</code>:</p>
+<div id="a-suite-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">public class DiceCommands {
+
+    @Command(commandName = &quot;roll&quot;, humanNameText = &quot;Roll a die&quot;,
+            descriptionText = &quot;Rolls a die with the given number of sides (6 when omitted).&quot;,
+            llmDescriptionText = &quot;Returns a random integer from 1 to the number of sides. No side effects.&quot;,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            signature = @CommandParameterSignature(
+                    @CommandParameter(name = &quot;sides&quot;, type = Integer.class, descriptionText = &quot;Number of sides&quot;)),
+            returns = @CommandReturn(name = &quot;result&quot;, type = Integer.class, descriptionText = &quot;The number rolled&quot;))
+    public void roll(CommandContext context) {
+        int sides = context.get(&quot;sides&quot;, Integer.class);
+        context.setReturn(ThreadLocalRandom.current().nextInt(sides) + 1);
+    }
+
+    @Command(commandName = &quot;roll&quot;, humanNameText = &quot;Roll a die&quot;,
+            descriptionText = &quot;Rolls a die with the given number of sides (6 when omitted).&quot;,
+            llmDescriptionText = &quot;Returns a random integer from 1 to the number of sides. No side effects.&quot;,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            signature = @CommandParameterSignature,
+            returns = @CommandReturn(name = &quot;result&quot;, type = Integer.class, descriptionText = &quot;The number rolled&quot;))
+    public void rollSix(CommandContext context) {
+        context.setReturn(ThreadLocalRandom.current().nextInt(6) + 1);
+    }
+}</code></pre>
+</doc-codeblock></div>
+<p><code translate="no" v-pre>/roll</code> and <code translate="no" v-pre>/roll 20</code> now work. The two methods are two forms of the command <code translate="no" v-pre>roll</code>: the same name and human name, a
+different signature. Typing <code translate="no" v-pre>/roll 20</code> is text; because the parameter is <code translate="no" v-pre>Integer.class</code> the text is converted, and
+<code translate="no" v-pre>/roll many</code> fails with a notification instead of calling the method.</p>
+<p>Rules to remember:</p>
+<ul>
+<li>
+<p>The method is <code translate="no" v-pre>public void</code> and takes only the <code translate="no" v-pre>CommandContext</code>. Anything else makes <code translate="no" v-pre>registerCommands</code> throw.</p>
+</li>
+<li>
+<p>Fill in <code translate="no" v-pre>description</code> (for the user, shown in the list and the help) and <code translate="no" v-pre>llmDescription</code> (for an agent: what it does,
+when to use it, whether it has side effects). See <doc-anchor-trigger to="#texts">Texts</doc-anchor-trigger> for how they are given.</p>
+</li>
+<li>
+<p>Declare <code translate="no" v-pre>returns</code>. The help shows it. <code translate="no" v-pre>void.class</code> is the default.</p>
+</li>
+<li>
+<p>Declare <code translate="no" v-pre>dataSeverity</code>, see <doc-anchor-trigger to="#data-severity">Data severity</doc-anchor-trigger>. The default is <code translate="no" v-pre>DESTRUCTIVE</code>; a command that does not change
+or remove anything that exists says <code translate="no" v-pre>NON_DESTRUCTIVE</code>.</p>
+</li>
+<li>
+<p>No signature means <strong>any arguments</strong>: the objects are in <code translate="no" v-pre>context.getPositional()</code>. Use it for commands like echo, or when
+the arguments are truly free-form. A declared signature that fits always wins over the any-form.</p>
+</li>
+<li>
+<p>An argument of type <code translate="no" v-pre>Object.class</code> is &quot;any&quot; and also accepts a list of objects, passed as one argument.</p>
+</li>
+<li>
+<p>A parameter can say more for an agent (it is the schema of the function, see <a href="../../agents/#commands-as-functions">Commands as functions</a>):
+<code translate="no" v-pre>optional = true</code> (it may be left out), <code translate="no" v-pre>defaultValue = &quot;0&quot;</code> (text, converted to the type), <code translate="no" v-pre>allowed = {&quot;short&quot;, &quot;long&quot;}</code> (an enum type needs
+none, its constants are the values) and, for a number, <code translate="no" v-pre>min = &quot;1&quot;</code> and <code translate="no" v-pre>max = &quot;200&quot;</code> (text too; they are the <code translate="no" v-pre>minimum</code> and <code translate="no" v-pre>maximum</code> of the schema, and a value outside them
+is refused with a message that names the limit - say them when the command would clamp or fail on such a value). Give a parameter a <code translate="no" v-pre>defaultValue</code> when the command reads it as a primitive or
+would fail on <code translate="no" v-pre>null</code>: the form an agent calls is the shortest one that has all the arguments it passed, so a parameter it left out of a longer form is <code translate="no" v-pre>null</code> unless it has a default. Without <code translate="no" v-pre>optional</code> a parameter is required when every form of the command has it, so with a ladder of forms
+that each add a parameter only the first ones are required. The command line ignores all of them.</p>
+</li>
+<li>
+<p>A parameter of the type <code translate="no" v-pre>LLMAttachment[]</code> takes <strong>images</strong> for the model the command talks to (the Lore Generator&#x27;s <code translate="no" v-pre>generate-lore-entry</code> has one, <code translate="no" v-pre>images</code>).
+An agent passes paths of image files of its workspace and the command gets the attachments (see <a href="../../agents/#images">Images</a>); the command line can&#x27;t
+convert text to attachments, so keep such a parameter in a form of its own at the end of the ladder, <code translate="no" v-pre>optional = true</code>.</p>
+</li>
+<li>
+<p>The suite is <strong>stateless</strong>. Do not keep the book, the user or the result in a field. See <a href="../#statelessness">Statelessness</a>.</p>
+</li>
+</ul>
+<h2 id="texts">Texts</h2>
+<p>Every text a command shows is given in two ways, as a pair of attributes:</p>
+<retype-table copy-text="| Attribute (localized)                      | Attribute (plain text)                         | Used for                                                     |
+|--------------------------------------------|------------------------------------------------|--------------------------------------------------------------|
+| `@Command.humanName`                       | `@Command.humanNameText`                       | Name shown to the user (required: one of the two)            |
+| `@Command.description`                     | `@Command.descriptionText`                     | What the command does, for the user                          |
+| `@Command.llmDescription`                  | `@Command.llmDescriptionText`                  | What it does and when to use it, for an agent                |
+| `@CommandParameter.description`            | `@CommandParameter.descriptionText`            | What the parameter is, in the help                           |
+| `@CommandReturn.description`               | `@CommandReturn.descriptionText`               | What the returned value is, in the help                      |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Attribute (localized)</th>
+<th>Attribute (plain text)</th>
+<th>Used for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>@Command.humanName</code></td>
+<td><code translate="no" v-pre>@Command.humanNameText</code></td>
+<td>Name shown to the user (required: one of the two)</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>@Command.description</code></td>
+<td><code translate="no" v-pre>@Command.descriptionText</code></td>
+<td>What the command does, for the user</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>@Command.llmDescription</code></td>
+<td><code translate="no" v-pre>@Command.llmDescriptionText</code></td>
+<td>What it does and when to use it, for an agent</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>@CommandParameter.description</code></td>
+<td><code translate="no" v-pre>@CommandParameter.descriptionText</code></td>
+<td>What the parameter is, in the help</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>@CommandReturn.description</code></td>
+<td><code translate="no" v-pre>@CommandReturn.descriptionText</code></td>
+<td>What the returned value is, in the help</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The localized one takes an <code translate="no" v-pre>L</code> key and is resolved in the language of the user every time it is shown (<code translate="no" v-pre>CommandText.get(loc)</code>),
+so the application&#x27;s own commands use it (<code translate="no" v-pre>humanName = L.LABEL_COMMAND_TAKE_BACKUP</code>; the key goes to <code translate="no" v-pre>L</code> and to the English,
+Japanese and Chinese bundles as usual). The plain one is for an extension that brings no translations and is shown as it is.
+The identifiers (<code translate="no" v-pre>commandName</code>, a parameter&#x27;s <code translate="no" v-pre>name</code>, the return <code translate="no" v-pre>name</code>) are not texts and stay strings.</p>
+<p>The attributes are arrays only so that &quot;not given&quot; can be told from &quot;given&quot; (the default is the empty array); write the value
+alone: <code translate="no" v-pre>humanName = L.LABEL_X</code>, <code translate="no" v-pre>humanNameText = &quot;X&quot;</code>. The human name needs one of the two; the other texts are optional. A pair may hold only one value: both
+attributes of a pair, more than one element, or none for the human name make <code translate="no" v-pre>registerCommands</code> throw <code translate="no" v-pre>IllegalArgumentException</code> that names the
+method and the attribute. The registry keeps each as a <code translate="no" v-pre>CommandText</code> (<code translate="no" v-pre>key()</code> or <code translate="no" v-pre>text()</code>, <code translate="no" v-pre>isEmpty()</code>, <code translate="no" v-pre>get(...)</code>); an
+annotation attribute needs an enum constant, so use <code translate="no" v-pre>L.X</code> directly there, not a constant that holds it.</p>
+<h2 id="data-severity">Data severity</h2>
+<p><code translate="no" v-pre>dataSeverity</code> tells the user, and later an agent, whether the command changes or removes data that exists:
+<code translate="no" v-pre>CommandDataSeverity.DESTRUCTIVE</code> (the default, also for a command that says nothing) or <code translate="no" v-pre>NON_DESTRUCTIVE</code>.</p>
+<ul>
+<li>
+<p>Use <code translate="no" v-pre>NON_DESTRUCTIVE</code> for commands that read, compute or only <strong>add</strong> (a backup, a new entry). Nothing that was there
+before changes.</p>
+</li>
+<li>
+<p>Leave <code translate="no" v-pre>DESTRUCTIVE</code> for everything that replaces, deletes, overwrites or moves existing data (search and replace, delete,
+restore, import over a book). When in doubt it is destructive: the safe assumption costs only a red label.</p>
+</li>
+<li>
+<p>All forms of one command share the value; <code translate="no" v-pre>registerCommands</code> throws when they differ.</p>
+</li>
+<li>
+<p>It is information. The service does not ask or refuse because of it, so a destructive command that has no preview still
+asks itself, see <doc-anchor-trigger to="#asking-the-user">Asking the user</doc-anchor-trigger>.</p>
+</li>
+</ul>
+<h3 id="read-only-commands">Read only commands</h3>
+<p><code translate="no" v-pre>@Command(readOnly = true)</code> declares that the command changes nothing (no book, lorebook, or data of an extension); the default is <code translate="no" v-pre>false</code>, so a command that does not say is taken to change data. The runner of an agent takes an
+automatic checkpoint before a round in which a call may change something, and a round of read only commands needs none. All forms of one command share the value (<code translate="no" v-pre>registerCommands</code> throws when they differ),
+<code translate="no" v-pre>CommandDefinition.readOnly()</code> returns it. All the read commands of the app and the <code translate="no" v-pre>get-</code> / <code translate="no" v-pre>list-</code> commands of the Arc Outline and the Character Tracker declare it.</p>
+<h3 id="batch-policy">Batch policy</h3>
+<p><code translate="no" v-pre>@Command(batch = BatchPolicy.SINGLE)</code> says that an agent should call the command <strong>alone</strong> in its answer: the calls after it
+are not made, and one that comes after other calls waits for an answer of its own. Use it for a command that is long or costly
+(one that makes a call to a model: <code translate="no" v-pre>next</code>, <code translate="no" v-pre>swipe</code>, the generators of extensions) or whose result the agent should read before it
+goes on. The default is <code translate="no" v-pre>BatchPolicy.BATCHABLE</code>. It is advice about use, not a claim about what the command does (that is
+<code translate="no" v-pre>readOnly</code>); the runner follows it unless the agent is set to <em>All together, ignore the batch policies</em>. Declare it the same on all
+forms of a command (unlike <code translate="no" v-pre>readOnly</code>, <code translate="no" v-pre>registerCommands</code> does not compare it), and <code translate="no" v-pre>@LLMFunction(batch = ...)</code> does the same for the tools of the application itself. The user sees it as the <strong>Batch</strong>
+column (<em>Together</em> / <em>Alone</em>) in the commands of an agent.</p>
+<h3 id="available-for-agents">Available for agents</h3>
+<p><code translate="no" v-pre>@Command(availableForAgent = false)</code> keeps a command from agents (the default is <code translate="no" v-pre>true</code>). Use it for a command that only
+makes sense for the user at the book window, such as <code translate="no" v-pre>/take-backup</code>, which backs up the book the user has open: an agent works on
+a copy, and its backups are the checkpoints. A command that is not available is not in the allowlist editor of the agent dialog,
+is never turned into a function for the model (<code translate="no" v-pre>CommandFunctions</code>, even when the allowlist of an older agent names it) and is not
+offered in the command box of the console; the user still runs it from the command bar. All forms of one command share the value
+(<code translate="no" v-pre>registerCommands</code> throws when they differ), <code translate="no" v-pre>CommandDefinition.availableForAgent()</code> returns it. It is independent of the
+severity, and such a command needs no <code translate="no" v-pre>llmDescription</code>.</p>
+<p>The label is shown by the command bar in the list and in the help, with an explanation as its tooltip; the texts are the keys
+<code translate="no" v-pre>LABEL_COMMAND_DESTRUCTIVE</code>, <code translate="no" v-pre>LABEL_COMMAND_NON_DESTRUCTIVE</code>, <code translate="no" v-pre>HELP_COMMAND_DESTRUCTIVE</code> and <code translate="no" v-pre>HELP_COMMAND_NON_DESTRUCTIVE</code>,
+carried by <code translate="no" v-pre>CommandDataSeverity.getLabel()</code>/<code translate="no" v-pre>getDescription()</code>.</p>
+<h2 id="reading-the-current-state">Reading the current state</h2>
+<div id="reading-the-current-state-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">@Command(commandName = &quot;book-title&quot;, humanNameText = &quot;Title of the open book&quot;, returns = @CommandReturn(name = &quot;title&quot;, type = String.class))
+public void title(CommandContext context) {
+    Manuscript book = context.getScope().getManuscript();
+    if (book == null) {
+        context.fail(new IllegalStateException(&quot;No book is open&quot;));
+        return;
+    }
+    context.setReturn(book.getName());
+}</code></pre>
+</doc-codeblock></div>
+<p><code translate="no" v-pre>getScope().getManuscript()</code> returns <code translate="no" v-pre>null</code> when nothing is open (no workspace yet, no book). The same code works in the desktop and in
+the phone layout and for an agent, whose scope is its working copy (see <a href="../#the-scope">The scope</a>); a command that must work for
+agents takes the book from the scope and does not go through the workspace or the open window itself. An item that is given to the command
+(a part, a lorebook, an entry) is found with <code translate="no" v-pre>getScope().resolveMessage(uuid)</code> and its siblings, which keep the command inside the book.
+Use the services for data; they check ownership of the current user.</p>
+<h2 id="failing">Failing</h2>
+<p>A synchronous command can throw; the caller gets a <code translate="no" v-pre>CommandException</code> with the exception as its cause. <code translate="no" v-pre>fail</code> does the same
+and is the way for code on another thread. A message intended for the user goes into the exception message – the command
+bar shows it in a notification.</p>
+<h2 id="asynchronous-commands">Asynchronous commands</h2>
+<p>Set <code translate="no" v-pre>async = true</code> when the command takes time or waits for something. Such a command:</p>
+<ul>
+<li>runs on a worker thread, never blocks the UI,</li>
+<li>may answer later, from any thread, with <code translate="no" v-pre>setReturn</code> (or <code translate="no" v-pre>fail</code>),</li>
+<li><strong>must check <code translate="no" v-pre>context.isTerminated()</code></strong> in its loops and return at once when it is true, because the user can press
+<strong>Stop</strong> in the progress window.</li>
+</ul>
+<div id="asynchronous-commands-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">@Command(commandName = &quot;slow&quot;, humanNameText = &quot;Slow job&quot;, async = true)
+public void slow(CommandContext context) {
+    for (int i = 0; i &lt; 100; i++) {
+        if (context.isTerminated() || Thread.currentThread().isInterrupted()) {
+            return;
+        }
+        doOneStep(i);
+    }
+    context.setReturn(&quot;done&quot;);
+}</code></pre>
+</doc-codeblock></div>
+<p>A part of the work that can&#x27;t be abandoned (a transaction that is being written) is marked with
+<code translate="no" v-pre>context.setUninterruptable(true)</code>; the <strong>Stop</strong> button is disabled and cancelling does nothing until you set it back to
+<code translate="no" v-pre>false</code>. See <a href="../#uninterruptable-runs">Uninterruptable runs</a>.</p>
+<p>Tell the user what is going on with <code translate="no" v-pre>context.setStatus(&quot;Taking a backup of Dune&quot;)</code> (the main line) and
+<code translate="no" v-pre>context.setSubStatus(&quot;Chapter 3 of 12&quot;)</code> (the detail under it); they appear in the progress window. Set them as the work
+advances, <code translate="no" v-pre>null</code> clears a line.</p>
+<p>Blocking calls (<code translate="no" v-pre>Thread.sleep</code>, a network call) are interrupted when the run is cancelled; let the <code translate="no" v-pre>InterruptedException</code>
+end the command or set the interrupt flag again and return. A command that is stopped should not call <code translate="no" v-pre>setReturn</code>; if it
+does, the call is ignored.</p>
+<h2 id="registering">Registering</h2>
+<h3 id="the-application">The application</h3>
+<p>Add the suite in <code translate="no" v-pre>CommandServiceImpl.afterPropertiesSet</code>:</p>
+<div id="the-application-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">registerCommands(new BackupCommands());</code></pre>
+</doc-codeblock></div>
+<p>The application&#x27;s suites are plain objects, not Spring beans, and are created with <code translate="no" v-pre>new</code>; one that needs services is
+<code translate="no" v-pre>@Configurable</code> and gets them <code translate="no" v-pre>@Autowired</code>, like the UI classes (<code translate="no" v-pre>BackupCommands</code>). Keep the logic in services and
+make the command a thin adapter that reads the current state through <code translate="no" v-pre>CommandUtils</code>.</p>
+<h3 id="a-plugin">A plugin</h3>
+<p>The plugin gets the <code translate="no" v-pre>CommandService</code> injected into its (<code translate="no" v-pre>@Configurable</code>) extension and registers the suite in
+<code translate="no" v-pre>onExtensionLoad</code>:</p>
+<div id="a-plugin-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">@Configurable
+public class DiceExtension implements MarginaliaExtension {
+
+    @Autowired
+    private CommandService commandService;
+
+    private final DiceCommands commands = new DiceCommands();
+
+    @Override
+    public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
+        commandService.registerCommands(commands);
+    }
+
+    @Override
+    public void onExtensionUnload(Bundle bundle, OsgiService osgiService, ExtensionService extensionService) {
+        commandService.unregisterCommands(commands);
+    }
+}</code></pre>
+</doc-codeblock></div>
+<p>Keep the suite instance in a field: <code translate="no" v-pre>unregisterCommands</code> takes the registered object. Unregistering in
+<code translate="no" v-pre>onExtensionUnload</code> is required – the service does not track bundles, and a command left behind would keep the class
+loader of the unloaded bundle alive. <code translate="no" v-pre>registerCommands</code> throws when a name is taken, so give plugin commands a prefix
+(<code translate="no" v-pre>dice-roll</code>) unless the name is meant to be shared.</p>
+<h2 id="running-a-command-from-code">Running a command from code</h2>
+<div id="running-a-command-from-code-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">CommandRun result = commandService.executeLine(&quot;/roll 20&quot;);   // a CompletableFuture&lt;Object&gt;; also getStatus()
+Object value = result.get();                         // blocks; fine for a synchronous command
+commandService.execute(&quot;roll&quot;, Map.of(&quot;sides&quot;, 20)); // by name
+commandService.executePositional(&quot;roll&quot;, List.of(20));</code></pre>
+</doc-codeblock></div>
+<p>Add <code translate="no" v-pre>true</code> as the last argument (<code translate="no" v-pre>executeLine(&quot;/x&quot;, true)</code>) to start the run uninterruptable; a command that is
+uninterruptable and calls another asynchronous one passes <code translate="no" v-pre>context.isUninterruptable()</code>.</p>
+<p>Do not block the UI thread on an <code translate="no" v-pre>async</code> command: use <code translate="no" v-pre>whenComplete</code> and <code translate="no" v-pre>ui.access(...)</code>. To stop it, cancel the future.</p>
+<h2 id="testing">Testing</h2>
+<p>Commands are plain classes, so they are tested without the application: create a <code translate="no" v-pre>CommandServiceImpl</code>, register the
+suite and run it (see <code translate="no" v-pre>CommandServiceTest</code> and <code translate="no" v-pre>CommandDispatchTest</code> in <code translate="no" v-pre>src/test/.../command</code>).</p>
+<div id="testing-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">CommandServiceImpl commands = new CommandServiceImpl();
+commands.registerCommands(new DiceCommands());
+assertThat(commands.executeLine(&quot;/roll 1&quot;).get()).isEqualTo(1);
+commands.destroy();   // stops the worker pool</code></pre>
+</doc-codeblock></div>
+<p>Test the dispatch (every form), the failure of a bad argument, and for an <code translate="no" v-pre>async</code> command that cancelling the future ends
+the work: assert <code translate="no" v-pre>isTerminated()</code> becomes true and the worker returns. <code translate="no" v-pre>CommandUtils</code> returns <code translate="no" v-pre>null</code> outside a session, so
+a test of a command that reads the workspace needs the request attributes (see <code translate="no" v-pre>CommandUtilsTest</code>).</p>
+<h2 id="asking-the-user">Asking the user</h2>
+<p>A command that changes data without a preview asks first. <code translate="no" v-pre>context.confirm(question)</code> asks whoever called the command: the user gets a
+yes/no dialog in the UI of the book window, on top of the progress window (so over its Stop button), the command waits on the worker thread
+and gets <code translate="no" v-pre>false</code> for no, when the run is stopped meanwhile or when there is no window; an agent is not asked again and gets yes (the
+<a href="../../agents/">destructive mode</a> of the agent decided when it called the command). Declare the command uninterruptable
+only after the answer. <code translate="no" v-pre>/search-replace-parts</code> and <code translate="no" v-pre>/search-replace-lore-entries</code> (<code translate="no" v-pre>SearchReplaceChatMessageCommand</code>,
+<code translate="no" v-pre>SearchReplaceLoreEntryCommand</code>) are the examples; their <code translate="no" v-pre>confirm</code> method is a hook that tests override.</p>
+<figure class="content-center">
+    <img src="../../../images/command-confirm.png" alt="The question of /search-replace-parts" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="800" height="320" />
+    <figcaption class="caption">The question of /search-replace-parts</figcaption>
+</figure>
+<h2 id="checklist">Checklist</h2>
+<ul class="contains-task-list">
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> Each form has <code translate="no" v-pre>description</code>, <code translate="no" v-pre>llmDescription</code> (as <code translate="no" v-pre>L</code> keys when the texts are translated), <code translate="no" v-pre>signature</code>, <code translate="no" v-pre>returns</code>.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> Each command declares <code translate="no" v-pre>dataSeverity</code> (<code translate="no" v-pre>NON_DESTRUCTIVE</code> only when nothing that exists is changed or removed).</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> The suite has no state of a run or a user in fields.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> <code translate="no" v-pre>async</code> commands look at <code translate="no" v-pre>isTerminated()</code>.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> A plugin unregisters its suites in <code translate="no" v-pre>onExtensionUnload</code>.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> The user guide or the plugin&#x27;s documentation lists the command and its arguments.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> <code translate="no" v-pre>CHANGELOG.MD</code> mentions new commands.</li>
+</ul>
+
+                
+                <!-- Required only on API pages -->
+                <doc-toolbar-member-filter-no-results></doc-toolbar-member-filter-no-results>
+            </div>
+            <footer id="retype-content-footer" class="clear-both">
+            
+                <nav id="retype-nextprev" class="print:hidden flex mt-14">
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../../developer/commands/">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                            <span>
+                                <span class="block text-xs font-normal text-base-text-muted">Previous</span>
+                                <span class="block mt-1">Commands</span>
+                            </span>
+                        </a>
+                    </div>
+            
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../developer/commands/command-bar/">
+                            <span>
+                                <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
+                                <span class="block mt-1">The command bar</span>
+                            </span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                        </a>
+                    </div>
+                </nav>
+            </footer>
+        </main>
+
+        <div id="retype-page-footer" class="print:border-none border-t border-base-border pt-6 mb-8">
+            <footer class="flex flex-wrap items-center justify-between print:justify-center">
+                <div id="retype-footer-links" class="print:hidden">
+                    <ul class="flex flex-wrap items-center text-sm">
+                    </ul>
+                </div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Rendered if sidebar right is enabled -->
+    <!-- Sidebar right skeleton-->
+    <div v-cloak class="fixed top-0 bottom-0 right-0 translate-x-full bg-sidebar-right-bg border-sidebar-right-border lg:sticky lg:border-l lg:shrink-0 lg:pt-6 lg:translate-x-0 sm:w-1/2 lg:w-64 lg:z-0 md:w-104 sidebar-right skeleton">
+        <div class="pl-5">
+            <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+        </div>
+    </div>
+
+    <!-- User should be able to hide sidebar right -->
+    <doc-sidebar-right v-cloak></doc-sidebar-right>
+</div>
+
+        </div>
+    </div>
+
+    <doc-search-mobile></doc-search-mobile>
+    <doc-back-to-top></doc-back-to-top>
+</div>
+
+
+    <div id="retype-overlay-target"></div>
+
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Writing commands", level: 3, icon: "file", hasPrism: true, hasInstagram: false, hasMermaid: false, hasMath: false, tocDepth: 23, "md": "/developer/commands/writing-commands.md" }</script>
+</body>
+</html>

@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Tag;
 import com.github.enerccio.marginalia.domain.model.impl.TagRelation;
 import com.github.enerccio.marginalia.domain.repository.TagRelationRepository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -47,6 +48,12 @@ public interface TagRelationService extends ExtendableService<TagRelation, TagRe
     List<Tag> getTagsForObject(Long objectId, Class<?> clazz) throws Exception;
 
     List<Tag> getTagsForObject(Long objectId, Class<?> clazz, boolean negative) throws Exception;
+
+    /**
+     * The tags (positive relations) of each of the objects in one go, keyed by object id; an object without a tag is
+     * not in the map.
+     */
+    Map<Long, List<Tag>> getTagsForObjects(Collection<Long> objectIds, Class<?> clazz) throws Exception;
 
     List<Long> getObjectIdsForTag(Tag tag, Class<?> clazz) throws Exception;
 

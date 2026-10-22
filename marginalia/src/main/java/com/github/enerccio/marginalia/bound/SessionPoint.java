@@ -1,7 +1,12 @@
 package com.github.enerccio.marginalia.bound;
 
+import com.github.enerccio.marginalia.domain.model.impl.AI;
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.loc.Language;
+import com.github.enerccio.marginalia.ui.dialogs.ManuscriptWindow;
+import com.github.enerccio.marginalia.ui.workspace.ManuscriptSection;
+import com.github.enerccio.marginalia.ui.workspace.Workspace;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,6 +18,8 @@ import java.util.List;
 public class SessionPoint {
 
     private volatile Language language;
+
+    private volatile Workspace workspace;
 
     private final List<LLMChatMessage> helpChat = Collections.synchronizedList(new ArrayList<>());
 
@@ -28,6 +35,56 @@ public class SessionPoint {
 
     public void setLanguage(Language language) {
         this.language = language;
+    }
+
+    /**
+     * The workspace of the page the user logged in on, {@code null} before the login completes. It is the way for code
+     * that has no UI component at hand (a command, a service) to reach what the user sees: the open part, the open book.
+     * A session shared by several browser tabs holds the workspace of the page that logged in last; the workspace of
+     * a given page is {@code ApplicationPoint.getUIs().get(ui)}. Touching its components from a thread without the UI
+     * lock goes through {@code ui.access(...)}.
+     */
+    public Workspace getWorkspace() {
+        return workspace;
+    }
+
+    public void setWorkspace(Workspace workspace) {
+        this.workspace = workspace;
+    }
+
+    /**
+     * The book list of the workspace, null before the workspace exists.
+     */
+    public ManuscriptSection getManuscriptSection() {
+        Workspace current = getWorkspace();
+        return current == null ? null : current.getManuscriptSection();
+    }
+
+    /**
+     * The window of the book that is open (the {@code ManuscriptDialog} or the {@code PhoneManuscriptDialog}), null when
+     * there is no workspace or no book is open. {@link AgenticSessionPoint} has no window.
+     */
+    public ManuscriptWindow getManuscriptWindow() {
+        Workspace current = getWorkspace();
+        return current == null ? null : current.getOpenManuscriptWindow();
+    }
+
+    /**
+     * The book the commands of this session work on: here the one the user has open, the window's own copy of it (see
+     * {@link ManuscriptWindow#getManuscript()}). Null when there is none. {@link AgenticSessionPoint} holds the book
+     * directly.
+     */
+    public Manuscript getCurrentManuscript() {
+        ManuscriptWindow window = getManuscriptWindow();
+        return window == null ? null : window.getManuscript();
+    }
+
+    /**
+     * The model of {@link #getCurrentManuscript()}; null when there is no book or the book has no model.
+     */
+    public AI getCurrentAI() {
+        ManuscriptWindow window = getManuscriptWindow();
+        return window == null ? null : window.getAi();
     }
 
     /**

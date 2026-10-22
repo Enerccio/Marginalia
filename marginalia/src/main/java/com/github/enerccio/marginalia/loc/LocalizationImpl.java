@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.collections.*;
 import com.github.enerccio.marginalia.domain.model.Setting;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.security.model.User;
+import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookDecision;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookMatch;
@@ -41,6 +42,9 @@ public class LocalizationImpl implements Localization, InitializingBean {
     private final Map<CleanupReference.Policy, L> cleanupPolicies = new HashMap<>();
     private final Map<LorebookMatch, L> lorebookMatches = new HashMap<>();
     private final Map<LorebookDecision, L> lorebookDecisions = new HashMap<>();
+    private final Map<PermissionType, L> permissionTypes = new HashMap<>();
+    private final Map<AgentRunStatus, L> agentRunStatuses = new HashMap<>();
+    private final Map<DestructiveCommandMode, L> destructiveModes = new HashMap<>();
     private final Map<Class<?>, L> domainObjects = new HashMap<>();
 
     public LocalizationImpl() {
@@ -88,6 +92,27 @@ public class LocalizationImpl implements Localization, InitializingBean {
         limitStrategies.put(LimitStrategy.TOKEN_LIMIT, L.ENUM_LIMIT_TOKEN_LIMIT);
         limitStrategies.put(LimitStrategy.NOT_AVAILABLE, L.ENUM_LIMIT_NOT_AVAILABLE);
 
+        permissionTypes.put(PermissionType.HELPER, L.ENUM_PERMISSION_HELPER);
+        permissionTypes.put(PermissionType.CREATE_AI, L.ENUM_PERMISSION_CREATE_AI);
+        permissionTypes.put(PermissionType.AGENTS, L.ENUM_PERMISSION_AGENTS);
+        permissionTypes.put(PermissionType.NOTIFICATIONS, L.ENUM_PERMISSION_NOTIFICATIONS);
+
+        agentRunStatuses.put(AgentRunStatus.RUNNING, L.ENUM_AGENT_RUN_RUNNING);
+        agentRunStatuses.put(AgentRunStatus.IDLE, L.ENUM_AGENT_RUN_IDLE);
+        agentRunStatuses.put(AgentRunStatus.WAITING_APPROVAL, L.ENUM_AGENT_RUN_WAITING_APPROVAL);
+        agentRunStatuses.put(AgentRunStatus.PAUSING, L.ENUM_AGENT_RUN_PAUSING);
+        agentRunStatuses.put(AgentRunStatus.PAUSED, L.ENUM_AGENT_RUN_PAUSED);
+        agentRunStatuses.put(AgentRunStatus.STOPPING, L.ENUM_AGENT_RUN_STOPPING);
+        agentRunStatuses.put(AgentRunStatus.STOPPED_KEPT, L.ENUM_AGENT_RUN_STOPPED_KEPT);
+        agentRunStatuses.put(AgentRunStatus.STOPPED_DISCARDED, L.ENUM_AGENT_RUN_STOPPED_DISCARDED);
+        agentRunStatuses.put(AgentRunStatus.DONE, L.ENUM_AGENT_RUN_DONE);
+        agentRunStatuses.put(AgentRunStatus.FAILED, L.ENUM_AGENT_RUN_FAILED);
+        agentRunStatuses.put(AgentRunStatus.APPLIED, L.ENUM_AGENT_RUN_APPLIED);
+
+        destructiveModes.put(DestructiveCommandMode.AUTO, L.ENUM_DESTRUCTIVE_MODE_AUTO);
+        destructiveModes.put(DestructiveCommandMode.ASK, L.ENUM_DESTRUCTIVE_MODE_ASK);
+        destructiveModes.put(DestructiveCommandMode.DENY, L.ENUM_DESTRUCTIVE_MODE_DENY);
+
         resetStrategies.put(ResetStrategy.DAILY, L.ENUM_RESET_DAILY);
         resetStrategies.put(ResetStrategy.WEEKLY, L.ENUM_RESET_WEEKLY);
         resetStrategies.put(ResetStrategy.MONTHLY, L.ENUM_RESET_MONTHLY);
@@ -98,6 +123,8 @@ public class LocalizationImpl implements Localization, InitializingBean {
 
         filteringModes.put(FilteringMode.TEXT, L.ENUM_FILTERING_MODE_TEXT);
         filteringModes.put(FilteringMode.REGEX, L.ENUM_FILTERING_MODE_REGEX);
+        filteringModes.put(FilteringMode.KEYWORDS_OR, L.ENUM_FILTERING_MODE_KEYWORDS_OR);
+        filteringModes.put(FilteringMode.KEYWORDS_AND, L.ENUM_FILTERING_MODE_KEYWORDS_AND);
 
         insertionModes.put(InsertionMode.IN_LORE_BLOCK, L.ENUM_INSERTION_MODE_IN_LORE_BLOCK);
         insertionModes.put(InsertionMode.BEFORE_USER_PROMPT, L.ENUM_INSERTION_MODE_BEFORE_USER_PROMPT);
@@ -122,6 +149,8 @@ public class LocalizationImpl implements Localization, InitializingBean {
         domainObjects.put(Summary.class, L.LABEL_SUMMARY);
         domainObjects.put(AI.class, L.LABEL_MODEL);
         domainObjects.put(Protocol.class, L.ENUM_DOMAIN_PROTOCOL);
+        domainObjects.put(Agent.class, L.ENUM_DOMAIN_AGENT);
+        domainObjects.put(AgentRun.class, L.ENUM_DOMAIN_AGENT_RUN);
         domainObjects.put(Tag.class, L.ENUM_DOMAIN_TAG);
         domainObjects.put(TagRelation.class, L.ENUM_DOMAIN_TAG_RELATION);
         domainObjects.put(Resource.class, L.ENUM_DOMAIN_RESOURCE);
@@ -137,6 +166,17 @@ public class LocalizationImpl implements Localization, InitializingBean {
             }
         }
         return missing.toString();
+    }
+
+    @Override
+    public String getValue(Language language, L l) {
+        LocalizationBundle bundle = language == null ? null : bundles.get(language);
+        String text = bundle == null ? null : bundle.getValue(l);
+        if (text == null) {
+            LocalizationBundle fallback = bundles.get(defaultLanguage);
+            text = fallback == null ? null : fallback.getValue(l);
+        }
+        return text == null ? "NOT LOCALIZED!" : text;
     }
 
     @Override
@@ -290,6 +330,21 @@ public class LocalizationImpl implements Localization, InitializingBean {
     @Override
     public L getLimitStrategy(LimitStrategy type) {
         return limitStrategies.get(type);
+    }
+
+    @Override
+    public L getPermissionType(PermissionType type) {
+        return permissionTypes.get(type);
+    }
+
+    @Override
+    public L getAgentRunStatus(AgentRunStatus type) {
+        return agentRunStatuses.get(type);
+    }
+
+    @Override
+    public L getDestructiveCommandMode(DestructiveCommandMode type) {
+        return destructiveModes.get(type);
     }
 
     @Override

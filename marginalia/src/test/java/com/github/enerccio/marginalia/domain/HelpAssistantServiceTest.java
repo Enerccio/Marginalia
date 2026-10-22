@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.components.AILimit;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
 import com.github.enerccio.marginalia.domain.model.impl.Usage;
 import com.github.enerccio.marginalia.domain.security.model.User;
+import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
 import com.github.enerccio.marginalia.domain.service.AILimitService;
 import com.github.enerccio.marginalia.domain.service.HelpAssistantService;
 import com.github.enerccio.marginalia.domain.service.HelpAssistantService.Settings;
@@ -54,10 +55,32 @@ class HelpAssistantServiceTest extends MarginaliaTestBase {
     private OpenAICompatible ai;
 
     /** The settings belong to the installation and outlive the test, so each test starts from the defaults. */
+    /** What the permission of the users created from now on says, see {@link #enable} and {@link #allowInteractions}. */
+    private boolean applyLimits;
+    private boolean interactions;
+
+    /** Everybody the help is asked by has the permission, {@code MarginaliaTestBase#setPermission} takes it away. */
+    @Override
+    protected User createUser() throws Exception {
+        User user = super.createUser();
+        updatePermission(user, PermissionType.HELPER, permission -> {
+            permission.setGranted(true);
+            permission.setHelperApplyLimits(applyLimits);
+            permission.setHelperInteractions(interactions);
+        });
+        return user;
+    }
+
+    /** The users created from now on may be moved through the interface by the model. */
+    private void allowInteractions() throws Exception {
+        helpService.saveSettings(new Settings(ai.getUuid()));
+        interactions = true;
+    }
+
     @BeforeEach
     void resetSettings() throws Exception {
         loginAdmin();
-        helpService.saveSettings(new Settings(false, null, false));
+        helpService.saveSettings(new Settings(null));
     }
 
     /** The administrator's AI, shared or not. */
@@ -69,7 +92,8 @@ class HelpAssistantServiceTest extends MarginaliaTestBase {
     }
 
     private void enable(boolean applyLimits) throws Exception {
-        helpService.saveSettings(new Settings(true, ai.getUuid(), applyLimits));
+        this.applyLimits = applyLimits;
+        helpService.saveSettings(new Settings(ai.getUuid()));
     }
 
     private InferenceCollector ask() throws Exception {
@@ -90,17 +114,38 @@ class HelpAssistantServiceTest extends MarginaliaTestBase {
     }
 
     @Test
-    void isOffUntilAnAdministratorTurnsItOn() throws Exception {
+    void isOffUntilAnAdministratorPicksAnAi() throws Exception {
         adminSetup(false);
 
         assertThat(helpService.isAvailable()).isFalse();
-        assertThat(helpService.getSettings()).isEqualTo(new Settings(false, null, false));
+        assertThat(helpService.getSettings()).isEqualTo(new Settings(null));
 
         enable(false);
 
-        assertThat(helpService.getSettings()).isEqualTo(new Settings(true, ai.getUuid(), false));
+        assertThat(helpService.getSettings()).isEqualTo(new Settings(ai.getUuid()));
         loginAs(createUser());
-        assertThat(helpService.isAvailable()).as("for everybody").isTrue();
+        assertThat(helpService.isAvailable()).as("for a user with the permission").isTrue();
+    }
+
+    @Test
+    void needsThePermissionHelperForUsersButNotForAdministrators() throws Exception {
+        adminSetup(false);
+        enable(false);
+        User user = loginAs(createUser());
+        assertThat(helpService.isAvailable()).isTrue();
+
+        loginAdmin();
+        setPermission(user, PermissionType.HELPER, false);
+        assertThat(helpService.isAvailable()).as("administrators always can").isTrue();
+
+        loginAs(user);
+        assertThat(helpService.isAvailable()).isFalse();
+        assertThat(helpService.getInfo()).isNull();
+        assertThatThrownBy(this::ask).isInstanceOf(InferenceException.class)
+                .extracting(e -> ((InferenceException) e).getType()).isEqualTo(Type.NOT_AVAILABLE);
+
+        loginAs(super.createUser());
+        assertThat(helpService.isAvailable()).as("no permission at all").isFalse();
     }
 
     @Test
@@ -110,7 +155,7 @@ class HelpAssistantServiceTest extends MarginaliaTestBase {
         loginAs(createUser());
 
         assertThatThrownBy(() -> helpService.getSettings()).isInstanceOf(SecurityException.class);
-        assertThatThrownBy(() -> helpService.saveSettings(new Settings(false, null, false)))
+        assertThatThrownBy(() -> helpService.saveSettings(new Settings(null)))
                 .isInstanceOf(SecurityException.class);
         assertThat(helpService.isAvailable()).isTrue();
     }
@@ -121,20 +166,21 @@ class HelpAssistantServiceTest extends MarginaliaTestBase {
         OpenAICompatible adminAi = ai;
         loginAdmin();
 
-        assertThatThrownBy(() -> helpService.saveSettings(new Settings(true, adminAi.getUuid(), false)))
+        assertThatThrownBy(() -> helpService.saveSettings(new Settings(adminAi.getUuid())))
                 .as("a shared AI of another administrator").isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> helpService.saveSettings(new Settings(true, "nope", false)))
+        assertThatThrownBy(() -> helpService.saveSettings(new Settings("nope")))
                 .as("unknown").isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
-    void anEnabledAssistantNeedsAnAi() throws Exception {
+    void isNotAvailableWithoutAnAi() throws Exception {
         adminSetup(false);
 
-        assertThatThrownBy(() -> helpService.saveSettings(new Settings(true, null, false)))
-                .isInstanceOf(IllegalArgumentException.class);
-        helpService.saveSettings(new Settings(false, ai.getUuid(), false));
+        helpService.saveSettings(new Settings(null));
+        assertThat(helpService.isAvailable()).isFalse();
+        helpService.saveSettings(new Settings(ai.getUuid()));
         assertThat(helpService.getSettings().aiUuid()).isEqualTo(ai.getUuid());
+        assertThat(helpService.isAvailable()).isTrue();
     }
 
     @Test
@@ -295,7 +341,7 @@ class HelpAssistantServiceTest extends MarginaliaTestBase {
     @Test
     void anAdministratorCanChangeBothPrompts() throws Exception {
         adminSetup(false);
-        helpService.saveSettings(new Settings(true, ai.getUuid(), false, "Custom admin prompt.\n{{manualIndex}}", "Custom user prompt."));
+        helpService.saveSettings(new Settings(ai.getUuid(), "Custom admin prompt.\n{{manualIndex}}", "Custom user prompt."));
         llm.enqueue(MockLLMResponse.text("a"), MockLLMResponse.text("b"));
 
         assertThat(helpService.getSettings().adminPrompt()).startsWith("Custom admin prompt.");
@@ -315,7 +361,7 @@ class HelpAssistantServiceTest extends MarginaliaTestBase {
     void aPromptThatIsBlankOrTheDefaultIsStoredAsTheDefault() throws Exception {
         adminSetup(false);
 
-        helpService.saveSettings(new Settings(false, ai.getUuid(), false, HelpPrompts.ADMIN, "   "));
+        helpService.saveSettings(new Settings(ai.getUuid(), HelpPrompts.ADMIN, "   "));
 
         Settings stored = helpService.getSettings();
         assertThat(stored.adminPrompt()).isNull();
@@ -400,10 +446,10 @@ class HelpAssistantServiceTest extends MarginaliaTestBase {
     }
 
     @Test
-    void interactionsAreOffUntilAnAdministratorAllowsThem() throws Exception {
+    void interactionsAreOffUntilTheirPermissionAllowsThem() throws Exception {
         adminSetup(false);
         enable(false);
-        assertThat(helpService.getSettings().interactions()).isFalse();
+        loginAs(createUser());
         llm.enqueue(MockLLMResponse.text("a"));
 
         askWith(new RecordingScreen());
@@ -414,8 +460,7 @@ class HelpAssistantServiceTest extends MarginaliaTestBase {
     @Test
     void theModelCanMoveThroughTheInterfaceWhenAllowed() throws Exception {
         adminSetup(false);
-        helpService.saveSettings(new Settings(true, ai.getUuid(), false, null, null, true));
-        assertThat(helpService.getSettings().interactions()).isTrue();
+        allowInteractions();
         loginAs(createUser());
         RecordingScreen screen = new RecordingScreen();
         llm.enqueue(MockLLMResponse.toolCall("get_ui_state", "{}"),
@@ -435,7 +480,8 @@ class HelpAssistantServiceTest extends MarginaliaTestBase {
     @Test
     void aSequenceOfInteractionsIsPassedOnInOrder() throws Exception {
         adminSetup(false);
-        helpService.saveSettings(new Settings(true, ai.getUuid(), false, null, null, true));
+        allowInteractions();
+        loginAs(createUser());
         RecordingScreen screen = new RecordingScreen();
         llm.enqueue(MockLLMResponse.toolCall("interact_with_ui",
                         "{\"path\":\"UI/Main/DesktopWorkspace/AdminPart\",\"interactions\":[\"open-tab:Users\",\"open-tab:Cleanup\"]}"),
@@ -449,7 +495,8 @@ class HelpAssistantServiceTest extends MarginaliaTestBase {
     @Test
     void anEmptySequenceIsRefused() throws Exception {
         adminSetup(false);
-        helpService.saveSettings(new Settings(true, ai.getUuid(), false, null, null, true));
+        allowInteractions();
+        loginAs(createUser());
         RecordingScreen screen = new RecordingScreen();
         llm.enqueue(MockLLMResponse.toolCall("interact_with_ui", "{\"path\":\"UI\",\"interactions\":[]}"),
                 MockLLMResponse.text("done"));
@@ -463,7 +510,8 @@ class HelpAssistantServiceTest extends MarginaliaTestBase {
     @Test
     void withoutAPageThereIsNothingToInteractWith() throws Exception {
         adminSetup(false);
-        helpService.saveSettings(new Settings(true, ai.getUuid(), false, null, null, true));
+        allowInteractions();
+        loginAs(createUser());
         llm.enqueue(MockLLMResponse.text("a"));
 
         askAndWait();
@@ -502,7 +550,7 @@ class HelpAssistantServiceTest extends MarginaliaTestBase {
     @Test
     void whatToDoWhenSomethingFailsIsNotLostWithACustomPrompt() throws Exception {
         adminSetup(false);
-        helpService.saveSettings(new Settings(true, ai.getUuid(), false, "Custom admin prompt.", null));
+        helpService.saveSettings(new Settings(ai.getUuid(), "Custom admin prompt.", null));
         llm.enqueue(MockLLMResponse.text("a"));
 
         askAndWait();
@@ -526,7 +574,7 @@ class HelpAssistantServiceTest extends MarginaliaTestBase {
     @Test
     void anAdministratorCanReadTheAdministrationDataWhenAllowed() throws Exception {
         adminSetup(false);
-        helpService.saveSettings(new Settings(true, ai.getUuid(), false, null, null, false, true));
+        helpService.saveSettings(new Settings(ai.getUuid(), null, null, true));
         assertThat(helpService.getSettings().adminData()).isTrue();
         llm.enqueue(MockLLMResponse.toolCall("get_admin_data", "{\"topic\":\"users\"}"),
                 MockLLMResponse.toolCall("get_admin_data", "{\"topic\":\"backups\"}"),
@@ -546,7 +594,7 @@ class HelpAssistantServiceTest extends MarginaliaTestBase {
     @Test
     void anUnknownTopicOrExtensionIsRefusedWithWhatThereIs() throws Exception {
         adminSetup(false);
-        helpService.saveSettings(new Settings(true, ai.getUuid(), false, null, null, false, true));
+        helpService.saveSettings(new Settings(ai.getUuid(), null, null, true));
         llm.enqueue(MockLLMResponse.toolCall("get_admin_data", "{\"topic\":\"passwords\"}"),
                 MockLLMResponse.toolCall("read_extension_log", "{\"extension\":\"sidequery\"}"),
                 MockLLMResponse.text("done"));
@@ -561,7 +609,7 @@ class HelpAssistantServiceTest extends MarginaliaTestBase {
     @Test
     void otherUsersNeverGetTheAdministrationDataEvenWhenAllowed() throws Exception {
         adminSetup(false);
-        helpService.saveSettings(new Settings(true, ai.getUuid(), false, null, null, false, true));
+        helpService.saveSettings(new Settings(ai.getUuid(), null, null, true));
         loginAs(createUser());
         llm.enqueue(MockLLMResponse.text("a"));
 

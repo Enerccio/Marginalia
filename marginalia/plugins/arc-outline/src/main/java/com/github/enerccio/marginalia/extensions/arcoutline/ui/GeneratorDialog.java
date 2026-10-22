@@ -1,5 +1,8 @@
 package com.github.enerccio.marginalia.extensions.arcoutline.ui;
 
+import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
+import com.github.enerccio.marginalia.domain.service.tool.ToolSelection;
+import com.github.enerccio.marginalia.ui.widgets.ToolSelectionButton;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
@@ -9,10 +12,8 @@ import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
-import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.structured.PartialJson;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.ArcOutlineSettings;
-import com.github.enerccio.marginalia.extensions.arcoutline.names.NameToolsBridge;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService.ModelSelection;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -62,7 +63,7 @@ public abstract class GeneratorDialog extends Dialog {
 
     private ModelProtocolPicker modelPicker;
     private TextAreaPopoverComponent promptArea;
-    private Button nameToolsButton;
+    private ToolSelectionButton toolsButton;
     private Button generateButton;
     private Button exitButton;
     private Button saveButton;
@@ -72,8 +73,6 @@ public abstract class GeneratorDialog extends Dialog {
     private Div previewHolder;
     private Span status;
 
-    /** Categories of the name generator the model gets. */
-    private List<String> nameCategories;
     private boolean generating;
     private CancellationToken running;
 
@@ -107,10 +106,10 @@ public abstract class GeneratorDialog extends Dialog {
     protected abstract String variables();
 
     /**
-     * Whether the model may get the name tools (the button is shown when the Name Generator extension is loaded).
+     * Whether the model may get tools (the button is shown when a tool suite is installed: names, places...).
      * Not for a dialog whose names are in its input already.
      */
-    protected boolean supportsNameTools() {
+    protected boolean supportsTools() {
         return true;
     }
 
@@ -131,10 +130,10 @@ public abstract class GeneratorDialog extends Dialog {
      * The prompt to send.
      *
      * @param template  the template in the prompt field
-     * @param nameFunctions the name functions the model gets, null for none (the hint about each kind is added to the prompt)
+     * @param tools     what the model gets, {@link ToolSet#NONE} for none (the hints of the tools are added to the prompt)
      * @throws Exception when the template is not valid
      */
-    protected abstract String buildPrompt(String template, FunctionSet nameFunctions) throws Exception;
+    protected abstract String buildPrompt(String template, ToolSet tools) throws Exception;
 
     /** The JSON schema of the answer, for the generation that is about to start. */
     protected abstract JsonNode schema();
@@ -192,7 +191,6 @@ public abstract class GeneratorDialog extends Dialog {
      */
     protected final void build() {
         ArcOutlineSettings settings = loadSettings();
-        nameCategories = NameToolsBridge.normalize(settings.getNameCategories());
         String prompt = promptTemplate(settings);
 
         // less padding than the default of the dialog and tight spacing, the texts get the room
@@ -219,11 +217,10 @@ public abstract class GeneratorDialog extends Dialog {
         promptArea.addValueChangeListener(_ -> promptOrModelChanged());
         modelPicker.addSelectionListener(this::promptOrModelChanged);
 
-        // only when the Name Generator extension is loaded
-        nameToolsButton = new Button("Name tools", Solid.SIGNATURE.create(), _ -> openNameToolsDialog());
-        nameToolsButton.setTooltipText("Let the model get names from the Name Generator (made up names) and the Name Provider (real names) extensions");
-        nameToolsButton.setVisible(supportsNameTools() && service.nameCategories() != null);
-        refreshNameToolsLabel();
+        // shown only when a tool suite is installed
+        toolsButton = new ToolSelectionButton();
+        toolsButton.setValue(settings.getTools());
+        toolsButton.addValueChangeListener(this::rememberTools);
 
         generateButton = new Button("Generate", Solid.WAND_MAGIC_SPARKLES.create(), _ -> {
             if (generating) {
@@ -233,7 +230,7 @@ public abstract class GeneratorDialog extends Dialog {
             }
         });
 
-        HorizontalLayout buttons = new HorizontalLayout(nameToolsButton, generateButton);
+        HorizontalLayout buttons = supportsTools() ? new HorizontalLayout(toolsButton, generateButton) : new HorizontalLayout(generateButton);
         buttons.setWidthFull();
         buttons.setAlignItems(FlexComponent.Alignment.CENTER);
         buttons.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
@@ -301,37 +298,18 @@ public abstract class GeneratorDialog extends Dialog {
         }
     }
 
-    // --- name tools ---
+    // --- tools ---
 
-    private void refreshNameToolsLabel() {
-        List<String> available = service.nameCategories();
-        int selected = 0;
-        if (available != null && nameCategories != null) {
-            selected = (int) nameCategories.stream().filter(available::contains).count();
+    /** Saves the choice as the one the dialogs open with next time. */
+    private void rememberTools(ToolSelection selection) {
+        try {
+            // read again, the settings may have been changed in the meantime
+            ArcOutlineSettings settings = service.getSettings();
+            settings.setTools(selection);
+            service.saveSettings(settings);
+        } catch (Exception ex) {
+            UIUtils.internalServerError(loc, ex);
         }
-        nameToolsButton.setText(selected > 0 ? "Name tools (" + selected + ")" : "Name tools");
-    }
-
-    /** The categories of the name generator to check, with the ones saved before checked. */
-    private void openNameToolsDialog() {
-        List<String> available = service.nameCategories();
-        if (available == null) {
-            Notification.warning("Neither the Name Generator nor the Name Provider extension is loaded");
-            nameToolsButton.setVisible(false);
-            return;
-        }
-        new NameToolsDialog(available, nameCategories, checked -> {
-            try {
-                // read again, the settings may have been changed in the meantime
-                ArcOutlineSettings settings = service.getSettings();
-                nameCategories = checked;
-                settings.setNameCategories(nameCategories);
-                service.saveSettings(settings);
-                refreshNameToolsLabel();
-            } catch (Exception ex) {
-                UIUtils.internalServerError(loc, ex);
-            }
-        }).open();
     }
 
     // --- inference ---
@@ -347,8 +325,8 @@ public abstract class GeneratorDialog extends Dialog {
         }
         try {
             // the hint about the tools is added only when the model gets them
-            FunctionSet nameFunctions = supportsNameTools() ? service.nameFunctions(nameCategories) : null;
-            String prompt = buildPrompt(promptArea.getValue(), nameFunctions);
+            ToolSet tools = supportsTools() ? service.tools(toolsButton.getValue()) : ToolSet.NONE;
+            String prompt = buildPrompt(promptArea.getValue(), tools);
             JsonNode schema = schema();
             // forget the last generation only when there is a new one to make
             reset();
@@ -358,7 +336,7 @@ public abstract class GeneratorDialog extends Dialog {
             generating = true;
             updateControls();
             try {
-                running = inference.stream(service.toPayload(prompt), modelPicker.getProtocol(), schema, nameFunctions,
+                running = inference.stream(service.toPayload(prompt), modelPicker.getProtocol(), schema, tools.functions(),
                         callback(ui));
             } catch (Exception e) {
                 // nothing runs, do not leave the controls frozen
@@ -472,7 +450,7 @@ public abstract class GeneratorDialog extends Dialog {
         modelPicker.setEnabled(!generating);
         promptArea.setEnabled(!generating);
         setInputsEnabled(!generating);
-        nameToolsButton.setEnabled(!generating);
+        toolsButton.setEnabled(!generating);
         exitButton.setEnabled(!generating);
         saveButton.setEnabled(!generating && hasResult());
 

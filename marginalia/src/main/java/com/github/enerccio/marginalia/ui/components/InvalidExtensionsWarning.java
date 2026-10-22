@@ -3,6 +3,10 @@ package com.github.enerccio.marginalia.ui.components;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
+import com.github.enerccio.marginalia.domain.traits.APILocals;
+import com.github.enerccio.marginalia.domain.traits.APIReturn;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -22,6 +26,7 @@ import java.util.List;
  * asked to tell the administrator. Nothing is shown (the component is hidden) when every extension is fine.
  */
 @Configurable
+@Extendable
 public class InvalidExtensionsWarning extends HorizontalLayout {
 
     @Autowired
@@ -43,6 +48,8 @@ public class InvalidExtensionsWarning extends HorizontalLayout {
     /**
      * Builds the bar; the injected services are there only after the constructor.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = InvalidExtensionsWarning.class))
     public InvalidExtensionsWarning create() {
         setWidthFull();
         setSpacing(true);
@@ -57,6 +64,12 @@ public class InvalidExtensionsWarning extends HorizontalLayout {
     /**
      * Looks which extensions are invalid now and shows or hides the bar.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "invalid", type = List.class),
+                    @APILocals(name = "text", type = Span.class),
+                    @APILocals(name = "names", type = StringBuilder.class),
+                    @APILocals(name = "bundle", type = Bundle.class)})
     public void refresh() {
         List<Bundle> invalid = osgiService == null ? List.of() : osgiService.getInvalidExtensions();
         setVisible(!invalid.isEmpty());

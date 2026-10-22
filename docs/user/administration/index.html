@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845494342077">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -24,6 +24,10 @@
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/administration/">
     <meta property="og:title" content="Administration">
     <meta property="og:description" content="Administrators manage the Marginalia installation: user accounts, database backups, cleanup of deleted data and extensions. The first account, created on the first start, is an administrator; it can make other users administrators too.">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/admin-agents.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Administration">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -32,17 +36,19 @@
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/administration/">
     <meta name="twitter:title" content="Administration">
     <meta name="twitter:description" content="Administrators manage the Marginalia installation: user accounts, database backups, cleanup of deleted data and extensions. The first account, created on the first start, is an administrator; it can make other users administrators too.">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/admin-agents.png">
+    <meta name="twitter:image:alt" content="Administration">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/user/administration/index.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845494342077" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -59,7 +65,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -171,13 +177,14 @@ it can make other users administrators too.</p>
 <p>Administrators are also normal users with their own books - they don&#x27;t see other users&#x27; books, lorebooks or settings.</p>
 <h2 id="the-admin-page">The Admin page</h2>
 <p>Administrators have an <strong>Admin</strong> button at the bottom of the workspace. It is only in the normal layout: the
-<a href="../phone/">phone layout</a> (a window narrower than 768 pixels) has no Admin page, so open Marginalia in a wider window (and reload the page) for administration. It opens the admin page with five tabs:</p>
+<a href="../phone/">phone layout</a> (a window narrower than 768 pixels) has no Admin page, so open Marginalia in a wider window (and reload the page) for administration. It opens the admin page with six tabs:</p>
 <retype-table copy-text="| Tab | |
 |---|---|
-| **Users** | Creating, editing and deleting accounts. See [Users](users.md). |
+| **Users** | Creating, editing and deleting accounts, and giving users [permissions](permissions.md). See [Users](users.md). |
 | **Database Backups** | Backups of the whole database, on demand or on a schedule, and restoring them. See [Database backups](database-backups.md). |
 | **Cleanup** | Permanently removing deleted data. See [Cleanup](cleanup.md). |
-| **Help assistant** | The chat that answers questions from the manual: on or off, the model and who pays for it. See [Help assistant](help-assistant.md). |
+| **Help assistant** | The chat that answers questions from the manual: the model, the prompts and who pays for it. See [Help assistant](help-assistant.md). |
+| **Agents** | The system prompt and the compaction prompt that agents follow when neither they nor their user have one of their own. Empty is the built-in prompt; the info icon has **Insert Default Template**, which fills it in so you can edit a copy. What users may do with agents is their [permission](permissions.md). Also **Agents may send messages to the webhooks of users**: the server calls the address a user typed in their settings when an agent needs them and they have the application closed ([When you are not there](../agents.md#when-you-are-not-there)); turn it off where that is not acceptable. |
 | **Extensions** | Installing and removing extensions. See [Managing extensions](extensions.md). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -190,7 +197,7 @@ it can make other users administrators too.</p>
 <tbody>
 <tr>
 <td><strong>Users</strong></td>
-<td>Creating, editing and deleting accounts. See <a href="users/">Users</a>.</td>
+<td>Creating, editing and deleting accounts, and giving users <a href="permissions/">permissions</a>. See <a href="users/">Users</a>.</td>
 </tr>
 <tr>
 <td><strong>Database Backups</strong></td>
@@ -202,7 +209,11 @@ it can make other users administrators too.</p>
 </tr>
 <tr>
 <td><strong>Help assistant</strong></td>
-<td>The chat that answers questions from the manual: on or off, the model and who pays for it. See <a href="help-assistant/">Help assistant</a>.</td>
+<td>The chat that answers questions from the manual: the model, the prompts and who pays for it. See <a href="help-assistant/">Help assistant</a>.</td>
+</tr>
+<tr>
+<td><strong>Agents</strong></td>
+<td>The system prompt and the compaction prompt that agents follow when neither they nor their user have one of their own. Empty is the built-in prompt; the info icon has <strong>Insert Default Template</strong>, which fills it in so you can edit a copy. What users may do with agents is their <a href="permissions/">permission</a>. Also <strong>Agents may send messages to the webhooks of users</strong>: the server calls the address a user typed in their settings when an agent needs them and they have the application closed (<a href="../agents/#when-you-are-not-there">When you are not there</a>); turn it off where that is not acceptable.</td>
 </tr>
 <tr>
 <td><strong>Extensions</strong></td>
@@ -212,6 +223,10 @@ it can make other users administrators too.</p>
 </table>
 </div>
 </retype-table>
+<figure class="content-center">
+    <img src="../../images/admin-agents.png" alt="The Agents tab of the Admin page" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">The Agents tab of the Admin page</figcaption>
+</figure>
 <h2 id="the-data-folder">The data folder</h2>
 <p>Everything Marginalia stores is in the <code translate="no" v-pre>.marginalia</code> folder in the home directory of the user that runs it (<code translate="no" v-pre>./data</code>
 on the host with the <a href="../getting-started/docker-server/">Docker setup</a>):</p>
@@ -222,6 +237,8 @@ on the host with the <a href="../getting-started/docker-server/">Docker setup</a
 | `db-backups/` | [Database backups](database-backups.md). |
 | `data/&lt;login&gt;/backups/manuscripts/&lt;book id&gt;/` | [Book backups](../books/backups.md) of each user. |
 | `extensions/` | Installed [extension](extensions.md) JARs. |
+| `agent-workspaces/&lt;agent id&gt;/` | The files of an [agent](../agents.md#the-working-copy) (its notes and reports, which it keeps between runs). |
+| `agent-runs/&lt;run id&gt;/` | What a run of an agent keeps: the start of the book (to show you the changes, removed with the working copy), the checkpoints and the findings (removed when the run is purged by the cleanup). |
 | `desktop/logs/` | Logs of the [desktop app](../getting-started/desktop-app.md). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -251,6 +268,14 @@ on the host with the <a href="../getting-started/docker-server/">Docker setup</a
 <tr>
 <td><code translate="no" v-pre>extensions/</code></td>
 <td>Installed <a href="extensions/">extension</a> JARs.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>agent-workspaces/&lt;agent id&gt;/</code></td>
+<td>The files of an <a href="../agents/#the-working-copy">agent</a> (its notes and reports, which it keeps between runs).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>agent-runs/&lt;run id&gt;/</code></td>
+<td>What a run of an agent keeps: the start of the book (to show you the changes, removed with the working copy), the checkpoints and the findings (removed when the run is purged by the cleanup).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>desktop/logs/</code></td>
@@ -300,7 +325,7 @@ copied at any time.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License.</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
             </footer>
         </div>
     </div>

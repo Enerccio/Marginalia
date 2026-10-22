@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 @Configurable
+@Extendable
 public class ErrorDialog {
 
     @Autowired
@@ -34,10 +36,22 @@ public class ErrorDialog {
         this.cause = cause;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     public void open() {
         open(true);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "showDetails", type = boolean.class)},
+            locals = {@APILocals(name = "dialog", type = Dialog.class),
+                    @APILocals(name = "errorIcon", type = Icon.class),
+                    @APILocals(name = "stackTrace", type = String.class),
+                    @APILocals(name = "scrollPanel", type = ScrollPanel.class),
+                    @APILocals(name = "messageText", type = Div.class),
+                    @APILocals(name = "close", type = Button.class),
+                    @APILocals(name = "buttons", type = HorizontalLayout.class)})
     public void open(boolean showDetails) {
         Dialog dialog = new Dialog();
         dialog.setModality(ModalityMode.STRICT);

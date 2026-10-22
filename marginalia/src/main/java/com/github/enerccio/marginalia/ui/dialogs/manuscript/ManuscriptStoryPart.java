@@ -11,15 +11,19 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationR
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
-import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.RestorableState;
+import com.github.enerccio.marginalia.ui.components.CommandBar;
+import com.github.enerccio.marginalia.ui.components.CommandResultView;
 import com.github.enerccio.marginalia.ui.components.LorebookPreview;
 import com.github.enerccio.marginalia.ui.components.MessageImages;
 import com.github.enerccio.marginalia.ui.dialogs.*;
+import com.github.enerccio.marginalia.ui.dialogs.search.ManuscriptSearchReplaceDialog;
 import com.github.enerccio.marginalia.ui.dialogs.story.*;
+import com.github.enerccio.marginalia.ui.widgets.LazyContextMenu;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
 import com.github.enerccio.marginalia.utils.GeneratedTextHighlighter;
+import com.github.enerccio.marginalia.utils.MarkdownArchive;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -103,6 +107,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     private LorebookPreview lorebookPreview;
 
     private MenuBar menuBar;
+    private CommandBar commandBar;
+    private CommandResultView commandResultView;
     private MenuItem summariesMenuItem;
     private MenuItem cogsMenuItem;
     private MenuItem changeStyles;
@@ -119,6 +125,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
     private final StoryCards<ChatMessageCard> cards = new StoryCards<>();
     private final StorySupport support = new StorySupport();
+    private StoryLazyLoader<ChatMessageCard> lazyLoader;
     private final StoryBackup backup = new StoryBackup();
     private Long scrollToMessageId;
 
@@ -162,7 +169,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         centerContentPanel.setSizeFull();
         centerContentPanel.addClassName(CssStyles.STORY_SCROLL_PANEL);
 
-        setupScrollListener();
+        lazyLoader = new StoryLazyLoader<>(centerContentPanel, cards, ChatMessageCard::new, () -> isFrozen, loc);
 
         bottomControlsLayout = buildBottomControls();
 
@@ -178,12 +185,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
         container.add(loc.getValue(L.LABEL_STORY_PART), mainLayout);
         return mainLayout;
-    }
-
-    @PublicAPI(from = "1.1.0",
-            returns = @APIReturn(type = void.class))
-    private void setupScrollListener() {
-        support.trackScrollPosition(centerContentPanel, () -> currentManuscript, () -> isFrozen);
     }
 
     @PublicAPI(from = "1.1.0",
@@ -217,9 +218,25 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
         layout.add(menuBar);
         layout.setFlexGrow(1, menuBar);
+        layout.add(createCommandBox());
         layout.add(actionButton);
 
         return layout;
+    }
+
+    /**
+     * The command line next to the menu. The story tab is the place that shows the results: the bar only hands them to
+     * its result target, here a popover above the bar (like the help of the bar) that moves nothing in the layout.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class))
+    private Component createCommandBox() {
+        commandBar = new CommandBar();
+        commandBar.addClassName(CssStyles.COMMAND_BOX);
+        commandResultView = new CommandResultView();
+        commandResultView.create(commandBar);
+        commandBar.setResultTarget(commandResultView);
+        return commandBar;
     }
 
     /**
@@ -269,6 +286,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         MenuItem cogs = bar.addItem(Solid.COGS.create());
         changeStyles = createChangeStylesMenuItem(cogs);
         highlightGenerated = createHighlightGeneratedMenuItem(cogs);
+        createSearchReplaceMenuItem(cogs);
+        createImportArchiveMenuItem(cogs);
         createExportMenuItem(cogs);
         return cogs;
     }
@@ -314,6 +333,57 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         for (ChatMessageCard card : cards.values()) {
             card.renderResponse();
         }
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = MenuItem.class),
+            parameters = {@APIParameter(name = "cogs", type = MenuItem.class)})
+    private MenuItem createSearchReplaceMenuItem(MenuItem cogs) {
+        return cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.EXCHANGE_ALT.create(), loc.getValue(L.LABEL_SEARCH_AND_REPLACE)),
+                event -> openSearchReplaceDialog());
+    }
+
+    /**
+     * Opens the search and replace of the book, the story is shown again when something was replaced.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = ManuscriptSearchReplaceDialog.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void openSearchReplaceDialog() {
+        try {
+            ManuscriptSearchReplaceDialog dialog = new ManuscriptSearchReplaceDialog(parent.refreshManuscript(), false);
+            dialog.onReplaced(() -> {
+                try {
+                    load(parent.refreshManuscript());
+                } catch (Exception e) {
+                    UIUtils.internalServerError(loc, e);
+                }
+            });
+            dialog.open();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = MenuItem.class),
+            parameters = {@APIParameter(name = "cogs", type = MenuItem.class)})
+    private MenuItem createImportArchiveMenuItem(MenuItem cogs) {
+        return cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.FILE_IMPORT.create(), loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE)),
+                event -> openArchiveImportDialog());
+    }
+
+    /**
+     * Asks for a zip archive of {@code .md} files and adds a part for each file to the end of the story, see
+     * {@link ArchiveImportService#appendParts}; the story is shown again.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
+    private void openArchiveImportDialog() {
+        ArchiveUploadDialog.show(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE), loc.getValue(L.MSG_IMPORT_ARCHIVE_TO_BOOK),
+                (archive, fileName) -> new ArchiveImportRunner().appendParts(parent.refreshManuscript(), MarkdownArchive.read(archive),
+                        imported -> load(parent.refreshManuscript())));
     }
 
     @PublicAPI(from = "1.1.0",
@@ -413,6 +483,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         popover.addOpenedChangeListener(event -> {
             if (event.isOpened()) {
                 newTurnForm.syncIfUntouched(currentManuscript != null ? currentManuscript.getActiveLeaf() : null);
+                newTurnForm.focusInstructions();
             }
         });
 
@@ -429,10 +500,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     @APILocals(name = "emptyLabel", type = Span.class),
                     @APILocals(name = "branch", type = List.class),
                     @APILocals(name = "msg", type = ChatMessage.class),
-                    @APILocals(name = "dbId", type = Long.class),
-                    @APILocals(name = "card", type = ManuscriptStoryPart.ChatMessageCard.class),
-                    @APILocals(name = "e", type = Exception.class),
-                    @APILocals(name = "target", type = ManuscriptStoryPart.ChatMessageCard.class)})
+                    @APILocals(name = "e", type = Exception.class)})
     private void renderStoryContent() {
         Set<Long> openedReasonings = cards.collectOpenedReasonings();
 
@@ -440,6 +508,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         sidebarList.removeAll();
         sidebarHeader.setText("");
         cards.clear();
+        lazyLoader.clear();
 
         if (currentManuscript == null || currentManuscript.getActiveLeaf() == null) {
             Span emptyLabel = new Span(loc.getValue(L.MSG_NO_ACTIVE_BRANCH));
@@ -452,48 +521,27 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
                 for (int i = 0; i < total; i++) {
                     ChatMessage msg = branch.get(i);
-                    int orderId = i + 1;
-                    Long dbId = msg.getId();
-
-                    createSidebarButton(msg, orderId, dbId);
-
-                    boolean isLast = (i == total - 1);
-                    ChatMessageCard card = new ChatMessageCard(msg, isLast, orderId);
-                    card.setFrozen(isFrozen);
-                    card.setReasoningOpened(openedReasonings.contains(dbId));
-                    cards.put(card);
-                    centerContentPanel.add(card);
+                    createSidebarButton(msg, i + 1, msg.getId());
                 }
+
+                // the cards of the last parts only, the earlier ones are added when the user scrolls up
+                lazyLoader.render(branch, support.partsLimit(), scrollToMessageId, openedReasonings);
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }
-
-            ChatMessageCard target = scrollToMessageId != null ? cards.get(scrollToMessageId) : null;
             scrollToMessageId = null;
-            if (target != null) {
-                scrollToCard(target);
-            } else {
-                restoreScrollPosition();
-            }
         }
     }
 
     /**
-     * The next render of the story (the tab being entered) scrolls to the part instead of restoring the scroll
-     * position, used by the search of the tree.
+     * The next render of the story (the tab being entered) scrolls to the part instead of to the bottom (the parts
+     * before it are loaded), used by the search of the tree.
      */
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "messageId", type = Long.class)})
     public void scrollToMessageOnNextRender(Long messageId) {
         this.scrollToMessageId = messageId;
-    }
-
-    @PublicAPI(from = "1.1.0",
-            returns = @APIReturn(type = void.class),
-            parameters = {@APIParameter(name = "card", type = ManuscriptStoryPart.ChatMessageCard.class)})
-    private void scrollToCard(ChatMessageCard card) {
-        JavascriptLibrary.scrollToAndHighlight(card.getElement());
     }
 
     @PublicAPI(from = "1.1.0",
@@ -509,8 +557,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         sidebarBtn.addClassName(CssStyles.SIDEBAR_BUTTON);
 
         sidebarBtn.addClickListener(event -> {
-            if (dbId != null && cards.contains(dbId)) {
-                cards.get(dbId).scrollIntoView();
+            if (dbId != null) {
+                lazyLoader.scrollTo(dbId);
             }
         });
         sidebarList.add(sidebarBtn);
@@ -547,17 +595,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     }
 
     @PublicAPI(from = "1.1.0",
-            returns = @APIReturn(type = void.class),
-            locals = {@APILocals(name = "leaf", type = ChatMessage.class),
-                    @APILocals(name = "savedPos", type = Integer.class)})
-    private void restoreScrollPosition() {
-        ChatMessage leaf = currentManuscript != null ? currentManuscript.getActiveLeaf() : null;
-        Integer savedPos = (leaf != null) ? leaf.getScrollPosition() : null;
-
-        JavascriptLibrary.restoreScrollPosition(centerContentPanel.getElement(), savedPos);
-    }
-
-    @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class))
     public void autosaveAndSwapAllToMarkdown() {
         cards.autosaveAndSwapAllToMarkdown();
@@ -583,6 +620,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     @APILocals(name = "e", type = Exception.class)})
     private void startGeneration(GenerationRequest request, TurnInput turnInput) {
         autosaveAndSwapAllToMarkdown();
+        // the new part is added after the last one, which the user may have scrolled away from
+        lazyLoader.showTail();
         UI ui = UI.getCurrent();
 
         parent.freeze();
@@ -594,7 +633,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     turnInput,
                     request,
                     new StoryGenerationListener<>(ui, request, cards, centerContentPanel, ChatMessageCard::new, parent,
-                            chatMessageService, loc, new StoryGenerationListener.Callbacks() {
+                            loc, new StoryGenerationListener.Callbacks() {
                         @Override
                         public void generationEnded() {
                             activeGenerationToken = null;
@@ -635,6 +674,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
         leftMarginLayout.setEnabled(!frozen);
         menuBar.setEnabled(!frozen);
+        commandBar.setEnabled(!frozen);
 
         cards.setFrozen(frozen);
 
@@ -803,6 +843,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         private final VerticalLayout contentLayout;
         private Button menuBtn;
         private ContextMenu hamburgerMenu;
+        private boolean menuItemsCreated;
         private MenuItem editItem;
         private MenuItem regenerateItem;
         private MenuItem swipeItem;
@@ -825,7 +866,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         private Button turnDetailsBtn;
         private boolean wasReasoningOpenedByGeneration;
 
-        private final TurnDetailsForm detailsForm;
+        private Popover detailsPopover;
+        private TurnDetailsForm detailsForm;
 
         public ChatMessageCard(ChatMessage message, int orderId) {
             this(message, false, orderId);
@@ -857,7 +899,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             menuBtn.setThemeName("tertiary icon small");
             menuBtn.addClassName(CssStyles.MARGIN_LEFT_AUTO);
 
-            createMenuItems();
+            createHamburgerMenu();
 
             headerBar.add(UIUtils.voidComponent(), menuBtn);
 
@@ -875,15 +917,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             responseMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
             renderResponse();
 
-            responseTextArea = new TextArea();
-            responseTextArea.setWidthFull();
-            responseTextArea.setMinHeight("100px");
-            responseTextArea.setValue(StringUtils.defaultString(message.getResponse()));
-            responseTextArea.setVisible(false);
-
             messageImages = new MessageImages(message.getImages());
 
-            contentLayout.add(headerBar, reasoningDetails, responseMarkdown, responseTextArea, messageImages);
+            contentLayout.add(headerBar, reasoningDetails, responseMarkdown, messageImages);
 
             metaLayout = new VerticalLayout();
             metaLayout.setWidth("220px");
@@ -897,16 +933,15 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             turnDetailsBtn.setThemeName("tertiary small");
             turnDetailsBtn.setWidthFull();
 
-            Popover readOnlyPopover = new Popover();
-            readOnlyPopover.setTarget(turnDetailsBtn);
-
-            FormLayout detailsLayout = new FormLayout();
-            detailsLayout.setWidth("520px");
-            detailsLayout.addClassName(CssStyles.POPOVER_FORM);
-
-            detailsForm = new TurnDetailsForm(loc, message, () -> this.message, () -> this.isLast, this::saveMessage);
-            detailsForm.addTo(detailsLayout);
-            readOnlyPopover.add(detailsLayout);
+            detailsPopover = new Popover();
+            detailsPopover.setTarget(turnDetailsBtn);
+            // opened here, not by the click in the browser, so the content is in the popover before it is positioned (a
+            // popover that grows after it opened can end up on the wrong side of its button and be cut off)
+            detailsPopover.setOpenOnClick(false);
+            turnDetailsBtn.addClickListener(event -> {
+                createDetails();
+                detailsPopover.setOpened(!detailsPopover.isOpened());
+            });
 
             metaLayout.add(metrics.getHeader());
             metaLayout.add(metrics.getLines());
@@ -917,14 +952,60 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             setFlexGrow(0, metaLayout);
         }
 
+        /**
+         * Fills the popover of the turn details, once. It is not done when the card is created, because the four text
+         * fields of the form measure their height in the browser as soon as they are in the page, which makes a story
+         * of hundreds of parts freeze it. Regenerating needs the form too, so it calls this as well.
+         */
+        @PublicAPI(from = "1.4.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "detailsLayout", type = FormLayout.class)})
+        private void createDetails() {
+            if (detailsForm != null) {
+                return;
+            }
+            FormLayout detailsLayout = new FormLayout();
+            detailsLayout.setWidth("520px");
+            detailsLayout.addClassName(CssStyles.POPOVER_FORM);
+
+            detailsForm = new TurnDetailsForm(loc, message, () -> this.message, () -> this.isLast, this::saveMessage);
+            detailsForm.addTo(detailsLayout);
+            detailsPopover.add(detailsLayout);
+        }
+
+        /**
+         * Creates the empty menu of the card. The items are added when the menu is opened for the first time, see
+         * {@link #prepareMenu()}.
+         */
+        @PublicAPI(from = "1.4.0",
+                returns = @APIReturn(type = void.class))
+        private void createHamburgerMenu() {
+            hamburgerMenu = new LazyContextMenu(menuBtn, this::prepareMenu);
+            hamburgerMenu.setOpenOnClick(true);
+        }
+
+        /**
+         * Runs each time the menu is about to open: creates the items the first time, then refreshes the ones that
+         * depend on the part.
+         */
+        @PublicAPI(from = "1.4.0",
+                returns = @APIReturn(type = void.class))
+        private void prepareMenu() {
+            if (!menuItemsCreated) {
+                menuItemsCreated = true;
+                createMenuItems();
+            }
+            refreshSummaryMenuItems();
+        }
+
+        /**
+         * Adds the items to {@code hamburgerMenu}. Called when the menu is opened for the first time, not when the
+         * card is created, so the cards of a long story stay cheap.
+         */
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class))
         private void createMenuItems() {
-            hamburgerMenu = new ContextMenu();
-            hamburgerMenu.setTarget(menuBtn);
-            hamburgerMenu.setOpenOnClick(true);
-
-            editItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_EDIT), event -> toggleEdit());
+            editItem = hamburgerMenu.addItem(loc.getValue(editing ? L.LABEL_SAVE : L.LABEL_EDIT), event -> toggleEdit());
 
             regenerateItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_REGENERATE), event -> regenerate());
             regenerateItem.setVisible(this.isLast);
@@ -945,31 +1026,15 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
             deleteItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_DELETE), event -> {
                 ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
-                    JavascriptLibrary.getScrollTop(centerContentPanel.getElement()).then(Integer.class, scrollTop -> {
-                        try {
-                            Long parentId = message.getParent() != null ? message.getParent().getId() : null;
+                    try {
+                        chatMessageService.deleteNodeAndMigrateChildren(message, currentManuscript, false);
 
-                            chatMessageService.deleteNodeAndMigrateChildren(message, currentManuscript, false);
-
-                            parent.refreshManuscript();
-                            load(parent.getManuscript());
-
-                            if (scrollTop != null && scrollTop > 0) {
-                                JavascriptLibrary.setScrollTop(centerContentPanel.getElement(), scrollTop);
-                            } else if (parentId != null && cards.contains(parentId)) {
-                                cards.get(parentId).scrollIntoView();
-                            }
-                        } catch (Exception e) {
-                            UIUtils.internalServerError(loc, e);
-                        }
-                    });
+                        parent.refreshManuscript();
+                        load(parent.getManuscript());
+                    } catch (Exception e) {
+                        UIUtils.internalServerError(loc, e);
+                    }
                 });
-            });
-
-            hamburgerMenu.addOpenedChangeListener(event -> {
-                if (event.isOpened()) {
-                    refreshSummaryMenuItems();
-                }
             });
         }
 
@@ -994,6 +1059,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     }
                 }
             } catch (Exception ignored) {}
+
+            if (summaryItem == null) {
+                return;
+            }
 
             boolean hasSummary = (message != null && message.getSummary() != null);
             if (hasSummary) {
@@ -1045,12 +1114,14 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class))
         private void regenerate() {
+            createDetails();
             startGeneration(GenerationRequest.regenerate(message), detailsForm.toTurnInput());
         }
 
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class))
         private void swipe() {
+            createDetails();
             startGeneration(GenerationRequest.newSwipe(message), detailsForm.toTurnInput());
         }
 
@@ -1076,7 +1147,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             if (swipeItem != null) {
                 swipeItem.setVisible(isLast);
             }
-            detailsForm.setLastMessage(isLast);
+            if (detailsForm != null) {
+                detailsForm.setLastMessage(isLast);
+            }
         }
 
         @PublicAPI(from = "1.1.0",
@@ -1104,10 +1177,17 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 autosaveAndSwapToMarkdown();
             } else {
                 editing = true;
+                // created only while a part is edited: a text area measures its height in the browser as soon as it
+                // is in the page, which makes a story of hundreds of parts freeze it
+                responseTextArea = new TextArea();
+                responseTextArea.setWidthFull();
+                responseTextArea.setMinHeight("100px");
                 responseTextArea.setValue(StringUtils.defaultString(message.getResponse()));
+                contentLayout.addComponentAtIndex(contentLayout.indexOf(responseMarkdown) + 1, responseTextArea);
                 responseMarkdown.setVisible(false);
-                responseTextArea.setVisible(true);
-                editItem.setText(loc.getValue(L.LABEL_SAVE));
+                if (editItem != null) {
+                    editItem.setText(loc.getValue(L.LABEL_SAVE));
+                }
             }
         }
 
@@ -1121,10 +1201,13 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     String newResponse = responseTextArea.getValue();
                     message = support.saveEditedResponse(currentManuscript, message, newResponse);
                     renderResponse();
-                    responseTextArea.setVisible(false);
+                    contentLayout.remove(responseTextArea);
+                    responseTextArea = null;
                     responseMarkdown.setVisible(true);
                     editing = false;
-                    editItem.setText(loc.getValue(L.LABEL_EDIT));
+                    if (editItem != null) {
+                        editItem.setText(loc.getValue(L.LABEL_EDIT));
+                    }
                     updateMetrics(message);
                 } catch (Exception e) {
                     UIUtils.internalServerError(loc, e);
@@ -1179,9 +1262,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         public void updateResponse(String responseText) {
             message.setResponse(responseText);
             renderResponse();
-            if (!editing) {
-                responseTextArea.setValue(StringUtils.defaultString(responseText));
-            }
         }
 
         @PublicAPI(from = "1.2.0",

@@ -1,7 +1,7 @@
 ---
 label: Templating & macros
 order: 920
-verified: 06bb638f
+verified: 333d9397
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/templates
   - marginalia/src/main/java/com/github/enerccio/marginalia/Defaults.java
@@ -16,6 +16,10 @@ and the summary prompt. Templates are [Handlebars](https://github.com/jknack/han
 SillyTavern-compatible macros on top. This page explains how that is implemented and how to add variables and macros.
 What users can write is documented in the user guide: [Prompt templates](../user/templates/templates.md) and the
 [Macro reference](../user/templates/macros.md).
+
+The texts of the [agents](agents.md) are the exception: the system prompt, the compaction prompt and the instructions of an
+agent (`Defaults.DEFAULT_AGENT_PROMPT` and the others around it) are plain text, put into the request as they are, with no
+Handlebars and no macros.
 
 The code is in `domain/templates/` (data objects, context, variables), `domain/templates/macros/` (translator,
 helpers, macro registry) and `domain/service/impl/TemplateServiceImpl.java`.

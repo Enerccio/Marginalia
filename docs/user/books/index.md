@@ -24,7 +24,7 @@ Opening a book shows its window with these tabs:
 |---|---|
 | **About** | Name, tags, description, language, model, protocol, publishing and word counts. See [Managing books](managing-books.md). |
 | **Prompts** | The templates and style settings of this book. See [Book prompts](prompts.md). |
-| **Lorebook** | The lorebook of this book, and its entries. See [Lorebooks](../lorebooks/index.md). |
+| **Lorebook** | The lorebook of this book, and its entries. When it has sub lorebooks, the second box **Shown lorebook** switches the tab to any of them (and back) without changing the lorebook of the book; clicking the name of a sub lorebook in **Sub Lorebooks** does the same. See [Lorebooks](../lorebooks/index.md). |
 | **Story** | The story editor, where parts are written and generated. See [Story editor](story-editor.md). |
 | **Branch view** | The story tree with all branches. See [Branches & story tree](branches-and-story-tree.md). |
 | **Backups** | Backups of the book. See [Book backups](backups.md). |

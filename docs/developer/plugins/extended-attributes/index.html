@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845494342077">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845494342077" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845494342077" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846005664026" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -61,7 +61,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -180,7 +180,8 @@ entity, loaded with it, and travels with it into backups.</p>
 | `Lorebook`, `LorebookEntry` | Lore metadata - Lorebook VCS keeps the revision history in the lorebook. |
 | `AI` (inference provider), `Protocol`, `Tag` | Per-provider or per-protocol options. (Marginalia itself keeps the per-user limits of a shared AI in the `@ExtendedAttribute` field `AI.limits`, see [Domain model](../domain-model.md#limits-of-the-users-of-a-shared-ai).) |
 | `UserSetting` | Per-user plugin settings - Reviewer and Side Query keep theirs here. (Marginalia itself keeps the autosaved state of the workspace in its `@ExtendedAttribute` field `workspaceState`.) |
-| `AppSettings` | Settings for the whole installation (administrators). |">
+| `AppSettings` | Settings for the whole installation (administrators). |
+| `Agent`, `AgentRun`, `AgentMessage` | The agents of 1.4.0, their runs and the messages of a run: the data an extension wants to keep with one of them. Marginalia keeps the settings of the agent itself in `@ExtendedAttribute` fields (the models for sub-agents, the allowed commands, the prompts...), see [Agents](../agents.md). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -218,11 +219,15 @@ entity, loaded with it, and travels with it into backups.</p>
 <td><code translate="no" v-pre>AppSettings</code></td>
 <td>Settings for the whole installation (administrators).</td>
 </tr>
+<tr>
+<td><code translate="no" v-pre>Agent</code>, <code translate="no" v-pre>AgentRun</code>, <code translate="no" v-pre>AgentMessage</code></td>
+<td>The agents of 1.4.0, their runs and the messages of a run: the data an extension wants to keep with one of them. Marginalia keeps the settings of the agent itself in <code translate="no" v-pre>@ExtendedAttribute</code> fields (the models for sub-agents, the allowed commands, the prompts...), see <a href="../../agents/">Agents</a>.</td>
+</tr>
 </tbody>
 </table>
 </div>
 </retype-table>
-<p><code translate="no" v-pre>User</code>, <code translate="no" v-pre>Resource</code> and <code translate="no" v-pre>Usage</code> are not extendable.</p>
+<p><code translate="no" v-pre>User</code>, <code translate="no" v-pre>Resource</code>, <code translate="no" v-pre>Usage</code> and <code translate="no" v-pre>AgentRunPair</code> are not extendable.</p>
 <div id="where-attributes-are-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-java"><code v-pre class="language-java">JsonObject attributes = entity.getAttributes();       // never null after loading; a new entity starts with {}</code></pre>
 </doc-codeblock></div>
@@ -376,8 +381,10 @@ class, it uses <code translate="no" v-pre>attributes</code>.</p>
 | Branch Story | The part's attributes are copied to the new branch. |
 | Regenerate | The part is reused: its attributes stay, also data that described the old text. If the request fails before any text arrived, the part is restored with the attributes it had before. |
 | Swipe | A new part - starts with no plugin data. |
-| Lorebook export / import | **Not included** - only the entries' content is exported. Lorebook VCS has its own history export for this reason. |
-| Lorebooks inside a book backup | Not included, same as lorebook export. |">
+| Lorebook export / import | Included (since 1.4.0) - the `attributes` of the lorebooks and of the entries are in the file and are set on what the import creates. The entries are new ones with new uuids, so data that names an entry by its uuid (Lorebook VCS) does not find it; Lorebook VCS has its own history export for this reason. |
+| Lorebooks inside a book backup | Included, same as lorebook export. |
+| Clone of a book | The book and its parts as in a backup; the lorebook is shared, not copied. |
+| Working copy of an [agent](../agents.md) | Included for the book, its parts, summaries, lorebooks and entries; the review merges the data of extensions place by place (`Type.JSON`), see [Merge and apply](../agents.md#merge-and-apply). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -409,18 +416,26 @@ class, it uses <code translate="no" v-pre>attributes</code>.</p>
 </tr>
 <tr>
 <td>Lorebook export / import</td>
-<td><strong>Not included</strong> - only the entries&#x27; content is exported. Lorebook VCS has its own history export for this reason.</td>
+<td>Included (since 1.4.0) - the <code translate="no" v-pre>attributes</code> of the lorebooks and of the entries are in the file and are set on what the import creates. The entries are new ones with new uuids, so data that names an entry by its uuid (Lorebook VCS) does not find it; Lorebook VCS has its own history export for this reason.</td>
 </tr>
 <tr>
 <td>Lorebooks inside a book backup</td>
-<td>Not included, same as lorebook export.</td>
+<td>Included, same as lorebook export.</td>
+</tr>
+<tr>
+<td>Clone of a book</td>
+<td>The book and its parts as in a backup; the lorebook is shared, not copied.</td>
+</tr>
+<tr>
+<td>Working copy of an <a href="../../agents/">agent</a></td>
+<td>Included for the book, its parts, summaries, lorebooks and entries; the review merges the data of extensions place by place (<code translate="no" v-pre>Type.JSON</code>), see <a href="../../agents/#merge-and-apply">Merge and apply</a>.</td>
 </tr>
 </tbody>
 </table>
 </div>
 </retype-table>
 <p>Plan for the cases where your data does not follow: data that describes a part&#x27;s text (a review) may be stale after
-<em>Regenerate</em>; data stored on a lorebook is gone after the user exports and imports it.</p>
+<em>Regenerate</em>; data stored on a lorebook comes back after an export and import, but not attached to the old entries (their uuids are new).</p>
 <h2 id="references-to-other-entities">References to other entities</h2>
 <p>If your data refers to another entity, store its <code translate="no" v-pre>uuid</code> (or <code translate="no" v-pre>id</code>). The <em>Cleanup</em> page of the administration purges
 soft-deleted rows (<a href="../../domain-model/">Domain model</a>), and it knows only the references the application declares
@@ -504,7 +519,7 @@ data can&#x27;t point a plugin at another user&#x27;s entity.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License.</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
             </footer>
         </div>
     </div>

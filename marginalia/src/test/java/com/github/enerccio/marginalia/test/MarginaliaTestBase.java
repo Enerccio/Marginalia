@@ -2,7 +2,11 @@ package com.github.enerccio.marginalia.test;
 
 import com.github.enerccio.marginalia.domain.collections.AIType;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
+import com.github.enerccio.marginalia.domain.security.model.Permission;
 import com.github.enerccio.marginalia.domain.security.model.User;
+import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
+import com.github.enerccio.marginalia.domain.security.repository.PermissionRepository;
+import com.github.enerccio.marginalia.domain.security.service.PermissionService;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
 import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
@@ -12,8 +16,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.UUID;
+import java.util.function.Consumer;
 
 /**
  * Base for tests running against the real Spring wiring (services, JPA, Flyway on SQLite), without OSGi and
@@ -32,6 +39,15 @@ public abstract class MarginaliaTestBase {
 
     @Autowired
     protected UserService userService;
+
+    @Autowired
+    protected PermissionService permissionService;
+
+    @Autowired
+    private PermissionRepository permissionRepository;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
 
     @Autowired
     protected AIService aiService;
@@ -64,13 +80,49 @@ public abstract class MarginaliaTestBase {
         return prefix + "-" + UUID.randomUUID().toString().substring(0, 8);
     }
 
+    /**
+     * Creates a user; one who is not an administrator is allowed to create their own AIs ({@code CREATE_AI}), as
+     * the tests need them, use {@link #setPermission} to take it away.
+     */
     protected User createUser(String login, String password, boolean admin) throws Exception {
         User user = new User();
         user.setLogin(login);
         user.setFullName(login);
         user.setAdmin(admin);
         user = userService.save(user);
-        return userService.changePassword(user, password);
+        user = userService.changePassword(user, password);
+        if (!admin) {
+            setPermission(user, PermissionType.CREATE_AI, true);
+        }
+        return user;
+    }
+
+    /**
+     * Gives the permission to the user or takes it away. Goes around {@code PermissionService}, which is for
+     * administrators and would need one (the tests that count the administrators can't have a spare).
+     */
+    protected void setPermission(User user, PermissionType type, boolean granted) {
+        updatePermission(user, type, permission -> permission.setGranted(granted));
+    }
+
+    /**
+     * Creates the permission of the user when they have none and changes it, as {@link #setPermission}.
+     */
+    protected void updatePermission(User user, PermissionType type, Consumer<Permission> change) {
+        new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            try {
+                Permission permission = permissionRepository.findByHolder(user, type);
+                if (permission == null) {
+                    permission = new Permission();
+                    permission.setPermissionHolder(userService.find(user.getId()));
+                    permission.setPermissionType(type);
+                }
+                change.accept(permission);
+                permissionRepository.save(permission);
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
+        });
     }
 
     protected User createUser() throws Exception {

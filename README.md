@@ -42,6 +42,11 @@ Marginalia は、大規模言語モデル（LLM）と共同で長編小説を書
 - **Languages** - the interface is available in English and Japanese; every user picks their own language, and
   extensions can add more (Simplified Chinese is included as a plugin).
 - **Published books** - share a read-only view of a book.
+- **Search and replace, commands** - search and replace in the story and in lorebooks (also with regular
+  expressions), and a command line in the story editor with commands that read and change the book.
+- **Agents (experimental)** - a model works on a book on its own, on a copy, through the same commands; you follow it in a console,
+  review what it changed and take over what you want. Needs the permission *Agents* (administrators have it).
+- **Permissions** - an administrator decides per user who creates models, uses the help assistant or uses agents.
 - **Extensions** - plugins add features at runtime (chapter markers, lorebook version history, AI reviews, side
   questions to the model).
 
@@ -134,7 +139,7 @@ model. Then create a book, choose the provider and a protocol, and start writing
 ## Extensions
 
 Extensions are OSGi bundles (JAR files). Administrators install them in *Admin → Extensions*; they are stored in
-`~/.marginalia/extensions`. Thirteen plugins are included in [`marginalia/plugins`](marginalia/plugins/README.md) and
+`~/.marginalia/extensions`. Fifteen plugins are included in [`marginalia/plugins`](marginalia/plugins/README.md) and
 built separately with Maven, or in Docker (see the plugins README):
 
 - [Arc Outline](marginalia/plugins/arc-outline/README.md) - the arcs of the book and their chapters in the story sidebar, written by the model if you want,
@@ -147,6 +152,8 @@ built separately with Maven, or in Docker (see the plugins README):
 - [Lore Generator](marginalia/plugins/lore-generator/README.md) - write a lorebook entry with the model from the existing lore,
 - [Lorebook VCS](marginalia/plugins/lorebookvcs/README.md) - revision history for lorebook entries,
 - [Name generator](marginalia/plugins/name-generator/README.md) - functions for the model to get names (about 1200 categories) instead of inventing them,
+- [Name provider](marginalia/plugins/name-provider/README.md) - functions for the model to pick real names (forenames and surnames of about 100 countries) from lists,
+- [Place provider](marginalia/plugins/place-provider/README.md) - functions and commands to look up real places (about 18 000 notable ones), what is near a place and the distance of two,
 - [Reviewer](marginalia/plugins/reviewer/README.md) - AI reviews of story parts,
 - [Side Query](marginalia/plugins/sidequery/README.md) - ask the model about your book without changing it,
 - [Chinese localization](marginalia/plugins/chineselocalization/README.md) - Simplified Chinese as a language of the interface (the example for adding a language).

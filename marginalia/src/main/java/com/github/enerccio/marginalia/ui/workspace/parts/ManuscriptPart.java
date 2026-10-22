@@ -1,9 +1,5 @@
 package com.github.enerccio.marginalia.ui.workspace.parts;
 
-import java.util.Map;
-import com.github.enerccio.marginalia.ui.workspace.WorkspaceLLMSupport;
-import com.github.enerccio.marginalia.ui.LLMInteraction;
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
@@ -19,13 +15,16 @@ import com.github.enerccio.marginalia.domain.service.search.Sorter.Ordering;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.RestorableState;
-import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
-import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
+import com.github.enerccio.marginalia.ui.dialogs.*;
+import com.github.enerccio.marginalia.ui.dialogs.agent.AgentLockCheck;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableItem;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableProviderBase;
+import com.github.enerccio.marginalia.ui.workspace.ManuscriptSection;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
-import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
+import com.github.enerccio.marginalia.ui.workspace.WorkspaceLLMSupport;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonObject;
 import com.vaadin.flow.component.Component;
@@ -48,15 +47,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 @Configurable
 @Extendable
-public class ManuscriptPart implements WorkspaceComponent {
+public class ManuscriptPart implements ManuscriptSection {
     private static final Logger log = LoggerFactory.getLogger(ManuscriptPart.class);
 
     @Autowired
@@ -74,6 +70,7 @@ public class ManuscriptPart implements WorkspaceComponent {
     private final Workspace workspace;
     private Grid<ManuscriptWrapper> grid;
     private Button addBookButton;
+    private Button tagBooksButton;
     private VerticalLayout mainLayout;
 
     private Column<ManuscriptWrapper> nameColumn;
@@ -104,6 +101,7 @@ public class ManuscriptPart implements WorkspaceComponent {
             locals = {@APILocals(name = "headerLayout", type = HorizontalLayout.class),
                     @APILocals(name = "titleSpan", type = Span.class),
                     @APILocals(name = "addBookButton", type = Button.class),
+                    @APILocals(name = "importArchiveButton", type = Button.class),
                     @APILocals(name = "toolColumn", type = Grid.Column.class),
                     @APILocals(name = "filterRow", type = HeaderRow.class),
                     @APILocals(name = "refresh", type = Button.class)})
@@ -122,11 +120,14 @@ public class ManuscriptPart implements WorkspaceComponent {
         titleSpan.addClassName(CssStyles.SECTION_TITLE);
 
         Button addBookButton = new Button(loc.getValue(L.LABEL_ADD_BOOK),
-                event -> new NewBookAction(this::refreshGrid).run());
+                event -> new NewBookAction(this::openManuscript).run());
         addBookButton.setThemeName("primary");
         this.addBookButton = addBookButton;
 
-        headerLayout.add(titleSpan, addBookButton);
+        tagBooksButton = new Button(loc.getValue(L.LABEL_TAG_BOOKS), Solid.TAGS.create(), event -> openTagDialog());
+        Button importArchiveButton = new Button(Solid.FILE_IMPORT.create(), event -> new NewBookAction(this::openManuscript).runFromArchive());
+        importArchiveButton.setTooltipText(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE));
+        headerLayout.add(titleSpan, tagBooksButton, importArchiveButton, addBookButton);
         headerLayout.setFlexGrow(1, titleSpan);
         headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
@@ -188,11 +189,17 @@ public class ManuscriptPart implements WorkspaceComponent {
 
             Button editButton = new Button(Solid.PENCIL.create(), _ -> {
                 try {
-                    openManuscript(manuscriptWrapper.getManuscript());
+                    // a book an agent works on can't be changed, so there is nothing to do in its window
+                    if (!new AgentLockCheck().refuses(manuscriptWrapper.getManuscript())) {
+                        openManuscript(manuscriptWrapper.getManuscript());
+                    }
                 } catch (Exception e) {
                     UIUtils.internalServerError(loc, e);
                 }
             });
+
+            Button cloneButton = new Button(Solid.CLONE.create(), _ -> openCloneDialog(manuscriptWrapper.getManuscript()));
+            cloneButton.setTooltipText(loc.getValue(L.LABEL_CLONE_BOOK));
 
             Button deleteButton = new Button(Solid.TRASH.create(), _ ->
                     ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
@@ -205,9 +212,9 @@ public class ManuscriptPart implements WorkspaceComponent {
                     }));
             deleteButton.setThemeName("error tertiary");
 
-            actions.add(editButton, deleteButton);
+            actions.add(editButton, cloneButton, deleteButton);
             return actions;
-        }).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE_HUGE);
+        }).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE_GIANT);
 
         grid.sort(List.of(new GridSortOrder<>(modificationColumn, SortDirection.DESCENDING)));
         sorters.add(new GridSortOrder<>(modificationColumn, SortDirection.DESCENDING));
@@ -257,11 +264,37 @@ public class ManuscriptPart implements WorkspaceComponent {
                         .forEach(so -> sortInfos.add(Sorter.sorter(so.getSorted(),
                                 so.getDirection().equals(SortDirection.ASCENDING) ? Ordering.ASC : Ordering.DESC)));
             }
-            List<Long> ids = manuscriptService.searchManuscripts(filterValues, sortInfos.toArray(Sorter[]::new));
+            List<Long> ids = manuscriptService.searchRegularManuscripts(filterValues, sortInfos.toArray(Sorter[]::new));
             grid.setItems(new ManuscriptBackendProvider(ids));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+    }
+
+    /**
+     * Opens the dialog that makes a new book of the book; the list shows the new book when it is closed.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)},
+            locals = {@APILocals(name = "dialog", type = ManuscriptCloneDialog.class)})
+    private void openCloneDialog(Manuscript manuscript) {
+        ManuscriptCloneDialog dialog = new ManuscriptCloneDialog(manuscript);
+        dialog.setOnClone(_ -> refreshGrid());
+        dialog.create();
+        dialog.open();
+    }
+
+    /**
+     * Opens the dialog that puts a tag on many books at once; the list shows the new tags when it is closed.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = MultiTagDialog.class)})
+    private void openTagDialog() {
+        MultiTagDialog dialog = new MultiTagDialog(MultiTagDialog.Kind.BOOKS, this::refreshGrid);
+        dialog.create();
+        dialog.open();
     }
 
     /**
@@ -285,6 +318,16 @@ public class ManuscriptPart implements WorkspaceComponent {
         dialog.open();
         notifyStateChanged();
         return dialog;
+    }
+
+    /**
+     * The book window that is open, null when none is.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = ManuscriptWindow.class))
+    @Override
+    public ManuscriptWindow getOpenWindow() {
+        return openDialog;
     }
 
     @PublicAPI(from = "1.3.0",
@@ -354,7 +397,7 @@ public class ManuscriptPart implements WorkspaceComponent {
             String manuscriptUuid = RestorableState.string(dialogState, "manuscript");
             if (manuscriptUuid != null && grid != null) {
                 Manuscript manuscript = manuscriptService.findForUser(manuscriptUuid);
-                if (manuscript != null) {
+                if (manuscript != null && !new AgentLockCheck().refuses(manuscript)) {
                     openManuscript(manuscript).restoreState(dialogState);
                 }
             }

@@ -30,6 +30,9 @@ over HTTPS or on `127.0.0.1` with the desktop app (see [Server](docker-server.md
 
 ![The login screen](../../images/login.png)
 
+The version of Marginalia and the short id of the Git commit it was built from (for example `Marginalia 1.4.0 (93ec118)`) are
+shown under the login form.
+
 ## The workspace
 
 After logging in you see the workspace. The tabs on the left are:
@@ -48,6 +51,10 @@ At the bottom are **Admin** (administrators only), the **Language** selector, **
 (see [Administration](../administration/index.md) for the *Admin* pages).
 
 ![The workspace after the first login](../../images/workspace.png)
+
+The same version text, in tiny letters, is in the bottom left corner of the page; hover over it for the full commit id and
+the time of the commit and of the build. Say it when you report a problem. A build run from a development checkout
+(`mvn jetty:run`) shows `dev` instead of the version.
 
 Marginalia remembers where you were. The next time you log in (on any device) it opens the same tab, with the same
 filters of the book list, the same lorebook and open lorebook entries and, if you left a book open, that book on the

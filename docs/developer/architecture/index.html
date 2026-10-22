@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845494342077">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845494342077" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845494342077" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846005664026" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -67,7 +67,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -366,14 +366,15 @@ push enabled, dark Lumo theme, <code translate="no" v-pre>shared-styles.css</cod
 <p>All application code is in <code translate="no" v-pre>com.github.enerccio.marginalia</code> (<code translate="no" v-pre>marginalia/src/main/java/...</code>):</p>
 <retype-table copy-text="| Package | Layer | Contents |
 |---|---|---|
-| `ui.main` | UI | Servlet, app shell, the two routes: `Main` (`/`) and `Viewer` (`/view`), login handling (`LoginCheckRoute`). |
+| `ui.main` | UI | Servlet, app shell, the routes: `Main` (`/`), `Viewer` (`/view`) and `Reset` (`/reset`, clears the saved workspace state), login handling (`LoginCheckRoute`). |
 | `ui.workspace`, `ui.workspace.parts` | UI | The workspace after login and its tabs: books, lorebooks, settings, protocols, inference providers, admin. |
-| `ui.dialogs`, `ui.dialogs.manuscript` | UI | Dialogs; the book window (`ManuscriptDialog`) and its tabs: story, tree, about, prompts, lorebook, backups. |
+| `ui.dialogs`, `ui.dialogs.manuscript` | UI | Dialogs; the book window (`ManuscriptDialog`) and its tabs: story, tree, about, prompts, lorebook, backups. `ui.dialogs.agent` has the screens of agents, `ui.dialogs.search` the search and replace windows. |
 | `ui.components`, `ui.widgets` | UI | Reusable components (lorebook editor, story tree, the help assistant's button and chat) and small widgets. |
 | `ui` (`LLMInteract`, `LLMSnapshot`) | UI | How the UI describes itself to the help assistant's model and what the model may do to it. |
 | `domain.components` | Services | Plain data and helpers shared by services and the UI (`TurnInput`, `TokenLimits`, `PromptTokenBreakdown`, `SummaryNode`, `CronSchedule`). |
 | `domain.service` (+ `impl`) | Services | Business logic, one service per entity plus generation, templates, backups, cleanup, extensions. |
 | `domain.service.impl.generation` | Services | The generation engine's steps, events and DTOs. |
+| `domain.service.agent`, `domain.service.command`, `domain.service.impl.commands` | Services | [Agents](agents.md) (the runner's tools, the virtual file system, checkpoints, the merge of a result) and [commands](commands/index.md) (the definitions, the scope a command runs in, the commands of the application). |
 | `domain.service.impl.inference` | Services | The OpenAI-compatible client and the tokenizer strategies. |
 | `domain.service.manual` | Services | The in-app help: the user manual parsed and searched (`ManualParser`, `ManualIndex`), the functions and prompts of the help assistant (`HelpTools`, `InteractiveHelpTools`, `HelpPrompts`, `UiStateSource`). |
 | `domain.templates` | Services | Template data objects and the macro system. |
@@ -398,7 +399,7 @@ push enabled, dark Lumo theme, <code translate="no" v-pre>shared-styles.css</cod
 <tr>
 <td><code translate="no" v-pre>ui.main</code></td>
 <td>UI</td>
-<td>Servlet, app shell, the two routes: <code translate="no" v-pre>Main</code> (<code translate="no" v-pre>/</code>) and <code translate="no" v-pre>Viewer</code> (<code translate="no" v-pre>/view</code>), login handling (<code translate="no" v-pre>LoginCheckRoute</code>).</td>
+<td>Servlet, app shell, the routes: <code translate="no" v-pre>Main</code> (<code translate="no" v-pre>/</code>), <code translate="no" v-pre>Viewer</code> (<code translate="no" v-pre>/view</code>) and <code translate="no" v-pre>Reset</code> (<code translate="no" v-pre>/reset</code>, clears the saved workspace state), login handling (<code translate="no" v-pre>LoginCheckRoute</code>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.workspace</code>, <code translate="no" v-pre>ui.workspace.parts</code></td>
@@ -408,7 +409,7 @@ push enabled, dark Lumo theme, <code translate="no" v-pre>shared-styles.css</cod
 <tr>
 <td><code translate="no" v-pre>ui.dialogs</code>, <code translate="no" v-pre>ui.dialogs.manuscript</code></td>
 <td>UI</td>
-<td>Dialogs; the book window (<code translate="no" v-pre>ManuscriptDialog</code>) and its tabs: story, tree, about, prompts, lorebook, backups.</td>
+<td>Dialogs; the book window (<code translate="no" v-pre>ManuscriptDialog</code>) and its tabs: story, tree, about, prompts, lorebook, backups. <code translate="no" v-pre>ui.dialogs.agent</code> has the screens of agents, <code translate="no" v-pre>ui.dialogs.search</code> the search and replace windows.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.components</code>, <code translate="no" v-pre>ui.widgets</code></td>
@@ -434,6 +435,11 @@ push enabled, dark Lumo theme, <code translate="no" v-pre>shared-styles.css</cod
 <td><code translate="no" v-pre>domain.service.impl.generation</code></td>
 <td>Services</td>
 <td>The generation engine&#x27;s steps, events and DTOs.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>domain.service.agent</code>, <code translate="no" v-pre>domain.service.command</code>, <code translate="no" v-pre>domain.service.impl.commands</code></td>
+<td>Services</td>
+<td><a href="../agents/">Agents</a> (the runner&#x27;s tools, the virtual file system, checkpoints, the merge of a result) and <a href="../commands/">commands</a> (the definitions, the scope a command runs in, the commands of the application).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>domain.service.impl.inference</code></td>
@@ -688,8 +694,8 @@ listener fills <code translate="no" v-pre>_fulltext</code> with the text of the 
 active leaf.</p>
 </li>
 </ul>
-<p>The database is SQLite in WAL mode (<code translate="no" v-pre>busy_timeout=10000</code>), through a commons-dbcp pool and a
-<code translate="no" v-pre>TransactionAwareDataSourceProxy</code>. Flyway migrations in <code translate="no" v-pre>src/main/resources/migration/</code> create and upgrade the schema,
+<p>The database is SQLite in WAL mode (<code translate="no" v-pre>busy_timeout=10000</code>), through commons-dbcp pools (read-write transactions begin with the write lock, see
+<a href="../database/">Database &amp; migrations</a>) and a <code translate="no" v-pre>TransactionAwareDataSourceProxy</code>. Flyway migrations in <code translate="no" v-pre>src/main/resources/migration/</code> create and upgrade the schema,
 and every entity is listed in <code translate="no" v-pre>src/main/webapp/config/persistence.xml</code> (<code translate="no" v-pre>exclude-unlisted-classes</code>).
 <code translate="no" v-pre>SaneSQLiteDialect</code> adapts Hibernate&#x27;s community SQLite dialect. See <a href="../domain-model/">Domain model</a> and
 <a href="../database/">Database &amp; migrations</a>.</p>
@@ -786,6 +792,13 @@ summaries - updates the UI with <code translate="no" v-pre>ui.access(...)</code>
 <code translate="no" v-pre>generateNextTurn</code> therefore captures the request attributes in a <code translate="no" v-pre>ThreadCopyRequestAttributes</code> and the engine wraps
 its work in <code translate="no" v-pre>ThreadCopyRequestAttributes.InRequestScope</code>, which makes the session of the user who started the
 generation current on the worker thread.</p>
+<p>An <a href="../agents/">agent</a> run is not started by a request at all: <code translate="no" v-pre>AgentRunner</code> works it in a background worker of its own
+(a thread pool, one round of the model at a time) and sets up the request context from the run, not from a browser:
+<code translate="no" v-pre>AgentRequestAttributes</code> make the <code translate="no" v-pre>user</code> bean resolve to the owner of the agent and the session point an
+<code translate="no" v-pre>AgenticSessionPoint</code> (the working copy is the open book, the language is the one of the run). What a run keeps of its session is the
+<code translate="no" v-pre>AgentSession</code> record (the uuid of the owner and the language), made up again at every start and resume. Anything that shows on
+the screen of the owner goes through <code translate="no" v-pre>ui.access</code> like any other background work, see
+<a href="../agents/#the-request-context-of-a-run">the request context of a run</a>.</p>
 <h2 id="sessions">Sessions</h2>
 <p><code translate="no" v-pre>bound/SessionManager</code> (bean <code translate="no" v-pre>sessionManager</code>, defined in <code translate="no" v-pre>container-config.xml</code>) knows every HTTP session of the
 application and which user is logged into it.</p>
@@ -822,10 +835,12 @@ free, and changes are pushed when the lock is released. The sessions are process
 (<code translate="no" v-pre>ThreadUtils.executeInThread</code>), so the caller&#x27;s Vaadin and request thread locals don&#x27;t leak into them; the call
 waits for the dispatch, not for the queued <code translate="no" v-pre>access</code> tasks. The <code translate="no" v-pre>skipCurrent</code> overload leaves out the caller&#x27;s own
 Vaadin session. <code translate="no" v-pre>UserServiceImpl.changePassword</code> / <code translate="no" v-pre>clearPassword</code> use it to invalidate the other sessions of the
-user whose password changed - a user changing their own password stays logged in in the current session.</p>
+user whose password changed - a user changing their own password stays logged in in the current session.
+<code translate="no" v-pre>reloadUser(user)</code> reloads the page of every UI of the sessions of a user the same way (<code translate="no" v-pre>runForUsers</code> with the main UI&#x27;s
+<code translate="no" v-pre>Page.reload()</code>): the permissions dialog uses it after it changed the permissions of another user.</p>
 </li>
 <li>
-<p><strong>The help chat.</strong> <code translate="no" v-pre>SessionPoint</code> (the session-scoped bean with the language) also keeps the conversation with the help
+<p><strong>The help chat.</strong> <code translate="no" v-pre>SessionPoint</code> (the session-scoped bean with the language and the workspace of the page) also keeps the conversation with the help
 assistant (<code translate="no" v-pre>getHelpChat()</code>, a synchronized list of messages) and the problems the user was shown (<code translate="no" v-pre>getProblems()</code>, see
 <a href="../ui/#what-went-wrong-the-problem-log">What went wrong</a>); <code translate="no" v-pre>Main</code> attaches that log to the Vaadin session after login so that code on
 threads without a request can write to it. Logout invalidates the session, which ends both.</p>
@@ -905,7 +920,8 @@ registers its <code translate="no" v-pre>LocalizationBundle</code>s in <code tra
 (<doc-anchor-trigger to="#localization">Localization</doc-anchor-trigger>).</p>
 </li>
 <li>
-<p><strong>Other extensions.</strong> Extensions don&#x27;t import each other. <code translate="no" v-pre>IPCService</code> lets them register providers of text about a
+<p><strong>Other extensions.</strong> Extensions don&#x27;t import each other. <code translate="no" v-pre>ToolService</code> lets them offer suites of tools (functions and
+commands) that a dialog with a <strong>Tools</strong> button gives the model, and <code translate="no" v-pre>IPCService</code> lets them register providers of text about a
 book or a story part under their bundle&#x27;s symbolic name (removed when the extension is unloaded) and ask for it; to
 use one particular extension (the name generator) the others find it among <code translate="no" v-pre>OsgiService.getLoadedExtensions()</code> and
 call it by reflection (<a href="../plugins/ipc/">Sharing data between extensions</a>).</p>
@@ -929,6 +945,7 @@ version of the application. See <a href="../plugins/">Plugin development</a>.</p
 | `data/&lt;login&gt;/backups/manuscripts/&lt;book id&gt;/` | Book backups (`BackupService`), one JSON file each. |
 | `data/&lt;login&gt;/images/`, `data/&lt;login&gt;/resources/` | Per-user folders for files (created on demand). |
 | `extensions/` | Extension JARs with their verification reports (`name.valid` / `name.invalid`, `ExtensionService.verifyExtension`), plus Felix's bundle cache in `org.eclipse.osgi/` (deleted and rebuilt on every start). |
+| `agent-workspaces/&lt;agent uuid&gt;/`, `agent-runs/&lt;run uuid&gt;/` | The files of [agents](agents.md#files-of-an-agent): the workspace of an agent, and per run the base snapshot of the book, the checkpoints and the findings (`RunFolder`). Not under `data/`, which is named by logins. |
 | `desktop/` | Desktop app only: the Jetty base and `logs/`. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -966,6 +983,10 @@ version of the application. See <a href="../plugins/">Plugin development</a>.</p
 <tr>
 <td><code translate="no" v-pre>extensions/</code></td>
 <td>Extension JARs with their verification reports (<code translate="no" v-pre>name.valid</code> / <code translate="no" v-pre>name.invalid</code>, <code translate="no" v-pre>ExtensionService.verifyExtension</code>), plus Felix&#x27;s bundle cache in <code translate="no" v-pre>org.eclipse.osgi/</code> (deleted and rebuilt on every start).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>agent-workspaces/&lt;agent uuid&gt;/</code>, <code translate="no" v-pre>agent-runs/&lt;run uuid&gt;/</code></td>
+<td>The files of <a href="../agents/#files-of-an-agent">agents</a>: the workspace of an agent, and per run the base snapshot of the book, the checkpoints and the findings (<code translate="no" v-pre>RunFolder</code>). Not under <code translate="no" v-pre>data/</code>, which is named by logins.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>desktop/</code></td>
@@ -1053,7 +1074,7 @@ refused, so an extension can&#x27;t replace English.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License.</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
             </footer>
         </div>
     </div>

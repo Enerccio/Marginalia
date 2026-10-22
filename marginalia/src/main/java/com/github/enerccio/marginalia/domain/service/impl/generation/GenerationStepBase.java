@@ -120,15 +120,15 @@ public abstract class GenerationStepBase implements GenerationStep {
         context.setManuscriptDescription(manuscript.getDescription());
         context.setPickSeed(String.valueOf(manuscript.getId()));
 
-        AI ai = manuscript.getAi();
+        AI ai = controller.getAi();
         if (ai != null) {
             context.setModelName(ai.getName());
-            int limit = TokenLimits.contextTokens(ai, manuscript.getProtocol());
+            int limit = TokenLimits.contextTokens(ai, controller.getProtocol());
             // 0 means "not configured" - leave the macros empty instead of reporting nonsense
             if (limit > 0) {
                 context.setMaxContextTokens(limit);
             }
-            int responseTokens = TokenLimits.responseTokens(ai, manuscript.getProtocol());
+            int responseTokens = TokenLimits.responseTokens(ai, controller.getProtocol());
             if (responseTokens > 0) {
                 context.setMaxResponseTokens(responseTokens);
             }

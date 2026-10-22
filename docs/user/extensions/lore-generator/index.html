@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845494342077">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845494342077" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -65,7 +65,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -289,32 +289,13 @@ prompt it came from, the lore and entries choices and the checked name categorie
 again restores them, taking priority over the prompt you used last and your saved name categories. An entry that was
 never generated into opens with the usual defaults. The options belong to the entry, so they travel with backups and
 exports of the lorebook.</p>
-<h3 id="name-tools">Name tools</h3>
-<p>When the <a href="../name-generator/">Name generator</a> or the <a href="../name-provider/">Name provider</a> extension is loaded, the top row has a
-<strong>Name tools</strong> button. It opens a table of the name categories of both with a checkbox each. The categories of the Name
-generator (names made up to sound like a category) start with <code translate="no" v-pre>Generator: </code>, the ones of the Name provider (real names, each
-with its original spelling) with <code translate="no" v-pre>Provider: </code>. The list is long, so it loads as you scroll and has a filter field above it:
-type a part of a name to show only the matching categories. The checked categories always stay in the table, whatever the filter
-says. The checkbox in the header checks or unchecks all the categories shown at that moment, and a line below the
-table counts how many are checked. The checked categories are saved with your account, so they stay checked the next
-time. While at least one is checked, the model can list them and ask for names of them during the generation (not the
-compaction), instead of inventing names. The model gets the tools of the extensions that have a checked category: check
-only <code translate="no" v-pre>Generator: </code> categories and it gets the generator&#x27;s, only <code translate="no" v-pre>Provider: </code> ones and it gets the provider&#x27;s, both and it
-gets both, none and it gets no tools.</p>
-<figure class="content-center">
-    <img src="../../../images/plugin-loregenerator-names.png" alt="Name tools with a filtered table of categories" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="720" height="745" />
-    <figcaption class="caption">Name tools with a filtered table of categories</figcaption>
-</figure>
-<p>A short hint for each kind of tools the model gets is added to the end of the generation prompt. The built-in hint of the
-Name generator asks the model to call the tools instead of inventing names, to pick from what it gets, and allows it to
-modify or remix the names when none fits as it is (combine parts of two, change an ending, adjust the spelling). The
-built-in hint of the Name provider asks it to pick a name from the real names it gets and to keep it as it was returned
-(the romanized one, with the original next to it when that suits the setting), without making up another spelling; a
-forename and a surname of the same country may be combined. You can replace them with your own in
-<em>Settings → Extension Settings → Lore Generator</em> (<em>Name generator hint</em> and <em>Name provider hint</em>, empty means the
-built-in one; a generator hint you saved before keeps working as it is, and so do the categories you checked before, they
-count as <code translate="no" v-pre>Generator: </code> ones). The button shows how many categories are checked. Without both extensions there is no
-button; they can be unloaded and installed again while Marginalia runs, the button comes back.</p>
+<h3 id="tools">Tools</h3>
+<p>When a suite of <a href="../tools/">tools for the model</a> is installed (names from the <a href="../name-generator/">Name generator</a> or the
+<a href="../name-provider/">Name provider</a>, places from the <a href="../place-provider/">Place provider</a>), the top row has a <strong>Tools</strong> button.
+It opens the window where you choose which suites, and of the ones with categories which categories, the model may use; see
+<a href="../tools/">Tools for the model</a> for how it works. While something is checked the model can call the tools during the
+generation (not the compaction), and the hint of each suite it gets is added to the end of the generation prompt. The choice
+is saved with your account and with the entry.</p>
 <h3 id="attachments">Attachments</h3>
 <p>Under the prompt you can add files for the model to look at: reference images, a map, a character sheet. Drop them on
 the upload area, choose them, or paste them into the prompt with Ctrl+V (a screenshot or a copied file becomes an
@@ -329,6 +310,61 @@ message and nothing is generated.</p>
 the entry, and the generated text before the compaction goes into its <strong>note</strong>. Both are replaced. If the compaction
 is one code block (the built-in prompt asks for that, to make the text easy to copy), the code block around it is
 removed. The lorebook is refreshed, and the dialog stays open; <strong>Exit</strong> closes it.</p>
+<h2 id="commands">Commands</h2>
+<p>The generator also works without the dialog, as three <a href="../../commands/">commands</a> for the command line and for
+<a href="../../agents/">agents</a>. They do the same two steps as the dialog and, like the dialog, they store nothing: they return
+the text, and putting it into an entry (what <strong>Copy to Lore Entry</strong> does) is up to the caller, so all three only read. The
+lorebook and the entry are given by number, as in <code translate="no" v-pre>/list-lorebooks</code> and <code translate="no" v-pre>/list-lore-entries</code>; the model is your default
+model and protocol.</p>
+<retype-table copy-text="| Command | What it does |
+|---|---|
+| `/list-lore-templates [template]` | Lists your saved generation prompts (name, length, start of the text) and the one used last. With a name it returns the whole text of that prompt. |
+| `/generate-lore-entry [prompt [template [lorebook [entry [order [scope [limit [images]]]]]]]]` | Generates a text with the lore of the lorebook and returns it. The text sent is a template followed by the prompt of the caller (see below). With `images` the model also looks at pictures, as with the attachments of the dialog. |
+| `/compact-lore-entry text [lorebook [entry [order [scope [limit]]]]]` | Compacts the text with the same lore and returns the result, without the code block around it. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Command</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>/list-lore-templates [template]</code></td>
+<td>Lists your saved generation prompts (name, length, start of the text) and the one used last. With a name it returns the whole text of that prompt.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/generate-lore-entry [prompt [template [lorebook [entry [order [scope [limit [images]]]]]]]]</code></td>
+<td>Generates a text with the lore of the lorebook and returns it. The text sent is a template followed by the prompt of the caller (see below). With <code translate="no" v-pre>images</code> the model also looks at pictures, as with the attachments of the dialog.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/compact-lore-entry text [lorebook [entry [order [scope [limit]]]]]</code></td>
+<td>Compacts the text with the same lore and returns the result, without the code block around it.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The entry the text is for decides which lore the model sees. Give its handle or its number as <code translate="no" v-pre>entry</code> (and the <code translate="no" v-pre>lorebook</code> it is in, by handle or number, when you give the number) and the lore is the same as in
+the dialog: with <code translate="no" v-pre>limit</code> <code translate="no" v-pre>UP_TO_POSITION</code> (the default) the entries before it, the entry itself never. An entry that does
+not exist yet has no number: give the <code translate="no" v-pre>order</code> it will get instead (the <code translate="no" v-pre>order</code> of <code translate="no" v-pre>/list-lore-entries</code>, lower comes first)
+and the model sees the entries before that order; without either, the text is written for a new entry after all the others.
+<code translate="no" v-pre>scope</code> is <code translate="no" v-pre>CURRENT_LOREBOOK</code> (the default) or <code translate="no" v-pre>ALL_LORE</code>, <code translate="no" v-pre>limit</code> is <code translate="no" v-pre>UP_TO_POSITION</code> or <code translate="no" v-pre>ALL_ENTRIES</code>, as in the dialog.</p>
+<p>A generation is only as good as its prompt, so the command always starts from one of your saved generation prompts (see
+<doc-anchor-trigger to="#prompts">Prompts</doc-anchor-trigger>): the one named in <code translate="no" v-pre>template</code>, or the one used last when none is named. The <code translate="no" v-pre>prompt</code> of the caller
+follows it under the heading <em>Task for this entry</em> and is where the subject, the facts, the length and the sections go,
+which is what the template asks for. <code translate="no" v-pre>template</code> <code translate="no" v-pre>none</code> sends the prompt alone, for a caller that has written the whole
+prompt itself, for example after getting the text of a template from <code translate="no" v-pre>/list-lore-templates</code> and editing it. A command
+that is called with a template and no prompt sends just the template.</p>
+<p>The <code translate="no" v-pre>images</code> of <code translate="no" v-pre>/generate-lore-entry</code> are the images the dialog would attach to the generation. An <a href="../../agents/">agent</a> passes a list of
+paths of image files of its workspace (<code translate="no" v-pre>/refs/map.png</code>; at most 8, PNG, JPEG, GIF or WebP, scaled down when large), which you put there with
+<strong>Upload file</strong> in the Workspace tab. The command bar has no way to name an image, so <code translate="no" v-pre>images</code> is for agents. It is your default model that looks at the
+pictures: if it does not take images the command fails and says so. Only the generation takes images, as in the dialog; <code translate="no" v-pre>/compact-lore-entry</code> works on the text alone.</p>
+<p>The model gets no tools here. A caller that wants names asks for them first, with <code translate="no" v-pre>/generate-names</code> of the
+<a href="../name-generator/">Name generator</a> or <code translate="no" v-pre>/pick-real-names</code> of the <a href="../name-provider/">Name provider</a>, and writes the ones it
+likes into the prompt. An agent can also take the text of a template from <code translate="no" v-pre>/list-lore-templates</code>, change it and pass the
+result as the prompt.</p>
 <h2 id="storage">Storage</h2>
 <p>The prompts and the compaction prompt are stored with your settings, so <a href="../../administration/database-backups/">database backups</a>
 include them. Nothing is stored with the lorebook; the generated text exists in the dialog only until you copy it.</p>
@@ -341,11 +377,11 @@ include them. Nothing is stored with the lorebook; the generated text exists in 
             
                 <nav id="retype-nextprev" class="print:hidden flex mt-14">
                     <div class="w-1/2">
-                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../../user/extensions/lorebook-vcs/">
+                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../../user/extensions/place-provider/">
                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                             <span>
                                 <span class="block text-xs font-normal text-base-text-muted">Previous</span>
-                                <span class="block mt-1">Lorebook VCS</span>
+                                <span class="block mt-1">Place provider</span>
                             </span>
                         </a>
                     </div>
@@ -369,7 +405,7 @@ include them. Nothing is stored with the lorebook; the generated text exists in 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License.</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
             </footer>
         </div>
     </div>

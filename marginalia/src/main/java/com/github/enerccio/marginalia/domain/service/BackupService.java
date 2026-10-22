@@ -52,6 +52,18 @@ public interface BackupService {
      *                   the parts of the clone have no images
      */
     Manuscript cloneBackup(ManuscriptBackup backup, String newName, Map<String, LorebookDecision> lorebookDecisions, boolean withImages) throws Exception;
+
+    /**
+     * Makes a new book of a book of the user: its settings, attributes, tags, linked AI and protocol and its story, with
+     * its own copies of the summaries and of the images of the parts. The lorebook is not copied, the clone is linked to
+     * the same one. The clone is not published.
+     *
+     * @param onlyCurrentBranch copy only the parts of the branch the book is set to (the path from the first part to
+     *                          the active leaf), otherwise all the branches
+     * @throws IllegalArgumentException when the book is not a regular book of the user, or the name is blank
+     */
+    Manuscript cloneManuscript(Manuscript source, String newName, boolean onlyCurrentBranch) throws Exception;
+
     List<LorebookImportCandidate> analyzeLorebooks(ManuscriptBackup backup) throws Exception;
     List<LorebookImportCandidate> analyzeLorebooks(File backupFile) throws Exception;
     List<LorebookImportCandidate> analyzeLorebooks(byte[] backupData) throws Exception;

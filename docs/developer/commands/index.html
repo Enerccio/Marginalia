@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="turbo-root" content="/Marginalia">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
+
+    <!-- See retype.com -->
+    <meta name="generator" content="Retype 4.6.0">
+
+    <!-- Primary Meta Tags -->
+    <title>Commands</title>
+    <meta name="title" content="Commands">
+    <meta name="description" content="A command is a named action with typed arguments and a return value, run by name: from the command bar the user types, from code in the application or in an extension, and later by agents (each command carries a description written for a model).">
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://enerccio.github.io/Marginalia/developer/commands/">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="https://enerccio.github.io/Marginalia/sitemap.xml">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://enerccio.github.io/Marginalia/developer/commands/">
+    <meta property="og:title" content="Commands">
+    <meta property="og:description" content="A command is a named action with typed arguments and a return value, run by name: from the command bar the user types, from code in the application or in an extension, and later by agents (each command carries a description written for a model).">
+    <meta property="og:site_name" content="Marginalia">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/developer/commands/">
+    <meta name="twitter:title" content="Commands">
+    <meta name="twitter:description" content="A command is a named action with typed arguments and a return value, run by name: from the command bar the user types, from code in the application or in an extension, and later by agents (each command carries a description written for a model).">
+
+    <!-- Alternate Markdown -->
+    <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/developer/commands/index.md">
+
+    <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
+
+    <link href="../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
+
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
+</head>
+<body>
+    <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
+    <div class="absolute bottom-0 left-0" style="top: 5rem; right: 50%"></div>
+
+    <header id="retype-header" class="sticky top-0 z-30 flex w-full h-16 bg-header-bg border-b border-header-border md:h-20">
+        <div class="container relative flex items-center justify-between pr-6 grow md:justify-start">
+            <!-- Mobile menu button skeleton -->
+            <button v-cloak class="skeleton retype-mobile-menu-button flex items-center justify-center shrink-0 overflow-hidden dark:text-white focus:outline-hidden rounded-full w-10 h-10 ml-3.5 md:hidden"><svg xmlns="http://www.w3.org/2000/svg" class="mb-px shrink-0" width="24" height="24" viewBox="0 0 24 24" role="presentation" style="margin-bottom: 0px;"><g fill="currentColor"><path d="M2 4h20v2H2zM2 11h20v2H2zM2 18h20v2H2z"></path></g></svg></button>
+            <div v-cloak id="retype-sidebar-left-toggle-button"></div>
+    
+            <!-- Logo -->
+            <div class="flex items-center justify-between h-full py-2 md:w-75">
+                <div class="flex items-center px-2 md:px-6">
+                    <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
+                        <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
+                </div>
+    
+                <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
+            </div>
+    
+            <div class="flex justify-between md:grow">
+                <!-- Top Nav -->
+                <nav id="retype-header-nav" class="hidden md:flex">
+                    <ul class="flex flex-col mb-4 md:pl-16 md:mb-0 md:flex-row md:items-center">
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                    <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                </svg>
+                                <span>GitHub</span>
+                            </a>
+                        </li>
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                        </li>
+    
+                    </ul>
+                </nav>
+    
+                <div v-cloak class="flex justify-end grow">
+                    <div id="retype-mobile-search-button"></div>
+                    <doc-search-desktop></doc-search-desktop>
+    
+                    <doc-theme-switch class="lg:ml-2"></doc-theme-switch>
+                    <doc-history></doc-history>
+                </div>
+            </div>
+        </div>
+    </header>
+
+
+    <div id="retype-container" class="container relative flex bg-white">
+        <!-- Sidebar Skeleton -->
+        <div v-cloak class="fixed flex flex-col shrink-0 duration-300 ease-in-out bg-sidebar-left-bg border-sidebar-left-border sidebar top-20 w-75 border-r h-screen md:sticky transition-transform skeleton">
+        
+            <div class="flex items-center h-16 px-6">
+                <input id="retype-filter-input-mock" class="w-full h-10 pl-8 px-3 py-2 transition-colors duration-200 ease-linear bg-filter-bg border border-filter-border rounded-lg shadow-none md:text-sm hover:border-filter-border-hover focus:outline-hidden focus:border-filter-border-focus placeholder-filter-placeholder" type="text">
+            </div>
+        
+            <div class="pl-6 mt-1 mb-4">
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            </div>
+        
+            <div class="shrink-0 mt-auto bg-transparent dark:border-base-border">
+                <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                    <span class="text-xs whitespace-nowrap">Powered by</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Sidebar component -->
+        <doc-sidebar v-cloak>
+            <template #sidebar-footer>
+                <div class="shrink-0 mt-auto border-t md:bg-transparent md:border-none dark:border-base-border">
+        
+                    <div class="py-3 px-6 md:hidden border-b dark:border-base-border">
+                        <nav>
+                            <ul class="flex flex-wrap justify-center items-center">
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                            <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                        </svg>
+                                        <span>GitHub</span>
+                                    </a>
+                                </li>
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                                </li>
+        
+                            </ul>
+                        </nav>
+                    </div>
+        
+                    <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                        <span class="text-xs whitespace-nowrap">Powered by</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                    </a>
+                </div>
+            </template>
+        </doc-sidebar>
+
+        <div class="grow min-w-0 bg-body-bg">
+            <!-- Render "toolbar" template here on api pages --><!-- Render page content -->
+<div class="flex">
+    <div id="retype-main" class="min-w-0 p-4 grow md:px-16">
+        <main class="relative pb-12 lg:pt-2">
+            <div class="relative retype-markdown" id="retype-content">
+                <!-- Rendered if sidebar right is enabled -->
+                <div id="retype-sidebar-right-toggle"></div>
+                <doc-page-actions></doc-page-actions>
+
+                <!-- Page content  -->
+<h1 id="commands">Commands</h1>
+<p>A <strong>command</strong> is a named action with typed arguments and a return value, run by name: from the
+<a href="command-bar/">command bar</a> the user types, from code in the application or in an extension, and later by agents
+(each command carries a description written for a model). This page explains the model; <a href="writing-commands/">Writing commands</a>
+shows how to write and register a suite, and <a href="command-bar/">The command bar</a> how the UI side works. The user&#x27;s view is
+in the <a href="../../user/commands/">user guide</a>.</p>
+<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">flowchart LR
+    bar[&quot;CommandBar&lt;br/&gt;/name arg arg&quot;] --&gt;|executeLine| svc
+    code[&quot;Application / extension code&quot;] --&gt;|execute, executePositional| svc
+    svc[&quot;CommandService&lt;br/&gt;registry + dispatcher&quot;] --&gt;|overload that fits| suite[&quot;Command suite&lt;br/&gt;@Command methods&quot;]
+    suite --&gt;|&quot;setReturn / fail&quot;| fut[&quot;CompletableFuture&quot;]
+    ext[&quot;Extension&lt;br/&gt;onExtensionLoad&quot;] --&gt;|registerCommands| svc</pre></div>
+<h2 id="concepts">Concepts</h2>
+<retype-table copy-text="| Concept             | What it is                                                                                                                                                                                  |
+|---------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Suite**           | Any object whose class has methods annotated with `@Command`. Registering the object registers all of them.                                                                                |
+| **Command method**  | `public void name(CommandContext context)`: the only parameter is the context, nothing is returned from the method itself.                                                                  |
+| **Command**         | A name (`commandName`: letters, digits, `_`, `-`, `.`) with a `humanName` for the user, a `description`, an `llmDescription` for agents (each as an `L` key or, for extensions, a plain `...Text`, see [Texts](writing-commands.md#texts)), a `signature`, a return declaration, `async`, the `dataSeverity` and `availableForAgent` (`false` keeps the command from agents, see [Available for agents](writing-commands.md#available-for-agents)).   |
+| **Form** (overload) | Methods of a suite that share a `commandName` are forms of one command. They must have the same `humanName` and `dataSeverity` and each its own `signature`. One `CommandDefinition` exists per form.          |
+| **Signature**       | `@CommandParameterSignature(@CommandParameter(name, type, description), ...)`: the arguments of one form. An empty signature is a form without arguments; `any = true` is &quot;any arguments&quot;.    |
+| **Context**         | `CommandContext`: the arguments (`get`, `getPositional`), the answer (`setReturn`, `fail`), the two lines of status (`setStatus`, `setSubStatus`) and `isTerminated()`. It belongs to one run. |
+| **Run**             | One call, which returns a `CommandRun` (a `CompletableFuture&lt;Object&gt;`) that completes with the value given to `setReturn` and holds the status the command reports.                       |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Concept</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Suite</strong></td>
+<td>Any object whose class has methods annotated with <code translate="no" v-pre>@Command</code>. Registering the object registers all of them.</td>
+</tr>
+<tr>
+<td><strong>Command method</strong></td>
+<td><code translate="no" v-pre>public void name(CommandContext context)</code>: the only parameter is the context, nothing is returned from the method itself.</td>
+</tr>
+<tr>
+<td><strong>Command</strong></td>
+<td>A name (<code translate="no" v-pre>commandName</code>: letters, digits, <code translate="no" v-pre>_</code>, <code translate="no" v-pre>-</code>, <code translate="no" v-pre>.</code>) with a <code translate="no" v-pre>humanName</code> for the user, a <code translate="no" v-pre>description</code>, an <code translate="no" v-pre>llmDescription</code> for agents (each as an <code translate="no" v-pre>L</code> key or, for extensions, a plain <code translate="no" v-pre>...Text</code>, see <a href="writing-commands/#texts">Texts</a>), a <code translate="no" v-pre>signature</code>, a return declaration, <code translate="no" v-pre>async</code>, the <code translate="no" v-pre>dataSeverity</code> and <code translate="no" v-pre>availableForAgent</code> (<code translate="no" v-pre>false</code> keeps the command from agents, see <a href="writing-commands/#available-for-agents">Available for agents</a>).</td>
+</tr>
+<tr>
+<td><strong>Form</strong> (overload)</td>
+<td>Methods of a suite that share a <code translate="no" v-pre>commandName</code> are forms of one command. They must have the same <code translate="no" v-pre>humanName</code> and <code translate="no" v-pre>dataSeverity</code> and each its own <code translate="no" v-pre>signature</code>. One <code translate="no" v-pre>CommandDefinition</code> exists per form.</td>
+</tr>
+<tr>
+<td><strong>Signature</strong></td>
+<td><code translate="no" v-pre>@CommandParameterSignature(@CommandParameter(name, type, description), ...)</code>: the arguments of one form. An empty signature is a form without arguments; <code translate="no" v-pre>any = true</code> is &quot;any arguments&quot;.</td>
+</tr>
+<tr>
+<td><strong>Context</strong></td>
+<td><code translate="no" v-pre>CommandContext</code>: the arguments (<code translate="no" v-pre>get</code>, <code translate="no" v-pre>getPositional</code>), the answer (<code translate="no" v-pre>setReturn</code>, <code translate="no" v-pre>fail</code>), the two lines of status (<code translate="no" v-pre>setStatus</code>, <code translate="no" v-pre>setSubStatus</code>) and <code translate="no" v-pre>isTerminated()</code>. It belongs to one run.</td>
+</tr>
+<tr>
+<td><strong>Run</strong></td>
+<td>One call, which returns a <code translate="no" v-pre>CommandRun</code> (a <code translate="no" v-pre>CompletableFuture&lt;Object&gt;</code>) that completes with the value given to <code translate="no" v-pre>setReturn</code> and holds the status the command reports.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h2 id="the-context">The context</h2>
+<p>A command never receives its arguments as Java parameters; it reads them from the context by the names of its signature:</p>
+<retype-table copy-text="| Method                          | Use                                                                                                                                          |
+|---------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| `get(name)`                     | The value as passed (converted to the parameter's type), `null` if not passed.                                                               |
+| `get(name, type)`               | As `type`; `IllegalArgumentException` when it is not an instance (numbers are converted when they fit).                                      |
+| `getPositional()`               | The arguments in order. For a form that takes any arguments, the objects the caller passed.                                                  |
+| `has(name)`, `getArguments()`   | Whether an argument was passed, and all of them (read only).                                                                                 |
+| `setReturn(value)`              | The answer. A form with `async = false` must call it before its method returns, otherwise the result is `null`. Later calls are ignored.     |
+| `fail(error)`                   | Ends the run with a `CommandException` (for `async` commands that report from another thread; a synchronous command can throw).             |
+| `setStatus(text)`, `setSubStatus(text)` | Two lines of progress for the user: what the command is doing now, and the detail of that step. They are independent, `null` or blank clears one. Any thread; ignored once the run is over. |
+| `setUninterruptable(flag)`, `isUninterruptable()` | Declares the run can't be stopped now (see [Uninterruptable runs](#uninterruptable-runs)). Any thread; ignored once the run is over. |
+| `isTerminated()`                | True when the run is over for the caller: the command answered or failed, or the caller cancelled the future. Never true while a synchronous command runs. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Method</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>get(name)</code></td>
+<td>The value as passed (converted to the parameter&#x27;s type), <code translate="no" v-pre>null</code> if not passed.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>get(name, type)</code></td>
+<td>As <code translate="no" v-pre>type</code>; <code translate="no" v-pre>IllegalArgumentException</code> when it is not an instance (numbers are converted when they fit).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>getPositional()</code></td>
+<td>The arguments in order. For a form that takes any arguments, the objects the caller passed.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>has(name)</code>, <code translate="no" v-pre>getArguments()</code></td>
+<td>Whether an argument was passed, and all of them (read only).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>setReturn(value)</code></td>
+<td>The answer. A form with <code translate="no" v-pre>async = false</code> must call it before its method returns, otherwise the result is <code translate="no" v-pre>null</code>. Later calls are ignored.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>fail(error)</code></td>
+<td>Ends the run with a <code translate="no" v-pre>CommandException</code> (for <code translate="no" v-pre>async</code> commands that report from another thread; a synchronous command can throw).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>setStatus(text)</code>, <code translate="no" v-pre>setSubStatus(text)</code></td>
+<td>Two lines of progress for the user: what the command is doing now, and the detail of that step. They are independent, <code translate="no" v-pre>null</code> or blank clears one. Any thread; ignored once the run is over.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>setUninterruptable(flag)</code>, <code translate="no" v-pre>isUninterruptable()</code></td>
+<td>Declares the run can&#x27;t be stopped now (see <doc-anchor-trigger to="#uninterruptable-runs">Uninterruptable runs</doc-anchor-trigger>). Any thread; ignored once the run is over.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>isTerminated()</code></td>
+<td>True when the run is over for the caller: the command answered or failed, or the caller cancelled the future. Never true while a synchronous command runs.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h2 id="arguments-and-dispatch">Arguments and dispatch</h2>
+<p>A call names the command and passes the arguments in one of three ways:</p>
+<retype-table copy-text="| Call                              | Arguments                                                                                                               |
+|-----------------------------------|-------------------------------------------------------------------------------------------------------------------------|
+| `execute(name, Map)`              | By name. The form whose parameter names are exactly the keys is called; a form that takes any arguments gets the map.   |
+| `executePositional(name, List)`   | By position. The form with as many parameters as there are arguments, all convertible, is called.                       |
+| `executeLine(&quot;/name a b&quot;)`        | A command typed as text; the arguments are strings, split by `CommandLine.parse` (see below).                            |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Call</th>
+<th>Arguments</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>execute(name, Map)</code></td>
+<td>By name. The form whose parameter names are exactly the keys is called; a form that takes any arguments gets the map.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>executePositional(name, List)</code></td>
+<td>By position. The form with as many parameters as there are arguments, all convertible, is called.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>executeLine(&quot;/name a b&quot;)</code></td>
+<td>A command typed as text; the arguments are strings, split by <code translate="no" v-pre>CommandLine.parse</code> (see below).</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Each of them also has a form with a last argument <code translate="no" v-pre>boolean uninterruptable</code>, see <doc-anchor-trigger to="#uninterruptable-runs">Uninterruptable runs</doc-anchor-trigger>.</p>
+<p>When several forms fit, the closest types win. Each argument costs 0 when it already has the parameter&#x27;s type, 1 for a
+parameter of type <code translate="no" v-pre>Object</code> (&quot;any&quot;), 2 when text or a number has to be converted (to a number, boolean, character or
+enum); a form that takes any arguments costs 1000, so it is the last resort. The form with the lowest total is called,
+ties go to the form that is listed first (declared forms by the number of parameters, then by method name). The
+<code translate="no" v-pre>Object.class</code> parameter is &quot;any&quot;: it takes the argument as it is, including a <code translate="no" v-pre>List</code> of objects, so a command can be
+given a list as one argument.</p>
+<p>Conversions (<code translate="no" v-pre>CommandValues</code>): an instance of the type is passed as it is; a number to another number type when the value
+fits; text to a number, boolean, character or enum constant.</p>
+<h3 id="the-command-line">The command line</h3>
+<p><code translate="no" v-pre>CommandLine.parse(text)</code> splits a command typed as text. The text is a command when it starts with <code translate="no" v-pre>/</code>.</p>
+<ul>
+<li>
+<p>Arguments are separated by spaces; repeated spaces count as one.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>\ </code> is a space inside an argument, <code translate="no" v-pre>\\</code> a backslash and <code translate="no" v-pre>\&quot;</code> a quote.</p>
+</li>
+<li>
+<p>A double quote starts or ends a quoted part in which spaces need no escape. Quotes may start anywhere in an argument
+(<code translate="no" v-pre>a&quot;b c&quot;d</code> is <code translate="no" v-pre>ab cd</code>), <code translate="no" v-pre>&quot;&quot;</code> is an empty argument, a quote that is never closed runs to the end of the text.</p>
+</li>
+<li>
+<p>Any other backslash stays as it is (<code translate="no" v-pre>C:\dir</code> is unchanged).</p>
+</li>
+<li>
+<p><code translate="no" v-pre>trailingSeparator</code> tells whether the text ends with a space that starts a new, still empty argument; with
+<code translate="no" v-pre>typingName()</code> and <code translate="no" v-pre>currentArgument()</code> the help knows what the user is typing. <code translate="no" v-pre>CommandLine.escape(argument)</code> writes an
+argument so that <code translate="no" v-pre>parse</code> reads it back as one argument.</p>
+</li>
+</ul>
+<h2 id="return-values">Return values</h2>
+<p><code translate="no" v-pre>@Command(returns = @CommandReturn(name, type, description))</code> declares what the command returns; the type is a direct
+class reference (<code translate="no" v-pre>String.class</code>, <code translate="no" v-pre>Object.class</code> for &quot;any&quot;, <code translate="no" v-pre>void.class</code> by default). It is documentation for the user and
+for agents (the help shows it); the service does not check the value against it.</p>
+<h2 id="synchronous-and-asynchronous-commands">Synchronous and asynchronous commands</h2>
+<retype-table copy-text="| `async`   | The method runs                                                                                                  | Answer                                                                       |
+|-----------|------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
+| `false`   | On the thread of the caller; the future is complete when `execute*` returns.                                     | `setReturn` before the method returns, or `null`. A thrown exception fails the future. |
+| `true`    | On a worker thread (a daemon cached pool) with the **request attributes of the caller**, so session-scoped beans resolve. | The future completes with the first `setReturn` or `fail`, from any thread, whenever the command likes. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th><code translate="no" v-pre>async</code></th>
+<th>The method runs</th>
+<th>Answer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>false</code></td>
+<td>On the thread of the caller; the future is complete when <code translate="no" v-pre>execute*</code> returns.</td>
+<td><code translate="no" v-pre>setReturn</code> before the method returns, or <code translate="no" v-pre>null</code>. A thrown exception fails the future.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>true</code></td>
+<td>On a worker thread (a daemon cached pool) with the <strong>request attributes of the caller</strong>, so session-scoped beans resolve.</td>
+<td>The future completes with the first <code translate="no" v-pre>setReturn</code> or <code translate="no" v-pre>fail</code>, from any thread, whenever the command likes.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>A caller can cancel the future (the <strong>Stop</strong> button of the progress window does). Then <code translate="no" v-pre>isTerminated()</code> becomes true, the
+worker thread is interrupted, and a command that has not started yet does not start. A long-running <code translate="no" v-pre>async</code> command must
+cooperate: look at <code translate="no" v-pre>isTerminated()</code> (and the interrupt flag) between the steps of its work and return at once. What it
+sets afterwards is ignored. <code translate="no" v-pre>/hello-world-async</code> of <code translate="no" v-pre>HelloWorldCommands</code> (a suite of the tests, <code translate="no" v-pre>src/test/java</code>, not part of the application) is the model of such a loop.</p>
+<h3 id="uninterruptable-runs">Uninterruptable runs</h3>
+<p>Some work can&#x27;t be abandoned half way, a change that is being written to the database. A command declares that with
+<code translate="no" v-pre>context.setUninterruptable(true)</code> just before it, and <code translate="no" v-pre>false</code> after it: meanwhile <code translate="no" v-pre>CommandRun.cancel</code> does nothing (it
+returns <code translate="no" v-pre>false</code>) and the progress window of the command bar disables its <strong>Stop</strong> button
+(<code translate="no" v-pre>CommandRun.isUninterruptable()</code>, <code translate="no" v-pre>addUninterruptableListener(...)</code>, called on the thread of the command like the status
+listener). The search and replace commands do so for the replace, after the user confirmed it.</p>
+<p>A caller can start a run that way too: every <code translate="no" v-pre>execute*</code> has a form with a trailing <code translate="no" v-pre>boolean uninterruptable</code>
+(<code translate="no" v-pre>execute(name, Map, true)</code>, <code translate="no" v-pre>executePositional(name, List, true)</code>, <code translate="no" v-pre>executeLine(line, true)</code>). Such a run is
+uninterruptable from the start and the command can&#x27;t lift it with <code translate="no" v-pre>setUninterruptable(false)</code>. A command that is
+uninterruptable and starts another asynchronous command passes <code translate="no" v-pre>context.isUninterruptable()</code>, so the nested one is not
+abandoned either.</p>
+<h3 id="status">Status</h3>
+<p>A command that takes time tells the user what it is doing with <code translate="no" v-pre>setStatus</code> (the main line, &quot;Taking a backup of Dune&quot;) and
+<code translate="no" v-pre>setSubStatus</code> (the detail, &quot;Chapter 3 of 12&quot;). The lines are kept in the <code translate="no" v-pre>CommandRun</code> that <code translate="no" v-pre>execute*</code> returns
+(<code translate="no" v-pre>getStatus()</code>, <code translate="no" v-pre>getSubStatus()</code>); <code translate="no" v-pre>addStatusListener((status, subStatus) -&gt; ...)</code> is called on the thread of the command on
+each change, so a view must hop to its own thread (the progress window of the command bar does with <code translate="no" v-pre>ui.access</code>). A
+listener does not get what was set before it was added: read the getters after adding it. A listener that throws is
+ignored. <code translate="no" v-pre>/take-backup</code> (<code translate="no" v-pre>BackupCommands</code>) is an example.</p>
+<h2 id="data-severity">Data severity</h2>
+<p><code translate="no" v-pre>@Command(dataSeverity = ...)</code> says what the command does to the data that exists, as a <code translate="no" v-pre>CommandDataSeverity</code>:</p>
+<retype-table copy-text="| Value             | Means                                                                                                      |
+|-------------------|------------------------------------------------------------------------------------------------------------|
+| `DESTRUCTIVE`     | The command changes or removes data that exists (replaces text, deletes, overwrites). **The default.**     |
+| `NON_DESTRUCTIVE` | The command only reads data or adds new data; whatever exists stays as it is (`/take-backup`). |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Value</th>
+<th>Means</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>DESTRUCTIVE</code></td>
+<td>The command changes or removes data that exists (replaces text, deletes, overwrites). <strong>The default.</strong></td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>NON_DESTRUCTIVE</code></td>
+<td>The command only reads data or adds new data; whatever exists stays as it is (<code translate="no" v-pre>/take-backup</code>).</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The default is the safe assumption: a command that does not say is treated as destructive, so a command that only reads or
+adds declares <code translate="no" v-pre>NON_DESTRUCTIVE</code>. All forms of a command have the same severity (<code translate="no" v-pre>registerCommands</code> throws
+<code translate="no" v-pre>IllegalArgumentException</code> otherwise), and <code translate="no" v-pre>CommandDefinition.dataSeverity()</code> returns it. The severity is for two readers:
+the <a href="command-bar/#the-help">command bar</a> shows it as a label next to the command for the user, and an agent that runs
+commands on its own is meant to ask the user before it runs a <code translate="no" v-pre>DESTRUCTIVE</code> one. Nothing in the service enforces that
+today: the severity does not stop a run, and a command that must ask the user still does it itself, see
+<a href="writing-commands/#asking-the-user">Asking the user</a>.</p>
+<h2 id="failures">Failures</h2>
+<p>A future fails with:</p>
+<ul>
+<li><code translate="no" v-pre>CommandException</code> when the command throws or calls <code translate="no" v-pre>fail</code> (the cause is the original error),</li>
+<li><code translate="no" v-pre>IllegalArgumentException</code> when there is no command of that name, no form fits the arguments, or the text for
+<code translate="no" v-pre>executeLine</code> does not start with <code translate="no" v-pre>/</code>.</li>
+</ul>
+<h2 id="registration">Registration</h2>
+<p><code translate="no" v-pre>registerCommands(Object suite)</code> validates the whole suite and registers all of it or nothing, and throws
+<code translate="no" v-pre>IllegalArgumentException</code> for: a class without a <code translate="no" v-pre>@Command</code> method; a command method that is not <code translate="no" v-pre>public void</code> with a
+<code translate="no" v-pre>CommandContext</code> as the only parameter; a name with characters other than letters, digits, <code translate="no" v-pre>_</code>, <code translate="no" v-pre>-</code>, <code translate="no" v-pre>.</code>; two forms
+with the same signature; forms with different <code translate="no" v-pre>humanName</code>; a signature that is also <code translate="no" v-pre>any</code>; a duplicate parameter name; a
+name another object already holds. It returns the <code translate="no" v-pre>CommandDefinition</code>s. Registering the same object again does nothing.</p>
+<p><code translate="no" v-pre>unregisterCommands(Object suite)</code> removes the suite, <code translate="no" v-pre>unregisterCommand(String)</code> one command with all its forms. The
+service does not know which bundle a suite came from: <strong>an extension unregisters its suites in <code translate="no" v-pre>onExtensionUnload</code></strong>.
+Runs in progress are not interrupted by unregistering.</p>
+<p>The application registers its own suites in <code translate="no" v-pre>CommandServiceImpl.afterPropertiesSet</code> (<code translate="no" v-pre>BackupCommands</code>, the two search and replace commands and the <doc-anchor-trigger to="#commands-that-read-the-book">commands that read the book</doc-anchor-trigger>).</p>
+<h2 id="statelessness">Statelessness</h2>
+<p>A suite is one object shared by all users and runs in parallel, so it must be <strong>stateless</strong>: no fields that hold what a
+run or a user did. What a command needs to know about the current state it reads when it runs:</p>
+<ul>
+<li>from the services, which resolve the current user and check ownership (<code translate="no" v-pre>ManuscriptService</code>, and so on),</li>
+<li>from the <strong>scope</strong> of the call, <code translate="no" v-pre>context.getScope()</code> (below): the book the command works on, its lorebooks and the way to ask a question,</li>
+<li>from the session-scoped <code translate="no" v-pre>SessionPoint</code> (<code translate="no" v-pre>getLanguage()</code>, <code translate="no" v-pre>getWorkspace()</code>), through <code translate="no" v-pre>CommandUtils</code>.</li>
+</ul>
+<h3 id="the-scope">The scope</h3>
+<p><code translate="no" v-pre>CommandContext.getScope()</code> is a <code translate="no" v-pre>CommandScope</code>: what the command works on and who answers its questions. A command takes the book from it
+(<code translate="no" v-pre>getManuscript()</code>, read again from the database every time, <code translate="no" v-pre>getLorebook()</code> the root lorebook of the book) and asks with
+<code translate="no" v-pre>context.confirm(question)</code>; it never reaches for the open window. The user at the command bar gets the scope of their session
+(<code translate="no" v-pre>CommandScopes.session()</code>: the open book, a dialog for the questions), an agent the scope of its working copy
+(<code translate="no" v-pre>CommandScopes.forRun(run)</code>: the copy of the run, whichever it is now, and a yes without asking, since what an agent may do without
+asking was decided when it called the command). <code translate="no" v-pre>CommandService.execute</code>, <code translate="no" v-pre>executePositional</code> and <code translate="no" v-pre>executeLine</code> have a form with a last
+argument <code translate="no" v-pre>scope</code>; without one the scope of the session of the calling thread is made on that thread.</p>
+<p><code translate="no" v-pre>getModel()</code> answers which AI and protocol work that a command starts should use when the user did not choose (a <code translate="no" v-pre>ModelChoice</code>; null is &quot;no opinion&quot;). For an agent it is the model of the agent, or the one of its book when the agent was told not to use its own (<code translate="no" v-pre>Agent.useAgentModel</code>); the user at the command bar has none, so a command falls back to its own choice (the Lore Generator to the default model of the user, the Arc Outline to the model of the book first). A command of an extension that calls a model must ask it first, or it ignores what the author of the agent decided. A command that writes through the story services asks nothing: the working copy already holds the model (see <a href="../agents/#the-working-copy-and-the-lock">Agents</a>). Tools with their own request to a model inside a long-lived agent should also take a place at the AI with <code translate="no" v-pre>AIGate</code> (<code translate="no" v-pre>ManuscriptWriteSupport.placeAt</code>).</p>
+<p>The scope is also the <strong>cage</strong>. <code translate="no" v-pre>resolveMessage(uuid)</code>, <code translate="no" v-pre>resolveLorebook(uuid)</code> and <code translate="no" v-pre>resolveEntry(uuid)</code> find an item by the uuid, and only
+the ones of the book of the scope: the parts of the book, the lorebook of the book and its subbooks however deep, and their entries. A uuid of
+anything else (the original book of a copy, another book, a lorebook the book does not use, a deleted item) is refused with an
+<code translate="no" v-pre>IllegalArgumentException</code> as if it did not exist, so a command that takes an item as an argument can&#x27;t be aimed outside of the book by what
+it is given. A command that takes an item does it through the scope and not through <code translate="no" v-pre>findForUser</code> or <code translate="no" v-pre>find(id)</code>.</p>
+<p>One exception: <code translate="no" v-pre>resolveUnusedLorebook(uuid)</code> also finds a lorebook of the working copy that the book does not use any more, because a command deleted it
+(<code translate="no" v-pre>LorebookService.delete</code> only marks it, with its entries and tags) or took it out of its parent. It is for <code translate="no" v-pre>/add-subbook</code>, which brings such a lorebook
+back (<code translate="no" v-pre>LorebookService.restore</code>, the restore of the trash); the cage is that the lorebook is one of the copy (<code translate="no" v-pre>agentic</code>, of the owner of the run) and that the
+run has a <strong>handle</strong> for it, so an agent can only name what it was shown. The scope of the user at the command bar answers like <code translate="no" v-pre>resolveLorebook</code>; the user
+restores from the trash.</p>
+<p><code translate="no" v-pre>CommandUtils</code> (package <code translate="no" v-pre>utils</code>) reads the session of the caller – also on the worker thread of an <code translate="no" v-pre>async</code> command, which
+gets the request attributes – and returns <code translate="no" v-pre>null</code> when there is nothing to return (no session, no workspace yet, no book
+open), so a command checks its results. The book-related methods only delegate to the <code translate="no" v-pre>SessionPoint</code>, which knows where the
+book comes from: for a user the <code translate="no" v-pre>SessionPoint</code> reads it from the open window of the workspace, for an agent the
+<code translate="no" v-pre>AgenticSessionPoint</code> (a <code translate="no" v-pre>SessionPoint</code> without workspace and window) holds the book directly, so the same command runs for
+both:</p>
+<retype-table copy-text="| Method                    | Returns                                                                       |
+|---------------------------|-------------------------------------------------------------------------------|
+| `getSessionPoint()`       | The `SessionPoint` of the session: the bean of the servlet session, or for other request attributes (an agent run) the `AgenticSessionPoint` kept under `AgenticSessionPoint.SCOPED_TARGET_NAME` in their session scope. |
+| `getWorkspace()`          | The user's `Workspace` (desktop or phone); `null` for an agent.               |
+| `getManuscriptSection()`  | The part of the workspace that holds book windows (`ManuscriptSection`); `null` for an agent. |
+| `getManuscriptWindow()`   | The open book window (`ManuscriptWindow`, the same interface on the desktop and the phone); `null` for an agent. |
+| `getCurrentManuscript()`  | The open book (`SessionPoint.getCurrentManuscript()`) or the book of the agent session; a command takes the book from `context.getScope()` instead. |
+| `getCurrentAI()`          | The AI of that book.                                                          |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Method</th>
+<th>Returns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>getSessionPoint()</code></td>
+<td>The <code translate="no" v-pre>SessionPoint</code> of the session: the bean of the servlet session, or for other request attributes (an agent run) the <code translate="no" v-pre>AgenticSessionPoint</code> kept under <code translate="no" v-pre>AgenticSessionPoint.SCOPED_TARGET_NAME</code> in their session scope.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>getWorkspace()</code></td>
+<td>The user&#x27;s <code translate="no" v-pre>Workspace</code> (desktop or phone); <code translate="no" v-pre>null</code> for an agent.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>getManuscriptSection()</code></td>
+<td>The part of the workspace that holds book windows (<code translate="no" v-pre>ManuscriptSection</code>); <code translate="no" v-pre>null</code> for an agent.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>getManuscriptWindow()</code></td>
+<td>The open book window (<code translate="no" v-pre>ManuscriptWindow</code>, the same interface on the desktop and the phone); <code translate="no" v-pre>null</code> for an agent.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>getCurrentManuscript()</code></td>
+<td>The open book (<code translate="no" v-pre>SessionPoint.getCurrentManuscript()</code>) or the book of the agent session; a command takes the book from <code translate="no" v-pre>context.getScope()</code> instead.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>getCurrentAI()</code></td>
+<td>The AI of that book.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p><code translate="no" v-pre>confirm</code> and <code translate="no" v-pre>reloadManuscriptWindow</code> talk to the window, so in a session without one they answer <em>no</em> and do nothing (<code translate="no" v-pre>CommandContext.confirm</code> is what a command calls, it is routed by the scope).</p>
+<p>A command that changes the UI does it on the UI thread: from a synchronous command that is the calling thread, from an
+<code translate="no" v-pre>async</code> one use <code translate="no" v-pre>ui.access(...)</code> (see <a href="../plugins/ui-extensions/#threads">UI extensions → Threads</a>).</p>
+<h2 id="commands-that-read-the-book">Commands that read the book</h2>
+<p>The package <code translate="no" v-pre>domain.service.impl.commands.manuscript.read</code> holds one class per command (<code translate="no" v-pre>GetBookInfoCommand</code>, <code translate="no" v-pre>ListPartsCommand</code>,
+<code translate="no" v-pre>GetPartCommand</code>, <code translate="no" v-pre>ListSwipesCommand</code>, <code translate="no" v-pre>ListBranchesCommand</code>, <code translate="no" v-pre>GetPartMetricsCommand</code>, <code translate="no" v-pre>ShowPromptCommand</code>, <code translate="no" v-pre>SearchPartsCommand</code>,
+<code translate="no" v-pre>FindOccurrencesCommand</code>, <code translate="no" v-pre>ComparePartsCommand</code>, <code translate="no" v-pre>CountTokensCommand</code>, <code translate="no" v-pre>ListSummariesCommand</code>, <code translate="no" v-pre>GetSummaryCommand</code>,
+<code translate="no" v-pre>CheckSummariesCommand</code>, <code translate="no" v-pre>GetTemplateVariablesCommand</code>), each a <code translate="no" v-pre>@Configurable</code> suite registered by <code translate="no" v-pre>CommandServiceImpl</code>. They share
+<code translate="no" v-pre>ManuscriptReadSupport</code> (the services, the <code translate="no" v-pre>Book</code> loaded again from the current manuscript, the JSON helpers) and <code translate="no" v-pre>StoryTree</code> (the
+parts as a tree, with the numbers of the branches). All are <code translate="no" v-pre>NON_DESTRUCTIVE</code>, synchronous and answer JSON text.</p>
+<ul>
+<li>
+<p><strong>Handles, positions and numbers.</strong> Every row of an answer has a <code translate="no" v-pre>handle</code>, the uuid of the part (an agent sees it as <code translate="no" v-pre>h:m17</code>: the
+border of the agent turns the uuids of its copy into handles and back, see <code translate="no" v-pre>CommandCage</code>; a command knows nothing of it). A part
+parameter is a <code translate="no" v-pre>String</code> that <code translate="no" v-pre>Book.locate(part, branch)</code> reads as a handle (<code translate="no" v-pre>CommandScope.resolveMessage</code>, so only a part of the
+scope&#x27;s book is found) or as a <em>position</em> (depth on a branch, the first part is 1); a branch is the handle of one of its parts
+(the branch through it to its end, <code translate="no" v-pre>StoryTree.leafOf</code>) or its <em>number</em>: the ends of the branches (parts without children)
+ordered by creation, the oldest is 1. Positions and numbers move when parts are added or deleted, so the commands that write
+accept handles only. <code translate="no" v-pre>list-branches</code> gives the numbers and <code translate="no" v-pre>list-swipes</code>, <code translate="no" v-pre>search-parts</code> and <code translate="no" v-pre>find-occurrences</code> say the branch that
+shows a part that is not on the active branch. Without a branch the active branch (<code translate="no" v-pre>getBranchFromLeaf</code>, the root first) is used; the other
+branches need the whole tree (<code translate="no" v-pre>ChatMessageService.getAllMessages</code>, one query), so a command loads it only when asked for one.
+A form with a single <code translate="no" v-pre>String</code> that could be a text or a part (<code translate="no" v-pre>count-tokens</code>, <code translate="no" v-pre>preview-lore-activation</code>) takes the handle in the text:
+the dispatcher can&#x27;t tell two one-<code translate="no" v-pre>String</code> forms apart.</p>
+</li>
+<li>
+<p><strong>Time limited patterns.</strong> The regular expressions of <code translate="no" v-pre>find-occurrences</code> (and <code translate="no" v-pre>search-lore</code>) run over <code translate="no" v-pre>utils.TimeSafeText</code>: the text is wrapped in a
+<code translate="no" v-pre>CharSequence</code> whose <code translate="no" v-pre>charAt</code> checks the clock and throws <code translate="no" v-pre>RegexTimeoutException</code> after 30 seconds for the whole command (the system property
+<code translate="no" v-pre>marginalia.regexTimeoutMillis</code> changes it), which the command turns into an error with <code translate="no" v-pre>ERROR_REGEX_TIMEOUT</code>. A pattern the JDK can&#x27;t optimise, such as
+one with a back reference (<code translate="no" v-pre>(a+)+\1b</code>), can run for hours otherwise; <code translate="no" v-pre>TextSearch</code> uses the same wrapper for each text.</p>
+</li>
+<li>
+<p><strong>Bounded answers.</strong> Lists take <code translate="no" v-pre>offset</code> and <code translate="no" v-pre>limit</code> (50, at most 200); texts come in slices (<code translate="no" v-pre>offset</code>, <code translate="no" v-pre>length</code>, 6000 characters,
+at most 20000) with <code translate="no" v-pre>totalLength</code> and <code translate="no" v-pre>truncated</code>.</p>
+</li>
+<li>
+<p><strong>Forms.</strong> The options are the usual ladder of overloads (every prefix of the parameter list is a form), so a command can be
+called by name only with a prefix of its parameters.</p>
+</li>
+<li>
+<p><strong>Summaries.</strong> The state of a summary (<code translate="no" v-pre>valid</code>, <code translate="no" v-pre>outdated</code>) comes from <code translate="no" v-pre>SummaryService.collectBlocks</code>; the &quot;covers&quot; range of a block
+runs from the part after the previous block to the part that holds the summary.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>compare-parts</code> uses <code translate="no" v-pre>utils.TextDiff</code>, a longest common subsequence of the sentences (a line break ends a sentence too), refused
+above 4 million cells.</p>
+</li>
+</ul>
+<p>Tests: <code translate="no" v-pre>ManuscriptReadCommandsTest</code> runs them in an agent session (<code translate="no" v-pre>AgenticRequestAttributes</code> in the test sources puts an
+<code translate="no" v-pre>AgenticSessionPoint</code> into the session scope of the logged in test user).</p>
+<h3 id="commands-that-read-the-lorebooks">Commands that read the lorebooks</h3>
+<p>The package <code translate="no" v-pre>domain.service.impl.commands.lorebook.read</code> has <code translate="no" v-pre>ListLorebooksCommand</code>, <code translate="no" v-pre>ListLoreEntriesCommand</code>, <code translate="no" v-pre>GetLoreEntryCommand</code>,
+<code translate="no" v-pre>SearchLoreCommand</code> and <code translate="no" v-pre>PreviewLoreActivationCommand</code> on <code translate="no" v-pre>LorebookReadSupport</code>, which extends <code translate="no" v-pre>ManuscriptReadSupport</code> (so the <code translate="no" v-pre>Book</code>, the paging and the slices are the same).
+Its <code translate="no" v-pre>Lore</code> is the lorebook tree of the open book: the root lorebook of the manuscript, then the subbooks level by level, each once
+(<code translate="no" v-pre>LorebookService.getSubbooks</code> skips the deleted ones). A lorebook is its <strong>number</strong> in that order (the root is 1), an entry its <strong>number in
+the lorebook</strong> (<code translate="no" v-pre>LorebookEntryService.getEntriesForLorebook</code>: by <code translate="no" v-pre>ordinal</code>, then by id, deleted ones left out). Nothing outside the tree is
+reachable, so an agent never sees the other lorebooks of the user, and no uuid is given out or accepted. <code translate="no" v-pre>list-lore-entries</code> filters by
+name and tag in Java and keeps the numbers of the whole lorebook; <code translate="no" v-pre>search-lore</code> scans name, text and comment case-insensitively
+(plain text or a regular expression) and reports one hit per entry with the fields that match.</p>
+<p><code translate="no" v-pre>preview-lore-activation</code> asks <code translate="no" v-pre>LorebookActivationService</code> (<code translate="no" v-pre>domain.service</code>), the rules the generation step <code translate="no" v-pre>ProcessLorebookStep</code> uses too: <code translate="no" v-pre>collectLorebooks</code> (the enabled
+tree with the entries filled in), <code translate="no" v-pre>orderedEntries</code> (by <code translate="no" v-pre>order</code>, the older first), <code translate="no" v-pre>evaluate(entry, bookTags, text)</code> (a <code translate="no" v-pre>Verdict</code> with a <code translate="no" v-pre>Reason</code>: <code translate="no" v-pre>CONSTANT</code>,
+<code translate="no" v-pre>FILTER_MATCHED</code>, <code translate="no" v-pre>DISABLED</code>, <code translate="no" v-pre>NEGATIVE_TAG</code>, <code translate="no" v-pre>MISSING_TAG</code>, <code translate="no" v-pre>FILTER_NOT_MATCHED</code>) and <code translate="no" v-pre>renderPayload</code>. The step only adds its events around them, so what the command
+shows is what a generation does. With a part the filters are looked for in the user prompt of the book rendered from the turn input stored with the part, in a
+fresh <code translate="no" v-pre>TemplateContext</code> (the book, the narration settings, the variables of the book and of the part; not the story), so a payload that reads the story renders
+without it. The form with <code translate="no" v-pre>text</code> and the form with <code translate="no" v-pre>part</code> both have one argument, a number on the command line is taken for the text: give a part as a number
+to <code translate="no" v-pre>executePositional</code>, or by name as an agent does.</p>
+<p>Tests: <code translate="no" v-pre>LorebookReadCommandsTest</code>, the same way, with a lorebook tree, a lorebook the book does not use and a deleted entry.</p>
+<h2 id="commands-that-change-the-book">Commands that change the book</h2>
+<p>The packages <code translate="no" v-pre>domain.service.impl.commands.manuscript.write</code> and <code translate="no" v-pre>lorebook.write</code> hold the commands that change the book, on
+<code translate="no" v-pre>ManuscriptWriteSupport</code> (which extends <code translate="no" v-pre>ManuscriptReadSupport</code>) and <code translate="no" v-pre>LorebookWriteSupport</code> (which extends <code translate="no" v-pre>LorebookReadSupport</code>):
+<code translate="no" v-pre>PartEditCommands</code> (<code translate="no" v-pre>edit-part</code>, <code translate="no" v-pre>replace-part-text</code>, <code translate="no" v-pre>append-to-part</code>, <code translate="no" v-pre>set-part-fields</code>), <code translate="no" v-pre>PartStructureCommands</code> (<code translate="no" v-pre>create-part</code>,
+<code translate="no" v-pre>insert-part</code>, <code translate="no" v-pre>branch-part</code>, <code translate="no" v-pre>delete-part</code>, <code translate="no" v-pre>switch-branch</code>), <code translate="no" v-pre>SummaryWriteCommands</code> (<code translate="no" v-pre>set-summary</code>, <code translate="no" v-pre>remove-summary</code>, <code translate="no" v-pre>revalidate-summaries</code>),
+<code translate="no" v-pre>BookSettingsCommands</code> (<code translate="no" v-pre>set-book-info</code>, <code translate="no" v-pre>set-book-prompts</code>, <code translate="no" v-pre>set-book-tags</code>), <code translate="no" v-pre>StoryGenerationCommands</code> (<code translate="no" v-pre>next</code>, <code translate="no" v-pre>swipe</code>,
+<code translate="no" v-pre>regenerate</code>), <code translate="no" v-pre>SummaryGenerationCommands</code> (<code translate="no" v-pre>regenerate-summary</code>, <code translate="no" v-pre>create-meta-summary</code>), <code translate="no" v-pre>LoreEntryWriteCommands</code> and
+<code translate="no" v-pre>LorebookWriteCommands</code>. They call the services the screens use (<code translate="no" v-pre>ChatMessageService.updateResponse</code> / <code translate="no" v-pre>createPart</code> / <code translate="no" v-pre>insertPart</code> /
+<code translate="no" v-pre>branchAndSwitch</code> / <code translate="no" v-pre>swipeAndSwitch</code> / <code translate="no" v-pre>deleteNodeAndMigrateChildren</code>, <code translate="no" v-pre>SummaryService.updateSummaryText</code> / <code translate="no" v-pre>removeSummary</code> /
+<code translate="no" v-pre>revalidate</code>, <code translate="no" v-pre>ManuscriptService.updateSettings</code>, <code translate="no" v-pre>LorebookEntryService.create</code> / <code translate="no" v-pre>update</code> / <code translate="no" v-pre>move</code> / <code translate="no" v-pre>deleteEntry</code>,
+<code translate="no" v-pre>LorebookService</code> for the subbooks) and add no rule of their own, so what the user does in a window and what a command does is one path.</p>
+<ul>
+<li>
+<p><strong>Handles only.</strong> A part, lorebook or entry parameter must be a handle (<code translate="no" v-pre>ManuscriptWriteSupport.part</code>, <code translate="no" v-pre>LorebookWriteSupport.book</code> /
+<code translate="no" v-pre>entry</code>); a position or number is refused with <code translate="no" v-pre>ERROR_COMMAND_HANDLE_REQUIRED</code>.</p>
+</li>
+<li>
+<p><strong>Severity.</strong> Adding and changing is <code translate="no" v-pre>NON_DESTRUCTIVE</code>; what removes text or data (<code translate="no" v-pre>replace-part-text</code>, <code translate="no" v-pre>delete-*</code>, <code translate="no" v-pre>remove-summary</code>,
+<code translate="no" v-pre>regenerate</code>, <code translate="no" v-pre>set-book-prompts</code>) is <code translate="no" v-pre>DESTRUCTIVE</code> and calls <code translate="no" v-pre>context.confirm(question)</code>: the user at the command bar gets a
+dialog, an agent is not asked again (its destructive mode decided before the call). A refusal answers <em>Nothing was changed.</em></p>
+</li>
+<li>
+<p><strong>Outdated summaries.</strong> An edit can invalidate the hash of a summary block. <code translate="no" v-pre>reportOutdated</code> puts the summaries an edit made
+outdated (the ones outdated now and not before) and a hint into the answer; <code translate="no" v-pre>revalidate-summaries</code> is the author&#x27;s way to
+say they are still right.</p>
+</li>
+<li>
+<p><strong>The window.</strong> After a change <code translate="no" v-pre>changed()</code> reloads the book window of the user (<code translate="no" v-pre>CommandUtils.reloadManuscriptWindow</code>, nothing for an
+agent, which has none).</p>
+</li>
+<li>
+<p><strong>Generation.</strong> <code translate="no" v-pre>next</code>, <code translate="no" v-pre>swipe</code> and <code translate="no" v-pre>regenerate</code> are <code translate="no" v-pre>async</code> and call <code translate="no" v-pre>StoryGenerationService.generateNextTurn</code> with a listener that
+completes a future; each moves <code translate="no" v-pre>activeLeaf</code>, so one generation of a book runs at a time (a lock per manuscript, the others wait). Swipe
+and regenerate need the part to be the end of its branch (they make it the active leaf first, as the pipeline expects), and take
+the turn input from the part unless given. <code translate="no" v-pre>profile</code> names a model profile of the agent of the run (<code translate="no" v-pre>AgentService.resolveProfile</code>,
+<code translate="no" v-pre>GenerationOptions.withModel</code>); for the user it is refused. The generation question about outdated summaries is passed on
+with <code translate="no" v-pre>context.confirm</code> and the answer yes is reported as a warning. Stopping the command cancels the generation (<code translate="no" v-pre>CancellationToken</code>).</p>
+</li>
+<li>
+<p><code translate="no" v-pre>search-replace-parts</code> and <code translate="no" v-pre>search-replace-lore-entries</code> have <code translate="no" v-pre>maxHits</code> (refuse above it) and <code translate="no" v-pre>dryRun</code> (count and show five matches,
+change nothing).</p>
+</li>
+</ul>
+<p>Tests: <code translate="no" v-pre>ManuscriptWriteCommandsTest</code>, <code translate="no" v-pre>LorebookWriteCommandsTest</code> (a scope that answers the questions), <code translate="no" v-pre>GenerationCommandsTest</code>
+(the real generation against the mock server), <code translate="no" v-pre>AgentHandlesTest</code> (the commands through the cage of a run, on the working copy).</p>
+
+                
+                <!-- Required only on API pages -->
+                <doc-toolbar-member-filter-no-results></doc-toolbar-member-filter-no-results>
+            </div>
+            <footer id="retype-content-footer" class="clear-both">
+            
+                <nav id="retype-nextprev" class="print:hidden flex mt-14">
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../developer/services/">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                            <span>
+                                <span class="block text-xs font-normal text-base-text-muted">Previous</span>
+                                <span class="block mt-1">Services</span>
+                            </span>
+                        </a>
+                    </div>
+            
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../developer/commands/writing-commands/">
+                            <span>
+                                <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
+                                <span class="block mt-1">Writing commands</span>
+                            </span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                        </a>
+                    </div>
+                </nav>
+            </footer>
+        </main>
+
+        <div id="retype-page-footer" class="print:border-none border-t border-base-border pt-6 mb-8">
+            <footer class="flex flex-wrap items-center justify-between print:justify-center">
+                <div id="retype-footer-links" class="print:hidden">
+                    <ul class="flex flex-wrap items-center text-sm">
+                    </ul>
+                </div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Rendered if sidebar right is enabled -->
+    <!-- Sidebar right skeleton-->
+    <div v-cloak class="fixed top-0 bottom-0 right-0 translate-x-full bg-sidebar-right-bg border-sidebar-right-border lg:sticky lg:border-l lg:shrink-0 lg:pt-6 lg:translate-x-0 sm:w-1/2 lg:w-64 lg:z-0 md:w-104 sidebar-right skeleton">
+        <div class="pl-5">
+            <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+        </div>
+    </div>
+
+    <!-- User should be able to hide sidebar right -->
+    <doc-sidebar-right v-cloak></doc-sidebar-right>
+</div>
+
+        </div>
+    </div>
+
+    <doc-search-mobile></doc-search-mobile>
+    <doc-back-to-top></doc-back-to-top>
+</div>
+
+
+    <div id="retype-overlay-target"></div>
+
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Commands", level: 2, icon: "file", hasPrism: false, hasInstagram: false, hasMermaid: true, hasMath: false, tocDepth: 23, "md": "/developer/commands/index.md" }</script>
+</body>
+</html>

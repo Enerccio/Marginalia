@@ -29,4 +29,13 @@ public interface FunctionContinuation<T> {
     /** Whether the request is over (cancelled or its caller is gone), so that the answer is not needed any more. */
     boolean isCancelled();
 
+    /**
+     * Runs the hook when the caller cancels the call (the run of an agent was paused at once, stopped or thrown away): once, on the
+     * thread that cancels, or at once when the call was cancelled already. A function that hands its work to something that can
+     * be stopped (a command) stops it here; the answer it gives afterwards is not read. A continuation that has no way to be
+     * cancelled ignores the hook.
+     */
+    default void onCancel(Runnable hook) {
+    }
+
 }

@@ -13,8 +13,10 @@ Select the lorebook in the editor and click the **export** button (file icon, *E
 - the lorebook and **all its sub lorebooks** (every level), with their names, enabled state and tags;
 - every entry with its content, note, order, filter, insertion mode, tags and negative tags.
 
-Use it to keep a copy, to share a world with other users, or to move it to another installation. Entry revisions of
-the [Lorebook VCS](../extensions/lorebook-vcs.md) extension are not part of the file; the extension has its own export.
+Use it to keep a copy, to share a world with other users, or to move it to another installation. The data that
+[extensions](../extensions/index.md) keep in a lorebook or an entry is in the file too, and is restored by the import.
+Entry revisions of the [Lorebook VCS](../extensions/lorebook-vcs.md) extension belong to the old entries and do not show
+on the entries the import creates; the extension has its own export for them.
 
 ## Importing a Marginalia lorebook
 
@@ -31,6 +33,40 @@ Files from older Marginalia versions (a single lorebook without sub lorebooks) c
 Lorebooks also travel inside [book backups](../books/backups.md). Restoring or cloning a backup can link to lorebooks
 you already have instead of creating copies; see [Restoring a backup](../books/backups.md#restoring-a-backup).
 !!!
+
+## Importing an archive of text files
+
+1. Click the **import** button and choose **Import from archive**.
+2. Upload a `.zip` file with `.md` (Markdown) files.
+3. Check the **entry names** in the table and change them if you want, then click **Import**.
+
+![The window to upload the archive](../../images/archive-lorebook-upload.png)
+
+![The names of the entries before the import](../../images/archive-entry-names.png)
+
+Marginalia creates a new lorebook named after the file (without `.zip`) with **one entry for each `.md` file**. The
+files are taken in the order of their names, numbers inside the names compared as numbers (`2.md` comes before
+`10.md`), also in folders of the archive; the entries get the *Order* 1, 2, 3... in that sequence. The whole file is the
+*Content*. Other files, folders, hidden files (`.name`) and the `__MACOSX` folder of archives made on a Mac are skipped.
+
+**Entry names** are filled in from, in this order:
+
+1. a file `names.txt` in the root of the archive: one name on a line, the first line for the first `.md` file in the
+   order above, and so on (an empty line leaves that file to the next rule; extra lines are ignored). Use it to name
+   many files at once, for example from a script;
+2. the first heading of the file (`# Chapter 1` gives *Chapter 1*);
+3. the file name without `.md`.
+
+The table in the dialog shows the result, and you can type over any name.
+
+The import then shows its progress. **Stop** ends it after the entry that is being stored: the lorebook keeps the entries that
+were already imported (the import is not undone), and a message tells how many of the files were imported.
+
+The entries are imported **disabled**: they have no filter, so enabled they would be sent with every request, which
+for a whole book of chapters is hardly wanted. Turn on the ones you need, with a filter or [tags](entries.md#tags) -
+**Mass edit** is the quick way to do it for many entries.
+
+To put the same files into a story as parts instead, see [Importing text files](../books/story-editor.md#importing-text-files).
 
 ## Importing SillyTavern world info
 

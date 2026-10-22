@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845494342077">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845494342077" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -65,7 +65,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -181,7 +181,7 @@ from the beginning to the end.</p>
 <a href="../../phone/#the-story">Using Marginalia on a phone</a>.</p>
 <retype-table copy-text="| Area | |
 |---|---|
-| **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part. The header shows how many parts the branch has. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |
+| **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part (the parts before it are loaded first when it is not loaded yet). The header shows how many parts the branch has. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |
 | **Lorebook** (left, next to the Outline) | A read only look at the lore of the book, see [The lorebook tab](#the-lorebook-tab). |
 | **Parts** (center) | The text of each part, with its menu (☰) and its metadata on the right. |
 | **Bottom bar** | The **Summaries** button (list icon) and the settings menu (⚙) on the left, the **+** button on the right. |">
@@ -196,7 +196,7 @@ from the beginning to the end.</p>
 <tbody>
 <tr>
 <td><strong>Outline</strong> (left)</td>
-<td>One entry per part, <code translate="no" v-pre>#1</code>, <code translate="no" v-pre>#2</code>... with the part&#x27;s database ID. Click an entry to scroll to the part. The header shows how many parts the branch has. The <a href="../../extensions/chapter-marker/">Chapter Marker</a> extension shows chapter titles here.</td>
+<td>One entry per part, <code translate="no" v-pre>#1</code>, <code translate="no" v-pre>#2</code>... with the part&#x27;s database ID. Click an entry to scroll to the part (the parts before it are loaded first when it is not loaded yet). The header shows how many parts the branch has. The <a href="../../extensions/chapter-marker/">Chapter Marker</a> extension shows chapter titles here.</td>
 </tr>
 <tr>
 <td><strong>Lorebook</strong> (left, next to the Outline)</td>
@@ -215,7 +215,13 @@ from the beginning to the end.</p>
 </div>
 </retype-table>
 <p>The divider between the sidebar and the parts can be dragged. Marginalia remembers where you left it (saved with the book)
-and the scroll position of each branch, and returns to them when you open the book again.</p>
+and returns to it when you open the book again.</p>
+<p>The story always opens at the bottom, at the newest part. A long book is not drawn all at once: only the last parts are
+loaded, and the earlier ones are added above as you scroll up, without moving the part you are reading. The parts at the
+other end are dropped again, so no more than the <strong>Parts loaded at once in the story</strong> setting of your
+<a href="../../account/">account</a> stay loaded (empty loads all of them). If you scroll faster than the parts arrive, a <em>Loading
+earlier parts</em> (or <em>later parts</em>) mark at the edge says that there is more. Clicking a part in the outline, or finding one
+with the search, loads the parts around it, and starting a new part brings you back to the end of the story.</p>
 <h3 id="the-lorebook-tab">The lorebook tab</h3>
 <p>The <strong>Lorebook</strong> tab of the sidebar shows the lore of the book&#x27;s lorebook without leaving the story, so you do not have to
 swap tabs to check what an entry says. It is a preview: nothing can be changed here, change the lore in the book&#x27;s
@@ -547,6 +553,112 @@ The highlight is available in the desktop view only, not in the <a href="../../p
     <img src="../../../images/highlight-generated.png" alt="Highlighted generated text and the settings menu" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
     <figcaption class="caption">Highlighted generated text and the settings menu</figcaption>
 </figure>
+<h2 id="commands">Commands</h2>
+<p>Next to the menu below the story there is a <strong>command line</strong>: type <code translate="no" v-pre>/</code> to see the commands, pick one and press <strong>Enter</strong>
+(or the play button) to run it. What a command returns is shown in a small window above the line. See
+<a href="../../commands/">Commands</a> for how to write arguments, what the help shows and how to stop a command that takes a
+while. The command line is only in the story tab of the desktop layout so far.</p>
+<h2 id="search-and-replace">Search and replace</h2>
+<p>The settings menu (⚙) also has <strong>Search and replace</strong>, which changes a word, a name or a phrase in the whole story at
+once. The window has a <strong>Search for</strong> and a <strong>Replace with</strong> field and these options:</p>
+<figure class="content-center">
+    <img src="../../../images/story-settings-menu.png" alt="The settings menu with Search and replace" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="520" height="330" />
+    <figcaption class="caption">The settings menu with Search and replace</figcaption>
+</figure>
+<figure class="content-center">
+    <img src="../../../images/search-replace-dialog.png" alt="The Search and replace window with a search typed in" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1200" height="792" />
+    <figcaption class="caption">The Search and replace window with a search typed in</figcaption>
+</figure>
+<retype-table copy-text="| Option | Default | Meaning |
+|---|---|---|
+| **Search by regex** | off | The search text is a [regular expression](../regular-expressions.md) and the replacement can use its groups (`$1`). Otherwise the text is searched as typed. |
+| **Case sensitive** | on | A text is found only in the case you typed it (*John* does not find *john*). Off: the case does not matter. Locked while **Search by regex** is on. |
+| **Search in summaries** | on | The [summaries](summaries.md) are searched and changed too. |
+| **Search in all branches** | off | All [branches](branches-and-story-tree.md) are searched, otherwise only the active one. |
+| **Revalidate all summaries** | on | After the replace every [summary](summaries.md) of the book is valid again, see below. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Option</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Search by regex</strong></td>
+<td>off</td>
+<td>The search text is a <a href="../../regular-expressions/">regular expression</a> and the replacement can use its groups (<code translate="no" v-pre>$1</code>). Otherwise the text is searched as typed.</td>
+</tr>
+<tr>
+<td><strong>Case sensitive</strong></td>
+<td>on</td>
+<td>A text is found only in the case you typed it (<em>John</em> does not find <em>john</em>). Off: the case does not matter. Locked while <strong>Search by regex</strong> is on.</td>
+</tr>
+<tr>
+<td><strong>Search in summaries</strong></td>
+<td>on</td>
+<td>The <a href="../summaries/">summaries</a> are searched and changed too.</td>
+</tr>
+<tr>
+<td><strong>Search in all branches</strong></td>
+<td>off</td>
+<td>All <a href="../branches-and-story-tree/">branches</a> are searched, otherwise only the active one.</td>
+</tr>
+<tr>
+<td><strong>Revalidate all summaries</strong></td>
+<td>on</td>
+<td>After the replace every <a href="../summaries/">summary</a> of the book is valid again, see below.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>With a regular expression the case is always taken as typed, start it with <code translate="no" v-pre>(?i)</code> to ignore it. Press <strong>Search</strong>
+(the button on the right of the fields; on the phone below them). The progress bar shows how far it is and <strong>Stop</strong>
+next to it interrupts it. Nothing is changed by a search.</p>
+<p>The table lists every part of the story and every summary that has a match, with its type and id. Open a row to see the
+matches in it: the text around the match as it is and as it will be after the replacement. A match or a replacement that
+is too long to show is written as <em>[searched text]</em> or <em>[replace text]</em>.</p>
+<figure class="content-center">
+    <img src="../../../images/search-replace-found.png" alt="The matches of a search, the first part opened" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1200" height="792" />
+    <figcaption class="caption">The matches of a search, the first part opened</figcaption>
+</figure>
+<p>Pressing <strong>Enter</strong> in the <strong>Search for</strong> or <strong>Replace with</strong> field does the same as <strong>Search</strong>.</p>
+<p>When the search is done, the fields and options are locked and the <strong>Replace</strong> button is enabled. <strong>Search again</strong> forgets
+what was found and unlocks the window, so you can change the search. <strong>Replace</strong> changes the story: the window is frozen
+completely (even <strong>Stop</strong> does not work) until it is done, and then it is empty again. Replaced parts are marked as
+edited, as if you had edited them yourself.</p>
+<p>A replace in the text a <a href="../summaries/#when-summaries-become-outdated">summary</a> describes would make the summary outdated.
+With <strong>Revalidate all summaries</strong> on, Marginalia works out again the check value of every summary of the book (those of
+all branches too, those the replace did not touch, and those that were outdated before), so all of them are valid
+afterwards. That also turns an outdated summary valid without its text being looked at, so use it when you know the
+summaries still say the right thing.</p>
+<p>With the option off only the summaries the search covers are brought up to date. Those it does not cover (summaries of
+branches that are not searched, which share their earlier parts with the active branch; or all of them when summaries are
+not searched) become outdated. If there are such summaries, Marginalia tells you how many and asks whether to go on. A
+summary that was outdated already stays so.</p>
+<figure class="content-center">
+    <img src="../../../images/search-replace-warning.png" alt="The warning about summaries that would become outdated" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">The warning about summaries that would become outdated</figcaption>
+</figure>
+<p>In the <a href="../../phone/">phone layout</a> the same window has the fields and buttons below each other, and the table has one
+column that shows the type and id, and below them the match and the replacement.</p>
+<p>The same search and replace can be run from the <a href="../../commands/#commands-that-come-with-marginalia">command line</a>
+with <code translate="no" v-pre>/search-replace-parts</code>; it asks before it replaces.</p>
+<h2 id="importing-text-files">Importing text files</h2>
+<p>The settings menu (⚙) has <strong>Import from archive</strong>. Upload a <code translate="no" v-pre>.zip</code> of <code translate="no" v-pre>.md</code> (Markdown) files and every file is added as
+a <strong>part</strong> at the end of the story: the first one after the last part of the active branch (the first part of an empty
+book), each next one after the one before. The files are taken in the order of their names, numbers inside the names
+compared as numbers (<code translate="no" v-pre>2.md</code> before <code translate="no" v-pre>10.md</code>), also in folders of the archive. Folders, hidden files (<code translate="no" v-pre>.name</code>), the
+<code translate="no" v-pre>__MACOSX</code> folder and files that are not <code translate="no" v-pre>.md</code> are skipped. The file is the text of the part as it is, it is not sent to
+the model and not changed; the parts count as written by you. The summaries are not made, do that in the
+<a href="../summaries/">summaries</a> window.</p>
+<p>The import shows a progress bar with the number of files done. <strong>Stop</strong> ends it after the part that is being stored: the parts
+that were already added stay in the story (the import is not undone), and a message tells how many of the files were imported.</p>
+<p>The <strong>import</strong> button of the Books tab does the same into a new book, see <a href="../managing-books/#creating-a-book">Managing books</a>.
+The same import into a lorebook is described in <a href="../../lorebooks/import-export/#importing-an-archive-of-text-files">Import &amp; export</a>.</p>
 <h2 id="exporting-the-story">Exporting the story</h2>
 <p>The settings menu (⚙) also has <strong>Export story</strong>, which saves the active branch as a text, Markdown, HTML, Word, PDF or EPUB
 file. See <a href="../export/">Exporting a book</a>.</p>
@@ -605,7 +717,7 @@ tense, style and <a href="../summaries/">summaries</a>. The jailbreak prompt of 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License.</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
             </footer>
         </div>
     </div>

@@ -283,6 +283,19 @@ public class SessionManager extends Thread implements InitializingBean, Disposab
     }
 
     /**
+     * Reloads the page of every open session of the user, so what depends on what they are allowed to do (permissions)
+     * is built again. Asynchronous; the caller's own session is left out.
+     */
+    public void reloadUser(User user) {
+        runForUsers(u -> user.getId().equals(u.getId()), sinfo -> {
+            UI ui = getLiveUI(sinfo);
+            if (ui != null) {
+                ui.getPage().reload();
+            }
+        }, true, true);
+    }
+
+    /**
      * Main UI of the session if still alive, otherwise any other alive UI of the session.
      */
     private UI getLiveUI(SessionInformation sinfo) {

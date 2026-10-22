@@ -3,11 +3,13 @@ import {
     bookTab,
     dialog,
     field,
+    addPermission,
     fill,
     idle,
     login,
     logout,
     main,
+    openPermissions,
     openTab,
     pick,
     press,
@@ -31,6 +33,16 @@ await main(async ({ page }) => {
   await press(d, 'OK');
   await idle(page, 800);
   await snap(page, '_users');
+
+  // she may add providers of her own, as the users of an installation from before the permissions (the migration gave it to
+  // everybody): without the permission the Inference Providers tab has no Add button
+  {
+    const p = await openPermissions(page, users.reader.login);
+    await addPermission(p, 'Create own models');
+    await press(p, 'Save');
+    await press(p, 'Exit');
+    await idle(page, 500);
+  }
   await logout(page);
 
   // the user: her own protocol and defaults (protocols are per user, only the provider is shared)

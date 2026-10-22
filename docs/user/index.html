@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845494342077">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../resources/css/retype.css?v=4.6.0.845494342077" rel="stylesheet">
+    <link href="../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
 
-    <script data-cfasync="false" src="../resources/js/config.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -66,7 +66,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -204,7 +204,9 @@ Before every part Marginalia builds the prompt for the model from:</p>
 | **Inference provider** | The connection to a model: API address, API key, model and its limits.                                                                                                 | [Inference providers](inference-providers.md)             |
 | **Protocol**           | Generation settings: temperature, top P, penalties and optional limits. The provider says *which* model writes, the protocol *how*.                                    | [Protocols](protocols.md)                                 |
 | **Tag**                | A label on books and lorebooks; tags also decide which lorebook entries a book uses.                                                                                   | [Managing books](books/managing-books.md)                 |
-| **Extension**          | A plugin that adds features, such as chapter markers or AI reviews.                                                                                                    | [Extensions](extensions/index.md)                         |">
+| **Extension**          | A plugin that adds features, such as chapter markers or AI reviews.                                                                                                    | [Extensions](extensions/index.md)                         |
+| **Command**            | A small action you run by typing `/name` in the command line next to the story menu; extensions add their own.                                                         | [Commands](commands/index.md)                             |
+| **Agent**              | An LLM that works on one book on its own, through the commands, on a copy of the book; you review what it did and take it over or throw it away.                       | [Agents](agents.md)                                       |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -270,6 +272,16 @@ Before every part Marginalia builds the prompt for the model from:</p>
 <td>A plugin that adds features, such as chapter markers or AI reviews.</td>
 <td><a href="extensions/">Extensions</a></td>
 </tr>
+<tr>
+<td><strong>Command</strong></td>
+<td>A small action you run by typing <code translate="no" v-pre>/name</code> in the command line next to the story menu; extensions add their own.</td>
+<td><a href="commands/">Commands</a></td>
+</tr>
+<tr>
+<td><strong>Agent</strong></td>
+<td>An LLM that works on one book on its own, through the commands, on a copy of the book; you review what it did and take it over or throw it away.</td>
+<td><a href="agents/">Agents</a></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -290,7 +302,8 @@ providers or settings - only books you choose to <a href="books/publishing/">pub
 | **Protocols**           | Generation settings. See [Protocols](protocols.md).                                                         |
 | **Inference Providers** | Connections to models. See [Inference providers](inference-providers.md).                                   |
 | **Resources**           | The files you uploaded, such as pictures of parts. See [Resources](resources.md).                           |
-| **Trash**               | What you deleted, until an administrator cleans up. Restore it from here. See [Trash](trash.md).            |">
+| **Trash**               | What you deleted, until an administrator cleans up. Restore it from here. See [Trash](trash.md).            |
+| **Agents**              | (Experimental) Your agents, their runs and the results to review. Only for users who may use agents. See [Agents](agents.md). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -328,6 +341,10 @@ providers or settings - only books you choose to <a href="books/publishing/">pub
 <td><strong>Trash</strong></td>
 <td>What you deleted, until an administrator cleans up. Restore it from here. See <a href="trash/">Trash</a>.</td>
 </tr>
+<tr>
+<td><strong>Agents</strong></td>
+<td>(Experimental) Your agents, their runs and the results to review. Only for users who may use agents. See <a href="agents/">Agents</a>.</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -345,12 +362,15 @@ reload the page to get the other one.</p>
 | [Resources](resources.md)                     | The files you uploaded: download, replace and delete them.                                                                                                                                                           |
 | [Trash](trash.md)                             | Deleted books, lorebooks and other objects, and how to restore them.                                                                                     |
 | [Protocols](protocols.md)                     | Temperature, top P, penalties and per-protocol limits.                                                                                                                                                               |
-| [Books](books/index.md)                       | Managing books, the story editor, branches, book prompts, summaries, backups and publishing.                                                                                                                         |
+| [Books](books/index.md)                       | Managing books (clone, tags, import from an archive), the story editor (search and replace), branches, book prompts, summaries, backups and publishing.                                                                                                                         |
 | [Lorebooks](lorebooks/index.md)               | Creating lorebooks, entries and how they are activated, import and export (including SillyTavern).                                                                                                                   |
 | [Templates &amp; macros](templates/index.md)      | What is sent to the model and how to change it; the macro reference.                                                                                                                                                 |
-| [Extensions](extensions/index.md)             | The bundled extensions: Author's Note, Chapter Marker, Gemma 4 tools fix, Google Gemini, Instruction Exporter, Lore Generator, Lorebook VCS, Name generator, Reviewer, Side Query.                                                                                                                                          |
+| [Extensions](extensions/index.md)             | The bundled extensions: Author's Note, Chapter Marker, Gemma 4 tools fix, Google Gemini, Instruction Exporter, Lore Generator, Lorebook VCS, Name generator, Name provider, Place provider, Reviewer, Side Query, Arc Outline, Character Tracker and the Chinese localization.                                                                                                                                          |
+| [Agents](agents.md) | (Experimental) Letting a model work on a book on its own: agents, the console, reviewing and applying the result, limits. |
+| [Commands](commands/index.md) | The command line next to the story menu: running commands, writing arguments, stopping a long command. |
+| [Regular expressions](regular-expressions.md) | The regular expressions of search and replace and of the filters, and the time limit. |
 | [Account &amp; settings](account.md)              | Your password, user name and default settings.                                                                                                                                                                       |
-| [Administration](administration/index.md)     | For administrators: users, database backups, cleanup, installing extensions.                                                                                                                                         |
+| [Administration](administration/index.md)     | For administrators: users and their permissions, database backups, cleanup, installing extensions, the help assistant and agents.                                                                                                                                         |
 | [Using Marginalia on a phone](phone.md)       | The phone layout: how it differs from the desktop, what is missing, which extensions work.                                                                                                                           |
 | [Troubleshooting &amp; FAQ](troubleshooting.md)   | Logs, common problems and their solutions.                                                                                                                                                                           |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -384,7 +404,7 @@ reload the page to get the other one.</p>
 </tr>
 <tr>
 <td><a href="books/">Books</a></td>
-<td>Managing books, the story editor, branches, book prompts, summaries, backups and publishing.</td>
+<td>Managing books (clone, tags, import from an archive), the story editor (search and replace), branches, book prompts, summaries, backups and publishing.</td>
 </tr>
 <tr>
 <td><a href="lorebooks/">Lorebooks</a></td>
@@ -396,7 +416,19 @@ reload the page to get the other one.</p>
 </tr>
 <tr>
 <td><a href="extensions/">Extensions</a></td>
-<td>The bundled extensions: Author&#x27;s Note, Chapter Marker, Gemma 4 tools fix, Google Gemini, Instruction Exporter, Lore Generator, Lorebook VCS, Name generator, Reviewer, Side Query.</td>
+<td>The bundled extensions: Author&#x27;s Note, Chapter Marker, Gemma 4 tools fix, Google Gemini, Instruction Exporter, Lore Generator, Lorebook VCS, Name generator, Name provider, Place provider, Reviewer, Side Query, Arc Outline, Character Tracker and the Chinese localization.</td>
+</tr>
+<tr>
+<td><a href="agents/">Agents</a></td>
+<td>(Experimental) Letting a model work on a book on its own: agents, the console, reviewing and applying the result, limits.</td>
+</tr>
+<tr>
+<td><a href="commands/">Commands</a></td>
+<td>The command line next to the story menu: running commands, writing arguments, stopping a long command.</td>
+</tr>
+<tr>
+<td><a href="regular-expressions/">Regular expressions</a></td>
+<td>The regular expressions of search and replace and of the filters, and the time limit.</td>
 </tr>
 <tr>
 <td><a href="account/">Account &amp; settings</a></td>
@@ -404,7 +436,7 @@ reload the page to get the other one.</p>
 </tr>
 <tr>
 <td><a href="administration/">Administration</a></td>
-<td>For administrators: users, database backups, cleanup, installing extensions.</td>
+<td>For administrators: users and their permissions, database backups, cleanup, installing extensions, the help assistant and agents.</td>
 </tr>
 <tr>
 <td><a href="phone/">Using Marginalia on a phone</a></td>
@@ -469,7 +501,7 @@ server it is the <code translate="no" v-pre>./data</code> folder next to <code t
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License.</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
             </footer>
         </div>
     </div>

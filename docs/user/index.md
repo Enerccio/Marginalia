@@ -42,6 +42,8 @@ Everything in this picture can be adjusted, and the user guide is organized alon
 | **Protocol**           | Generation settings: temperature, top P, penalties and optional limits. The provider says *which* model writes, the protocol *how*.                                    | [Protocols](protocols.md)                                 |
 | **Tag**                | A label on books and lorebooks; tags also decide which lorebook entries a book uses.                                                                                   | [Managing books](books/managing-books.md)                 |
 | **Extension**          | A plugin that adds features, such as chapter markers or AI reviews.                                                                                                    | [Extensions](extensions/index.md)                         |
+| **Command**            | A small action you run by typing `/name` in the command line next to the story menu; extensions add their own.                                                         | [Commands](commands/index.md)                             |
+| **Agent**              | An LLM that works on one book on its own, through the commands, on a copy of the book; you review what it did and take it over or throw it away.                       | [Agents](agents.md)                                       |
 
 Everything you create belongs to your account. Other users of the same Marginalia don't see your books, lorebooks,
 providers or settings - only books you choose to [publish](books/publishing.md).
@@ -61,6 +63,7 @@ After logging in you see the workspace. The tabs on the left are the main areas 
 | **Inference Providers** | Connections to models. See [Inference providers](inference-providers.md).                                   |
 | **Resources**           | The files you uploaded, such as pictures of parts. See [Resources](resources.md).                           |
 | **Trash**               | What you deleted, until an administrator cleans up. Restore it from here. See [Trash](trash.md).            |
+| **Agents**              | (Experimental) Your agents, their runs and the results to review. Only for users who may use agents. See [Agents](agents.md). |
 
 At the bottom are **Change Password**, **Logout** and, for administrators, **Admin**. Extensions may add more tabs
 and buttons.
@@ -78,12 +81,15 @@ reload the page to get the other one.
 | [Resources](resources.md)                     | The files you uploaded: download, replace and delete them.                                                                                                                                                           |
 | [Trash](trash.md)                             | Deleted books, lorebooks and other objects, and how to restore them.                                                                                     |
 | [Protocols](protocols.md)                     | Temperature, top P, penalties and per-protocol limits.                                                                                                                                                               |
-| [Books](books/index.md)                       | Managing books, the story editor, branches, book prompts, summaries, backups and publishing.                                                                                                                         |
+| [Books](books/index.md)                       | Managing books (clone, tags, import from an archive), the story editor (search and replace), branches, book prompts, summaries, backups and publishing.                                                                                                                         |
 | [Lorebooks](lorebooks/index.md)               | Creating lorebooks, entries and how they are activated, import and export (including SillyTavern).                                                                                                                   |
 | [Templates & macros](templates/index.md)      | What is sent to the model and how to change it; the macro reference.                                                                                                                                                 |
-| [Extensions](extensions/index.md)             | The bundled extensions: Author's Note, Chapter Marker, Gemma 4 tools fix, Google Gemini, Instruction Exporter, Lore Generator, Lorebook VCS, Name generator, Reviewer, Side Query.                                                                                                                                          |
+| [Extensions](extensions/index.md)             | The bundled extensions: Author's Note, Chapter Marker, Gemma 4 tools fix, Google Gemini, Instruction Exporter, Lore Generator, Lorebook VCS, Name generator, Name provider, Place provider, Reviewer, Side Query, Arc Outline, Character Tracker and the Chinese localization.                                                                                                                                          |
+| [Agents](agents.md) | (Experimental) Letting a model work on a book on its own: agents, the console, reviewing and applying the result, limits. |
+| [Commands](commands/index.md) | The command line next to the story menu: running commands, writing arguments, stopping a long command. |
+| [Regular expressions](regular-expressions.md) | The regular expressions of search and replace and of the filters, and the time limit. |
 | [Account & settings](account.md)              | Your password, user name and default settings.                                                                                                                                                                       |
-| [Administration](administration/index.md)     | For administrators: users, database backups, cleanup, installing extensions.                                                                                                                                         |
+| [Administration](administration/index.md)     | For administrators: users and their permissions, database backups, cleanup, installing extensions, the help assistant and agents.                                                                                                                                         |
 | [Using Marginalia on a phone](phone.md)       | The phone layout: how it differs from the desktop, what is missing, which extensions work.                                                                                                                           |
 | [Troubleshooting & FAQ](troubleshooting.md)   | Logs, common problems and their solutions.                                                                                                                                                                           |
 

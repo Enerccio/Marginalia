@@ -1,7 +1,7 @@
 ---
 label: Extended attributes
 order: 80
-verified: 91693e9b
+verified: 333d9397
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/traits
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/listener
@@ -27,8 +27,9 @@ All data entities extend `ExtendableEntity` ([Domain model](../domain-model.md))
 | `AI` (inference provider), `Protocol`, `Tag` | Per-provider or per-protocol options. (Marginalia itself keeps the per-user limits of a shared AI in the `@ExtendedAttribute` field `AI.limits`, see [Domain model](../domain-model.md#limits-of-the-users-of-a-shared-ai).) |
 | `UserSetting` | Per-user plugin settings - Reviewer and Side Query keep theirs here. (Marginalia itself keeps the autosaved state of the workspace in its `@ExtendedAttribute` field `workspaceState`.) |
 | `AppSettings` | Settings for the whole installation (administrators). |
+| `Agent`, `AgentRun`, `AgentMessage` | The agents of 1.4.0, their runs and the messages of a run: the data an extension wants to keep with one of them. Marginalia keeps the settings of the agent itself in `@ExtendedAttribute` fields (the models for sub-agents, the allowed commands, the prompts...), see [Agents](../agents.md). |
 
-`User`, `Resource` and `Usage` are not extendable.
+`User`, `Resource`, `Usage` and `AgentRunPair` are not extendable.
 
 ```java
 JsonObject attributes = entity.getAttributes();       // never null after loading; a new entity starts with {}
@@ -159,11 +160,13 @@ Two things follow from this:
 | Branch Story | The part's attributes are copied to the new branch. |
 | Regenerate | The part is reused: its attributes stay, also data that described the old text. If the request fails before any text arrived, the part is restored with the attributes it had before. |
 | Swipe | A new part - starts with no plugin data. |
-| Lorebook export / import | **Not included** - only the entries' content is exported. Lorebook VCS has its own history export for this reason. |
-| Lorebooks inside a book backup | Not included, same as lorebook export. |
+| Lorebook export / import | Included (since 1.4.0) - the `attributes` of the lorebooks and of the entries are in the file and are set on what the import creates. The entries are new ones with new uuids, so data that names an entry by its uuid (Lorebook VCS) does not find it; Lorebook VCS has its own history export for this reason. |
+| Lorebooks inside a book backup | Included, same as lorebook export. |
+| Clone of a book | The book and its parts as in a backup; the lorebook is shared, not copied. |
+| Working copy of an [agent](../agents.md) | Included for the book, its parts, summaries, lorebooks and entries; the review merges the data of extensions place by place (`Type.JSON`), see [Merge and apply](../agents.md#merge-and-apply). |
 
 Plan for the cases where your data does not follow: data that describes a part's text (a review) may be stale after
-*Regenerate*; data stored on a lorebook is gone after the user exports and imports it.
+*Regenerate*; data stored on a lorebook comes back after an export and import, but not attached to the old entries (their uuids are new).
 
 ## References to other entities
 

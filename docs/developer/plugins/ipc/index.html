@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845494342077">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845494342077" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845494342077" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846005664026" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -60,7 +60,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -167,11 +167,12 @@
                 <!-- Page content  -->
 <h1 id="sharing-data-between-extensions">Sharing data between extensions</h1>
 <p>Extensions are separate bundles that should not import each other&#x27;s classes (one can be unloaded and installed again
-while another keeps running). There are two ways to work together anyway:</p>
+while another keeps running). There are three ways to work together anyway:</p>
 <retype-table copy-text="| You want | Use |
 |---|---|
 | to offer **text about a book or a story part** to whoever wants it (and to use what others offer), without knowing who they are | [`IPCService`](#ipcservice-text-for-whoever-asks) |
-| to use **one particular extension** and what it can do (functions the model can call, objects, lists), if it is installed | [a direct call](#calling-another-extension-directly) |">
+| to offer **tools for the model** (functions it can call, and the same as commands) that the user chooses in a **Tools** dialog | [`ToolService`](#toolservice-tools-for-the-model) |
+| to use **one particular extension** and what it can do (objects, lists), if it is installed | [a direct call](#calling-another-extension-directly) |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -186,7 +187,11 @@ while another keeps running). There are two ways to work together anyway:</p>
 <td><doc-anchor-trigger to="#ipcservice-text-for-whoever-asks"><code translate="no" v-pre>IPCService</code></doc-anchor-trigger></td>
 </tr>
 <tr>
-<td>to use <strong>one particular extension</strong> and what it can do (functions the model can call, objects, lists), if it is installed</td>
+<td>to offer <strong>tools for the model</strong> (functions it can call, and the same as commands) that the user chooses in a <strong>Tools</strong> dialog</td>
+<td><doc-anchor-trigger to="#toolservice-tools-for-the-model"><code translate="no" v-pre>ToolService</code></doc-anchor-trigger></td>
+</tr>
+<tr>
+<td>to use <strong>one particular extension</strong> and what it can do (objects, lists), if it is installed</td>
 <td><doc-anchor-trigger to="#calling-another-extension-directly">a direct call</doc-anchor-trigger></td>
 </tr>
 </tbody>
@@ -264,11 +269,94 @@ the session and transaction are yours).</p>
 <p>The callback gets the <strong>caller&#x27;s bundle and identifier</strong>, so a provider can decide what to give to whom. Nothing is
 checked by the service itself: a provider gives the data of the book it is handed, so it must only be handed books the
 caller may read.</p>
+<h2 id="toolservice-tools-for-the-model">ToolService: tools for the model</h2>
+<p><code translate="no" v-pre>ToolService</code> lets an extension offer a <strong>suite of tools</strong> - functions the model can call - to every dialog that runs the
+model with tools (the generators of the Lore Generator and of the Arc Outline), and the same suite as commands for the
+command bar and the agents. Neither side imports the other and nothing is found by reflection: the types that cross are the
+ones of the application (<code translate="no" v-pre>FunctionSet</code>, <code translate="no" v-pre>ToolSelection</code>).</p>
+<h3 id="offering-a-suite">Offering a suite</h3>
+<p>Implement <code translate="no" v-pre>ToolProvider</code> and register it in <code translate="no" v-pre>onExtensionLoad</code>, with <code translate="no" v-pre>@Autowired ToolService</code> in your <code translate="no" v-pre>@Configurable</code> extension class:</p>
+<div id="offering-a-suite-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">toolService.registerProvider(
+        bundle.getSymbolicName(),   // bundleIdentifier: who offers it
+        &quot;names&quot;,                    // providerKey: stable, callers save it with the choice of the user
+        &quot;Name provider&quot;,            // the human name, the title of the section in the dialog
+        new NameProviderToolProvider(lists, registry));</code></pre>
+</doc-codeblock></div>
+<div id="offering-a-suite-code-2" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">public interface ToolProvider {
+    default List&lt;ToolItem&gt; items() { return List.of(); }                 // what the user can check; none: on or off
+    FunctionSet functions(Collection&lt;String&gt; items, ToolRequest request) throws Exception;
+    default String defaultHint() { return null; }                        // added to the prompt when the model gets the suite
+    default String description() { return null; }                        // shown above the items
+    default Object commands() { return null; }                           // @Command suite, the same tools for the command bar and agents
+}</code></pre>
+</doc-codeblock></div>
+<ul>
+<li>
+<p><strong>Items</strong> restrict the suite: the Name generator has one for each category of names. <code translate="no" v-pre>functions</code> gets the ids that are checked
+(and still offered by <code translate="no" v-pre>items()</code>) and returns functions that know only those - the provider does the restricting with its own
+types, usually a small class that implements its <code translate="no" v-pre>@LLMFunction</code> interface around the real implementation
+(<code translate="no" v-pre>NameProviderToolProvider.Restricted</code>). A suite without items is on or off; <code translate="no" v-pre>items</code> is then empty.
+<code translate="no" v-pre>items()</code> is asked on every use, it may change while the application runs. An item id is saved by the user&#x27;s choice: keep
+it stable.</p>
+</li>
+<li>
+<p><strong><code translate="no" v-pre>ToolItem(id, label)</code></strong>: the id is what is saved, the label what the user sees.</p>
+</li>
+<li>
+<p><strong><code translate="no" v-pre>defaultHint</code></strong> is a short text for the model, &quot;when and how to call these&quot;: the caller adds the hint of each suite the model gets
+to its prompt. The user can write their own in the dialog; theirs replaces the default.</p>
+</li>
+<li>
+<p><strong><code translate="no" v-pre>commands()</code></strong> is a suite of <code translate="no" v-pre>@Command</code> methods (<a href="../../commands/writing-commands/">Commands</a>). The service registers it
+with <code translate="no" v-pre>CommandService</code> together with the provider and removes it with it, so the extension does not call
+<code translate="no" v-pre>registerCommands</code> / <code translate="no" v-pre>unregisterCommands</code> itself, and the command bar, the agents and the dialogs with tools have one source
+and one human name.</p>
+</li>
+<li>
+<p>The provider is identified by the <strong>symbolic name of the bundle</strong> and the key. When an extension is unloaded the application
+removes all providers of that bundle and their commands (<code translate="no" v-pre>OsgiServiceImpl</code>); registering a key again replaces the provider and
+keeps its place in the order. A function name must not be used by two suites a user can check together: <code translate="no" v-pre>resolve</code> fails
+with the names of both providers.</p>
+</li>
+</ul>
+<h3 id="asking-for-tools">Asking for tools</h3>
+<p>A dialog needs three things, and <code translate="no" v-pre>ToolSelectionButton</code> does the first two:</p>
+<div id="asking-for-tools-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">ToolSelectionButton tools = new ToolSelectionButton();           // hides itself while no suite is installed
+tools.setValue(settings.getTools());                              // a ToolSelection, null for none
+tools.addValueChangeListener(settings::setTools);                 // save it, it is plain JSON (Gson)
+...
+ToolSet set = toolService.resolve(tools.getValue(), new ToolRequest(bundle, MyService.class.getName()));
+inference.stream(payload, protocol, set.functions(), callback);   // null when the user chose nothing
+prompt += &quot;\n\n&quot; + set.hint();                                    // the hints of the suites the model got</code></pre>
+</doc-codeblock></div>
+<ul>
+<li>
+<p><code translate="no" v-pre>ToolSelection</code> is what the user chose: for each provider (<code translate="no" v-pre>bundle/key</code>) the checked item ids, <code translate="no" v-pre>enabled</code> for a suite without
+items, and the user&#x27;s hint. Keep it in your settings (the Lore Generator also keeps it with each lore entry it generated). A provider that is
+not installed (any more) or an item that is gone is ignored by <code translate="no" v-pre>resolve</code>; a provider that throws is logged and left out.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>ToolSet</code> holds the combined <code translate="no" v-pre>FunctionSet</code> (null when nothing is on) and the hints; <code translate="no" v-pre>ToolSet.NONE</code> for a dialog that gives
+the model no tools.</p>
+</li>
+<li>
+<p>The button opens <code translate="no" v-pre>ToolSelectionDialog</code>: one section for each suite with a filter field of its own, see <a href="../../ui/">UI</a>. Call
+<code translate="no" v-pre>refresh()</code> when a dialog that stays open may have lost or gained a suite (it also refreshes when it is attached).</p>
+</li>
+</ul>
+<h3 id="reading-what-an-older-version-saved">Reading what an older version saved</h3>
+<p>The Lore Generator and the Arc Outline used to save the name categories with the prefix of their source (<code translate="no" v-pre>Generator: </code>,
+<code translate="no" v-pre>Provider: </code>, none meant the generator) and two hints, and found the name extensions by reflection. Each of them has a small
+<code translate="no" v-pre>LegacyNameTools</code> that turns those into a <code translate="no" v-pre>ToolSelection</code> for the suites <code translate="no" v-pre>name-generator/names</code> and <code translate="no" v-pre>name-provider/names</code>,
+once, when the settings are read (<code translate="no" v-pre>migrateLegacyNameTools</code>); what is saved next has only the new form. Do the same when you
+change what your settings keep.</p>
 <h2 id="calling-another-extension-directly">Calling another extension directly</h2>
-<p>When an extension needs more than text from another one, it calls the other extension&#x27;s own methods. The
-<strong>Lore Generator</strong> and the <strong>Arc Outline</strong> do this to get names from the <strong>Name Generator</strong> and the <strong>Name Provider</strong>: they
-let the model call their functions (<code translate="no" v-pre>list_name_categories</code>, <code translate="no" v-pre>generate_names</code> and <code translate="no" v-pre>list_real_name_lists</code>,
-<code translate="no" v-pre>pick_real_names</code>), restricted to the categories the user checked.</p>
+<p>When an extension needs more than text from another one and <doc-anchor-trigger to="#toolservice-tools-for-the-model"><code translate="no" v-pre>ToolService</code></doc-anchor-trigger> is not what it
+wants, it calls the other extension&#x27;s own methods. (The Lore Generator and the Arc Outline did this for the name extensions
+before <code translate="no" v-pre>ToolService</code> existed; the technique is the same for anything else.)</p>
 <h3 id="do-not-import-the-other-extension">Do not import the other extension</h3>
 <p>The obvious way - depend on the other plugin in the <code translate="no" v-pre>pom.xml</code> and import its packages - is the wrong one. A bundle that
 imports the packages of another bundle is tied to the classes of that bundle: when the other extension is unloaded
@@ -308,53 +396,46 @@ public static List&lt;String&gt; categories(OsgiService osgiService) {
 <li>
 <p><strong>Only types both sides know cross the border</strong>: the JDK and the application (<code translate="no" v-pre>List&lt;String&gt;</code>, <code translate="no" v-pre>FunctionSet</code>,
 <code translate="no" v-pre>Manuscript</code>...). Your bundle can&#x27;t name a class of the other one. When you need the other extension&#x27;s own interface,
-load it with <em>its</em> class loader (<code translate="no" v-pre>extension.getClass().getClassLoader().loadClass(name)</code>). The Lore Generator does that
-for <code translate="no" v-pre>NameGeneratorFunctions</code> and <code translate="no" v-pre>NameProviderFunctions</code>: it wraps the real implementation in a <code translate="no" v-pre>java.lang.reflect.Proxy</code>
-of that interface that only lets the checked categories through, and hands the proxy to
-<code translate="no" v-pre>FunctionRegistry.bind(type, proxy)</code> to get the <code translate="no" v-pre>FunctionSet</code> for the model. The sets of several extensions are put
-together with <code translate="no" v-pre>FunctionSet.and</code> (the names of the functions must differ, which is why the provider&#x27;s are
-<code translate="no" v-pre>list_real_name_lists</code> and <code translate="no" v-pre>pick_real_names</code>), so a request has the functions of both, of one or of none.</p>
+load it with <em>its</em> class loader (<code translate="no" v-pre>extension.getClass().getClassLoader().loadClass(name)</code>) and, if you must implement it,
+wrap the real object in a <code translate="no" v-pre>java.lang.reflect.Proxy</code> of that interface.</p>
 </li>
 <li>
 <p><strong>Look it up on every call.</strong> Keep no reference to the extension, its classes or its <code translate="no" v-pre>Method</code> objects: they would
-keep an unloaded extension alive. A missing extension is a normal answer (<code translate="no" v-pre>null</code>), not an error: the dialogs of the
-generators ask when they open and hide the <em>Name tools</em> button when there is none. A screen that stays open can follow
+keep an unloaded extension alive. A missing extension is a normal answer (<code translate="no" v-pre>null</code>), not an error: a dialog asks when it opens and
+hides the feature when there is none. A screen that stays open can follow
 the loading and unloading with <code translate="no" v-pre>OsgiService.addExtensionListener</code> (the listener is held weakly, keep a reference to it).</p>
 </li>
 <li>
-<p><strong>One class touches the other extensions</strong> (<code translate="no" v-pre>NameToolsBridge</code>, with the class names and the method names as
-constants), so that a change on the other side breaks one place and the reflection is not spread over the code.
-Report a failed call with an exception that says what is missing; the caller decides what to show.</p>
+<p><strong>One class touches the other extension</strong> (with the class names and the method names as constants), so that a change on
+the other side breaks one place and the reflection is not spread over the code. Report a failed call with an exception
+that says what is missing; the caller decides what to show.</p>
 </li>
 <li>
-<p><strong>Selections and settings are yours</strong>: the Lore Generator keeps the category names the user checked in its own
-settings and passes them to the bridge each time; the bridge leaves out a category that the other extension no longer
-has. When one bridge serves several extensions, prefix what is saved with its source (<code translate="no" v-pre>Generator: </code>, <code translate="no" v-pre>Provider: </code>)
-so that equal titles can not be confused, and read what was saved before the prefix existed as the first source
-(<code translate="no" v-pre>NameToolsBridge.normalize</code>). The caller finds out which functions it got with <code translate="no" v-pre>FunctionSet.contains</code> (to add the hint
-about them to the prompt), no flags have to be carried around.</p>
+<p><strong>Selections and settings are yours</strong>: keep what the user chose in your own settings and pass it each time; leave out
+what the other extension no longer has.</p>
 </li>
 </ul>
 <h3 id="offering-something-to-be-called">Offering something to be called</h3>
 <p>An extension that wants to be called gives its <code translate="no" v-pre>MarginaliaExtension</code> class a few <code translate="no" v-pre>public</code> methods that use only JDK and
-application types (the Name Generator and the Name Provider have <code translate="no" v-pre>categories()</code>, <code translate="no" v-pre>newFunctions()</code> and <code translate="no" v-pre>functions()</code>). There is no compiler
-between the two, so treat the class name, the method names and their signatures as a contract: keep them stable, say so
-in the README of the plugin, and when you must change them, change the callers (here: the two bridges) in the same commit.
-The offering extension does not need to know who calls it.</p>
+application types. There is no compiler between the two, so treat the class name, the method names and their signatures as a
+contract: keep them stable, say so in the README of the plugin, and when you must change them, change the callers in the same
+commit. The offering extension does not need to know who calls it. (The Name generator and the Name provider had <code translate="no" v-pre>categories()</code>,
+<code translate="no" v-pre>newFunctions()</code> and <code translate="no" v-pre>functions()</code> for the bridges; they are gone, their suites are offered through <code translate="no" v-pre>ToolService</code>.)</p>
 <h3 id="which-one">Which one?</h3>
-<retype-table copy-text="| | `IPCService` | Direct call |
-|---|---|---|
-| Caller knows | the kind of data (about a book / a story part) | the other extension and its methods |
-| Several providers | yes, listed in the order they registered | one |
-| Types | text | anything the JDK and the application have |
-| The user chooses | what to include (the *Side Query* popover) | usually nothing, the feature simply appears (the *Name tools* button) |
-| When it is missing | its entry is not in the list | the lookup returns `null` |">
+<retype-table copy-text="| | `IPCService` | `ToolService` | Direct call |
+|---|---|---|---|
+| Caller knows | the kind of data (about a book / a story part) | that it wants tools for the model | the other extension and its methods |
+| Several providers | yes, listed in the order they registered | yes, in sections of one dialog | one |
+| Types | text | `FunctionSet`, `ToolSelection` | anything the JDK and the application have |
+| The user chooses | what to include (the *Side Query* popover) | suites and their items (the **Tools** dialog) | usually nothing, the feature simply appears |
+| When it is missing | its entry is not in the list | it is not in the dialog, ignored by `resolve` | the lookup returns `null` |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
 <tr>
 <th> </th>
 <th><code translate="no" v-pre>IPCService</code></th>
+<th><code translate="no" v-pre>ToolService</code></th>
 <th>Direct call</th>
 </tr>
 </thead>
@@ -362,35 +443,37 @@ The offering extension does not need to know who calls it.</p>
 <tr>
 <td>Caller knows</td>
 <td>the kind of data (about a book / a story part)</td>
+<td>that it wants tools for the model</td>
 <td>the other extension and its methods</td>
 </tr>
 <tr>
 <td>Several providers</td>
 <td>yes, listed in the order they registered</td>
+<td>yes, in sections of one dialog</td>
 <td>one</td>
 </tr>
 <tr>
 <td>Types</td>
 <td>text</td>
+<td><code translate="no" v-pre>FunctionSet</code>, <code translate="no" v-pre>ToolSelection</code></td>
 <td>anything the JDK and the application have</td>
 </tr>
 <tr>
 <td>The user chooses</td>
 <td>what to include (the <em>Side Query</em> popover)</td>
-<td>usually nothing, the feature simply appears (the <em>Name tools</em> button)</td>
+<td>suites and their items (the <strong>Tools</strong> dialog)</td>
+<td>usually nothing, the feature simply appears</td>
 </tr>
 <tr>
 <td>When it is missing</td>
 <td>its entry is not in the list</td>
+<td>it is not in the dialog, ignored by <code translate="no" v-pre>resolve</code></td>
 <td>the lookup returns <code translate="no" v-pre>null</code></td>
 </tr>
 </tbody>
 </table>
 </div>
 </retype-table>
-<p>The two bridges in the repository are <code translate="no" v-pre>marginalia/plugins/lore-generator/.../names/NameToolsBridge.java</code> and the copy
-in <code translate="no" v-pre>marginalia/plugins/arc-outline/.../names/NameToolsBridge.java</code> (plugins are separate bundles, so the copy is not
-shared).</p>
 <h2 id="in-the-bundled-extensions">In the bundled extensions</h2>
 <ul>
 <li>
@@ -442,7 +525,7 @@ options of the tab, a source that is gone is skipped until it comes back.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License.</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
             </footer>
         </div>
     </div>

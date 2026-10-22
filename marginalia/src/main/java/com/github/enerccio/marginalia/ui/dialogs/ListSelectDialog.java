@@ -1,8 +1,10 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
-import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.vaadin.flow.component.ItemLabelGenerator;
 import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.button.Button;
@@ -19,6 +21,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 @Configurable
+@Extendable
 public class ListSelectDialog<T> extends Dialog implements LLMInteract {
 
     @Autowired
@@ -49,6 +52,11 @@ public class ListSelectDialog<T> extends Dialog implements LLMInteract {
         this.showCancel = showCancel;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "hl", type = HorizontalLayout.class),
+                    @APILocals(name = "cancel", type = Button.class),
+                    @APILocals(name = "vl", type = VerticalLayout.class)})
     public void create() {
         setHeaderTitle(title);
         setWidth("450px");
@@ -83,6 +91,7 @@ public class ListSelectDialog<T> extends Dialog implements LLMInteract {
         });
         list.setItemLabelGenerator(labelGenerator);
         list.setWidth("100%");
+        DialogFocus.onOpen(this, list);
 
         VerticalLayout vl = new VerticalLayout();
         vl.add(list);
@@ -93,6 +102,9 @@ public class ListSelectDialog<T> extends Dialog implements LLMInteract {
         add(vl);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "items", type = List.class)})
     public void setItems(List<T> items) {
         list.setItems(items);
     }

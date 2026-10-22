@@ -1,13 +1,14 @@
 package com.github.enerccio.marginalia.ui.components;
 
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
 import com.github.enerccio.marginalia.domain.service.TagService;
 import com.github.enerccio.marginalia.domain.service.TagService.TagUsage;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.TextInputDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -27,6 +28,7 @@ import java.text.NumberFormat;
  * the value of another tag asks whether to merge the two.
  */
 @Configurable
+@Extendable
 public class TagsView extends VerticalLayout implements LLMInteract {
 
     @Autowired
@@ -49,6 +51,8 @@ public class TagsView extends VerticalLayout implements LLMInteract {
         });
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
     private void createColumns() {
         grid.removeAllColumns();
         grid.addColumn(usage -> usage.tag().getValue())
@@ -70,6 +74,9 @@ public class TagsView extends VerticalLayout implements LLMInteract {
         }).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE_HUGE);
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
     public void refresh() {
         try {
             grid.setItems(tagService.findUsageForUser());
@@ -78,6 +85,9 @@ public class TagsView extends VerticalLayout implements LLMInteract {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "tag", type = Tag.class)})
     private void rename(Tag tag) {
         new TextInputDialog.Builder(loc.getValue(L.MSG_RENAME_TAG), newValue -> rename(tag, newValue.trim()))
                 .inputMessageLabel(loc.getValue(L.LABEL_NAME))
@@ -88,6 +98,13 @@ public class TagsView extends VerticalLayout implements LLMInteract {
                 .open();
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "tag", type = Tag.class),
+                    @APIParameter(name = "newValue", type = String.class)},
+            locals = {@APILocals(name = "existing", type = Tag.class),
+                    @APILocals(name = "message", type = String.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void rename(Tag tag, String newValue) {
         if (StringUtils.isBlank(newValue) || newValue.equals(tag.getValue())) {
             return;
@@ -111,6 +128,11 @@ public class TagsView extends VerticalLayout implements LLMInteract {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "tag", type = Tag.class),
+                    @APIParameter(name = "into", type = Tag.class)},
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private void merge(Tag tag, Tag into) {
         try {
             tagService.merge(tag, into);
@@ -120,6 +142,10 @@ public class TagsView extends VerticalLayout implements LLMInteract {
         }
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "usage", type = TagService.TagUsage.class)},
+            locals = {@APILocals(name = "message", type = String.class)})
     private void delete(TagUsage usage) {
         String message = String.format(loc.getValue(L.MSG_CONFIRM_DELETE_TAG), usage.tag().getValue(), usage.objects());
         ConfirmDialog.show(message, () -> {

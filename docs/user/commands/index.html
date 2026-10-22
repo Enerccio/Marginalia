@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="turbo-root" content="/Marginalia">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
+
+    <!-- See retype.com -->
+    <meta name="generator" content="Retype 4.6.0">
+
+    <!-- Primary Meta Tags -->
+    <title>Commands</title>
+    <meta name="title" content="Commands">
+    <meta name="description" content="Commands are small actions you run by typing them, instead of clicking through menus: look something up in the story or the lorebooks, search and replace, take a backup.">
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://enerccio.github.io/Marginalia/user/commands/">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="https://enerccio.github.io/Marginalia/sitemap.xml">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/commands/">
+    <meta property="og:title" content="Commands">
+    <meta property="og:description" content="Commands are small actions you run by typing them, instead of clicking through menus: look something up in the story or the lorebooks, search and replace, take a backup.">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/command-list.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Commands">
+    <meta property="og:site_name" content="Marginalia">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/commands/">
+    <meta name="twitter:title" content="Commands">
+    <meta name="twitter:description" content="Commands are small actions you run by typing them, instead of clicking through menus: look something up in the story or the lorebooks, search and replace, take a backup.">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/command-list.png">
+    <meta name="twitter:image:alt" content="Commands">
+
+    <!-- Alternate Markdown -->
+    <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/user/commands/index.md">
+
+    <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
+
+    <link href="../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
+
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+</head>
+<body>
+    <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
+    <div class="absolute bottom-0 left-0" style="top: 5rem; right: 50%"></div>
+
+    <header id="retype-header" class="sticky top-0 z-30 flex w-full h-16 bg-header-bg border-b border-header-border md:h-20">
+        <div class="container relative flex items-center justify-between pr-6 grow md:justify-start">
+            <!-- Mobile menu button skeleton -->
+            <button v-cloak class="skeleton retype-mobile-menu-button flex items-center justify-center shrink-0 overflow-hidden dark:text-white focus:outline-hidden rounded-full w-10 h-10 ml-3.5 md:hidden"><svg xmlns="http://www.w3.org/2000/svg" class="mb-px shrink-0" width="24" height="24" viewBox="0 0 24 24" role="presentation" style="margin-bottom: 0px;"><g fill="currentColor"><path d="M2 4h20v2H2zM2 11h20v2H2zM2 18h20v2H2z"></path></g></svg></button>
+            <div v-cloak id="retype-sidebar-left-toggle-button"></div>
+    
+            <!-- Logo -->
+            <div class="flex items-center justify-between h-full py-2 md:w-75">
+                <div class="flex items-center px-2 md:px-6">
+                    <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
+                        <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
+                </div>
+    
+                <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
+            </div>
+    
+            <div class="flex justify-between md:grow">
+                <!-- Top Nav -->
+                <nav id="retype-header-nav" class="hidden md:flex">
+                    <ul class="flex flex-col mb-4 md:pl-16 md:mb-0 md:flex-row md:items-center">
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                    <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                </svg>
+                                <span>GitHub</span>
+                            </a>
+                        </li>
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                        </li>
+    
+                    </ul>
+                </nav>
+    
+                <div v-cloak class="flex justify-end grow">
+                    <div id="retype-mobile-search-button"></div>
+                    <doc-search-desktop></doc-search-desktop>
+    
+                    <doc-theme-switch class="lg:ml-2"></doc-theme-switch>
+                    <doc-history></doc-history>
+                </div>
+            </div>
+        </div>
+    </header>
+
+
+    <div id="retype-container" class="container relative flex bg-white">
+        <!-- Sidebar Skeleton -->
+        <div v-cloak class="fixed flex flex-col shrink-0 duration-300 ease-in-out bg-sidebar-left-bg border-sidebar-left-border sidebar top-20 w-75 border-r h-screen md:sticky transition-transform skeleton">
+        
+            <div class="flex items-center h-16 px-6">
+                <input id="retype-filter-input-mock" class="w-full h-10 pl-8 px-3 py-2 transition-colors duration-200 ease-linear bg-filter-bg border border-filter-border rounded-lg shadow-none md:text-sm hover:border-filter-border-hover focus:outline-hidden focus:border-filter-border-focus placeholder-filter-placeholder" type="text">
+            </div>
+        
+            <div class="pl-6 mt-1 mb-4">
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            </div>
+        
+            <div class="shrink-0 mt-auto bg-transparent dark:border-base-border">
+                <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                    <span class="text-xs whitespace-nowrap">Powered by</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Sidebar component -->
+        <doc-sidebar v-cloak>
+            <template #sidebar-footer>
+                <div class="shrink-0 mt-auto border-t md:bg-transparent md:border-none dark:border-base-border">
+        
+                    <div class="py-3 px-6 md:hidden border-b dark:border-base-border">
+                        <nav>
+                            <ul class="flex flex-wrap justify-center items-center">
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                            <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                        </svg>
+                                        <span>GitHub</span>
+                                    </a>
+                                </li>
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                                </li>
+        
+                            </ul>
+                        </nav>
+                    </div>
+        
+                    <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                        <span class="text-xs whitespace-nowrap">Powered by</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                    </a>
+                </div>
+            </template>
+        </doc-sidebar>
+
+        <div class="grow min-w-0 bg-body-bg">
+            <!-- Render "toolbar" template here on api pages --><!-- Render page content -->
+<div class="flex">
+    <div id="retype-main" class="min-w-0 p-4 grow md:px-16">
+        <main class="relative pb-12 lg:pt-2">
+            <div class="relative retype-markdown" id="retype-content">
+                <!-- Rendered if sidebar right is enabled -->
+                <div id="retype-sidebar-right-toggle"></div>
+                <doc-page-actions></doc-page-actions>
+
+                <!-- Page content  -->
+<h1 id="commands">Commands</h1>
+<p>Commands are small actions you run by typing them, instead of clicking through menus: look something up in the story or
+the lorebooks, search and replace, take a backup. <a href="../extensions/">Extensions</a> add commands of their own, for
+example to generate a lore entry or to make up names. The same commands are what an <a href="../agents/">agent</a> works with, so a
+command does one clear thing and says what it does: you can read it while you type.</p>
+<p>The <strong>command line</strong> is the field next to the menu below the story, in the <a href="../books/story-editor/">story editor</a>.</p>
+<h2 id="running-a-command">Running a command</h2>
+<ol>
+<li>
+<p>Click into the command line and type <code translate="no" v-pre>/</code>. The list shows all the commands, each with its name and a short
+description. Typing more narrows the list: the filter looks at the name of the command, its title and its description.</p>
+</li>
+<li>
+<p>Pick the command with the mouse, or with the arrow keys and <strong>Enter</strong>. A command that needs nothing runs at once; for
+one that takes arguments, <code translate="no" v-pre>/name </code> is written into the field and you continue with the arguments.
+<figure class="content-center">
+    <img src="../../images/command-list.png" alt="The list of commands, opened by typing a slash" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1500" height="520" />
+    <figcaption class="caption">The list of commands, opened by typing a slash</figcaption>
+</figure>
+</p>
+</li>
+<li>
+<p>Type the arguments and press <strong>Enter</strong>, or click the play button next to the field, to run it. The field is emptied
+as soon as the command starts; a text that is not a command stays, so you can correct it.</p>
+</li>
+</ol>
+<p>Text that does not start with <code translate="no" v-pre>/</code> is not a command, and nothing is run. Clicking away from the field or pressing <strong>Esc</strong>
+never runs anything, so you cannot start a command by accident.</p>
+<h2 id="the-help">The help</h2>
+<p>While you type, a small window opens above the field. It covers part of the story but moves nothing, and it closes when
+you leave the field or run the command. It shows:</p>
+<ul>
+<li>
+<p>what the command does,</p>
+</li>
+<li>
+<p>the forms the command has (see <doc-anchor-trigger to="#forms-of-a-command">Forms</doc-anchor-trigger>) that fit what you have typed so far, with the argument you
+are typing now highlighted and its description,</p>
+</li>
+<li>
+<p>what the command returns,</p>
+</li>
+<li>
+<p>a hint when you have typed more arguments than the command takes, or when no command has that name.</p>
+</li>
+</ul>
+<figure class="content-center">
+    <img src="../../images/command-help.png" alt="The help of /search-replace-lore-entries while its second argument is typed" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1500" height="520" />
+    <figcaption class="caption">The help of /search-replace-lore-entries while its second argument is typed</figcaption>
+</figure>
+<p>While you are still typing the name, the list of commands is the help.</p>
+<h2 id="arguments">Arguments</h2>
+<p>Arguments are separated by spaces, and repeated spaces count as one. To put a space <em>inside</em> an argument, you have
+three ways:</p>
+<retype-table copy-text="| You type                     | The command gets                | Why                                        |
+|------------------------------|---------------------------------|--------------------------------------------|
+| `/search-parts two\ words`   | one argument, `two words`       | `\ ` (backslash, space) is a space         |
+| `/search-parts &quot;two words&quot;`  | one argument, `two words`       | double quotes keep everything inside together |
+| `/search-parts say\ &quot;hi&quot;`    | one argument, `say hi`          | quotes can start in the middle of an argument |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>You type</th>
+<th>The command gets</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>/search-parts two\ words</code></td>
+<td>one argument, <code translate="no" v-pre>two words</code></td>
+<td><code translate="no" v-pre>\ </code> (backslash, space) is a space</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/search-parts &quot;two words&quot;</code></td>
+<td>one argument, <code translate="no" v-pre>two words</code></td>
+<td>double quotes keep everything inside together</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/search-parts say\ &quot;hi&quot;</code></td>
+<td>one argument, <code translate="no" v-pre>say hi</code></td>
+<td>quotes can start in the middle of an argument</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The other special characters:</p>
+<retype-table copy-text="| You type                      | You get                    |
+|-------------------------------|----------------------------|
+| `\\`                          | a backslash                |
+| `\&quot;`                          | a double quote, with or without quotes around it: `&quot;say \&quot;hi\&quot;&quot;` is `say &quot;hi&quot;` |
+| `&quot;&quot;`                          | an empty argument          |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>You type</th>
+<th>You get</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>\\</code></td>
+<td>a backslash</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>\&quot;</code></td>
+<td>a double quote, with or without quotes around it: <code translate="no" v-pre>&quot;say \&quot;hi\&quot;&quot;</code> is <code translate="no" v-pre>say &quot;hi&quot;</code></td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>&quot;&quot;</code></td>
+<td>an empty argument</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>A backslash in front of anything else stays as it is, so <code translate="no" v-pre>C:\books\story</code> is passed unchanged. If you open a quote and
+never close it, everything to the end of the line belongs to that argument.</p>
+<p>Arguments are text. A command that wants a number, a yes/no or one of a few options converts the text itself; if the text does
+not fit, the command is not run and a notification says so.</p>
+<h2 id="forms-of-a-command">Forms of a command</h2>
+<p>One command can take different arguments: <code translate="no" v-pre>/list-parts</code> with nothing, and <code translate="no" v-pre>/list-parts 2</code> with one argument
+are two <strong>forms</strong> of the same command. Marginalia picks the form by the number of arguments you typed and by what they
+look like. If no form fits, a notification says that the command does not take these arguments, and the help shows the
+forms it does have.</p>
+<h2 id="the-result">The result</h2>
+<p>When a command returns something, it is shown in a window above the command line. Close it with the cross, with <strong>Esc</strong>,
+or just carry on: it disappears when you type something new or run another command. A command that returns nothing shows
+no window.</p>
+<figure class="content-center">
+    <img src="../../images/command-result.png" alt="The result of /take-backup above the command line" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1500" height="520" />
+    <figcaption class="caption">The result of /take-backup above the command line</figcaption>
+</figure>
+<p>If a command fails, or there is no such command, you get a notification with the reason.</p>
+<h2 id="commands-that-take-time">Commands that take time</h2>
+<p>Most commands answer at once. A command that needs time shows a window with an animated bar and a <strong>Stop</strong> button, and
+the story is locked until the command is done. Under the bar the command can say what it is doing now and, in smaller
+letters, the detail of the step. <strong>Stop</strong> cancels the command; it should return immediately. The commands that have the model write, like <code translate="no" v-pre>/next</code>, are of this kind.</p>
+<figure class="content-center">
+    <img src="../../images/command-running.png" alt="The window of a command that is running" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1500" height="520" />
+    <figcaption class="caption">The window of a command that is running</figcaption>
+</figure>
+<h2 id="commands-that-change-data">Commands that change data</h2>
+<p>Every command says what it does to the data that already exists, and the command bar shows it as a small label next to
+the command, in the list and in the help:</p>
+<ul>
+<li>
+<p><strong>Destructive</strong> (red) - the command changes or removes data that exists, like the search and replace commands that
+rewrite the book. Point at the label to see the explanation.</p>
+</li>
+<li>
+<p><strong>Non-destructive</strong> (green) - the command only reads data or adds new data, like <code translate="no" v-pre>/take-backup</code>, which adds a backup and
+changes nothing else.</p>
+</li>
+</ul>
+<p>The label is information for you; it does not stop the command when you run it. An <a href="../agents/">agent</a> goes by it: it is
+not given a destructive command, or has to ask you first, or runs it, as set for that agent. A command that asks for
+confirmation by itself is described below.</p>
+<h2 id="commands-that-ask-first">Commands that ask first</h2>
+<p>A command that changes a lot can ask before it does. The search and replace commands have no preview, so after the
+search they show how many matches they found in how many items and what would be replaced by what, and only <strong>Yes</strong>
+changes the book; <strong>No</strong> leaves everything as it was. The question stays until you answer it.</p>
+<figure class="content-center">
+    <img src="../../images/command-confirm.png" alt="The question of /search-replace-parts" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="800" height="320" />
+    <figcaption class="caption">The question of /search-replace-parts</figcaption>
+</figure>
+<h2 id="commands-that-come-with-marginalia">Commands that come with Marginalia</h2>
+<retype-table copy-text="| Command                              | What it does                                                                       |
+|--------------------------------------|------------------------------------------------------------------------------------|
+| `/search-replace-parts &lt;search&gt; &lt;replace&gt; [regex] [caseSensitive] [summaries] [allBranches] [revalidateSummaries] [maxHits] [dryRun]` | Search and replace in the story of the open book, like the **Search and replace** window of the story tab. The options are `true`/`false`, in this order, and each one you leave out has the default of that window ([regex](../regular-expressions.md) no, case sensitive yes, summaries yes, all branches no, revalidate yes); to set one, give those before it too. `maxHits` refuses a replace that finds more matches than that, and with `dryRun` `true` nothing is changed: the answer counts the matches and shows a few, which is how an agent looks before it replaces. There is no preview: after the search you are asked whether to replace the number of matches found, and only **Yes** changes the book. The replace cannot be stopped. |
+| `/search-replace-lore-entries &lt;search&gt; &lt;replace&gt; [regex] [caseSensitive] [maxHits] [dryRun]` | The same for the entries (name, text and comment) of the lorebook of the open book. |
+| `/take-backup`                       | Takes a backup of the book that is open; it appears in the **Backups** tab of the book. Says no book is open when there is none. |
+| `/get-book-info` | The name, settings, model, totals (parts, words, tokens) and tags of the open book. |
+| `/list-parts [branch] [offset] [limit]` | The parts of a branch: handle, position, size, swipes, summary state and a short preview. |
+| `/get-part &lt;part&gt; [branch] [offset] [length] [field]` | The text of a part in slices (or its `instructions`, `scene`, `pov`, `present` or `reasoning`) and what it was made from. |
+| `/list-swipes &lt;part&gt; [branch]` | The alternatives (swipes) of a part, with the branch number that shows each. |
+| `/list-branches [offset] [limit]` | The branches of the book, numbered, with where each parts from the others. |
+| `/get-part-metrics &lt;part&gt; [branch]` | Tokens, timings, model and protocol of a part. |
+| `/show-prompt &lt;part&gt; [branch] [offset] [length]` | The prompt a generated part was made from, as it was stored. |
+| `/search-parts &lt;query&gt; [limit]` | Full-text search in the parts of all branches, with snippets. |
+| `/find-occurrences &lt;terms&gt; [regex] [caseSensitive] [summaries] [allBranches] [limit]` | How often and where names or words occur (defaults: no regex, case insensitive, parts only, active branch). |
+| `/compare-parts &lt;a&gt; &lt;b&gt; [branchA] [branchB]` | The sentences that differ between two parts; `0` as `b` compares part `a` with the text the model produced first. |
+| `/count-tokens &lt;text&gt;`, `/count-tokens &lt;part&gt; &lt;branch&gt;` | Tokens (with the tokenizer of the book's model), words and characters of a text, or of a part when the text is its handle. |
+| `/list-summaries [branch]` | The summaries of a branch, the parts they cover and whether they are still valid. |
+| `/get-summary &lt;part&gt; [branch]` | The summary of a part. |
+| `/check-summaries [branch]` | The outdated summaries and the edited parts that made them so. |
+| `/get-template-variables &lt;scope&gt; [part] [branch]` | The template variables of the book (`global`) or of a part (`part`). |
+| `/list-lorebooks` | The lorebooks of the open book (the root and its subbooks) with their numbers, entry counts, tags and subbooks. |
+| `/list-lore-entries [lorebook] [filter] [offset] [limit]` | The entries of a lorebook with their settings and a preview; the filter keeps the entries whose name or tag contains it. |
+| `/get-lore-entry &lt;entry&gt; [lorebook] [offset] [length]` | One entry: settings, keys, tags, comment and its text in slices. |
+| `/search-lore &lt;query&gt; [regex] [limit]` | The entries of all the lorebooks of the book whose name, text or comment contain the query, with snippets. |
+| `/preview-lore-activation &lt;text&gt; [limit]`, `/preview-lore-activation &lt;part&gt; &lt;branch&gt; &lt;limit&gt;` | Which entries a generation would use for a text, or for a turn like the one that made a part, and why (no filter, filter found, or not used because it is switched off, a tag of the book decides, or the filter is not in the text), with the lore text and its tokens. The text may be the handle of a part. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Command</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>/search-replace-parts &lt;search&gt; &lt;replace&gt; [regex] [caseSensitive] [summaries] [allBranches] [revalidateSummaries] [maxHits] [dryRun]</code></td>
+<td>Search and replace in the story of the open book, like the <strong>Search and replace</strong> window of the story tab. The options are <code translate="no" v-pre>true</code>/<code translate="no" v-pre>false</code>, in this order, and each one you leave out has the default of that window (<a href="../regular-expressions/">regex</a> no, case sensitive yes, summaries yes, all branches no, revalidate yes); to set one, give those before it too. <code translate="no" v-pre>maxHits</code> refuses a replace that finds more matches than that, and with <code translate="no" v-pre>dryRun</code> <code translate="no" v-pre>true</code> nothing is changed: the answer counts the matches and shows a few, which is how an agent looks before it replaces. There is no preview: after the search you are asked whether to replace the number of matches found, and only <strong>Yes</strong> changes the book. The replace cannot be stopped.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/search-replace-lore-entries &lt;search&gt; &lt;replace&gt; [regex] [caseSensitive] [maxHits] [dryRun]</code></td>
+<td>The same for the entries (name, text and comment) of the lorebook of the open book.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/take-backup</code></td>
+<td>Takes a backup of the book that is open; it appears in the <strong>Backups</strong> tab of the book. Says no book is open when there is none.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/get-book-info</code></td>
+<td>The name, settings, model, totals (parts, words, tokens) and tags of the open book.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/list-parts [branch] [offset] [limit]</code></td>
+<td>The parts of a branch: handle, position, size, swipes, summary state and a short preview.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/get-part &lt;part&gt; [branch] [offset] [length] [field]</code></td>
+<td>The text of a part in slices (or its <code translate="no" v-pre>instructions</code>, <code translate="no" v-pre>scene</code>, <code translate="no" v-pre>pov</code>, <code translate="no" v-pre>present</code> or <code translate="no" v-pre>reasoning</code>) and what it was made from.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/list-swipes &lt;part&gt; [branch]</code></td>
+<td>The alternatives (swipes) of a part, with the branch number that shows each.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/list-branches [offset] [limit]</code></td>
+<td>The branches of the book, numbered, with where each parts from the others.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/get-part-metrics &lt;part&gt; [branch]</code></td>
+<td>Tokens, timings, model and protocol of a part.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/show-prompt &lt;part&gt; [branch] [offset] [length]</code></td>
+<td>The prompt a generated part was made from, as it was stored.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/search-parts &lt;query&gt; [limit]</code></td>
+<td>Full-text search in the parts of all branches, with snippets.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/find-occurrences &lt;terms&gt; [regex] [caseSensitive] [summaries] [allBranches] [limit]</code></td>
+<td>How often and where names or words occur (defaults: no regex, case insensitive, parts only, active branch).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/compare-parts &lt;a&gt; &lt;b&gt; [branchA] [branchB]</code></td>
+<td>The sentences that differ between two parts; <code translate="no" v-pre>0</code> as <code translate="no" v-pre>b</code> compares part <code translate="no" v-pre>a</code> with the text the model produced first.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/count-tokens &lt;text&gt;</code>, <code translate="no" v-pre>/count-tokens &lt;part&gt; &lt;branch&gt;</code></td>
+<td>Tokens (with the tokenizer of the book&#x27;s model), words and characters of a text, or of a part when the text is its handle.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/list-summaries [branch]</code></td>
+<td>The summaries of a branch, the parts they cover and whether they are still valid.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/get-summary &lt;part&gt; [branch]</code></td>
+<td>The summary of a part.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/check-summaries [branch]</code></td>
+<td>The outdated summaries and the edited parts that made them so.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/get-template-variables &lt;scope&gt; [part] [branch]</code></td>
+<td>The template variables of the book (<code translate="no" v-pre>global</code>) or of a part (<code translate="no" v-pre>part</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/list-lorebooks</code></td>
+<td>The lorebooks of the open book (the root and its subbooks) with their numbers, entry counts, tags and subbooks.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/list-lore-entries [lorebook] [filter] [offset] [limit]</code></td>
+<td>The entries of a lorebook with their settings and a preview; the filter keeps the entries whose name or tag contains it.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/get-lore-entry &lt;entry&gt; [lorebook] [offset] [length]</code></td>
+<td>One entry: settings, keys, tags, comment and its text in slices.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/search-lore &lt;query&gt; [regex] [limit]</code></td>
+<td>The entries of all the lorebooks of the book whose name, text or comment contain the query, with snippets.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/preview-lore-activation &lt;text&gt; [limit]</code>, <code translate="no" v-pre>/preview-lore-activation &lt;part&gt; &lt;branch&gt; &lt;limit&gt;</code></td>
+<td>Which entries a generation would use for a text, or for a turn like the one that made a part, and why (no filter, filter found, or not used because it is switched off, a tag of the book decides, or the filter is not in the text), with the lore text and its tokens. The text may be the handle of a part.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h3 id="reading-the-story">Reading the story</h3>
+<p>The commands above that read the book (<code translate="no" v-pre>/get-book-info</code> to <code translate="no" v-pre>/get-template-variables</code>) change nothing; they answer in JSON text,
+so an agent can use them as well. Every row of an answer has a <strong><code translate="no" v-pre>handle</code></strong>: the identifier of the part (or lorebook, or entry), which
+does not change when parts are added, moved or deleted. A part is given by its handle, or by its <strong>position</strong> on a branch, the first
+part of the story being <code translate="no" v-pre>1</code>; a branch by the handle of any part of it, or by its <strong>number</strong> from <code translate="no" v-pre>/list-branches</code> (the numbers follow
+the creation of the ends of the branches, so they change when a branch is added or deleted). Positions and numbers are easier to type,
+handles are what an agent should use, and the commands that change the story take handles only. Without a branch the commands work on
+the active branch. Lists are paged with <code translate="no" v-pre>offset</code> and <code translate="no" v-pre>limit</code>, long texts are cut into slices (<code translate="no" v-pre>offset</code>, <code translate="no" v-pre>length</code>) and the answer says
+the total length. As with the other commands the options are positional: to set one, give those before it too.</p>
+<p>The commands that read the lorebooks (<code translate="no" v-pre>/list-lorebooks</code> to <code translate="no" v-pre>/preview-lore-activation</code>) work the same way and reach only the lorebooks of the open
+book: the root lorebook and its subbooks. A lorebook is its <strong>handle</strong> or its <strong>number</strong> from <code translate="no" v-pre>/list-lorebooks</code> (the root is <code translate="no" v-pre>1</code>), an entry its
+<strong>handle</strong> or its <strong>number in the lorebook</strong>, in the order of the lorebook (the first entry is <code translate="no" v-pre>1</code>); the numbers change when entries or subbooks are
+added or removed. Without a lorebook the root lorebook is used.</p>
+<h3 id="changing-the-story-and-the-lore">Changing the story and the lore</h3>
+<p>These commands change the open book (or the working copy of an agent, which is where an agent&#x27;s changes go). A part, lorebook or
+entry is always given by its <strong>handle</strong>, never by a position or a number: those move when something is added or deleted, and a
+position that was right when it was read may be another part by the time it is written. The options are positional as before. A
+command that removes text or data is <code translate="no" v-pre>DESTRUCTIVE</code> and asks you to confirm (an agent is covered by its destructive mode instead);
+adding and changing are not. An edit of the story can make summaries outdated (a summary carries the hash of the story it
+describes): the answer lists them and says what to do, <code translate="no" v-pre>/revalidate-summaries</code> if they are still right, <code translate="no" v-pre>/regenerate-summary</code> if not.</p>
+<retype-table copy-text="| Command | What it does |
+|---------|--------------|
+| `/edit-part &lt;part&gt; &lt;old&gt; &lt;new&gt; [field]` | Replaces `old` by `new` in the text of a part; `old` must be found exactly once, otherwise nothing changes and the error says how many times it was found. `field` edits the `instructions`, `scene`, `pov` or `present` characters of the turn instead. |
+| `/replace-part-text &lt;part&gt; &lt;text&gt; [field]` | Replaces the whole text of a part. Asks first. |
+| `/append-to-part &lt;part&gt; &lt;text&gt; [separator]` | Adds text to the end of a part, after a blank line unless `separator` says otherwise. |
+| `/set-part-fields &lt;part&gt; [instructions] [scene] [pov] [present]` | Changes what a part was made from, which a new generation of it reuses; an empty text clears a field, a field you leave out stays. |
+| `/create-part &lt;text&gt; [parent] [instructions] [scene] [pov] [present]` | Writes a new part after the last part of the active branch, or after `parent` (a new branch); it becomes the end of the active branch. |
+| `/insert-part &lt;text&gt; &lt;part&gt; [before]` | Inserts a new part into the story right after `part` (or right before it when `before` is `true`). Everything that followed that place, all branches included, follows the new part now; nothing is deleted or made again, so the other parts keep their summaries and data and move one position down. The summaries that covered the place become outdated (the answer says which). At the end of the branch it is the same as `/create-part`. |
+| `/branch-part &lt;part&gt;` | Copies a part (and its summary) next to it, a new swipe that starts a branch, and makes the copy the active end. |
+| `/delete-part &lt;part&gt;` | Deletes a part and its summary; the parts that followed it stay. Asks first. |
+| `/switch-branch &lt;part&gt;` | Makes the branch through a part the active one. |
+| `/set-summary &lt;part&gt; &lt;text&gt;` | Replaces the text of the summary on a part. |
+| `/remove-summary &lt;part&gt; [unwind]` | Removes the summary of a part (`unwind` brings back what a meta summary replaced). Asks first. |
+| `/revalidate-summaries [part]` | Says the outdated summaries still describe the story (all of the active branch, or only that part's). Use it only when you checked. |
+| `/regenerate-summary &lt;part&gt;` | Has the model make the summary on a part again. Slow, costs tokens. |
+| `/create-meta-summary &lt;from&gt; &lt;to&gt;` | Has the model merge the summaries from the part `from` (newest) back to `to` into one. Slow, costs tokens. |
+| `/next [scene] [pov] [present] [instructions] [after] [profile]` | Has the model write the next part, like the **New turn** button. Slow, costs tokens; one generation of a book runs at a time, the others wait. `profile` names one of the model profiles of an agent. |
+| `/swipe [part] [scene] [pov] [present] [instructions] [profile]` | Has the model write another version of the last part of a branch. What you leave out is taken from the part. |
+| `/regenerate [part] [scene] [pov] [present] [instructions] [profile]` | Has the model write the last part of a branch again, replacing its text. Asks first. |
+| `/set-book-info [name] [description] [pov] [tense] [style] [language]` | Changes the descriptive settings of the book; only the values you give. |
+| `/set-book-prompts [template] [userPrompt] [summaryPrompt] [metaSummaryPrompt]` | Replaces the prompt templates of the book. Each is checked first. `DESTRUCTIVE`: a bad template spoils every later generation. |
+| `/set-book-tags [add] [remove]` | Adds and takes off tags of the book (comma separated). |
+| `/create-lore-entry &lt;name&gt; &lt;payload&gt; [lorebook] [comment] [enabled] [order] [keys] [filteringMode] [insertionMode] [tags]` | Adds an entry to a lorebook (the root when none is given; a book that has no lorebook gets one, named like the book). `keys` is a list of keywords separated by commas; `filteringMode` is `KEYWORDS_OR` (default), `KEYWORDS_AND`, `TEXT` or `REGEX`. A problem of the template or of the regular expression is saved and reported. |
+| `/update-lore-entry &lt;entry&gt; [name] [payload] [comment] [enabled] [order] [keys] [filteringMode] [insertionMode]` | Changes the fields you give. |
+| `/delete-lore-entry &lt;entry&gt;` | Deletes an entry. Asks first. |
+| `/move-lore-entry &lt;entry&gt; &lt;lorebook&gt;` | Moves an entry to another lorebook of the book. |
+| `/set-lore-entry-tags &lt;entry&gt; [add] [remove] [addNegative] [removeNegative]` | Changes the tags and negative tags of an entry (comma separated). |
+| `/create-lorebook &lt;name&gt; [parent]` | Makes a lorebook that is a subbook of `parent` (the root when none is given; a book that has no lorebook gets one first). |
+| `/set-lorebook &lt;lorebook&gt; [name] [enabled]` | Renames a lorebook or switches it on or off. |
+| `/add-subbook &lt;lorebook&gt; &lt;subbook&gt;`, `/remove-subbook &lt;lorebook&gt; &lt;subbook&gt;` | Changes which lorebooks a lorebook contains; a lorebook can't contain itself. For an [agent](../agents.md), `/add-subbook` also brings back a lorebook it deleted or took out of its parent earlier (it names it by the handle it had), with its entries. |
+| `/delete-lorebook &lt;lorebook&gt;` | Deletes a lorebook with its entries (not the root). Asks first. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Command</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>/edit-part &lt;part&gt; &lt;old&gt; &lt;new&gt; [field]</code></td>
+<td>Replaces <code translate="no" v-pre>old</code> by <code translate="no" v-pre>new</code> in the text of a part; <code translate="no" v-pre>old</code> must be found exactly once, otherwise nothing changes and the error says how many times it was found. <code translate="no" v-pre>field</code> edits the <code translate="no" v-pre>instructions</code>, <code translate="no" v-pre>scene</code>, <code translate="no" v-pre>pov</code> or <code translate="no" v-pre>present</code> characters of the turn instead.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/replace-part-text &lt;part&gt; &lt;text&gt; [field]</code></td>
+<td>Replaces the whole text of a part. Asks first.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/append-to-part &lt;part&gt; &lt;text&gt; [separator]</code></td>
+<td>Adds text to the end of a part, after a blank line unless <code translate="no" v-pre>separator</code> says otherwise.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/set-part-fields &lt;part&gt; [instructions] [scene] [pov] [present]</code></td>
+<td>Changes what a part was made from, which a new generation of it reuses; an empty text clears a field, a field you leave out stays.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/create-part &lt;text&gt; [parent] [instructions] [scene] [pov] [present]</code></td>
+<td>Writes a new part after the last part of the active branch, or after <code translate="no" v-pre>parent</code> (a new branch); it becomes the end of the active branch.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/insert-part &lt;text&gt; &lt;part&gt; [before]</code></td>
+<td>Inserts a new part into the story right after <code translate="no" v-pre>part</code> (or right before it when <code translate="no" v-pre>before</code> is <code translate="no" v-pre>true</code>). Everything that followed that place, all branches included, follows the new part now; nothing is deleted or made again, so the other parts keep their summaries and data and move one position down. The summaries that covered the place become outdated (the answer says which). At the end of the branch it is the same as <code translate="no" v-pre>/create-part</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/branch-part &lt;part&gt;</code></td>
+<td>Copies a part (and its summary) next to it, a new swipe that starts a branch, and makes the copy the active end.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/delete-part &lt;part&gt;</code></td>
+<td>Deletes a part and its summary; the parts that followed it stay. Asks first.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/switch-branch &lt;part&gt;</code></td>
+<td>Makes the branch through a part the active one.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/set-summary &lt;part&gt; &lt;text&gt;</code></td>
+<td>Replaces the text of the summary on a part.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/remove-summary &lt;part&gt; [unwind]</code></td>
+<td>Removes the summary of a part (<code translate="no" v-pre>unwind</code> brings back what a meta summary replaced). Asks first.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/revalidate-summaries [part]</code></td>
+<td>Says the outdated summaries still describe the story (all of the active branch, or only that part&#x27;s). Use it only when you checked.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/regenerate-summary &lt;part&gt;</code></td>
+<td>Has the model make the summary on a part again. Slow, costs tokens.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/create-meta-summary &lt;from&gt; &lt;to&gt;</code></td>
+<td>Has the model merge the summaries from the part <code translate="no" v-pre>from</code> (newest) back to <code translate="no" v-pre>to</code> into one. Slow, costs tokens.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/next [scene] [pov] [present] [instructions] [after] [profile]</code></td>
+<td>Has the model write the next part, like the <strong>New turn</strong> button. Slow, costs tokens; one generation of a book runs at a time, the others wait. <code translate="no" v-pre>profile</code> names one of the model profiles of an agent.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/swipe [part] [scene] [pov] [present] [instructions] [profile]</code></td>
+<td>Has the model write another version of the last part of a branch. What you leave out is taken from the part.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/regenerate [part] [scene] [pov] [present] [instructions] [profile]</code></td>
+<td>Has the model write the last part of a branch again, replacing its text. Asks first.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/set-book-info [name] [description] [pov] [tense] [style] [language]</code></td>
+<td>Changes the descriptive settings of the book; only the values you give.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/set-book-prompts [template] [userPrompt] [summaryPrompt] [metaSummaryPrompt]</code></td>
+<td>Replaces the prompt templates of the book. Each is checked first. <code translate="no" v-pre>DESTRUCTIVE</code>: a bad template spoils every later generation.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/set-book-tags [add] [remove]</code></td>
+<td>Adds and takes off tags of the book (comma separated).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/create-lore-entry &lt;name&gt; &lt;payload&gt; [lorebook] [comment] [enabled] [order] [keys] [filteringMode] [insertionMode] [tags]</code></td>
+<td>Adds an entry to a lorebook (the root when none is given; a book that has no lorebook gets one, named like the book). <code translate="no" v-pre>keys</code> is a list of keywords separated by commas; <code translate="no" v-pre>filteringMode</code> is <code translate="no" v-pre>KEYWORDS_OR</code> (default), <code translate="no" v-pre>KEYWORDS_AND</code>, <code translate="no" v-pre>TEXT</code> or <code translate="no" v-pre>REGEX</code>. A problem of the template or of the regular expression is saved and reported.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/update-lore-entry &lt;entry&gt; [name] [payload] [comment] [enabled] [order] [keys] [filteringMode] [insertionMode]</code></td>
+<td>Changes the fields you give.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/delete-lore-entry &lt;entry&gt;</code></td>
+<td>Deletes an entry. Asks first.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/move-lore-entry &lt;entry&gt; &lt;lorebook&gt;</code></td>
+<td>Moves an entry to another lorebook of the book.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/set-lore-entry-tags &lt;entry&gt; [add] [remove] [addNegative] [removeNegative]</code></td>
+<td>Changes the tags and negative tags of an entry (comma separated).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/create-lorebook &lt;name&gt; [parent]</code></td>
+<td>Makes a lorebook that is a subbook of <code translate="no" v-pre>parent</code> (the root when none is given; a book that has no lorebook gets one first).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/set-lorebook &lt;lorebook&gt; [name] [enabled]</code></td>
+<td>Renames a lorebook or switches it on or off.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/add-subbook &lt;lorebook&gt; &lt;subbook&gt;</code>, <code translate="no" v-pre>/remove-subbook &lt;lorebook&gt; &lt;subbook&gt;</code></td>
+<td>Changes which lorebooks a lorebook contains; a lorebook can&#x27;t contain itself. For an <a href="../agents/">agent</a>, <code translate="no" v-pre>/add-subbook</code> also brings back a lorebook it deleted or took out of its parent earlier (it names it by the handle it had), with its entries.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/delete-lorebook &lt;lorebook&gt;</code></td>
+<td>Deletes a lorebook with its entries (not the root). Asks first.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The commands that have the model write (<code translate="no" v-pre>/next</code>, <code translate="no" v-pre>/swipe</code>, <code translate="no" v-pre>/regenerate</code>, the two summaries) take time and show the <strong>Stop</strong> window.</p>
+<h2 id="commands-that-come-with-extensions">Commands that come with extensions</h2>
+<p>You see these in the list as long as the extension is loaded; each is described in the documentation of its extension.</p>
+<retype-table copy-text="| Command | Extension | What it does |
+|---|---|---|
+| `/list-lore-templates [&lt;template&gt;]` | [Lore Generator](../extensions/lore-generator.md) | Your saved generation prompts, or the text of one. |
+| `/generate-lore-entry [&lt;prompt&gt; ...]` | [Lore Generator](../extensions/lore-generator.md) | Generates the text of a lore entry with the lore of the lorebook and returns it. Stores nothing. |
+| `/compact-lore-entry &lt;text&gt; [...]` | [Lore Generator](../extensions/lore-generator.md) | Compacts a generated text into a dense lore entry text and returns it. Stores nothing. |
+| `/list-name-categories [&lt;filter&gt;]`, `/generate-names &lt;category&gt; &lt;count&gt; [...]` | [Name generator](../extensions/name-generator.md) | The categories of made up names, and names of one of them. |
+| `/list-real-name-lists`, `/pick-real-names &lt;list&gt; &lt;count&gt;` | [Name provider](../extensions/name-provider.md) | The lists of real names, and names picked from one of them. |
+| `/list-place-types`, `/search-places &lt;query&gt; [...]`, `/places-near &lt;place&gt; &lt;radius_km&gt; [...]`, `/distance-between &lt;from&gt; &lt;to&gt;` | [Place provider](../extensions/place-provider.md) | The types of real places, a search by name, type and country, the places around a point, and the distance of two places. |
+| `/get-arc-outline [&lt;arc&gt; [&lt;notes&gt;]]` | [Arc Outline](../extensions/arc-outline.md) | The arcs and chapters of the outline. |
+| `/add-arc`, `/update-arc`, `/move-arc`, `/delete-arc` | [Arc Outline](../extensions/arc-outline.md) | Add, change, move and delete an arc (`&lt;arc&gt;` is its number). |
+| `/add-outline-chapter`, `/update-outline-chapter`, `/move-outline-chapter`, `/delete-outline-chapter` | [Arc Outline](../extensions/arc-outline.md) | The same for the chapters of an arc. |
+| `/generate-arc`, `/generate-outline-chapters &lt;arc&gt;`, `/import-arc-from-story` | [Arc Outline](../extensions/arc-outline.md) | The generators of the Arcs tab. They return the result and add it to the outline only with `save`. |
+| `/list-characters`, `/get-character &lt;character&gt;` | [Character Tracker](../extensions/character-tracker.md) | The characters of the book, and one with its note and relationships. |
+| `/create-character`, `/update-character`, `/delete-character` | [Character Tracker](../extensions/character-tracker.md) | Add, change and delete a character. |
+| `/list-character-relations`, `/add-character-relation`, `/update-character-relation`, `/delete-character-relation` | [Character Tracker](../extensions/character-tracker.md) | The relationships between characters. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Command</th>
+<th>Extension</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>/list-lore-templates [&lt;template&gt;]</code></td>
+<td><a href="../extensions/lore-generator/">Lore Generator</a></td>
+<td>Your saved generation prompts, or the text of one.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/generate-lore-entry [&lt;prompt&gt; ...]</code></td>
+<td><a href="../extensions/lore-generator/">Lore Generator</a></td>
+<td>Generates the text of a lore entry with the lore of the lorebook and returns it. Stores nothing.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/compact-lore-entry &lt;text&gt; [...]</code></td>
+<td><a href="../extensions/lore-generator/">Lore Generator</a></td>
+<td>Compacts a generated text into a dense lore entry text and returns it. Stores nothing.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/list-name-categories [&lt;filter&gt;]</code>, <code translate="no" v-pre>/generate-names &lt;category&gt; &lt;count&gt; [...]</code></td>
+<td><a href="../extensions/name-generator/">Name generator</a></td>
+<td>The categories of made up names, and names of one of them.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/list-real-name-lists</code>, <code translate="no" v-pre>/pick-real-names &lt;list&gt; &lt;count&gt;</code></td>
+<td><a href="../extensions/name-provider/">Name provider</a></td>
+<td>The lists of real names, and names picked from one of them.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/list-place-types</code>, <code translate="no" v-pre>/search-places &lt;query&gt; [...]</code>, <code translate="no" v-pre>/places-near &lt;place&gt; &lt;radius_km&gt; [...]</code>, <code translate="no" v-pre>/distance-between &lt;from&gt; &lt;to&gt;</code></td>
+<td><a href="../extensions/place-provider/">Place provider</a></td>
+<td>The types of real places, a search by name, type and country, the places around a point, and the distance of two places.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/get-arc-outline [&lt;arc&gt; [&lt;notes&gt;]]</code></td>
+<td><a href="../extensions/arc-outline/">Arc Outline</a></td>
+<td>The arcs and chapters of the outline.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/add-arc</code>, <code translate="no" v-pre>/update-arc</code>, <code translate="no" v-pre>/move-arc</code>, <code translate="no" v-pre>/delete-arc</code></td>
+<td><a href="../extensions/arc-outline/">Arc Outline</a></td>
+<td>Add, change, move and delete an arc (<code translate="no" v-pre>&lt;arc&gt;</code> is its number).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/add-outline-chapter</code>, <code translate="no" v-pre>/update-outline-chapter</code>, <code translate="no" v-pre>/move-outline-chapter</code>, <code translate="no" v-pre>/delete-outline-chapter</code></td>
+<td><a href="../extensions/arc-outline/">Arc Outline</a></td>
+<td>The same for the chapters of an arc.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/generate-arc</code>, <code translate="no" v-pre>/generate-outline-chapters &lt;arc&gt;</code>, <code translate="no" v-pre>/import-arc-from-story</code></td>
+<td><a href="../extensions/arc-outline/">Arc Outline</a></td>
+<td>The generators of the Arcs tab. They return the result and add it to the outline only with <code translate="no" v-pre>save</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/list-characters</code>, <code translate="no" v-pre>/get-character &lt;character&gt;</code></td>
+<td><a href="../extensions/character-tracker/">Character Tracker</a></td>
+<td>The characters of the book, and one with its note and relationships.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/create-character</code>, <code translate="no" v-pre>/update-character</code>, <code translate="no" v-pre>/delete-character</code></td>
+<td><a href="../extensions/character-tracker/">Character Tracker</a></td>
+<td>Add, change and delete a character.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/list-character-relations</code>, <code translate="no" v-pre>/add-character-relation</code>, <code translate="no" v-pre>/update-character-relation</code>, <code translate="no" v-pre>/delete-character-relation</code></td>
+<td><a href="../extensions/character-tracker/">Character Tracker</a></td>
+<td>The relationships between characters.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The commands of the Lore Generator, the Name generator, the Name provider and the Place provider only read: the generating ones return text and
+leave it to you, or to the agent that called them, to put it into an entry. The commands of the Arc Outline and the
+Character Tracker also change the outline and the characters of the open book; only their <code translate="no" v-pre>delete</code> commands are destructive.</p>
+<h2 id="limits">Limits</h2>
+<ul>
+<li>The command line is in the story tab of the desktop layout. The <a href="../phone/">phone view</a> does not have it yet.</li>
+<li>A command runs as you, in your session, and works with the book you have open.</li>
+</ul>
+
+                
+                <!-- Required only on API pages -->
+                <doc-toolbar-member-filter-no-results></doc-toolbar-member-filter-no-results>
+            </div>
+            <footer id="retype-content-footer" class="clear-both">
+            
+                <nav id="retype-nextprev" class="print:hidden flex mt-14">
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../user/lorebooks/import-export/">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                            <span>
+                                <span class="block text-xs font-normal text-base-text-muted">Previous</span>
+                                <span class="block mt-1">Import &amp; export</span>
+                            </span>
+                        </a>
+                    </div>
+            
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../user/templates/">
+                            <span>
+                                <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
+                                <span class="block mt-1">Templates &amp; macros</span>
+                            </span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                        </a>
+                    </div>
+                </nav>
+            </footer>
+        </main>
+
+        <div id="retype-page-footer" class="print:border-none border-t border-base-border pt-6 mb-8">
+            <footer class="flex flex-wrap items-center justify-between print:justify-center">
+                <div id="retype-footer-links" class="print:hidden">
+                    <ul class="flex flex-wrap items-center text-sm">
+                    </ul>
+                </div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Rendered if sidebar right is enabled -->
+    <!-- Sidebar right skeleton-->
+    <div v-cloak class="fixed top-0 bottom-0 right-0 translate-x-full bg-sidebar-right-bg border-sidebar-right-border lg:sticky lg:border-l lg:shrink-0 lg:pt-6 lg:translate-x-0 sm:w-1/2 lg:w-64 lg:z-0 md:w-104 sidebar-right skeleton">
+        <div class="pl-5">
+            <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+        </div>
+    </div>
+
+    <!-- User should be able to hide sidebar right -->
+    <doc-sidebar-right v-cloak></doc-sidebar-right>
+</div>
+
+        </div>
+    </div>
+
+    <doc-search-mobile></doc-search-mobile>
+    <doc-back-to-top></doc-back-to-top>
+</div>
+
+
+    <div id="retype-overlay-target"></div>
+
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Commands", level: 2, icon: "file", hasPrism: false, hasInstagram: false, hasMermaid: false, hasMath: false, tocDepth: 23, "md": "/user/commands/index.md" }</script>
+</body>
+</html>

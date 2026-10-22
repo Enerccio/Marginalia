@@ -74,32 +74,14 @@ again restores them, taking priority over the prompt you used last and your save
 never generated into opens with the usual defaults. The options belong to the entry, so they travel with backups and
 exports of the lorebook.
 
-### Name tools
+### Tools
 
-When the [Name generator](name-generator.md) or the [Name provider](name-provider.md) extension is loaded, the top row has a
-**Name tools** button. It opens a table of the name categories of both with a checkbox each. The categories of the Name
-generator (names made up to sound like a category) start with `Generator: `, the ones of the Name provider (real names, each
-with its original spelling) with `Provider: `. The list is long, so it loads as you scroll and has a filter field above it:
-type a part of a name to show only the matching categories. The checked categories always stay in the table, whatever the filter
-says. The checkbox in the header checks or unchecks all the categories shown at that moment, and a line below the
-table counts how many are checked. The checked categories are saved with your account, so they stay checked the next
-time. While at least one is checked, the model can list them and ask for names of them during the generation (not the
-compaction), instead of inventing names. The model gets the tools of the extensions that have a checked category: check
-only `Generator: ` categories and it gets the generator's, only `Provider: ` ones and it gets the provider's, both and it
-gets both, none and it gets no tools.
-
-![Name tools with a filtered table of categories](../../images/plugin-loregenerator-names.png)
-
-A short hint for each kind of tools the model gets is added to the end of the generation prompt. The built-in hint of the
-Name generator asks the model to call the tools instead of inventing names, to pick from what it gets, and allows it to
-modify or remix the names when none fits as it is (combine parts of two, change an ending, adjust the spelling). The
-built-in hint of the Name provider asks it to pick a name from the real names it gets and to keep it as it was returned
-(the romanized one, with the original next to it when that suits the setting), without making up another spelling; a
-forename and a surname of the same country may be combined. You can replace them with your own in
-*Settings → Extension Settings → Lore Generator* (*Name generator hint* and *Name provider hint*, empty means the
-built-in one; a generator hint you saved before keeps working as it is, and so do the categories you checked before, they
-count as `Generator: ` ones). The button shows how many categories are checked. Without both extensions there is no
-button; they can be unloaded and installed again while Marginalia runs, the button comes back.
+When a suite of [tools for the model](tools.md) is installed (names from the [Name generator](name-generator.md) or the
+[Name provider](name-provider.md), places from the [Place provider](place-provider.md)), the top row has a **Tools** button.
+It opens the window where you choose which suites, and of the ones with categories which categories, the model may use; see
+[Tools for the model](tools.md) for how it works. While something is checked the model can call the tools during the
+generation (not the compaction), and the hint of each suite it gets is added to the end of the generation prompt. The choice
+is saved with your account and with the entry.
 
 ### Attachments
 
@@ -119,6 +101,43 @@ message and nothing is generated.
 the entry, and the generated text before the compaction goes into its **note**. Both are replaced. If the compaction
 is one code block (the built-in prompt asks for that, to make the text easy to copy), the code block around it is
 removed. The lorebook is refreshed, and the dialog stays open; **Exit** closes it.
+
+## Commands
+
+The generator also works without the dialog, as three [commands](../commands/index.md) for the command line and for
+[agents](../agents.md). They do the same two steps as the dialog and, like the dialog, they store nothing: they return
+the text, and putting it into an entry (what **Copy to Lore Entry** does) is up to the caller, so all three only read. The
+lorebook and the entry are given by number, as in `/list-lorebooks` and `/list-lore-entries`; the model is your default
+model and protocol.
+
+| Command | What it does |
+|---|---|
+| `/list-lore-templates [template]` | Lists your saved generation prompts (name, length, start of the text) and the one used last. With a name it returns the whole text of that prompt. |
+| `/generate-lore-entry [prompt [template [lorebook [entry [order [scope [limit [images]]]]]]]]` | Generates a text with the lore of the lorebook and returns it. The text sent is a template followed by the prompt of the caller (see below). With `images` the model also looks at pictures, as with the attachments of the dialog. |
+| `/compact-lore-entry text [lorebook [entry [order [scope [limit]]]]]` | Compacts the text with the same lore and returns the result, without the code block around it. |
+
+The entry the text is for decides which lore the model sees. Give its handle or its number as `entry` (and the `lorebook` it is in, by handle or number, when you give the number) and the lore is the same as in
+the dialog: with `limit` `UP_TO_POSITION` (the default) the entries before it, the entry itself never. An entry that does
+not exist yet has no number: give the `order` it will get instead (the `order` of `/list-lore-entries`, lower comes first)
+and the model sees the entries before that order; without either, the text is written for a new entry after all the others.
+`scope` is `CURRENT_LOREBOOK` (the default) or `ALL_LORE`, `limit` is `UP_TO_POSITION` or `ALL_ENTRIES`, as in the dialog.
+
+A generation is only as good as its prompt, so the command always starts from one of your saved generation prompts (see
+[Prompts](#prompts)): the one named in `template`, or the one used last when none is named. The `prompt` of the caller
+follows it under the heading *Task for this entry* and is where the subject, the facts, the length and the sections go,
+which is what the template asks for. `template` `none` sends the prompt alone, for a caller that has written the whole
+prompt itself, for example after getting the text of a template from `/list-lore-templates` and editing it. A command
+that is called with a template and no prompt sends just the template.
+
+The `images` of `/generate-lore-entry` are the images the dialog would attach to the generation. An [agent](../agents.md) passes a list of
+paths of image files of its workspace (`/refs/map.png`; at most 8, PNG, JPEG, GIF or WebP, scaled down when large), which you put there with
+**Upload file** in the Workspace tab. The command bar has no way to name an image, so `images` is for agents. It is your default model that looks at the
+pictures: if it does not take images the command fails and says so. Only the generation takes images, as in the dialog; `/compact-lore-entry` works on the text alone.
+
+The model gets no tools here. A caller that wants names asks for them first, with `/generate-names` of the
+[Name generator](name-generator.md) or `/pick-real-names` of the [Name provider](name-provider.md), and writes the ones it
+likes into the prompt. An agent can also take the text of a template from `/list-lore-templates`, change it and pass the
+result as the prompt.
 
 ## Storage
 

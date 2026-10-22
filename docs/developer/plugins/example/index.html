@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845494342077">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845494342077" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845494342077" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846005664026" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -66,7 +66,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -398,8 +398,9 @@ public class BookmarksExtension implements MarginaliaExtension {
 <p>How it works:</p>
 <ul>
 <li>
-<p><strong>Two decorators.</strong> <code translate="no" v-pre>menuDecorator</code> runs after <code translate="no" v-pre>ChatMessageCard.createMenuItems()</code> - the card&#x27;s constructor calls
-it, so every card gets the item. <code translate="no" v-pre>sidebarDecorator</code> runs after <code translate="no" v-pre>ManuscriptStoryPart.createSidebarButton(msg, orderId, dbId)</code>, which <code translate="no" v-pre>renderStoryContent()</code> calls for each part of the branch.</p>
+<p><strong>Two decorators.</strong> <code translate="no" v-pre>menuDecorator</code> runs after <code translate="no" v-pre>ChatMessageCard.createMenuItems()</code> - the card runs it when its menu
+is opened for the first time (not when the card is created, so the cards of a long story stay cheap), so every menu
+that is opened gets the item. <code translate="no" v-pre>sidebarDecorator</code> runs after <code translate="no" v-pre>ManuscriptStoryPart.createSidebarButton(msg, orderId, dbId)</code>, which <code translate="no" v-pre>renderStoryContent()</code> calls for each part of the branch.</p>
 </li>
 <li>
 <p><strong>Reaching the components.</strong> The menu is the card&#x27;s field <code translate="no" v-pre>hamburgerMenu</code>; the sidebar button is the local
@@ -453,9 +454,9 @@ edited).</p>
 <h3 id="5-build-and-load">5. Build and load</h3>
 <div id="5-build-and-load-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">cd bookmarks
-mvn package                     # target/bookmarks-1.3.0.jar</code></pre>
+mvn package                     # target/bookmarks-1.4.0.jar</code></pre>
 </doc-codeblock></div>
-<p>Load <code translate="no" v-pre>target/bookmarks-1.3.0.jar</code> in <em>Admin → Extensions</em> and open a book (books that were already open need to be
+<p>Load <code translate="no" v-pre>target/bookmarks-1.4.0.jar</code> in <em>Admin → Extensions</em> and open a book (books that were already open need to be
 closed and opened again). Open a part&#x27;s menu, choose <em>Toggle bookmark</em> - the part&#x27;s sidebar entry gets the ★.</p>
 <p>If nothing appears, look in the log for <code translate="no" v-pre>Mod 'com.example.marginalia.bookmarks.BookmarksExtension$...' skipped on ...</code> (a name that doesn&#x27;t exist) or <code translate="no" v-pre>Unhandled exception in extension ...</code>. The lines of the extension itself (here
 <code translate="no" v-pre>log.error(&quot;Cannot toggle bookmark&quot;, e)</code>) are in <em>Admin → Extensions → Log</em> of the extension, see
@@ -707,7 +708,7 @@ user&#x27;s setting stays and works again when the plugin is loaded.</p>
 </li>
 </ul>
 <p>To try it, build and load it like any plugin (<doc-anchor-trigger to="#5-build-and-load">Build and load</doc-anchor-trigger>): in <em>Admin → Extensions</em> load
-<code translate="no" v-pre>chineselocalization-1.3.0.jar</code>, then pick <em>中文（简体）</em> in the language selector.</p>
+<code translate="no" v-pre>chineselocalization-1.4.0.jar</code>, then pick <em>中文（简体）</em> in the language selector.</p>
 
                 
                 <!-- Required only on API pages -->
@@ -745,7 +746,7 @@ user&#x27;s setting stays and works again when the plugin is loaded.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License.</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
             </footer>
         </div>
     </div>

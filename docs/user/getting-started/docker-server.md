@@ -6,7 +6,7 @@ gets their own books, lorebooks, inference providers and protocols.
 ## Requirements
 
 - [Docker](https://docs.docker.com/get-docker/) with Docker Compose
-- About 512 MB of memory for Marginalia
+- About 1 GB of memory for Marginalia
 - For access over the internet: a domain and a reverse proxy with HTTPS (see [below](#https-and-reverse-proxy))
 
 ## Install
@@ -51,14 +51,14 @@ services:
     volumes:
       - ./data:/var/marginalia/.marginalia
     environment:
-      - JAVA_TOOL_OPTIONS=-Duser.home=/var/marginalia -Xms256m -Xmx512m -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/marginalia/.marginalia/heapdump.hprof
+      - JAVA_TOOL_OPTIONS=-Duser.home=/var/marginalia -Xms256m -Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/marginalia/.marginalia/heapdump.hprof
 ```
 
 | Setting | What it does |
 |---|---|
 | `ports` | `"8080:8080"` publishes Marginalia on port 8080 of the host. Use `"127.0.0.1:8080:8080"` when only a reverse proxy on the same host should reach it. |
 | `volumes` | `./data` holds the database, backups and extensions. Keep it, and include it in your server backups. It is created on the first start if it doesn't exist; on start the container makes it owned by the user Marginalia runs as inside the container (`jetty`), so the files in it belong to that user's ID on the host. |
-| `-Xmx512m` | Maximum memory. Raise it (for example `-Xmx1g`) for many users or very large books. |
+| `-Xmx1g` | Maximum memory. Raise it (for example `-Xmx2g`) for many users or very large books. |
 
 After changing the file, apply it with `docker compose up -d`.
 

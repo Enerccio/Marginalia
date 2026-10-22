@@ -36,7 +36,7 @@ itself. The important parts:
     <dependency>
         <groupId>io.github.enerccio</groupId>
         <artifactId>marginalia</artifactId>
-        <version>1.3.0</version>
+        <version>1.4.0</version>
         <classifier>classes</classifier>
         <scope>provided</scope>
     </dependency>
@@ -131,7 +131,7 @@ public interface MarginaliaExtension {
 - `onExtensionUnload` undoes all of it: unregister every decorator and listener, remove the components the plugin
   added to open screens ([Unloading](ui-extensions.md#unloading)), stop background work. Nothing is removed
   automatically - a decorator left registered keeps running, from a bundle that no longer exists. The one exception:
-  the data providers registered with `IPCService` under the symbolic name of the bundle are removed by the
+  the data providers registered with `IPCService` and the tool providers (with their commands) registered with `ToolService` under the symbolic name of the bundle are removed by the
   application when the extension is unloaded ([Sharing data between extensions](ipc.md)).
 
 Annotate the extension `@Configurable` and inject what you need:
@@ -299,7 +299,7 @@ first: Marginalia's own classes, Vaadin, Spring, Hibernate, Gson, everything in 
   wiring is to one revision of the other bundle, so after it is unloaded and installed again your bundle keeps the old
   classes and does not recognize the new objects, and the JVM remembers a class reference that failed to resolve
   (`NoClassDefFoundError`), so a reference used while the other bundle was missing keeps failing after it is installed.
-  The Lore Generator and the Arc Outline do it with the Name generator and the Name provider, see `NameToolsBridge`.
+  For tools for the model use `ToolService` instead, no reflection is needed ([Sharing data between extensions](ipc.md)).
 - The plugin's own classes are loaded by the bundle's class loader, so the class names you pass to
   `registerDecorator` must be those of the **application's** classes; a plugin's own classes are never instrumented.
 

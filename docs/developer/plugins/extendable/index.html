@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845494342077">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845494342077" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845494342077" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846005664026" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -61,7 +61,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -547,7 +547,7 @@ be <doc-anchor-trigger to="#changing-the-return-value">replaced</doc-anchor-trig
 </li>
 <li>
 <p><strong>Decorate constructors, static methods or lambda bodies.</strong> Decorate the method the constructor calls (for example
-<code translate="no" v-pre>ChatMessageCard</code>&#x27;s constructor calls <code translate="no" v-pre>createMenuItems()</code>), or the method that registers the listener.</p>
+the constructor of <code translate="no" v-pre>ChatMessageCard</code> calls <code translate="no" v-pre>createHamburgerMenu()</code>, the items come later from <code translate="no" v-pre>createMenuItems()</code>), or the method that registers the listener.</p>
 </li>
 <li>
 <p><strong>Decorate classes that aren&#x27;t <code translate="no" v-pre>@Extendable</code></strong>, plugin classes, or library classes.</p>
@@ -584,15 +584,16 @@ stores them.</p>
 | `ManuscriptStoryPart` | `createSidebarButton(msg, orderId, dbId)` | arguments; local `sidebarBtn`; field `sidebarList` | Change the sidebar entry of a part (Chapter Marker). |
 | `ManuscriptStoryPart` | `renderStoryContent()` | fields `leftBar` (a `TabDock`), `currentManuscript` | Add a tab next to the story outline (Side Query). Runs on every redraw of the story. |
 | `ManuscriptStoryPart` | `populateMenuBar(bar)` / `createCogsMenuItem(bar)` | argument `bar`; local `cogs` | Add items to the menu bar of the story editor / to its settings menu. Not used by a bundled plugin yet. |
+| `ManuscriptStoryPart` | `createCommandBox()` (from 1.4.0) | return value (a `Component`, the `CommandBar`) | Replace or wrap the command line (`CommandBar` with its `CommandResultView` popover), for example to put another `CommandResultTarget` on the bar. |
 | `SummariesDialog` | `populateMenuBar(bar)` | argument `bar` | Add tools to the (empty) menu bar of the summaries overview. Not used by a bundled plugin yet. |
-| `ManuscriptStoryPart$ChatMessageCard` | `createMenuItems()` | fields `hamburgerMenu`, `message` | Add items to a part's menu (Reviewer). |
-| `ManuscriptStoryPart$ChatMessageCard` | `refreshSummaryMenuItems()` | fields `hamburgerMenu`, `message` | Update menu items when the menu opens (Reviewer). |
+| `ManuscriptStoryPart$ChatMessageCard` | `createMenuItems()` | fields `hamburgerMenu`, `message` | Add items to a part's menu; runs when the menu of the part is first opened (Reviewer). |
+| `ManuscriptStoryPart$ChatMessageCard` | `refreshSummaryMenuItems()` | fields `hamburgerMenu`, `message` | Update menu items each time the menu is about to open (Reviewer). |
 | `ManuscriptStoryPart$ChatMessageCard` | `autosaveAndSwapToMarkdown()` | fields `message`, `this$0` (the outer `ManuscriptStoryPart`) | React to an edited part (Chapter Marker). |
 | `UserPart` | `refresh()` / `save()` | fields `extensionSettings`, `userSetting` | Add a settings panel; save its values (Reviewer, Side Query, Lore Generator). |
 | `LorebookView` | `create()` | local `lorebookHeaderLayout`; field `grid` | Add a panel above the lorebook header (Lorebook VCS); add a column to the entry grid (Lore Generator). |
 | `LorebookPart` | `refresh()` | field `lorebookView` | Reach the view of the workspace tab, which was built when the page opened (Lore Generator). |
 | `LorebookView` | `createEntryDetailLayout(entry)` | argument `entry`; local `detailsLayout` | Add a panel to each entry's details (Lorebook VCS). |
-| `DesktopWorkspace`, `PhoneWorkspace`, `AdminPart`, `ManuscriptDialog`, `PhoneManuscriptDialog` | `getLLMState()` / `getInteraction()` | `getCurrentReturn` / `setCurrentReturn` | Tell the help assistant about what the plugin added to the screen, or let it open it. Not used by a bundled plugin yet. |
+| `DesktopWorkspace`, `PhoneWorkspace`, `AdminPart`, `ManuscriptDialog`, `PhoneManuscriptDialog` | `getLLMState()` / `getInteraction()` | `getCurrentReturn` / `setCurrentReturn` | Tell the help assistant about what the plugin added to the screen, or let it open it. Not used by a bundled plugin yet. `AdminPart` is created only for administrators (`DesktopWorkspace.create()`), so it is decorated only on their pages. |
 | `UserPart` (and `PhoneSettingsPart`), `AIPart`, `ProtocolPart`, `ManuscriptPart` and their phone versions | `getLLMState()` / `getInteraction()` | `getCurrentReturn` / `setCurrentReturn` | The same for the settings tabs and the lists of models, protocols and books (`open-tab:`, `open-dialog:`). Not used by a bundled plugin yet. |
 | `AIDialog` | `getLLMProblems()` | `getCurrentReturn` / `setCurrentReturn` | Add what a plugin's own checks find wrong with the form (a list of lines, never a value). Not used by a bundled plugin yet. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -625,6 +626,12 @@ stores them.</p>
 <td>Add items to the menu bar of the story editor / to its settings menu. Not used by a bundled plugin yet.</td>
 </tr>
 <tr>
+<td><code translate="no" v-pre>ManuscriptStoryPart</code></td>
+<td><code translate="no" v-pre>createCommandBox()</code> (from 1.4.0)</td>
+<td>return value (a <code translate="no" v-pre>Component</code>, the <code translate="no" v-pre>CommandBar</code>)</td>
+<td>Replace or wrap the command line (<code translate="no" v-pre>CommandBar</code> with its <code translate="no" v-pre>CommandResultView</code> popover), for example to put another <code translate="no" v-pre>CommandResultTarget</code> on the bar.</td>
+</tr>
+<tr>
 <td><code translate="no" v-pre>SummariesDialog</code></td>
 <td><code translate="no" v-pre>populateMenuBar(bar)</code></td>
 <td>argument <code translate="no" v-pre>bar</code></td>
@@ -634,13 +641,13 @@ stores them.</p>
 <td><code translate="no" v-pre>ManuscriptStoryPart$ChatMessageCard</code></td>
 <td><code translate="no" v-pre>createMenuItems()</code></td>
 <td>fields <code translate="no" v-pre>hamburgerMenu</code>, <code translate="no" v-pre>message</code></td>
-<td>Add items to a part&#x27;s menu (Reviewer).</td>
+<td>Add items to a part&#x27;s menu; runs when the menu of the part is first opened (Reviewer).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ManuscriptStoryPart$ChatMessageCard</code></td>
 <td><code translate="no" v-pre>refreshSummaryMenuItems()</code></td>
 <td>fields <code translate="no" v-pre>hamburgerMenu</code>, <code translate="no" v-pre>message</code></td>
-<td>Update menu items when the menu opens (Reviewer).</td>
+<td>Update menu items each time the menu is about to open (Reviewer).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ManuscriptStoryPart$ChatMessageCard</code></td>
@@ -676,7 +683,7 @@ stores them.</p>
 <td><code translate="no" v-pre>DesktopWorkspace</code>, <code translate="no" v-pre>PhoneWorkspace</code>, <code translate="no" v-pre>AdminPart</code>, <code translate="no" v-pre>ManuscriptDialog</code>, <code translate="no" v-pre>PhoneManuscriptDialog</code></td>
 <td><code translate="no" v-pre>getLLMState()</code> / <code translate="no" v-pre>getInteraction()</code></td>
 <td><code translate="no" v-pre>getCurrentReturn</code> / <code translate="no" v-pre>setCurrentReturn</code></td>
-<td>Tell the help assistant about what the plugin added to the screen, or let it open it. Not used by a bundled plugin yet.</td>
+<td>Tell the help assistant about what the plugin added to the screen, or let it open it. Not used by a bundled plugin yet. <code translate="no" v-pre>AdminPart</code> is created only for administrators (<code translate="no" v-pre>DesktopWorkspace.create()</code>), so it is decorated only on their pages.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>UserPart</code> (and <code translate="no" v-pre>PhoneSettingsPart</code>), <code translate="no" v-pre>AIPart</code>, <code translate="no" v-pre>ProtocolPart</code>, <code translate="no" v-pre>ManuscriptPart</code> and their phone versions</td>
@@ -837,7 +844,7 @@ extension, the bundle, the time, <code translate="no" v-pre>Result: VALID</code>
 checked:</p>
 <div id="verification-before-loading-code-2" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-none"><code v-pre class="language-none">Extension: chaptermarker.jar
-Bundle: chaptermarker 1.3.0
+Bundle: chaptermarker 1.4.0
 Verified: 2026-10-10T18:18:31.781673Z
 Result: INVALID
 
@@ -930,7 +937,7 @@ enough) and to mention the change in the release notes. Do not make the test pas
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License.</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
             </footer>
         </div>
     </div>

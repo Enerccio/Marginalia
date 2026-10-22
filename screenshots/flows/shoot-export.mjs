@@ -1,14 +1,14 @@
 // export-result.png: the title page and the table of contents of an exported PDF (needs chapters: run after step 21-chaptermarker).
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
+import {openStoryMenu} from '../lib/story.mjs';
 import {bookTab, closeDialog, dialog, idle, login, main, openBook, outDir, pickSelect, press} from '../lib/shot.mjs';
 
 await main(async ({ page }) => {
   await login(page);
   await openBook(page);
   await bookTab(page, 'Story');
-  await page.mouse.click(534, 822);
-  await idle(page, 400);
+  await openStoryMenu(page);
   await page.getByText('Export story', { exact: true }).click();
   await idle(page, 800);
   await pickSelect(dialog(page), 'PDF (.pdf)');

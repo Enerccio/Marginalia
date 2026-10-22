@@ -1,9 +1,10 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.web.util.HtmlUtils;
 
 @Configurable
+@Extendable
 public class ConfirmDialog extends Dialog implements LLMInteract {
 
 	@Autowired
@@ -33,6 +35,15 @@ public class ConfirmDialog extends Dialog implements LLMInteract {
 	
 	public static void show(String message, Runnable yes, Runnable no) {
 		new ConfirmDialog(message, yes, no, false).create();
+	}
+
+	/**
+	 * Like {@link #show(String, Runnable, Runnable)}, but gives the dialog, so the caller can close it.
+	 */
+	public static ConfirmDialog open(String message, Runnable yes, Runnable no) {
+		ConfirmDialog dialog = new ConfirmDialog(message, yes, no, false);
+		dialog.create();
+		return dialog;
 	}
 
 	public static void show(String message, Runnable yes, Runnable no, boolean showCancel) {
@@ -59,6 +70,13 @@ public class ConfirmDialog extends Dialog implements LLMInteract {
 		this.noLabel = noLabel;
 	}
 	
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "hl", type = HorizontalLayout.class),
+                    @APILocals(name = "yes", type = Button.class),
+                    @APILocals(name = "no", type = Button.class),
+                    @APILocals(name = "vl", type = VerticalLayout.class),
+                    @APILocals(name = "msg", type = Html.class)})
 	public void create() {
 		setCloseOnEsc(false);
 		setCloseOnOutsideClick(false);
@@ -99,6 +117,9 @@ public class ConfirmDialog extends Dialog implements LLMInteract {
 		open();
 	}
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "message", type = String.class)})
 	private String getMessage(String message) {
 		message = HtmlUtils.htmlEscape(message);
 		message = message.replace("\n", "<br/>");

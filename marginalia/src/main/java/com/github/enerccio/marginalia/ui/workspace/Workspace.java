@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.workspace;
 
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.Restorable;
+import com.github.enerccio.marginalia.ui.dialogs.ManuscriptWindow;
 import com.vaadin.flow.component.Component;
 
 /**
@@ -36,6 +37,20 @@ public interface Workspace extends Restorable, LLMInteract {
      * Restores the state stored by {@link #autosave()} (after {@link #create()}) and turns the autosave on.
      */
     void restoreAutosaved();
+
+    /**
+     * The book list, which knows the book that is open.
+     */
+    ManuscriptSection getManuscriptSection();
+
+    /**
+     * The window of the book that is open, null when the user has none open; the same as
+     * {@code getManuscriptSection().getOpenWindow()}.
+     */
+    default ManuscriptWindow getOpenManuscriptWindow() {
+        ManuscriptSection section = getManuscriptSection();
+        return section == null ? null : section.getOpenWindow();
+    }
 
     Runnable getOnLogout();
 

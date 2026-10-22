@@ -100,6 +100,7 @@ What a service has to take care of itself, because nothing above it does:
 | **Unmetered requests** | Read `UnmeteredScope.isActive()` once, in the caller's thread, when the request starts. When it is true the application asks on its own account (the help assistant with an AI that is not shared or has no *Apply limits*): skip `AILimitService.check` and do not call `UsageService.record` for that request, however many rounds and threads it takes. |
 | **Usage** | Call `UsageService.record(ai, prefill, generated)` once per request, whichever way it ends, with the numbers the API reported (otherwise your own estimate - `TokenizerService.countTokensApprox`). It needs the user: capture `ThreadCopyRequestAttributes.create()` in the thread that calls `stream`/`infer` and run the recording in `InRequestScope`. |
 | **Errors** | Fail with `InferenceException` and the right `Type` (authentication, rate limit, context overflow...): the application has a localized text for each and `InferenceErrors.describe` adds the provider's message. Anything else is shown as an internal error. |
+| **Agents** | The runner of an [agent](../agents.md) asks with `InferenceService.round(payload, protocol, functions, callback)`: one request, the text, the reasoning and the calls the model wants made handed to `onRound` (they are **not** called) with a `RoundUsage` (tokens, and a `RoundStats` of what is known: the cache, the reasoning, the time, why it ended; -1 or null for what the provider does not tell). The default throws `UnsupportedOperationException`, so a service that does not implement it can not be given to an agent. |
 | **Callbacks** | `stream` hands chunks one at a time: call `onChunk(controller, type, text)` and wait for `controller.continueInference()` before the next, then `onCompletion()`. `ChunkType.REASONING` is the thinking, shown apart from the answer. Check `callback.isDead()` and the `CancellationToken` between chunks and end with `onCancel()`. Cut a blocked read short by cancelling the HTTP call when the token is cancelled (the Google plugin does it with an OkHttp interceptor). |
 | **Functions** | When a `FunctionSet` is passed, offer its definitions, run the calls the model makes with `FunctionSet.call(...)` (asynchronously, in the request scope), report each with `onFunctionCall`, ask again with the results, up to `MAX_FUNCTION_ROUNDS`. See `callFunctions` in the Google plugin. |
 | **Tokens** | `countTokens` is called very often (every part of the prompt): do not make a request for it. `TokenizerService.countTokensApprox` is local. |
@@ -141,7 +142,7 @@ it, the form of the chosen provider and the **Test Connection** button. The meth
 | `GoogleGenAiFactory` | `google-genai`, "Google Gemini"; creates the services and keeps them (weakly) to close their clients. |
 | `GoogleGenAiSettings` | The settings of an AI (`apiKey` encrypted, `model`, `baseUrl`, `requestTimeoutSeconds`, `maxRetries`, `safetyFiltersOff`) read from `ExtensionAI.getSettings()`. |
 | `GoogleGenAiForm` | The fields, **Refresh** for the model list, validation, `apply`. |
-| `GoogleGenAiInferenceService` | `stream`, `infer`, function calls, JSON schema (`responseJsonSchema`), usage, limits, thinking (`ThinkingConfig`: a level for `gemini-3*`, a token budget for the others), safety settings, cancellation. |
+| `GoogleGenAiInferenceService` | `stream`, `infer`, `round` (one request for an agent: not streamed, the calls are handed back and not made), function calls, JSON schema (`responseJsonSchema`), usage, limits, thinking (`ThinkingConfig`: a level for `gemini-3*`, a token budget for the others), safety settings, cancellation. |
 | `GoogleGenAiMessages` | The payload as Gemini `Content`s: leading system messages are the system instruction, system messages later in the conversation become user messages, neighbouring messages of one role are one content, the results of the calls of one message are one content. |
 | `GoogleGenAiErrors` | `ApiException` and IO failures as `InferenceException`. |
 
@@ -175,6 +176,10 @@ has wins over an embedded copy** (the bundle looks in its own JARs only for what
 - nothing is imported (`Import-Package` lists only the negated own package), so no package of an embedded library has to be
   exported by the application;
 - the JAR is large (about 14 MB: the SDK, Guava, Protobuf, google-auth).
+
+A provider that sends the story to a service somebody else runs should say so where the administrator and the users read: the
+README of the plugin (and its user page) states that the story text, the lore, the summaries and the files of agents go to
+Google's servers, under Google's terms, and that sharing such an AI sends the text of everybody who uses it.
 
 The plugin has unit tests for the pure parts (`GoogleGenAiMessagesTest`, `GoogleGenAiErrorsTest`,
 `GoogleGenAiSettingsTest`); the core has `ExtensionAIFactoryTest`, `ExtensionAICrudTest`, `ExtensionAIGenerationTest` and

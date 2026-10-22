@@ -54,9 +54,13 @@ public class AppSettings extends Setting {
     // AIs
 
     /**
-     * Whether users who are not administrators can create their own AIs. When off they can only use the AIs the
-     * administrators share; the AIs they already have keep working. Null (never set) means allowed.
+     * Whether users who are not administrators can create their own AIs. Replaced by the permission
+     * {@code PermissionType.CREATE_AI}; only {@code PermissionsMigration} reads it, to give the permission to the users
+     * of an installation that had it on. Null (never set) means allowed.
+     *
+     * @deprecated no longer used by the application
      */
+    @Deprecated
     @Transient
     @ExtendedAttribute
     private Boolean userAisAllowed = true;
@@ -64,8 +68,12 @@ public class AppSettings extends Setting {
     // help assistant
 
     /**
-     * Whether the help assistant (a chat about the manual) is on for everybody. Off by default.
+     * Whether the help assistant (a chat about the manual) is on for everybody. Replaced by the permission
+     * {@code PermissionType.HELPER}; only {@code PermissionsMigration} reads it. Off by default.
+     *
+     * @deprecated no longer used by the application
      */
+    @Deprecated
     @Transient
     @ExtendedAttribute
     private Boolean helpEnabled = false;
@@ -80,16 +88,24 @@ public class AppSettings extends Setting {
     /**
      * For a shared help AI: whether the limits of the user and their usage apply to the help questions as to any
      * other request to the AI. Without it, or for an AI that is not shared, the help is paid by the owner of the AI,
-     * not limited and not counted for the user.
+     * not limited and not counted for the user. Replaced by {@code Permission.helperApplyLimits} of the permission
+     * {@code HELPER}; only {@code PermissionsMigration} reads it.
+     *
+     * @deprecated no longer used by the application
      */
+    @Deprecated
     @Transient
     @ExtendedAttribute
     private Boolean helpApplyLimits = false;
 
     /**
      * Whether the help assistant may move through the interface for the user (open a section, select a tab). Only
-     * moves that are harmless and can be undone; off by default.
+     * moves that are harmless and can be undone; off by default. Replaced by {@code Permission.helperInteractions} of
+     * the permission {@code HELPER}; only {@code PermissionsMigration} reads it.
+     *
+     * @deprecated no longer used by the application
      */
+    @Deprecated
     @Transient
     @ExtendedAttribute
     private Boolean helpInteractions = false;
@@ -118,6 +134,32 @@ public class AppSettings extends Setting {
     @Transient
     @ExtendedAttribute
     private String helpPromptUser;
+
+    // agents
+
+    /**
+     * Whether the application may not send messages to the webhooks of users about their agents; null (the default) is it may. An
+     * administrator turns it off where a URL typed by a user must not be called from the server.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Boolean agentWebhooksDisabled;
+
+    /**
+     * The system prompt of the agents that have none of their own and whose user has none in the settings; blank is
+     * {@code Defaults.DEFAULT_AGENT_PROMPT}.
+     */
+    @Transient
+    @ExtendedAttribute
+    private String defaultAgentPrompt;
+
+    /**
+     * The compaction prompt of the agents that have none of their own and whose user has none in the settings; blank is
+     * {@code Defaults.DEFAULT_AGENT_COMPACTION_PROMPT}.
+     */
+    @Transient
+    @ExtendedAttribute
+    private String defaultAgentCompactionPrompt;
 
     public Integer getDbVersion() {
         return dbVersion;
@@ -229,6 +271,30 @@ public class AppSettings extends Setting {
 
     public void setHelpInteractions(Boolean helpInteractions) {
         this.helpInteractions = helpInteractions;
+    }
+
+    public String getDefaultAgentCompactionPrompt() {
+        return defaultAgentCompactionPrompt;
+    }
+
+    public void setDefaultAgentCompactionPrompt(String defaultAgentCompactionPrompt) {
+        this.defaultAgentCompactionPrompt = defaultAgentCompactionPrompt;
+    }
+
+    public Boolean getAgentWebhooksDisabled() {
+        return agentWebhooksDisabled;
+    }
+
+    public void setAgentWebhooksDisabled(Boolean agentWebhooksDisabled) {
+        this.agentWebhooksDisabled = agentWebhooksDisabled;
+    }
+
+    public String getDefaultAgentPrompt() {
+        return defaultAgentPrompt;
+    }
+
+    public void setDefaultAgentPrompt(String defaultAgentPrompt) {
+        this.defaultAgentPrompt = defaultAgentPrompt;
     }
 
     public Boolean getHelpAdminData() {

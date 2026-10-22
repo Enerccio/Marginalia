@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="turbo-root" content="/Marginalia">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
+
+    <!-- See retype.com -->
+    <meta name="generator" content="Retype 4.6.0">
+
+    <!-- Primary Meta Tags -->
+    <title>Permissions</title>
+    <meta name="title" content="Permissions">
+    <meta name="description" content="A permission lets one user do something that is not for everybody. Administrators give permissions to users one by one; a user who has none can do everything else in Marginalia as usual (write books, build lorebooks, use the models that administrators share).">
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://enerccio.github.io/Marginalia/user/administration/permissions/">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="https://enerccio.github.io/Marginalia/sitemap.xml">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/administration/permissions/">
+    <meta property="og:title" content="Permissions">
+    <meta property="og:description" content="A permission lets one user do something that is not for everybody. Administrators give permissions to users one by one; a user who has none can do everything else in Marginalia as usual (write books, build lorebooks, use the models that administrators share).">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/permissions-dialog.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Permissions">
+    <meta property="og:site_name" content="Marginalia">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/administration/permissions/">
+    <meta name="twitter:title" content="Permissions">
+    <meta name="twitter:description" content="A permission lets one user do something that is not for everybody. Administrators give permissions to users one by one; a user who has none can do everything else in Marginalia as usual (write books, build lorebooks, use the models that administrators share).">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/permissions-dialog.png">
+    <meta name="twitter:image:alt" content="Permissions">
+
+    <!-- Alternate Markdown -->
+    <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/user/administration/permissions.md">
+
+    <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
+
+    <link href="../../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
+
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+</head>
+<body>
+    <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
+    <div class="absolute bottom-0 left-0" style="top: 5rem; right: 50%"></div>
+
+    <header id="retype-header" class="sticky top-0 z-30 flex w-full h-16 bg-header-bg border-b border-header-border md:h-20">
+        <div class="container relative flex items-center justify-between pr-6 grow md:justify-start">
+            <!-- Mobile menu button skeleton -->
+            <button v-cloak class="skeleton retype-mobile-menu-button flex items-center justify-center shrink-0 overflow-hidden dark:text-white focus:outline-hidden rounded-full w-10 h-10 ml-3.5 md:hidden"><svg xmlns="http://www.w3.org/2000/svg" class="mb-px shrink-0" width="24" height="24" viewBox="0 0 24 24" role="presentation" style="margin-bottom: 0px;"><g fill="currentColor"><path d="M2 4h20v2H2zM2 11h20v2H2zM2 18h20v2H2z"></path></g></svg></button>
+            <div v-cloak id="retype-sidebar-left-toggle-button"></div>
+    
+            <!-- Logo -->
+            <div class="flex items-center justify-between h-full py-2 md:w-75">
+                <div class="flex items-center px-2 md:px-6">
+                    <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
+                        <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
+                </div>
+    
+                <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
+            </div>
+    
+            <div class="flex justify-between md:grow">
+                <!-- Top Nav -->
+                <nav id="retype-header-nav" class="hidden md:flex">
+                    <ul class="flex flex-col mb-4 md:pl-16 md:mb-0 md:flex-row md:items-center">
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                    <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                </svg>
+                                <span>GitHub</span>
+                            </a>
+                        </li>
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                        </li>
+    
+                    </ul>
+                </nav>
+    
+                <div v-cloak class="flex justify-end grow">
+                    <div id="retype-mobile-search-button"></div>
+                    <doc-search-desktop></doc-search-desktop>
+    
+                    <doc-theme-switch class="lg:ml-2"></doc-theme-switch>
+                    <doc-history></doc-history>
+                </div>
+            </div>
+        </div>
+    </header>
+
+
+    <div id="retype-container" class="container relative flex bg-white">
+        <!-- Sidebar Skeleton -->
+        <div v-cloak class="fixed flex flex-col shrink-0 duration-300 ease-in-out bg-sidebar-left-bg border-sidebar-left-border sidebar top-20 w-75 border-r h-screen md:sticky transition-transform skeleton">
+        
+            <div class="flex items-center h-16 px-6">
+                <input id="retype-filter-input-mock" class="w-full h-10 pl-8 px-3 py-2 transition-colors duration-200 ease-linear bg-filter-bg border border-filter-border rounded-lg shadow-none md:text-sm hover:border-filter-border-hover focus:outline-hidden focus:border-filter-border-focus placeholder-filter-placeholder" type="text">
+            </div>
+        
+            <div class="pl-6 mt-1 mb-4">
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            </div>
+        
+            <div class="shrink-0 mt-auto bg-transparent dark:border-base-border">
+                <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                    <span class="text-xs whitespace-nowrap">Powered by</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Sidebar component -->
+        <doc-sidebar v-cloak>
+            <template #sidebar-footer>
+                <div class="shrink-0 mt-auto border-t md:bg-transparent md:border-none dark:border-base-border">
+        
+                    <div class="py-3 px-6 md:hidden border-b dark:border-base-border">
+                        <nav>
+                            <ul class="flex flex-wrap justify-center items-center">
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                            <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                        </svg>
+                                        <span>GitHub</span>
+                                    </a>
+                                </li>
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                                </li>
+        
+                            </ul>
+                        </nav>
+                    </div>
+        
+                    <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                        <span class="text-xs whitespace-nowrap">Powered by</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                    </a>
+                </div>
+            </template>
+        </doc-sidebar>
+
+        <div class="grow min-w-0 bg-body-bg">
+            <!-- Render "toolbar" template here on api pages --><!-- Render page content -->
+<div class="flex">
+    <div id="retype-main" class="min-w-0 p-4 grow md:px-16">
+        <main class="relative pb-12 lg:pt-2">
+            <div class="relative retype-markdown" id="retype-content">
+                <!-- Rendered if sidebar right is enabled -->
+                <div id="retype-sidebar-right-toggle"></div>
+                <doc-page-actions></doc-page-actions>
+
+                <!-- Page content  -->
+<h1 id="permissions">Permissions</h1>
+<p>A permission lets one user do something that is not for everybody. Administrators give permissions to users one by one;
+a user who has none can do everything else in Marginalia as usual (write books, build lorebooks, use the models that
+administrators <a href="../../inference-providers/#shared-providers">share</a>).</p>
+<retype-table copy-text="| Permission | What it allows | Settings |
+|---|---|---|
+| **Create own models** | Adding [inference providers](../inference-providers.md): without it the user can only use the providers the administrators share, the providers they already have keep working and can still be edited. | |
+| **Help assistant** | Asking the [help assistant](help-assistant.md), the chat that answers from the manual. | **Apply limits** and **Allow navigating the interface**, see [Settings of a permission](#settings-of-a-permission). |
+| **Agents** | (Experimental, see [Agents](../agents.md)) The [Agents](../agents.md) tab: creating agents, cloning them and running them on a book. | **Most agents**, **Concurrent runs**, **Requests to the model at once**, **Token budget of a run** and the quotas of copies and files, see [Settings of a permission](#settings-of-a-permission). |
+| **Notifications** | The [message to a URL](../agents.md#when-you-are-not-there) the server sends when an agent needs the user and no screen is open. The server calls an address the user typed, so it is a permission of its own: without it the fields are not in the user's settings and nothing is sent. | **Allow addresses on this machine and in private networks**, see [Settings of a permission](#settings-of-a-permission). |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Permission</th>
+<th>What it allows</th>
+<th>Settings</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Create own models</strong></td>
+<td>Adding <a href="../../inference-providers/">inference providers</a>: without it the user can only use the providers the administrators share, the providers they already have keep working and can still be edited.</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>Help assistant</strong></td>
+<td>Asking the <a href="../help-assistant/">help assistant</a>, the chat that answers from the manual.</td>
+<td><strong>Apply limits</strong> and <strong>Allow navigating the interface</strong>, see <doc-anchor-trigger to="#settings-of-a-permission">Settings of a permission</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td><strong>Agents</strong></td>
+<td>(Experimental, see <a href="../../agents/">Agents</a>) The <a href="../../agents/">Agents</a> tab: creating agents, cloning them and running them on a book.</td>
+<td><strong>Most agents</strong>, <strong>Concurrent runs</strong>, <strong>Requests to the model at once</strong>, <strong>Token budget of a run</strong> and the quotas of copies and files, see <doc-anchor-trigger to="#settings-of-a-permission">Settings of a permission</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td><strong>Notifications</strong></td>
+<td>The <a href="../../agents/#when-you-are-not-there">message to a URL</a> the server sends when an agent needs the user and no screen is open. The server calls an address the user typed, so it is a permission of its own: without it the fields are not in the user&#x27;s settings and nothing is sent.</td>
+<td><strong>Allow addresses on this machine and in private networks</strong>, see <doc-anchor-trigger to="#settings-of-a-permission">Settings of a permission</doc-anchor-trigger>.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Administrators always have every permission, they need none, so there is nothing to give them (the buttons and sections
+of an administrator never depend on a permission). New users have no permission: give them what they need right after
+you <a href="../users/#adding-a-user">add them</a>.</p>
+<h2 id="giving-and-taking-permissions">Giving and taking permissions</h2>
+<p>The key button in <strong>Admin → Users</strong>, in the row of the user, opens the permissions of that user:</p>
+<figure class="content-center">
+    <img src="../../../images/permissions-dialog.png" alt="The permissions of a user" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="720" height="639" />
+    <figcaption class="caption">The permissions of a user</figcaption>
+</figure>
+<p>The window is a table of the permissions the user has, with three columns:</p>
+<retype-table copy-text="| Column | |
+|---|---|
+| **Name** | The permission. A permission that has settings has an arrow in front of its name, see [Settings of a permission](#settings-of-a-permission). |
+| **Granted** | Whether the permission works. A permission that is not granted is the same as none, but it is kept with its settings, so you can switch it off for a while and on again. |
+| The trash button | Deletes the permission (and its settings) for good. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Column</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Name</strong></td>
+<td>The permission. A permission that has settings has an arrow in front of its name, see <doc-anchor-trigger to="#settings-of-a-permission">Settings of a permission</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td><strong>Granted</strong></td>
+<td>Whether the permission works. A permission that is not granted is the same as none, but it is kept with its settings, so you can switch it off for a while and on again.</td>
+</tr>
+<tr>
+<td>The trash button</td>
+<td>Deletes the permission (and its settings) for good.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>To give a permission, click <strong>Add permission</strong> above the table and choose one of the permissions the user has none of;
+it is added to the table, granted. Nothing is stored until you click <strong>Save</strong>:</p>
+<figure class="content-center">
+    <img src="../../../images/permissions-add.png" alt="Choosing a permission to add" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="720" height="659" />
+    <figcaption class="caption">Choosing a permission to add</figcaption>
+</figure>
+<ul>
+<li>
+<p><strong>Save</strong> is off while there is nothing to save.</p>
+</li>
+<li>
+<p><strong>Exit</strong> closes the window; when there are unsaved changes it asks first, so a change is never thrown away by
+accident.</p>
+</li>
+<li>
+<p>A permission you delete stays in the table until you save, and is deleted for good when you do. Before that, put it
+back by closing the window with <strong>Exit</strong> without saving.</p>
+</li>
+</ul>
+<p>After saving, the page of the user is reloaded when they are logged in, so the buttons and sections that depend on the
+permissions appear or go away at once. Your own page is not reloaded, even when you change your own permissions.</p>
+<h2 id="settings-of-a-permission">Settings of a permission</h2>
+<p>Some permissions have settings that belong to the user, not to the whole installation. The row of such a permission
+starts with an arrow: click it to unfold the settings (they are folded when the window opens, and a permission you
+just added is unfolded), click it again to fold them. Folding is only a way to keep a long list short; it changes
+nothing and does not count as an unsaved change.</p>
+<figure class="content-center">
+    <img src="../../../images/permissions-settings.png" alt="The settings of the Help assistant permission" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="720" height="659" />
+    <figcaption class="caption">The settings of the Help assistant permission</figcaption>
+</figure>
+<p><strong>Help assistant</strong>, <strong>Agents</strong> and <strong>Notifications</strong> have them. The ones of the help assistant:</p>
+<retype-table copy-text="| Setting | |
+|---|---|
+| **Apply limits** | For a shared model, whether the questions of the user count against their limit and usage like any other request, see [Who pays](help-assistant.md#who-pays). Off by default. |
+| **Allow navigating the interface** | Lets the assistant open a section, select a tab or open the dialog to add something when the user asks it to show them the way, see [Showing the way](help-assistant.md#showing-the-way). Off by default. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Setting</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Apply limits</strong></td>
+<td>For a shared model, whether the questions of the user count against their limit and usage like any other request, see <a href="../help-assistant/#who-pays">Who pays</a>. Off by default.</td>
+</tr>
+<tr>
+<td><strong>Allow navigating the interface</strong></td>
+<td>Lets the assistant open a section, select a tab or open the dialog to add something when the user asks it to show them the way, see <a href="../help-assistant/#showing-the-way">Showing the way</a>. Off by default.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The ones of the agents; an empty field is the default:</p>
+<retype-table copy-text="| Setting | |
+|---|---|
+| **Most agents** | How many agents the user can have, the clones of an agent included. Five when empty. Zero lets the user keep and run their agents, but not create or clone another one. A deleted agent frees its place. |
+| **Concurrent runs** | How many runs of the user can work at the same time. One when empty. |
+| **Requests to the model at once (per run)** | How many requests to the model one run can have in the air at the same time, the agent and its [sub-agents](../agents.md#sub-agents) together. One when empty: while a sub-agent asks the model the agent waits, and the other way round. More lets sub-agents work in parallel with the agent (the model of the agent may have its own [cap of requests](../inference-providers.md#general-settings) too, which applies as well). |
+| **Token budget of a run** | The most tokens (sent and generated) one run of the user can spend. Empty or zero is no limit. |
+| **Working copies** | How many working copies of books the runs of the user keep at the same time. A run that is not finished keeps its copy, a paused one too, and gives it back when it is finished, stopped or deleted. Empty or zero is no limit besides the number of agents. |
+| **Largest file (KB)** | The largest file an agent of the user can write to its workspace. 1024 (1 MB) when empty. |
+| **Workspace size (MB)** | How much all the files in the workspace of one agent of the user can take. 20 when empty. |
+| **Files in a workspace** | How many files the workspace of one agent of the user can hold, folders are free. 500 when empty. |
+| **Checkpoints of a run (MB)** | How much all the [checkpoints](../agents.md#checkpoints) of one run (restore points of the working copy and its workspace) can take; part of it is kept for the automatic ones. 100 when empty. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Setting</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Most agents</strong></td>
+<td>How many agents the user can have, the clones of an agent included. Five when empty. Zero lets the user keep and run their agents, but not create or clone another one. A deleted agent frees its place.</td>
+</tr>
+<tr>
+<td><strong>Concurrent runs</strong></td>
+<td>How many runs of the user can work at the same time. One when empty.</td>
+</tr>
+<tr>
+<td><strong>Requests to the model at once (per run)</strong></td>
+<td>How many requests to the model one run can have in the air at the same time, the agent and its <a href="../../agents/#sub-agents">sub-agents</a> together. One when empty: while a sub-agent asks the model the agent waits, and the other way round. More lets sub-agents work in parallel with the agent (the model of the agent may have its own <a href="../../inference-providers/#general-settings">cap of requests</a> too, which applies as well).</td>
+</tr>
+<tr>
+<td><strong>Token budget of a run</strong></td>
+<td>The most tokens (sent and generated) one run of the user can spend. Empty or zero is no limit.</td>
+</tr>
+<tr>
+<td><strong>Working copies</strong></td>
+<td>How many working copies of books the runs of the user keep at the same time. A run that is not finished keeps its copy, a paused one too, and gives it back when it is finished, stopped or deleted. Empty or zero is no limit besides the number of agents.</td>
+</tr>
+<tr>
+<td><strong>Largest file (KB)</strong></td>
+<td>The largest file an agent of the user can write to its workspace. 1024 (1 MB) when empty.</td>
+</tr>
+<tr>
+<td><strong>Workspace size (MB)</strong></td>
+<td>How much all the files in the workspace of one agent of the user can take. 20 when empty.</td>
+</tr>
+<tr>
+<td><strong>Files in a workspace</strong></td>
+<td>How many files the workspace of one agent of the user can hold, folders are free. 500 when empty.</td>
+</tr>
+<tr>
+<td><strong>Checkpoints of a run (MB)</strong></td>
+<td>How much all the <a href="../../agents/#checkpoints">checkpoints</a> of one run (restore points of the working copy and its workspace) can take; part of it is kept for the automatic ones. 100 when empty.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<figure class="content-center">
+    <img src="../../../images/permissions-settings-agents.png" alt="The settings of the Agents permission" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="720" height="1250" />
+    <figcaption class="caption">The settings of the Agents permission</figcaption>
+</figure>
+<p>The one of the notifications:</p>
+<retype-table copy-text="| Setting | |
+|---|---|
+| **Allow addresses on this machine and in private networks** | A sub-permission: the box can be ticked only while **Notifications** is granted (it is greyed out otherwise, and taking the permission away clears it). Without it only addresses on the internet are called: not `localhost`, not a private network (`10.x.x.x`, `172.16-31.x.x`, `192.168.x.x`), not a link-local or shared address (`169.254.x.x`, which is where cloud hosts keep their metadata service, `100.64-127.x.x`), not the unique local addresses of IPv6. Tick it for a user whose ntfy or Gotify runs on the same machine or on your own network. Off by default. A name is checked by the addresses it resolves to, so a name that points to a private address is refused too, and so is one that cannot be found. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Setting</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Allow addresses on this machine and in private networks</strong></td>
+<td>A sub-permission: the box can be ticked only while <strong>Notifications</strong> is granted (it is greyed out otherwise, and taking the permission away clears it). Without it only addresses on the internet are called: not <code translate="no" v-pre>localhost</code>, not a private network (<code translate="no" v-pre>10.x.x.x</code>, <code translate="no" v-pre>172.16-31.x.x</code>, <code translate="no" v-pre>192.168.x.x</code>), not a link-local or shared address (<code translate="no" v-pre>169.254.x.x</code>, which is where cloud hosts keep their metadata service, <code translate="no" v-pre>100.64-127.x.x</code>), not the unique local addresses of IPv6. Tick it for a user whose ntfy or Gotify runs on the same machine or on your own network. Off by default. A name is checked by the addresses it resolves to, so a name that points to a private address is refused too, and so is one that cannot be found.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Administrators need neither the permission nor the sub-permission: they get the messages and may use local addresses. On a
+server shared with people you do not fully trust, leave the sub-permission off: the server would otherwise make requests to
+whatever the user types, inside your network.</p>
+<h2 id="when-permissions-were-introduced">When permissions were introduced</h2>
+<p>Before the permissions, <strong>Users can create their own models</strong> and the <strong>Enabled</strong> switch of the help assistant (with
+<strong>Apply limits</strong> and <strong>Allow navigating the interface</strong>) were settings of the whole installation. Marginalia moved them
+into permissions when it was updated: every user that existed then got <strong>Create own models</strong> if everybody could create
+models (which was the default), and <strong>Help assistant</strong> with the same two settings if the assistant was enabled. Nothing
+changes for them until you change it; users you add from now on start with no permission.</p>
+
+                
+                <!-- Required only on API pages -->
+                <doc-toolbar-member-filter-no-results></doc-toolbar-member-filter-no-results>
+            </div>
+            <footer id="retype-content-footer" class="clear-both">
+            
+                <nav id="retype-nextprev" class="print:hidden flex mt-14">
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../../user/administration/users/">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                            <span>
+                                <span class="block text-xs font-normal text-base-text-muted">Previous</span>
+                                <span class="block mt-1">Users</span>
+                            </span>
+                        </a>
+                    </div>
+            
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../user/administration/database-backups/">
+                            <span>
+                                <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
+                                <span class="block mt-1">Database backups</span>
+                            </span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                        </a>
+                    </div>
+                </nav>
+            </footer>
+        </main>
+
+        <div id="retype-page-footer" class="print:border-none border-t border-base-border pt-6 mb-8">
+            <footer class="flex flex-wrap items-center justify-between print:justify-center">
+                <div id="retype-footer-links" class="print:hidden">
+                    <ul class="flex flex-wrap items-center text-sm">
+                    </ul>
+                </div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Rendered if sidebar right is enabled -->
+    <!-- Sidebar right skeleton-->
+    <div v-cloak class="fixed top-0 bottom-0 right-0 translate-x-full bg-sidebar-right-bg border-sidebar-right-border lg:sticky lg:border-l lg:shrink-0 lg:pt-6 lg:translate-x-0 sm:w-1/2 lg:w-64 lg:z-0 md:w-104 sidebar-right skeleton">
+        <div class="pl-5">
+            <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+        </div>
+    </div>
+
+    <!-- User should be able to hide sidebar right -->
+    <doc-sidebar-right v-cloak></doc-sidebar-right>
+</div>
+
+        </div>
+    </div>
+
+    <doc-search-mobile></doc-search-mobile>
+    <doc-back-to-top></doc-back-to-top>
+</div>
+
+
+    <div id="retype-overlay-target"></div>
+
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Permissions", level: 3, icon: "file", hasPrism: false, hasInstagram: false, hasMermaid: false, hasMath: false, tocDepth: 23, "md": "/user/administration/permissions.md" }</script>
+</body>
+</html>

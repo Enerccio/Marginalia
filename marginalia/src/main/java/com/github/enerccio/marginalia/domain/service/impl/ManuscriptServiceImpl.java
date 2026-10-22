@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.Defaults;
+import com.github.enerccio.marginalia.domain.collections.AgentRunPairKind;
 import com.github.enerccio.marginalia.domain.collections.SummaryType;
 import com.github.enerccio.marginalia.domain.listener.ExtendableEntityListener;
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
@@ -10,8 +11,10 @@ import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.repository.ManuscriptRepository;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
+import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
 import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValues;
 import com.github.enerccio.marginalia.domain.service.search.Sorter;
+import com.github.enerccio.marginalia.domain.templates.*;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.google.gson.JsonArray;
@@ -19,9 +22,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -33,6 +38,9 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
 
     @Autowired
     private SettingService settingService;
+
+    @Autowired
+    private TemplateService templateService;
 
     @Autowired
     private ChatMessageService chatMessageService;
@@ -55,15 +63,36 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @Autowired
     private LorebookService lorebookService;
 
+    @Autowired
+    @Lazy
+    private AgentService agentService;
+
+    @Autowired
+    @Lazy
+    private AgentRunService agentRunService;
+
     /**
-     * A soft deleted manuscript takes its messages (with their summaries) and its tags with it.
+     * A book an agent works on can't be changed, see {@link AgentRunService#checkNotLocked}.
+     */
+    @Override
+    @CommonTx
+    public Manuscript save(Manuscript manuscript) throws Exception {
+        agentRunService.checkNotLocked(manuscript);
+        return super.save(manuscript);
+    }
+
+    /**
+     * A soft deleted manuscript takes its messages (with their summaries), its tags and its agent (with the runs of
+     * the agent) with it.
      */
     @Override
     @CommonTx
     public Manuscript delete(Manuscript manuscript, boolean hard) throws Exception {
+        agentRunService.checkNotLocked(manuscript);
         if (!hard && manuscript != null && manuscript.getId() != null) {
             chatMessageService.softDeleteForManuscript(manuscript);
             tagRelationService.deleteForObject(manuscript, false);
+            agentService.deleteForManuscript(manuscript, false);
         }
         return super.delete(manuscript, hard);
     }
@@ -78,6 +107,30 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @CommonTxReadOnly
     public List<Long> searchManuscripts(ManuscriptFilterValues filterValues, Sorter... sorters) throws Exception {
         return getRepository().searchManuscripts(filterValues, List.of(sorters), currentUser);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<Long> searchRegularManuscripts(ManuscriptFilterValues filterValues, Sorter... sorters) throws Exception {
+        return getRepository().searchManuscripts(filterValues, List.of(sorters), currentUser, false);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<Long> searchAgenticManuscripts(ManuscriptFilterValues filterValues, Sorter... sorters) throws Exception {
+        return getRepository().searchManuscripts(filterValues, List.of(sorters), currentUser, true);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<Manuscript> findAllRegularForUser() throws Exception {
+        return getRepository().findAllByAgentic(false, currentUser);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<Manuscript> findAllAgenticForUser() throws Exception {
+        return getRepository().findAllByAgentic(true, currentUser);
     }
 
     @Override
@@ -336,7 +389,190 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
 
     @Override
     @CommonTx
+    public SettingsSaved updateSettings(Manuscript manuscript, BookSettings changes) throws Exception {
+        Manuscript book = manuscript == null || manuscript.getUuid() == null ? null : (Manuscript) Hibernate.unproxy(findForUser(manuscript.getUuid()));
+        if (book == null || book.isDeleted()) {
+            throw new IllegalArgumentException("The manuscript does not exist");
+        }
+        if (changes.name() != null && StringUtils.isBlank(changes.name())) {
+            throw new IllegalArgumentException("The name can't be empty");
+        }
+        // all the templates are checked before anything is changed
+        List<String> warnings = new ArrayList<>();
+        checkTemplate(changes.masterTemplate(), "masterTemplate", MasterTemplateData.class, warnings);
+        checkTemplate(changes.userPrompt(), "userPrompt", UserPromptData.class, warnings);
+        checkTemplate(changes.summaryPrompt(), "summaryPrompt", SummaryTemplateData.class, warnings);
+        checkTemplate(changes.metaSummaryPrompt(), "metaSummaryPrompt", MetaSummaryTemplateData.class, warnings);
+
+        if (changes.name() != null) {
+            book.setName(changes.name().trim());
+        }
+        if (changes.description() != null) {
+            book.setDescription(changes.description());
+        }
+        if (changes.language() != null) {
+            book.setLanguage(changes.language());
+        }
+        if (changes.pov() != null) {
+            book.setPov(changes.pov());
+        }
+        if (changes.tense() != null) {
+            book.setTense(changes.tense());
+        }
+        if (changes.style() != null) {
+            book.setStyle(changes.style());
+        }
+        if (changes.masterTemplate() != null) {
+            book.setTemplate(changes.masterTemplate());
+        }
+        if (changes.userPrompt() != null) {
+            book.setUserPrompt(changes.userPrompt());
+        }
+        if (changes.summaryPrompt() != null) {
+            book.setSummaryPrompt(changes.summaryPrompt());
+        }
+        if (changes.metaSummaryPrompt() != null) {
+            book.setMetaSummaryPrompt(changes.metaSummaryPrompt());
+        }
+        return new SettingsSaved(save(book), warnings);
+    }
+
+    private void checkTemplate(String template, String templateName, Class<? extends TemplateData> dataClass, List<String> warnings) throws Exception {
+        if (StringUtils.isBlank(template)) {
+            return;
+        }
+        TemplateService.ValidationResult result = templateService.isValidTemplate(template, templateName, dataClass);
+        if (!result.isValid()) {
+            throw new IllegalArgumentException("The template " + templateName + " is not valid: " + result.errorMessage());
+        }
+        if (result.hasWarnings()) {
+            warnings.add("The template " + templateName + " uses names that do not exist: " + String.join(", ", result.unknownNames()));
+        }
+    }
+
+    @Override
+    @CommonTx
+    public AgenticCopy createAgenticCopy(Manuscript original) throws Exception {
+        Manuscript source = original == null ? null : find(original);
+        if (source == null || source.isDeleted()) {
+            throw new IllegalArgumentException("The manuscript does not exist");
+        }
+        if (source.isAgentic()) {
+            throw new IllegalArgumentException("A working copy of an agent is not copied");
+        }
+        // the base is this very backup and the copy is made from it, so what the run is later compared with is what it started from
+        JsonObject base = createBackup(source);
+        Lorebook originalLorebook = source.getLorebook() == null ? null : lorebookService.find(source.getLorebook());
+        if (originalLorebook != null) {
+            // the entries have no uuid in the backup format, the base and the copy need them
+            base.add("lorebooks", lorebookService.marshalLorebooks(originalLorebook, true));
+        }
+        return copyFromSnapshot(base);
+    }
+
+    @Override
+    @CommonTx
+    public AgenticCopy createAgenticCopyFromSnapshot(JsonObject snapshot) throws Exception {
+        if (snapshot == null || !snapshot.has("messages") && !snapshot.has("name")) {
+            throw new IllegalArgumentException("The snapshot is not the backup of a book");
+        }
+        return copyFromSnapshot(snapshot);
+    }
+
+    @Override
+    @CommonTx
+    public JsonObject snapshotAgenticCopy(Manuscript copy) throws Exception {
+        Manuscript source = copy == null ? null : find(copy);
+        if (source == null || source.isDeleted()) {
+            throw new IllegalArgumentException("The manuscript does not exist");
+        }
+        if (!source.isAgentic()) {
+            throw new IllegalArgumentException("The manuscript " + source.getUuid() + " is not a working copy of an agent");
+        }
+        JsonObject snapshot = createBackup(source);
+        Lorebook lorebook = source.getLorebook() == null ? null : lorebookService.find(source.getLorebook());
+        if (lorebook != null) {
+            snapshot.add("lorebooks", lorebookService.marshalLorebooks(lorebook, true));
+        }
+        return snapshot;
+    }
+
+    /**
+     * The working copy of a backup with its lorebooks ({@code lorebooks}); the backup is also the base that is returned.
+     */
+    private AgenticCopy copyFromSnapshot(JsonObject base) throws Exception {
+        JsonObject lorebookRef = base.has("lorebook") && base.get("lorebook").isJsonObject() ? base.getAsJsonObject("lorebook") : null;
+        JsonArray lorebooks = base.has("lorebooks") && base.get("lorebooks").isJsonArray() ? base.getAsJsonArray("lorebooks") : null;
+
+        // the clone would link the lorebook of the user, the copy gets its own; the elements are shared, not copied
+        JsonObject cloneSource = new JsonObject();
+        for (Map.Entry<String, JsonElement> entry : base.entrySet()) {
+            if (!entry.getKey().equals("lorebook")) {
+                cloneSource.add(entry.getKey(), entry.getValue());
+            }
+        }
+        cloneSource.addProperty("published", false);
+
+        List<UuidPair> pairs = new ArrayList<>();
+        Manuscript copy = cloneFromBackup(cloneSource, pairs);
+        copy.setAgentic(true);
+        if (lorebookRef != null && lorebooks != null && lorebookRef.has("uuid") && !lorebookRef.get("uuid").isJsonNull()) {
+            copy.setLorebook(lorebookService.copyLorebooks(lorebooks, pairs).get(lorebookRef.get("uuid").getAsString()));
+        }
+        return new AgenticCopy(saveWithoutEvent(copy), pairs, base);
+    }
+
+    @Override
+    @CommonTx
+    public void deleteAgenticCopy(Manuscript copy) throws Exception {
+        Manuscript stored = copy == null ? null : find(copy);
+        if (stored == null) {
+            return;
+        }
+        if (!stored.isAgentic()) {
+            throw new IllegalArgumentException("The manuscript " + stored.getUuid() + " is not a working copy of an agent");
+        }
+        Lorebook lorebook = stored.getLorebook() == null ? null : lorebookService.find(stored.getLorebook());
+        if (lorebook != null && !lorebook.isAgentic()) {
+            // not the copy's own, never deleted here
+            lorebook = null;
+        }
+        stored.setActiveLeaf(null);
+        stored.setLorebook(null);
+        stored = saveWithoutEvent(stored);
+
+        chatMessageService.hardDeleteForManuscript(stored);
+        tagRelationService.deleteForObject(stored, true);
+        delete(stored, true);
+        if (lorebook != null) {
+            lorebookService.deleteAgenticCopy(lorebook);
+        }
+    }
+
+    @Override
+    @CommonTx
+    public void setAgenticCopyModel(Manuscript copy, AI ai, Protocol protocol) throws Exception {
+        Manuscript stored = copy == null ? null : find(copy);
+        if (stored == null) {
+            return;
+        }
+        if (!stored.isAgentic()) {
+            throw new IllegalArgumentException("The manuscript " + stored.getUuid() + " is not a working copy of an agent");
+        }
+        stored.setAi(ai);
+        stored.setProtocol(protocol);
+        saveWithoutEvent(stored);
+    }
+
+    @Override
+    @CommonTx
     public Manuscript cloneFromBackup(JsonObject backup) throws Exception {
+        return cloneFromBackup(backup, null);
+    }
+
+    @Override
+    @CommonTx
+    public Manuscript cloneFromBackup(JsonObject backup, Collection<UuidPair> pairs) throws Exception {
         if (backup == null) {
             return null;
         }
@@ -387,7 +623,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
 
         Map<String, ChatMessage> uuidToNodeMap = new HashMap<>();
         if (backup.has("messages") && backup.get("messages").isJsonArray()) {
-            uuidToNodeMap = restoreMessages(backup.getAsJsonArray("messages"), manuscript);
+            uuidToNodeMap = restoreMessages(backup.getAsJsonArray("messages"), manuscript, pairs);
         }
 
         if (backup.has("activeLeafUuid") && !backup.get("activeLeafUuid").isJsonNull()) {
@@ -409,6 +645,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         if (m == null || backup == null) {
             return m;
         }
+        agentRunService.checkNotLocked(m);
 
         // 1. Store all current messages in that manuscript
         List<ChatMessage> oldMessages = chatMessageService.getAllMessages(m);
@@ -473,7 +710,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         // 2. Restore all backed up messages
         Map<String, ChatMessage> uuidToNodeMap = new HashMap<>();
         if (backup.has("messages") && backup.get("messages").isJsonArray()) {
-            uuidToNodeMap = restoreMessages(backup.getAsJsonArray("messages"), m);
+            uuidToNodeMap = restoreMessages(backup.getAsJsonArray("messages"), m, null);
         }
 
         // Link active leaf
@@ -552,7 +789,11 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         return null;
     }
 
-    private Map<String, ChatMessage> restoreMessages(JsonArray messagesArray, Manuscript manuscript) throws Exception {
+    /**
+     * @param pairs where the messages and summaries made are reported with the uuids they were made from (the uuids of the
+     *              backup), null when nobody wants them
+     */
+    private Map<String, ChatMessage> restoreMessages(JsonArray messagesArray, Manuscript manuscript, Collection<UuidPair> pairs) throws Exception {
         Map<String, ChatMessage> uuidToNodeMap = new HashMap<>();
         if (messagesArray == null) {
             return uuidToNodeMap;
@@ -595,6 +836,9 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
                 restoredSummaries.add(summary);
                 if (sumObj.has("uuid") && !sumObj.get("uuid").isJsonNull()) {
                     summaryUuids.put(sumObj.get("uuid").getAsString(), summary.getUuid());
+                    if (pairs != null) {
+                        pairs.add(new UuidPair(AgentRunPairKind.SUMMARY, summary.getUuid(), sumObj.get("uuid").getAsString()));
+                    }
                 }
             }
 
@@ -603,6 +847,9 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
             if (msgObj.has("uuid") && !msgObj.get("uuid").isJsonNull()) {
                 String uuid = msgObj.get("uuid").getAsString();
                 uuidToNodeMap.put(uuid, msg);
+                if (pairs != null) {
+                    pairs.add(new UuidPair(AgentRunPairKind.MESSAGE, msg.getUuid(), uuid));
+                }
             }
 
             if (msgObj.has("parentUuid") && !msgObj.get("parentUuid").isJsonNull()) {

@@ -1,8 +1,5 @@
 package com.github.enerccio.marginalia.ui.workspace.phone.parts;
 
-import com.github.enerccio.marginalia.ui.workspace.WorkspaceLLMSupport;
-import com.github.enerccio.marginalia.ui.LLMInteraction;
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -17,13 +14,19 @@ import com.github.enerccio.marginalia.domain.service.search.Sorter.Ordering;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
+import com.github.enerccio.marginalia.ui.dialogs.ManuscriptCloneDialog;
+import com.github.enerccio.marginalia.ui.dialogs.ManuscriptWindow;
+import com.github.enerccio.marginalia.ui.dialogs.agent.AgentLockCheck;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableItem;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableProviderBase;
+import com.github.enerccio.marginalia.ui.workspace.ManuscriptSection;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
-import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
+import com.github.enerccio.marginalia.ui.workspace.WorkspaceLLMSupport;
 import com.github.enerccio.marginalia.ui.workspace.parts.NewBookAction;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonObject;
@@ -55,7 +58,7 @@ import java.util.stream.Stream;
  */
 @Configurable
 @Extendable
-public class PhoneManuscriptPart implements WorkspaceComponent {
+public class PhoneManuscriptPart implements ManuscriptSection {
     private static final Logger log = LoggerFactory.getLogger(PhoneManuscriptPart.class);
 
     private static final String SORT_MODIFICATION = "modification";
@@ -103,6 +106,7 @@ public class PhoneManuscriptPart implements WorkspaceComponent {
             locals = {@APILocals(name = "mainLayout", type = VerticalLayout.class),
                     @APILocals(name = "addBookButton", type = Button.class),
                     @APILocals(name = "refreshButton", type = Button.class),
+                    @APILocals(name = "importArchiveButton", type = Button.class),
                     @APILocals(name = "headerLayout", type = HorizontalLayout.class),
                     @APILocals(name = "filtersLayout", type = VerticalLayout.class),
                     @APILocals(name = "nameFilter", type = TextField.class),
@@ -116,13 +120,16 @@ public class PhoneManuscriptPart implements WorkspaceComponent {
         mainLayout.setSpacing(true);
 
         Button addBookButton = new Button(loc.getValue(L.LABEL_ADD_BOOK), Solid.PLUS.create(),
-                event -> new NewBookAction(this::refreshGrid, true).run());
+                event -> new NewBookAction(this::openManuscript).run());
         addBookButton.setThemeName("primary");
         this.addBookButton = addBookButton;
 
         Button refreshButton = new Button(Solid.REFRESH.create(), event -> refreshGrid());
 
-        HorizontalLayout headerLayout = new HorizontalLayout(addBookButton, refreshButton);
+        Button importArchiveButton = new Button(Solid.FILE_IMPORT.create(), event -> new NewBookAction(this::openManuscript).runFromArchive());
+        importArchiveButton.setTooltipText(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE));
+
+        HorizontalLayout headerLayout = new HorizontalLayout(addBookButton, importArchiveButton, refreshButton);
         headerLayout.setWidthFull();
         headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         headerLayout.setFlexGrow(1, addBookButton);
@@ -235,6 +242,7 @@ public class PhoneManuscriptPart implements WorkspaceComponent {
                     @APILocals(name = "tagsSpan", type = Span.class),
                     @APILocals(name = "modificationSpan", type = Span.class),
                     @APILocals(name = "editButton", type = Button.class),
+                    @APILocals(name = "cloneButton", type = Button.class),
                     @APILocals(name = "deleteButton", type = Button.class),
                     @APILocals(name = "actions", type = HorizontalLayout.class),
                     @APILocals(name = "item", type = HorizontalLayout.class)})
@@ -262,11 +270,21 @@ public class PhoneManuscriptPart implements WorkspaceComponent {
 
         Button editButton = new Button(Solid.PENCIL.create(), _ -> {
             try {
-                openManuscript(wrapper.getManuscript());
+                if (!new AgentLockCheck().refuses(wrapper.getManuscript())) {
+                    openManuscript(wrapper.getManuscript());
+                }
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }
         });
+
+        Button cloneButton = new Button(Solid.CLONE.create(), _ -> {
+            ManuscriptCloneDialog dialog = new ManuscriptCloneDialog(wrapper.getManuscript());
+            dialog.setOnClone(_ -> refreshGrid());
+            dialog.create();
+            dialog.open();
+        });
+        cloneButton.setTooltipText(loc.getValue(L.LABEL_CLONE_BOOK));
 
         Button deleteButton = new Button(Solid.TRASH.create(), _ ->
                 ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
@@ -279,7 +297,7 @@ public class PhoneManuscriptPart implements WorkspaceComponent {
                 }));
         deleteButton.setThemeName("error tertiary");
 
-        HorizontalLayout actions = new HorizontalLayout(editButton, deleteButton);
+        HorizontalLayout actions = new HorizontalLayout(editButton, cloneButton, deleteButton);
         actions.setSpacing(false);
         actions.addClassName(CssStyles.FLEX_SHRINK_0);
 
@@ -307,7 +325,7 @@ public class PhoneManuscriptPart implements WorkspaceComponent {
             return;
         }
         try {
-            List<Long> ids = manuscriptService.searchManuscripts(filterValues,
+            List<Long> ids = manuscriptService.searchRegularManuscripts(filterValues,
                     Sorter.sorter(currentSortField, currentSortOrdering));
             grid.setItems(new ManuscriptBackendProvider(ids));
         } catch (Exception e) {
@@ -336,6 +354,16 @@ public class PhoneManuscriptPart implements WorkspaceComponent {
         dialog.open();
         notifyStateChanged();
         return dialog;
+    }
+
+    /**
+     * The book window that is open, null when none is.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = ManuscriptWindow.class))
+    @Override
+    public ManuscriptWindow getOpenWindow() {
+        return openDialog;
     }
 
     @PublicAPI(from = "1.3.0",
@@ -405,7 +433,7 @@ public class PhoneManuscriptPart implements WorkspaceComponent {
             String manuscriptUuid = RestorableState.string(dialogState, "manuscript");
             if (manuscriptUuid != null && grid != null) {
                 Manuscript manuscript = manuscriptService.findForUser(manuscriptUuid);
-                if (manuscript != null) {
+                if (manuscript != null && !new AgentLockCheck().refuses(manuscript)) {
                     openManuscript(manuscript).restoreState(dialogState);
                 }
             }

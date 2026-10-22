@@ -16,6 +16,7 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.LorebookView;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ComponentUtil;
+import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import org.osgi.framework.Bundle;
@@ -105,7 +106,7 @@ public class LorebookVCSExtension implements MarginaliaExtension {
 
                             LoreEntryRevisionPanel revPanel = new LoreEntryRevisionPanel(vcsService, currentLorebook, entry, () -> {
                                 try {
-                                    syncAndRefreshView(lorebookView, context, currentLorebook);
+                                    refreshEntryRow(lorebookView, context, entry);
                                 } catch (Exception e) {
                                     UIUtils.internalServerError(loc, e);
                                 }
@@ -129,6 +130,20 @@ public class LorebookVCSExtension implements MarginaliaExtension {
             // there may be no UI (loading at startup), the extension service logs it and skips the extension
             throw new IllegalStateException("Failed to load the Lorebook VCS extension", e);
         }
+    }
+
+    /**
+     * Redraws the row (and the opened details) of the one entry whose revision changed, reloading the whole view
+     * would close the details of all the other entries.
+     */
+    @SuppressWarnings("unchecked")
+    private void refreshEntryRow(LorebookView lorebookView, ExtendableMethodContext context, LorebookEntry entry) {
+        Grid<LorebookEntry> grid = context.getReflectiveFieldValue(lorebookView, "grid", Grid.class);
+        if (grid == null) {
+            lorebookView.refreshEntries();
+            return;
+        }
+        grid.getDataProvider().refreshItem(entry);
     }
 
     private void syncAndRefreshView(LorebookView lorebookView, ExtendableMethodContext context, Lorebook currentLorebook) throws Exception {

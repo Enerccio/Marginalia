@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845494342077">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845494342077" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845494342077" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846005664026" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -60,7 +60,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -173,7 +173,7 @@ another one. Plugins can use all three; a plugin can&#x27;t bring a library of i
 <retype-table copy-text="| Component | Library | Draws | Used by |
 |---|---|---|---|
 | [`TreantTree`](#treanttree) | [Treant.js](https://fperucic.github.io/treant-js/) (and Raphaël) | A tree of HTML nodes. | The story tree (`ManuscriptTreePart`, `PhoneManuscriptTreePart`). |
-| [`ChartJs`](#chartjs) | [Chart.js](https://www.chartjs.org/) | Bar, doughnut and other charts. | `TokenUsageDialog`. |
+| [`ChartJs`](#chartjs) | [Chart.js](https://www.chartjs.org/) | Bar, doughnut and other charts. | `TokenUsageDialog`, `AgentContextView` (the three charts of the Context tab of an agent's console). |
 | [`GraphView`](#graphview) | [Cytoscape.js](https://js.cytoscape.org/) | A graph (nodes and edges, cycles allowed). | The *Character Tracker* plugin (relationship map). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -196,7 +196,7 @@ another one. Plugins can use all three; a plugin can&#x27;t bring a library of i
 <td><doc-anchor-trigger to="#chartjs"><code translate="no" v-pre>ChartJs</code></doc-anchor-trigger></td>
 <td><a href="https://www.chartjs.org/">Chart.js</a></td>
 <td>Bar, doughnut and other charts.</td>
-<td><code translate="no" v-pre>TokenUsageDialog</code>.</td>
+<td><code translate="no" v-pre>TokenUsageDialog</code>, <code translate="no" v-pre>AgentContextView</code> (the three charts of the Context tab of an agent&#x27;s console).</td>
 </tr>
 <tr>
 <td><doc-anchor-trigger to="#graphview"><code translate="no" v-pre>GraphView</code></doc-anchor-trigger></td>
@@ -302,8 +302,8 @@ and repeated nodes, which is why the graph below exists.</p>
 <p><code translate="no" v-pre>ui/widgets/ChartJs.java</code>, <code translate="no" v-pre>frontend/chart-connector.js</code>. npm package <code translate="no" v-pre>chart.js</code>.</p>
 <p><code translate="no" v-pre>setChartConfig(json)</code> takes a Chart.js configuration (<code translate="no" v-pre>type</code>, <code translate="no" v-pre>data</code>, <code translate="no" v-pre>options</code>) and draws it responsively into the
 element (320px high, <code translate="no" v-pre>chart-js</code> style in <code translate="no" v-pre>shared-styles.css</code>; <code translate="no" v-pre>setHeight</code> changes it). The connector takes the text and
-grid colors from the Lumo variables of the page, so charts follow the theme. Example: the doughnut and bar charts of
-<code translate="no" v-pre>TokenUsageDialog</code>.</p>
+grid colors from the Lumo variables of the page, so charts follow the theme. Examples: the doughnut and bar charts of
+<code translate="no" v-pre>TokenUsageDialog</code> and the charts of <code translate="no" v-pre>AgentContextView</code>.</p>
 <h2 id="graphview">GraphView</h2>
 <p><code translate="no" v-pre>ui/widgets/GraphView.java</code>, <code translate="no" v-pre>frontend/graph-connector.js</code>. npm package <code translate="no" v-pre>cytoscape</code>. It draws what a tree can&#x27;t:
 nodes that are connected in a cycle or to several others.</p>
@@ -477,7 +477,7 @@ to be added here, as a component. The only frontend resource a plugin can add is
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License.</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
             </footer>
         </div>
     </div>

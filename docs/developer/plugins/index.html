@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845494342077">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845494342077" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -60,7 +60,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -193,15 +193,16 @@ from source (<a href="../building/">Building from source</a>) and know a little 
     Lis --&gt;|addEventListener| Gen
     Dec -.-&gt;|read / write| Ent</pre></div>
 <p>There is no plugin API in the usual sense - no list of extension points with stable signatures. Instead, a plugin
-gets three general mechanisms and the whole application to use them on:</p>
+gets general mechanisms and the whole application to use them on:</p>
 <retype-table copy-text="| Mechanism | What it gives you | Page |
 |---|---|---|
 | **Bundles** | Loading, unloading, the `MarginaliaExtension` lifecycle, access to every Spring service through `@Configurable`. | [Plugin basics](overview.md) |
 | **`@Extendable` hooks** | Code that runs before and after *any* method of an instrumented UI class, with access to its arguments, local variables and fields, and the possibility to replace the return value. | [@Extendable hooks](extendable.md) |
 | **Extended attributes** | A JSON object on every data entity where a plugin keeps its data - saved with the entity, included in backups, no schema change. | [Extended attributes](extended-attributes.md) |
-| **Other extensions** | Offer text about a book or a story part to other extensions or ask them for it (`IPCService`), or call one particular extension (like the name generator) by reflection, without importing its classes. | [Sharing data between extensions](ipc.md) |
+| **Other extensions** | Offer text about a book or a story part to other extensions or ask them for it (`IPCService`), offer a suite of tools for the model with a human name, items and commands (`ToolService`), or call one particular extension by reflection, without importing its classes. | [Sharing data between extensions](ipc.md) |
 | **Inference providers** | A model API of the plugin's own: its settings form in the AI dialog and the inference service of its AIs (`ExtensionAIFactory`). | [Inference providers from a plugin](ai-providers.md) |
-| **Generation events** | Listeners that read and change the prompt, the lore, the summaries and the streamed answer while a story part is generated. | [Generation events](generation-events.md), [Generation pipeline](../generation-pipeline.md#events-for-extensions) |">
+| **Generation events** | Listeners that read and change the prompt, the lore, the summaries and the streamed answer while a story part is generated. | [Generation events](generation-events.md), [Generation pipeline](../generation-pipeline.md#events-for-extensions) |
+| **Commands** | Commands for the command bar and for agents: `commandService.registerCommands(...)` with `@Command` methods (a suite object), unregistered on unload. Arc Outline, Character Tracker, Lore Generator, Name Generator and Name Provider bring theirs. | [Writing commands](../commands/writing-commands.md) |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -229,7 +230,7 @@ gets three general mechanisms and the whole application to use them on:</p>
 </tr>
 <tr>
 <td><strong>Other extensions</strong></td>
-<td>Offer text about a book or a story part to other extensions or ask them for it (<code translate="no" v-pre>IPCService</code>), or call one particular extension (like the name generator) by reflection, without importing its classes.</td>
+<td>Offer text about a book or a story part to other extensions or ask them for it (<code translate="no" v-pre>IPCService</code>), offer a suite of tools for the model with a human name, items and commands (<code translate="no" v-pre>ToolService</code>), or call one particular extension by reflection, without importing its classes.</td>
 <td><a href="ipc/">Sharing data between extensions</a></td>
 </tr>
 <tr>
@@ -241,6 +242,11 @@ gets three general mechanisms and the whole application to use them on:</p>
 <td><strong>Generation events</strong></td>
 <td>Listeners that read and change the prompt, the lore, the summaries and the streamed answer while a story part is generated.</td>
 <td><a href="generation-events/">Generation events</a>, <a href="../generation-pipeline/#events-for-extensions">Generation pipeline</a></td>
+</tr>
+<tr>
+<td><strong>Commands</strong></td>
+<td>Commands for the command bar and for agents: <code translate="no" v-pre>commandService.registerCommands(...)</code> with <code translate="no" v-pre>@Command</code> methods (a suite object), unregistered on unload. Arc Outline, Character Tracker, Lore Generator, Name Generator and Name Provider bring theirs.</td>
+<td><a href="../commands/writing-commands/">Writing commands</a></td>
 </tr>
 </tbody>
 </table>
@@ -272,7 +278,7 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
     </div>
 </div>
 <h2 id="the-bundled-plugins">The bundled plugins</h2>
-<p>The thirteen plugins in <code translate="no" v-pre>marginalia/plugins/</code> are complete, working examples. Each is a separate Maven project.</p>
+<p>The fifteen plugins in <code translate="no" v-pre>marginalia/plugins/</code> are complete, working examples. Each is a separate Maven project.</p>
 <retype-table copy-text="| Plugin | What it adds | Shows how to |
 |---|---|---|
 | [Arc Outline](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/arc-outline) | The arcs of the book and their chapters, each planned, current or finished, in the story sidebar (a chapter can show its note under the description); the model can write an arc from the lore, the chapters of an arc, or an arc with chapters from a range of the active branch of the story. | Add a tab to the story editor and a section to the user settings, keep a tree in a book's attributes, stream a structured (JSON schema) answer into the UI with `PartialJson`, read the messages of the active branch (`ChatMessageService.getBranchFromLeaf`) and show how many tokens a prompt has (`TokenizerService.countTokensApprox`, `TokenLimits`), name tools from another plugin ([call it directly](ipc.md#calling-another-extension-directly)), offer data to other plugins with `IPCService`, plugin-only CSS classes. |
@@ -286,6 +292,7 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 | [Lorebook VCS](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lorebookvcs) | Revision history of lorebook entries, export and import of the history. | Insert panels into a view, store data in a lorebook's attributes, replace a field of the view. |
 | [Name generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/name-generator) | `list_name_categories` and `generate_names`: names from Markov chains trained at build time on lists of names. | Write functions for the model (`@LLMFunction`), train data at build time with Java programs run by `exec-maven-plugin`, ship it as a resource. |
 | [Name provider](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/name-provider) | `list_real_name_lists` and `pick_real_names`: real forenames and surnames of countries picked at random, as pairs of the romanized and the original name. | Write functions for the model whose answer is a list of records, ship data imported at build time (a CSV of a repository, cloned and converted by a Java program) as a resource. |
+| [Place provider](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/place-provider) | `list_place_types`, `search_places`, `places_near` and `distance_between` (also as commands): real places from Natural Earth by name, type and country, around a point, and the distance of two. | Ship a dataset reduced at build time by a Maven profile (`-Pimport-places`, committed result), write functions and commands over an in-memory index. |
 | [Reviewer](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/reviewer) | AI reviews of a story part with configurable reviewer profiles (a book can pick its own profile). | Add a sub-menu to every part, add a settings panel, stream an answer from the model. |
 | [Side Query](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/sidequery) | A chat panel next to the story for questions about the book. | Add a tab to the story editor, keep per-book sessions, build a prompt from lore and parts, use the data other extensions offer through `IPCService` ([Sharing data](ipc.md)). |
 | [Chinese localization](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/chineselocalization) | Simplified Chinese as a language of the user interface. | Add a language with `ExtensionHasLocalization` - no UI code at all. |">
@@ -355,6 +362,11 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 <td>Write functions for the model whose answer is a list of records, ship data imported at build time (a CSV of a repository, cloned and converted by a Java program) as a resource.</td>
 </tr>
 <tr>
+<td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/place-provider">Place provider</a></td>
+<td><code translate="no" v-pre>list_place_types</code>, <code translate="no" v-pre>search_places</code>, <code translate="no" v-pre>places_near</code> and <code translate="no" v-pre>distance_between</code> (also as commands): real places from Natural Earth by name, type and country, around a point, and the distance of two.</td>
+<td>Ship a dataset reduced at build time by a Maven profile (<code translate="no" v-pre>-Pimport-places</code>, committed result), write functions and commands over an in-memory index.</td>
+</tr>
+<tr>
 <td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/reviewer">Reviewer</a></td>
 <td>AI reviews of a story part with configurable reviewer profiles (a book can pick its own profile).</td>
 <td>Add a sub-menu to every part, add a settings panel, stream an answer from the model.</td>
@@ -382,7 +394,7 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 <li><a href="extended-attributes/">Extended attributes</a> - storing data.</li>
 <li><a href="ui-extensions/">Extending the UI</a> - patterns for menus, tabs and settings, threads and unloading.</li>
 <li><a href="generation-events/">Generation events</a> - changing the prompt and the answer during generation.</li>
-<li><a href="ipc/">Sharing data between extensions</a> - <code translate="no" v-pre>IPCService</code> and calling another extension directly.</li>
+<li><a href="ipc/">Sharing data between extensions</a> - <code translate="no" v-pre>IPCService</code>, <code translate="no" v-pre>ToolService</code> and calling another extension directly.</li>
 <li><a href="ai-providers/">Inference providers from a plugin</a> - bringing a model API: factory, settings form, inference service.</li>
 </ol>
 
@@ -422,7 +434,7 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License.</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
             </footer>
         </div>
     </div>

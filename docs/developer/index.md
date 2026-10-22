@@ -34,7 +34,7 @@ Marginalia/
 │   ├── src/main/frontend  CSS and JS used by the Vaadin frontend
 │   ├── src/desktop        desktop launcher (tray icon, starts Jetty) and launch scripts
 │   ├── src/test           tests
-│   └── plugins/           the thirteen bundled extensions, each a separate Maven project
+│   └── plugins/           the fifteen bundled extensions, each a separate Maven project
 ├── manual/                this manual (Retype sources); manual/user is also packed into the WAR for the help assistant
 ├── docs/                  generated manual, served by GitHub Pages
 ├── Dockerfile, docker-compose.yml
@@ -56,10 +56,10 @@ The shortest path from a fresh clone to a running instance:
 ```sh
 git clone https://github.com/Enerccio/Marginalia.git
 cd Marginalia/marginalia
-mvn package -DskipTests                     # target/marginalia-1.3.0.war
+mvn package -DskipTests                     # target/marginalia-1.4.0.war
 ```
 
-Deploy `target/marginalia-1.3.0.war` (or the exploded `target/marginalia-1.3.0/` folder) to Tomcat 11 or Jetty 12,
+Deploy `target/marginalia-1.4.0.war` (or the exploded `target/marginalia-1.4.0/` folder) to Tomcat 11 or Jetty 12,
 or use `docker compose up --build` from the repository root. [Building from source](building.md#running-locally) has
 the details.
 
@@ -74,6 +74,7 @@ the details.
 | [Database & migrations](database.md) | SQLite, Flyway migrations, adding an entity or a column. |
 | [Services](services.md) | Service and repository layer, transactions, the current user. |
 | [Generation pipeline](generation-pipeline.md) | How a story part is generated, step by step. |
+| [Agents](agents.md) | How agents work inside: runs and their states, the runner, the tools, references, the files, the screens. |
 | [Templating & macros](templating.md) | Prompt templates, template data, the macro translator. |
 | [User interface](ui.md) | Routes, workspace, dialogs, push and background threads. |
 | [Custom components](custom-components.md) | The components that draw with a JavaScript library (story tree, charts, graphs), how they work and how to add one. |

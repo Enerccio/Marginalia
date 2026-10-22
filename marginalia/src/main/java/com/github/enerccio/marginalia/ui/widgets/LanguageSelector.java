@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.bound.SessionPoint;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.SettingService;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Language;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -24,6 +25,7 @@ import java.util.ArrayList;
  * created when the page is built. The language is read from the settings again when the workspace is opened.
  */
 @Configurable(preConstruction = true)
+@Extendable
 public class LanguageSelector extends ComboBox<Language> {
 
     @Autowired
@@ -55,6 +57,9 @@ public class LanguageSelector extends ComboBox<Language> {
         });
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "attachEvent", type = AttachEvent.class)})
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
@@ -63,6 +68,11 @@ public class LanguageSelector extends ComboBox<Language> {
         setValue(loc.getCurrentLanguage());
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "language", type = Language.class)},
+            locals = {@APILocals(name = "setting", type = UserSetting.class),
+                    @APILocals(name = "ex", type = Exception.class)})
     private void change(Language language) {
         try {
             UserSetting setting = settingService.getOrCreate(UserSetting.class);
@@ -78,6 +88,10 @@ public class LanguageSelector extends ComboBox<Language> {
     /**
      * Reloads every UI of the user: other sessions pick the language from the settings when their workspace opens.
      */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "userId", type = Long.class),
+                    @APILocals(name = "ui", type = UI.class)})
     private void reloadAll() {
         Long userId = currentUser.getId();
         // bound to the UI: the callback runs with the session of the other sessions locked, which getUIs() needs

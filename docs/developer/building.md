@@ -27,7 +27,7 @@ application is the Maven project in `marginalia/`:
 
 ```sh
 cd marginalia
-mvn package                  # builds and tests, WAR in target/marginalia-1.3.0.war
+mvn package                  # builds and tests, WAR in target/marginalia-1.4.0.war
 mvn package -DskipTests      # the same without tests
 mvn install -DskipTests      # also installs the WAR and the classes JAR into ~/.m2 (needed by plugins)
 mvn -N install                                # (repository root, once) installs the parent POM, the installed POMs refer to it
@@ -36,7 +36,10 @@ mvn install -DskipTests -Dvaadin.skip=true   # plugins only need the classes JAR
 
 What a build does, in order:
 
-1. `git-commit-id-plugin` writes `git.properties` (commit id, time, closest tag) into the classes. The resources
+1. `git-commit-id-plugin` writes `git.properties` (commit id, time, closest tag) into the classes. `utils.BuildInfo` reads
+   it together with `META-INF/build-info/build-info.properties` (version and build time, filtered only when the WAR is
+   packaged, so a run from `target/classes` has the placeholder and reports the version `dev`) for the footer of the page
+   and the login screen. The resources
    step also copies the Markdown pages of the user manual (`../manual/user/**/*.md`, unfiltered) to `classpath:/manual/`
    for the [help assistant](services.md#the-help-assistant); the folder is outside `marginalia/`, see
    [Packaging](packaging.md).
@@ -47,16 +50,16 @@ What a build does, in order:
    `target/classes` are the ones that get packaged.
 4. Tests run (`maven-surefire-plugin`), see [Running the tests](#running-the-tests).
 5. `vaadin-maven-plugin` builds the frontend bundle (`build-frontend`).
-6. `maven-war-plugin` packages `target/marginalia-1.3.0.war` (about 185 MB) and, because of `attachClasses`, also
-   `target/marginalia-1.3.0-classes.jar` - the application classes that plugins compile against.
+6. `maven-war-plugin` packages `target/marginalia-1.4.0.war` (about 185 MB) and, because of `attachClasses`, also
+   `target/marginalia-1.4.0-classes.jar` - the application classes that plugins compile against.
 
 Outputs in `marginalia/target/`:
 
 | Path | |
 |---|---|
-| `marginalia-1.3.0.war` | The web application. |
-| `marginalia-1.3.0/` | The same WAR, exploded (production mode). |
-| `marginalia-1.3.0-classes.jar` | Application classes, the compile dependency of plugins. |
+| `marginalia-1.4.0.war` | The web application. |
+| `marginalia-1.4.0/` | The same WAR, exploded (production mode). |
+| `marginalia-1.4.0-classes.jar` | Application classes, the compile dependency of plugins. |
 | `surefire-reports/` | Test reports. |
 | `test-home/` | Data folders created by tests (safe to delete). |
 
@@ -88,7 +91,7 @@ the classpath or the working directory.
 To check a WAR:
 
 ```sh
-unzip -p target/marginalia-1.3.0.war WEB-INF/classes/META-INF/VAADIN/config/flow-build-info.json   # "productionMode" : true
+unzip -p target/marginalia-1.4.0.war WEB-INF/classes/META-INF/VAADIN/config/flow-build-info.json   # "productionMode" : true
 ```
 
 ### AspectJ weaving
@@ -157,7 +160,7 @@ IntelliJ builds the exploded WAR itself, without the Vaadin plugin, so the appli
   `target/classes/META-INF/VAADIN/config/flow-build-info.json` to the same path under `src/main/resources/`
   (ignored by Git and never packaged into the WAR, but IntelliJ copies it into the exploded WAR on every build).
 
-Don't deploy `target/marginalia-1.3.0/` (the exploded WAR from `mvn package`) from the IDE - it is a production build.
+Don't deploy `target/marginalia-1.4.0/` (the exploded WAR from `mvn package`) from the IDE - it is a production build.
 
 ![IntelliJ IDEA Tomcat run configuration](../images/dev-intellij-tomcat.png)
 
@@ -178,7 +181,7 @@ export JETTY_HOME=/path/to/jetty-home-12.1.10
 mkdir -p ~/jetty-marginalia && cd ~/jetty-marginalia
 java -jar $JETTY_HOME/start.jar --create-startd \
      --add-modules=server,http,ee11-deploy,ee11-websocket-jakarta,ee11-webapp,ee11-jsp
-cp /path/to/Marginalia/marginalia/target/marginalia-1.3.0.war webapps/ROOT.war
+cp /path/to/Marginalia/marginalia/target/marginalia-1.4.0.war webapps/ROOT.war
 java -XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true -Duser.home=/path/to/dev-home \
      -jar $JETTY_HOME/start.jar jetty.http.port=8080
 ```
@@ -249,7 +252,7 @@ options. [Testing](testing.md) describes the test base and how to write tests.
 
 ## Building the plugins
 
-The thirteen bundled extensions in `marginalia/plugins/` are separate Maven projects. They compile against the classes
+The fifteen bundled extensions in `marginalia/plugins/` are separate Maven projects. They compile against the classes
 JAR of the application, so install the parent POM and the application first:
 
 ```sh
@@ -257,8 +260,8 @@ mvn -N install                    # in the repository root
 cd marginalia
 mvn install -DskipTests
 
-cd plugins/chaptermarker          # or arc-outline, authorsnote, character-tracker, gemma4toolsfix, google-genai, instructionexporter, lore-generator, lorebookvcs, name-generator, name-provider, reviewer, sidequery, chineselocalization
-mvn package                       # target/chaptermarker-1.3.0.jar
+cd plugins/chaptermarker          # or arc-outline, authorsnote, character-tracker, gemma4toolsfix, google-genai, instructionexporter, lore-generator, lorebookvcs, name-generator, name-provider, place-provider, reviewer, sidequery, chineselocalization
+mvn package                       # target/chaptermarker-1.4.0.jar
 ```
 
 Load the JAR in *Admin → Extensions* of your running instance, or copy it into `.marginalia/extensions` of your
@@ -306,7 +309,7 @@ repository root, and the generated site is written to `docs/` and served by GitH
 ```sh
 npm install --global retypeapp     # or: dotnet tool install retypeapp --global
 retype start                       # live preview at http://localhost:5000
-retype build                       # writes docs/
+tools/retype_build.sh              # writes docs/; plain `retype build` works too, without the version in the site
 ```
 
 Commit `docs/` together with the changed sources. Images go into `manual/images/`; most are taken by the scripts in

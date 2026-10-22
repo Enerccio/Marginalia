@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845494342077">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -24,6 +24,10 @@
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/lorebooks/import-export/">
     <meta property="og:title" content="Import & export">
     <meta property="og:description" content="Select the lorebook in the editor and click the export button (file icon, Export Lorebook). The browser downloads lorebook name.json with:">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/archive-lorebook-upload.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Import & export">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -32,17 +36,19 @@
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/lorebooks/import-export/">
     <meta name="twitter:title" content="Import & export">
     <meta name="twitter:description" content="Select the lorebook in the editor and click the export button (file icon, Export Lorebook). The browser downloads lorebook name.json with:">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/archive-lorebook-upload.png">
+    <meta name="twitter:image:alt" content="Import & export">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/user/lorebooks/import-export.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845494342077" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -59,7 +65,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -172,8 +178,10 @@
 <li>the lorebook and <strong>all its sub lorebooks</strong> (every level), with their names, enabled state and tags;</li>
 <li>every entry with its content, note, order, filter, insertion mode, tags and negative tags.</li>
 </ul>
-<p>Use it to keep a copy, to share a world with other users, or to move it to another installation. Entry revisions of
-the <a href="../../extensions/lorebook-vcs/">Lorebook VCS</a> extension are not part of the file; the extension has its own export.</p>
+<p>Use it to keep a copy, to share a world with other users, or to move it to another installation. The data that
+<a href="../../extensions/">extensions</a> keep in a lorebook or an entry is in the file too, and is restored by the import.
+Entry revisions of the <a href="../../extensions/lorebook-vcs/">Lorebook VCS</a> extension belong to the old entries and do not show
+on the entries the import creates; the extension has its own export for them.</p>
 <h2 id="importing-a-marginalia-lorebook">Importing a Marginalia lorebook</h2>
 <ol>
 <li>Click the <strong>import</strong> button (file icon) and choose <strong>Import Marginalia Lorebook</strong>.</li>
@@ -201,6 +209,45 @@ you already have instead of creating copies; see <a href="../../books/backups/#r
         </div>
     </div>
 </div>
+<h2 id="importing-an-archive-of-text-files">Importing an archive of text files</h2>
+<ol>
+<li>Click the <strong>import</strong> button and choose <strong>Import from archive</strong>.</li>
+<li>Upload a <code translate="no" v-pre>.zip</code> file with <code translate="no" v-pre>.md</code> (Markdown) files.</li>
+<li>Check the <strong>entry names</strong> in the table and change them if you want, then click <strong>Import</strong>.</li>
+</ol>
+<figure class="content-center">
+    <img src="../../../images/archive-lorebook-upload.png" alt="The window to upload the archive" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="450" height="350" />
+    <figcaption class="caption">The window to upload the archive</figcaption>
+</figure>
+<figure class="content-center">
+    <img src="../../../images/archive-entry-names.png" alt="The names of the entries before the import" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="900" height="664" />
+    <figcaption class="caption">The names of the entries before the import</figcaption>
+</figure>
+<p>Marginalia creates a new lorebook named after the file (without <code translate="no" v-pre>.zip</code>) with <strong>one entry for each <code translate="no" v-pre>.md</code> file</strong>. The
+files are taken in the order of their names, numbers inside the names compared as numbers (<code translate="no" v-pre>2.md</code> comes before
+<code translate="no" v-pre>10.md</code>), also in folders of the archive; the entries get the <em>Order</em> 1, 2, 3... in that sequence. The whole file is the
+<em>Content</em>. Other files, folders, hidden files (<code translate="no" v-pre>.name</code>) and the <code translate="no" v-pre>__MACOSX</code> folder of archives made on a Mac are skipped.</p>
+<p><strong>Entry names</strong> are filled in from, in this order:</p>
+<ol>
+<li>
+<p>a file <code translate="no" v-pre>names.txt</code> in the root of the archive: one name on a line, the first line for the first <code translate="no" v-pre>.md</code> file in the
+order above, and so on (an empty line leaves that file to the next rule; extra lines are ignored). Use it to name
+many files at once, for example from a script;</p>
+</li>
+<li>
+<p>the first heading of the file (<code translate="no" v-pre># Chapter 1</code> gives <em>Chapter 1</em>);</p>
+</li>
+<li>
+<p>the file name without <code translate="no" v-pre>.md</code>.</p>
+</li>
+</ol>
+<p>The table in the dialog shows the result, and you can type over any name.</p>
+<p>The import then shows its progress. <strong>Stop</strong> ends it after the entry that is being stored: the lorebook keeps the entries that
+were already imported (the import is not undone), and a message tells how many of the files were imported.</p>
+<p>The entries are imported <strong>disabled</strong>: they have no filter, so enabled they would be sent with every request, which
+for a whole book of chapters is hardly wanted. Turn on the ones you need, with a filter or <a href="../entries/#tags">tags</a> -
+<strong>Mass edit</strong> is the quick way to do it for many entries.</p>
+<p>To put the same files into a story as parts instead, see <a href="../../books/story-editor/#importing-text-files">Importing text files</a>.</p>
 <h2 id="importing-sillytavern-world-info">Importing SillyTavern world info</h2>
 <ol>
 <li>Click the <strong>import</strong> button and choose <strong>Import from SillyTavern</strong>.</li>
@@ -313,10 +360,10 @@ which are better handled with <a href="../entries/#tags">tags</a>.</p>
                     </div>
             
                     <div class="w-1/2">
-                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../user/templates/">
+                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../user/commands/">
                             <span>
                                 <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
-                                <span class="block mt-1">Templates &amp; macros</span>
+                                <span class="block mt-1">Commands</span>
                             </span>
                             <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                         </a>
@@ -331,7 +378,7 @@ which are better handled with <a href="../entries/#tags">tags</a>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License.</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
             </footer>
         </div>
     </div>

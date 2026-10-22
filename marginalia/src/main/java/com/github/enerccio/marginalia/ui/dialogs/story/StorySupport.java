@@ -2,18 +2,12 @@ package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
-import com.github.enerccio.marginalia.domain.service.InferenceService;
-import com.github.enerccio.marginalia.domain.service.InferenceServices;
-import com.github.enerccio.marginalia.domain.service.impl.inference.tokenizer.JavaTokkitStrategy;
+import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.ui.JavascriptLibrary;
-import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
-
-import java.util.function.BooleanSupplier;
-import java.util.function.Supplier;
 
 /**
  * Small pieces the desktop and the phone story tab do the same way. Both tabs share the behaviour, so a decorator of
@@ -27,34 +21,24 @@ public class StorySupport {
     private ChatMessageService chatMessageService;
 
     @Autowired
-    private InferenceServices inferenceServices;
+    private SettingService settingService;
 
     /**
-     * Stores the scroll position of the story panel on the last part of the branch, so the story opens where the
-     * author left it (restored by {@code JavascriptLibrary.restoreScrollPosition}).
+     * How many parts of a book the story and the reader load at a time, the setting of the user.
+     *
+     * @return the limit, {@code null} when the user has none and everything is loaded
      */
-    @PublicAPI(from = "1.2.0",
-            returns = @APIReturn(type = void.class),
-            parameters = {@APIParameter(name = "panel", type = ScrollPanel.class),
-                    @APIParameter(name = "manuscript", type = Supplier.class),
-                    @APIParameter(name = "frozen", type = BooleanSupplier.class)})
-    public void trackScrollPosition(ScrollPanel panel, Supplier<Manuscript> manuscript, BooleanSupplier frozen) {
-        panel.getElement().addEventListener("panel-scroll", event -> {
-            if (frozen.getAsBoolean()) {
-                return;
-            }
-            double pos = event.getEventData().get("event.detail.scrollTop").asDouble();
-            Manuscript current = manuscript.get();
-            if (current != null && current.getActiveLeaf() != null) {
-                try {
-                    ChatMessage leaf = chatMessageService.find(current.getActiveLeaf());
-                    leaf.setScrollPosition((int) pos);
-                    chatMessageService.save(leaf);
-                } catch (Exception ignored) {}
-            }
-        }).addEventData("event.detail.scrollTop");
-
-        JavascriptLibrary.fireDebouncedScrollEvent(panel.getElement());
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Integer.class),
+            locals = {@APILocals(name = "limit", type = Integer.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    public Integer partsLimit() {
+        try {
+            Integer limit = settingService.getOrCreate(UserSetting.class).getStoryPartsLimit();
+            return limit != null && limit > 0 ? limit : null;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /**
@@ -67,22 +51,9 @@ public class StorySupport {
             returns = @APIReturn(type = ChatMessage.class),
             parameters = {@APIParameter(name = "manuscript", type = Manuscript.class),
                     @APIParameter(name = "message", type = ChatMessage.class),
-                    @APIParameter(name = "newResponse", type = String.class)},
-            locals = {@APILocals(name = "inferenceService", type = InferenceService.class),
-                    @APILocals(name = "strategy", type = JavaTokkitStrategy.class)})
+                    @APIParameter(name = "newResponse", type = String.class)})
     public ChatMessage saveEditedResponse(Manuscript manuscript, ChatMessage message, String newResponse) throws Exception {
-        message.setResponse(newResponse);
-
-        InferenceService inferenceService = inferenceServices.forAI(manuscript.getAi());
-        if (inferenceService == null) {
-            JavaTokkitStrategy strategy = new JavaTokkitStrategy();
-            message.setTokenCount(strategy.countTokens(null, newResponse));
-        } else {
-            message.setTokenCount(inferenceService.countTokens(newResponse));
-        }
-        message.setWordCount(chatMessageService.countWords(newResponse));
-        message.setEdited(true);
-        return chatMessageService.save(message);
+        return chatMessageService.updateResponse(manuscript, message, newResponse).message();
     }
 
 }

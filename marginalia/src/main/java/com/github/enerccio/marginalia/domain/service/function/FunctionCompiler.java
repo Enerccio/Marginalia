@@ -40,6 +40,11 @@ public final class FunctionCompiler {
     private FunctionCompiler() {
     }
 
+    /** Whether the providers accept the name of a function. */
+    static boolean isValidName(String name) {
+        return name != null && VALID_NAME.matcher(name).matches();
+    }
+
     /**
      * @throws IllegalArgumentException when the type is not an interface, has no {@link LLMFunction} method or a
      *                                  function is not usable (name taken, parameter without a name, ...)
@@ -132,7 +137,7 @@ public final class FunctionCompiler {
             root.set("$defs", definitions);
         }
 
-        return new FunctionDefinition(name, annotation.description(), root, parameters, handleOf(method));
+        return new FunctionDefinition(name, annotation.description(), root, parameters, handleOf(method), annotation.batch());
     }
 
     /** A function is asynchronous: {@code void name(FunctionContinuation<R> continuation, arguments...)}. */

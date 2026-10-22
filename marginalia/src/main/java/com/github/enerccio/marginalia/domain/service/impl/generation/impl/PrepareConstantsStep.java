@@ -1,6 +1,5 @@
 package com.github.enerccio.marginalia.domain.service.impl.generation.impl;
 
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.Events;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController;
@@ -20,12 +19,11 @@ public class PrepareConstantsStep extends GenerationStepBase {
         controller.emitEvent(Events.BEFORE_PREPARE_CONSTANT_DATA, () -> {
             PrePromptData data = new PrePromptData();
 
-            Manuscript manuscript = controller.getManuscript();
-            InferenceService inferenceService = inferenceServices.forAIOrThrow(manuscript.getAi());
+            InferenceService inferenceService = inferenceServices.forAIOrThrow(controller.getAi());
 
             log.trace("Processing model jailbreak");
-            if (Boolean.TRUE.equals(manuscript.getAi().getNeedsJailbreak())) {
-                data.setJailbreak(manuscript.getAi().getJailbreak());
+            if (Boolean.TRUE.equals(controller.getAi().getNeedsJailbreak())) {
+                data.setJailbreak(controller.getAi().getJailbreak());
                 if (StringUtils.isNotBlank(data.getJailbreak())) {
                     data.setJailbreakTokens(inferenceService.countTokens(data.getJailbreak()));
                 }

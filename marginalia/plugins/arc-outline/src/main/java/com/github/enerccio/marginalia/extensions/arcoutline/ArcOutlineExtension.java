@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.extensions.arcoutline;
 
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
+import com.github.enerccio.marginalia.domain.service.CommandService;
 import com.github.enerccio.marginalia.domain.service.ExtensionService;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtendableMethodContext;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
@@ -9,6 +10,8 @@ import com.github.enerccio.marginalia.domain.service.IPCService;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.extensions.ExtensionHasCss;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
+import com.github.enerccio.marginalia.extensions.arcoutline.commands.ArcGenerationCommands;
+import com.github.enerccio.marginalia.extensions.arcoutline.commands.ArcOutlineCommands;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.ArcOutlineData;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService;
 import com.github.enerccio.marginalia.extensions.arcoutline.ui.ArcOutlineSettingsForm;
@@ -50,7 +53,14 @@ public class ArcOutlineExtension implements MarginaliaExtension, ExtensionHasCss
     @Autowired
     private IPCService ipcService;
 
+    @Autowired
+    private CommandService commandService;
+
     private final ArcOutlineService service = new ArcOutlineService();
+
+    /** Kept to unregister them, the service takes the objects. */
+    private ArcOutlineCommands outlineCommands;
+    private ArcGenerationCommands generationCommands;
 
     private ExtensionDecorator storyPartDecorator;
     private ExtensionDecorator userPartDecorator;
@@ -63,7 +73,7 @@ public class ArcOutlineExtension implements MarginaliaExtension, ExtensionHasCss
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
         log = parentService.createLogger(bundle);
         service.setLogger(log);
-        service.setOsgiService(parentService);
+        service.setBundle(bundle);
         // the outline as a source of data about the book, for the Side Query for one: the terse version (the
         // descriptions) and the full one (with the notes), so the user chooses how much of it the model gets
         ipcService.registerManuscriptProvider(bundle.getSymbolicName(), OUTLINE_SOURCE, "Arc outline",
@@ -156,6 +166,12 @@ public class ArcOutlineExtension implements MarginaliaExtension, ExtensionHasCss
                 public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {}
             };
             extensionService.registerDecorator(userPartSaveDecorator, USER_PART, "save");
+
+            // the outline and its generators for the command bar and for agents
+            outlineCommands = new ArcOutlineCommands(service);
+            commandService.registerCommands(outlineCommands);
+            generationCommands = new ArcGenerationCommands(service);
+            commandService.registerCommands(generationCommands);
         } catch (Exception e) {
             // there may be no UI (loading at startup), the extension service logs it and skips the extension
             throw new IllegalStateException("Failed to load the Arc Outline extension", e);
@@ -171,6 +187,14 @@ public class ArcOutlineExtension implements MarginaliaExtension, ExtensionHasCss
     @Override
     public void onExtensionUnload(Bundle b, OsgiService osgiService, ExtensionService extensionService) {
         ipcService.unregisterAll(b.getSymbolicName());
+        if (outlineCommands != null) {
+            commandService.unregisterCommands(outlineCommands);
+            outlineCommands = null;
+        }
+        if (generationCommands != null) {
+            commandService.unregisterCommands(generationCommands);
+            generationCommands = null;
+        }
         if (storyPartDecorator != null) {
             extensionService.unregisterDecorator(storyPartDecorator);
         }

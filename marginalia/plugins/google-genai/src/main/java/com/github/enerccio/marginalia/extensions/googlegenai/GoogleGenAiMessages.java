@@ -40,6 +40,14 @@ final class GoogleGenAiMessages {
     }
 
     static Prepared prepare(List<LLMChatMessage> payload) {
+        return prepare(payload, false);
+    }
+
+    /**
+     * @param signatureFallback whether the first call of an answer that has no thought signature among its calls is given the
+     *                          value Google documents for skipping the check (Gemini 3 refuses a history without one)
+     */
+    static Prepared prepare(List<LLMChatMessage> payload, boolean signatureFallback) {
         StringBuilder system = new StringBuilder();
         List<Content> contents = new ArrayList<>();
         Map<String, String> callNames = new HashMap<>();
@@ -79,9 +87,12 @@ final class GoogleGenAiMessages {
                     if (StringUtils.isNotEmpty(message.getContent())) {
                         parts.add(Part.fromText(message.getContent()));
                     }
+                    boolean signed = message.getToolCalls().stream().anyMatch(call -> call.getSignature() != null);
+                    boolean first = true;
                     for (LLMToolCall call : message.getToolCalls()) {
                         callNames.put(call.getId(), call.getName());
-                        parts.add(callPart(call));
+                        parts.add(callPart(call, signatureFallback && first && !signed));
+                        first = false;
                     }
                     if (!parts.isEmpty()) {
                         append(contents, "model", parts);
@@ -133,7 +144,10 @@ final class GoogleGenAiMessages {
         contents.add(Content.builder().role(role).parts(new ArrayList<>(parts)).build());
     }
 
-    private static Part callPart(LLMToolCall call) {
+    /** The value Google documents for a call whose thought signature is not there. */
+    static final String SKIP_SIGNATURE = "skip_thought_signature_validator";
+
+    private static Part callPart(LLMToolCall call, boolean fallback) {
         Map<String, Object> arguments;
         try {
             arguments = MAPPER.readValue(call.getArguments(), OBJECT);
@@ -144,7 +158,13 @@ final class GoogleGenAiMessages {
         if (call.getId() != null && !call.getId().startsWith(GENERATED_ID_PREFIX)) {
             builder.id(call.getId());
         }
-        return Part.builder().functionCall(builder.build()).build();
+        Part.Builder part = Part.builder().functionCall(builder.build());
+        if (call.getSignature() != null) {
+            part.thoughtSignature(Base64.getDecoder().decode(call.getSignature()));
+        } else if (fallback) {
+            part.thoughtSignature(SKIP_SIGNATURE.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
+        return part.build();
     }
 
     private static Part attachmentPart(LLMAttachment attachment) {

@@ -28,7 +28,7 @@ to it. The tab you are on fills the whole screen and its name is shown in the to
 ![The phone workspace with the drawer open](../images/phone-workspace-drawer.png)
 
 The drawer has the same tabs as the desktop - *Books*, *Lorebooks*, *Settings*, *Protocols*, *Inference Providers*,
-*Resources* and *Trash* - and the **Language** selector, **Change Password** and **Logout** at the bottom. Extensions may add buttons, but only
+*Agents* (only for users who may use [agents](agents.md#on-a-phone)), *Resources* and *Trash* - and the **Language** selector, **Change Password** and **Logout** at the bottom. Extensions may add buttons, but only
 to the places they know on the phone, see [Extensions](#extensions).
 
 While the *Settings* tab has unsaved changes, the drawer is locked as on the desktop: save or discard first.
@@ -48,9 +48,15 @@ edit the **content** of an entry. Everything else is shown as text only: name, o
 mode, negative tags and note. You cannot create, delete, import or export lorebooks, or add entries. Use the desktop
 for that, see [Lorebooks](lorebooks/index.md).
 
-The same reduced editor is used in the *Lorebook* tab of a book.
+The same reduced editor is used in the *Lorebook* tab of a book. When the lorebook of the book has sub lorebooks, the box
+**Shown lorebook** under it switches the tab to any of them, and back, without changing the lorebook of the book.
 
 ![A lorebook on a phone](../images/phone-lorebook.png)
+
+The button next to the *Enabled* check box opens **Search and replace** for the entries of the lorebook, see
+[Entries](lorebooks/entries.md#search-and-replace).
+
+![Search and replace of a lorebook on a phone](../images/phone-lorebook-search-replace.png)
 
 ### Settings, protocols, providers, resources, trash
 
@@ -81,9 +87,13 @@ The story tab is one column of parts. The differences from the [story editor](bo
 
 - The **outline** (and the tabs extensions add next to it, such as the [Author's Note](extensions/authors-note.md))
   is in a **drawer**. Open it with the button at the top left.
-- The **Summaries** button and the settings menu (⚙, with *Change Styles For Text* and *Export story*) are in the top bar, not
+- The **Summaries** button and the settings menu (⚙, with *Change Styles For Text*, *Search and replace*, *Import from archive* and *Export story*) are in the top bar, not
   at the bottom.
 - The **+** button for a new part is at the bottom.
+- **Search and replace** opens the same window as on the desktop, with the fields and buttons below each other:
+
+  ![Search and replace of the story on a phone](../images/phone-search-replace.png)
+
 - A part is only its text under one small line with two icons. The first is the part's **menu** (edit, regenerate,
   swipe, branch, show prompt, images, summary, delete); the second opens a **popup** with what the desktop shows in the
   column on the right of a part: the ids, model, protocol, tokens, words and the turn details.

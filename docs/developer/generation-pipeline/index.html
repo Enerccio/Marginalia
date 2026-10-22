@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845494342077">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845494342077" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845494342077" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846005664026" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -67,7 +67,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -204,9 +204,42 @@ cancellation), and <code translate="no" v-pre>CLEANUP</code> always runs last.</
         listener);                                   // GenerationListener - UI callbacks</code></pre>
 </doc-codeblock></div>
 <p><code translate="no" v-pre>generateNextTurn</code> is <code translate="no" v-pre>@NoTx</code> and returns immediately with a <code translate="no" v-pre>CancellationToken</code>; <code translate="no" v-pre>token.cancel()</code> stops the
-generation. It must be called on a thread with a request (the UI thread): it captures the session in
+generation. By default it must be called on a thread with a request (the UI thread): it captures the session in
 <code translate="no" v-pre>ThreadCopyRequestAttributes</code> so the steps run as the user who started the generation (see
 <a href="../services/#the-current-user">The current user</a>).</p>
+<h3 id="generation-options">Generation options</h3>
+<p>The form above is a shortcut for <code translate="no" v-pre>generateNextTurn(manuscript, input, request, listener, GenerationOptions.defaults())</code>.
+<code translate="no" v-pre>GenerationOptions(ai, protocol, context)</code> lets a caller that is not the book window decide three things, each
+optional (<code translate="no" v-pre>null</code> = the default):</p>
+<retype-table copy-text="| Option | Default | Use |
+|---|---|---|
+| `ai`, `protocol` | The book's | Generate with another model, e.g. a specialist model of an agent. Only this generation uses them, the book is never changed (and the steps' saves persist nothing about them). `withModel(ai, protocol)`. |
+| `context` | `ThreadCopyRequestAttributes.create()`, a copy of the calling thread's session | A `RequestAttributes` that resolves the session scoped beans (the user) for a caller without an HTTP request, such as a background run. `withContext(attributes)`. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Option</th>
+<th>Default</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>ai</code>, <code translate="no" v-pre>protocol</code></td>
+<td>The book&#x27;s</td>
+<td>Generate with another model, e.g. a specialist model of an agent. Only this generation uses them, the book is never changed (and the steps&#x27; saves persist nothing about them). <code translate="no" v-pre>withModel(ai, protocol)</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>context</code></td>
+<td><code translate="no" v-pre>ThreadCopyRequestAttributes.create()</code>, a copy of the calling thread&#x27;s session</td>
+<td>A <code translate="no" v-pre>RequestAttributes</code> that resolves the session scoped beans (the user) for a caller without an HTTP request, such as a background run. <code translate="no" v-pre>withContext(attributes)</code>.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>If there is neither a request nor a <code translate="no" v-pre>context</code>, the call throws <code translate="no" v-pre>IllegalStateException</code>.</p>
 <retype-table copy-text="| `GenerationRequest` | `requestType` | Meaning |
 |---|---|---|
 | `newMessage()` | `NEW_MESSAGE` | Add a part after the book's active leaf. |
@@ -250,6 +283,8 @@ a cached thread pool (threads named <code translate="no" v-pre>Generation thread
 <retype-table copy-text="| Controller member | |
 |---|---|
 | `getManuscript()` / `setManuscript()` | The book; steps replace it with the saved copy after changes. |
+| `getAi()`, `getProtocol()` | The model of **this** generation: from the `GenerationOptions`, else the book's. Steps and listeners read the model here, never from `getManuscript()`; `PREPARE_GENERATION` loads both again from the database. |
+| `getRequestAttributes()` | The request context the threads of the generation run in (a `RequestAttributes`). |
 | `getInput()`, `getRequest()` | The `TurnInput` and `GenerationRequest`. |
 | `getPrePromptData()` | `PrePromptData` - the prompts collected so far (see [Prompt data](#prompt-data)). |
 | `getPayload()` | The chat messages sent to the model (from `PREPARE_PAYLOAD`). |
@@ -271,6 +306,14 @@ a cached thread pool (threads named <code translate="no" v-pre>Generation thread
 <tr>
 <td><code translate="no" v-pre>getManuscript()</code> / <code translate="no" v-pre>setManuscript()</code></td>
 <td>The book; steps replace it with the saved copy after changes.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>getAi()</code>, <code translate="no" v-pre>getProtocol()</code></td>
+<td>The model of <strong>this</strong> generation: from the <code translate="no" v-pre>GenerationOptions</code>, else the book&#x27;s. Steps and listeners read the model here, never from <code translate="no" v-pre>getManuscript()</code>; <code translate="no" v-pre>PREPARE_GENERATION</code> loads both again from the database.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>getRequestAttributes()</code></td>
+<td>The request context the threads of the generation run in (a <code translate="no" v-pre>RequestAttributes</code>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>getInput()</code>, <code translate="no" v-pre>getRequest()</code></td>
@@ -359,7 +402,7 @@ is loaded with <code translate="no" v-pre>LorebookService.fillEntries</code> (en
    | enabled | `entry.enabled` |
    | negative tags | none of the entry's negative tags is a tag of the book |
    | tags | the entry has no tags, or one of them is a tag of the book (the entry's tags include the tags of its lorebook) |
-   | filter | no filter, or the filter matches the **rendered user prompt**: `TEXT` - case-insensitive substring; `REGEX` - case-insensitive `find()` (`DOTALL`); an invalid regex never matches |">
+   | filter | no filter, or the filter matches the **rendered user prompt**: `KEYWORDS_OR` / `KEYWORDS_AND` - the filter split by commas, trimmed, blanks dropped; any / every keyword is a case-insensitive substring (no keyword never matches); `TEXT` - case-insensitive substring; `REGEX` - case-insensitive `find()` (`DOTALL`); an invalid regex never matches |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -383,7 +426,7 @@ is loaded with <code translate="no" v-pre>LorebookService.fillEntries</code> (en
 </tr>
 <tr>
 <td>filter</td>
-<td>no filter, or the filter matches the <strong>rendered user prompt</strong>: <code translate="no" v-pre>TEXT</code> - case-insensitive substring; <code translate="no" v-pre>REGEX</code> - case-insensitive <code translate="no" v-pre>find()</code> (<code translate="no" v-pre>DOTALL</code>); an invalid regex never matches</td>
+<td>no filter, or the filter matches the <strong>rendered user prompt</strong>: <code translate="no" v-pre>KEYWORDS_OR</code> / <code translate="no" v-pre>KEYWORDS_AND</code> - the filter split by commas, trimmed, blanks dropped; any / every keyword is a case-insensitive substring (no keyword never matches); <code translate="no" v-pre>TEXT</code> - case-insensitive substring; <code translate="no" v-pre>REGEX</code> - case-insensitive <code translate="no" v-pre>find()</code> (<code translate="no" v-pre>DOTALL</code>); an invalid regex never matches</td>
 </tr>
 </tbody>
 </table>
@@ -873,11 +916,11 @@ wait for it to finish. See <a href="../testing/">Testing</a>.</p>
             
                 <nav id="retype-nextprev" class="print:hidden flex mt-14">
                     <div class="w-1/2">
-                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../developer/services/">
+                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../developer/agents/">
                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                             <span>
                                 <span class="block text-xs font-normal text-base-text-muted">Previous</span>
-                                <span class="block mt-1">Services</span>
+                                <span class="block mt-1">Agents</span>
                             </span>
                         </a>
                     </div>
@@ -901,7 +944,7 @@ wait for it to finish. See <a href="../testing/">Testing</a>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License.</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
             </footer>
         </div>
     </div>

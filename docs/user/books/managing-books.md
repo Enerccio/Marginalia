@@ -24,7 +24,36 @@ The row below the headers filters the list:
 
 The refresh button at the end of the filter row reloads the list.
 
-Each row has two buttons: the pen opens the book, the trash button deletes it.
+Each row has three buttons: the pen opens the book, the clone button makes a copy of it and the trash button deletes it.
+
+### Cloning a book
+
+The clone button asks for the **Name** of the new book (the name of the original with *(Copy)* by default) and has the
+check box **Only current branch**, checked by default. The new book is a separate book that gets:
+
+![Cloning a book](../../images/book-clone.png)
+
+- the settings of the book (description, language, prompts, point of view, tense, style, backup settings), the data
+  that extensions keep in the book, and the tags;
+- the same **Model**, **Protocol** and **lorebook**. The lorebook is *linked*, not copied: a change of it shows in both
+  books;
+- the story with its own copy of the parts, their summaries and pictures. With **Only current branch** only the parts from
+  the beginning to the end of the [active branch](branches-and-story-tree.md) are copied; without it all the branches
+  are.
+
+The clone is not published, even if the original is. The original is not changed.
+
+### Tagging many books at once
+
+**Tag books** (next to **Add Book**) opens a window that puts one tag on many books, or takes it off them, without opening
+each. Pick the **Tag** (or type a new one and press Enter) and the list shows every book with its tags; the books that have
+the picked tag come first and show it highlighted. Each row has a **+** button that applies the tag to that book and a
+**-** button that removes it. To do the same for several books, tick their check boxes (the box in the header ticks all)
+and use **Apply the tag to the checked** or **Remove the tag from the checked** at the bottom. A book an agent works on is
+grayed out: it is locked, so it can not be ticked or changed until the run is paused or stopped. The same window tags
+[lorebooks and their entries](../lorebooks/lorebooks.md#tagging-many-at-once).
+
+![Tagging books](../../images/multi-tag-books.png)
 
 ## Creating a book
 
@@ -34,6 +63,12 @@ Each row has two buttons: the pen opens the book, the trash button deletes it.
 The new book opens right away. It starts with your **Default Model** and **Default Protocol** from the *Settings* tab
 (see [Account & settings](../account.md)), if you have set them; otherwise select them on the *About* tab before
 generating.
+
+To start a book from a folder of text files, use the **import** button (file icon, *Import from archive*) next to
+**Add Book**: upload a `.zip` of `.md` files and the new book, named after the archive, gets a part for each file, see
+[Importing text files](story-editor.md#importing-text-files).
+
+![Importing a zip of text files as a new book](../../images/archive-upload.png)
 
 To start a book from a backup file, use **Import Backup as New Book** in the *Settings* tab, see
 [Book backups](backups.md#importing-a-backup-as-a-new-book).

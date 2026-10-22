@@ -8,7 +8,9 @@ cd "$SHOT_ROOT"
 from="${1:-00-empty}"
 "$SHOT_ROOT/bin/fetch-assets.sh" || exit 1
 "$SHOT_ROOT/bin/start-llm.sh" >/dev/null
-"$SHOT_ROOT/bin/restore.sh" "$from" || exit 1
+"$SHOT_ROOT/bin/restore.sh" "$from" --no-start || exit 1
+"$SHOT_ROOT/bin/refresh-plugins.sh"          # the plugin JARs of the snapshot may be older than the build
+"$SHOT_ROOT/bin/start-app.sh" || exit 1
 started=0; [ "$from" = "00-empty" ] && started=1
 while read -r flow step; do
   case "$flow" in ''|\#*) continue;; esac

@@ -68,6 +68,12 @@ await main(async ({ page }) => {
     await page.getByText('Templates', { exact: true }).first().click();
     await idle(page, 800);
     await snap(page, 'settings-templates');
+    // the prompts of the agents and the message to a URL are further down (for a user who may use agents)
+    await page.getByLabel('Compaction prompt of agents', { exact: true }).scrollIntoViewIfNeeded();
+    await page.getByLabel('Send a test message', { exact: true }).scrollIntoViewIfNeeded().catch(() => {});
+    await idle(page, 600);
+    await snap(page, 'settings-templates-agents');
+    await page.getByLabel('Master Template', { exact: true }).scrollIntoViewIfNeeded();
     await page.getByText('Tags', { exact: true }).first().click();
     await idle(page, 800);
     await snap(page, 'settings-tags', { clip: CONTENT });

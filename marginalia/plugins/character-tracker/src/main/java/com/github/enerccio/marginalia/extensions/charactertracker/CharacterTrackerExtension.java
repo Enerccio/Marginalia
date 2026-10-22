@@ -1,12 +1,14 @@
 package com.github.enerccio.marginalia.extensions.charactertracker;
 
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.CommandService;
 import com.github.enerccio.marginalia.domain.service.ExtensionService;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtendableMethodContext;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.extensions.ExtensionHasCss;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
+import com.github.enerccio.marginalia.extensions.charactertracker.commands.CharacterTrackerCommands;
 import com.github.enerccio.marginalia.extensions.charactertracker.model.CharacterTrackerData;
 import com.github.enerccio.marginalia.extensions.charactertracker.service.CharacterTrackerService;
 import com.github.enerccio.marginalia.extensions.charactertracker.ui.CharacterTrackerStyles;
@@ -17,6 +19,7 @@ import com.github.enerccio.marginalia.ui.widgets.TabDock;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ComponentUtil;
 import org.osgi.framework.Bundle;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.Collections;
@@ -31,7 +34,13 @@ public class CharacterTrackerExtension implements MarginaliaExtension, Extension
 
     private static final String VIEW_KEY = CharacterTrackerData.KEY + ".view";
 
+    @Autowired
+    private CommandService commandService;
+
     private final CharacterTrackerService service = new CharacterTrackerService();
+
+    /** Kept to unregister it, the service takes the object. */
+    private CharacterTrackerCommands commands;
 
     private ExtensionDecorator storyPartDecorator;
 
@@ -75,6 +84,10 @@ public class CharacterTrackerExtension implements MarginaliaExtension, Extension
                     "com.github.enerccio.marginalia.ui.dialogs.phone.manuscript.PhoneManuscriptStoryPart",
                     "renderStoryContent"
             );
+
+            // the characters for the command bar and for agents
+            commands = new CharacterTrackerCommands(service);
+            commandService.registerCommands(commands);
         } catch (Exception e) {
             // there may be no UI (loading at startup), the extension service logs it and skips the extension
             throw new IllegalStateException("Failed to load the Character Tracker extension", e);
@@ -89,6 +102,10 @@ public class CharacterTrackerExtension implements MarginaliaExtension, Extension
 
     @Override
     public void onExtensionUnload(Bundle b, OsgiService osgiService, ExtensionService extensionService) {
+        if (commands != null) {
+            commandService.unregisterCommands(commands);
+            commands = null;
+        }
         if (storyPartDecorator != null) {
             extensionService.unregisterDecorator(storyPartDecorator);
         }

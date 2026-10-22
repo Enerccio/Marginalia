@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845494342077">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845494342077" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -65,7 +65,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -176,6 +176,9 @@ book uses one provider. You can have as many as you like, for example a large cl
 local one for experiments, and switch a book between them at any time.</p>
 <p>Providers belong to your account. Other users don&#x27;t see them or their API keys. API keys are stored encrypted (see
 <a href="../administration/#the-data-folder">The data folder</a>).</p>
+<p>Adding a provider needs the permission <strong>Create own models</strong>, which an administrator gives you (administrators always
+have it, see <a href="../administration/permissions/">Permissions</a>). Without it you can only use the providers the
+administrators <doc-anchor-trigger to="#shared-providers">share</doc-anchor-trigger> with you; the <strong>Add Inference Provider</strong> button is not shown.</p>
 <figure class="content-center">
     <img src="../../images/inference-providers-list.png" alt="The Inference Providers tab" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1612" height="900" />
     <figcaption class="caption">The Inference Providers tab</figcaption>
@@ -320,7 +323,7 @@ button and deleted with the trash button.</p>
 | **OpenAI URL (ends with /v1)** | The base address of the API, see [the table above](#supported-apis). Without `/chat/completions`. |
 | **Api Key** | The key of the service. A local server usually doesn't check it: leave the field empty and Marginalia sends the placeholder `none`. |
 | **Model** | The model to use. Click **Refresh** to load the list of models from the API, or type the model ID yourself (e.g. `anthropic/claude-sonnet-4.5` on OpenRouter). |
-| **Timeout (seconds)** | How long to wait for the API to answer, and for more text once it started writing. The default is 300. Reasoning models may need minutes before the first text; a request that hears nothing for this long fails with a timeout message. |
+| **Timeout (seconds)** | How long to wait for the API to answer, and for more text once it started writing. The default is 300. Reasoning models may need minutes before the first text; a request that hears nothing for this long fails with a timeout message (the thinking of a model counts as text, so a model that keeps thinking is not cut). A change is used by the next request, also of an agent that is working. |
 | **Retries** | How often a request is repeated when the API answers with a rate limit (429) or a server error (5xx), or cannot be reached. The wait between attempts grows, and a `Retry-After` header of the API is respected. The default is 2, 0 turns retrying off. Only the start of a request is retried, text that already arrived is never written twice. |
 | **Additional Parameters** | A JSON object with extra fields for every request to this provider, e.g. `{&quot;top_k&quot;: 40, &quot;min_p&quot;: 0.05}` for a local server, or `{&quot;provider&quot;: {&quot;order&quot;: [&quot;anthropic&quot;]}}` for OpenRouter. A field set here wins over the same setting from the [protocol](protocols.md) (e.g. `temperature`) or the response limit (`max_completion_tokens`). Must be a valid JSON object or empty. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -346,7 +349,7 @@ button and deleted with the trash button.</p>
 </tr>
 <tr>
 <td><strong>Timeout (seconds)</strong></td>
-<td>How long to wait for the API to answer, and for more text once it started writing. The default is 300. Reasoning models may need minutes before the first text; a request that hears nothing for this long fails with a timeout message.</td>
+<td>How long to wait for the API to answer, and for more text once it started writing. The default is 300. Reasoning models may need minutes before the first text; a request that hears nothing for this long fails with a timeout message (the thinking of a model counts as text, so a model that keeps thinking is not cut). A change is used by the next request, also of an agent that is working.</td>
 </tr>
 <tr>
 <td><strong>Retries</strong></td>
@@ -378,6 +381,7 @@ test then only needs the one-token answer.</p>
 |---|---|
 | **Max Context Size** | Required. How many tokens the model accepts in total, prompt and response together. |
 | **Max Response Tokens** | Required. The longest response the model may write. Sent to the API as `max_completion_tokens`, and this much of the context is kept free for the response. Must be lower than *Max Context Size*. |
+| **Concurrent requests of agents** | Optional, for a server that answers one request (or a few) at a time. How many requests of [agents](agents.md#one-model-several-agents) may be on the way to this provider at once, the others wait their turn. Empty is no limit. Your own writing in the story window is not queued. |
 | **Needs Jailbreak**, **Jailbreak Prompt** | An extra prompt for models that refuse to write some content. When checked, the jailbreak prompt is put at the very beginning of the prompt. |
 | **Enable Reasoning**, **Reasoning Effort** | For reasoning (&quot;thinking&quot;) models, see [Reasoning models](#reasoning-models). |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -396,6 +400,10 @@ test then only needs the one-token answer.</p>
 <tr>
 <td><strong>Max Response Tokens</strong></td>
 <td>Required. The longest response the model may write. Sent to the API as <code translate="no" v-pre>max_completion_tokens</code>, and this much of the context is kept free for the response. Must be lower than <em>Max Context Size</em>.</td>
+</tr>
+<tr>
+<td><strong>Concurrent requests of agents</strong></td>
+<td>Optional, for a server that answers one request (or a few) at a time. How many requests of <a href="../agents/#one-model-several-agents">agents</a> may be on the way to this provider at once, the others wait their turn. Empty is no limit. Your own writing in the story window is not queued.</td>
 </tr>
 <tr>
 <td><strong>Needs Jailbreak</strong>, <strong>Jailbreak Prompt</strong></td>
@@ -728,7 +736,7 @@ part; parts written before stay as they are.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License.</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
             </footer>
         </div>
     </div>

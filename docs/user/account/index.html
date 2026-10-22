@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845494342077">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845494342077" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -65,7 +65,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -290,7 +290,8 @@ unlock them.</p>
 |---|---|
 | **Default Model** | The [inference provider](inference-providers.md) new books start with. |
 | **Default Protocol** | The [protocol](protocols.md) new books start with. |
-| **Backup Strategy** | Automatic [book backups](books/backups.md#automatic-backups) for books without their own strategy: *No Backups*, *After N Messages* or *After N Minutes*, with the number next to it. |">
+| **Backup Strategy** | Automatic [book backups](books/backups.md#automatic-backups) for books without their own strategy: *No Backups*, *After N Messages* or *After N Minutes*, with the number next to it. |
+| **Parts loaded at once in the story** | How many parts of a book the [story](books/story-editor.md) and the [viewer](books/publishing.md) keep loaded. The story starts with the last parts, the viewer where you stopped reading (or the first parts); the parts before and after are loaded as you scroll and the ones far from you are dropped again. Empty loads all the parts at once. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -312,6 +313,10 @@ unlock them.</p>
 <td><strong>Backup Strategy</strong></td>
 <td>Automatic <a href="../books/backups/#automatic-backups">book backups</a> for books without their own strategy: <em>No Backups</em>, <em>After N Messages</em> or <em>After N Minutes</em>, with the number next to it.</td>
 </tr>
+<tr>
+<td><strong>Parts loaded at once in the story</strong></td>
+<td>How many parts of a book the <a href="../books/story-editor/">story</a> and the <a href="../books/publishing/">viewer</a> keep loaded. The story starts with the last parts, the viewer where you stopped reading (or the first parts); the parts before and after are loaded as you scroll and the ones far from you are dropped again. Empty loads all the parts at once.</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -327,7 +332,11 @@ books. The <a href="../extensions/lore-generator/">Lore Generator</a> extension 
 | **Style** | Style and tone guidelines. |
 | **Default User Prompt** | The request for each part, see [User prompt](books/prompts.md#user-prompt). |
 | **Default Summary Prompt** | The request for a [summary](books/summaries.md#the-summary-prompt). |
-| **Default Meta Summary Prompt** | The request for a [meta summary](books/summaries.md#the-meta-summary-prompt), which merges summaries. |">
+| **Default Meta Summary Prompt** | The request for a [meta summary](books/summaries.md#the-meta-summary-prompt), which merges summaries. |
+| **Compaction prompt of agents** | Only for users who may use [agents](agents.md). What your agents are asked when you [`/compact`](agents.md#running-a-command-yourself) them, if their own compaction prompt is empty; empty here is the one your administrator set, else the built-in one. |
+| **Instructions of agents (agents.md)** | Only for users who may use [agents](agents.md). Your instructions for the agents that have none of their own, added to their prompt in every run. Empty is none. |
+| **Message to a URL when an agent needs you**, **Format of the message**, **Also when the application is open**, **Send a test message** | Only for users with the permission [*Notifications*](administration/permissions.md) (and not only those who use [agents](agents.md)), in the *General* tab, and only if your administrator allows it. Where to send a short message when an agent asks something, waits for you, finishes or fails and you have the application closed: see [When you are not there](agents.md#when-you-are-not-there). |
+| **System prompt of agents** | Only for users who may use [agents](agents.md). What your agents are told to be when their own system prompt is empty; empty here is the one your administrator set, else the built-in one. Plain text, not a template. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -361,6 +370,22 @@ books. The <a href="../extensions/lore-generator/">Lore Generator</a> extension 
 <td><strong>Default Meta Summary Prompt</strong></td>
 <td>The request for a <a href="../books/summaries/#the-meta-summary-prompt">meta summary</a>, which merges summaries.</td>
 </tr>
+<tr>
+<td><strong>Compaction prompt of agents</strong></td>
+<td>Only for users who may use <a href="../agents/">agents</a>. What your agents are asked when you <a href="../agents/#running-a-command-yourself"><code translate="no" v-pre>/compact</code></a> them, if their own compaction prompt is empty; empty here is the one your administrator set, else the built-in one.</td>
+</tr>
+<tr>
+<td><strong>Instructions of agents (agents.md)</strong></td>
+<td>Only for users who may use <a href="../agents/">agents</a>. Your instructions for the agents that have none of their own, added to their prompt in every run. Empty is none.</td>
+</tr>
+<tr>
+<td><strong>Message to a URL when an agent needs you</strong>, <strong>Format of the message</strong>, <strong>Also when the application is open</strong>, <strong>Send a test message</strong></td>
+<td>Only for users with the permission <a href="../administration/permissions/"><em>Notifications</em></a> (and not only those who use <a href="../agents/">agents</a>), in the <em>General</em> tab, and only if your administrator allows it. Where to send a short message when an agent asks something, waits for you, finishes or fails and you have the application closed: see <a href="../agents/#when-you-are-not-there">When you are not there</a>.</td>
+</tr>
+<tr>
+<td><strong>System prompt of agents</strong></td>
+<td>Only for users who may use <a href="../agents/">agents</a>. What your agents are told to be when their own system prompt is empty; empty here is the one your administrator set, else the built-in one. Plain text, not a template.</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -368,6 +393,11 @@ books. The <a href="../extensions/lore-generator/">Lore Generator</a> extension 
 <figure class="content-center">
     <img src="../../images/settings-templates.png" alt="The Templates tab" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
     <figcaption class="caption">The Templates tab</figcaption>
+</figure>
+<p>Further down, for a user who may use agents, are the prompts of the agents:</p>
+<figure class="content-center">
+    <img src="../../images/settings-templates-agents.png" alt="The prompts of the agents in the Templates tab" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">The prompts of the agents in the Templates tab</figcaption>
 </figure>
 <p>Each field shows the built-in default in grey while it is empty, and has the hints popover with
 <strong>Insert Default Template</strong> and the available <a href="../templates/">variables and macros</a>.</p>
@@ -464,7 +494,7 @@ settings is installed.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License.</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
             </footer>
         </div>
     </div>

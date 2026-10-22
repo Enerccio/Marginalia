@@ -301,6 +301,67 @@ public class BackupServiceImpl implements BackupService {
         return createFromBackup(backupObj, newName, lorebookDecisions);
     }
 
+    @Override
+    public Manuscript cloneManuscript(Manuscript source, String newName, boolean onlyCurrentBranch) throws Exception {
+        Manuscript stored = source == null || source.getUuid() == null ? null : manuscriptService.findForUser(source.getUuid());
+        if (stored == null || stored.isDeleted() || stored.isAgentic()) {
+            throw new IllegalArgumentException("The manuscript does not exist");
+        }
+        if (StringUtils.isBlank(newName)) {
+            throw new IllegalArgumentException("The name can't be empty");
+        }
+        JsonObject backupObj = manuscriptService.createBackup(stored);
+        backupObj.addProperty("published", false);
+        if (onlyCurrentBranch) {
+            keepCurrentBranch(backupObj);
+        }
+        // every part gets its own copy of its images, one that can't be copied is left out
+        BackupImages.remap(backupObj, uuid -> {
+            try {
+                return copyOwnImage(uuid);
+            } catch (Exception e) {
+                log.warn("Image {} of the book can't be cloned, leaving it out", uuid, e);
+                return null;
+            }
+        });
+        // the lorebook of the backup is linked by cloneFromBackup, not imported
+        return createFromBackup(backupObj, newName, null);
+    }
+
+    /**
+     * Drops the parts that are not on the path from the first part to the active leaf; without an active leaf all the
+     * parts are kept.
+     */
+    private void keepCurrentBranch(JsonObject backupObj) {
+        if (!backupObj.has("activeLeafUuid") || backupObj.get("activeLeafUuid").isJsonNull()
+                || !backupObj.has("messages") || !backupObj.get("messages").isJsonArray()) {
+            return;
+        }
+        Map<String, JsonObject> byUuid = new HashMap<>();
+        for (JsonElement element : backupObj.getAsJsonArray("messages")) {
+            JsonObject message = element.getAsJsonObject();
+            byUuid.put(message.get("uuid").getAsString(), message);
+        }
+        Set<String> path = new HashSet<>();
+        for (JsonObject current = byUuid.get(backupObj.get("activeLeafUuid").getAsString()); current != null; ) {
+            if (!path.add(current.get("uuid").getAsString())) {
+                break;
+            }
+            current = current.has("parentUuid") && !current.get("parentUuid").isJsonNull()
+                    ? byUuid.get(current.get("parentUuid").getAsString()) : null;
+        }
+        if (path.isEmpty()) {
+            return;
+        }
+        JsonArray kept = new JsonArray();
+        for (JsonElement element : backupObj.getAsJsonArray("messages")) {
+            if (path.contains(element.getAsJsonObject().get("uuid").getAsString())) {
+                kept.add(element);
+            }
+        }
+        backupObj.add("messages", kept);
+    }
+
     private Manuscript createFromBackup(JsonObject backupObj, String newName, Map<String, LorebookDecision> lorebookDecisions) throws Exception {
         Map<String, Lorebook> lorebooks = importLorebooks(backupObj, lorebookDecisions);
         Manuscript manuscript = manuscriptService.cloneFromBackup(backupObj);

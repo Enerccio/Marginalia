@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.extensions.charactertracker.model.Relation
 import com.github.enerccio.marginalia.extensions.charactertracker.model.StoryCharacter;
 import com.github.enerccio.marginalia.extensions.charactertracker.service.CharacterTrackerService;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -117,6 +118,7 @@ public class CharacterDialog extends Dialog {
         name = new TextField("Name");
         name.setRequiredIndicatorVisible(true);
         name.setWidthFull();
+        DialogFocus.onOpen(this, name);
         name.setValue(StringUtils.defaultString(character.getName()));
 
         tagline = new TextField("Tagline");
