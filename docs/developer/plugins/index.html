@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846082569063">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846089524831">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846082569063" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846089524831" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846082569063" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846089524831" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846082569063" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846089524831" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -295,6 +295,7 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 | [Place provider](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/place-provider) | `list_place_types`, `search_places`, `places_near` and `distance_between` (also as commands): real places from Natural Earth by name, type and country, around a point, and the distance of two. | Ship a dataset reduced at build time by a Maven profile (`-Pimport-places`, committed result), write functions and commands over an in-memory index. |
 | [Reviewer](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/reviewer) | AI reviews of a story part with configurable reviewer profiles (a book can pick its own profile). | Add a sub-menu to every part, add a settings panel, stream an answer from the model. |
 | [Side Query](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/sidequery) | A chat panel next to the story for questions about the book. | Add a tab to the story editor, keep per-book sessions, build a prompt from lore and parts, use the data other extensions offer through `IPCService` ([Sharing data](ipc.md)). |
+| [SillyTavern Converter](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/sillytavern-converter) | A tab next to the story with a SillyTavern chat and the turn details the model prepares from it. | Add a tab to the story editor, keep data in a book's attributes, stream a structured (JSON schema) answer, fill the new turn form of the story with `NewTurnForm.restoreState`. |
 | [Chinese localization](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/chineselocalization) | Simplified Chinese as a language of the user interface. | Add a language with `ExtensionHasLocalization` - no UI code at all. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -377,6 +378,11 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 <td>Add a tab to the story editor, keep per-book sessions, build a prompt from lore and parts, use the data other extensions offer through <code translate="no" v-pre>IPCService</code> (<a href="ipc/">Sharing data</a>).</td>
 </tr>
 <tr>
+<td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/sillytavern-converter">SillyTavern Converter</a></td>
+<td>A tab next to the story with a SillyTavern chat and the turn details the model prepares from it.</td>
+<td>Add a tab to the story editor, keep data in a book&#x27;s attributes, stream a structured (JSON schema) answer, fill the new turn form of the story with <code translate="no" v-pre>NewTurnForm.restoreState</code>.</td>
+</tr>
+<tr>
 <td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/chineselocalization">Chinese localization</a></td>
 <td>Simplified Chinese as a language of the user interface.</td>
 <td>Add a language with <code translate="no" v-pre>ExtensionHasLocalization</code> - no UI code at all.</td>
@@ -434,7 +440,7 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (1daefe19).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (363788a2).</p></div>
             </footer>
         </div>
     </div>

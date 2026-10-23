@@ -19,6 +19,7 @@ a restart.
 | [Place provider](place-provider/README.md) | Functions and commands to look up real places (Natural Earth, about 18 000 notable ones): a search by name, type and country, the places around a point and the distance of two places. |
 | [Reviewer](reviewer/README.md) | AI-written reviews of a story part, with configurable reviewer profiles. |
 | [Side Query](sidequery/README.md) | A chat panel next to the story for asking the model questions about the book, its lore and recent parts. |
+| [SillyTavern Converter](sillytavern-converter/README.md) | A tab next to the story with a SillyTavern chat to review and the turn details the model prepares from it, to put into the new turn form. |
 | [Chinese localization](chineselocalization/README.md) | Simplified Chinese as a language of the user interface; the example for adding a language. |
 
 ## Installing
@@ -43,7 +44,7 @@ mvn -N install                   # in the repository root: installs the parent P
 cd marginalia
 mvn install -DskipTests          # installs the application (and its classes JAR used by plugins)
 
-cd plugins/chaptermarker          # or arc-outline, authorsnote, character-tracker, gemma4toolsfix, google-genai, instructionexporter, lore-generator, lorebookvcs, name-generator, name-provider, place-provider, reviewer, sidequery, chineselocalization
+cd plugins/chaptermarker          # or arc-outline, authorsnote, character-tracker, gemma4toolsfix, google-genai, instructionexporter, lore-generator, lorebookvcs, name-generator, name-provider, place-provider, reviewer, sidequery, sillytavern-converter, chineselocalization
 mvn package                       # target/chaptermarker-1.4.0.jar
 ```
 

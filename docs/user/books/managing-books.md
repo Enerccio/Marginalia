@@ -89,6 +89,26 @@ To start a book from a folder of text files, use the **import** button (file ico
 
 ![Importing a zip of text files as a new book](../../images/archive-upload.png)
 
+### Importing from SillyTavern
+
+To continue a roleplay or story you started in [SillyTavern](https://github.com/SillyTavern/SillyTavern), use the
+**import** button with the speech bubbles (*Import from SillyTavern*) next to **Add Book**. In SillyTavern, export the chat
+(*Manage chat files*, or take the `.jsonl` files from `data/<user>/chats/<character>/`), then:
+
+1. Upload **one or more** `.jsonl` chats. A file that is not a SillyTavern chat is refused, the others stay.
+2. Give the book a name (it is filled from the character of the first chat).
+3. Tick **Merge user and assistant messages into one part** if you want one part per turn: the message of the user
+   (several messages in a row are joined with an empty line) becomes the *instructions* of the part and the answer after it
+   its text. Without it every message is a part of its own, with its text as the text of the part, so the book reads like
+   the chat did.
+4. Click **Import**. A progress window with **Stop** shows the parts being stored; stopping keeps what was stored.
+
+SillyTavern copies the chat when you create a *branch* or a *checkpoint*, so the chats of one story share their
+beginning. Upload them together and Marginalia finds the common messages and stores them once: the chats become the
+branches of one tree, which you can walk in the [tree view](story-editor.md). The *swipes* (alternative answers) of a message become sibling parts, and the book opens at the end of the chat written last (by the date of its
+last message). Chats that don't begin with the same message become separate first parts. Hidden (system) messages are
+skipped, and so are swipes that are empty. The reasoning and the model name of an answer are kept with the part.
+
 To start a book from a backup file, use **Import Backup as New Book** in the *Settings* tab, see
 [Book backups](backups.md#importing-a-backup-as-a-new-book).
 

@@ -267,7 +267,18 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     shared code out when either is touched next.
 29. **Theming** — ✅ light/dark toggle per user (`ThemeSwitch` next to the language selector, `UserSetting.themeMode`, Vaadin
     `Page.setColorScheme`). Still open: editor font/size settings; open pages of the user's other sessions change on reload only.
-30. **Import from other tools** — SillyTavern chats → book with branches, NovelAI/KoboldAI stories. 🧩
+30. **Import from other tools** — NovelAI/KoboldAI stories still to do. 🧩
+    - ✅ SillyTavern chats → book (*Import from SillyTavern* in the book list, `SillyTavernImportService`, `utils.SillyTavernChats`):
+      several `.jsonl` files are joined into one tree by their common beginning (branches, checkpoints), swipes become sibling
+      parts, the checkbox merges a user message and the answer after it into one part (instructions + text).
+      Group chats (same `.jsonl` format) import, but a part does not keep who spoke (the converter plugin does show the names).
+      Not done: appending to an existing book, SillyTavern's other chat formats (Kobold, CAI, Risu, Agnai, Ooba), the character card and the lorebook of the chat, importing the `extra`
+      data of other SillyTavern extensions.
+    - ✅ **SillyTavern Converter** plugin (`marginalia/plugins/sillytavern-converter`): a chat kept with the book to rewrite by hand,
+      checkboxes for what was gone through, and turn details prepared by the model for a range (copied into the new turn form
+      with a click). Not done: a phone twin, editing the turn details in the tab, the converter wand as a command for the
+      command bar and agents, running the wand on a long chat in chunks automatically, an automated test of the tab (only the
+      logic has unit tests, the UI was checked by hand).
 31. **Image generation / illustrations** for scenes (would use `Resource`; attaching images by hand is done, see
     *Images* in the part menu - generation, sending images to vision models and showing them to the readers of a
     published book in the Viewer are not; the Viewer deliberately shows them to the owner only). Files of deleted

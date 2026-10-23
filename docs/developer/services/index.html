@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846082569063">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846089524831">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846082569063" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846089524831" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846082569063" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846089524831" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846082569063" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846082569063" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846089524831" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846089524831" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -374,6 +374,7 @@ without any user and only use installation-wide data (<code translate="no" v-pre
 | `LorebookReplaceService` | The same two steps for the entries of a lorebook (`plan(lorebook, options, progress)`, `apply(lorebook, plan, progress)`), with `LorebookEntryService.findFulltextsContaining(lorebook, literal)` for the `_fulltext` prefilter. Name, text and comment of the entries (all `@Fulltextable` fields) are searched; deleted entries are not. |
 | `StoryGenerationService` | Generating parts, see [Generation pipeline](generation-pipeline.md). |
 | `ArchiveImportService` | Imports the `.md` files of a zip archive (read by `utils.MarkdownArchive`: natural order of the paths, an optional `names.txt` for names): `appendParts` adds a part for each to the end of a book, `importLorebook` makes a lorebook with a disabled entry for each. Not one transaction (`@NoTx`): every part or entry is stored by its own `createPart` / `save`, so the import can be stopped (`BooleanSupplier stopped`, asked before each file) or fail and what was stored stays; `onStored` reports the progress and the `ImportResult` says how many files were imported. The UI runs it in a `ProgressBarDialog` with a Stop button (`ArchiveImportRunner`). |
+| `SillyTavernImportService` | Stores the tree built by `utils.SillyTavernChats` from SillyTavern chat files (`parse` reads one `.jsonl`: header line, then messages with `swipes` / `swipe_id`, system messages skipped; `merge(chats, mergeTurns)` puts the chats into one trie keyed by the instructions and text of a turn, so the shared beginning of branches and checkpoints is stored once and the swipes of a message are siblings; `mergeTurns` makes the user messages before an answer its instructions). `importTree` is `@NoTx` like the archive import: every part goes through `ChatMessageService.addPart` (counts tokens and words, adds a child or one more first part, does not touch the active leaf), `stopped` is asked before each part and `onStored` reports the progress; the active leaf of the book is the end of the chat whose last message is the newest, or the last part stored when stopped earlier. The UI is `SillyTavernImportDialog` (multi file upload, name, the merge checkbox) and `SillyTavernImportRunner` (progress with Stop), started by `NewBookAction.runFromSillyTavern`. |
 | `ExporterService` | Registry of story exporters (`registerExporter`, `unregisterExporter`, `getExporters`). The built-in `TxtExporter`, `MarkdownExporter`, `HtmlExporter`, `DocxExporter`, `PdfExporter` and `EpubExporter` (package `export`, all extend `ExporterBase`) are registered in `afterPropertiesSet`; an extension can register its own `Exporter` and it shows in the export dialog. See [Story export](#story-export). |
 | `BackupService` | Book backups as JSON files in `data/&lt;login&gt;/backups/manuscripts/&lt;book id&gt;/`: `takeBackup`, `getBackups`, `importBackup`, `applyBackup` (restore, optionally messages only), `cloneBackup` / `restoreAsNewManuscript`, `analyzeLorebooks` + `LorebookDecision`s for lorebooks found in the backup, `exportBackup` (see below). Import and restore read a `File` (the UI uploads to a temp file, the `byte[]` overloads are for small payloads and tests). |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -424,6 +425,10 @@ without any user and only use installation-wide data (<code translate="no" v-pre
 <tr>
 <td><code translate="no" v-pre>ArchiveImportService</code></td>
 <td>Imports the <code translate="no" v-pre>.md</code> files of a zip archive (read by <code translate="no" v-pre>utils.MarkdownArchive</code>: natural order of the paths, an optional <code translate="no" v-pre>names.txt</code> for names): <code translate="no" v-pre>appendParts</code> adds a part for each to the end of a book, <code translate="no" v-pre>importLorebook</code> makes a lorebook with a disabled entry for each. Not one transaction (<code translate="no" v-pre>@NoTx</code>): every part or entry is stored by its own <code translate="no" v-pre>createPart</code> / <code translate="no" v-pre>save</code>, so the import can be stopped (<code translate="no" v-pre>BooleanSupplier stopped</code>, asked before each file) or fail and what was stored stays; <code translate="no" v-pre>onStored</code> reports the progress and the <code translate="no" v-pre>ImportResult</code> says how many files were imported. The UI runs it in a <code translate="no" v-pre>ProgressBarDialog</code> with a Stop button (<code translate="no" v-pre>ArchiveImportRunner</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>SillyTavernImportService</code></td>
+<td>Stores the tree built by <code translate="no" v-pre>utils.SillyTavernChats</code> from SillyTavern chat files (<code translate="no" v-pre>parse</code> reads one <code translate="no" v-pre>.jsonl</code>: header line, then messages with <code translate="no" v-pre>swipes</code> / <code translate="no" v-pre>swipe_id</code>, system messages skipped; <code translate="no" v-pre>merge(chats, mergeTurns)</code> puts the chats into one trie keyed by the instructions and text of a turn, so the shared beginning of branches and checkpoints is stored once and the swipes of a message are siblings; <code translate="no" v-pre>mergeTurns</code> makes the user messages before an answer its instructions). <code translate="no" v-pre>importTree</code> is <code translate="no" v-pre>@NoTx</code> like the archive import: every part goes through <code translate="no" v-pre>ChatMessageService.addPart</code> (counts tokens and words, adds a child or one more first part, does not touch the active leaf), <code translate="no" v-pre>stopped</code> is asked before each part and <code translate="no" v-pre>onStored</code> reports the progress; the active leaf of the book is the end of the chat whose last message is the newest, or the last part stored when stopped earlier. The UI is <code translate="no" v-pre>SillyTavernImportDialog</code> (multi file upload, name, the merge checkbox) and <code translate="no" v-pre>SillyTavernImportRunner</code> (progress with Stop), started by <code translate="no" v-pre>NewBookAction.runFromSillyTavern</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ExporterService</code></td>
@@ -1022,7 +1027,7 @@ call. See
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (1daefe19).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (363788a2).</p></div>
             </footer>
         </div>
     </div>

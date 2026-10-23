@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846082569063">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846089524831">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846082569063" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846089524831" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846082569063" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846089524831" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846082569063" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846089524831" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -332,6 +332,32 @@ generating.</p>
     <img src="../../../images/archive-upload.png" alt="Importing a zip of text files as a new book" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="450" height="350" />
     <figcaption class="caption">Importing a zip of text files as a new book</figcaption>
 </figure>
+<h3 id="importing-from-sillytavern">Importing from SillyTavern</h3>
+<p>To continue a roleplay or story you started in <a href="https://github.com/SillyTavern/SillyTavern">SillyTavern</a>, use the
+<strong>import</strong> button with the speech bubbles (<em>Import from SillyTavern</em>) next to <strong>Add Book</strong>. In SillyTavern, export the chat
+(<em>Manage chat files</em>, or take the <code translate="no" v-pre>.jsonl</code> files from <code translate="no" v-pre>data/&lt;user&gt;/chats/&lt;character&gt;/</code>), then:</p>
+<ol>
+<li>
+<p>Upload <strong>one or more</strong> <code translate="no" v-pre>.jsonl</code> chats. A file that is not a SillyTavern chat is refused, the others stay.</p>
+</li>
+<li>
+<p>Give the book a name (it is filled from the character of the first chat).</p>
+</li>
+<li>
+<p>Tick <strong>Merge user and assistant messages into one part</strong> if you want one part per turn: the message of the user
+(several messages in a row are joined with an empty line) becomes the <em>instructions</em> of the part and the answer after it
+its text. Without it every message is a part of its own, with its text as the text of the part, so the book reads like
+the chat did.</p>
+</li>
+<li>
+<p>Click <strong>Import</strong>. A progress window with <strong>Stop</strong> shows the parts being stored; stopping keeps what was stored.</p>
+</li>
+</ol>
+<p>SillyTavern copies the chat when you create a <em>branch</em> or a <em>checkpoint</em>, so the chats of one story share their
+beginning. Upload them together and Marginalia finds the common messages and stores them once: the chats become the
+branches of one tree, which you can walk in the <a href="../story-editor/">tree view</a>. The <em>swipes</em> (alternative answers) of a message become sibling parts, and the book opens at the end of the chat written last (by the date of its
+last message). Chats that don&#x27;t begin with the same message become separate first parts. Hidden (system) messages are
+skipped, and so are swipes that are empty. The reasoning and the model name of an answer are kept with the part.</p>
 <p>To start a book from a backup file, use <strong>Import Backup as New Book</strong> in the <em>Settings</em> tab, see
 <a href="../backups/#importing-a-backup-as-a-new-book">Book backups</a>.</p>
 <h2 id="the-about-tab">The About tab</h2>
@@ -461,7 +487,7 @@ where they are.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (1daefe19).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (363788a2).</p></div>
             </footer>
         </div>
     </div>

@@ -103,6 +103,7 @@ public class ManuscriptPart implements ManuscriptSection {
                     @APILocals(name = "titleSpan", type = Span.class),
                     @APILocals(name = "addBookButton", type = Button.class),
                     @APILocals(name = "importArchiveButton", type = Button.class),
+                    @APILocals(name = "importSillyTavernButton", type = Button.class),
                     @APILocals(name = "toolColumn", type = Grid.Column.class),
                     @APILocals(name = "filterRow", type = HeaderRow.class),
                     @APILocals(name = "refresh", type = Button.class)})
@@ -128,8 +129,10 @@ public class ManuscriptPart implements ManuscriptSection {
         tagBooksButton = new Button(loc.getValue(L.LABEL_TAG_BOOKS), Solid.TAGS.create(), event -> openTagDialog());
         Button importArchiveButton = new Button(Solid.FILE_IMPORT.create(), event -> new NewBookAction(this::openManuscript).runFromArchive());
         importArchiveButton.setTooltipText(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE));
+        Button importSillyTavernButton = new Button(Solid.COMMENTS.create(), event -> new NewBookAction(this::openManuscript).runFromSillyTavern());
+        importSillyTavernButton.setTooltipText(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN));
         searchButton = new Button(loc.getValue(L.LABEL_SEARCH), Solid.SEARCH.create(), event -> openSearchDialog());
-        headerLayout.add(titleSpan, searchButton, tagBooksButton, importArchiveButton, addBookButton);
+        headerLayout.add(titleSpan, searchButton, tagBooksButton, importArchiveButton, importSillyTavernButton, addBookButton);
         headerLayout.setFlexGrow(1, titleSpan);
         headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
