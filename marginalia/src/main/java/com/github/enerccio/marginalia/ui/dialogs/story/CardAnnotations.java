@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.AnnotationService;
@@ -47,6 +48,8 @@ public class CardAnnotations {
     private final Button badge = new Button(Solid.COMMENT_ALT.create());
     private final Div anchor = new Div();
     private final Popover popover = new Popover();
+    private final VerticalLayout margin = new VerticalLayout();
+    private boolean marginMode;
     private final AnnotationView.Host host = new AnnotationView.Host() {
         @Override
         public boolean canAttach(Annotation annotation) {
@@ -82,6 +85,11 @@ public class CardAnnotations {
         anchor.addClassName(CssStyles.ANNOTATION_ANCHOR);
         popover.setTarget(anchor);
         popover.setOpenOnClick(false);
+        margin.setPadding(false);
+        margin.setSpacing(false);
+        margin.addClassNames(CssStyles.ANNOTATION_MARGIN, CssStyles.GAP_S);
+        margin.setVisible(false);
+        JavascriptLibrary.linkMarginNotes(response.getElement(), margin.getElement());
         JavascriptLibrary.fireAnnotationClickEvent(response.getElement(), anchor.getElement());
         // the menu of the buttons of the card takes the selection away, so the text has a menu of its own (right click, long press) that
         // finds it, and keeps the copy of the browser's menu, which it replaces
@@ -108,15 +116,54 @@ public class CardAnnotations {
     }
 
     /**
-     * Shows how many annotations of the part need a look.
+     * The column of the notes of the part, to be added to the card before the text. It is hidden until the margin is switched on.
+     */
+    public VerticalLayout getMargin() {
+        return margin;
+    }
+
+    public boolean isMarginMode() {
+        return marginMode;
+    }
+
+    /**
+     * Shows the notes of the part in the margin (a click on a mark then finds the note there) or in the popover at the mark.
+     */
+    public void setMarginMode(boolean on) {
+        marginMode = on;
+        margin.setVisible(on);
+        if (on) {
+            popover.close();
+        }
+        fillMargin(false);
+    }
+
+    /**
+     * Shows how many annotations of the part need a look, and the notes in the margin when it is on.
      *
      * @param generating the text is being generated again: its annotations are not in it yet
      */
-    public void refreshBadge(boolean generating) {
+    public void refresh(boolean generating) {
         int count = generating ? 0 : annotations.openCount(message.get().getId());
         badge.setVisible(count > 0);
         badge.setText(String.valueOf(count));
         badge.setTooltipText(String.format(loc.getValue(L.MSG_ANNOTATIONS_OPEN_COUNT), count));
+        fillMargin(generating);
+    }
+
+    /**
+     * The notes in the margin are the ones the badge counts, in the order of their passages.
+     */
+    private void fillMargin(boolean generating) {
+        margin.removeAll();
+        if (!marginMode || generating) {
+            return;
+        }
+        for (Annotation annotation : annotations.of(message.get().getId())) {
+            if (annotation.getStatus() != AnnotationStatus.RESOLVED && annotation.getStatus() != AnnotationStatus.DISMISSED) {
+                margin.add(new AnnotationView(annotation, annotations, host));
+            }
+        }
     }
 
     /**
@@ -125,6 +172,11 @@ public class CardAnnotations {
      */
     public void show(String ids) {
         Set<String> wanted = ids == null ? null : Set.of(ids.split(","));
+        if (wanted != null && marginMode) {
+            // the note is in the margin already
+            JavascriptLibrary.flashMarginNote(margin.getElement(), ids.split(",")[0]);
+            return;
+        }
         List<Annotation> shown = new ArrayList<>();
         for (Annotation annotation : annotations.of(message.get().getId())) {
             if (wanted == null || wanted.contains(annotation.getUuid())) {

@@ -1336,7 +1336,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                 returns = @APIReturn(type = void.class))
         private void refreshAnnotationBadge() {
             if (cardAnnotations != null) {
-                cardAnnotations.refreshBadge(generating);
+                cardAnnotations.refresh(generating);
             }
         }
 

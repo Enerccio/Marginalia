@@ -714,6 +714,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_ANNOTATE_ACCEPT, "添加选中的批注");
         setValue(L.LABEL_ANNOTATE_RAW, "模型的回答");
         setValue(L.LABEL_ANNOTATE_PROPOSALS, "建议的批注");
+        setValue(L.LABEL_ANNOTATION_PASSAGE, "段落内容");
+        setValue(L.LABEL_SELECT_ANNOTATIONS, "仅批注");
+        setValue(L.LABEL_ANNOTATIONS_IN_MARGIN, "在页边显示批注");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1093,7 +1096,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_CHECKPOINTS_USAGE, "检查点占用 %s / %s（其中 %s 留给自动检查点）。");
         setValue(L.MSG_AGENT_CHECKPOINTS_EMPTY, "还没有检查点。运行开始时会创建一个。");
         setValue(L.MSG_AGENT_CHECKPOINT_BUSY, "代理正在工作。请先暂停再保存或还原检查点。");
-        setValue(L.MSG_MERGE_SUMMARY, "%d 项更改:段落 %d、设定集 %d、条目 %d、书籍设置 %d。冲突:%d。");
+        setValue(L.MSG_MERGE_SUMMARY, "%d 项更改:段落 %d、设定集 %d、条目 %d、书籍设置 %d、批注 %d。冲突:%d。");
         setValue(L.MSG_MERGE_BOOK_CHANGED, "运行开始后书籍已被修改。冲突是指你和智能体都修改过的文本:选择保留哪一方,或自己写出结果。");
         setValue(L.MSG_MERGE_NO_CHANGES, "智能体没有修改书籍。");
         setValue(L.MSG_MERGE_APPLIED, "已将 %d 项更改应用到书籍。应用前的书籍已保存在备份中。");
@@ -1201,6 +1204,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_ANNOTATE_UNREADABLE, "无法读取模型的回答（%s）。为免白费功夫，下面显示原文。");
         setValue(L.MSG_ANNOTATE_NOT_LOCATED, "在正文中没有找到，将作为针对整段的批注");
         setValue(L.MSG_ANNOTATE_ADDED, "已添加 %d 条批注");
+        setValue(L.MSG_MERGE_PROBLEM_NEEDS_PART, "此批注所在的段落已从书中删除。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

@@ -574,6 +574,65 @@ public final class JavascriptLibrary {
                 """, markdown, uuid);
     }
 
+    /**
+     * Lights up together the note in the margin and the marks of its passage: the pointer over a mark lights the notes of the
+     * annotations it is part of, the pointer over a note lights its marks. The listeners are added once to the elements.
+     *
+     * @param markdown the text of the part, whose marks have the uuid of their annotation in {@code data-annotation}
+     * @param margin   the column of the notes, whose notes have it in {@code data-annotation-id}
+     */
+    public static void linkMarginNotes(Element markdown, Element margin) {
+        markdown.executeJs("""
+                const text = $0;
+                const margin = $1;
+                if (text._marginLinked) {
+                  return;
+                }
+                text._marginLinked = true;
+                const lit = 'annotation-lit';
+                const clear = () => {
+                  text.querySelectorAll('.' + lit).forEach(n => n.classList.remove(lit));
+                  margin.querySelectorAll('.' + lit).forEach(n => n.classList.remove(lit));
+                };
+                text.addEventListener('mouseover', e => {
+                  clear();
+                  for (let n = e.target; n && n !== text; n = n.parentElement) {
+                    if (n.dataset && n.dataset.annotation) {
+                      const note = margin.querySelector('[data-annotation-id="' + n.dataset.annotation + '"]');
+                      if (note) {
+                        note.classList.add(lit);
+                      }
+                    }
+                  }
+                });
+                text.addEventListener('mouseleave', clear);
+                margin.addEventListener('mouseover', e => {
+                  clear();
+                  const note = e.target.closest ? e.target.closest('[data-annotation-id]') : null;
+                  if (note) {
+                    note.classList.add(lit);
+                    text.querySelectorAll('[data-annotation="' + note.dataset.annotationId + '"]').forEach(m => m.classList.add(lit));
+                  }
+                });
+                margin.addEventListener('mouseleave', clear);
+                """, markdown, margin);
+    }
+
+    /**
+     * Brings the note of the annotation in the margin into view and flashes it.
+     */
+    public static void flashMarginNote(Element margin, String uuid) {
+        margin.executeJs("""
+                requestAnimationFrame(() => {
+                  const note = $0.querySelector('[data-annotation-id="' + $1 + '"]');
+                  if (note) {
+                    note.scrollIntoView({block: 'nearest'});
+                    note.animate([{outline: '3px solid var(--lumo-warning-color)'}, {outline: '3px solid transparent'}], {duration: 1500});
+                  }
+                });
+                """, margin, uuid);
+    }
+
     // --- tab sheet ---
 
     /**

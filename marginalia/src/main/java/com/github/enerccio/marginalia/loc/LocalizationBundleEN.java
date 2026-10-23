@@ -706,6 +706,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_ANNOTATE_ACCEPT, "Add the selected annotations");
         setValue(L.LABEL_ANNOTATE_RAW, "Answer of the model");
         setValue(L.LABEL_ANNOTATE_PROPOSALS, "Proposed annotations");
+        setValue(L.LABEL_ANNOTATION_PASSAGE, "Passage");
+        setValue(L.LABEL_SELECT_ANNOTATIONS, "Only annotations");
+        setValue(L.LABEL_ANNOTATIONS_IN_MARGIN, "Annotations in the margin");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1085,7 +1088,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_CHECKPOINTS_USAGE, "The checkpoints take %s of %s; %s of it is kept for the automatic ones.");
         setValue(L.MSG_AGENT_CHECKPOINTS_EMPTY, "There are no checkpoints yet. The run makes one when it starts.");
         setValue(L.MSG_AGENT_CHECKPOINT_BUSY, "The agent is working. Pause it to save or restore a checkpoint.");
-        setValue(L.MSG_MERGE_SUMMARY, "%d changes: %d parts, %d lorebooks, %d entries, %d settings of the book. Conflicts: %d.");
+        setValue(L.MSG_MERGE_SUMMARY, "%d changes: %d parts, %d lorebooks, %d entries, %d settings of the book, %d annotations. Conflicts: %d.");
         setValue(L.MSG_MERGE_BOOK_CHANGED, "The book changed since the run started. A conflict is a text both you and the agent changed: pick whose stays, or write the result yourself.");
         setValue(L.MSG_MERGE_NO_CHANGES, "The agent changed nothing in the book.");
         setValue(L.MSG_MERGE_APPLIED, "%d changes were applied to the book. The book as it was is saved in its backups.");
@@ -1193,6 +1196,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_ANNOTATE_UNREADABLE, "The answer of the model could not be read (%s). It is shown below so that the work is not lost.");
         setValue(L.MSG_ANNOTATE_NOT_LOCATED, "Not found in the text, the note will be about the whole part");
         setValue(L.MSG_ANNOTATE_ADDED, "%d annotations added");
+        setValue(L.MSG_MERGE_PROBLEM_NEEDS_PART, "The part of this annotation was deleted from the book.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

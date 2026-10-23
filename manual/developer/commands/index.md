@@ -278,8 +278,9 @@ Tests: `ManuscriptReadCommandsTest` runs them in an agent session (`AgenticReque
 `ListAnnotationsCommand` (`list-annotations [status [part [offset [limit]]]]`) and `GetAnnotationCommand` (`get-annotation`) read, `AnnotationWriteCommands`
 (`create-annotation`, `update-annotation`, `resolve-annotation`, `reattach-annotation`, `delete-annotation`) change the [annotations](../domain-model.md#annotation). An annotation is given
 by its uuid (`Book.annotation` checks that it is one of a part of the book of the scope). They change only the notes, never the story, so they are `NON_DESTRUCTIVE`
-except the delete. The ones that write have `availableForAgent = false`: the working copy of an agent is not merged back with its annotations (a known gap), so an agent
-could write notes that vanish. Tests: `AnnotationCommandsTest`.
+except the delete. An agent writes them in its working copy with the source `AGENT` (`CommandScope.isAgent`); the annotations are items of the
+[merge](../agents.md#merge-and-apply) like parts and entries. `CommandScope.resolveAnnotation` finds one of the book of the scope (the handles of the agent, `h:a17`).
+Tests: `AnnotationCommandsTest`, `AgentAnnotationsTest`.
 
 ### Commands that read the lorebooks
 

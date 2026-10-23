@@ -113,6 +113,9 @@ public final class CssStyles {
     public static final String ANNOTATION_PANEL = "annotation-panel";
     public static final String ANNOTATION_PART = "annotation-part";
     public static final String ANNOTATION_POPOVER = "annotation-popover";
+    public static final String ANNOTATION_MARGIN = "annotation-margin";
+    public static final String ANNOTATION_MARGIN_LAYOUT = "annotations-in-margin";
+    public static final String ANNOTATION_LIT = "annotation-lit";
     public static final String SUMMARY_CONTENT = "summary-content";
     public static final String SUMMARY_ACTIONS = "summary-actions";
 

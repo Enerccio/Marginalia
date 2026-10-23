@@ -134,6 +134,7 @@ public class AgentRunPairServiceImpl implements AgentRunPairService {
             case SUMMARY -> 's';
             case LOREBOOK -> 'l';
             case ENTRY -> 'e';
+            case ANNOTATION -> 'a';
         };
     }
 
@@ -214,6 +215,12 @@ public class AgentRunPairServiceImpl implements AgentRunPairService {
                 return AgentRunPairKind.ENTRY;
             } catch (Exception ignored) {
                 // not an entry
+            }
+            try {
+                scope.resolveAnnotation(uuid);
+                return AgentRunPairKind.ANNOTATION;
+            } catch (Exception ignored) {
+                // not an annotation
             }
             return null;
         }

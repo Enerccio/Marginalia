@@ -2,11 +2,13 @@ package com.github.enerccio.marginalia.ui.dialogs.agent;
 
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
+import com.github.enerccio.marginalia.domain.collections.AnnotationSource;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.AgentVirtualFileSystemService;
+import com.github.enerccio.marginalia.domain.service.AnnotationService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Change;
 import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Item;
@@ -42,6 +44,9 @@ class AgentMergeDialogTest extends AgentTestBase {
 
     @Autowired
     private AgentVirtualFileSystemService fileSystemService;
+
+    @Autowired
+    private AnnotationService annotationService;
 
     // UI.setCurrent keeps only a weak reference, see WorkspaceStateTest
     private UI ui;
@@ -118,6 +123,25 @@ class AgentMergeDialogTest extends AgentTestBase {
             found.addAll(descendants(child));
         });
         return found;
+    }
+
+    @Test
+    void theAnnotationsOfTheAgentAreItemsAndTheirButtonPicksOnlyThem() throws Exception {
+        edit(copy(), "there was a dragon", "there was a small dragon");
+        annotationService.create(copy(), part(copy(), "Once upon a time"), 0, 4, "too slow an opening", AnnotationSource.AGENT, null, null);
+        finish();
+
+        AgentMergeDialog dialog = dialog();
+
+        Item note = row(dialog, Kind.ANNOTATION, Change.ADDED, "too slow");
+        assertThat(note.label()).startsWith("1: ");
+        assertThat(dialog.getSummaryLabel().getText()).contains("1 annotations");
+        Button only = descendants(dialog).stream().filter(c -> c instanceof Button b && "Only annotations".equals(b.getText()))
+                .map(Button.class::cast).findFirst().orElseThrow();
+
+        only.click();
+
+        assertThat(dialog.getGrid().asMultiSelect().getSelectedItems()).containsExactly(note);
     }
 
     @Test

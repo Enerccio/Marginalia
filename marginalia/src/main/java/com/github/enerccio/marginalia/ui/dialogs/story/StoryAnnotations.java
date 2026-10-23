@@ -32,6 +32,11 @@ public class StoryAnnotations {
      */
     public static final String MARK_ATTRIBUTE = "data-annotation";
 
+    /**
+     * The attribute of a note in the margin that tells which annotation it is (the uuid).
+     */
+    public static final String NOTE_ATTRIBUTE = "data-annotation-id";
+
     @Autowired
     private Localization loc;
 

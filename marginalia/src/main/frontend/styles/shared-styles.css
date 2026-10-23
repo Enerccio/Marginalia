@@ -768,6 +768,41 @@ vaadin-markdown.agent-report td {
     overflow-y: auto;
 }
 
+/* Notes in the margin: the card is a grid of the notes of the part (left) and its text (right), the rest of the card (header, images)
+   spans both. The note under the pointer and its mark light up together. */
+.chat-message-content.annotations-in-margin {
+    display: grid;
+    grid-template-columns: minmax(10rem, 16rem) minmax(0, 1fr);
+    column-gap: var(--lumo-space-m);
+    align-items: start;
+}
+
+.chat-message-content.annotations-in-margin > * {
+    grid-column: 1 / -1;
+}
+
+.chat-message-content.annotations-in-margin > .annotation-margin {
+    grid-column: 1;
+}
+
+.chat-message-content.annotations-in-margin > vaadin-markdown,
+.chat-message-content.annotations-in-margin > vaadin-text-area {
+    grid-column: 2;
+}
+
+.annotation-margin {
+    min-width: 0;
+}
+
+.annotation-view.annotation-lit {
+    border-color: var(--lumo-primary-color);
+    box-shadow: 0 0 0 1px var(--lumo-primary-color);
+}
+
+.annotation-mark.annotation-lit {
+    background-color: color-mix(in srgb, var(--annotation-color) 25%, transparent);
+}
+
 .summary-content {
     position: relative;
     box-sizing: border-box;

@@ -78,6 +78,7 @@ public record SyncReport(List<Line> taken, List<Line> conflicts) {
             case MESSAGE -> "part";
             case LOREBOOK -> "lorebook";
             case ENTRY -> "lorebook entry";
+            case ANNOTATION -> "annotation";
         };
         return kind + (line.handle() == null ? "" : " " + line.handle()) + " \"" + line.label() + "\"";
     }

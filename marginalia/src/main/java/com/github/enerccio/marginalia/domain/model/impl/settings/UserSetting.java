@@ -81,6 +81,14 @@ public class UserSetting extends Setting {
     private Long defaultAnnotateProtocol;
 
     /**
+     * The story shows the notes of a part in a column left of its text instead of in a popover at the passage (a reading
+     * preference of the desktop; the phone has no room for a margin).
+     */
+    @ExtendedAttribute
+    @Transient
+    private Boolean annotationsInMargin;
+
+    /**
      * The system prompt of the agents of the user that have none of their own; blank is the one of the application
      * settings, and then {@code Defaults.DEFAULT_AGENT_PROMPT}.
      */
@@ -265,6 +273,14 @@ public class UserSetting extends Setting {
 
     public void setDefaultAnnotateProtocol(Long defaultAnnotateProtocol) {
         this.defaultAnnotateProtocol = defaultAnnotateProtocol;
+    }
+
+    public boolean isAnnotationsInMargin() {
+        return annotationsInMargin != null && annotationsInMargin;
+    }
+
+    public void setAnnotationsInMargin(Boolean annotationsInMargin) {
+        this.annotationsInMargin = annotationsInMargin;
     }
 
     public String getDefaultRedraftPrompt() {
