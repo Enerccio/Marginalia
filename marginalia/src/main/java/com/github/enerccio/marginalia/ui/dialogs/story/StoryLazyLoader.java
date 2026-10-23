@@ -39,6 +39,8 @@ public class StoryLazyLoader<C extends Component & StoryCard> {
     private final LazyLoadIndicator laterIndicator;
 
     private LazyBranch window;
+    // the panel was attached again and nothing decided where the story is yet
+    private boolean bottomOnReattach;
 
     public StoryLazyLoader(ScrollPanel panel, StoryCards<C> cards, StoryGenerationListener.CardFactory<C> cardFactory,
                            BooleanSupplier frozen, Localization loc) {
@@ -72,6 +74,7 @@ public class StoryLazyLoader<C extends Component & StoryCard> {
      * @param openedReasonings ids of the parts whose reasoning stays opened
      */
     public void render(List<ChatMessage> branch, Integer limit, Long scrollTo, Set<Long> openedReasonings) {
+        bottomOnReattach = false;
         window = LazyBranch.tail(branch, limit);
         if (scrollTo != null) {
             window.centerOn(scrollTo);
@@ -87,6 +90,25 @@ public class StoryLazyLoader<C extends Component & StoryCard> {
     }
 
     /**
+     * The panel was attached again after it was detached (its tab was moved to another sheet): the browser made it new, so
+     * the edges are armed again and, unless something else decides where the story is before the response goes out (a render
+     * of the story tab being entered, a scroll to a part), the story shows its end, as it does when it opens.
+     */
+    public void reattached() {
+        if (window == null) {
+            return;
+        }
+        settle(false);
+        bottomOnReattach = true;
+        panel.getUI().ifPresent(ui -> ui.beforeClientResponse(panel, context -> {
+            if (bottomOnReattach) {
+                bottomOnReattach = false;
+                JavascriptLibrary.scrollToBottomAfterLayout(panel.getElement());
+            }
+        }));
+    }
+
+    /**
      * Makes sure the last part of the branch has a card, as a new part is added after it: when the user scrolled away
      * from the end, the window moves back there and the story scrolls to the bottom.
      */
@@ -94,6 +116,7 @@ public class StoryLazyLoader<C extends Component & StoryCard> {
         if (window == null || window.atTail()) {
             return;
         }
+        bottomOnReattach = false;
         syncLoaded();
         window.moveToTail();
         populate(cards.collectOpenedReasonings());
@@ -108,6 +131,7 @@ public class StoryLazyLoader<C extends Component & StoryCard> {
         if (window == null || window.indexOf(messageId) < 0) {
             return;
         }
+        bottomOnReattach = false;
         if (!window.isLoaded(messageId)) {
             syncLoaded();
             window.centerOn(messageId);
@@ -127,6 +151,7 @@ public class StoryLazyLoader<C extends Component & StoryCard> {
         if (window == null || window.indexOf(messageId) < 0) {
             return;
         }
+        bottomOnReattach = false;
         if (!window.isLoaded(messageId)) {
             syncLoaded();
             window.centerOn(messageId);

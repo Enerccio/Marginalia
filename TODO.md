@@ -300,7 +300,7 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
     that vanish.
 37. 🧩 **Continuity checker.** After a part is accepted, a side query compares it with the activated lore and the
     summaries and lists contradictions (eye colour, who knows what, dead characters talking). Findings are annotations
-    on the part, not edits. The `reviewer` plugin is the natural base.
+    on the part (item 68), not edits. The `reviewer` plugin is the natural base.
 38. **Time-scoped lorebook entries.** An entry valid from part X to part Y of a branch (the character is alive until
     chapter 12, the secret is public after the reveal), or with variants per story phase. Core: an activation
     condition that reads the branch position. Avoids the usual "disable the entry by hand and forget".
@@ -344,6 +344,123 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
 49. 🧩 **Autopilot batch.** "Write the next N parts with these instructions" unattended, with stop conditions (word
     or token budget, a side-query judge says the scene ended, an error), written to a new branch so the main one stays
     clean; the result is reviewed and kept or pruned. Needs terminal events for failed/cancelled generations (24a).
+68. **Annotations (notes anchored to a passage of a part).** Notes for the author ("weak scene", "timeline wrong",
+    "revisit"), like comments in Word, plus findings of AI and agents. Core feature (anchoring, backups and the editor
+    need hooks); checkers stay plugins (37 posts its findings as annotations, 44 can read them). Decided design:
+    - **Entity** `Annotation` (a real table + Flyway migration, the sidebar queries by book / status / part): part,
+      `start`, `end` (offsets in the *source* text of `ChatMessage.response`), the quoted text and a little context
+      before and after, text, status (open / resolved / dismissed / orphaned), source (author, AI, agent, plugin),
+      type/colour, and a *send to prompt* flag (off by default, annotations are author-facing). Owned, soft deleted,
+      `@CleanupReference(OWNED_BY)` the part, in backups and exports. Overlapping annotations are separate rows.
+    - **Anchoring, not inline markers.** The text stays clean (markers in the stored text would leak into prompts,
+      summaries, exports, search and plugins). On every save of a part the offsets are shifted through a diff of the old
+      and the new text, like Word's range markers: an edit inside the range grows or shrinks it, before it moves it,
+      text typed exactly at a boundary lands outside, a range that is deleted completely becomes `orphaned` (kept, the
+      author can re-attach or dismiss it). After a wholesale replace (the diff means nothing) the quote is searched
+      with its context, fuzzy; no match = orphaned. The same quote finder serves the AI annotate (below).
+    - **Where the re-anchoring goes** (the code was read, not changed). `ChatMessageServiceImpl.storeResponse` is the
+      choke point of the author's edits (`updateResponse`, the redraft dialog, `PartEditCommands`, `RedraftCommands`,
+      the agent merge all end there). Not through it, to handle each: `mergeIntoPrevious` (sets the response itself: the
+      annotations of the later part move to the earlier one, offsets + length of the earlier text + the join),
+      `AgentMergeServiceImpl` (`message.setResponse` next to its own `storeResponse`), the search-and-replace service
+      over a book (`EntityTextSearch` writes `@Fulltextable` fields; verify whether it calls `storeResponse`), a
+      regeneration of the part (`restartStreaming` clears the text, then the stream fills it: the quote search after
+      the generation), and `branch()` (copies the part: copy the annotations; a swipe is a new text, no copy). Put the
+      shifting in one place (an `AnnotationAnchors` helper called from `storeResponse`) and cover every path above with
+      a test. `utils.TextDiff` is sentence-level and has no offsets, no use for this; `GeneratedTextHighlighter`
+      already has an offset-preserving word tokenizer + LCS (`matchGenerated`): extract that into a utility that maps an
+      old offset to the new one, and share it.
+    - **Showing them.** The part is a `Markdown` component fed a markdown *source* string that is pre-processed with
+      inline `<mark class>` (generated-text diff in `GeneratedTextHighlighter`, search hits in `StoryBranchSearch.mark`),
+      so source offsets fit the rendering. The three layers cannot be chained (annotation offsets would be shifted by
+      the HTML of the earlier layer, and the generated-text diff would see the tags): collect all ranges in raw offsets
+      and emit once (a small `MarkupInserter`, with the per-line wrapping and the markdown line-prefix rule of
+      `GeneratedTextHighlighter.appendRun`). Spike first: whether the `Markdown` sanitizer keeps `data-*` attributes
+      (else a class per annotation) and a click on a mark (script in `JavascriptLibrary`, an event to the server, like
+      `fireChipClickEvent`). A gutter badge with the count per part, a side panel listing the open annotations of the
+      book (click = jump to the part), and *Annotate selection*.
+    - **Display modes.** Default: the text keeps its full width, the annotated range is only marked and the note
+      opens in a **popover** on click (tap on the phone). The mark is a wavy underline (a block would clash with the
+      background of the generated-text `<mark>`; a block is only the hover / active state), coloured by type or source;
+      overlapping ranges differ in colour or thickness. Resolved annotations leave the text and stay in the panel
+      (a *show resolved* switch), orphaned and part-level ones have no range: the badge and the panel only. A click on an overlap lists every annotation that covers the
+      point. Optional: **notes in the left margin**, next to the text, switched like *Show book styles*
+      (`Manuscript.showBookStyles` adds `CssStyles.MARKDOWN_MANUSCRIPT_STYLES` to `mainLayout` in `applyBookStyles`):
+      a toggle in the story settings menu that picks a class; decide whether it is per book (like that flag) or per
+      user (it is a reading preference, closer to the theme switch). The phone has no room for a margin: popover only.
+      Both modes show the same `AnnotationView` component (text, source, status, resolve / edit / delete, *send to
+      prompt*, *redraft with this*), which the side panel lists too. Notes: the marks are HTML inside the `Markdown`
+      content, not Vaadin components, and a `Popover` needs a component as its target: one popover per card whose
+      target is a small anchor element moved to the rectangle of the clicked mark (`JavascriptLibrary.getPositionAndSize`
+      is the precedent) - part of the spike. The margin is a real layout change, not only CSS: first version a column
+      per card with the notes of the part in text order, hovering a note or its mark lights up the other; aligning each
+      note with the line of its mark (client-side layout, stacked down on overlaps, redone on resize and re-render) later.
+      A count badge in the header bar of each card shows in both modes and takes no width from the text.
+    - **Creating from a selection.** In the editor (`TextArea`) `selectionStart/End` are exact source offsets. In the
+      rendered view the selection is rendered text: send the selected text and the text around it from the DOM and find
+      it in the source with the quote finder (ambiguous = ask to select more or use the editor). The desktop story tab
+      (`ManuscriptStoryPart`) and the phone one (`PhoneManuscriptStoryPart`) each have their own card: both, with the
+      `@PublicAPI` annotations (`PublicAPISignatureTest`).
+    - **Commands.** A suite `annotation-create / -list / -update / -resolve / -delete` in
+      `commands/manuscript/write` (and a read one): the command bar, agents (tools by the `@Command` metadata) and plugins
+      get the API for free. They save directly, no review (the caller is the reviewer; an agent can annotate a whole book
+      alone, an alternative to `report`).
+    - **AI annotate** (`AnnotateService`, shaped like `RedraftService`). Input: the part, an instruction ("flag
+      continuity errors", "weak dialogue", "contradicts the lore"), optionally an AI and a protocol (`GenerationOptions`,
+      as redraft); the context is the one of the redraft (story before, summaries, story after, lore) and an
+      `annotatePrompt` template with the usual fallback (book, Settings → Templates, built-in). Own default AI +
+      protocol in the user's settings (annotating is analysis, usually not the prose model), overridable per run.
+      Nothing is stored: the proposals go to a **review list** (accept / reject each) and only the accepted ones are
+      saved (UI only). The model never gives offsets (it cannot count): it *quotes* the passage, and the quote finder
+      anchors it; a quote that is not found becomes a part-level annotation marked *could not locate*, not dropped.
+      Output modes, chosen per call: (1) structured, `InferenceService.infer(..., Class<T>)` with a schema and
+      `SchemaCheck` when the AI supports it; (2) delimited text (`> quoted passage` + the note) with a lenient parser for
+      prose models; (3) two-stage: the prose model writes a free critique, a second (cheaper) AI + protocol extracts the
+      annotations. Default: (1) when the AI supports it, else (2). One retry on a parse or schema failure, then the raw
+      answer is shown so the work is not lost. Scope: one part; a branch-wide run is a loop (the plugins).
+    - **Redraft link.** A `{{annotations}}` variable (the open annotations of the part: quote + note) in the redraft
+      prompt, so *redraft to address the open annotations* is one step; resolved on accept.
+    - **Build order:** (1) entity, migration, service, backup/export, re-anchoring + tests (the risky part); (2) the
+      command suite; (3) UI: highlight, gutter, panel, create from selection (after the spike); (4) `AnnotateService`,
+      prompt, default AI setting, review dialog; (5) redraft variable, localization EN/JP/ZH, manual (user + developer),
+      CHANGELOG.
+    - **Depends on item 69** (the story as a dock tab): the annotation panel is then one more dock tab the user places
+      beside the story, which may make the margin mode unnecessary. Do 69 first.
+69. ✅ **The story as a tab of the dock (free layout of the desktop story editor).** Done in 1.5.0 (see the CHANGELOG);
+    open: the per-user default layout below. Today `ManuscriptStoryPart` has a
+    fixed `SplitLayout`: the `TabDock` (`leftBar`) on the left (20 %, `$desktopManuscriptStoryPartSplitPosition`) and the
+    story pane (card `ScrollPanel` + bottom controls) on the right, the one thing the user cannot move. Make the story
+    pane a tab of the dock, so the whole screen is the user's layout (story in the middle with the outline and the
+    lore around it, story above a lorebook, a narrow story on a wide monitor), one layout model and one stored config.
+    - **Tab.** Id `story` (a constant like `CHAPTERS_TAB` / `LOREBOOK_TAB`), content = the whole pane (`centerLayout`:
+      the cards *and* the bottom controls: menu bar, command bar and its result, the action button; the new-turn popover
+      follows its button). It cannot be closed or lost; the layout code always puts it somewhere. A story alone in its
+      column keeps a thin tab strip (the drag handle), one row of height, for consistency with the other tabs.
+    - **Migration.** `TabDock.setLayout` puts a tab the layout does not know into the first sheet, which would stack
+      the story behind the outline of every existing book. On load, a stored layout without `story` is turned into
+      the old arrangement: its columns scaled to the old splitter share (`SPLIT_POSITION_ATTRIBUTE`, default 20 %), plus
+      a story column with the rest; then the split-position attribute is no longer written (read once, removed with the
+      next save). `TabDockTest.storyPartKeepsTheSplitPositionInTheManuscript` is rewritten for this. A book with no
+      stored layout gets the default layout: the old arrangement (outline and lorebook sheets 20 %, story 80 %).
+    - **Restore default layout.** A menu item in the options (cogs) menu of the story editor (`createCogsMenuItem`,
+      desktop only) resets the dock to the default layout after a confirmation. It resets the layout only: the
+      selected tabs, the contents and the plugin tabs stay (those are placed by the same rule as a new tab).
+    - **Layout per user (optional, can come after the first version).** The layout is stored per book, and once it is
+      the whole screen, rearranging it for every new book is tedious: a per-user default layout (a user setting) used
+      for books that have none, with *Use this layout for all books* in the options menu. *Restore default layout*
+      then restores that default (and the built-in one when there is none).
+    - **Careful about.** (1) A story tab stacked behind another tab is `display:none` and measures as zero: the lazy
+      loader (`StoryLazyLoader`), the stay-at-bottom logic while streaming (`scrollToBottomIfAtBottom`), `watchEdge`,
+      `rememberReaderPosition` and the scroll-to-part code assume a visible, measurable panel; test a generation that
+      streams into a hidden story and the return to it. (2) The things attached to `mainLayout` move to the new root:
+      the shortcut events (`installShortcuts`, `fireShortcutEvents`), the `MARKDOWN_MANUSCRIPT_STYLES` class
+      (`applyBookStyles`) and the `lang` attribute (`applyLanguage`). (3) Plugins (`character-tracker`, `arc-outline`,
+      ...) read the field `leftBar` by reflection and add their tabs to it: keep the field name (`@PublicAPI` does not
+      cover field names) or rename it together with the plugins. (4) A minimum width for the story cell, so a splitter
+      cannot squeeze it to nothing. (5) `@PublicAPI` of the changed `ManuscriptStoryPart` / `TabDock` methods
+      (`PublicAPISignatureTest`), the user manual page of the story editor and `manual/developer/ui.md` (the `TabDock`
+      section), CHANGELOG (*Changed*: the layout of the story editor, with the migration). The phone editor
+      (`TabDock(false)`) is not touched.
 
 ### Lorebooks and retrieval
 

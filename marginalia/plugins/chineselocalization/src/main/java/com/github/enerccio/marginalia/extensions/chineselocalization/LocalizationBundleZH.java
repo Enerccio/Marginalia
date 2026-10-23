@@ -671,6 +671,16 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_REDRAFT_PART, "重写段落");
         setValue(L.LABEL_LAST_RUN, "上次运行");
         setValue(L.LABEL_SORT_BY, "排序方式");
+        setValue(L.LABEL_KEYBOARD_SHORTCUTS, "键盘快捷键");
+        setValue(L.LABEL_KEY, "按键");
+        setValue(L.LABEL_RECORD_KEY, "录制");
+        setValue(L.LABEL_PRESS_KEY, "请按下按键…");
+        setValue(L.LABEL_NO_KEY, "无按键");
+        setValue(L.LABEL_OPEN_NEW_TURN_FORM, "打开新回合表单");
+        setValue(L.LABEL_GENERATE_FROM_NEW_TURN_FORM, "从新回合表单生成");
+        setValue(L.LABEL_EDIT_LAST_PART, "编辑最后一段");
+        setValue(L.LABEL_SAVE_EDITED_PART, "保存正在编辑的段落");
+        setValue(L.LABEL_RESTORE_DEFAULT_LAYOUT, "恢复默认布局");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1116,6 +1126,10 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_REDRAFT_OUTDATED_SUMMARIES, "有 %d 条摘要基于旧文本，现已过时。");
         setValue(L.MSG_COMMAND_REDRAFTING, "正在重写该段…");
         setValue(L.MSG_COMMAND_REDRAFT_CONFIRM, "用重写的文本替换第 %d 段吗？");
+        setValue(L.MSG_SHORTCUT_USED_BY, "与“%s”的按键相同。");
+        setValue(L.MSG_SHORTCUT_BROWSER_KEY, "此按键由浏览器占用，页面可能收不到。");
+        setValue(L.MSG_SHORTCUT_ALT_CHARACTER, "在某些键盘（macOS）上，Alt 加字母会输入字符，可能无法使用。");
+        setValue(L.MSG_CONFIRM_RESTORE_DEFAULT_LAYOUT, "将故事、大纲和其他标签页恢复到新书的默认位置吗？不会改动你的文字，只恢复这本书的标签页排列。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1196,6 +1210,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_JSON_MERGE, "将智能体、书籍当前和运行开始时的数据叠放在一起。选择一个位置,可以采用其中一方的数据、不保留,或由其内部的各个位置合成。只有一方更改的内容采用该方的,双方都更改的内容按位置合并;双方对同一位置做了不同的更改即为冲突,在您决定之前采用智能体的内容。打开某个位置即可只处理它。列表中的元素按其内容匹配(相同的数据、相同的 id 或名称、相似的元素);猜错时,可拆分元素或与另一个元素匹配。在文本视图中可以手动编写已打开位置的智能体数据,返回树视图时会进行检查。");
         setValue(L.HELP_NOTIFICATIONS_ALLOW_LOCAL, "仅在已授予权限时有效。服务器随后也会向 localhost、可访问的私有网络和链路本地地址（例如您自己网络中的 ntfy 或 Gotify）发送消息。否则只调用公共地址。管理员不受限制。");
         setValue(L.HELP_COMMAND_SEARCH, "命令名称或说明中的词（顺序不限）。表中只显示包含所有这些词的命令；上方的选择仍适用于所有命令。");
+        setValue(L.HELP_KEYBOARD_SHORTCUTS, "点击“录制”并按下新的组合键。不带 Ctrl、Alt 或 Meta 的按键仅在没有文本框获得焦点时生效。快捷键在已打开书籍的故事标签页中有效。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

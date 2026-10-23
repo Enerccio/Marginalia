@@ -29,8 +29,8 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The tab dock of the story sidebar: the layout, the drag and drop of the tabs, the stored selection and the layout kept in
- * the attributes of the manuscript.
+ * The tab dock of the story editor (the sidebar tabs and the story itself): the layout, the drag and drop of the tabs, the
+ * stored selection and the layout kept in the attributes of the manuscript.
  */
 class TabDockTest extends MarginaliaTestBase {
 
@@ -533,61 +533,337 @@ class TabDockTest extends MarginaliaTestBase {
 
     // ---- the story part
 
-    @Test
-    void storyPartKeepsTheLayoutInTheManuscript() throws Exception {
-        login();
+    private static final String STORY = ManuscriptStoryPart.STORY_TAB;
+    private static final String CHAPTERS = ManuscriptStoryPart.CHAPTERS_TAB;
+    private static final String LOREBOOK = ManuscriptStoryPart.LOREBOOK_TAB;
+
+    private Manuscript book() throws Exception {
         Manuscript manuscript = new Manuscript();
         manuscript.setName(uniqueName("book"));
-        manuscript = manuscriptService.save(manuscript);
+        return manuscriptService.save(manuscript);
+    }
 
+    private ManuscriptDialog opened(Manuscript manuscript) throws Exception {
         ManuscriptDialog dialog = new ManuscriptDialog(manuscript);
         dialog.create();
         dialog.open();
+        return dialog;
+    }
+
+    @Test
+    void storyIsATabOfTheDockAtTheRightOfTheSidebar() throws Exception {
+        login();
+        ManuscriptDialog dialog = opened(book());
 
         TabDock dock = leftBar(dialog);
-        assertThat(sheets(dock)).hasSize(1);
+        assertThat(dock.getLayout()).isEqualTo(json("{\"columns\":["
+                + "{\"size\":20,\"groups\":[{\"tabs\":[\"" + CHAPTERS + "\",\"" + LOREBOOK + "\"]}]},"
+                + "{\"size\":80,\"groups\":[{\"tabs\":[\"" + STORY + "\"]}]}]}"));
+        assertThat(sheets(dock)).hasSize(2);
+        assertThat(captions(sheets(dock).get(1))).hasSize(1);
+        // one splitter between the two columns, the story is not in a split layout of its own
+        assertThat(descendants(dock, SplitLayout.class)).hasSize(1);
+    }
+
+    @Test
+    void storyPartKeepsTheLayoutInTheManuscript() throws Exception {
+        login();
+        Manuscript manuscript = book();
+        ManuscriptDialog dialog = opened(manuscript);
+
+        TabDock dock = leftBar(dialog);
         dock.add("extra", "Extra", new Div());
         attached(dock);
 
         drag(tab(dock, "Extra"));
-        drop(zones(dock).get(zones(dock).size() - 1));
+        // the strip under the sheet of the sidebar, the first column
+        drop(zones(dock).get(1));
 
         Manuscript saved = manuscriptService.find(manuscript);
         assertThat(saved.getAttributes().getAsJsonObject(ManuscriptStoryPart.TABS_CONFIG_ATTRIBUTE))
-                .isEqualTo(layout("\"" + ManuscriptStoryPart.CHAPTERS_TAB + "\",\"" + ManuscriptStoryPart.LOREBOOK_TAB + "\"", "\"extra\""));
+                .isEqualTo(json("{\"columns\":["
+                        + "{\"size\":20,\"groups\":[{\"tabs\":[\"" + CHAPTERS + "\",\"" + LOREBOOK + "\"]},{\"tabs\":[\"extra\"]}]},"
+                        + "{\"size\":80,\"groups\":[{\"tabs\":[\"" + STORY + "\"]}]}]}"));
 
         // a dialog opened later has the sheets as they were left
-        ManuscriptDialog next = new ManuscriptDialog(saved);
-        next.create();
-        next.open();
-        TabDock restored = leftBar(next);
+        TabDock restored = leftBar(opened(saved));
         restored.add("extra", "Extra", new Div());
-        assertThat(sheets(restored)).hasSize(2);
+        assertThat(sheets(restored)).hasSize(3);
         assertThat(captions(sheets(restored).get(1))).containsExactly("Extra");
     }
 
     @Test
-    void storyPartKeepsTheSplitPositionInTheManuscript() throws Exception {
+    void theUserCanPutTheStoryAnywhere() throws Exception {
         login();
-        Manuscript manuscript = new Manuscript();
-        manuscript.setName(uniqueName("book"));
-        manuscript = manuscriptService.save(manuscript);
+        Manuscript manuscript = book();
+        TabDock dock = leftBar(opened(manuscript));
+        attached(dock);
 
-        ManuscriptDialog dialog = new ManuscriptDialog(manuscript);
-        dialog.create();
-        dialog.open();
-        assertThat(mainSplit(dialog).getSplitterPosition()).isEqualTo(20.0);
-
-        dragEnd(mainSplit(dialog), 35);
+        // the story takes a column of its own at the left
+        drag(tab(dock, "Story"));
+        drop(sideZones(dock).get(0));
 
         Manuscript saved = manuscriptService.find(manuscript);
-        assertThat(saved.getAttributes().get(ManuscriptStoryPart.SPLIT_POSITION_ATTRIBUTE).getAsDouble()).isEqualTo(35.0);
+        JsonObject stored = saved.getAttributes().getAsJsonObject(ManuscriptStoryPart.TABS_CONFIG_ATTRIBUTE);
+        assertThat(stored.getAsJsonArray("columns").get(0).getAsJsonObject().getAsJsonArray("groups").get(0)
+                .getAsJsonObject().getAsJsonArray("tabs")).hasSize(1).first().isEqualTo(new com.google.gson.JsonPrimitive(STORY));
+
+        // and it is there when the book is opened again
+        TabDock restored = leftBar(opened(saved));
+        assertThat(restored.getLayout().getAsJsonArray("columns").get(0).getAsJsonObject().getAsJsonArray("groups").get(0)
+                .getAsJsonObject().getAsJsonArray("tabs")).hasSize(1).first().isEqualTo(new com.google.gson.JsonPrimitive(STORY));
+    }
+
+    @Test
+    void storyPartKeepsTheWidthOfTheStoryInTheManuscript() throws Exception {
+        login();
+        Manuscript manuscript = book();
+        TabDock dock = leftBar(opened(manuscript));
+
+        dragEnd(descendants(dock, SplitLayout.class).get(0), 35);
+
+        Manuscript saved = manuscriptService.find(manuscript);
+        JsonObject stored = saved.getAttributes().getAsJsonObject(ManuscriptStoryPart.TABS_CONFIG_ATTRIBUTE);
+        assertThat(stored.getAsJsonArray("columns").get(0).getAsJsonObject().get("size").getAsDouble()).isEqualTo(35.0);
+        assertThat(stored.getAsJsonArray("columns").get(1).getAsJsonObject().get("size").getAsDouble()).isEqualTo(65.0);
 
         // a dialog opened later has the divider where it was left
-        ManuscriptDialog next = new ManuscriptDialog(saved);
-        next.create();
-        next.open();
-        assertThat(mainSplit(next).getSplitterPosition()).isEqualTo(35.0);
+        TabDock restored = leftBar(opened(saved));
+        assertThat(descendants(restored, SplitLayout.class).get(0).getSplitterPosition()).isEqualTo(35.0);
+    }
+
+    @Test
+    void aLayoutSavedBeforeTheStoryWasATabGetsTheStoryAtTheRight() throws Exception {
+        login();
+        Manuscript manuscript = book();
+        // the sidebar in two sheets, the splitter at 30 %: what the old versions stored
+        manuscript.getAttributes().add(ManuscriptStoryPart.TABS_CONFIG_ATTRIBUTE,
+                layout("\"" + CHAPTERS + "\"", "\"" + LOREBOOK + "\""));
+        manuscript.getAttributes().addProperty(ManuscriptStoryPart.SPLIT_POSITION_ATTRIBUTE, 30.0);
+        manuscript = manuscriptService.save(manuscript);
+
+        TabDock dock = leftBar(opened(manuscript));
+
+        assertThat(dock.getLayout()).isEqualTo(json("{\"columns\":["
+                + "{\"size\":30,\"groups\":[{\"tabs\":[\"" + CHAPTERS + "\"]},{\"tabs\":[\"" + LOREBOOK + "\"]}]},"
+                + "{\"size\":70,\"groups\":[{\"tabs\":[\"" + STORY + "\"]}]}]}"));
+        assertThat(sheets(dock)).hasSize(3);
+
+        // the next save of the layout drops the old attribute
+        dragEnd(descendants(dock, SplitLayout.class).get(0), 40);
+        Manuscript saved = manuscriptService.find(manuscript);
+        assertThat(saved.getAttributes().has(ManuscriptStoryPart.SPLIT_POSITION_ATTRIBUTE)).isFalse();
+        assertThat(saved.getAttributes().getAsJsonObject(ManuscriptStoryPart.TABS_CONFIG_ATTRIBUTE)
+                .getAsJsonArray("columns").get(0).getAsJsonObject().get("size").getAsDouble()).isEqualTo(40.0);
+    }
+
+    @Test
+    void aSplitterSavedBeforeTheStoryWasATabIsTheWidthOfTheSidebar() throws Exception {
+        login();
+        Manuscript manuscript = book();
+        manuscript.getAttributes().addProperty(ManuscriptStoryPart.SPLIT_POSITION_ATTRIBUTE, 35.0);
+        manuscript = manuscriptService.save(manuscript);
+
+        TabDock dock = leftBar(opened(manuscript));
+
+        assertThat(descendants(dock, SplitLayout.class).get(0).getSplitterPosition()).isEqualTo(35.0);
+        assertThat(dock.getLayout().getAsJsonArray("columns")).hasSize(2);
+    }
+
+    @Test
+    void restoreDefaultLayoutPutsTheTabsBack() throws Exception {
+        login();
+        Manuscript manuscript = book();
+        ManuscriptDialog dialog = opened(manuscript);
+        TabDock dock = leftBar(dialog);
+        attached(dock);
+        drag(tab(dock, "Story"));
+        drop(sideZones(dock).get(0));
+        dragEnd(descendants(dock, SplitLayout.class).get(0), 35);
+        assertThat(manuscriptService.find(manuscript).getAttributes().has(ManuscriptStoryPart.TABS_CONFIG_ATTRIBUTE)).isTrue();
+
+        java.lang.reflect.Method restore = ManuscriptStoryPart.class.getDeclaredMethod("restoreDefaultLayout");
+        restore.setAccessible(true);
+        restore.invoke(storyPart(dialog));
+
+        assertThat(dock.getLayout()).isEqualTo(json("{\"columns\":["
+                + "{\"size\":20,\"groups\":[{\"tabs\":[\"" + CHAPTERS + "\",\"" + LOREBOOK + "\"]}]},"
+                + "{\"size\":80,\"groups\":[{\"tabs\":[\"" + STORY + "\"]}]}]}"));
+        Manuscript saved = manuscriptService.find(manuscript);
+        assertThat(saved.getAttributes().has(ManuscriptStoryPart.TABS_CONFIG_ATTRIBUTE)).isFalse();
+        assertThat(saved.getAttributes().has(ManuscriptStoryPart.SPLIT_POSITION_ATTRIBUTE)).isFalse();
+    }
+
+    @Test
+    void restoreDefaultLayoutKeepsTheTabsOfExtensions() throws Exception {
+        login();
+        ManuscriptDialog dialog = opened(book());
+        TabDock dock = leftBar(dialog);
+        dock.add("extra", "Extra", new Div());
+        attached(dock);
+        drag(tab(dock, "Extra"));
+        drop(sideZones(dock).get(0));
+        assertThat(sheets(dock)).hasSize(3);
+
+        java.lang.reflect.Method restore = ManuscriptStoryPart.class.getDeclaredMethod("restoreDefaultLayout");
+        restore.setAccessible(true);
+        restore.invoke(storyPart(dialog));
+
+        // in the first sheet, with the tabs of the sidebar
+        assertThat(captions(sheets(dock).get(0))).hasSize(3).contains("Extra");
+    }
+
+    @Test
+    void showStorySelectsTheStoryTabWhenItIsBehindAnother() throws Exception {
+        login();
+        Manuscript manuscript = book();
+        // the story and the outline in one sheet
+        manuscript.getAttributes().add(ManuscriptStoryPart.TABS_CONFIG_ATTRIBUTE,
+                layout("\"" + CHAPTERS + "\",\"" + STORY + "\",\"" + LOREBOOK + "\""));
+        manuscript = manuscriptService.save(manuscript);
+        ManuscriptDialog dialog = opened(manuscript);
+        TabDock dock = leftBar(dialog);
+        TabSheet sheet = sheets(dock).get(0);
+        sheet.setSelectedTab(tab(dock, "Story"));
+        sheet.setSelectedTab(sheet.getTabAt(0));
+        assertThat(sheet.getSelectedTab()).isNotEqualTo(tab(dock, "Story"));
+
+        storyPart(dialog).showStory();
+
+        assertThat(sheet.getSelectedTab()).isEqualTo(tab(dock, "Story"));
+    }
+
+    @Test
+    void choosingABranchInTheTreeShowsTheStory() throws Exception {
+        login();
+        Manuscript manuscript = book();
+        manuscript.getAttributes().add(ManuscriptStoryPart.TABS_CONFIG_ATTRIBUTE,
+                layout("\"" + CHAPTERS + "\",\"" + STORY + "\",\"" + LOREBOOK + "\""));
+        manuscript = manuscriptService.save(manuscript);
+        ManuscriptDialog dialog = opened(manuscript);
+        TabDock dock = leftBar(dialog);
+        TabSheet sheet = sheets(dock).get(0);
+        sheet.setSelectedTab(sheet.getTabAt(0));
+
+        // what the tree does after it made another part the end of the branch
+        dialog.selectStoryPart();
+
+        assertThat(sheet.getSelectedTab()).isEqualTo(tab(dock, "Story"));
+    }
+
+    @Test
+    void aGenerationLeavesTheStoryEnabledAndTheOtherTabsNot() throws Exception {
+        login();
+        ManuscriptDialog dialog = opened(book());
+        TabDock dock = leftBar(dialog);
+        // a book without parts opens on the info tab, the tab sheet of the dialog disables the content of the others
+        dialog.selectStoryPart();
+
+        dialog.freeze();
+        assertThat(tab(dock, "Story").isEnabled()).isTrue();
+        assertThat(tab(dock, "Lorebook").isEnabled()).isFalse();
+
+        dialog.unfreeze();
+        assertThat(tab(dock, "Lorebook").isEnabled()).isTrue();
+    }
+
+    // ---- select and enabled
+
+    @Test
+    void selectShowsTheTabInItsSheet() throws Exception {
+        login();
+        TabDock dock = dock("a", "b");
+        TabSheet sheet = sheets(dock).get(0);
+        sheet.setSelectedTab(tab(dock, "B"));
+
+        assertThat(dock.select("a")).isTrue();
+
+        assertThat(sheet.getSelectedTab().getLabel()).isEqualTo("A");
+        assertThat(dock.storeState()).isEqualTo(json("{\"selected\":[\"a\"]}"));
+        assertThat(dock.select("nothing")).isFalse();
+    }
+
+    @Test
+    void selectFindsTheTabWhereTheUserMovedIt() throws Exception {
+        login();
+        TabDock dock = dock("a", "b", "c");
+        drag(tab(dock, "A"));
+        drop(zones(dock).get(zones(dock).size() - 1));
+        TabSheet sheetOfB = sheets(dock).get(0);
+        sheetOfB.setSelectedTab(tab(dock, "C"));
+
+        assertThat(dock.select("b")).isTrue();
+
+        assertThat(sheetOfB.getSelectedTab().getLabel()).isEqualTo("B");
+    }
+
+    @Test
+    void selectTellsTheStateListener() throws Exception {
+        login();
+        TabDock dock = dock("a", "b");
+        sheets(dock).get(0).setSelectedTab(tab(dock, "B"));
+        int[] changes = {0};
+        dock.setOnStateChange(() -> changes[0]++);
+
+        dock.select("a");
+        dock.select("a");
+
+        // the second one changes nothing
+        assertThat(changes[0]).isEqualTo(1);
+    }
+
+    @Test
+    void tabsExceptOneCanBeDisabled() throws Exception {
+        login();
+        TabDock dock = new TabDock();
+        Div a = new Div();
+        Div b = new Div();
+        dock.add("a", "A", a);
+        dock.add("b", "B", b);
+        ui.add(dock);
+        dock.select("b");
+        // the sheet itself disables the content of the tab it does not show
+        assertThat(a.getElement().isEnabled()).isFalse();
+
+        dock.setTabsEnabled(false, "b");
+
+        assertThat(tab(dock, "A").isEnabled()).isFalse();
+        assertThat(tab(dock, "B").isEnabled()).isTrue();
+        assertThat(b.getElement().isEnabled()).isTrue();
+
+        // a tab that comes later is disabled too
+        Div c = new Div();
+        dock.add("c", "C", c);
+        assertThat(tab(dock, "C").isEnabled()).isFalse();
+
+        dock.setTabsEnabled(true, null);
+        assertThat(tab(dock, "A").isEnabled()).isTrue();
+        assertThat(tab(dock, "C").isEnabled()).isTrue();
+        assertThat(b.getElement().isEnabled()).isTrue();
+    }
+
+    @Test
+    void theShownContentOfADisabledTabIsDisabledAndEnabledAgain() throws Exception {
+        login();
+        TabDock dock = new TabDock();
+        Div a = new Div();
+        Div b = new Div();
+        dock.add("a", "A", a);
+        // the second sheet shows b
+        dock.add("b", "B", b);
+        ui.add(dock);
+        drag(tab(dock, "B"));
+        drop(zones(dock).get(zones(dock).size() - 1));
+        assertThat(a.getElement().isEnabled()).isTrue();
+        assertThat(b.getElement().isEnabled()).isTrue();
+
+        dock.setTabsEnabled(false, "a");
+
+        assertThat(a.getElement().isEnabled()).isTrue();
+        assertThat(b.getElement().isEnabled()).isFalse();
+
+        dock.setTabsEnabled(true, null);
+        assertThat(b.getElement().isEnabled()).isTrue();
     }
 
     @Test
@@ -615,23 +891,16 @@ class TabDockTest extends MarginaliaTestBase {
         ui.add(dock);
     }
 
-    /**
-     * The splitter between the sidebar and the story.
-     */
-    private static SplitLayout mainSplit(ManuscriptDialog dialog) throws Exception {
+    private static ManuscriptStoryPart storyPart(ManuscriptDialog dialog) throws Exception {
         java.lang.reflect.Field story = ManuscriptDialog.class.getDeclaredField("storyPart");
         story.setAccessible(true);
-        java.lang.reflect.Field split = ManuscriptStoryPart.class.getDeclaredField("mainLayout");
-        split.setAccessible(true);
-        return (SplitLayout) split.get(story.get(dialog));
+        return (ManuscriptStoryPart) story.get(dialog);
     }
 
     private static TabDock leftBar(ManuscriptDialog dialog) throws Exception {
-        java.lang.reflect.Field story = ManuscriptDialog.class.getDeclaredField("storyPart");
-        story.setAccessible(true);
         java.lang.reflect.Field bar = ManuscriptStoryPart.class.getDeclaredField("leftBar");
         bar.setAccessible(true);
-        return (TabDock) bar.get(story.get(dialog));
+        return (TabDock) bar.get(storyPart(dialog));
     }
 
 }

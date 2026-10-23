@@ -672,6 +672,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_GENERATE_FROM_NEW_TURN_FORM, "新しいターンのフォームから生成");
         setValue(L.LABEL_EDIT_LAST_PART, "最後のパートを編集");
         setValue(L.LABEL_SAVE_EDITED_PART, "編集中のパートを保存");
+        setValue(L.LABEL_RESTORE_DEFAULT_LAYOUT, "既定のレイアウトに戻す");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1120,6 +1121,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_SHORTCUT_USED_BY, "「%s」と同じキーです。");
         setValue(L.MSG_SHORTCUT_BROWSER_KEY, "このキーはブラウザが使用するため、ページに届かない場合があります。");
         setValue(L.MSG_SHORTCUT_ALT_CHARACTER, "一部のキーボード（macOS）では Alt と文字キーで文字が入力されるため、動作しない場合があります。");
+        setValue(L.MSG_CONFIRM_RESTORE_DEFAULT_LAYOUT, "ストーリー、アウトライン、その他のタブを新しい本と同じ配置に戻しますか？テキストには影響せず、この本のタブの配置だけが戻ります。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
