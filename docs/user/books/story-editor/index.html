@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846025872724">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846055218379">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846025872724" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846055218379" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846025872724" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846055218379" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846025872724" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846055218379" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -383,6 +383,7 @@ prompt, the model gets them as <em>Current Location &amp; Time</em>, <em>Point o
 | **Discard Changes** | Only while the text is edited: closes the field without saving, the part keeps the text it was last saved with. If you changed the text, you are asked first. |
 | **Regenerate** | Writes the last part again, replacing its text. Only on the last part. |
 | **Swipe** | Writes another version of the last part and keeps the old one as a separate branch. Only on the last part. See [Branches &amp; story tree](branches-and-story-tree.md#trying-another-version-of-the-last-part). |
+| **Redraft** | Lets the model write this part again from your instructions, on any part, see [below](#redrafting-a-part). Not while the text is edited. |
 | **Branch Story** | Starts a new branch from this part, see [Branches &amp; story tree](branches-and-story-tree.md#branching-from-an-earlier-part). |
 | **Merge into previous part** | Adds the text of this part to the part before it, see [below](#merging-a-part-into-the-previous-one). Not on the first part. |
 | **Show Prompt** | Shows the exact prompt that was sent to the model for this part. |
@@ -415,6 +416,10 @@ prompt, the model gets them as <em>Current Location &amp; Time</em>, <em>Point o
 <tr>
 <td><strong>Swipe</strong></td>
 <td>Writes another version of the last part and keeps the old one as a separate branch. Only on the last part. See <a href="../branches-and-story-tree/#trying-another-version-of-the-last-part">Branches &amp; story tree</a>.</td>
+</tr>
+<tr>
+<td><strong>Redraft</strong></td>
+<td>Lets the model write this part again from your instructions, on any part, see <doc-anchor-trigger to="#redrafting-a-part">below</doc-anchor-trigger>. Not while the text is edited.</td>
 </tr>
 <tr>
 <td><strong>Branch Story</strong></td>
@@ -517,6 +522,33 @@ generation and drops the summary.</p>
 <p><strong>Delete</strong> removes the part from the story. The parts that followed it stay and continue from the part before it, so
 deleting a part in the middle of the story just takes it out. Deleting the last part makes the part before it the new
 end of the branch.</p>
+<h2 id="redrafting-a-part">Redrafting a part</h2>
+<p><strong>Regenerate</strong> and <strong>Swipe</strong> work on the last part only and write it from scratch. <strong>Redraft</strong> works on any part, also an
+old one in the middle of the story, and keeps what you do not ask to change. Choose <strong>Redraft</strong> in the menu of the part:</p>
+<ol>
+<li>
+<p>Write what should change in <strong>Instructions for the redraft</strong>: <em>add more dialogue between the two</em>, <em>make the fight
+longer</em>, <em>remove the explanation of the map</em>, <em>keep the ending as it is</em>. Empty instructions write the part again with
+the same events.</p>
+</li>
+<li>
+<p>Choose <strong>Redraft</strong>. The text streams into <strong>Redrafted text</strong>; <strong>Stop</strong> ends it early. Choose <strong>Redraft again</strong> for
+another try, with other instructions if you like. <strong>Differences</strong> shows what changed against the part, word by word.</p>
+</li>
+<li>
+<p>The redrafted text is a field you can still edit. <strong>Apply</strong> replaces the text of the part with it; <strong>Close</strong> throws it
+away. Nothing in the book changes before <strong>Apply</strong>.</p>
+</li>
+</ol>
+<p>The model gets one prompt, the <a href="../prompts/#redraft-prompt">redraft prompt</a>: the part, your instructions, the story before
+the part (the older story as <a href="../summaries/">summaries</a> where there are valid ones, the rest as text, the newest part first
+when it does not all fit), as much of the story after the part as fits (up to a quarter of the room), the lore the part
+was written with, the point of view, tense and style of the book, and the scene setting, point of view character, present
+characters and instructions of the turn the part came from. The story after the part is there so the new text still leads
+into it: events the following parts rely on should stay.</p>
+<p>The part keeps its place, its summary, its pictures and how it was generated; the text, its words and tokens are replaced
+and the part counts as edited. Applying the redraft is an edit like <strong>Save</strong> in the editor, so <a href="../summaries/">summaries</a>
+that describe the old text become outdated, and Marginalia tells how many. A summary on the part itself is one of them.</p>
 <h2 id="merging-a-part-into-the-previous-one">Merging a part into the previous one</h2>
 <p>A model that stopped in the middle of a sentence (the response limit, a cut connection) cannot be told to &quot;continue&quot; the
 same text reliably. Write the next part instead (<em>continue from where the last part stopped</em>) and join the two with
@@ -784,7 +816,7 @@ tense, style and <a href="../summaries/">summaries</a>. The jailbreak prompt of 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (5ed1c171).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (370c28e2).</p></div>
             </footer>
         </div>
     </div>

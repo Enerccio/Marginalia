@@ -114,6 +114,58 @@ Execute Level-2 Context Consolidation Protocol. Aggregate sequential event ledge
 === PREVIOUSLY SUMMARIZED BLOCKS END ===
 """;
 
+    public static final String DEFAULT_REDRAFT_PROMPT = """
+### OBJECTIVE
+Redraft one part of the ongoing narrative "MANUSCRIPT CHRONICLE". Rewrite the PART TO REDRAFT the way the AUTHOR'S INSTRUCTIONS ask, so that it stays a seamless piece of the story: it must still fit what comes before it and lead into what follows it.
+
+### CORE DIRECTIVES
+1. **Follow the Author**: Apply the AUTHOR'S INSTRUCTIONS to the part (add more of something, change something, expand, tighten, fix). Whatever the author does not ask to change stays as it is, in substance and as far as possible in wording.
+2. **Continuity**: The story before the part is established fact. The redrafted part begins where that story ends and must not contradict the text that follows it: events, names, injuries, possessions and promises that the following text relies on still have to happen.
+3. **Voice**: Keep the narrative voice, tense and style given below, and match the voice of the part and of the story before it.
+4. **Lore**: Use the BACKGROUND LORE strictly as a factual reference. Do not repeat it.
+
+### STRICT NEGATIVE CONSTRAINTS
+* **Output Only the Part**: Begin immediately with the redrafted text. No intro, no notes about what was changed, no headings, no quotation of the instructions.
+* **Stay Inside the Part**: Do NOT continue the story past the end of the part and do NOT repeat the text before or after it.
+* **No Unrequested Inventions**: Do NOT add new named characters or major plot points the author did not ask for.
+
+### NARRATION
+{{#narrativePov}}Narrative Voice: {{.}}{{/narrativePov}}
+{{#narrativeTense}}Tense: {{.}}{{/narrativeTense}}
+{{#style}}Style & Tone Guidelines:
+{{.}}{{/style}}
+
+{{#backgroundLore}}=== BACKGROUND LORE START ===
+{{.}}
+=== BACKGROUND LORE END ===
+
+{{/backgroundLore}}{{#summaries}}=== SUMMARY OF THE STORY BEFORE THE PART START ===
+{{.}}
+=== SUMMARY OF THE STORY BEFORE THE PART END ===
+
+{{/summaries}}{{#previousStory}}=== STORY BEFORE THE PART START ===
+{{.}}
+=== STORY BEFORE THE PART END ===
+
+{{/previousStory}}{{#followingStory}}=== STORY AFTER THE PART START ===
+{{.}}
+=== STORY AFTER THE PART END ===
+
+{{/followingStory}}{{#povCharacter}}Point of View Character of the part: {{.}}
+{{/povCharacter}}{{#sceneSetting}}Location & Time of the part: {{.}}
+{{/sceneSetting}}{{#presentCharacters}}Characters present in the part: {{.}}
+{{/presentCharacters}}{{#instructions}}Plot specifications the part was written for:
+{{.}}
+{{/instructions}}
+=== PART TO REDRAFT START ===
+{{text}}
+=== PART TO REDRAFT END ===
+
+=== AUTHOR'S INSTRUCTIONS START ===
+{{#redraftInstructions}}{{.}}{{/redraftInstructions}}{{^redraftInstructions}}Write the part again, better, keeping its events.{{/redraftInstructions}}
+=== AUTHOR'S INSTRUCTIONS END ===
+""";
+
     /**
      * Markdown of the first (title) page of an exported book, rendered as Handlebars template with
      * {@link com.github.enerccio.marginalia.domain.templates.ExportHeaderTemplateData}.

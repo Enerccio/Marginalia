@@ -135,6 +135,7 @@ Every part has a menu (☰) in its top right corner:
 | **Discard Changes** | Only while the text is edited: closes the field without saving, the part keeps the text it was last saved with. If you changed the text, you are asked first. |
 | **Regenerate** | Writes the last part again, replacing its text. Only on the last part. |
 | **Swipe** | Writes another version of the last part and keeps the old one as a separate branch. Only on the last part. See [Branches & story tree](branches-and-story-tree.md#trying-another-version-of-the-last-part). |
+| **Redraft** | Lets the model write this part again from your instructions, on any part, see [below](#redrafting-a-part). Not while the text is edited. |
 | **Branch Story** | Starts a new branch from this part, see [Branches & story tree](branches-and-story-tree.md#branching-from-an-earlier-part). |
 | **Merge into previous part** | Adds the text of this part to the part before it, see [below](#merging-a-part-into-the-previous-one). Not on the first part. |
 | **Show Prompt** | Shows the exact prompt that was sent to the model for this part. |
@@ -182,6 +183,30 @@ generation and drops the summary.
 **Delete** removes the part from the story. The parts that followed it stay and continue from the part before it, so
 deleting a part in the middle of the story just takes it out. Deleting the last part makes the part before it the new
 end of the branch.
+
+## Redrafting a part
+
+**Regenerate** and **Swipe** work on the last part only and write it from scratch. **Redraft** works on any part, also an
+old one in the middle of the story, and keeps what you do not ask to change. Choose **Redraft** in the menu of the part:
+
+1. Write what should change in **Instructions for the redraft**: *add more dialogue between the two*, *make the fight
+   longer*, *remove the explanation of the map*, *keep the ending as it is*. Empty instructions write the part again with
+   the same events.
+2. Choose **Redraft**. The text streams into **Redrafted text**; **Stop** ends it early. Choose **Redraft again** for
+   another try, with other instructions if you like. **Differences** shows what changed against the part, word by word.
+3. The redrafted text is a field you can still edit. **Apply** replaces the text of the part with it; **Close** throws it
+   away. Nothing in the book changes before **Apply**.
+
+The model gets one prompt, the [redraft prompt](prompts.md#redraft-prompt): the part, your instructions, the story before
+the part (the older story as [summaries](summaries.md) where there are valid ones, the rest as text, the newest part first
+when it does not all fit), as much of the story after the part as fits (up to a quarter of the room), the lore the part
+was written with, the point of view, tense and style of the book, and the scene setting, point of view character, present
+characters and instructions of the turn the part came from. The story after the part is there so the new text still leads
+into it: events the following parts rely on should stay.
+
+The part keeps its place, its summary, its pictures and how it was generated; the text, its words and tokens are replaced
+and the part counts as edited. Applying the redraft is an edit like **Save** in the editor, so [summaries](summaries.md)
+that describe the old text become outdated, and Marginalia tells how many. A summary on the part itself is one of them.
 
 ## Merging a part into the previous one
 

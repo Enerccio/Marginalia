@@ -1,0 +1,108 @@
+package com.github.enerccio.marginalia.ui.dialogs.story;
+
+import com.github.enerccio.marginalia.domain.components.TurnInput;
+import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.ChatMessageService;
+import com.github.enerccio.marginalia.domain.service.ManuscriptService;
+import com.github.enerccio.marginalia.test.MarginaliaTestBase;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.textfield.TextArea;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * The window of the redraft of a part: nothing is stored before Apply, Apply replaces the text. (Streaming the redraft
+ * is {@code RedraftTest}, it needs a UI with a session.)
+ */
+class RedraftDialogTest extends MarginaliaTestBase {
+
+    @Autowired
+    private ChatMessageService chatMessageService;
+
+    @Autowired
+    private ManuscriptService manuscriptService;
+
+    // UI.setCurrent keeps only a weak reference, see WorkspaceStateTest
+    private UI ui;
+
+    private Manuscript book;
+    private ChatMessage part;
+
+    @BeforeEach
+    void setUp() throws Exception {
+        ui = new UI();
+        UI.setCurrent(ui);
+        login();
+        Manuscript m = new Manuscript();
+        m.setName(uniqueName("book"));
+        book = manuscriptService.save(m);
+        part = chatMessageService.find(chatMessageService.createPart(book, null, "He drew his sword.", new TurnInput(null, null, null, "Write the duel")).getId());
+    }
+
+    private static Stream<Component> all(Component root) {
+        return Stream.concat(Stream.of(root), root.getChildren().flatMap(RedraftDialogTest::all));
+    }
+
+    private static List<Component> components(RedraftDialog dialog) {
+        List<Component> components = new ArrayList<>(all(dialog).toList());
+        dialog.getFooter().getElement().getChildren().forEach(e -> e.getComponent().ifPresent(components::add));
+        return components;
+    }
+
+    private static TextArea redrafted(List<Component> components) {
+        // the instructions come first, the redrafted text second
+        return (TextArea) components.stream().filter(TextArea.class::isInstance).skip(1).findFirst().orElseThrow();
+    }
+
+    private static Button applyButton(List<Component> components) {
+        return components.stream().filter(Button.class::isInstance).map(Button.class::cast)
+                .filter(b -> "primary".equals(b.getThemeName())).reduce((first, second) -> second).orElseThrow();
+    }
+
+    @Test
+    void applyIsOffUntilThereIsARedraftedText() {
+        RedraftDialog dialog = RedraftDialog.create(book, part, saved -> {
+        });
+        List<Component> components = components(dialog);
+
+        assertThat(applyButton(components).isEnabled()).isFalse();
+
+        redrafted(components).setValue("He drew his sword slowly.");
+        assertThat(applyButton(components).isEnabled()).isTrue();
+
+        redrafted(components).setValue("  ");
+        assertThat(applyButton(components).isEnabled()).isFalse();
+    }
+
+    @Test
+    void applyReplacesTheTextOfThePart() throws Exception {
+        AtomicReference<ChatMessage> applied = new AtomicReference<>();
+        RedraftDialog dialog = RedraftDialog.create(book, part, applied::set);
+        List<Component> components = components(dialog);
+        dialog.open();
+
+        redrafted(components).setValue("He drew his sword slowly, rain on the blade.");
+        // nothing changed yet
+        assertThat(chatMessageService.find(part.getId()).getResponse()).isEqualTo("He drew his sword.");
+
+        applyButton(components).click();
+
+        ChatMessage stored = chatMessageService.find(part.getId());
+        assertThat(stored.getResponse()).isEqualTo("He drew his sword slowly, rain on the blade.");
+        assertThat(stored.isEdited()).isTrue();
+        assertThat(stored.getWordCount()).isEqualTo(9);
+        assertThat(applied.get().getResponse()).isEqualTo(stored.getResponse());
+        assertThat(dialog.isOpened()).isFalse();
+    }
+}

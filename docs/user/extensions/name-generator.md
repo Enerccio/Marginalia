@@ -15,7 +15,7 @@ choose which categories the model may use (see [Tools for the model](tools.md));
 
 | Function | What it does |
 |---|---|
-| `list_name_categories` | Lists the categories of names. |
+| `list_name_categories` | Lists the categories of names; with a `filter` only those that have its words in the name. |
 | `generate_names` | Makes up to 100 new names of one category. Optionally with a shortest and longest length. |
 
 Without a length, the names are as long as the names of that category usually are (a category of long company names gives
@@ -30,7 +30,7 @@ which can use them in their own prompts (for example for `/generate-lore-entry` 
 
 | Command | What it does |
 |---|---|
-| `/list-name-categories [<filter>]` | Lists the categories as a JSON array; with a filter only those whose name starts with it (not case sensitive). |
+| `/list-name-categories [<filter>]` | Lists the categories as a JSON array; with a filter only those whose name has all its words (each at the start of a word, in any order, not case sensitive: `chad male` finds *Africa - Central Africa - Chad - Male* but not *…Female*). |
 | `/generate-names category count [min_length [max_length]]` | Makes up to 100 names of the category and returns them as a JSON array. Different names each time. |
 
 Both only read.

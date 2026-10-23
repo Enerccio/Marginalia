@@ -186,6 +186,7 @@ describes): the answer lists them and says what to do, `/revalidate-summaries` i
 | `/next [scene] [pov] [present] [instructions] [after] [profile]` | Has the model write the next part, like the **New turn** button. Slow, costs tokens; one generation of a book runs at a time, the others wait. `profile` names one of the model profiles of an agent. |
 | `/swipe [part] [scene] [pov] [present] [instructions] [profile]` | Has the model write another version of the last part of a branch. What you leave out is taken from the part. |
 | `/regenerate [part] [scene] [pov] [present] [instructions] [profile]` | Has the model write the last part of a branch again, replacing its text. Asks first. |
+| `/redraft-part <part> [instructions] [prompt] [profile] [apply]` | Has the model write any part again from your instructions (see [Redrafting a part](../books/story-editor.md#redrafting-a-part)) and replaces its text. `prompt` is a redraft prompt to use instead of the book's, `profile` a model profile of an agent, `apply` `false` only returns the text. `DESTRUCTIVE`; asks first. Slow, costs tokens. |
 | `/set-book-info [name] [description] [pov] [tense] [style] [language]` | Changes the descriptive settings of the book; only the values you give. |
 | `/set-book-prompts [template] [userPrompt] [summaryPrompt] [metaSummaryPrompt]` | Replaces the prompt templates of the book. Each is checked first. `DESTRUCTIVE`: a bad template spoils every later generation. |
 | `/set-book-tags [add] [remove]` | Adds and takes off tags of the book (comma separated). |

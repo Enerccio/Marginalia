@@ -652,6 +652,15 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_TOKEN_BUDGET_SHARE, "プロンプト予算に占める割合");
         setValue(L.LABEL_LIGHT_THEME, "ライトテーマに切り替え");
         setValue(L.LABEL_DARK_THEME, "ダークテーマに切り替え");
+        setValue(L.LABEL_REDRAFT, "書き直し");
+        setValue(L.LABEL_REDRAFT_PROMPT, "書き直しプロンプト");
+        setValue(L.LABEL_REDRAFT_INSTRUCTIONS, "書き直しの指示");
+        setValue(L.LABEL_REDRAFT_AGAIN, "もう一度書き直す");
+        setValue(L.LABEL_REDRAFTED_TEXT, "書き直した文章");
+        setValue(L.LABEL_REDRAFTING, "書き直し中…");
+        setValue(L.LABEL_APPLY, "適用");
+        setValue(L.LABEL_SEARCH_COMMANDS, "コマンドを検索");
+        setValue(L.LABEL_COMMAND_REDRAFT_PART, "パートを書き直す");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -856,6 +865,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_PROFILE_UNUSABLE, "プロファイル「%s」のモデルは使えません（ユーザーが利用できません）。");
         setValue(L.ERROR_COMMAND_SUMMARY_NOT_POSSIBLE, "ここでは要約を作れません。本にモデルがないか、要約する内容がないか、範囲が正しくありません。");
         setValue(L.ERROR_COMMAND_GENERATION_CANCELLED, "生成はキャンセルされました。");
+        setValue(L.ERROR_REDRAFT_FAILED, "パートの書き直しのために推論サービスに接続できませんでした。");
+        setValue(L.ERROR_COMMAND_REDRAFT_NOT_POSSIBLE, "このパートは書き直せません。文章がないか、本にモデルがありません。");
+        setValue(L.ERROR_COMMAND_REDRAFT_CONTEXT, "書き直しがモデルのコンテキストに収まりません（必要 %d トークン、利用可能 %d）。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "フォームを保存できません。");
@@ -1088,6 +1100,12 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_BRANCH_TOKENS_STALE, "%s 件の要約はストーリーと一致しなくなっており、パート生成時に破棄されます。");
         setValue(L.MSG_BRANCH_TOKENS_HELP, "次のプロンプトが運ぶアクティブなブランチのストーリー。保存されたパートと要約から数えています。ロア、システムテンプレート、ターンの指示は同じ予算を使用します。");
         setValue(L.MSG_CONFIRM_DISCARD_EDIT, "このパートへの変更を破棄しますか？最後に保存したテキストが残ります。");
+        setValue(L.MSG_REDRAFT_INFO, "モデルは指示に従ってこのパートを書き直します。パートより前の物語（要約がある部分は要約）、収まる範囲でパートより後の物語、パート作成時のロア、そしてパート自体が渡されます。結果を適用するまで、本は変更されません。");
+        setValue(L.MSG_REDRAFT_PLACEHOLDER, "例：二人の会話を増やす、戦闘を長くする、結末はそのままにする。");
+        setValue(L.MSG_REDRAFT_APPLIED, "パートを書き直した文章に置き換えました。");
+        setValue(L.MSG_REDRAFT_OUTDATED_SUMMARIES, "%d 件の要約が元の文章に基づいていたため、古くなりました。");
+        setValue(L.MSG_COMMAND_REDRAFTING, "パートを書き直しています…");
+        setValue(L.MSG_COMMAND_REDRAFT_CONFIRM, "パート %d の文章を書き直しで置き換えますか？");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1167,6 +1185,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_LANGUAGE, "エージェントが読むすべてのテキスト（コマンドの説明、結果、エラー）の言語です。本の言語とは関係ありません。エージェントはこの設定に関わらず、本の言語で本文を書きます。コマンドとそのパラメータはどの言語でも英語なので、特に小さなモデルでは英語がもっとも確実です。一覧にはインストールされている言語が表示されます。実行は開始時の言語を保持します。");
         setValue(L.HELP_JSON_MERGE, "エージェント、現在のブック、実行開始時のデータを重ねて表示します。場所を選んで、そのいずれかのデータを採用する、除外する、または内部の各場所から組み立てることができます。片方だけが変更した内容はそちらから採用され、両方が変更した場合は場所ごとに統合されます。同じ場所を両方が異なる内容に変更した場合は競合となり、決定するまでエージェントの内容が採用されます。場所を開くと、その場所だけを扱えます。リストの要素は内容(同じデータ、同じIDや名前、似ているもの)で対応付けられます。推測が違っていたら、要素を分割するか別の要素と対応付けてください。テキスト表示では、開いている場所のエージェントのデータを手で編集でき、ツリーに戻るときに検証されます。");
         setValue(L.HELP_NOTIFICATIONS_ALLOW_LOCAL, "権限が付与されている場合のみ有効です。サーバーは localhost、到達可能なプライベートネットワーク、リンクローカルアドレス（自分のネットワークの ntfy や Gotify など）にもメッセージを送ります。許可がなければ公開アドレスだけを呼び出します。管理者は制限されません。");
+        setValue(L.HELP_COMMAND_SEARCH, "コマンドの名前または説明に含まれる語（順不同）。表にはそのすべてを含むコマンドだけが表示されます。上の選択は引き続きすべてのコマンドに適用されます。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");
@@ -1478,6 +1497,16 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_INSERT_PART_RETURN, "新しいパート(ハンドル、位置、単語数、トークン数)、続くブランチの数、そのブランチの長さ、古くなった要約を含むJSON");
         setValue(L.DESC_COMMAND_INSERT_ANCHOR_PARAM, "新しいパートを挿入する基準のパート(ハンドル)。その後ろ、before が true のときは前");
         setValue(L.DESC_COMMAND_INSERT_BEFORE_PARAM, "true にするとパートの後ろではなく前に挿入します。省略時は false");
+        setValue(L.DESC_TEMPLATE_PREVIOUS_STORY, "パートより前の物語。収まる範囲の末尾部分（それ以前は要約に含まれます）。");
+        setValue(L.DESC_TEMPLATE_PART_TEXT, "書き直す対象のパートの文章。");
+        setValue(L.DESC_TEMPLATE_FOLLOWING_STORY, "パートより後の物語。収まる範囲。");
+        setValue(L.DESC_TEMPLATE_REDRAFT_INSTRUCTIONS, "作者がパートで変更したい内容（指示がない場合は空）。");
+        setValue(L.DESC_COMMAND_REDRAFT_PART, "指示に従ってモデルにストーリーのパートを書き直させ（最後のパートに限らず任意のパート）、その文章を置き換えます。トークンを消費します。");
+        setValue(L.DESC_COMMAND_REDRAFT_PART_LLM, "モデルにパート `part`（そのハンドル）を書き直させ、その文章を結果で置き換えます。パートはストーリーのどこにあってもかまいません。`instructions` は変えたい内容（「会話を増やす」「戦闘を長くする」「結末はそのまま」）で、省略すると同じ出来事でパートを書き直します。モデルにはパート、その前後のストーリー（古い部分は要約）、パート作成時のロア、そのターンのデータが渡されます。`prompt` は本の書き直しプロンプトの代わりに使うプロンプト（変数 text, redraftInstructions, previousStory, summaries, followingStory, backgroundLore, narrativePov, narrativeTense, style, povCharacter, sceneSetting, presentCharacters, instructions を持つテンプレート）、`profile` は実行のモデルの代わりに使うエージェントのモデルプロファイル、`apply` を false にすると書き直した文章を返すだけでパートは変更しません（先に確認してから replace-part-text）。文章を置き換えるため、パートを含む要約は古くなります（報告されます）。時間とトークンを消費します。パートと、apply が false のときは文章を返します。");
+        setValue(L.DESC_COMMAND_REDRAFT_PART_RETURN, "JSONオブジェクト: パートのハンドル、位置、語数、トークン数、編集済みフラグ、applied、文章（apply が false のときは全文）、古くなった要約");
+        setValue(L.DESC_COMMAND_REDRAFT_INSTRUCTIONS_PARAM, "パートで変えたい内容。空のときは同じ出来事で書き直す");
+        setValue(L.DESC_COMMAND_REDRAFT_PROMPT_PARAM, "本の書き直しプロンプトの代わりに使うプロンプト（テンプレート）。空のときは本のもの");
+        setValue(L.DESC_COMMAND_REDRAFT_APPLY_PARAM, "false のときは書き直した文章を返すだけでパートは変更しない。true（既定）ではパートの文章を置き換える");
     }
 
     @Override

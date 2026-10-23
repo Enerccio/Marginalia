@@ -116,6 +116,7 @@ public class UserPart implements WorkspaceComponent {
     private TextAreaPopoverComponent defaultUserPromptField;
     private TextAreaPopoverComponent defaultSummaryPromptField;
     private TextAreaPopoverComponent defaultMetaSummaryPromptField;
+    private TextAreaPopoverComponent defaultRedraftPromptField;
     private TextAreaPopoverComponent defaultAgentPromptField;
     private TextArea defaultAgentInstructionsField;
     private TextAreaPopoverComponent defaultAgentCompactionPromptField;
@@ -193,6 +194,9 @@ public class UserPart implements WorkspaceComponent {
 
         templatesFormLayout.add(defaultMetaSummaryPromptField);
         templatesFormLayout.setColspan(defaultMetaSummaryPromptField, 2);
+
+        templatesFormLayout.add(defaultRedraftPromptField);
+        templatesFormLayout.setColspan(defaultRedraftPromptField, 2);
 
         templatesFormLayout.add(defaultAgentPromptField);
         templatesFormLayout.setColspan(defaultAgentPromptField, 2);
@@ -385,6 +389,13 @@ public class UserPart implements WorkspaceComponent {
         defaultMetaSummaryPromptField.setPopoverContent(createTemplateHintPopoverContent(
                 defaultMetaSummaryPromptField, defaultMetaSummaryPromptField.getPopover(), MetaSummaryTemplateData.class, Defaults.DEFAULT_META_SUMMARY));
 
+        defaultRedraftPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_REDRAFT_PROMPT));
+        defaultRedraftPromptField.setWidthFull();
+        ResizableTextArea.install(loc, defaultRedraftPromptField, "160px");
+        defaultRedraftPromptField.setPlaceholder(Defaults.DEFAULT_REDRAFT_PROMPT);
+        defaultRedraftPromptField.setPopoverContent(createTemplateHintPopoverContent(
+                defaultRedraftPromptField, defaultRedraftPromptField.getPopover(), RedraftTemplateData.class, Defaults.DEFAULT_REDRAFT_PROMPT));
+
         // plain text, not a template; what it follows is the placeholder (see refreshAgentPrompt)
         defaultAgentPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_AGENT_DEFAULT_PROMPT));
         defaultAgentPromptField.setWidthFull();
@@ -559,6 +570,7 @@ public class UserPart implements WorkspaceComponent {
             defaultUserPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultUserPrompt()));
             defaultSummaryPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultSummaryPrompt()));
             defaultMetaSummaryPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultMetaSummaryPrompt()));
+            defaultRedraftPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultRedraftPrompt()));
             defaultAgentPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultAgentPrompt()));
             defaultAgentInstructionsField.setValue(StringUtils.defaultString(userSetting.getDefaultAgentInstructions()));
             agentWebhookUrlField.setValue(StringUtils.defaultString(userSetting.getAgentWebhookUrl()));
@@ -570,6 +582,7 @@ public class UserPart implements WorkspaceComponent {
             validateTemplate(defaultUserPromptField, "defaultUserPrompt", UserPromptData.class);
             validateTemplate(defaultSummaryPromptField, "defaultSummaryPrompt", SummaryTemplateData.class);
             validateTemplate(defaultMetaSummaryPromptField, "defaultMetaSummaryPrompt", MetaSummaryTemplateData.class);
+            validateTemplate(defaultRedraftPromptField, "defaultRedraftPrompt", RedraftTemplateData.class);
             tagsView.refresh();
 
         } catch (Exception e) {
@@ -648,6 +661,7 @@ public class UserPart implements WorkspaceComponent {
                     @APILocals(name = "userPrompt", type = String.class),
                     @APILocals(name = "summaryPrompt", type = String.class),
                     @APILocals(name = "metaSummaryPrompt", type = String.class),
+                    @APILocals(name = "redraftPrompt", type = String.class),
                     @APILocals(name = "defaultPov", type = String.class),
                     @APILocals(name = "defaultTense", type = String.class),
                     @APILocals(name = "defaultStyle", type = String.class),
@@ -669,7 +683,8 @@ public class UserPart implements WorkspaceComponent {
         if (!validateTemplate(masterTemplateField, "masterTemplate", MasterTemplateData.class)
                 || !validateTemplate(defaultUserPromptField, "defaultUserPrompt", UserPromptData.class)
                 || !validateTemplate(defaultSummaryPromptField, "defaultSummaryPrompt", SummaryTemplateData.class)
-                || !validateTemplate(defaultMetaSummaryPromptField, "defaultMetaSummaryPrompt", MetaSummaryTemplateData.class)) {
+                || !validateTemplate(defaultMetaSummaryPromptField, "defaultMetaSummaryPrompt", MetaSummaryTemplateData.class)
+                || !validateTemplate(defaultRedraftPromptField, "defaultRedraftPrompt", RedraftTemplateData.class)) {
             return;
         }
 
@@ -677,6 +692,7 @@ public class UserPart implements WorkspaceComponent {
         String userPrompt = defaultUserPromptField.getValue();
         String summaryPrompt = defaultSummaryPromptField.getValue();
         String metaSummaryPrompt = defaultMetaSummaryPromptField.getValue();
+        String redraftPrompt = defaultRedraftPromptField.getValue();
 
         String defaultPov = defaultPovField.getValue();
         String defaultTense = defaultTenseField.getValue();
@@ -705,6 +721,7 @@ public class UserPart implements WorkspaceComponent {
             userSetting.setDefaultUserPrompt(userPrompt);
             userSetting.setDefaultSummaryPrompt(summaryPrompt);
             userSetting.setDefaultMetaSummaryPrompt(metaSummaryPrompt);
+            userSetting.setDefaultRedraftPrompt(redraftPrompt);
             saveWebhook(userSetting);
             if (defaultAgentPromptField.isVisible()) {
                 // hidden for a user who may not use agents: what they once set stays

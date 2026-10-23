@@ -24,14 +24,28 @@ public class NameProviderCommands {
         this.lists = lists;
     }
 
+    private static final String LIST_TEXT = "Lists the lists of real names (forenames and surnames of countries) that pick-real-names accepts, "
+            + "all of them or those whose name contains the words of the filter. Reads only.";
+    private static final String LIST_LLM = "Lists the lists of real names (forenames and surnames of countries) that pick-real-names accepts. "
+            + "Call it first; give `filter`, words the name of the list contains (in any order, not case sensitive), to list only those. "
+            + "Returns a JSON array. Reads only.";
+
     @Command(commandName = LIST, humanNameText = "List real name lists", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            descriptionText = "Lists the lists of real names (forenames and surnames of countries) that pick-real-names accepts. Reads only.",
-            llmDescriptionText = "Lists the lists of real names (forenames and surnames of countries) that pick-real-names accepts. Call it "
-                    + "first. Returns a JSON array. Reads only.",
+            descriptionText = LIST_TEXT, llmDescriptionText = LIST_LLM,
             signature = @CommandParameterSignature,
             returns = @CommandReturn(name = "lists", type = String.class, descriptionText = "JSON array of the lists"))
     public void listLists(CommandContext context) {
         context.setReturn(GSON.toJson(lists.categories()));
+    }
+
+    @Command(commandName = LIST, humanNameText = "List real name lists", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            descriptionText = LIST_TEXT, llmDescriptionText = LIST_LLM,
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "filter", type = String.class,
+                            descriptionText = "Words the name of the lists contains, in any order, not case sensitive")}),
+            returns = @CommandReturn(name = "lists", type = String.class, descriptionText = "JSON array of the lists"))
+    public void listListsFiltered(CommandContext context) {
+        context.setReturn(GSON.toJson(lists.categories(context.get("filter", String.class))));
     }
 
     @Command(commandName = PICK, humanNameText = "Pick real names", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,

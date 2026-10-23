@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846025872724">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846055218379">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846025872724" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846055218379" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846025872724" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846055218379" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846025872724" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846055218379" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -509,6 +509,7 @@ describes): the answer lists them and says what to do, <code translate="no" v-pr
 | `/next [scene] [pov] [present] [instructions] [after] [profile]` | Has the model write the next part, like the **New turn** button. Slow, costs tokens; one generation of a book runs at a time, the others wait. `profile` names one of the model profiles of an agent. |
 | `/swipe [part] [scene] [pov] [present] [instructions] [profile]` | Has the model write another version of the last part of a branch. What you leave out is taken from the part. |
 | `/regenerate [part] [scene] [pov] [present] [instructions] [profile]` | Has the model write the last part of a branch again, replacing its text. Asks first. |
+| `/redraft-part &lt;part&gt; [instructions] [prompt] [profile] [apply]` | Has the model write any part again from your instructions (see [Redrafting a part](../books/story-editor.md#redrafting-a-part)) and replaces its text. `prompt` is a redraft prompt to use instead of the book's, `profile` a model profile of an agent, `apply` `false` only returns the text. `DESTRUCTIVE`; asks first. Slow, costs tokens. |
 | `/set-book-info [name] [description] [pov] [tense] [style] [language]` | Changes the descriptive settings of the book; only the values you give. |
 | `/set-book-prompts [template] [userPrompt] [summaryPrompt] [metaSummaryPrompt]` | Replaces the prompt templates of the book. Each is checked first. `DESTRUCTIVE`: a bad template spoils every later generation. |
 | `/set-book-tags [add] [remove]` | Adds and takes off tags of the book (comma separated). |
@@ -597,6 +598,10 @@ describes): the answer lists them and says what to do, <code translate="no" v-pr
 <tr>
 <td><code translate="no" v-pre>/regenerate [part] [scene] [pov] [present] [instructions] [profile]</code></td>
 <td>Has the model write the last part of a branch again, replacing its text. Asks first.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/redraft-part &lt;part&gt; [instructions] [prompt] [profile] [apply]</code></td>
+<td>Has the model write any part again from your instructions (see <a href="../books/story-editor/#redrafting-a-part">Redrafting a part</a>) and replaces its text. <code translate="no" v-pre>prompt</code> is a redraft prompt to use instead of the book&#x27;s, <code translate="no" v-pre>profile</code> a model profile of an agent, <code translate="no" v-pre>apply</code> <code translate="no" v-pre>false</code> only returns the text. <code translate="no" v-pre>DESTRUCTIVE</code>; asks first. Slow, costs tokens.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>/set-book-info [name] [description] [pov] [tense] [style] [language]</code></td>
@@ -792,7 +797,7 @@ Character Tracker also change the outline and the characters of the open book; o
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (5ed1c171).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (370c28e2).</p></div>
             </footer>
         </div>
     </div>

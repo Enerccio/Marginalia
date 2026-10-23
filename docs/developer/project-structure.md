@@ -195,7 +195,7 @@ See [Services](services.md) and [Generation pipeline](generation-pipeline.md).
 | File | |
 |---|---|
 | `TemplateData` | Base of all template data; implements the SillyTavern-compatible macros. |
-| `MasterTemplateData`, `UserPromptData`, `LorebookTemplateData`, `SummaryTemplateData`, `MetaSummaryTemplateData` | The variables available in each kind of template (listed in the UI hints). |
+| `MasterTemplateData`, `UserPromptData`, `LorebookTemplateData`, `SummaryTemplateData`, `MetaSummaryTemplateData`, `RedraftTemplateData` | The variables available in each kind of template (listed in the UI hints). |
 | `ExportHeaderTemplateData` | The variables (`title`, `author`) of the title page template of story exports. |
 | `TemplateContext` | What macros are evaluated against: POV character, model, story so far, variables. One per generation. |
 | `TemplateVariables` | Storage of `setvar` / `getvar` variables (local per branch, global per book). |

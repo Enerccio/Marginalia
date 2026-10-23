@@ -6,10 +6,11 @@ relationships between them, and a map of those relationships.
 ## The Characters tab
 
 The left sidebar of the [story editor](../books/story-editor.md) gets a **Characters** tab next to *Outline*. Above the
-list are two buttons, **Add new character** and **Relationship map**.
+list is one line of buttons: **Add** (a new character), a menu with the import of lore entries, the **Relationship map**
+and a speech-bubble button for the prompt (hover for the names).
 
-Under them is one line, **In prompt**, with **Depth** and a role, like the [Author's Note](authors-note.md). When *In
-prompt* is checked, every generation gets the characters as a message: a line with the name, the tagline in brackets
+The speech-bubble button opens a popover with **In prompt**, **Depth** and a role, like the [Author's Note](authors-note.md);
+the button is green while the characters are in the prompt. When *In prompt* is checked, every generation gets the characters as a message: a line with the name, the tagline in brackets
 and the note of each character, and a list of the relationships (`Mara -> Tomas: employs`, `<->` when it goes both
 ways). *Depth* is the number of messages after it (`0` the very end, after your instructions, `1` right before them) and
 the role is *System*, *Assistant* or *User*. The text takes its tokens from the room for the story. Nothing is inserted

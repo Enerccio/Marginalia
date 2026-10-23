@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846025872724">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846055218379">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846025872724" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846055218379" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846025872724" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846055218379" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846025872724" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846055218379" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -185,7 +185,7 @@ choose which categories the model may use (see <a href="../tools/">Tools for the
 <h2 id="what-the-model-can-do">What the model can do</h2>
 <retype-table copy-text="| Function | What it does |
 |---|---|
-| `list_name_categories` | Lists the categories of names. |
+| `list_name_categories` | Lists the categories of names; with a `filter` only those that have its words in the name. |
 | `generate_names` | Makes up to 100 new names of one category. Optionally with a shortest and longest length. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -198,7 +198,7 @@ choose which categories the model may use (see <a href="../tools/">Tools for the
 <tbody>
 <tr>
 <td><code translate="no" v-pre>list_name_categories</code></td>
-<td>Lists the categories of names.</td>
+<td>Lists the categories of names; with a <code translate="no" v-pre>filter</code> only those that have its words in the name.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>generate_names</code></td>
@@ -217,7 +217,7 @@ pick one of the names, change it or combine two of them; see the hint of the <em
 which can use them in their own prompts (for example for <code translate="no" v-pre>/generate-lore-entry</code> of the <a href="../lore-generator/">Lore Generator</a>):</p>
 <retype-table copy-text="| Command | What it does |
 |---|---|
-| `/list-name-categories [&lt;filter&gt;]` | Lists the categories as a JSON array; with a filter only those whose name starts with it (not case sensitive). |
+| `/list-name-categories [&lt;filter&gt;]` | Lists the categories as a JSON array; with a filter only those whose name has all its words (each at the start of a word, in any order, not case sensitive: `chad male` finds *Africa - Central Africa - Chad - Male* but not *…Female*). |
 | `/generate-names category count [min_length [max_length]]` | Makes up to 100 names of the category and returns them as a JSON array. Different names each time. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -230,7 +230,7 @@ which can use them in their own prompts (for example for <code translate="no" v-
 <tbody>
 <tr>
 <td><code translate="no" v-pre>/list-name-categories [&lt;filter&gt;]</code></td>
-<td>Lists the categories as a JSON array; with a filter only those whose name starts with it (not case sensitive).</td>
+<td>Lists the categories as a JSON array; with a filter only those whose name has all its words (each at the start of a word, in any order, not case sensitive: <code translate="no" v-pre>chad male</code> finds <em>Africa - Central Africa - Chad - Male</em> but not <em>…Female</em>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>/generate-names category count [min_length [max_length]]</code></td>
@@ -305,7 +305,7 @@ Generator. Without it and the other suites, the Lore Generator has no <em>Tools<
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (5ed1c171).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (370c28e2).</p></div>
             </footer>
         </div>
     </div>

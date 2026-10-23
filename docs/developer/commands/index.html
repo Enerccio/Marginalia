@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846025872724">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846055218379">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846025872724" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846055218379" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846025872724" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846055218379" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846025872724" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846055218379" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -609,7 +609,7 @@ to <code translate="no" v-pre>executePositional</code>, or by name as an agent d
 <code translate="no" v-pre>PartEditCommands</code> (<code translate="no" v-pre>edit-part</code>, <code translate="no" v-pre>replace-part-text</code>, <code translate="no" v-pre>append-to-part</code>, <code translate="no" v-pre>set-part-fields</code>), <code translate="no" v-pre>PartStructureCommands</code> (<code translate="no" v-pre>create-part</code>,
 <code translate="no" v-pre>insert-part</code>, <code translate="no" v-pre>branch-part</code>, <code translate="no" v-pre>delete-part</code>, <code translate="no" v-pre>switch-branch</code>), <code translate="no" v-pre>SummaryWriteCommands</code> (<code translate="no" v-pre>set-summary</code>, <code translate="no" v-pre>remove-summary</code>, <code translate="no" v-pre>revalidate-summaries</code>),
 <code translate="no" v-pre>BookSettingsCommands</code> (<code translate="no" v-pre>set-book-info</code>, <code translate="no" v-pre>set-book-prompts</code>, <code translate="no" v-pre>set-book-tags</code>), <code translate="no" v-pre>StoryGenerationCommands</code> (<code translate="no" v-pre>next</code>, <code translate="no" v-pre>swipe</code>,
-<code translate="no" v-pre>regenerate</code>), <code translate="no" v-pre>SummaryGenerationCommands</code> (<code translate="no" v-pre>regenerate-summary</code>, <code translate="no" v-pre>create-meta-summary</code>), <code translate="no" v-pre>LoreEntryWriteCommands</code> and
+<code translate="no" v-pre>regenerate</code>), <code translate="no" v-pre>SummaryGenerationCommands</code> (<code translate="no" v-pre>regenerate-summary</code>, <code translate="no" v-pre>create-meta-summary</code>), <code translate="no" v-pre>RedraftCommands</code> (<code translate="no" v-pre>redraft-part</code>, over <code translate="no" v-pre>RedraftService</code>; the model is the one of the book as the scope gives it, which for an agent follows <code translate="no" v-pre>Agent.useAgentModel</code>, or a <code translate="no" v-pre>profile</code> through <code translate="no" v-pre>ManuscriptWriteSupport.options</code>), <code translate="no" v-pre>LoreEntryWriteCommands</code> and
 <code translate="no" v-pre>LorebookWriteCommands</code>. They call the services the screens use (<code translate="no" v-pre>ChatMessageService.updateResponse</code> / <code translate="no" v-pre>createPart</code> / <code translate="no" v-pre>insertPart</code> /
 <code translate="no" v-pre>branchAndSwitch</code> / <code translate="no" v-pre>swipeAndSwitch</code> / <code translate="no" v-pre>deleteNodeAndMigrateChildren</code>, <code translate="no" v-pre>SummaryService.updateSummaryText</code> / <code translate="no" v-pre>removeSummary</code> /
 <code translate="no" v-pre>revalidate</code>, <code translate="no" v-pre>ManuscriptService.updateSettings</code>, <code translate="no" v-pre>LorebookEntryService.create</code> / <code translate="no" v-pre>update</code> / <code translate="no" v-pre>move</code> / <code translate="no" v-pre>deleteEntry</code>,
@@ -685,7 +685,7 @@ change nothing).</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (5ed1c171).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (370c28e2).</p></div>
             </footer>
         </div>
     </div>

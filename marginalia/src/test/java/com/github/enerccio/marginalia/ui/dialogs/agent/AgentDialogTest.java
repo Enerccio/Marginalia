@@ -476,6 +476,24 @@ class AgentDialogTest extends AgentTestBase {
         assertThat(dialog.getCommandsEditor().getGrid().getColumns()).allMatch(com.vaadin.flow.component.grid.Grid.Column::isResizable);
     }
 
+    @Test
+    void theSearchFieldKeepsTheCommandsThatHaveAllItsWords() throws Exception {
+        manuscript();
+        AgentDialog dialog = dialog(null);
+        AgentCommandsEditor editor = dialog.getCommandsEditor();
+        int all = editor.getGrid().getListDataView().getItemCount();
+
+        editor.getSearchField().setValue("summary REGENERATE");
+        var found = editor.getGrid().getListDataView().getItems().map(row -> row.name()).toList();
+        assertThat(found).contains("regenerate-summary").doesNotContain("get-book-info");
+        // what is hidden is still selected by a role
+        editor.select(AgentCommandPreset.ALL);
+        assertThat(editor.getAllowed()).hasSize(all);
+
+        editor.getSearchField().setValue("");
+        assertThat(editor.getGrid().getListDataView().getItemCount()).isEqualTo(all);
+    }
+
     private static long tokensOf(String sizeText) {
         return Long.parseLong(sizeText.replaceFirst("^About (\\d+) tokens.*$", "$1"));
     }

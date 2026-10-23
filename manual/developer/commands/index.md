@@ -301,7 +301,7 @@ The packages `domain.service.impl.commands.manuscript.write` and `lorebook.write
 `PartEditCommands` (`edit-part`, `replace-part-text`, `append-to-part`, `set-part-fields`), `PartStructureCommands` (`create-part`,
 `insert-part`, `branch-part`, `delete-part`, `switch-branch`), `SummaryWriteCommands` (`set-summary`, `remove-summary`, `revalidate-summaries`),
 `BookSettingsCommands` (`set-book-info`, `set-book-prompts`, `set-book-tags`), `StoryGenerationCommands` (`next`, `swipe`,
-`regenerate`), `SummaryGenerationCommands` (`regenerate-summary`, `create-meta-summary`), `LoreEntryWriteCommands` and
+`regenerate`), `SummaryGenerationCommands` (`regenerate-summary`, `create-meta-summary`), `RedraftCommands` (`redraft-part`, over `RedraftService`; the model is the one of the book as the scope gives it, which for an agent follows `Agent.useAgentModel`, or a `profile` through `ManuscriptWriteSupport.options`), `LoreEntryWriteCommands` and
 `LorebookWriteCommands`. They call the services the screens use (`ChatMessageService.updateResponse` / `createPart` / `insertPart` /
 `branchAndSwitch` / `swipeAndSwitch` / `deleteNodeAndMigrateChildren`, `SummaryService.updateSummaryText` / `removeSummary` /
 `revalidate`, `ManuscriptService.updateSettings`, `LorebookEntryService.create` / `update` / `move` / `deleteEntry`,

@@ -892,6 +892,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         private MenuItem discardItem;
         private MenuItem regenerateItem;
         private MenuItem swipeItem;
+        private MenuItem redraftItem;
         private MenuItem branchItem;
         private MenuItem mergeItem;
         private MenuItem summaryItem;
@@ -1044,6 +1045,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             refreshSummaryMenuItems();
             // there is something to discard only while the text is edited
             discardItem.setVisible(editing);
+            // the text that is redrafted is the saved one
+            redraftItem.setVisible(!editing && StringUtils.isNotBlank(message.getResponse()));
         }
 
         /**
@@ -1063,6 +1066,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
             swipeItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_SWIPE), event -> swipe());
             swipeItem.setVisible(this.isLast);
+
+            redraftItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_REDRAFT), event -> redraft());
 
             branchItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_BRANCH_STORY), event -> branch());
 
@@ -1136,6 +1141,26 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 refreshSummaryMenuItems();
                 refreshSummariesMenuItem();
             });
+        }
+
+        /**
+         * Opens the dialog that lets the model write the part again from the instructions of the author, see
+         * {@link RedraftDialog}. The part is replaced when the author applies the result.
+         */
+        @PublicAPI(from = "1.5.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "e", type = Exception.class)})
+        private void redraft() {
+            try {
+                currentManuscript = parent.refreshManuscript();
+                RedraftDialog.open(currentManuscript, message, saved -> {
+                    message = saved;
+                    renderResponse();
+                    updateMetrics(message);
+                });
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
         }
 
         /**

@@ -206,4 +206,45 @@ class GenerationCommandsTest extends GenerationTestBase {
         assertThat(meta.get("text").getAsString()).isEqualTo("The whole story.");
         assertThat(summaryService.find(chatMessageService.find(second.getId()).getSummary()).getSummary()).isEqualTo("The whole story.");
     }
+
+    @Test
+    void anOlderPartIsRedraftedAndReplaced() throws Exception {
+        llm.fallback(com.github.enerccio.marginalia.test.llm.MockLLMResponse.text("Anna met John in the rain."));
+
+        JsonObject result = json("/redraft-part " + first.getUuid() + " \"Add rain\"");
+
+        assertThat(result.get("applied").getAsBoolean()).isTrue();
+        assertThat(chatMessageService.find(first.getId()).getResponse()).isEqualTo("Anna met John in the rain.");
+        // the part after it stays, the story around the part was told to the model
+        assertThat(chatMessageService.find(second.getId()).getResponse()).isEqualTo("John went home.");
+        String prompt = llm.lastCompletionRequest().getPromptText();
+        assertThat(prompt).contains("Add rain").contains("Anna met John.").contains("John went home.");
+    }
+
+    @Test
+    void aRedraftWithApplyFalseOnlyReturnsTheText() throws Exception {
+        llm.fallback(com.github.enerccio.marginalia.test.llm.MockLLMResponse.text("A longer meeting."));
+
+        JsonObject result = json("/redraft-part " + first.getUuid() + " \"Longer\" \"\" \"\" false");
+
+        assertThat(result.get("applied").getAsBoolean()).isFalse();
+        assertThat(result.get("text").getAsString()).isEqualTo("A longer meeting.");
+        assertThat(chatMessageService.find(first.getId()).getResponse()).isEqualTo("Anna met John.");
+    }
+
+    @Test
+    void aRedraftCanUseAnotherPromptThanTheBook() throws Exception {
+        llm.fallback(com.github.enerccio.marginalia.test.llm.MockLLMResponse.text("New."));
+
+        run("/redraft-part " + first.getUuid() + " \"x\" \"REWRITE {{text}} BECAUSE {{redraftInstructions}}\"");
+
+        assertThat(llm.lastCompletionRequest().getPromptText()).contains("REWRITE Anna met John. BECAUSE x");
+        assertThatThrownBy(() -> run("/redraft-part " + first.getUuid() + " \"x\" \"{{#unclosed}}\"")).isInstanceOf(ExecutionException.class);
+    }
+
+    @Test
+    void aRedraftProfileBelongsToAnAgent() {
+        assertThatThrownBy(() -> run("/redraft-part " + first.getUuid() + " \"\" \"\" Prose")).isInstanceOf(ExecutionException.class)
+                .hasMessageContaining("agents");
+    }
 }

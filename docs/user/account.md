@@ -106,6 +106,7 @@ The defaults for the [book prompts](books/prompts.md):
 | **Default User Prompt** | The request for each part, see [User prompt](books/prompts.md#user-prompt). |
 | **Default Summary Prompt** | The request for a [summary](books/summaries.md#the-summary-prompt). |
 | **Default Meta Summary Prompt** | The request for a [meta summary](books/summaries.md#the-meta-summary-prompt), which merges summaries. |
+| **Redraft Prompt** | The request for a [redraft](books/story-editor.md#redrafting-a-part) of a part. |
 | **Compaction prompt of agents** | Only for users who may use [agents](agents.md). What your agents are asked when you [`/compact`](agents.md#running-a-command-yourself) them, if their own compaction prompt is empty; empty here is the one your administrator set, else the built-in one. |
 | **Instructions of agents (agents.md)** | Only for users who may use [agents](agents.md). Your instructions for the agents that have none of their own, added to their prompt in every run. Empty is none. |
 | **Message to a URL when an agent needs you**, **Format of the message**, **Also when the application is open**, **Send a test message** | Only for users with the permission [*Notifications*](administration/permissions.md) (and not only those who use [agents](agents.md)), in the *General* tab, and only if your administrator allows it. Where to send a short message when an agent asks something, waits for you, finishes or fails and you have the application closed: see [When you are not there](agents.md#when-you-are-not-there). |

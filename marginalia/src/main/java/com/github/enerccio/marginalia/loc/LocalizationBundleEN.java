@@ -652,6 +652,15 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_TOKEN_BUDGET_SHARE, "Share of the prompt budget");
         setValue(L.LABEL_LIGHT_THEME, "Switch to the light theme");
         setValue(L.LABEL_DARK_THEME, "Switch to the dark theme");
+        setValue(L.LABEL_REDRAFT, "Redraft");
+        setValue(L.LABEL_REDRAFT_PROMPT, "Redraft Prompt");
+        setValue(L.LABEL_REDRAFT_INSTRUCTIONS, "Instructions for the redraft");
+        setValue(L.LABEL_REDRAFT_AGAIN, "Redraft again");
+        setValue(L.LABEL_REDRAFTED_TEXT, "Redrafted text");
+        setValue(L.LABEL_REDRAFTING, "Redrafting…");
+        setValue(L.LABEL_APPLY, "Apply");
+        setValue(L.LABEL_SEARCH_COMMANDS, "Search commands");
+        setValue(L.LABEL_COMMAND_REDRAFT_PART, "Redraft part");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -856,6 +865,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_PROFILE_UNUSABLE, "The model of the profile '%s' can't be used (it is not available to the user).");
         setValue(L.ERROR_COMMAND_SUMMARY_NOT_POSSIBLE, "A summary can't be made here: the book has no model, or there is nothing to summarize, or the range is not right.");
         setValue(L.ERROR_COMMAND_GENERATION_CANCELLED, "The generation was cancelled.");
+        setValue(L.ERROR_REDRAFT_FAILED, "Failed to reach inference service for redrafting the part.");
+        setValue(L.ERROR_COMMAND_REDRAFT_NOT_POSSIBLE, "The part cannot be redrafted: it has no text, or the book has no model.");
+        setValue(L.ERROR_COMMAND_REDRAFT_CONTEXT, "The redraft does not fit the context of the model (%d tokens needed, %d available).");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -1088,6 +1100,12 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_BRANCH_TOKENS_STALE, "%s summaries no longer match the story, they are dropped when a part is generated.");
         setValue(L.MSG_BRANCH_TOKENS_HELP, "The story of the active branch as the next prompt would carry it, counted from the stored parts and summaries. The lore, the system template and the instructions of the turn take room from the same budget.");
         setValue(L.MSG_CONFIRM_DISCARD_EDIT, "Throw away your changes to this part? It keeps the text it was last saved with.");
+        setValue(L.MSG_REDRAFT_INFO, "The model writes this part again from your instructions. It sees the story before the part (as summaries where there are any), as much of the story after it as fits, the lore the part was written with and the part itself. Nothing in the book changes until you apply the result.");
+        setValue(L.MSG_REDRAFT_PLACEHOLDER, "For example: add more dialogue between the two, make the fight longer, keep the ending as it is.");
+        setValue(L.MSG_REDRAFT_APPLIED, "The part was replaced by the redraft.");
+        setValue(L.MSG_REDRAFT_OUTDATED_SUMMARIES, "%d summaries described the old text of the part and are outdated now.");
+        setValue(L.MSG_COMMAND_REDRAFTING, "Redrafting the part…");
+        setValue(L.MSG_COMMAND_REDRAFT_CONFIRM, "Replace the text of part %d with the redraft?");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1167,6 +1185,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_LANGUAGE, "The language of everything the agent reads: the descriptions of its commands, their results and errors. It has nothing to do with the language of the book: the agent writes the book in the language of the book whatever it is set to. Commands and their parameters are in English in every language, so English is the most reliable choice, especially for small models. The list holds the languages that are installed; a run keeps the language it was started with.");
         setValue(L.HELP_JSON_MERGE, "The data of the agent, of the book now and of the start of the run laid over each other. Select a place and take the data of one of them, leave it out, or put it together from the places inside it. What only one side changed is taken from it, what both changed is put together place by place, and a place both changed in the same way is a conflict: the agent's version is taken until you decide. Open a place to work only with it. The elements of a list are matched by what they are (the same data, the same id or name, the ones that look alike); when the guess is wrong, split an element or match it with another. In the text view you can write the agent's data of the open place by hand; it is checked when you go back to the tree.");
         setValue(L.HELP_NOTIFICATIONS_ALLOW_LOCAL, "Only with the permission granted. The server then also sends messages to localhost, to the private networks it can reach and to link-local addresses (for example a ntfy or Gotify on your own network). Without it only public addresses are called. Administrators are not restricted.");
+        setValue(L.HELP_COMMAND_SEARCH, "Words of the name or the description of a command, in any order. The table shows only the commands that have all of them; the selection above still applies to all commands.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");
@@ -1478,6 +1497,16 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_INSERT_PART_RETURN, "JSON with the new part (handle, position, words, tokens), how many branches continue it, the length of its branch and the summaries that became outdated");
         setValue(L.DESC_COMMAND_INSERT_ANCHOR_PARAM, "The part next to which the new one is inserted (its handle): after it, or before it when before is true");
         setValue(L.DESC_COMMAND_INSERT_BEFORE_PARAM, "true to insert before the part instead of after it; false when omitted");
+        setValue(L.DESC_TEMPLATE_PREVIOUS_STORY, "The story before the part, as much of its end as fits (the older story is in the summaries).");
+        setValue(L.DESC_TEMPLATE_PART_TEXT, "The text of the part being redrafted.");
+        setValue(L.DESC_TEMPLATE_FOLLOWING_STORY, "The story after the part, as much as fits.");
+        setValue(L.DESC_TEMPLATE_REDRAFT_INSTRUCTIONS, "What the author wants changed in the part (empty when they gave no instructions).");
+        setValue(L.DESC_COMMAND_REDRAFT_PART, "Has the model write a part of the story again from instructions (any part, not only the last one), replacing its text. Costs tokens.");
+        setValue(L.DESC_COMMAND_REDRAFT_PART_LLM, "Has the model write the part `part` (its handle) again and replaces its text with the result; the part may be anywhere in the story. `instructions` is what should change (\"add more dialogue\", \"make the fight longer\", \"keep the ending\"); without it the part is written again with the same events. The model sees the part, the story before it (older story as summaries) and after it, the lore the part was written with and the data of its turn. `prompt` is a redraft prompt to use instead of the one of the book (a template with the variables text, redraftInstructions, previousStory, summaries, followingStory, backgroundLore, narrativePov, narrativeTense, style, povCharacter, sceneSetting, presentCharacters, instructions); `profile` a model profile of the agent to write with instead of the model of the run; `apply` false only returns the redrafted text and leaves the part as it is (to look at it first, then replace-part-text). Replaces the text, so the summaries that cover the part become outdated (reported). Slow, costs tokens. Returns the part and, with apply false, the text.");
+        setValue(L.DESC_COMMAND_REDRAFT_PART_RETURN, "JSON object: the handle, position, words, tokens and edited flag of the part, applied, the text (the whole text when apply is false) and the outdated summaries");
+        setValue(L.DESC_COMMAND_REDRAFT_INSTRUCTIONS_PARAM, "What should change in the part; empty writes the part again with the same events");
+        setValue(L.DESC_COMMAND_REDRAFT_PROMPT_PARAM, "A redraft prompt to use instead of the one of the book (a template); empty is the one of the book");
+        setValue(L.DESC_COMMAND_REDRAFT_APPLY_PARAM, "false only returns the redrafted text and does not change the part; true (the default) replaces the text of the part");
 
     }
 

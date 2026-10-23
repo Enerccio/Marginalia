@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846025872724">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846055218379">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846025872724" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846055218379" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846025872724" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846055218379" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846025872724" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846055218379" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -175,7 +175,7 @@ check lists of both, of one of them or of none.</p>
 <h2 id="what-the-model-can-do">What the model can do</h2>
 <retype-table copy-text="| Function | What it does |
 |---|---|
-| `list_real_name_lists` | Lists the lists of names. |
+| `list_real_name_lists` | Lists the lists of names; with a `filter` only those that have its words in the name. |
 | `pick_real_names` | Picks up to 100 different names of one list at random. Every name is a pair, the romanized name and the original one. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -188,7 +188,7 @@ check lists of both, of one of them or of none.</p>
 <tbody>
 <tr>
 <td><code translate="no" v-pre>list_real_name_lists</code></td>
-<td>Lists the lists of names.</td>
+<td>Lists the lists of names; with a <code translate="no" v-pre>filter</code> only those that have its words in the name.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>pick_real_names</code></td>
@@ -206,7 +206,7 @@ to it when that suits the setting; it may combine a forename with a surname of t
 which can use them in their own prompts (for example for <code translate="no" v-pre>/generate-lore-entry</code> of the <a href="../lore-generator/">Lore Generator</a>):</p>
 <retype-table copy-text="| Command | What it does |
 |---|---|
-| `/list-real-name-lists` | Lists the lists as a JSON array. |
+| `/list-real-name-lists [&lt;filter&gt;]` | Lists the lists as a JSON array; with a filter only those whose name has all its words (each at the start of a word, in any order, not case sensitive). |
 | `/pick-real-names list count` | Picks up to 100 names of the list at random and returns them as a JSON array of pairs, the romanized name and the original one. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -218,8 +218,8 @@ which can use them in their own prompts (for example for <code translate="no" v-
 </thead>
 <tbody>
 <tr>
-<td><code translate="no" v-pre>/list-real-name-lists</code></td>
-<td>Lists the lists as a JSON array.</td>
+<td><code translate="no" v-pre>/list-real-name-lists [&lt;filter&gt;]</code></td>
+<td>Lists the lists as a JSON array; with a filter only those whose name has all its words (each at the start of a word, in any order, not case sensitive).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>/pick-real-names list count</code></td>
@@ -280,7 +280,7 @@ button.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (5ed1c171).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (370c28e2).</p></div>
             </footer>
         </div>
     </div>

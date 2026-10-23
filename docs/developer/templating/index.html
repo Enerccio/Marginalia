@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846025872724">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846055218379">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846025872724" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846055218379" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846025872724" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846055218379" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846025872724" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846025872724" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846055218379" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846055218379" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -217,7 +217,8 @@ parameters (<code translate="no" v-pre>{{#if name}}</code>) are not checked.</p>
 | Lorebook entry payload | `ProcessLorebookStep` (one data object for all active entries) | `LorebookTemplateData` | the four above + `narrativePov`, `narrativeTense`, `style` |
 | Master template | `PrepareContentStep` (twice: token estimate on a fork, then for real) | `MasterTemplateData` | `backgroundLore`, `narrativePov`, `narrativeTense`, `style`, `summaries` |
 | Summary prompt | `SummaryServiceImpl.createSummaryPayload` | `SummaryTemplateData` | `backgroundLore`, `text` (the parts to summarize) |
-| Meta summary prompt | `SummaryServiceImpl.createMetaSummaryPayload` | `MetaSummaryTemplateData` | `backgroundLore`, `summaryBlocks` (the summaries to merge, oldest first) |">
+| Meta summary prompt | `SummaryServiceImpl.createMetaSummaryPayload` | `MetaSummaryTemplateData` | `backgroundLore`, `summaryBlocks` (the summaries to merge, oldest first) |
+| Redraft prompt | `RedraftServiceImpl.createPayload` (an estimation render on a fork, then for real) | `RedraftTemplateData` | `text` (the part), `redraftInstructions`, `previousStory`, `summaries`, `followingStory`, `backgroundLore` (stored on the part), `narrativePov`, `narrativeTense`, `style`, and the turn of the part: `povCharacter`, `sceneSetting`, `presentCharacters`, `instructions` |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -258,6 +259,12 @@ parameters (<code translate="no" v-pre>{{#if name}}</code>) are not checked.</p>
 <td><code translate="no" v-pre>SummaryServiceImpl.createMetaSummaryPayload</code></td>
 <td><code translate="no" v-pre>MetaSummaryTemplateData</code></td>
 <td><code translate="no" v-pre>backgroundLore</code>, <code translate="no" v-pre>summaryBlocks</code> (the summaries to merge, oldest first)</td>
+</tr>
+<tr>
+<td>Redraft prompt</td>
+<td><code translate="no" v-pre>RedraftServiceImpl.createPayload</code> (an estimation render on a fork, then for real)</td>
+<td><code translate="no" v-pre>RedraftTemplateData</code></td>
+<td><code translate="no" v-pre>text</code> (the part), <code translate="no" v-pre>redraftInstructions</code>, <code translate="no" v-pre>previousStory</code>, <code translate="no" v-pre>summaries</code>, <code translate="no" v-pre>followingStory</code>, <code translate="no" v-pre>backgroundLore</code> (stored on the part), <code translate="no" v-pre>narrativePov</code>, <code translate="no" v-pre>narrativeTense</code>, <code translate="no" v-pre>style</code>, and the turn of the part: <code translate="no" v-pre>povCharacter</code>, <code translate="no" v-pre>sceneSetting</code>, <code translate="no" v-pre>presentCharacters</code>, <code translate="no" v-pre>instructions</code></td>
 </tr>
 </tbody>
 </table>
@@ -303,7 +310,7 @@ the same variables. <code translate="no" v-pre>fork()</code> makes a copy with c
 token estimate of the master template uses one.</p>
 <p>Summaries and meta summaries build their own context (<code translate="no" v-pre>SummaryServiceImpl.createTemplateContext</code>) from the part being
 summarized (for a meta summary: the part it is stored on); the variable changes made by a summary prompt are not
-stored.</p>
+stored. A redraft uses the same method for the part being redrafted.</p>
 <h2 id="how-macros-are-translated">How macros are translated</h2>
 <p><code translate="no" v-pre>MacroTranslator</code> scans the template, recognizes SillyTavern constructs, and rewrites only those into calls of
 helpers named <code translate="no" v-pre>st_*</code>. Everything else - <code translate="no" v-pre>{{variable}}</code>, <code translate="no" v-pre>{{#section}}...{{/section}}</code>, <code translate="no" v-pre>{{#if}}</code>, <code translate="no" v-pre>{{#each}}</code>,
@@ -734,7 +741,7 @@ whose content is the last argument.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (5ed1c171).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (370c28e2).</p></div>
             </footer>
         </div>
     </div>

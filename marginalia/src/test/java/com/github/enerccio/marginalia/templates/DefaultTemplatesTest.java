@@ -23,13 +23,14 @@ class DefaultTemplatesTest extends TemplateTestBase {
     @Test
     void defaultsAreValid() throws Exception {
         for (String template : new String[]{Defaults.DEFAULT_MASTER_TEMPLATE, Defaults.DEFAULT_USER_PROMPT,
-                Defaults.DEFAULT_SUMMARY_PROMPT, Defaults.DEFAULT_META_SUMMARY}) {
+                Defaults.DEFAULT_SUMMARY_PROMPT, Defaults.DEFAULT_META_SUMMARY, Defaults.DEFAULT_REDRAFT_PROMPT}) {
             assertThat(templateService.isValidTemplate(template, "default").isValid()).isTrue();
         }
         assertThat(templateService.isValidTemplate(Defaults.DEFAULT_MASTER_TEMPLATE, "default", MasterTemplateData.class).unknownNames()).isEmpty();
         assertThat(templateService.isValidTemplate(Defaults.DEFAULT_USER_PROMPT, "default", UserPromptData.class).unknownNames()).isEmpty();
         assertThat(templateService.isValidTemplate(Defaults.DEFAULT_SUMMARY_PROMPT, "default", SummaryTemplateData.class).unknownNames()).isEmpty();
         assertThat(templateService.isValidTemplate(Defaults.DEFAULT_META_SUMMARY, "default", MetaSummaryTemplateData.class).unknownNames()).isEmpty();
+        assertThat(templateService.isValidTemplate(Defaults.DEFAULT_REDRAFT_PROMPT, "default", RedraftTemplateData.class).unknownNames()).isEmpty();
     }
 
     @Test
@@ -150,5 +151,44 @@ class DefaultTemplatesTest extends TemplateTestBase {
 
         assertClean(output);
         assertThat(output).doesNotContain("BACKGROUND LORE ARCHIVE START").contains("First ledger.");
+    }
+
+    @Test
+    void redraftPromptWithAllSections() throws Exception {
+        RedraftTemplateData redraft = withContext(new RedraftTemplateData(), true);
+        redraft.setBackgroundLore("Dragons exist.");
+        redraft.setNarrativePov(Defaults.DEFAULT_POV);
+        redraft.setSummaries("Chapter one happened.");
+        redraft.setPreviousStory("Alice sailed.");
+        redraft.setFollowingStory("Bob waited.");
+        redraft.setSceneSetting("the harbour");
+        redraft.setText("Alice walked to the harbour.");
+        redraft.setRedraftInstructions("Add more dialogue.");
+
+        String output = render(Defaults.DEFAULT_REDRAFT_PROMPT, redraft);
+
+        assertClean(output);
+        assertThat(output).contains("Narrative Voice: Third-Person Limited")
+                .contains("=== BACKGROUND LORE START ===\nDragons exist.")
+                .contains("=== SUMMARY OF THE STORY BEFORE THE PART START ===\nChapter one happened.")
+                .contains("=== STORY BEFORE THE PART START ===\nAlice sailed.")
+                .contains("=== STORY AFTER THE PART START ===\nBob waited.")
+                .contains("Location & Time of the part: the harbour")
+                .contains("=== PART TO REDRAFT START ===\nAlice walked to the harbour.\n=== PART TO REDRAFT END ===")
+                .contains("=== AUTHOR'S INSTRUCTIONS START ===\nAdd more dialogue.\n=== AUTHOR'S INSTRUCTIONS END ===");
+    }
+
+    @Test
+    void redraftPromptOmitsEmptySections() throws Exception {
+        RedraftTemplateData redraft = withContext(new RedraftTemplateData(), false);
+        redraft.setText("Alice walked to the harbour.");
+
+        String output = render(Defaults.DEFAULT_REDRAFT_PROMPT, redraft);
+
+        assertClean(output);
+        assertThat(output).doesNotContain("BACKGROUND LORE START").doesNotContain("SUMMARY OF THE STORY")
+                .doesNotContain("STORY BEFORE THE PART").doesNotContain("STORY AFTER THE PART")
+                .doesNotContain("Location & Time").doesNotContain("Characters present")
+                .contains("Alice walked to the harbour.").contains("Write the part again");
     }
 }

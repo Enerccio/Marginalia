@@ -82,6 +82,10 @@ public class Manuscript extends ExtendableEntity {
 
     @ExtendedAttribute
     @Transient
+    private String redraftPrompt;
+
+    @ExtendedAttribute
+    @Transient
     private BackupStrategy backupStrategy;
 
     @ExtendedAttribute
@@ -226,6 +230,14 @@ public class Manuscript extends ExtendableEntity {
 
     public void setMetaSummaryPrompt(String metaSummaryPrompt) {
         this.metaSummaryPrompt = metaSummaryPrompt;
+    }
+
+    public String getRedraftPrompt() {
+        return redraftPrompt;
+    }
+
+    public void setRedraftPrompt(String redraftPrompt) {
+        this.redraftPrompt = redraftPrompt;
     }
 
     public String getSummaryPrompt() {
