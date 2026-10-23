@@ -220,7 +220,7 @@ check - the administrator-only services call `AdminGuard.requireAdmin()` themsel
 ### The agents tab
 
 `AgentPart` (`ui.workspace.parts`, a `WorkspaceComponent` like the others) is a table of the agents of the user (a card for each on the phone,
-`new AgentPart(workspace, true)`): the name, the book and the status of the unfinished run (`Localization.getAgentRunStatus`), and a row of
+`new AgentPart(workspace, true)`): the name, the book, the status of the unfinished run (`Localization.getAgentRunStatus`) and when the newest run started (`AgentRunService.findForAgent`), with filter fields for the name and the book (every word must be contained, `AgentPart.containsWords`; a `ListDataProvider` filter), sortable columns (the phone has the `Sort` selector, `sortBy`), and a row of
 buttons whose visibility follows the status of the run (**Start** with *Start immediately* / *Start in console*, **Resume**, **Pause**,
 **Pause now**, **Stop**, the console, **Review changes**, **Edit**, **Clone**, **Delete**). They call `AgentRunService` and `AgentRunner`; the
 refusals of the service (`IllegalStateException`, `SecurityException`, `IllegalArgumentException`) are shown as a warning with the text of the
