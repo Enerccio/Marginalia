@@ -348,11 +348,11 @@ class AnnotationCommandsTest extends GenerationTestBase {
     }
 
     @Test
-    void theCommandsThatChangeAnnotationsAreNotOfferedToAnAgent() {
+    void theCommandsOfAnnotationsAreOfferedToAnAgent() {
         for (String name : List.of("create-annotation", "update-annotation", "resolve-annotation", "reattach-annotation", "delete-annotation")) {
             List<CommandDefinition> definitions = commands.getCommands(name);
             assertThat(definitions).as(name).isNotEmpty();
-            assertThat(definitions).as(name).allMatch(definition -> !definition.availableForAgent());
+            assertThat(definitions).as(name).allMatch(CommandDefinition::availableForAgent);
         }
         for (String name : List.of("list-annotations", "get-annotation")) {
             assertThat(commands.getCommands(name)).as(name).isNotEmpty()

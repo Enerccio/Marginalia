@@ -595,6 +595,12 @@ The marks, the notes and the list share a few classes in `ui.dialogs.story`; the
   otherwise the text the browser shows with some text around it (`getSelectionContext`), found in the source with `QuoteFinder` (`StoryAnnotations.locate`).
 - `AnnotationView` is one annotation with its actions, `AnnotationDialog` asks for a new note, `AnnotationsPanel` is the tab of the book (`ManuscriptStoryPart.ANNOTATIONS_TAB`,
   in the default layout of the dock; the phone has it in the drawer), `AnnotateDialog` runs [`AnnotateService`](services.md) and lists the proposals.
+- **Notes in the margin** (desktop): the cogs menu item **Annotations in the margin** (`ManuscriptStoryPart.createAnnotationsInMarginMenuItem` / `setAnnotationsInMargin`) stores the
+  preference in `UserSetting.annotationsInMargin` and tells every card (`ChatMessageCard.applyAnnotationMargin`). The card puts `CardAnnotations.getMargin()` (a column of
+  `AnnotationView`s of the notes that need a look, in the order of the passages; `data-annotation-id` is the uuid) before the text; with the mode on the card content has the class
+  `annotations-in-margin`, a two column grid (the margin left, the text and the editor right, the rest spans both), and a click on a mark finds the note in the column
+  (`flashMarginNote`) instead of opening the popover. `JavascriptLibrary.linkMarginNotes` lights the note and its marks together (`annotation-lit`). The notes are drawn again with the card
+  (`CardAnnotations.refresh`). The phone has no margin. Not done: aligning each note with the line of its passage.
 - The styles are `annotation-*` in `shared-styles.css` (wavy underline in the colour of the source, nested marks lower).
 
 ### Searching the story tree

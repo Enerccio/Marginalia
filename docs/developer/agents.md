@@ -164,7 +164,7 @@ it as `AgentRun.workingCopy`. The lists of the UI leave the `agentic` books out 
 
 The copy has **new uuids**, so the run records how it relates to the original, in the transaction that makes the copy:
 
-- **The uuid pairs** (`AgentRunPairService`, table `agent_run_pairs`, V17): one `AgentRunPair` row per message, summary, lorebook and lorebook entry of the copy,
+- **The uuid pairs** (`AgentRunPairService`, table `agent_run_pairs`, V17): one `AgentRunPair` row per message, summary, lorebook, lorebook entry and annotation (`AgentRunPairKind.ANNOTATION`, the letter `a` of the handle, `h:a3`) of the copy,
   `kind` + `copyUuid` -> `originalUuid` (null for an item the agent made; it has none until it is applied) + a `handle` column that is empty until the agent is
   given handles. `ManuscriptService.createAgenticCopy` returns an `AgenticCopy` (the copy, the `UuidPair`s, the base); `cloneFromBackup(backup, pairs)` and
   `LorebookService.copyLorebooks(lorebooks, pairs)` report the pairs of the messages, summaries, lorebooks and entries as they make them, and `AgentRunServiceImpl.start`
@@ -489,6 +489,16 @@ take over, both changed to different values is a `conflict`, the same value on b
 `ADDED`, one only in the base and still in the book is `DELETED` (a conflict when the book changed it since), the ones the user deleted from the book are `problem`s (`PROBLEM_GONE`, `PROBLEM_NEEDS_PARENT`,
 `PROBLEM_NEEDS_LOREBOOK`) and can't be applied. `Item.dependsOn` is the item that must be applied first (the new part a new part follows, the new lorebook a new entry is in); `MergeDiff.chain` and `dependents` follow it. A book that had no lorebook when the run started (the commands `create-lore-entry` and `create-lorebook` make its root in the copy, `LorebookWriteSupport.loreToAddTo`) gets the root of the copy as its lorebook when the apply made it (`Applier.adoptRoot`).
 The service adds `sharedWith` (the other books whose lorebook tree holds the lorebook).
+
+**Annotations** are the fourth kind of item (`Kind.ANNOTATION`, id `A:<key>`; `MergeDiff.readAnnotations` reads the `annotations` array of each message of the snapshot, the pairs of `AgentRunPairKind.ANNOTATION` give
+the key). What is compared is `ANNOTATION_FIELDS` (`text`, `type`, `status`, `sendToPrompt`); the passage is not: it follows the text of its part, which the part's own item takes over (an
+`ORPHANED` status counts as `OPEN`, the text orphans a note and not the agent). An annotation of the copy without a pair is `ADDED` (its fields and the `quote` are shown), the item `dependsOn` the part
+when that is new too and has the problem `PROBLEM_NEEDS_PART` when the book no longer has the part; one the agent removed is `DELETED`, except where its part was deleted too (the part takes its notes). The `Applier` runs the annotations after the parts:
+`createAnnotation` makes the note with `AnnotationService.create` on the same offsets when the part has the same text on both sides, else `createFromQuote` with the quote and its context (a text the apply
+just wrote is the same on both sides), keeps the source, the flag and a closed status, and records the pair; `changeAnnotation` uses `update` / `setStatus` (an agent does not reopen a note that lost its passage);
+`deleteAnnotation` uses `remove`. `BaseAdvance` moves the base for an annotation the sync took over (it adds it to the message of the base, or copies the changed fields). The sync of a resume brings the notes of the
+user into the copy the same way (the notes are not locked while a run holds the book), with handles given on demand (`HandleTranslator` knows `a`; `CommandScope.resolveAnnotation` recognises an annotation the agent made). The dialog lists the kind as
+`ENUM_DOMAIN_ANNOTATION`, counts it in `MSG_MERGE_SUMMARY`, has the button **Only annotations**, and **Show in the copy** opens the part (`AgentMergeDialog.showAnnotationPart`). Tests: `AgentAnnotationsTest`.
 
 **JSON data (the attributes).** What extensions keep in `attributes` of a book, a part, a lorebook or an entry is JSON, so a field named `attributes_<key>` has the type `Type.JSON` (`editable`); its `base`, `agent` and `book` are the
 compact JSON with the keys sorted (`JsonText.compact`: the order of the keys is no change; empty for no data, uuids of the copy translated). A book and a part have it in `extendedContent` (`attributes_<key>`); a lorebook and an

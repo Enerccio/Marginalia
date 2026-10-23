@@ -131,6 +131,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     private MenuItem cogsMenuItem;
     private MenuItem changeStyles;
     private MenuItem highlightGenerated;
+    private MenuItem marginItem;
     private Button actionButton;
 
     private Popover newTurnPopover;
@@ -142,6 +143,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     private boolean isFrozen = false;
     // diff view, not stored: the response of the cards is shown with the generated text highlighted
     private boolean showGeneratedDiff = false;
+    // the notes of the annotations are in a column beside the text of the card instead of in a popover (a setting of the user)
+    private boolean annotationsInMargin = false;
 
     private final StoryCards<ChatMessageCard> cards = new StoryCards<>();
     private final StorySupport support = new StorySupport();
@@ -408,6 +411,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         MenuItem cogs = bar.addItem(Solid.COGS.create());
         changeStyles = createChangeStylesMenuItem(cogs);
         highlightGenerated = createHighlightGeneratedMenuItem(cogs);
+        marginItem = createAnnotationsInMarginMenuItem(cogs);
         createSearchReplaceMenuItem(cogs);
         createImportArchiveMenuItem(cogs);
         createBranchTokensMenuItem(cogs);
@@ -442,6 +446,47 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         item.setCheckable(true);
         item.setChecked(showGeneratedDiff);
         return item;
+    }
+
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = MenuItem.class),
+            parameters = {@APIParameter(name = "cogs", type = MenuItem.class)},
+            locals = {@APILocals(name = "e", type = Exception.class),
+                    @APILocals(name = "item", type = MenuItem.class)})
+    private MenuItem createAnnotationsInMarginMenuItem(MenuItem cogs) {
+        try {
+            annotationsInMargin = settingService.getOrCreate(UserSetting.class).isAnnotationsInMargin();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+        MenuItem item = cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.COMMENT_ALT.create(), loc.getValue(L.LABEL_ANNOTATIONS_IN_MARGIN)),
+                event -> setAnnotationsInMargin(event.getSource().isChecked()));
+        item.setCheckable(true);
+        item.setChecked(annotationsInMargin);
+        return item;
+    }
+
+    /**
+     * Moves the notes of the annotations of every card into the margin or back into the popover, and remembers the choice for the user.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "inMargin", type = boolean.class)},
+            locals = {@APILocals(name = "setting", type = UserSetting.class),
+                    @APILocals(name = "e", type = Exception.class),
+                    @APILocals(name = "card", type = ManuscriptStoryPart.ChatMessageCard.class)})
+    private void setAnnotationsInMargin(boolean inMargin) {
+        annotationsInMargin = inMargin;
+        try {
+            UserSetting setting = settingService.getOrCreate(UserSetting.class);
+            setting.setAnnotationsInMargin(inMargin);
+            settingService.save(setting);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+        for (ChatMessageCard card : cards.values()) {
+            card.applyAnnotationMargin();
+        }
     }
 
     /**
@@ -1199,7 +1244,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
             messageImages = new MessageImages(message.getImages());
 
-            contentLayout.add(headerBar, reasoningDetails, responseMarkdown, messageImages, cardAnnotations.getAnchor());
+            contentLayout.add(headerBar, reasoningDetails, cardAnnotations.getMargin(), responseMarkdown, messageImages, cardAnnotations.getAnchor());
+            applyAnnotationMargin();
 
             metaLayout = new VerticalLayout();
             metaLayout.setWidth("220px");
@@ -1665,13 +1711,23 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         }
 
         /**
+         * Puts the notes of the part beside its text (the card is a grid of two columns then) or leaves them to the popover.
+         */
+        @PublicAPI(from = "1.5.0",
+                returns = @APIReturn(type = void.class))
+        private void applyAnnotationMargin() {
+            contentLayout.setClassName(CssStyles.ANNOTATION_MARGIN_LAYOUT, annotationsInMargin);
+            cardAnnotations.setMarginMode(annotationsInMargin);
+        }
+
+        /**
          * Shows how many annotations of the part need a look.
          */
         @PublicAPI(from = "1.5.0",
                 returns = @APIReturn(type = void.class))
         private void refreshAnnotationBadge() {
             if (cardAnnotations != null) {
-                cardAnnotations.refreshBadge(generating);
+                cardAnnotations.refresh(generating);
             }
         }
 

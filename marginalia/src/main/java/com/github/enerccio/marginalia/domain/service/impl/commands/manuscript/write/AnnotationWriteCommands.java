@@ -20,7 +20,8 @@ import java.util.Locale;
  * handles, see {@link ManuscriptWriteSupport}.
  * <p>
  * An annotation is a note for the author and changes nothing of the story, so none of these commands asks (but the delete) and none
- * makes a summary outdated. Not offered to an agent yet: the working copy of an agent is not merged back with its annotations.
+ * makes a summary outdated. An agent writes them in its working copy; the review takes them over like the other changes of the run
+ * ({@code MergeDiff}).
  */
 public class AnnotationWriteCommands extends ManuscriptWriteSupport {
 
@@ -31,7 +32,7 @@ public class AnnotationWriteCommands extends ManuscriptWriteSupport {
     static final String DELETE = "delete-annotation";
 
     @Command(commandName = CREATE, humanName = L.LABEL_COMMAND_CREATE_ANNOTATION,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, availableForAgent = false,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_CREATE_ANNOTATION, llmDescription = L.DESC_COMMAND_CREATE_ANNOTATION_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM),
@@ -42,7 +43,7 @@ public class AnnotationWriteCommands extends ManuscriptWriteSupport {
     }
 
     @Command(commandName = CREATE, humanName = L.LABEL_COMMAND_CREATE_ANNOTATION,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, availableForAgent = false,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_CREATE_ANNOTATION, llmDescription = L.DESC_COMMAND_CREATE_ANNOTATION_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM),
@@ -54,7 +55,7 @@ public class AnnotationWriteCommands extends ManuscriptWriteSupport {
     }
 
     @Command(commandName = CREATE, humanName = L.LABEL_COMMAND_CREATE_ANNOTATION,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, availableForAgent = false,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_CREATE_ANNOTATION, llmDescription = L.DESC_COMMAND_CREATE_ANNOTATION_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM),
@@ -68,7 +69,7 @@ public class AnnotationWriteCommands extends ManuscriptWriteSupport {
     }
 
     @Command(commandName = UPDATE, humanName = L.LABEL_COMMAND_UPDATE_ANNOTATION,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, availableForAgent = false,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_UPDATE_ANNOTATION, llmDescription = L.DESC_COMMAND_UPDATE_ANNOTATION_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "annotation", type = String.class, description = L.DESC_COMMAND_ANNOTATION_PARAM),
@@ -79,7 +80,7 @@ public class AnnotationWriteCommands extends ManuscriptWriteSupport {
     }
 
     @Command(commandName = UPDATE, humanName = L.LABEL_COMMAND_UPDATE_ANNOTATION,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, availableForAgent = false,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_UPDATE_ANNOTATION, llmDescription = L.DESC_COMMAND_UPDATE_ANNOTATION_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "annotation", type = String.class, description = L.DESC_COMMAND_ANNOTATION_PARAM),
@@ -91,7 +92,7 @@ public class AnnotationWriteCommands extends ManuscriptWriteSupport {
     }
 
     @Command(commandName = UPDATE, humanName = L.LABEL_COMMAND_UPDATE_ANNOTATION,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, availableForAgent = false,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_UPDATE_ANNOTATION, llmDescription = L.DESC_COMMAND_UPDATE_ANNOTATION_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "annotation", type = String.class, description = L.DESC_COMMAND_ANNOTATION_PARAM),
@@ -105,7 +106,7 @@ public class AnnotationWriteCommands extends ManuscriptWriteSupport {
     }
 
     @Command(commandName = RESOLVE, humanName = L.LABEL_COMMAND_RESOLVE_ANNOTATION,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, availableForAgent = false,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_RESOLVE_ANNOTATION, llmDescription = L.DESC_COMMAND_RESOLVE_ANNOTATION_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "annotation", type = String.class, description = L.DESC_COMMAND_ANNOTATION_PARAM)}),
@@ -115,7 +116,7 @@ public class AnnotationWriteCommands extends ManuscriptWriteSupport {
     }
 
     @Command(commandName = RESOLVE, humanName = L.LABEL_COMMAND_RESOLVE_ANNOTATION,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, availableForAgent = false,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_RESOLVE_ANNOTATION, llmDescription = L.DESC_COMMAND_RESOLVE_ANNOTATION_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "annotation", type = String.class, description = L.DESC_COMMAND_ANNOTATION_PARAM),
@@ -126,7 +127,7 @@ public class AnnotationWriteCommands extends ManuscriptWriteSupport {
     }
 
     @Command(commandName = REATTACH, humanName = L.LABEL_COMMAND_REATTACH_ANNOTATION,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, availableForAgent = false,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_REATTACH_ANNOTATION, llmDescription = L.DESC_COMMAND_REATTACH_ANNOTATION_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "annotation", type = String.class, description = L.DESC_COMMAND_ANNOTATION_PARAM)}),
@@ -136,7 +137,7 @@ public class AnnotationWriteCommands extends ManuscriptWriteSupport {
     }
 
     @Command(commandName = REATTACH, humanName = L.LABEL_COMMAND_REATTACH_ANNOTATION,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, availableForAgent = false,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_REATTACH_ANNOTATION, llmDescription = L.DESC_COMMAND_REATTACH_ANNOTATION_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "annotation", type = String.class, description = L.DESC_COMMAND_ANNOTATION_PARAM),
@@ -147,7 +148,7 @@ public class AnnotationWriteCommands extends ManuscriptWriteSupport {
     }
 
     @Command(commandName = DELETE, humanName = L.LABEL_COMMAND_DELETE_ANNOTATION,
-            dataSeverity = CommandDataSeverity.DESTRUCTIVE, availableForAgent = false,
+            dataSeverity = CommandDataSeverity.DESTRUCTIVE,
             description = L.DESC_COMMAND_DELETE_ANNOTATION, llmDescription = L.DESC_COMMAND_DELETE_ANNOTATION_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "annotation", type = String.class, description = L.DESC_COMMAND_ANNOTATION_PARAM)}),

@@ -82,6 +82,8 @@ public class AnnotationView extends VerticalLayout {
         setPadding(false);
         setSpacing(false);
         addClassNames(CssStyles.ANNOTATION_VIEW, CssStyles.GAP_S);
+        // the margin finds the note of a mark by this, see JavascriptLibrary.linkMarginNotes
+        getElement().setAttribute(StoryAnnotations.NOTE_ATTRIBUTE, annotation.getUuid());
         build();
     }
 

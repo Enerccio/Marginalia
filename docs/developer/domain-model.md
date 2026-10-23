@@ -387,7 +387,7 @@ so the ranges are kept apart and **moved through every change of the text**. The
 
 **Backups.** A message of the backup JSON has `annotations`: an array of `{uuid, status, source, start, end, extendedContent}`
 (`AnnotationService.marshalForManuscript` makes them for the whole book with one query, `restoreForPart` makes them again, with new
-uuids). Everything that copies a book through the backup form (the clone, the restore, the working copy of an agent) copies them.
+uuids; the overload with a `Collection<UuidPair>` also reports `ANNOTATION` pairs, the uuid in the backup and the new one, for the working copy of an agent). Everything that copies a book through the backup form (the clone, the restore, the working copy of an agent) copies them.
 
 ## Lorebooks
 

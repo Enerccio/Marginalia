@@ -3,10 +3,14 @@ package com.github.enerccio.marginalia.ui.dialogs.agent;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
+import com.github.enerccio.marginalia.domain.model.impl.Annotation;
+import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.AgentMergeService;
 import com.github.enerccio.marginalia.domain.service.AgentMergeService.MergeResult;
 import com.github.enerccio.marginalia.domain.service.AgentMergeService.MergeSelection;
 import com.github.enerccio.marginalia.domain.service.AgentRunService;
+import com.github.enerccio.marginalia.domain.service.AnnotationService;
+import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.agent.MergeDiff;
 import com.github.enerccio.marginalia.domain.service.agent.MergePlan;
 import com.github.enerccio.marginalia.domain.service.agent.MergePlan.*;
@@ -64,6 +68,12 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
     @Autowired
     private AgentRunService agentRunService;
 
+    @Autowired
+    private AnnotationService annotationService;
+
+    @Autowired
+    private ChatMessageService chatMessageService;
+
     private final String agentName;
     private final AgentRun run;
     private final Runnable onChange;
@@ -105,6 +115,7 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
             locals = {@APILocals(name = "allButton", type = Button.class),
                     @APILocals(name = "noneButton", type = Button.class),
                     @APILocals(name = "newButton", type = Button.class),
+                    @APILocals(name = "annotationsButton", type = Button.class),
                     @APILocals(name = "cleanButton", type = Button.class),
                     @APILocals(name = "toolbar", type = HorizontalLayout.class),
                     @APILocals(name = "split", type = SplitLayout.class),
@@ -130,9 +141,10 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         Button noneButton = small(L.LABEL_SELECT_NONE, event -> pick(item -> false));
         Button newButton = small(L.LABEL_SELECT_NEW_PARTS, event ->
                 pick(item -> item.applicable() && item.kind() == Kind.MESSAGE && item.change() == Change.ADDED));
+        Button annotationsButton = small(L.LABEL_SELECT_ANNOTATIONS, event -> pick(item -> item.applicable() && item.kind() == Kind.ANNOTATION));
         Button cleanButton = small(L.LABEL_SELECT_WITHOUT_CONFLICTS, event -> pick(this::isClean));
         branchBox = new Checkbox(loc.getValue(L.LABEL_SWITCH_TO_AGENT_BRANCH));
-        HorizontalLayout toolbar = new HorizontalLayout(allButton, noneButton, newButton, cleanButton, branchBox);
+        HorizontalLayout toolbar = new HorizontalLayout(allButton, noneButton, newButton, annotationsButton, cleanButton, branchBox);
         toolbar.setWidthFull();
         toolbar.setWrap(true);
         toolbar.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -264,7 +276,7 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         jsonModels.clear();
         grid.setItems(plan.items());
         summaryLabel.setText(plan.isEmpty() ? loc.getValue(L.MSG_MERGE_NO_CHANGES) : String.format(loc.getValue(L.MSG_MERGE_SUMMARY),
-                plan.items().size(), count(Kind.MESSAGE), count(Kind.LOREBOOK), count(Kind.ENTRY), count(Kind.BOOK), plan.conflicts()));
+                plan.items().size(), count(Kind.MESSAGE), count(Kind.LOREBOOK), count(Kind.ENTRY), count(Kind.BOOK), count(Kind.ANNOTATION), plan.conflicts()));
         hintLabel.setText(loc.getValue(plan.bookChanged() ? L.MSG_MERGE_BOOK_CHANGED : L.HELP_MERGE));
         pick(this::isClean);
         showFirst();
@@ -373,6 +385,7 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
             case MESSAGE -> L.ENUM_MERGE_KIND_MESSAGE;
             case LOREBOOK -> L.ENUM_MERGE_KIND_LOREBOOK;
             case ENTRY -> L.ENUM_MERGE_KIND_ENTRY;
+            case ANNOTATION -> L.ENUM_DOMAIN_ANNOTATION;
         };
     }
 
@@ -487,10 +500,34 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         dialog.open();
         if (item.kind() == Kind.MESSAGE) {
             view.showPart(item.sourceUuid());
+        } else if (item.kind() == Kind.ANNOTATION) {
+            showAnnotationPart(view, item);
         } else {
             view.showEntry(item.sourceUuid());
         }
         copyDialog = dialog;
+    }
+
+    /**
+     * The copy of the part the annotation of the agent is on.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "view", type = AgentCopyView.class),
+                    @APIParameter(name = "item", type = MergePlan.Item.class)},
+            locals = {@APILocals(name = "annotation", type = Annotation.class),
+                    @APILocals(name = "part", type = ChatMessage.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void showAnnotationPart(AgentCopyView view, Item item) {
+        try {
+            Annotation annotation = annotationService.findForUser(item.sourceUuid());
+            ChatMessage part = annotation == null || annotation.getPartId() == null ? null : chatMessageService.find(annotation.getPartId());
+            if (part != null) {
+                view.showPart(part.getUuid());
+            }
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     @PublicAPI(from = "1.4.0",
@@ -511,6 +548,7 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         return loc.getValue(switch (problem) {
             case MergePlan.PROBLEM_NEEDS_PARENT -> L.MSG_MERGE_PROBLEM_NEEDS_PARENT;
             case MergePlan.PROBLEM_NEEDS_LOREBOOK -> L.MSG_MERGE_PROBLEM_NEEDS_LOREBOOK;
+            case MergePlan.PROBLEM_NEEDS_PART -> L.MSG_MERGE_PROBLEM_NEEDS_PART;
             default -> L.MSG_MERGE_PROBLEM_GONE;
         });
     }
@@ -899,6 +937,11 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
             case "filteringMode" -> L.LABEL_FILTERING_MODE;
             case "insertionMode" -> L.LABEL_INSERTION_MODE;
             case "lorebook" -> L.LABEL_LOREBOOK;
+            case "text" -> L.LABEL_NOTE;
+            case "type" -> L.LABEL_TYPE;
+            case "status" -> L.LABEL_STATE;
+            case "sendToPrompt" -> L.LABEL_ANNOTATION_SEND_TO_PROMPT;
+            case "quote" -> L.LABEL_ANNOTATION_PASSAGE;
             case MergeDiff.PARENT -> L.LABEL_AGENT_MERGE_FOLLOWS;
             default -> L.LABEL_BOOK;
         };

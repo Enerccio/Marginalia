@@ -140,6 +140,7 @@ public final class CheckpointText {
             case MESSAGE -> "part";
             case LOREBOOK -> "lorebook";
             case ENTRY -> "entry";
+            case ANNOTATION -> "annotation";
         };
     }
 

@@ -4,7 +4,7 @@ package com.github.enerccio.marginalia.domain.service.agent;
  * Turns the uuids of the items of the working copy into the <b>handles</b> an agent works with and back. An agent never
  * sees a uuid: the uuids of the copy change when it is restored from a checkpoint or made again, the handles of the run
  * stay, and a handle is a few tokens where a uuid is about twenty. A handle looks like {@code h:m17}: the prefix
- * {@code h:}, the kind of the item (m part, s summary, l lorebook, e lorebook entry) and the number it got in the run.
+ * {@code h:}, the kind of the item (m part, s summary, l lorebook, e lorebook entry, a annotation) and the number it got in the run.
  * <p>
  * The translation is done at the border between the model and the commands, on the text of the results and on the
  * arguments, so a command needs no knowledge of it and a command of a plugin gets it too.
@@ -14,7 +14,7 @@ public interface HandleTranslator {
     /**
      * What a handle looks like.
      */
-    String HANDLE_PATTERN = "\\bh:[mlse]\\d+\\b";
+    String HANDLE_PATTERN = "\\bh:[mlsea]\\d+\\b";
 
     /**
      * The text with every uuid of an item of the working copy replaced by its handle (one is given when the item has none

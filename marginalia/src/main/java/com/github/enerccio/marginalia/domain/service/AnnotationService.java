@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.AnnotationRepository;
+import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
 import com.google.gson.JsonArray;
 
 import java.util.Collection;
@@ -133,6 +134,14 @@ public interface AnnotationService extends ExtendableService<Annotation, Annotat
     /**
      * Makes the annotations of the backup of a part for the restored part.
      */
-    void restoreForPart(ChatMessage part, JsonArray annotations) throws Exception;
+    default void restoreForPart(ChatMessage part, JsonArray annotations) throws Exception {
+        restoreForPart(part, annotations, null);
+    }
+
+    /**
+     * Makes the annotations of the backup of a part for the restored part; the uuid each had in the backup and the one it got
+     * are added to {@code pairs} (the working copy of an agent), when it is not null.
+     */
+    void restoreForPart(ChatMessage part, JsonArray annotations, Collection<UuidPair> pairs) throws Exception;
 
 }

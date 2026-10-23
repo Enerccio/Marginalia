@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846078447034">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846080449536">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846078447034" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846080449536" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846078447034" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846080449536" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846078447034" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846080449536" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -235,6 +235,11 @@ next to the text; on a phone tap the passage.</p>
 see them all, also the ones about the whole part and the ones that lost their passage.</p>
 </li>
 <li>
+<p>In the <strong>margin</strong> (the cogs menu of the story, <strong>Annotations in the margin</strong>; desktop only, and remembered for you) the notes of every part stand in a column
+left of its text, in the order of their passages, instead of in the popover. The note under the pointer and its underlined passage light up together, and a click on
+a passage brings its note into view. The notes are the same ones (resolve, edit...); resolved and dismissed notes are not shown there, as they are not underlined.</p>
+</li>
+<li>
 <p>The <strong>Annotations</strong> tab lists the notes of the whole book, grouped by part in the order of the story, with a filter
 (<em>Need a look</em>, <em>Closed</em>, <em>All</em>). <strong>Show in story</strong> (or the number of the part) takes you to the part.</p>
 </li>
@@ -356,8 +361,28 @@ rewrites the part to deal with them; when you <strong>Apply</strong> the redraft
 <h2 id="commands">Commands</h2>
 <p><a href="../../commands/#annotations"><code translate="no" v-pre>/list-annotations</code></a>, <code translate="no" v-pre>/get-annotation</code>, <code translate="no" v-pre>/create-annotation</code>, <code translate="no" v-pre>/update-annotation</code>,
 <code translate="no" v-pre>/resolve-annotation</code>, <code translate="no" v-pre>/reattach-annotation</code> and <code translate="no" v-pre>/delete-annotation</code> work with the notes from the command line.
-Extensions can use the same commands. An <a href="../../agents/">agent</a> can read annotations but <strong>cannot make or change them yet</strong>
-(its changes go to a working copy of the book, which does not take annotations back).</p>
+Extensions can use the same commands.</p>
+<h2 id="annotations-and-agents">Annotations and agents</h2>
+<p>An <a href="../../agents/">agent</a> reads and writes annotations with the same commands: it can annotate a whole book (<em>continuity</em>, <em>style</em>...), resolve notes it dealt with, edit
+or delete them. It works on a copy of the book, so nothing reaches your notes until you <a href="../../agents/#reviewing-the-result">review the result</a>:</p>
+<ul>
+<li>
+<p>A note the agent made is a line <strong>Annotation - Added</strong>, one it resolved, dismissed or rewrote is <strong>Changed</strong> (with the note, type, status and <em>give to the model</em> as the
+fields, each with its own <strong>Take this change</strong> box), one it deleted is <strong>Deleted</strong>. The notes of a part the agent deleted go with the part and have no lines.</p>
+</li>
+<li>
+<p>The line says in which part the note is (<code translate="no" v-pre>3: </code> and the start of the note); <strong>Show in the copy</strong> opens the part in the agent&#x27;s copy. A note on a part the agent wrote needs
+that part: ticking the note ticks the part too.</p>
+</li>
+<li>
+<p><strong>Only annotations</strong> above the list ticks the notes alone. The passage of a taken note is the same one when the text of the part is the same; when you take the
+agent&#x27;s new text of the part, or your own text differs, the note finds its words again in the text of your book and, when it can&#x27;t, becomes a note about the whole part.</p>
+</li>
+<li>
+<p>A note you wrote while the agent was paused comes into its copy when it resumes (and a note you resolved is resolved there), so it knows about it; a note you and the agent
+both changed is a conflict like any other.</p>
+</li>
+</ul>
 
                 
                 <!-- Required only on API pages -->
@@ -395,7 +420,7 @@ Extensions can use the same commands. An <a href="../../agents/">agent</a> can r
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (1abf8038).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (3aa6e0ce).</p></div>
             </footer>
         </div>
     </div>

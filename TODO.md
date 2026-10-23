@@ -344,11 +344,10 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
 49. 🧩 **Autopilot batch.** "Write the next N parts with these instructions" unattended, with stop conditions (word
     or token budget, a side-query judge says the scene ended, an error), written to a new branch so the main one stays
     clean; the result is reviewed and kept or pruned. Needs terminal events for failed/cancelled generations (24a).
-68. ✅ **Annotations (notes anchored to a passage of a part).** Done in 1.5.0 (see the CHANGELOG); open: the *margin notes* mode
-    (below, optional), annotations made by agents (an agent works on a copy of the book that does not take them back: needs a kind of
-    item in `AgentRunPair`, the three way merge, the sync and the review; until then the commands that write are `availableForAgent =
-    false`), a keyboard shortcut for *Annotate selection*, and a look at the marks, the popover and the selection in a real browser
-    (the scripts of `JavascriptLibrary` are not unit tested). Notes for the author ("weak scene", "timeline wrong",
+68. ✅ **Annotations (notes anchored to a passage of a part).** Done in 1.5.0 (see the CHANGELOG), also the *margin notes* mode and the annotations
+    of agents (review, sync, handles); open: aligning each margin note with the line of its passage (client-side layout, now the notes are stacked in text
+    order), a keyboard shortcut for *Annotate selection*, and a look at the marks, the popover, the right click menu, the margin and the selection in a real
+    browser (the scripts of `JavascriptLibrary` are not unit tested). Notes for the author ("weak scene", "timeline wrong",
     "revisit"), like comments in Word, plus findings of AI and agents. Core feature (anchoring, backups and the editor
     need hooks); checkers stay plugins (37 posts its findings as annotations, 44 can read them). Decided design:
     - **Entity** `Annotation` (a real table + Flyway migration, the sidebar queries by book / status / part): part,

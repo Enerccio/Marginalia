@@ -1,12 +1,16 @@
 package com.github.enerccio.marginalia.ui;
 
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.AnnotationSource;
+import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.AnnotationService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
+import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart;
@@ -44,6 +48,9 @@ class StoryAnnotationsDialogTest extends MarginaliaTestBase {
 
     @Autowired
     private ManuscriptService manuscriptService;
+
+    @Autowired
+    private SettingService settingService;
 
     // UI.setCurrent keeps a weak reference only
     private UI ui;
@@ -173,6 +180,68 @@ class StoryAnnotationsDialogTest extends MarginaliaTestBase {
         ManuscriptDialog dialog = opened();
 
         assertThat((badge(cards(dialog).getFirst())).isVisible()).isFalse();
+    }
+
+    private static com.github.enerccio.marginalia.ui.dialogs.story.CardAnnotations cardAnnotations(Object card) throws Exception {
+        return (com.github.enerccio.marginalia.ui.dialogs.story.CardAnnotations) field(card, "cardAnnotations");
+    }
+
+    private void marginSetting(boolean on) throws Exception {
+        UserSetting setting = settingService.getOrCreate(UserSetting.class);
+        setting.setAnnotationsInMargin(on);
+        settingService.save(setting);
+    }
+
+    @Test
+    void theNotesAreInThePopoverUnlessTheUserWantsThemInTheMargin() throws Exception {
+        annotate("Anna", "one");
+
+        Object card = cards(opened()).getFirst();
+
+        assertThat(cardAnnotations(card).isMarginMode()).isFalse();
+        assertThat(cardAnnotations(card).getMargin().isVisible()).isFalse();
+        assertThat(cardAnnotations(card).getMargin().getComponentCount()).isZero();
+        assertThat(((com.vaadin.flow.component.orderedlayout.VerticalLayout) field(card, "contentLayout")).getClassNames())
+                .doesNotContain(CssStyles.ANNOTATION_MARGIN_LAYOUT);
+    }
+
+    @Test
+    void theMarginHoldsTheNotesThatNeedALookInTheOrderOfTheirPassages() throws Exception {
+        Annotation later = annotate("Then she left.", "abrupt");
+        Annotation earlier = annotate("Anna", "who is she?");
+        Annotation closed = annotate("the bar", "which bar?");
+        annotationService.setStatus(book, closed, AnnotationStatus.RESOLVED);
+        marginSetting(true);
+
+        Object card = cards(opened()).getFirst();
+
+        var margin = cardAnnotations(card).getMargin();
+        assertThat(margin.isVisible()).isTrue();
+        assertThat(all(margin, AnnotationView.class)).extracting(view -> view.getAnnotation().getId())
+                .containsExactly(earlier.getId(), later.getId());
+        assertThat(margin.getComponentAt(0).getElement().getAttribute("data-annotation-id")).isEqualTo(earlier.getUuid());
+        assertThat(((com.vaadin.flow.component.orderedlayout.VerticalLayout) field(card, "contentLayout")).getClassNames())
+                .contains(CssStyles.ANNOTATION_MARGIN_LAYOUT);
+    }
+
+    @Test
+    void switchingTheMarginOnAndOffChangesEveryCardAndIsRemembered() throws Exception {
+        annotate("Anna", "who is she?");
+        ManuscriptDialog dialog = opened();
+        Object card = cards(dialog).getFirst();
+        java.lang.reflect.Method switchMargin = ManuscriptStoryPart.class.getDeclaredMethod("setAnnotationsInMargin", boolean.class);
+        switchMargin.setAccessible(true);
+
+        switchMargin.invoke(storyPart(dialog), true);
+
+        assertThat(cardAnnotations(card).getMargin().getComponentCount()).isEqualTo(1);
+        assertThat(settingService.getOrCreate(UserSetting.class).isAnnotationsInMargin()).isTrue();
+
+        switchMargin.invoke(storyPart(dialog), false);
+
+        assertThat(cardAnnotations(card).getMargin().isVisible()).isFalse();
+        assertThat(cardAnnotations(card).getMargin().getComponentCount()).isZero();
+        assertThat(settingService.getOrCreate(UserSetting.class).isAnnotationsInMargin()).isFalse();
     }
 
     @Test

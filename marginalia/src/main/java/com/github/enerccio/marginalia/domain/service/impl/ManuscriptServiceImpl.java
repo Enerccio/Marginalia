@@ -890,7 +890,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
             msg = chatMessageService.saveWithoutEvent(msg);
 
             if (msgObj.has("annotations") && msgObj.get("annotations").isJsonArray()) {
-                annotationService.restoreForPart(msg, msgObj.getAsJsonArray("annotations"));
+                annotationService.restoreForPart(msg, msgObj.getAsJsonArray("annotations"), pairs);
             }
 
             if (msgObj.has("uuid") && !msgObj.get("uuid").isJsonNull()) {

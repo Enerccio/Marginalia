@@ -200,7 +200,7 @@ describes): the answer lists them and says what to do, `/revalidate-summaries` i
 
 The commands that read [annotations](../books/annotations.md) (`/list-annotations`, `/get-annotation`) answer in JSON like the other reading commands;
 an annotation is given by its **handle**, a part by its handle for the commands that change something. These commands change only the notes,
-never the story, so only the delete asks first. An agent can read annotations, but the commands below are not offered to agents yet.
+never the story, so only the delete asks first. An agent can use all of them; its notes reach your book when you [review the result](../books/annotations.md#annotations-and-agents).
 
 | Command | What it does |
 |---------|--------------|

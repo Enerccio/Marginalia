@@ -706,6 +706,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_ANNOTATE_ACCEPT, "選択した注釈を追加");
         setValue(L.LABEL_ANNOTATE_RAW, "モデルの回答");
         setValue(L.LABEL_ANNOTATE_PROPOSALS, "提案された注釈");
+        setValue(L.LABEL_ANNOTATION_PASSAGE, "該当箇所");
+        setValue(L.LABEL_SELECT_ANNOTATIONS, "注釈のみ");
+        setValue(L.LABEL_ANNOTATIONS_IN_MARGIN, "注釈を余白に表示");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1085,7 +1088,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_CHECKPOINTS_USAGE, "チェックポイントの使用量: %s / %s (うち %s は自動チェックポイント用に確保)。");
         setValue(L.MSG_AGENT_CHECKPOINTS_EMPTY, "チェックポイントはまだありません。実行の開始時に作られます。");
         setValue(L.MSG_AGENT_CHECKPOINT_BUSY, "エージェントが作業中です。チェックポイントの保存や復元は一時停止してから行ってください。");
-        setValue(L.MSG_MERGE_SUMMARY, "%d 件の変更: パート %d、ロアブック %d、エントリ %d、ブック設定 %d。競合: %d。");
+        setValue(L.MSG_MERGE_SUMMARY, "%d 件の変更: パート %d、ロアブック %d、エントリ %d、ブック設定 %d、注釈 %d。競合: %d。");
         setValue(L.MSG_MERGE_BOOK_CHANGED, "実行開始後にブックが変更されました。競合とは、あなたとエージェントの両方が変更したテキストです。どちらを残すか選ぶか、結果を自分で書いてください。");
         setValue(L.MSG_MERGE_NO_CHANGES, "エージェントはブックを変更しませんでした。");
         setValue(L.MSG_MERGE_APPLIED, "%d 件の変更をブックに適用しました。変更前のブックはバックアップに保存されています。");
@@ -1193,6 +1196,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_ANNOTATE_UNREADABLE, "モデルの回答を読み取れませんでした（%s）。作業が失われないよう、下に表示します。");
         setValue(L.MSG_ANNOTATE_NOT_LOCATED, "本文に見つからないため、パート全体への注釈になります");
         setValue(L.MSG_ANNOTATE_ADDED, "注釈を %d 件追加しました");
+        setValue(L.MSG_MERGE_PROBLEM_NEEDS_PART, "この注釈のパートがブックから削除されました。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.domain.collections.AgentRunPairKind;
 import com.github.enerccio.marginalia.domain.collections.AnnotationSource;
 import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
 import com.github.enerccio.marginalia.domain.listener.ExtendableEntityListener;
@@ -10,6 +11,7 @@ import com.github.enerccio.marginalia.domain.repository.AnnotationRepository;
 import com.github.enerccio.marginalia.domain.service.AnnotationService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
+import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.utils.QuoteFinder;
@@ -347,7 +349,7 @@ public class AnnotationServiceImpl extends ExtendableServiceImpl<Annotation, Ann
 
     @Override
     @CommonTx
-    public void restoreForPart(ChatMessage part, JsonArray annotations) throws Exception {
+    public void restoreForPart(ChatMessage part, JsonArray annotations, Collection<UuidPair> pairs) throws Exception {
         if (part == null || annotations == null) {
             return;
         }
@@ -367,7 +369,10 @@ public class AnnotationServiceImpl extends ExtendableServiceImpl<Annotation, Ann
                 if (object.has("extendedContent") && !object.get("extendedContent").isJsonNull()) {
                     annotation.setExtendedContent(object.get("extendedContent").toString().getBytes(StandardCharsets.UTF_8));
                 }
-                saveWithoutEvent(annotation);
+                annotation = saveWithoutEvent(annotation);
+                if (pairs != null && object.has("uuid") && !object.get("uuid").isJsonNull()) {
+                    pairs.add(new UuidPair(AgentRunPairKind.ANNOTATION, annotation.getUuid(), object.get("uuid").getAsString()));
+                }
             } catch (Exception e) {
                 log.warn("Cannot restore an annotation of a backup: {}", e.getMessage());
             }

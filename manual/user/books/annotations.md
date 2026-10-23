@@ -48,6 +48,9 @@ model, green an agent, red an extension). A note inside another one is underline
   next to the text; on a phone tap the passage.
 - A **speech bubble with a number** in the header of a part counts the notes of the part that need a look. Click it to
   see them all, also the ones about the whole part and the ones that lost their passage.
+- In the **margin** (the cogs menu of the story, **Annotations in the margin**; desktop only, and remembered for you) the notes of every part stand in a column
+  left of its text, in the order of their passages, instead of in the popover. The note under the pointer and its underlined passage light up together, and a click on
+  a passage brings its note into view. The notes are the same ones (resolve, edit...); resolved and dismissed notes are not shown there, as they are not underlined.
 - The **Annotations** tab lists the notes of the whole book, grouped by part in the order of the story, with a filter
   (*Need a look*, *Closed*, *All*). **Show in story** (or the number of the part) takes you to the part.
 
@@ -122,5 +125,18 @@ rewrites the part to deal with them; when you **Apply** the redraft, those notes
 
 [`/list-annotations`](../commands/index.md#annotations), `/get-annotation`, `/create-annotation`, `/update-annotation`,
 `/resolve-annotation`, `/reattach-annotation` and `/delete-annotation` work with the notes from the command line.
-Extensions can use the same commands. An [agent](../agents.md) can read annotations but **cannot make or change them yet**
-(its changes go to a working copy of the book, which does not take annotations back).
+Extensions can use the same commands.
+
+## Annotations and agents
+
+An [agent](../agents.md) reads and writes annotations with the same commands: it can annotate a whole book (*continuity*, *style*...), resolve notes it dealt with, edit
+or delete them. It works on a copy of the book, so nothing reaches your notes until you [review the result](../agents.md#reviewing-the-result):
+
+- A note the agent made is a line **Annotation - Added**, one it resolved, dismissed or rewrote is **Changed** (with the note, type, status and *give to the model* as the
+  fields, each with its own **Take this change** box), one it deleted is **Deleted**. The notes of a part the agent deleted go with the part and have no lines.
+- The line says in which part the note is (`3: ` and the start of the note); **Show in the copy** opens the part in the agent's copy. A note on a part the agent wrote needs
+  that part: ticking the note ticks the part too.
+- **Only annotations** above the list ticks the notes alone. The passage of a taken note is the same one when the text of the part is the same; when you take the
+  agent's new text of the part, or your own text differs, the note finds its words again in the text of your book and, when it can't, becomes a note about the whole part.
+- A note you wrote while the agent was paused comes into its copy when it resumes (and a note you resolved is resolved there), so it knows about it; a note you and the agent
+  both changed is a conflict like any other.
