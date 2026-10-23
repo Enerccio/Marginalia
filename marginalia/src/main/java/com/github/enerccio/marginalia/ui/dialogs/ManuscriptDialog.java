@@ -192,6 +192,8 @@ public class ManuscriptDialog extends Dialog implements ManuscriptWindow {
     public void selectStoryPart() {
         if (tabs != null && storyPartComponent != null) {
             tabs.setSelectedTab(tabs.getTab(storyPartComponent));
+            // the story may be behind another tab of its sheet
+            storyPart.showStory();
         }
     }
 

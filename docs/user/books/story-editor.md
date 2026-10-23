@@ -12,11 +12,12 @@ This page describes the desktop layout. On a phone the story is one column with 
 |---|---|
 | **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part (the parts before it are loaded first when it is not loaded yet). The header shows how many parts the branch has. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |
 | **Lorebook** (left, next to the Outline) | A read only look at the lore of the book, see [The lorebook tab](#the-lorebook-tab). |
-| **Parts** (center) | The text of each part, with its menu (☰) and its metadata on the right. |
-| **Bottom bar** | The **Summaries** button (list icon) and the settings menu (⚙) on the left, the **+** button on the right. |
+| **Story** (center) | The text of each part, with its menu (☰) and its metadata on the right, and under it the bottom bar. |
+| **Bottom bar** | The **Summaries** button (list icon) and the settings menu (⚙) on the left, the command line, and the **+** button on the right. |
 
-The divider between the sidebar and the parts can be dragged. Marginalia remembers where you left it (saved with the book)
-and returns to it when you open the book again.
+This is how a new book looks. All of these are tabs you can arrange as you like, the story included, see
+[Arranging the tabs](#arranging-the-tabs). The divider between the sidebar and the story can be dragged, and Marginalia
+remembers where you left it (saved with the book) and returns to it when you open the book again.
 
 The story always opens at the bottom, at the newest part. A long book is not drawn all at once: only the last parts are
 loaded, and the earlier ones are added above as you scroll up, without moving the part you are reading. The parts at the
@@ -58,17 +59,20 @@ swap tabs to check what an entry says. It is a preview: nothing can be changed h
 
 ![The Lorebook tab with two entries opened](../../images/story-lorebook-tab.png)
 
-Like every sidebar tab it can be dragged out into a panel of its own, see below.
+Like every tab of the editor it can be dragged out into a panel of its own, see below.
 
-### Arranging the sidebar tabs
+### Arranging the tabs
 
-The left sidebar is a set of tabs: the **Outline**, the **Lorebook**, and the tabs [extensions](../extensions/index.md) add (Characters, Arcs,
-Side Query...). Drag a tab by its header to rearrange them (desktop only, the drawer on a phone keeps one list):
+The editor is a set of tabs: the **Story** itself (the parts and the bottom bar under them), the **Outline**, the **Lorebook**, and the
+tabs [extensions](../extensions/index.md) add (Characters, Arcs, Side Query...). Drag a tab by its header to rearrange
+them (desktop only, the phone keeps one column with the outline in a drawer). A new book has the Outline and the Lorebook in a panel
+on the left and the Story in a column of its own on the right; you can put the story anywhere, for example in the middle with the
+outline on one side and the lore on the other, or above the outline:
 
 - Drop it on one of the dashed strips that appear above, between and under the panels of a column to **detach** it into a
   panel of its own in that column; the panels of a column are stacked under each other.
 - Drop it on one of the tall strips at the left, right or between the columns to **detach it to the side**: it gets a
-  column of its own, next to the others. Widen the sidebar with the divider to make room for more columns.
+  column of its own, next to the others. Widen the editor with the dividers to make room for more columns.
 
 The panels and the columns are separated by splitters: drag them to give each panel the room you need. The sizes are saved
 with the arrangement.
@@ -81,6 +85,15 @@ with the arrangement.
 The arrangement and the sizes are saved with the book, so it is the same the next time you open it and in every browser; the tab each
 panel shows is remembered with the rest of your workspace. A tab of an extension that is not loaded keeps its place for when
 the extension is back.
+
+The story is always somewhere: its tab can't be closed, and a tab that lives in a panel together with other tabs is hidden
+while another one is selected. Whatever shows a part brings the story back: clicking an entry of the outline, a hit of the
+search, choosing a branch in the [story tree](branches-and-story-tree.md), and starting a generation select the **Story** tab
+first. While a generation runs the other tabs are disabled and only the story stays usable, so you can stop it.
+
+To go back to the arrangement of a new book, choose **Restore default layout** in the settings menu (⚙) of the story and confirm.
+It only moves the tabs back (and forgets the sizes): your texts, the tab each panel shows and the tabs of extensions stay, the
+latter in the first panel.
 
 ## Writing the next part
 

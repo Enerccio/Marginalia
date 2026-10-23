@@ -47,8 +47,6 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.popover.Popover;
-import com.vaadin.flow.component.splitlayout.SplitLayout;
-import com.vaadin.flow.component.splitlayout.SplitLayout.Orientation;
 import com.vaadin.flow.component.textfield.TextArea;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,24 +61,31 @@ import java.util.Set;
 public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
     /**
-     * Key of the {@link Manuscript#getAttributes() attributes} of the manuscript that holds the layout of the sidebar tabs
-     * ({@link TabDock#getLayout()}): which tabs the user detached into sheets of their own.
+     * Key of the {@link Manuscript#getAttributes() attributes} of the manuscript that holds the layout of the tabs of the
+     * story editor ({@link TabDock#getLayout()}): which tabs are together in which sheet and column, and how big they are.
      */
     public static final String TABS_CONFIG_ATTRIBUTE = "$desktopManuscriptStoryPartTabsConfig";
 
     /**
-     * Key of the {@link Manuscript#getAttributes() attributes} of the manuscript that holds the position of the splitter
-     * between the sidebar and the story (percent of the width the sidebar has).
+     * Key of the {@link Manuscript#getAttributes() attributes} of the manuscript that held the position of the splitter
+     * between the sidebar and the story (percent of the width the sidebar has) while the story was not a tab of the dock.
+     * Only read now, to turn the old layout into one with the story tab (see {@link StoryDockLayout#migrate}); the next
+     * save of the layout removes it.
      */
     public static final String SPLIT_POSITION_ATTRIBUTE = "$desktopManuscriptStoryPartSplitPosition";
 
     /**
-     * Id of the outline tab in the layout of the sidebar; extensions give their tabs ids of their own.
+     * Id of the story (the cards and the controls under them) in the layout of the tabs.
+     */
+    public static final String STORY_TAB = "story";
+
+    /**
+     * Id of the outline tab in the layout of the tabs; extensions give their tabs ids of their own.
      */
     public static final String CHAPTERS_TAB = "chapters";
 
     /**
-     * Id of the read only lorebook preview tab in the layout of the sidebar.
+     * Id of the read only lorebook preview tab in the layout of the tabs.
      */
     public static final String LOREBOOK_TAB = "lorebook";
 
@@ -105,8 +110,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     private final ManuscriptDialog parent;
     private CancellationToken activeGenerationToken;
 
-    private SplitLayout mainLayout;
-    private VerticalLayout leftMarginLayout;
     private VerticalLayout centerLayout;
     private ScrollPanel centerContentPanel;
     private HorizontalLayout bottomControlsLayout;
@@ -150,15 +153,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             parameters = {@APIParameter(name = "container", type = VTabSheet.class)})
     @Override
     public Component create(VTabSheet container) throws Exception {
-        mainLayout = new SplitLayout();
-        mainLayout.setSizeFull();
-
-        leftMarginLayout = new VerticalLayout();
-        leftMarginLayout.setSizeFull();
-        leftMarginLayout.setPadding(false);
-        leftMarginLayout.setSpacing(false);
-        leftMarginLayout.addClassName(CssStyles.BORDER_RIGHT_SUBTLE);
-
         // created once: a redraw of the story only refills the outline, so the selected tab (and the tabs extensions add) survive it
         leftBar = new TabDock();
         leftBar.setSizeFull();
@@ -168,7 +162,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 parent.stateChanged();
             }
         });
-        leftMarginLayout.add(leftBar);
+        // the default arrangement from the start: the tabs added below find their place in it
+        leftBar.setLayout(StoryDockLayout.defaultLayout(STORY_TAB, null, CHAPTERS_TAB, LOREBOOK_TAB));
         createStoryOutlineTab();
         createLorebookTab();
 
@@ -189,15 +184,15 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         centerLayout.setFlexGrow(1, centerContentPanel);
         centerLayout.setFlexGrow(0, bottomControlsLayout);
 
-        mainLayout.setOrientation(Orientation.HORIZONTAL);
-        mainLayout.addToPrimary(leftMarginLayout);
-        mainLayout.addToSecondary(centerLayout);
-        mainLayout.setSplitterPosition(20);
-        mainLayout.addSplitterDragEndListener(event -> saveSplitPosition());
+        // the story is a tab like the others, the user puts it where they want it
+        leftBar.add(STORY_TAB, loc.getValue(L.LABEL_STORY_PART), centerLayout);
+        // a tab sheet drops the content of the tabs it does not show from the page: the browser builds the story again
+        // when its tab is shown, without the scripts that watch the edges
+        centerLayout.addAttachListener(event -> lazyLoader.reattached());
 
-        container.add(loc.getValue(L.LABEL_STORY_PART), mainLayout);
+        container.add(loc.getValue(L.LABEL_STORY_PART), leftBar);
         installShortcuts();
-        return mainLayout;
+        return leftBar;
     }
 
     /**
@@ -208,8 +203,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             returns = @APIReturn(type = void.class))
     private void installShortcuts() {
         loadKeyBindings();
-        JavascriptLibrary.fireShortcutEvents(mainLayout.getElement(), keyBindings.toJson());
-        mainLayout.getElement().addEventListener("marginalia-shortcut",
+        JavascriptLibrary.fireShortcutEvents(leftBar.getElement(), keyBindings.toJson());
+        leftBar.getElement().addEventListener("marginalia-shortcut",
                 event -> handleShortcut(event.getEventData().get("event.detail").asString())).addEventData("event.detail");
         newTurnForm.setGenerateShortcut(keyBindings.get(ShortcutActions.STORY_GENERATE));
         refreshActionTooltip();
@@ -296,7 +291,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 ShortcutAction action = ShortcutRegistry.get(actionId);
                 if (action != null && action.getHandler() != null) {
                     try {
-                        action.getHandler().accept(mainLayout);
+                        action.getHandler().accept(leftBar);
                     } catch (Exception e) {
                         UIUtils.internalServerError(loc, e);
                     }
@@ -408,6 +403,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         createImportArchiveMenuItem(cogs);
         createBranchTokensMenuItem(cogs);
         createExportMenuItem(cogs);
+        createRestoreLayoutMenuItem(cogs);
         return cogs;
     }
 
@@ -583,9 +579,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         Manuscript manuscript = parent.refreshManuscript();
         applyLanguage(manuscript);
         if (manuscript.getShowBookStyles()) {
-            mainLayout.addClassName(CssStyles.MARKDOWN_MANUSCRIPT_STYLES);
+            leftBar.addClassName(CssStyles.MARKDOWN_MANUSCRIPT_STYLES);
         } else {
-            mainLayout.removeClassName(CssStyles.MARKDOWN_MANUSCRIPT_STYLES);
+            leftBar.removeClassName(CssStyles.MARKDOWN_MANUSCRIPT_STYLES);
         }
     }
 
@@ -594,7 +590,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)})
     private void applyLanguage(Manuscript manuscript) {
-        mainLayout.getElement().setAttribute("lang", manuscript.getLanguage().getCode());
+        leftBar.getElement().setAttribute("lang", manuscript.getLanguage().getCode());
     }
 
     @PublicAPI(from = "1.1.0",
@@ -726,6 +722,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
         sidebarBtn.addClickListener(event -> {
             if (dbId != null) {
+                showStory();
                 lazyLoader.scrollTo(dbId);
             }
         });
@@ -749,7 +746,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         sidebarList.setWidthFull();
 
         branchSearch = new StoryBranchSearch(this::currentBranch,
-                ids -> lazyLoader.renderResponses(ids), id -> lazyLoader.showMatch(id, CssStyles.SEARCH_MATCH_CURRENT));
+                ids -> lazyLoader.renderResponses(ids), id -> {
+            showStory();
+            lazyLoader.showMatch(id, CssStyles.SEARCH_MATCH_CURRENT);
+        });
 
         leftMarginLayout.add(branchSearch, sidebarHeader, sidebarList);
         leftMarginLayout.setFlexGrow(1, sidebarList);
@@ -791,6 +791,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     @APILocals(name = "e", type = Exception.class)})
     private void startGeneration(GenerationRequest request, TurnInput turnInput) {
         autosaveAndSwapAllToMarkdown();
+        showStory();
         // the new part is added after the last one, which the user may have scrolled away from
         lazyLoader.showTail();
         UI ui = UI.getCurrent();
@@ -843,7 +844,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     public void setFrozen(boolean frozen) {
         this.isFrozen = frozen;
 
-        leftMarginLayout.setEnabled(!frozen);
+        // the story has to go on working (the stop button), the other tabs wait for the generation
+        leftBar.setTabsEnabled(!frozen, STORY_TAB);
         menuBar.setEnabled(!frozen);
         commandBar.setEnabled(!frozen);
 
@@ -868,12 +870,11 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     @Override
     public void load(Manuscript manuscript) {
         this.currentManuscript = manuscript;
-        if (manuscript != null && mainLayout != null) {
+        if (manuscript != null && leftBar != null) {
             applyLanguage(manuscript);
         }
         // before the story is rendered, the tabs extensions add then find their place
         applyTabsConfig(manuscript);
-        applySplitPosition(manuscript);
         renderStoryContent();
         refreshSummariesMenuItem();
         if (lorebookPreview != null) {
@@ -883,66 +884,28 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     }
 
     /**
-     * Arranges the sidebar tabs as the manuscript has them saved (all in one sheet when it has nothing saved).
+     * Arranges the tabs as the manuscript has them saved. A manuscript that has nothing saved gets the default layout, one that
+     * was saved before the story was a tab gets its old arrangement with the story at the right (see
+     * {@link StoryDockLayout#migrate}).
      */
     @PublicAPI(from = "1.3.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)},
-            locals = {@APILocals(name = "config", type = JsonElement.class)})
+            locals = {@APILocals(name = "config", type = JsonElement.class),
+                    @APILocals(name = "position", type = JsonElement.class)})
     private void applyTabsConfig(Manuscript manuscript) {
         if (leftBar == null || manuscript == null) {
             return;
         }
         JsonElement config = manuscript.getAttributes().get(TABS_CONFIG_ATTRIBUTE);
-        leftBar.setLayout(config != null && config.isJsonObject() ? config.getAsJsonObject() : null);
-    }
-
-    /**
-     * Puts the splitter between the sidebar and the story where the manuscript has it saved (it stays where it is when
-     * nothing is saved).
-     */
-    @PublicAPI(from = "1.3.0",
-            returns = @APIReturn(type = void.class),
-            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)},
-            locals = {@APILocals(name = "position", type = JsonElement.class)})
-    private void applySplitPosition(Manuscript manuscript) {
-        if (mainLayout == null || manuscript == null) {
-            return;
-        }
         JsonElement position = manuscript.getAttributes().get(SPLIT_POSITION_ATTRIBUTE);
-        if (position != null && position.isJsonPrimitive() && position.getAsJsonPrimitive().isNumber()) {
-            double value = position.getAsDouble();
-            if (value > 0 && value < 100) {
-                mainLayout.setSplitterPosition(value);
-            }
-        }
+        leftBar.setLayout(StoryDockLayout.migrate(config != null && config.isJsonObject() ? config.getAsJsonObject() : null,
+                position != null && position.isJsonPrimitive() && position.getAsJsonPrimitive().isNumber() ? position.getAsDouble() : null,
+                STORY_TAB, CHAPTERS_TAB, LOREBOOK_TAB));
     }
 
     /**
-     * Saves the position of the splitter between the sidebar and the story into the attributes of the manuscript,
-     * called after the user dragged it.
-     */
-    @PublicAPI(from = "1.3.0",
-            returns = @APIReturn(type = void.class),
-            locals = {@APILocals(name = "position", type = Double.class),
-                    @APILocals(name = "manuscript", type = Manuscript.class),
-                    @APILocals(name = "e", type = Exception.class)})
-    private void saveSplitPosition() {
-        try {
-            Double position = mainLayout.getSplitterPosition();
-            if (position == null) {
-                return;
-            }
-            Manuscript manuscript = parent.refreshManuscript();
-            manuscript.getAttributes().addProperty(SPLIT_POSITION_ATTRIBUTE, Math.round(position * 100) / 100.0);
-            parent.save();
-        } catch (Exception e) {
-            UIUtils.internalServerError(loc, e);
-        }
-    }
-
-    /**
-     * Saves the sidebar layout into the attributes of the manuscript, called after the user dragged a tab.
+     * Saves the layout of the tabs into the attributes of the manuscript, called after the user dragged a tab or a splitter.
      */
     @PublicAPI(from = "1.3.0",
             returns = @APIReturn(type = void.class),
@@ -952,7 +915,51 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         try {
             Manuscript manuscript = parent.refreshManuscript();
             manuscript.getAttributes().add(TABS_CONFIG_ATTRIBUTE, leftBar.getLayout());
+            // the splitter of the old layout is a column of the layout now
+            manuscript.getAttributes().remove(SPLIT_POSITION_ATTRIBUTE);
             parent.save();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * Shows the story: its tab becomes the selected one of the sheet it is in, whatever the user has put into that sheet.
+     * For everything that is about to show a part (a click in the outline, a hit of the search, a branch chosen in the tree,
+     * a generation).
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class))
+    public void showStory() {
+        if (leftBar != null) {
+            leftBar.select(STORY_TAB);
+        }
+    }
+
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = MenuItem.class),
+            parameters = {@APIParameter(name = "cogs", type = MenuItem.class)})
+    private MenuItem createRestoreLayoutMenuItem(MenuItem cogs) {
+        return cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.TABLE_COLUMNS.create(), loc.getValue(L.LABEL_RESTORE_DEFAULT_LAYOUT)),
+                event -> ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_RESTORE_DEFAULT_LAYOUT), this::restoreDefaultLayout));
+    }
+
+    /**
+     * Puts the tabs back the way a new book has them: forgets the layout saved with the manuscript. The contents of the tabs and
+     * the tabs of extensions stay, the latter go to the first sheet.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "manuscript", type = Manuscript.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void restoreDefaultLayout() {
+        try {
+            Manuscript manuscript = parent.refreshManuscript();
+            manuscript.getAttributes().remove(TABS_CONFIG_ATTRIBUTE);
+            manuscript.getAttributes().remove(SPLIT_POSITION_ATTRIBUTE);
+            parent.save();
+            applyTabsConfig(manuscript);
+            showStory();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -1001,6 +1008,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             returns = @APIReturn(type = void.class))
     @Override
     public void onTabEnter() throws Exception {
+        if (scrollToMessageId != null) {
+            // a part was asked for (a branch chosen in the tree): the story shows it, not the tab that was open
+            showStory();
+        }
         if (parent != null) {
             load(parent.refreshManuscript());
         }

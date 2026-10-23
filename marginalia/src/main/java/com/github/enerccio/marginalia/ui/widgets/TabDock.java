@@ -30,8 +30,10 @@ import java.util.function.Consumer;
  * arranged in columns next to each other, the sheets of a column are stacked under each other: a strip between the sheets of
  * a column makes a new sheet in that column, a strip between the columns (and at the sides) makes a new column. Splitters
  * between the sheets and between the columns let the user resize them, the sizes are a part of the layout. A sheet that
- * loses its last tab is gone, and so is a column without sheets. Used by the sidebar of the story (extensions add their tabs
- * to it with {@link #add}), a dock that is not {@code detachable} is just one tab sheet.
+ * loses its last tab is gone, and so is a column without sheets. Used by the story editor, whose tabs are the story itself, the
+ * outline and the other sidebar tabs (extensions add theirs with {@link #add}), a dock that is not {@code detachable} is just
+ * one tab sheet. A tab sheet hides the content of the tabs it does not show and disables it, so {@link #select} is how code
+ * shows a tab.
  * <p>
  * The tabs are identified by an id that is the same in every session: the {@linkplain #getLayout() layout} (which tabs are
  * together, in which order) names tabs by it and can be {@linkplain #setLayout stored and applied} later, even when
@@ -102,6 +104,9 @@ public class TabDock extends Div implements Restorable {
     // the sheets that are shown, by column
     private List<List<Group>> shown = new ArrayList<>();
     private final Set<String> pendingSelection = new HashSet<>();
+    private boolean tabsEnabled = true;
+    // the tab that stays enabled while the others are not
+    private String enabledId;
     private Entry dragged;
     // the sheets change by themselves while the dock arranges them, that is not a selection of the user
     private boolean arranging;
@@ -163,6 +168,7 @@ public class TabDock extends Div implements Restorable {
             makeDraggable(entry);
         }
         entries.put(id, entry);
+        applyEnabled(entry);
 
         Group group = groupOf(id);
         if (group == null) {
@@ -174,6 +180,70 @@ public class TabDock extends Div implements Restorable {
         }
         arrange();
         return entry.tab;
+    }
+
+    /**
+     * Shows the tab: it becomes the selected one of its sheet. For the code that is about to show something that lives in
+     * the tab, whichever sheet the user has put it into.
+     *
+     * @return false when there is no tab with this id in the dock
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "id", type = String.class)},
+            locals = {@APILocals(name = "entry", type = TabDock.Entry.class),
+                    @APILocals(name = "group", type = TabDock.Group.class)})
+    public boolean select(String id) {
+        Entry entry = entries.get(id);
+        Group group = entry == null ? null : groupOf(id);
+        if (group == null) {
+            return false;
+        }
+        if (id.equals(group.selectedId) && group.sheet != null && group.sheet.getSelectedTab() == entry.tab) {
+            return true;
+        }
+        group.selectedId = id;
+        arrange();
+        stateChanged();
+        return true;
+    }
+
+    /**
+     * Enables or disables the contents and the tabs of the dock, except for one tab that is not touched (the content of the
+     * dock that has to go on working while the rest does not). Tabs added later get the state too.
+     *
+     * @param exceptId the tab that is always enabled, may be null
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "enabled", type = boolean.class),
+                    @APIParameter(name = "exceptId", type = String.class)})
+    public void setTabsEnabled(boolean enabled, String exceptId) {
+        tabsEnabled = enabled;
+        enabledId = exceptId;
+        entries.values().forEach(this::applyEnabled);
+    }
+
+    /**
+     * The tab sheet enables the content of the tab it selects and disables the content of the others by itself, so the content
+     * is only touched where that matters: disabled for a tab that is to be disabled (it can be the selected one), enabled again
+     * when the tab is the selected one of its sheet.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "entry", type = TabDock.Entry.class)},
+            locals = {@APILocals(name = "group", type = TabDock.Group.class)})
+    private void applyEnabled(Entry entry) {
+        boolean enabled = tabsEnabled || entry.id.equals(enabledId);
+        entry.tab.setEnabled(enabled);
+        if (!enabled) {
+            entry.content.getElement().setEnabled(false);
+            return;
+        }
+        Group group = groupOf(entry.id);
+        if (group != null && group.sheet != null && group.sheet.getSelectedTab() == entry.tab) {
+            entry.content.getElement().setEnabled(true);
+        }
     }
 
     /**
@@ -568,6 +638,8 @@ public class TabDock extends Div implements Restorable {
                     group.sheet.setSelectedTab(selected.tab);
                 }
             }
+            // the sheets enable and disable the contents as they select them, the state of the dock goes on top
+            entries.values().forEach(this::applyEnabled);
             setDropsActive(dragged != null);
         } finally {
             arranging = false;

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846061975790">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846069143524">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846061975790" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846069143524" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846061975790" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846069143524" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846061975790" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846061975790" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846069143524" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846069143524" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -512,7 +512,7 @@ and <code translate="no" v-pre>PhoneManuscriptDialogPart</code> (default: no sta
 | `DesktopWorkspace`, `PhoneWorkspace` | `tab` (`books`, `lorebooks`, `settings`, `protocols`, `models`, `resources`, `trash`) and `parts`, the state of each part under its tab name. The admin panel is not remembered. |
 | `ManuscriptPart`, `PhoneManuscriptPart` | `filters` (`name`, `tags` as tag uuids) and `dialog`, the state of the open book window. |
 | `ManuscriptDialog`, `PhoneManuscriptDialog` | `manuscript` (uuid), `tab` (`info`, `prompt`, `lorebook`, `story`, `tree`, `backup`) and `parts`, the state of the tabs. |
-| `ManuscriptStoryPart`, `PhoneManuscriptStoryPart` | `newTurn`, the `NewTurnForm`: `scene`, `pov`, `present`, `instructions` and `edited`. The desktop part also stores `tabs`, the `TabDock` state: `selected`, the ids of the tab each sidebar panel shows. |
+| `ManuscriptStoryPart`, `PhoneManuscriptStoryPart` | `newTurn`, the `NewTurnForm`: `scene`, `pov`, `present`, `instructions` and `edited`. The desktop part also stores `tabs`, the `TabDock` state: `selected`, the ids of the tab each panel shows. |
 | `LorebookPart`, `LorebookView`, `PhoneLorebookView` and the lorebook tab of the book window | `lorebook` (uuid, not for the view pinned to the lorebook of a book), `rootOnly` (the *Only root lorebooks* box, `LorebookView` only, not when pinned) and `entries`, the uuids of the entries whose details are open. The lorebook tab of the book window (`ManuscriptLorebookPart`, `PhoneManuscriptLorebookPart`) adds `shown`, the uuid of the lorebook it shows when it is not the one of the book (see the lorebook parts above); it is restored before the rest, as the open entries are the ones of that lorebook. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -537,7 +537,7 @@ and <code translate="no" v-pre>PhoneManuscriptDialogPart</code> (default: no sta
 </tr>
 <tr>
 <td><code translate="no" v-pre>ManuscriptStoryPart</code>, <code translate="no" v-pre>PhoneManuscriptStoryPart</code></td>
-<td><code translate="no" v-pre>newTurn</code>, the <code translate="no" v-pre>NewTurnForm</code>: <code translate="no" v-pre>scene</code>, <code translate="no" v-pre>pov</code>, <code translate="no" v-pre>present</code>, <code translate="no" v-pre>instructions</code> and <code translate="no" v-pre>edited</code>. The desktop part also stores <code translate="no" v-pre>tabs</code>, the <code translate="no" v-pre>TabDock</code> state: <code translate="no" v-pre>selected</code>, the ids of the tab each sidebar panel shows.</td>
+<td><code translate="no" v-pre>newTurn</code>, the <code translate="no" v-pre>NewTurnForm</code>: <code translate="no" v-pre>scene</code>, <code translate="no" v-pre>pov</code>, <code translate="no" v-pre>present</code>, <code translate="no" v-pre>instructions</code> and <code translate="no" v-pre>edited</code>. The desktop part also stores <code translate="no" v-pre>tabs</code>, the <code translate="no" v-pre>TabDock</code> state: <code translate="no" v-pre>selected</code>, the ids of the tab each panel shows.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>LorebookPart</code>, <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>PhoneLorebookView</code> and the lorebook tab of the book window</td>
@@ -603,14 +603,17 @@ the user changes the state; a new tab of a dialog needs a name in the <code tran
 </retype-table>
 <p>The dialog holds the book (<code translate="no" v-pre>getManuscript()</code>, <code translate="no" v-pre>refreshManuscript()</code> reloads it, <code translate="no" v-pre>save()</code> saves it) and
 <code translate="no" v-pre>freeze()</code> / <code translate="no" v-pre>unfreeze()</code>, which disable the tabs, the exit button and every part during generation.</p>
-<p><code translate="no" v-pre>ManuscriptStoryPart</code> is the story editor and the largest UI class: the sidebar with one button per part, a
+<p><code translate="no" v-pre>ManuscriptStoryPart</code> is the story editor and the largest UI class: the outline (one button per part), a
 <code translate="no" v-pre>ChatMessageCard</code> per part (Markdown view, edit mode, menu with Edit / Regenerate / Swipe / Branch / View prompt /
 Summary / Delete), the <em>New Turn Instructions</em> popover, starting generations and applying the result, the automatic
 book backups, and the menu bar of the bottom bar (see <doc-anchor-trigger to="#the-story-menu-bar">The story menu bar</doc-anchor-trigger>).</p>
 <p><code translate="no" v-pre>renderStoryContent()</code> redraws only the cards and the outline list: the left tab sheet is created once in <code translate="no" v-pre>create()</code>
 (so the selected tab and the tabs of extensions survive), and the reasonings that were open are reopened on the new
 cards. <code translate="no" v-pre>PhoneManuscriptStoryPart</code> does the same.</p>
-<p>The left bar (<code translate="no" v-pre>leftBar</code>) is a <code translate="no" v-pre>TabDock</code> (<code translate="no" v-pre>ui.widgets</code>), a reusable widget: a row of columns, each a stack of tab sheets, whose
+<p>The whole desktop editor is one <code translate="no" v-pre>TabDock</code> (<code translate="no" v-pre>leftBar</code>, the name is older than the story tab): the outline, the lorebook preview,
+the tabs of extensions and <strong>the story itself</strong> (<code translate="no" v-pre>ManuscriptStoryPart.STORY_TAB</code>, <code translate="no" v-pre>story</code>; its content is <code translate="no" v-pre>centerLayout</code>: the
+scroll panel with the cards and the bottom bar with the menus, the command line and the round button) are its tabs, so the
+user arranges the whole screen. <code translate="no" v-pre>TabDock</code> is a reusable widget: a row of columns, each a stack of tab sheets, whose
 tabs the user can drag out into sheets of their own (a strip between the sheets of a column) or into a column of their own (a
 strip between the columns and at the sides) and back (the drag and drop is Flow&#x27;s <code translate="no" v-pre>DragSource</code>/<code translate="no" v-pre>DropTarget</code>, no JavaScript;
 the strips show while a tab is dragged). The columns and the sheets of a column are separated by <code translate="no" v-pre>SplitLayout</code>s the user can
@@ -622,10 +625,29 @@ outline is <code translate="no" v-pre>ManuscriptStoryPart.CHAPTERS_TAB</code>); 
 (<code translate="no" v-pre>getLayout</code>/<code translate="no" v-pre>setLayout</code>; a layout with <code translate="no" v-pre>groups</code> at the top level, as the dock stored before it had columns, is one column), names tabs only by id and keeps the place of tabs that are not there now, because extensions add
 their tabs late (a tab the layout does not know goes to the first sheet). <code translate="no" v-pre>ManuscriptStoryPart</code> stores the layout in the
 attributes of the manuscript under <code translate="no" v-pre>$desktopManuscriptStoryPartTabsConfig</code> (<code translate="no" v-pre>TABS_CONFIG_ATTRIBUTE</code>): <code translate="no" v-pre>saveTabsConfig()</code> runs
-after a drag, <code translate="no" v-pre>applyTabsConfig()</code> in <code translate="no" v-pre>load()</code> before the story is drawn. The position of the splitter between the dock and the story is saved the same way,
-as a number in the attribute <code translate="no" v-pre>$desktopManuscriptStoryPartSplitPosition</code> (<code translate="no" v-pre>SPLIT_POSITION_ATTRIBUTE</code>): <code translate="no" v-pre>saveSplitPosition()</code> runs after the drag,
-<code translate="no" v-pre>applySplitPosition()</code> in <code translate="no" v-pre>load()</code>. The selected tab of each sheet is not part of the
+after a drag or a resize, <code translate="no" v-pre>applyTabsConfig()</code> in <code translate="no" v-pre>load()</code> before the story is drawn. The selected tab of each sheet is not part of the
 layout but the <code translate="no" v-pre>Restorable</code> state of the dock. <code translate="no" v-pre>PhoneManuscriptStoryPart</code> uses <code translate="no" v-pre>new TabDock(false)</code>, one plain sheet.</p>
+<p><code translate="no" v-pre>StoryDockLayout</code> (<code translate="no" v-pre>ui.dialogs.story</code>) holds the layouts: <code translate="no" v-pre>defaultLayout</code> (the outline and the lorebook in a column of 20 %
+on the left, the story in a column of 80 %), and <code translate="no" v-pre>migrate</code>, which turns what a book stored before the story was a tab into a
+layout that has it. That is a layout without the <code translate="no" v-pre>story</code> id: its columns keep their order and share the width the old
+splitter gave the sidebar (<code translate="no" v-pre>$desktopManuscriptStoryPartSplitPosition</code>, <code translate="no" v-pre>SPLIT_POSITION_ATTRIBUTE</code>, 20 % when the book never
+stored one), and the story gets a column of its own at the right; a book with nothing stored gets the default layout.
+Nothing is written back by <code translate="no" v-pre>load()</code>; the next <code translate="no" v-pre>saveTabsConfig()</code> stores the layout with the story and removes the old
+attribute. <em>Restore default layout</em> (settings menu of the story, <code translate="no" v-pre>restoreDefaultLayout</code>) removes both attributes and applies
+the default layout.</p>
+<p>Two things about <code translate="no" v-pre>TabDock</code> that the story relies on. A <code translate="no" v-pre>TabSheet</code> disables the content of the tabs it does not show
+(<code translate="no" v-pre>Element.isEnabled()</code> is false for it, so the story ignores events from the page while another tab of its sheet is selected;
+what the server changes in it still reaches the page) and keeps it in the page, hidden, so the scroll position survives a switch
+of tabs. Moving the tab to another sheet attaches the content anew, and the scripts that watch the edges for the lazy
+loading are lost, as is the scroll position: <code translate="no" v-pre>StoryLazyLoader.reattached()</code> (called by an attach listener of <code translate="no" v-pre>centerLayout</code>) arms
+them again and has the story scroll to its end before the response goes out (<code translate="no" v-pre>beforeClientResponse</code>), unless a render or a scroll to
+a part of the same request decided where the story is (they clear <code translate="no" v-pre>bottomOnReattach</code>), so entering the story tab from the tree
+still lands on the part that was asked for. And <code translate="no" v-pre>setTabsEnabled(enabled, exceptId)</code> disables the tabs and the contents of all tabs but one (while a generation runs
+the story stays enabled: its stop button; <code translate="no" v-pre>setFrozen</code> calls it) and only touches the contents the sheet does not manage
+itself. <code translate="no" v-pre>TabDock.select(id)</code> selects a tab in whichever sheet it is; <code translate="no" v-pre>ManuscriptStoryPart.showStory()</code> does it for the story,
+and the code that is about to show a part calls it: an entry of the outline, a hit of the search, <code translate="no" v-pre>startGeneration</code>, the next
+<code translate="no" v-pre>onTabEnter</code> when <code translate="no" v-pre>scrollToMessageOnNextRender</code> asked for a part, and <code translate="no" v-pre>ManuscriptDialog.selectStoryPart</code> (what the tree calls
+when the user chooses a branch).</p>
 <p>The tab with the id <code translate="no" v-pre>ManuscriptStoryPart.LOREBOOK_TAB</code> (<code translate="no" v-pre>lorebook</code>) of the left bar is the <code translate="no" v-pre>LorebookPreview</code> (<code translate="no" v-pre>ui.components</code>),
 a read only preview of the lore of the book, desktop only (the phone has the <code translate="no" v-pre>PhoneLorebookView</code>). It is a <code translate="no" v-pre>TreeGrid</code> of
 <code translate="no" v-pre>Row</code>s (a lorebook or one of its entries) over a <code translate="no" v-pre>TreeData</code> it rebuilds in <code translate="no" v-pre>refresh(lorebook)</code>: with the <em>Include sub
@@ -1405,7 +1427,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (05b5912b).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (468c9d84).</p></div>
             </footer>
         </div>
     </div>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846061975790">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846069143524">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846061975790" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846069143524" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846061975790" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846069143524" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846061975790" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846069143524" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -183,8 +183,8 @@ from the beginning to the end.</p>
 |---|---|
 | **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part (the parts before it are loaded first when it is not loaded yet). The header shows how many parts the branch has. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |
 | **Lorebook** (left, next to the Outline) | A read only look at the lore of the book, see [The lorebook tab](#the-lorebook-tab). |
-| **Parts** (center) | The text of each part, with its menu (☰) and its metadata on the right. |
-| **Bottom bar** | The **Summaries** button (list icon) and the settings menu (⚙) on the left, the **+** button on the right. |">
+| **Story** (center) | The text of each part, with its menu (☰) and its metadata on the right, and under it the bottom bar. |
+| **Bottom bar** | The **Summaries** button (list icon) and the settings menu (⚙) on the left, the command line, and the **+** button on the right. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -203,19 +203,20 @@ from the beginning to the end.</p>
 <td>A read only look at the lore of the book, see <doc-anchor-trigger to="#the-lorebook-tab">The lorebook tab</doc-anchor-trigger>.</td>
 </tr>
 <tr>
-<td><strong>Parts</strong> (center)</td>
-<td>The text of each part, with its menu (☰) and its metadata on the right.</td>
+<td><strong>Story</strong> (center)</td>
+<td>The text of each part, with its menu (☰) and its metadata on the right, and under it the bottom bar.</td>
 </tr>
 <tr>
 <td><strong>Bottom bar</strong></td>
-<td>The <strong>Summaries</strong> button (list icon) and the settings menu (⚙) on the left, the <strong>+</strong> button on the right.</td>
+<td>The <strong>Summaries</strong> button (list icon) and the settings menu (⚙) on the left, the command line, and the <strong>+</strong> button on the right.</td>
 </tr>
 </tbody>
 </table>
 </div>
 </retype-table>
-<p>The divider between the sidebar and the parts can be dragged. Marginalia remembers where you left it (saved with the book)
-and returns to it when you open the book again.</p>
+<p>This is how a new book looks. All of these are tabs you can arrange as you like, the story included, see
+<doc-anchor-trigger to="#arranging-the-tabs">Arranging the tabs</doc-anchor-trigger>. The divider between the sidebar and the story can be dragged, and Marginalia
+remembers where you left it (saved with the book) and returns to it when you open the book again.</p>
 <p>The story always opens at the bottom, at the newest part. A long book is not drawn all at once: only the last parts are
 loaded, and the earlier ones are added above as you scroll up, without moving the part you are reading. The parts at the
 other end are dropped again, so no more than the <strong>Parts loaded at once in the story</strong> setting of your
@@ -270,10 +271,13 @@ under them; click the arrow of a lorebook to hide its entries. Without it only t
     <img src="../../../images/story-lorebook-tab.png" alt="The Lorebook tab with two entries opened" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
     <figcaption class="caption">The Lorebook tab with two entries opened</figcaption>
 </figure>
-<p>Like every sidebar tab it can be dragged out into a panel of its own, see below.</p>
-<h3 id="arranging-the-sidebar-tabs">Arranging the sidebar tabs</h3>
-<p>The left sidebar is a set of tabs: the <strong>Outline</strong>, the <strong>Lorebook</strong>, and the tabs <a href="../../extensions/">extensions</a> add (Characters, Arcs,
-Side Query...). Drag a tab by its header to rearrange them (desktop only, the drawer on a phone keeps one list):</p>
+<p>Like every tab of the editor it can be dragged out into a panel of its own, see below.</p>
+<h3 id="arranging-the-tabs">Arranging the tabs</h3>
+<p>The editor is a set of tabs: the <strong>Story</strong> itself (the parts and the bottom bar under them), the <strong>Outline</strong>, the <strong>Lorebook</strong>, and the
+tabs <a href="../../extensions/">extensions</a> add (Characters, Arcs, Side Query...). Drag a tab by its header to rearrange
+them (desktop only, the phone keeps one column with the outline in a drawer). A new book has the Outline and the Lorebook in a panel
+on the left and the Story in a column of its own on the right; you can put the story anywhere, for example in the middle with the
+outline on one side and the lore on the other, or above the outline:</p>
 <ul>
 <li>
 <p>Drop it on one of the dashed strips that appear above, between and under the panels of a column to <strong>detach</strong> it into a
@@ -281,7 +285,7 @@ panel of its own in that column; the panels of a column are stacked under each o
 </li>
 <li>
 <p>Drop it on one of the tall strips at the left, right or between the columns to <strong>detach it to the side</strong>: it gets a
-column of its own, next to the others. Widen the sidebar with the divider to make room for more columns.</p>
+column of its own, next to the others. Widen the editor with the dividers to make room for more columns.</p>
 </li>
 </ul>
 <p>The panels and the columns are separated by splitters: drag them to give each panel the room you need. The sizes are saved
@@ -297,6 +301,13 @@ tab, dropping on the body puts it last). A panel that loses its last tab disappe
 <p>The arrangement and the sizes are saved with the book, so it is the same the next time you open it and in every browser; the tab each
 panel shows is remembered with the rest of your workspace. A tab of an extension that is not loaded keeps its place for when
 the extension is back.</p>
+<p>The story is always somewhere: its tab can&#x27;t be closed, and a tab that lives in a panel together with other tabs is hidden
+while another one is selected. Whatever shows a part brings the story back: clicking an entry of the outline, a hit of the
+search, choosing a branch in the <a href="../branches-and-story-tree/">story tree</a>, and starting a generation select the <strong>Story</strong> tab
+first. While a generation runs the other tabs are disabled and only the story stays usable, so you can stop it.</p>
+<p>To go back to the arrangement of a new book, choose <strong>Restore default layout</strong> in the settings menu (⚙) of the story and confirm.
+It only moves the tabs back (and forgets the sizes): your texts, the tab each panel shows and the tabs of extensions stay, the
+latter in the first panel.</p>
 <h2 id="writing-the-next-part">Writing the next part</h2>
 <ol>
 <li>Click <strong>+</strong> in the bottom right corner. The <em>New Turn Instructions</em> panel opens.</li>
@@ -867,7 +878,7 @@ tense, style and <a href="../summaries/">summaries</a>. The jailbreak prompt of 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (05b5912b).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (468c9d84).</p></div>
             </footer>
         </div>
     </div>

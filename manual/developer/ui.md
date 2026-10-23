@@ -249,7 +249,7 @@ and `PhoneManuscriptDialogPart` (default: no state), both book dialogs, `Loreboo
 | `DesktopWorkspace`, `PhoneWorkspace` | `tab` (`books`, `lorebooks`, `settings`, `protocols`, `models`, `resources`, `trash`) and `parts`, the state of each part under its tab name. The admin panel is not remembered. |
 | `ManuscriptPart`, `PhoneManuscriptPart` | `filters` (`name`, `tags` as tag uuids) and `dialog`, the state of the open book window. |
 | `ManuscriptDialog`, `PhoneManuscriptDialog` | `manuscript` (uuid), `tab` (`info`, `prompt`, `lorebook`, `story`, `tree`, `backup`) and `parts`, the state of the tabs. |
-| `ManuscriptStoryPart`, `PhoneManuscriptStoryPart` | `newTurn`, the `NewTurnForm`: `scene`, `pov`, `present`, `instructions` and `edited`. The desktop part also stores `tabs`, the `TabDock` state: `selected`, the ids of the tab each sidebar panel shows. |
+| `ManuscriptStoryPart`, `PhoneManuscriptStoryPart` | `newTurn`, the `NewTurnForm`: `scene`, `pov`, `present`, `instructions` and `edited`. The desktop part also stores `tabs`, the `TabDock` state: `selected`, the ids of the tab each panel shows. |
 | `LorebookPart`, `LorebookView`, `PhoneLorebookView` and the lorebook tab of the book window | `lorebook` (uuid, not for the view pinned to the lorebook of a book), `rootOnly` (the *Only root lorebooks* box, `LorebookView` only, not when pinned) and `entries`, the uuids of the entries whose details are open. The lorebook tab of the book window (`ManuscriptLorebookPart`, `PhoneManuscriptLorebookPart`) adds `shown`, the uuid of the lorebook it shows when it is not the one of the book (see the lorebook parts above); it is restored before the rest, as the open entries are the ones of that lorebook. |
 
 Everything is stored by uuid and looked up when it is restored (`findForUser`), so a book, lorebook, entry or tag that
@@ -286,7 +286,7 @@ Opening a book creates a `ManuscriptDialog` - a full-screen, strictly modal dial
 The dialog holds the book (`getManuscript()`, `refreshManuscript()` reloads it, `save()` saves it) and
 `freeze()` / `unfreeze()`, which disable the tabs, the exit button and every part during generation.
 
-`ManuscriptStoryPart` is the story editor and the largest UI class: the sidebar with one button per part, a
+`ManuscriptStoryPart` is the story editor and the largest UI class: the outline (one button per part), a
 `ChatMessageCard` per part (Markdown view, edit mode, menu with Edit / Regenerate / Swipe / Branch / View prompt /
 Summary / Delete), the *New Turn Instructions* popover, starting generations and applying the result, the automatic
 book backups, and the menu bar of the bottom bar (see [The story menu bar](#the-story-menu-bar)).
@@ -295,7 +295,10 @@ book backups, and the menu bar of the bottom bar (see [The story menu bar](#the-
 (so the selected tab and the tabs of extensions survive), and the reasonings that were open are reopened on the new
 cards. `PhoneManuscriptStoryPart` does the same.
 
-The left bar (`leftBar`) is a `TabDock` (`ui.widgets`), a reusable widget: a row of columns, each a stack of tab sheets, whose
+The whole desktop editor is one `TabDock` (`leftBar`, the name is older than the story tab): the outline, the lorebook preview,
+the tabs of extensions and **the story itself** (`ManuscriptStoryPart.STORY_TAB`, `story`; its content is `centerLayout`: the
+scroll panel with the cards and the bottom bar with the menus, the command line and the round button) are its tabs, so the
+user arranges the whole screen. `TabDock` is a reusable widget: a row of columns, each a stack of tab sheets, whose
 tabs the user can drag out into sheets of their own (a strip between the sheets of a column) or into a column of their own (a
 strip between the columns and at the sides) and back (the drag and drop is Flow's `DragSource`/`DropTarget`, no JavaScript;
 the strips show while a tab is dragged). The columns and the sheets of a column are separated by `SplitLayout`s the user can
@@ -307,10 +310,31 @@ outline is `ManuscriptStoryPart.CHAPTERS_TAB`); the layout, `{"columns":[{"size"
 (`getLayout`/`setLayout`; a layout with `groups` at the top level, as the dock stored before it had columns, is one column), names tabs only by id and keeps the place of tabs that are not there now, because extensions add
 their tabs late (a tab the layout does not know goes to the first sheet). `ManuscriptStoryPart` stores the layout in the
 attributes of the manuscript under `$desktopManuscriptStoryPartTabsConfig` (`TABS_CONFIG_ATTRIBUTE`): `saveTabsConfig()` runs
-after a drag, `applyTabsConfig()` in `load()` before the story is drawn. The position of the splitter between the dock and the story is saved the same way,
-as a number in the attribute `$desktopManuscriptStoryPartSplitPosition` (`SPLIT_POSITION_ATTRIBUTE`): `saveSplitPosition()` runs after the drag,
-`applySplitPosition()` in `load()`. The selected tab of each sheet is not part of the
+after a drag or a resize, `applyTabsConfig()` in `load()` before the story is drawn. The selected tab of each sheet is not part of the
 layout but the `Restorable` state of the dock. `PhoneManuscriptStoryPart` uses `new TabDock(false)`, one plain sheet.
+
+`StoryDockLayout` (`ui.dialogs.story`) holds the layouts: `defaultLayout` (the outline and the lorebook in a column of 20 %
+on the left, the story in a column of 80 %), and `migrate`, which turns what a book stored before the story was a tab into a
+layout that has it. That is a layout without the `story` id: its columns keep their order and share the width the old
+splitter gave the sidebar (`$desktopManuscriptStoryPartSplitPosition`, `SPLIT_POSITION_ATTRIBUTE`, 20 % when the book never
+stored one), and the story gets a column of its own at the right; a book with nothing stored gets the default layout.
+Nothing is written back by `load()`; the next `saveTabsConfig()` stores the layout with the story and removes the old
+attribute. *Restore default layout* (settings menu of the story, `restoreDefaultLayout`) removes both attributes and applies
+the default layout.
+
+Two things about `TabDock` that the story relies on. A `TabSheet` disables the content of the tabs it does not show
+(`Element.isEnabled()` is false for it, so the story ignores events from the page while another tab of its sheet is selected;
+what the server changes in it still reaches the page) and keeps it in the page, hidden, so the scroll position survives a switch
+of tabs. Moving the tab to another sheet attaches the content anew, and the scripts that watch the edges for the lazy
+loading are lost, as is the scroll position: `StoryLazyLoader.reattached()` (called by an attach listener of `centerLayout`) arms
+them again and has the story scroll to its end before the response goes out (`beforeClientResponse`), unless a render or a scroll to
+a part of the same request decided where the story is (they clear `bottomOnReattach`), so entering the story tab from the tree
+still lands on the part that was asked for. And `setTabsEnabled(enabled, exceptId)` disables the tabs and the contents of all tabs but one (while a generation runs
+the story stays enabled: its stop button; `setFrozen` calls it) and only touches the contents the sheet does not manage
+itself. `TabDock.select(id)` selects a tab in whichever sheet it is; `ManuscriptStoryPart.showStory()` does it for the story,
+and the code that is about to show a part calls it: an entry of the outline, a hit of the search, `startGeneration`, the next
+`onTabEnter` when `scrollToMessageOnNextRender` asked for a part, and `ManuscriptDialog.selectStoryPart` (what the tree calls
+when the user chooses a branch).
 
 The tab with the id `ManuscriptStoryPart.LOREBOOK_TAB` (`lorebook`) of the left bar is the `LorebookPreview` (`ui.components`),
 a read only preview of the lore of the book, desktop only (the phone has the `PhoneLorebookView`). It is a `TreeGrid` of

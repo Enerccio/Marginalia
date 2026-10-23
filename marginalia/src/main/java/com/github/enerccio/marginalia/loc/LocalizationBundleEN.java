@@ -672,6 +672,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_GENERATE_FROM_NEW_TURN_FORM, "Generate from the new turn form");
         setValue(L.LABEL_EDIT_LAST_PART, "Edit the last part");
         setValue(L.LABEL_SAVE_EDITED_PART, "Save the part being edited");
+        setValue(L.LABEL_RESTORE_DEFAULT_LAYOUT, "Restore default layout");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1120,6 +1121,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_SHORTCUT_USED_BY, "Same key as \"%s\".");
         setValue(L.MSG_SHORTCUT_BROWSER_KEY, "The browser keeps this key, the page may never get it.");
         setValue(L.MSG_SHORTCUT_ALT_CHARACTER, "Alt with a letter types a character on some keyboards (macOS), it may not work.");
+        setValue(L.MSG_CONFIRM_RESTORE_DEFAULT_LAYOUT, "Put the story, the outline and the other tabs back where a new book has them? Your texts are not touched, only the arrangement of the tabs of this book.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

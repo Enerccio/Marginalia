@@ -109,11 +109,15 @@ if (leftBar != null && book != null && ComponentUtil.getData(leftBar, KEY) == nu
 The tab dock (and so the plugin's component) lives as long as the story part, a redraw does not recreate it.
 
 `leftBar` is a `TabDock` (`ui.widgets`; since 1.3.0, before it was a `VTabSheet`): on the desktop the user can drag its tabs
-into panels of their own, stacked or side by side, and `add`/`remove` find the tab wherever it is now. Give the tab a **stable id** of your own
+into panels of their own, stacked or side by side, and `add`/`remove` find the tab wherever it is now. Since 1.5.0 the story
+itself is a tab of this dock (the id `story`), so the dock is the whole editor and the user may put the story and your tab in
+any arrangement; a tab the saved layout does not know still lands in the first sheet, the sidebar of a new book. A tab that
+is not the selected one of its sheet is hidden and its content disabled (the sheet does that), so do not expect events from your
+component then; `leftBar.select(id)` shows a tab. Give the tab a **stable id** of your own
 (`add(id, caption, content)`, not the localized caption): the layout the user made is saved with the book by these ids, and
 a tab added later or after the extension was off lands where the user left it. `add(caption, content)` uses the caption as
-the id. The ids `chapters` (the outline) and `lorebook` (the read only lorebook preview, desktop only) belong to the application; a tab
-with the same id would replace them. Remove the tab with `leftBar.remove(view)`. The phone drawer has a `TabDock` too, but with the detaching off.
+the id. The ids `chapters` (the outline), `lorebook` (the read only lorebook preview, desktop only) and `story` (since 1.5.0) belong to the
+application; a tab with the same id would replace them. Remove the tab with `leftBar.remove(view)`. The phone drawer has a `TabDock` too, but with the detaching off.
 
 ### Panels in an existing layout
 
