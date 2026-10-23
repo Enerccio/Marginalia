@@ -531,6 +531,32 @@ tree; `TreantTree` sends the tree as JSON and receives clicks back: `node-click`
 `data-node-id` of the card) and `node-goto` (an element with `data-goto-id` inside a card was clicked; the card itself
 is not clicked then). `src/main/frontend/graph-connector.js` is loaded by `GraphView` (npm package `cytoscape`).
 
+### Keyboard shortcuts
+
+Only the desktop layout has them (`ManuscriptStoryPart`; its phone twin has none). The code lives in `ui.shortcuts`:
+
+- `KeyCombo` is the canonical text of a key combination (`Ctrl+Alt+Shift+Meta+key`, the key as the browser's
+  `event.key`: lower-case characters, `Space`, `Enter`, `F5`; `Shift` is dropped for a character that is not a letter or
+  digit). The browser script produces it (`window.marginaliaKeyCombo` in `JavascriptLibrary`) and `KeyCombo.normalize`
+  must give the same text; keep the two in step. It also knows the keys the browser keeps (`isBrowserReserved`).
+- `ShortcutRegistry` (static) lists the `ShortcutAction`s (id, label from the `Localization`, default key, handler); the
+  application registers its story actions (`ShortcutActions`) in its static initializer, an extension registers its own
+  and unregisters them in `onExtensionUnload`. The application's actions have no handler: `ManuscriptStoryPart.handleShortcut`
+  does them, for other ids it calls the handler with the component of the story tab.
+- `KeyBindings` resolves the key of every action from `UserSetting.keyBindings` (an injected `JsonObject`, id to key,
+  only what differs from the default, empty text = no key) and builds what is stored (`toStored` keeps the bindings
+  of actions that are not registered now, e.g. of an extension that is not loaded).
+- `KeyBindingsEditor` (a `CustomField`, so the settings part tracks it like any field) is the table of the tab
+  *Keyboard shortcuts* of `UserPart`.
+
+In the browser `JavascriptLibrary.fireShortcutEvents` puts a `keydown` listener (capture) on the document for the story
+tab and fires `marginalia-shortcut` (`detail` = action id) on the tab's element, which the story part listens to. The
+keys are the page-wide `window.marginaliaKeys` (`setShortcutKeys` replaces them, `UserPart.save` and the story's
+`onTabEnter` do), so a change of the settings reaches open stories. The script ignores the key when the element is not
+visible (not the open tab), when a dialog is open above the one that holds the story (the book window is a modal dialog
+itself), and for a key without Ctrl/Alt/Meta when an input, textarea or editable element has the focus (the focused
+element is found through shadow roots). Before it fires the event the script sends the change of a focused text field to the server (a Vaadin field syncs its value on `change`, i.e. on blur), so the action sees what was just typed. On a Mac a combination with `Meta` that no action has is tried again with `Ctrl` in its place. `recordKeyCombo` records the next combination for the table.
+
 ### Searching the story tree
 
 `ManuscriptTreePart` has a search bar above the tree: an editable `ComboBox` (the last 15 searches; typed text is a

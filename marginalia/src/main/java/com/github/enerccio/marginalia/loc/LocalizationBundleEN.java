@@ -663,6 +663,15 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_REDRAFT_PART, "Redraft part");
         setValue(L.LABEL_LAST_RUN, "Last run");
         setValue(L.LABEL_SORT_BY, "Sort by");
+        setValue(L.LABEL_KEYBOARD_SHORTCUTS, "Keyboard shortcuts");
+        setValue(L.LABEL_KEY, "Key");
+        setValue(L.LABEL_RECORD_KEY, "Record");
+        setValue(L.LABEL_PRESS_KEY, "Press the keys…");
+        setValue(L.LABEL_NO_KEY, "No key");
+        setValue(L.LABEL_OPEN_NEW_TURN_FORM, "Open the new turn form");
+        setValue(L.LABEL_GENERATE_FROM_NEW_TURN_FORM, "Generate from the new turn form");
+        setValue(L.LABEL_EDIT_LAST_PART, "Edit the last part");
+        setValue(L.LABEL_SAVE_EDITED_PART, "Save the part being edited");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1108,6 +1117,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_REDRAFT_OUTDATED_SUMMARIES, "%d summaries described the old text of the part and are outdated now.");
         setValue(L.MSG_COMMAND_REDRAFTING, "Redrafting the part…");
         setValue(L.MSG_COMMAND_REDRAFT_CONFIRM, "Replace the text of part %d with the redraft?");
+        setValue(L.MSG_SHORTCUT_USED_BY, "Same key as \"%s\".");
+        setValue(L.MSG_SHORTCUT_BROWSER_KEY, "The browser keeps this key, the page may never get it.");
+        setValue(L.MSG_SHORTCUT_ALT_CHARACTER, "Alt with a letter types a character on some keyboards (macOS), it may not work.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1188,6 +1200,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_JSON_MERGE, "The data of the agent, of the book now and of the start of the run laid over each other. Select a place and take the data of one of them, leave it out, or put it together from the places inside it. What only one side changed is taken from it, what both changed is put together place by place, and a place both changed in the same way is a conflict: the agent's version is taken until you decide. Open a place to work only with it. The elements of a list are matched by what they are (the same data, the same id or name, the ones that look alike); when the guess is wrong, split an element or match it with another. In the text view you can write the agent's data of the open place by hand; it is checked when you go back to the tree.");
         setValue(L.HELP_NOTIFICATIONS_ALLOW_LOCAL, "Only with the permission granted. The server then also sends messages to localhost, to the private networks it can reach and to link-local addresses (for example a ntfy or Gotify on your own network). Without it only public addresses are called. Administrators are not restricted.");
         setValue(L.HELP_COMMAND_SEARCH, "Words of the name or the description of a command, in any order. The table shows only the commands that have all of them; the selection above still applies to all commands.");
+        setValue(L.HELP_KEYBOARD_SHORTCUTS, "Click Record and press the new key combination. A key without Ctrl, Alt or Meta works only when no text field has the focus. The shortcuts work in the story tab of an open book.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

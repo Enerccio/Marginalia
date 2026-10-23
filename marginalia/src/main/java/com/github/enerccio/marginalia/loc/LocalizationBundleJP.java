@@ -663,6 +663,15 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_REDRAFT_PART, "パートを書き直す");
         setValue(L.LABEL_LAST_RUN, "最終実行");
         setValue(L.LABEL_SORT_BY, "並べ替え");
+        setValue(L.LABEL_KEYBOARD_SHORTCUTS, "キーボードショートカット");
+        setValue(L.LABEL_KEY, "キー");
+        setValue(L.LABEL_RECORD_KEY, "記録");
+        setValue(L.LABEL_PRESS_KEY, "キーを押してください…");
+        setValue(L.LABEL_NO_KEY, "キーなし");
+        setValue(L.LABEL_OPEN_NEW_TURN_FORM, "新しいターンのフォームを開く");
+        setValue(L.LABEL_GENERATE_FROM_NEW_TURN_FORM, "新しいターンのフォームから生成");
+        setValue(L.LABEL_EDIT_LAST_PART, "最後のパートを編集");
+        setValue(L.LABEL_SAVE_EDITED_PART, "編集中のパートを保存");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1108,6 +1117,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_REDRAFT_OUTDATED_SUMMARIES, "%d 件の要約が元の文章に基づいていたため、古くなりました。");
         setValue(L.MSG_COMMAND_REDRAFTING, "パートを書き直しています…");
         setValue(L.MSG_COMMAND_REDRAFT_CONFIRM, "パート %d の文章を書き直しで置き換えますか？");
+        setValue(L.MSG_SHORTCUT_USED_BY, "「%s」と同じキーです。");
+        setValue(L.MSG_SHORTCUT_BROWSER_KEY, "このキーはブラウザが使用するため、ページに届かない場合があります。");
+        setValue(L.MSG_SHORTCUT_ALT_CHARACTER, "一部のキーボード（macOS）では Alt と文字キーで文字が入力されるため、動作しない場合があります。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1188,6 +1200,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_JSON_MERGE, "エージェント、現在のブック、実行開始時のデータを重ねて表示します。場所を選んで、そのいずれかのデータを採用する、除外する、または内部の各場所から組み立てることができます。片方だけが変更した内容はそちらから採用され、両方が変更した場合は場所ごとに統合されます。同じ場所を両方が異なる内容に変更した場合は競合となり、決定するまでエージェントの内容が採用されます。場所を開くと、その場所だけを扱えます。リストの要素は内容(同じデータ、同じIDや名前、似ているもの)で対応付けられます。推測が違っていたら、要素を分割するか別の要素と対応付けてください。テキスト表示では、開いている場所のエージェントのデータを手で編集でき、ツリーに戻るときに検証されます。");
         setValue(L.HELP_NOTIFICATIONS_ALLOW_LOCAL, "権限が付与されている場合のみ有効です。サーバーは localhost、到達可能なプライベートネットワーク、リンクローカルアドレス（自分のネットワークの ntfy や Gotify など）にもメッセージを送ります。許可がなければ公開アドレスだけを呼び出します。管理者は制限されません。");
         setValue(L.HELP_COMMAND_SEARCH, "コマンドの名前または説明に含まれる語（順不同）。表にはそのすべてを含むコマンドだけが表示されます。上の選択は引き続きすべてのコマンドに適用されます。");
+        setValue(L.HELP_KEYBOARD_SHORTCUTS, "「記録」をクリックして新しいキーの組み合わせを押します。Ctrl・Alt・Meta のないキーは、テキスト欄にフォーカスがないときだけ動作します。ショートカットは開いている本のストーリータブで有効です。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

@@ -178,6 +178,24 @@ parts are sent to the model as you edited them.
 Editing a part that a [summary](summaries.md) covers makes that summary outdated; Marginalia notices it at the next
 generation and drops the summary.
 
+## Keyboard shortcuts
+
+On a computer (the [phone layout](../phone.md) has none) the writing loop works with the keyboard:
+
+| Key | |
+|---|---|
+| `+` | Opens the *New Turn Instructions* panel with the cursor in *Instructions*. |
+| `Ctrl+Enter` | Generates from the open panel. `Esc` closes it; the keyboard goes back to the story. |
+| `Ctrl+.` | Stops the generation that runs. |
+| `s` / `r` | **Swipe** / **Regenerate** the last part. |
+| `e` | Opens the editor of the last part. |
+| `Ctrl+S` | Saves the part that is being edited (also while the cursor is in its text). |
+
+A key without `Ctrl`, `Alt` or `Meta` (such as `+`, `s`, `r`, `e`) works only when no text field has the focus, so it
+never gets in the way of typing. The shortcuts work in the story tab of the open book and not while another window is
+open above it. The buttons show their key in the tooltip. On a Mac `Cmd` works where a key says `Ctrl` (unless you gave that `Cmd` key to another action). You can change every key in
+[Settings → Keyboard shortcuts](../account.md#keyboard-shortcuts).
+
 ## Deleting a part
 
 **Delete** removes the part from the story. The parts that followed it stay and continue from the part before it, so
