@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.service.search.FulltextQuery;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.SearchHighlighter;
+import com.github.enerccio.marginalia.utils.TextMarkup;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.KeyModifier;
@@ -130,6 +131,28 @@ public class StoryBranchSearch extends VerticalLayout {
             at = matches.get(current).index();
         }
         return SearchHighlighter.highlight(text, pattern, CssStyles.SEARCH_MATCH, at, CssStyles.SEARCH_MATCH_CURRENT);
+    }
+
+    /**
+     * The places of the search in the text of a part, as ranges of the text.
+     *
+     * @return the marks, none when nothing is searched or the part has no match
+     */
+    public List<TextMarkup.Mark> marks(Long messageId, String text) {
+        List<TextMarkup.Mark> marks = new ArrayList<>();
+        if (pattern == null || matches.isEmpty()) {
+            return marks;
+        }
+        int at = -1;
+        if (current >= 0 && Objects.equals(matches.get(current).messageId(), messageId)) {
+            at = matches.get(current).index();
+        }
+        List<int[]> ranges = SearchHighlighter.ranges(text, pattern);
+        for (int i = 0; i < ranges.size(); i++) {
+            marks.add(new TextMarkup.Mark(ranges.get(i)[0], ranges.get(i)[1],
+                    i == at ? CssStyles.SEARCH_MATCH + " " + CssStyles.SEARCH_MATCH_CURRENT : CssStyles.SEARCH_MATCH));
+        }
+        return marks;
     }
 
     /**

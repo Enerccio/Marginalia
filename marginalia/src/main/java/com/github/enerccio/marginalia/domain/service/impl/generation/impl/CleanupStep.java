@@ -28,15 +28,27 @@ public class CleanupStep extends GenerationStepBase {
                     }
                 }
             } else if (controller.getState() == State.PARTIAL_SUCCESS) {
+                relocateAnnotations(controller);
                 controller.getUIListener().onCancelled(controller.getMessage());
                 controller.getUIListener().onMetricsUpdated(controller.getMessage());
             } else {
+                relocateAnnotations(controller);
                 controller.getUIListener().onComplete(controller.getMessage());
                 controller.getUIListener().onMetricsUpdated(controller.getMessage());
             }
 
             controller.next();
         });
+    }
+
+    /**
+     * A part that was generated again has a text that is not the old one with some edits: the annotations of the part find their
+     * passages by their quotes.
+     */
+    private void relocateAnnotations(GenerationController controller) throws Exception {
+        if (controller.getRequest().getRequestType() == GenerationRequestType.REGENERATE && controller.getMessage() != null) {
+            annotationService.relocate(controller.getManuscript(), controller.getMessage());
+        }
     }
 
     /**

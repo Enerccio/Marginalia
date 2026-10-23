@@ -103,6 +103,8 @@ public class UserPart implements WorkspaceComponent {
     // Tab 1 fields
     private ComboBox<AI> defaultModelCombo;
     private ComboBox<Protocol> defaultProtocolCombo;
+    private ComboBox<AI> defaultAnnotateModelCombo;
+    private ComboBox<Protocol> defaultAnnotateProtocolCombo;
     private ComboBox<BackupStrategy> backupStrategyCombo;
     private IntegerField backupStrategyValueField;
     private IntegerField storyPartsLimitField;
@@ -121,6 +123,7 @@ public class UserPart implements WorkspaceComponent {
     private TextAreaPopoverComponent defaultSummaryPromptField;
     private TextAreaPopoverComponent defaultMetaSummaryPromptField;
     private TextAreaPopoverComponent defaultRedraftPromptField;
+    private TextAreaPopoverComponent defaultAnnotatePromptField;
     private TextAreaPopoverComponent defaultAgentPromptField;
     private TextArea defaultAgentInstructionsField;
     private TextAreaPopoverComponent defaultAgentCompactionPromptField;
@@ -173,6 +176,7 @@ public class UserPart implements WorkspaceComponent {
         FormLayout defaultsFormLayout = new FormLayout();
         defaultsFormLayout.setWidthFull();
         defaultsFormLayout.add(defaultModelCombo, defaultProtocolCombo);
+        defaultsFormLayout.add(defaultAnnotateModelCombo, defaultAnnotateProtocolCombo);
         defaultsFormLayout.add(new HorizontalLayout(backupStrategyCombo, backupStrategyValueField));
         defaultsFormLayout.add(storyPartsLimitField);
         defaultsFormLayout.add(agentWebhookUrlField, 2);
@@ -204,6 +208,8 @@ public class UserPart implements WorkspaceComponent {
 
         templatesFormLayout.add(defaultRedraftPromptField);
         templatesFormLayout.setColspan(defaultRedraftPromptField, 2);
+        templatesFormLayout.add(defaultAnnotatePromptField);
+        templatesFormLayout.setColspan(defaultAnnotatePromptField, 2);
 
         templatesFormLayout.add(defaultAgentPromptField);
         templatesFormLayout.setColspan(defaultAgentPromptField, 2);
@@ -330,6 +336,16 @@ public class UserPart implements WorkspaceComponent {
         defaultProtocolCombo.setItemLabelGenerator(Protocol::getName);
         defaultProtocolCombo.setClearButtonVisible(true);
 
+        defaultAnnotateModelCombo = new ComboBox<>(loc.getValue(L.LABEL_DEFAULT_ANNOTATE_MODEL));
+        defaultAnnotateModelCombo.setWidthFull();
+        defaultAnnotateModelCombo.setItemLabelGenerator(AI::getName);
+        defaultAnnotateModelCombo.setClearButtonVisible(true);
+
+        defaultAnnotateProtocolCombo = new ComboBox<>(loc.getValue(L.LABEL_DEFAULT_ANNOTATE_PROTOCOL));
+        defaultAnnotateProtocolCombo.setWidthFull();
+        defaultAnnotateProtocolCombo.setItemLabelGenerator(Protocol::getName);
+        defaultAnnotateProtocolCombo.setClearButtonVisible(true);
+
         backupStrategyCombo = new ComboBox<>(loc.getValue(L.LABEL_BACKUP_STRATEGY));
         backupStrategyCombo.setWidthFull();
         backupStrategyCombo.setItems(BackupStrategy.values());
@@ -415,6 +431,13 @@ public class UserPart implements WorkspaceComponent {
         defaultMetaSummaryPromptField.setPlaceholder(Defaults.DEFAULT_META_SUMMARY);
         defaultMetaSummaryPromptField.setPopoverContent(createTemplateHintPopoverContent(
                 defaultMetaSummaryPromptField, defaultMetaSummaryPromptField.getPopover(), MetaSummaryTemplateData.class, Defaults.DEFAULT_META_SUMMARY));
+
+        defaultAnnotatePromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_ANNOTATE_PROMPT));
+        defaultAnnotatePromptField.setWidthFull();
+        ResizableTextArea.install(loc, defaultAnnotatePromptField, "160px");
+        defaultAnnotatePromptField.setPlaceholder(Defaults.DEFAULT_ANNOTATE_PROMPT);
+        defaultAnnotatePromptField.setPopoverContent(createTemplateHintPopoverContent(
+                defaultAnnotatePromptField, defaultAnnotatePromptField.getPopover(), AnnotateTemplateData.class, Defaults.DEFAULT_ANNOTATE_PROMPT));
 
         defaultRedraftPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_REDRAFT_PROMPT));
         defaultRedraftPromptField.setWidthFull();
@@ -540,6 +563,8 @@ public class UserPart implements WorkspaceComponent {
                     @APILocals(name = "allProtocols", type = List.class),
                     @APILocals(name = "defaultProtocolId", type = Long.class),
                     @APILocals(name = "selectedProtocol", type = Protocol.class),
+                    @APILocals(name = "annotateModel", type = AI.class),
+                    @APILocals(name = "annotateProtocol", type = Protocol.class),
                     @APILocals(name = "strategy", type = BackupService.BackupStrategy.class),
                     @APILocals(name = "stratVal", type = String.class),
                     @APILocals(name = "e", type = Exception.class)})
@@ -579,6 +604,14 @@ public class UserPart implements WorkspaceComponent {
                 defaultProtocolCombo.setValue(null);
             }
 
+            defaultAnnotateModelCombo.setItems(allModels);
+            AI annotateModel = userSetting.getDefaultAnnotateModel() == null ? null : aiService.find(userSetting.getDefaultAnnotateModel());
+            defaultAnnotateModelCombo.setValue(annotateModel != null && !annotateModel.isDeleted() ? annotateModel : null);
+            defaultAnnotateProtocolCombo.setItems(allProtocols);
+            Protocol annotateProtocol = userSetting.getDefaultAnnotateProtocol() == null ? null
+                    : protocolService.find(userSetting.getDefaultAnnotateProtocol());
+            defaultAnnotateProtocolCombo.setValue(annotateProtocol != null && !annotateProtocol.isDeleted() ? annotateProtocol : null);
+
             BackupStrategy strategy = userSetting.getBackupStrategy();
             backupStrategyCombo.setValue(strategy);
             String stratVal = userSetting.getBackupStrategyValue();
@@ -598,6 +631,7 @@ public class UserPart implements WorkspaceComponent {
             defaultSummaryPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultSummaryPrompt()));
             defaultMetaSummaryPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultMetaSummaryPrompt()));
             defaultRedraftPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultRedraftPrompt()));
+            defaultAnnotatePromptField.setValue(StringUtils.defaultString(userSetting.getDefaultAnnotatePrompt()));
             defaultAgentPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultAgentPrompt()));
             defaultAgentInstructionsField.setValue(StringUtils.defaultString(userSetting.getDefaultAgentInstructions()));
             agentWebhookUrlField.setValue(StringUtils.defaultString(userSetting.getAgentWebhookUrl()));
@@ -610,6 +644,7 @@ public class UserPart implements WorkspaceComponent {
             validateTemplate(defaultSummaryPromptField, "defaultSummaryPrompt", SummaryTemplateData.class);
             validateTemplate(defaultMetaSummaryPromptField, "defaultMetaSummaryPrompt", MetaSummaryTemplateData.class);
             validateTemplate(defaultRedraftPromptField, "defaultRedraftPrompt", RedraftTemplateData.class);
+            validateTemplate(defaultAnnotatePromptField, "defaultAnnotatePrompt", AnnotateTemplateData.class);
             tagsView.refresh();
             keyBindingsEditor.setValue(KeyBindings.of(userSetting).asMap());
 
@@ -690,6 +725,7 @@ public class UserPart implements WorkspaceComponent {
                     @APILocals(name = "summaryPrompt", type = String.class),
                     @APILocals(name = "metaSummaryPrompt", type = String.class),
                     @APILocals(name = "redraftPrompt", type = String.class),
+                    @APILocals(name = "annotatePrompt", type = String.class),
                     @APILocals(name = "defaultPov", type = String.class),
                     @APILocals(name = "defaultTense", type = String.class),
                     @APILocals(name = "defaultStyle", type = String.class),
@@ -712,7 +748,8 @@ public class UserPart implements WorkspaceComponent {
                 || !validateTemplate(defaultUserPromptField, "defaultUserPrompt", UserPromptData.class)
                 || !validateTemplate(defaultSummaryPromptField, "defaultSummaryPrompt", SummaryTemplateData.class)
                 || !validateTemplate(defaultMetaSummaryPromptField, "defaultMetaSummaryPrompt", MetaSummaryTemplateData.class)
-                || !validateTemplate(defaultRedraftPromptField, "defaultRedraftPrompt", RedraftTemplateData.class)) {
+                || !validateTemplate(defaultRedraftPromptField, "defaultRedraftPrompt", RedraftTemplateData.class)
+                || !validateTemplate(defaultAnnotatePromptField, "defaultAnnotatePrompt", AnnotateTemplateData.class)) {
             return;
         }
 
@@ -721,6 +758,7 @@ public class UserPart implements WorkspaceComponent {
         String summaryPrompt = defaultSummaryPromptField.getValue();
         String metaSummaryPrompt = defaultMetaSummaryPromptField.getValue();
         String redraftPrompt = defaultRedraftPromptField.getValue();
+        String annotatePrompt = defaultAnnotatePromptField.getValue();
 
         String defaultPov = defaultPovField.getValue();
         String defaultTense = defaultTenseField.getValue();
@@ -735,6 +773,8 @@ public class UserPart implements WorkspaceComponent {
 
             Protocol selectedProtocol = defaultProtocolCombo.getValue();
             userSetting.setDefaultProtocol(selectedProtocol != null ? selectedProtocol.getId() : null);
+            userSetting.setDefaultAnnotateModel(defaultAnnotateModelCombo.getValue() != null ? defaultAnnotateModelCombo.getValue().getId() : null);
+            userSetting.setDefaultAnnotateProtocol(defaultAnnotateProtocolCombo.getValue() != null ? defaultAnnotateProtocolCombo.getValue().getId() : null);
 
             userSetting.setBackupStrategy(strategy);
             userSetting.setBackupStrategyValue(strategy != null && backupStrategyValueField.getValue() != null ? String.valueOf(backupStrategyValueField.getValue()) : null);
@@ -750,6 +790,7 @@ public class UserPart implements WorkspaceComponent {
             userSetting.setDefaultSummaryPrompt(summaryPrompt);
             userSetting.setDefaultMetaSummaryPrompt(metaSummaryPrompt);
             userSetting.setDefaultRedraftPrompt(redraftPrompt);
+            userSetting.setDefaultAnnotatePrompt(annotatePrompt);
             saveWebhook(userSetting);
             if (defaultAgentPromptField.isVisible()) {
                 // hidden for a user who may not use agents: what they once set stays

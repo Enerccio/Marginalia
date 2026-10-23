@@ -4,6 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.components.SummaryNode;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
+import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
@@ -30,6 +31,7 @@ import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
 import com.github.enerccio.marginalia.utils.GeneratedTextHighlighter;
 import com.github.enerccio.marginalia.utils.MarkdownArchive;
+import com.github.enerccio.marginalia.utils.TextMarkup;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -53,8 +55,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.vaadin.firitin.layouts.VTabSheet;
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Configurable
 @Extendable
@@ -88,6 +89,11 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
      * Id of the read only lorebook preview tab in the layout of the tabs.
      */
     public static final String LOREBOOK_TAB = "lorebook";
+
+    /**
+     * Id of the tab with the annotations of the book in the layout of the tabs.
+     */
+    public static final String ANNOTATIONS_TAB = "annotations";
 
     @Autowired
     private Localization loc;
@@ -141,6 +147,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     private final StorySupport support = new StorySupport();
     private StoryLazyLoader<ChatMessageCard> lazyLoader;
     private StoryBranchSearch branchSearch;
+    private StoryAnnotations annotations;
+    private AnnotationsPanel annotationsPanel;
     private final StoryBackup backup = new StoryBackup();
     private Long scrollToMessageId;
 
@@ -163,9 +171,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             }
         });
         // the default arrangement from the start: the tabs added below find their place in it
-        leftBar.setLayout(StoryDockLayout.defaultLayout(STORY_TAB, null, CHAPTERS_TAB, LOREBOOK_TAB));
+        leftBar.setLayout(StoryDockLayout.defaultLayout(STORY_TAB, null, CHAPTERS_TAB, LOREBOOK_TAB, ANNOTATIONS_TAB));
         createStoryOutlineTab();
         createLorebookTab();
+        createAnnotationsTab();
 
         centerLayout = new VerticalLayout();
         centerLayout.setSizeFull();
@@ -650,9 +659,12 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     @APILocals(name = "emptyLabel", type = Span.class),
                     @APILocals(name = "branch", type = List.class),
                     @APILocals(name = "msg", type = ChatMessage.class),
+                    @APILocals(name = "positions", type = Map.class),
                     @APILocals(name = "e", type = Exception.class)})
     private void renderStoryContent() {
         Set<Long> openedReasonings = cards.collectOpenedReasonings();
+        // the texts may have changed since the annotations were read
+        annotations.invalidate();
 
         centerContentPanel.removeAll();
         sidebarList.removeAll();
@@ -662,6 +674,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
         if (currentManuscript == null || currentManuscript.getActiveLeaf() == null) {
             branchSearch.refresh(List.of());
+            annotationsPanel.refresh(Map.of());
             Span emptyLabel = new Span(loc.getValue(L.MSG_NO_ACTIVE_BRANCH));
             centerContentPanel.add(UIUtils.centerComponent(emptyLabel));
         } else {
@@ -676,6 +689,11 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 }
 
                 branchSearch.refresh(branch);
+                Map<Long, Integer> positions = new HashMap<>();
+                for (int i = 0; i < total; i++) {
+                    positions.put(branch.get(i).getId(), i + 1);
+                }
+                annotationsPanel.refresh(positions);
                 // the cards of the last parts only, the earlier ones are added when the user scrolls up
                 lazyLoader.render(branch, support.partsLimit(), scrollToMessageId, openedReasonings);
             } catch (Exception e) {
@@ -763,6 +781,56 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     private void createLorebookTab() {
         lorebookPreview = new LorebookPreview().create();
         leftBar.add(LOREBOOK_TAB, loc.getValue(L.LABEL_LOREBOOK), lorebookPreview);
+    }
+
+    /**
+     * The tab with the annotations of the whole book. The annotations are read once for the book and kept until one changes, the
+     * cards draw their marks from them.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class))
+    private void createAnnotationsTab() {
+        annotations = new StoryAnnotations(() -> currentManuscript, ids -> lazyLoader.renderResponses(ids));
+        annotationsPanel = new AnnotationsPanel(annotations, new AnnotationView.Host() {
+            @Override
+            public boolean canGoToPart(Annotation annotation) {
+                return true;
+            }
+
+            @Override
+            public void goToPart(Annotation annotation) {
+                showStory();
+                lazyLoader.scrollTo(annotation.getPartId());
+                ChatMessageCard card = cards.get(annotation.getPartId());
+                if (card != null && annotation.hasRange()) {
+                    card.flashAnnotation(annotation);
+                }
+            }
+
+            @Override
+            public boolean canAttach(Annotation annotation) {
+                return cards.contains(annotation.getPartId());
+            }
+
+            @Override
+            public void attachToSelection(Annotation annotation) {
+                ChatMessageCard card = cards.get(annotation.getPartId());
+                if (card != null) {
+                    card.attachToSelection(annotation);
+                }
+            }
+        });
+        leftBar.add(ANNOTATIONS_TAB, loc.getValue(L.LABEL_ANNOTATIONS), annotationsPanel);
+    }
+
+    /**
+     * The text of a part changed (an edit, a redraft): the passages of its annotations moved, so they are read again.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class))
+    private void annotationsChanged() {
+        annotations.invalidate();
+        annotationsPanel.refresh();
     }
 
     @PublicAPI(from = "1.1.0",
@@ -901,7 +969,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         JsonElement position = manuscript.getAttributes().get(SPLIT_POSITION_ATTRIBUTE);
         leftBar.setLayout(StoryDockLayout.migrate(config != null && config.isJsonObject() ? config.getAsJsonObject() : null,
                 position != null && position.isJsonPrimitive() && position.getAsJsonPrimitive().isNumber() ? position.getAsDouble() : null,
-                STORY_TAB, CHAPTERS_TAB, LOREBOOK_TAB));
+                STORY_TAB, CHAPTERS_TAB, LOREBOOK_TAB, ANNOTATIONS_TAB));
     }
 
     /**
@@ -1039,6 +1107,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         private MenuItem regenerateItem;
         private MenuItem swipeItem;
         private MenuItem redraftItem;
+        private MenuItem annotateSelectionItem;
+        private MenuItem annotatePartItem;
+        private MenuItem annotateAiItem;
         private MenuItem branchItem;
         private MenuItem mergeItem;
         private MenuItem summaryItem;
@@ -1053,6 +1124,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         private MessageImages messageImages;
         private TextArea responseTextArea;
         private boolean editing = false;
+
+        private CardAnnotations cardAnnotations;
+        // the text is being generated again: the passages of the annotations are not in it yet
+        private boolean generating = false;
 
         private final VerticalLayout metaLayout;
         private final MessageMetrics metrics;
@@ -1094,7 +1169,13 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
             createHamburgerMenu();
 
-            headerBar.add(UIUtils.voidComponent(), menuBtn);
+            // the badge of the annotations is added to the header when the card has its markdown
+            HorizontalLayout actions = new HorizontalLayout(menuBtn);
+            actions.setSpacing(false);
+            actions.setPadding(false);
+            actions.setAlignItems(FlexComponent.Alignment.CENTER);
+            actions.addClassName(CssStyles.MARGIN_LEFT_AUTO);
+            headerBar.add(UIUtils.voidComponent(), actions);
 
             reasoningMarkdown = new Markdown();
             reasoningMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
@@ -1110,9 +1191,15 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             responseMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
             renderResponse();
 
+            // a click on a mark of an annotation opens its note at the mark
+            cardAnnotations = new CardAnnotations(loc, annotations, () -> this.message, responseMarkdown,
+                    () -> responseTextArea, this::autosaveAndSwapToMarkdown);
+            actions.addComponentAsFirst(cardAnnotations.getBadge());
+            refreshAnnotationBadge();
+
             messageImages = new MessageImages(message.getImages());
 
-            contentLayout.add(headerBar, reasoningDetails, responseMarkdown, messageImages);
+            contentLayout.add(headerBar, reasoningDetails, responseMarkdown, messageImages, cardAnnotations.getAnchor());
 
             metaLayout = new VerticalLayout();
             metaLayout.setWidth("220px");
@@ -1193,6 +1280,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             discardItem.setVisible(editing);
             // the text that is redrafted is the saved one
             redraftItem.setVisible(!editing && StringUtils.isNotBlank(message.getResponse()));
+            // a part that is being generated has nothing to annotate yet
+            annotateSelectionItem.setVisible(message.getId() != null && StringUtils.isNotBlank(message.getResponse()));
+            annotatePartItem.setVisible(message.getId() != null);
+            annotateAiItem.setVisible(!editing && message.getId() != null && StringUtils.isNotBlank(message.getResponse()));
         }
 
         /**
@@ -1214,6 +1305,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             swipeItem.setVisible(this.isLast);
 
             redraftItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_REDRAFT), event -> redraft());
+
+            annotateSelectionItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_ANNOTATE_SELECTION), event -> cardAnnotations.annotateSelection());
+            annotatePartItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_ANNOTATE_PART), event -> cardAnnotations.annotatePart());
+            annotateAiItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_ANNOTATE_WITH_AI), event -> annotateWithAi());
 
             branchItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_BRANCH_STORY), event -> branch());
 
@@ -1301,6 +1396,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 currentManuscript = parent.refreshManuscript();
                 RedraftDialog.open(currentManuscript, message, saved -> {
                     message = saved;
+                    annotationsChanged();
                     renderResponse();
                     updateMetrics(message);
                 });
@@ -1479,6 +1575,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 try {
                     String newResponse = responseTextArea.getValue();
                     message = support.saveEditedResponse(currentManuscript, message, newResponse);
+                    // the passages of the annotations moved with the edit
+                    annotationsChanged();
                     renderResponse();
                     contentLayout.remove(responseTextArea);
                     responseTextArea = null;
@@ -1527,12 +1625,74 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
          */
         @PublicAPI(from = "1.2.0",
                 returns = @APIReturn(type = void.class),
-                locals = {@APILocals(name = "response", type = String.class)})
+                locals = {@APILocals(name = "response", type = String.class),
+                        @APILocals(name = "marks", type = List.class),
+                        @APILocals(name = "range", type = int[].class)})
         public void renderResponse() {
             String response = StringUtils.defaultString(message.getResponse());
-            responseMarkdown.setContent(branchSearch.mark(message.getId(), showGeneratedDiff
-                    ? GeneratedTextHighlighter.highlight(response, message.getOriginalResponse(), CssStyles.GENERATED_TEXT)
-                    : response));
+            // all the layers are ranges of the text as it is, put in at once (see TextMarkup)
+            List<TextMarkup.Mark> marks = new ArrayList<>();
+            if (showGeneratedDiff) {
+                for (int[] range : GeneratedTextHighlighter.ranges(response, message.getOriginalResponse())) {
+                    marks.add(new TextMarkup.Mark(range[0], range[1], CssStyles.GENERATED_TEXT));
+                }
+            }
+            marks.addAll(branchSearch.marks(message.getId(), response));
+            if (!generating) {
+                marks.addAll(annotations.marks(message, response));
+            }
+            responseMarkdown.setContent(TextMarkup.apply(response, marks));
+            refreshAnnotationBadge();
+        }
+
+        /**
+         * Opens the dialog that lets a model propose annotations for the part, see {@link AnnotateDialog}. The ones the author
+         * accepts are marked in the text.
+         */
+        @PublicAPI(from = "1.5.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "e", type = Exception.class)})
+        private void annotateWithAi() {
+            try {
+                currentManuscript = parent.refreshManuscript();
+                AnnotateDialog.open(currentManuscript, message, () -> {
+                    annotationsChanged();
+                    renderResponse();
+                });
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        }
+
+        /**
+         * Shows how many annotations of the part need a look.
+         */
+        @PublicAPI(from = "1.5.0",
+                returns = @APIReturn(type = void.class))
+        private void refreshAnnotationBadge() {
+            if (cardAnnotations != null) {
+                cardAnnotations.refreshBadge(generating);
+            }
+        }
+
+        /**
+         * Scrolls to the passage of the annotation and flashes it.
+         */
+        @PublicAPI(from = "1.5.0",
+                returns = @APIReturn(type = void.class),
+                parameters = {@APIParameter(name = "annotation", type = Annotation.class)})
+        private void flashAnnotation(Annotation annotation) {
+            cardAnnotations.flash(annotation);
+        }
+
+        /**
+         * Attaches the note to the text the author selected, instead of the passage it lost.
+         */
+        @PublicAPI(from = "1.5.0",
+                returns = @APIReturn(type = void.class),
+                parameters = {@APIParameter(name = "annotation", type = Annotation.class)})
+        private void attachToSelection(Annotation annotation) {
+            cardAnnotations.attachToSelection(annotation);
         }
 
         @PublicAPI(from = "1.1.0",
@@ -1555,6 +1715,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 parameters = {@APIParameter(name = "msg", type = ChatMessage.class)})
         @Override
         public void restartStreaming(ChatMessage msg) {
+            generating = true;
             updateReasoning("");
             updateResponse("");
             updateMetrics(msg);

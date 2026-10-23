@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read;
 
+import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.*;
@@ -56,6 +57,9 @@ public abstract class ManuscriptReadSupport {
     protected SummaryService summaryService;
 
     @Autowired
+    protected AnnotationService annotationService;
+
+    @Autowired
     protected TagRelationService tagRelationService;
 
     @Autowired
@@ -73,6 +77,7 @@ public abstract class ManuscriptReadSupport {
         public final Manuscript manuscript;
         private final CommandContext context;
         private StoryTree tree;
+        private Map<Long, Integer> positions;
 
         public Book(CommandContext context) throws Exception {
             this.context = context;
@@ -148,6 +153,34 @@ public abstract class ManuscriptReadSupport {
                 throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NO_SUCH_HANDLE));
             }
             return message;
+        }
+
+        /**
+         * The annotation with the handle (the uuid), checked to be an annotation of a part of the book.
+         */
+        public Annotation annotation(String handle) throws Exception {
+            Annotation annotation = isHandle(handle) ? annotationService.findForUser(handle.strip()) : null;
+            // the tree has the parts of the book that are not deleted
+            if (annotation == null || annotation.getPartId() == null || !tree().byId.containsKey(annotation.getPartId())) {
+                throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NO_SUCH_ANNOTATION));
+            }
+            return annotation;
+        }
+
+        /**
+         * Where the parts of the active branch are, by the id of the part; the first part of the story is 1.
+         */
+        public Map<Long, Integer> positions() throws Exception {
+            if (positions == null) {
+                positions = new HashMap<>();
+                if (manuscript.getActiveLeaf() != null) {
+                    List<ChatMessage> path = path((Integer) null);
+                    for (int i = 0; i < path.size(); i++) {
+                        positions.put(path.get(i).getId(), i + 1);
+                    }
+                }
+            }
+            return positions;
         }
 
         /**
@@ -280,6 +313,41 @@ public abstract class ManuscriptReadSupport {
             end--;
         }
         return line.substring(0, end) + "…";
+    }
+
+    /**
+     * An annotation as the answers of the commands show it.
+     *
+     */
+    protected static JsonObject describe(Annotation annotation, Book book) throws Exception {
+        JsonObject row = new JsonObject();
+        row.addProperty("handle", annotation.getUuid());
+        row.addProperty("part", book.tree().byId.get(annotation.getPartId()).getUuid());
+        Integer position = book.positions().get(annotation.getPartId());
+        if (position != null) {
+            row.addProperty("position", position);
+        }
+        row.addProperty("status", annotation.getStatus().name().toLowerCase(Locale.ROOT));
+        row.addProperty("source", annotation.getSource().name().toLowerCase(Locale.ROOT));
+        if (annotation.getType() != null) {
+            row.addProperty("type", annotation.getType());
+        }
+        if (annotation.getLabel() != null) {
+            row.addProperty("label", annotation.getLabel());
+        }
+        if (annotation.hasRange()) {
+            row.addProperty("start", annotation.getStart());
+            row.addProperty("end", annotation.getEnd());
+        }
+        if (annotation.getQuote() != null) {
+            row.addProperty("quote", preview(annotation.getQuote(), PREVIEW_LENGTH * 2));
+        }
+        row.addProperty("note", annotation.getText());
+        row.addProperty("sendToPrompt", annotation.isSendToPrompt());
+        if (annotation.isNotLocated()) {
+            row.addProperty("notLocated", true);
+        }
+        return row;
     }
 
     protected static void answer(CommandContext context, JsonObject result) {

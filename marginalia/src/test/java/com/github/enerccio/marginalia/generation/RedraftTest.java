@@ -1,14 +1,14 @@
 package com.github.enerccio.marginalia.generation;
 
 import com.github.enerccio.marginalia.Defaults;
+import com.github.enerccio.marginalia.domain.collections.AnnotationSource;
+import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
+import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
-import com.github.enerccio.marginalia.domain.service.ChatMessageService;
-import com.github.enerccio.marginalia.domain.service.RedraftService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.RedraftService.ContextInsufficient;
-import com.github.enerccio.marginalia.domain.service.SettingService;
-import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.test.GenerationTestBase;
 import com.github.enerccio.marginalia.test.llm.MockLLMResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,6 +41,9 @@ class RedraftTest extends GenerationTestBase {
 
     @Autowired
     private SettingService settingService;
+
+    @Autowired
+    private AnnotationService annotationService;
 
     private Manuscript manuscript;
     private List<ChatMessage> story;
@@ -269,5 +272,50 @@ class RedraftTest extends GenerationTestBase {
         assertThat(manuscriptService.getRedraftPrompt(manuscript)).isEqualTo("BOOK {{text}} / {{redraftInstructions}}");
         redraft(2, "shorter");
         assertThat(prompt()).contains("BOOK TEXT-2 / shorter");
+    }
+
+    @Test
+    void theOpenAnnotationsAreGivenToTheModelWhenAsked() throws Exception {
+        annotationService.create(manuscript, part(3), 0, 4, "Too short", AnnotationSource.AUTHOR, null, null);
+        Annotation closed = annotationService.create(manuscript, part(3), 5, 6, "Fixed already", AnnotationSource.AUTHOR, null, null);
+        annotationService.setStatus(manuscript, closed, AnnotationStatus.RESOLVED);
+        annotationService.create(manuscript, part(3), null, null, "No weather", AnnotationSource.AUTHOR, null, null);
+        llm.enqueue(MockLLMResponse.text("REDRAFTED"));
+
+        CompletableFuture<String> done = new CompletableFuture<>();
+        redraftService.redraft(manuscriptService.find(manuscript.getId()), part(3), "", null,
+                com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions.defaults(), true, new RedraftService.Callback() {
+                    public void onProgress(String reasoning, String text) {
+                    }
+
+                    public void onFinished(String reasoning, String text) {
+                        done.complete(text);
+                    }
+
+                    public void onTerminated(String reasoning, String text) {
+                        done.complete(text);
+                    }
+
+                    public void onError(Throwable throwable) {
+                        done.completeExceptionally(throwable);
+                    }
+                });
+        done.get(30, TimeUnit.SECONDS);
+
+        String prompt = prompt();
+        assertThat(between(prompt, "=== AUTHOR'S NOTES ON PASSAGES OF THE PART START ===", "=== AUTHOR'S NOTES ON PASSAGES OF THE PART END ==="))
+                .contains("\"TEXT\": Too short").contains("(the whole part): No weather").doesNotContain("Fixed already");
+        // the notes are the instructions when the author gave none
+        assertThat(prompt).doesNotContain("Write the part again");
+    }
+
+    @Test
+    void theAnnotationsAreNotGivenUnlessAsked() throws Exception {
+        annotationService.create(manuscript, part(3), 0, 4, "Too short", AnnotationSource.AUTHOR, null, null);
+        llm.enqueue(MockLLMResponse.text("REDRAFTED"));
+
+        redraft(3, "");
+
+        assertThat(prompt()).doesNotContain("AUTHOR'S NOTES").doesNotContain("Too short").contains("Write the part again");
     }
 }

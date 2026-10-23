@@ -35,6 +35,8 @@ public class RedraftTemplateData extends TemplateData {
     private String followingStory;
     @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_REDRAFT_INSTRUCTIONS)
     private String redraftInstructions;
+    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_ANNOTATIONS)
+    private String annotations;
 
     public String getBackgroundLore() {
         return backgroundLore;
@@ -139,4 +141,13 @@ public class RedraftTemplateData extends TemplateData {
     public void setRedraftInstructions(String redraftInstructions) {
         this.redraftInstructions = redraftInstructions;
     }
+
+    public String getAnnotations() {
+        return annotations;
+    }
+
+    public void setAnnotations(String annotations) {
+        this.annotations = annotations;
+    }
+
 }

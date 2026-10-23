@@ -681,6 +681,39 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_EDIT_LAST_PART, "编辑最后一段");
         setValue(L.LABEL_SAVE_EDITED_PART, "保存正在编辑的段落");
         setValue(L.LABEL_RESTORE_DEFAULT_LAYOUT, "恢复默认布局");
+        setValue(L.LABEL_COMMAND_LIST_ANNOTATIONS, "列出批注");
+        setValue(L.LABEL_COMMAND_GET_ANNOTATION, "查看批注");
+        setValue(L.LABEL_COMMAND_CREATE_ANNOTATION, "创建批注");
+        setValue(L.LABEL_COMMAND_UPDATE_ANNOTATION, "修改批注");
+        setValue(L.LABEL_COMMAND_RESOLVE_ANNOTATION, "更改批注状态");
+        setValue(L.LABEL_COMMAND_DELETE_ANNOTATION, "删除批注");
+        setValue(L.LABEL_COMMAND_REATTACH_ANNOTATION, "把批注挂到另一段文字");
+        setValue(L.LABEL_ANNOTATIONS, "批注");
+        setValue(L.LABEL_ANNOTATE_SELECTION, "为选中文字添加批注");
+        setValue(L.LABEL_ANNOTATE_PART, "为整段添加批注");
+        setValue(L.LABEL_ANNOTATION_NEW, "新建批注");
+        setValue(L.LABEL_ANNOTATION_RESOLVE, "标记为已解决");
+        setValue(L.LABEL_ANNOTATION_DISMISS, "忽略");
+        setValue(L.LABEL_ANNOTATION_REOPEN, "重新打开");
+        setValue(L.LABEL_ANNOTATION_SEND_TO_PROMPT, "连同该段交给模型");
+        setValue(L.LABEL_ANNOTATION_ATTACH_SELECTION, "挂到选中文字");
+        setValue(L.LABEL_ANNOTATION_PART_NUMBER, "第 %d 段");
+        setValue(L.LABEL_ANNOTATION_FILTER_OPEN, "待处理");
+        setValue(L.LABEL_ANNOTATION_FILTER_CLOSED, "已关闭");
+        setValue(L.LABEL_ALL, "全部");
+        setValue(L.LABEL_ANNOTATE_PROMPT, "批注提示词");
+        setValue(L.LABEL_DEFAULT_ANNOTATE_MODEL, "批注使用的默认模型");
+        setValue(L.LABEL_DEFAULT_ANNOTATE_PROTOCOL, "批注使用的默认协议");
+        setValue(L.LABEL_REDRAFT_WITH_ANNOTATIONS, "处理该段尚未处理的批注（应用重写后会标记为已解决）");
+        setValue(L.LABEL_ANNOTATE_WITH_AI, "用 AI 添加批注");
+        setValue(L.LABEL_ANNOTATE_INSTRUCTIONS, "检查的重点");
+        setValue(L.LABEL_ANNOTATE_MODE, "回答格式");
+        setValue(L.LABEL_ANNOTATE_EXTRACT_MODEL, "从评述中提取批注的模型");
+        setValue(L.LABEL_ANNOTATE_RUN, "开始批注");
+        setValue(L.LABEL_ANNOTATING, "正在批注");
+        setValue(L.LABEL_ANNOTATE_ACCEPT, "添加选中的批注");
+        setValue(L.LABEL_ANNOTATE_RAW, "模型的回答");
+        setValue(L.LABEL_ANNOTATE_PROPOSALS, "建议的批注");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -803,6 +836,19 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_PART_CHANGE_ONLY_MERGED, "仅被合并段落有");
         setValue(L.ENUM_TAG_MATCH_ALL, "全部标签");
         setValue(L.ENUM_TAG_MATCH_ANY, "任一标签");
+        setValue(L.ENUM_DOMAIN_ANNOTATION, "批注");
+        setValue(L.ENUM_ANNOTATION_STATUS_OPEN, "待处理");
+        setValue(L.ENUM_ANNOTATION_STATUS_RESOLVED, "已解决");
+        setValue(L.ENUM_ANNOTATION_STATUS_DISMISSED, "已忽略");
+        setValue(L.ENUM_ANNOTATION_STATUS_ORPHANED, "已失去位置");
+        setValue(L.ENUM_ANNOTATION_SOURCE_AUTHOR, "作者");
+        setValue(L.ENUM_ANNOTATION_SOURCE_AI, "AI");
+        setValue(L.ENUM_ANNOTATION_SOURCE_AGENT, "智能体");
+        setValue(L.ENUM_ANNOTATION_SOURCE_PLUGIN, "扩展");
+        setValue(L.ENUM_ANNOTATE_MODE_AUTO, "自动");
+        setValue(L.ENUM_ANNOTATE_MODE_STRUCTURED, "结构化（JSON）");
+        setValue(L.ENUM_ANNOTATE_MODE_DELIMITED, "文本块");
+        setValue(L.ENUM_ANNOTATE_MODE_TWO_STAGE, "先自由评述，再提取");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -888,6 +934,10 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ERROR_REDRAFT_FAILED, "无法连接到推理服务以重写该段。");
         setValue(L.ERROR_COMMAND_REDRAFT_NOT_POSSIBLE, "无法重写该段：它没有文本，或本书没有模型。");
         setValue(L.ERROR_COMMAND_REDRAFT_CONTEXT, "重写内容超出模型上下文（需要 %d 个令牌，可用 %d 个）。");
+        setValue(L.ERROR_COMMAND_NO_SUCH_ANNOTATION, "这本书里没有这条批注。批注用 list-annotations 给出的句柄指定。");
+        setValue(L.ERROR_COMMAND_ANNOTATION_STATUS, "未知的状态 %s。请使用：%s。");
+        setValue(L.ERROR_COMMAND_QUOTE_NOT_FOUND, "引文不在这一段里。请从这一段的正文中原样复制该处的文字。");
+        setValue(L.ERROR_ANNOTATE_FAILED, "无法为该段添加批注：本书需要设置模型和协议（或在此选择）。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "无法保存表单。");
@@ -1130,6 +1180,27 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_SHORTCUT_BROWSER_KEY, "此按键由浏览器占用，页面可能收不到。");
         setValue(L.MSG_SHORTCUT_ALT_CHARACTER, "在某些键盘（macOS）上，Alt 加字母会输入字符，可能无法使用。");
         setValue(L.MSG_CONFIRM_RESTORE_DEFAULT_LAYOUT, "将故事、大纲和其他标签页恢复到新书的默认位置吗？不会改动你的文字，只恢复这本书的标签页排列。");
+        setValue(L.MSG_COMMAND_DELETE_ANNOTATION_CONFIRM, "要删除这条批注吗？");
+        setValue(L.MSG_COMMAND_ANNOTATION_NOT_LOCATED, "在这一段中没有找到引文，所以备注挂在整段上。用从正文复制的文字执行 reattach-annotation，可把它挂到某处文字上。");
+        setValue(L.MSG_ANNOTATION_ORPHANED_HINT, "这条批注所指的文字已从正文中消失。请把它挂到别处，或忽略它。");
+        setValue(L.MSG_ANNOTATION_NOT_LOCATED_HINT, "在正文中没有找到所指文字，所以这条批注针对整段。");
+        setValue(L.MSG_ANNOTATION_WHOLE_PART, "这条批注针对整段。");
+        setValue(L.MSG_ANNOTATION_TYPE_PLACEHOLDER, "continuity、style 等");
+        setValue(L.MSG_ANNOTATION_NOTE_REQUIRED, "批注内容为空");
+        setValue(L.MSG_ANNOTATIONS_SUMMARY, "待处理 %d 条，显示 %d 条");
+        setValue(L.MSG_ANNOTATIONS_NONE, "这里没有批注。请在故事中选中一段文字，然后在该段的菜单里选择“为选中文字添加批注”。");
+        setValue(L.MSG_ANNOTATIONS_LIMITED, "仅显示前 %d 条（共 %d 条批注），请用筛选缩小范围。");
+        setValue(L.MSG_ANNOTATION_OTHER_BRANCH, "其他分支的段落");
+        setValue(L.MSG_ANNOTATION_SELECT_TEXT, "请先在该段正文中选中一段文字。");
+        setValue(L.MSG_ANNOTATION_NOT_IN_SOURCE, "在该段正文中没有找到选中的文字。请选择没有格式的文字，或在编辑状态下选择。");
+        setValue(L.MSG_ANNOTATIONS_OPEN_COUNT, "有 %d 条批注待处理");
+        setValue(L.MSG_ANNOTATE_INFO, "模型会连同前后的故事阅读该段，并针对具体段落提出批注建议。在你接受之前不会向书中添加任何内容。");
+        setValue(L.MSG_ANNOTATE_PLACEHOLDER, "例如：指出连续性错误、薄弱的对话、与设定的矛盾。留空则使用提示词的默认任务。");
+        setValue(L.MSG_ANNOTATE_MODEL_HINT, "模型留空则使用设置中为批注指定的模型，否则使用本书的模型。");
+        setValue(L.MSG_ANNOTATE_NO_FINDINGS, "模型没有发现需要指出的问题。");
+        setValue(L.MSG_ANNOTATE_UNREADABLE, "无法读取模型的回答（%s）。为免白费功夫，下面显示原文。");
+        setValue(L.MSG_ANNOTATE_NOT_LOCATED, "在正文中没有找到，将作为针对整段的批注");
+        setValue(L.MSG_ANNOTATE_ADDED, "已添加 %d 条批注");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1532,6 +1603,39 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_REDRAFT_INSTRUCTIONS_PARAM, "要在该段中修改的内容；留空则以相同事件重写");
         setValue(L.DESC_COMMAND_REDRAFT_PROMPT_PARAM, "代替本书重写提示词的提示词（模板）；留空则使用本书的");
         setValue(L.DESC_COMMAND_REDRAFT_APPLY_PARAM, "false 仅返回重写的文本，不改动该段；true（默认）则替换该段文本");
+        setValue(L.DESC_COMMAND_ANNOTATION_PARAM, "批注的句柄（list-annotations 中的 \"handle\"）");
+        setValue(L.DESC_COMMAND_ANNOTATION_STATUS_FILTER_PARAM, "open（默认）、resolved、dismissed、orphaned 或 all");
+        setValue(L.DESC_COMMAND_ANNOTATION_STATUS_PARAM, "resolved（默认）、dismissed 或 open");
+        setValue(L.DESC_COMMAND_ANNOTATION_FILTER_PART_PARAM, "只列出这一段的批注：句柄，或它在当前分支上的位置（第一段为 1）。省略则为所有段落");
+        setValue(L.DESC_COMMAND_ANNOTATION_TEXT_PARAM, "批注内容");
+        setValue(L.DESC_COMMAND_ANNOTATION_QUOTE_PARAM, "批注所指文字（从该段正文复制）。留空则针对整段");
+        setValue(L.DESC_COMMAND_ANNOTATION_TYPE_PARAM, "批注类别的自由词语（continuity、style 等），留空表示无类别");
+        setValue(L.DESC_COMMAND_ANNOTATION_SEND_PARAM, "true 表示把批注连同该段一起交给模型，false 表示不交");
+        setValue(L.DESC_COMMAND_LIST_ANNOTATIONS, "列出本书或某一段的批注（针对文字段落的备注）。参数：status、part、offset、limit。");
+        setValue(L.DESC_COMMAND_LIST_ANNOTATIONS_LLM, "列出本书的批注，即针对某段文字（或整段）给作者留的备注。每一行有 \"handle\"、所属段落的句柄（段落在当前分支上时还有位置）、状态（open、resolved、dismissed、orphaned：所指文字已不存在）、来源（author、ai、agent、plugin）、类别、所指文字（若有：在该段正文中的起止偏移和引用的文字）以及备注内容。省略 status 时为 open，\"all\" 列出全部。给出 part（句柄或在当前分支上的位置）则只列该段。只读。选项按位置传递，均可省略，顺序如上。");
+        setValue(L.DESC_COMMAND_LIST_ANNOTATIONS_RETURN, "包含批注和分页信息的 JSON");
+        setValue(L.DESC_COMMAND_GET_ANNOTATION, "查看批注的内容及其所指文字。参数：annotation（句柄）。");
+        setValue(L.DESC_COMMAND_GET_ANNOTATION_LLM, "一条批注的完整内容：备注、状态、来源、类别、引用的文字及其前后文，以及它在该段中的位置。批注用 list-annotations 给出的句柄指定。只读。");
+        setValue(L.DESC_COMMAND_GET_ANNOTATION_RETURN, "包含批注的 JSON");
+        setValue(L.DESC_COMMAND_CREATE_ANNOTATION, "给某段中的一处文字添加备注。参数：part（句柄）、text、quote、type。");
+        setValue(L.DESC_COMMAND_CREATE_ANNOTATION_LLM, "给故事中某段的一处文字添加给作者的备注。不会改动故事正文，备注也不会发给模型。把该处文字原样逐字复制到 quote（若在该段中只出现一次，几个字即可）：备注会挂在这处文字上，正文被编辑时也会跟着移动。不给 quote 则备注针对整段；quote 不在正文中时同样针对整段，并会在返回中说明。type 是自由词语（continuity、style 等）。段落用句柄指定。会向本书添加批注。");
+        setValue(L.DESC_COMMAND_CREATE_ANNOTATION_RETURN, "包含新批注的 JSON");
+        setValue(L.DESC_COMMAND_UPDATE_ANNOTATION, "修改批注的备注、类别或“发送给提示词”标记。参数：annotation（句柄）、text、type、sendToPrompt。");
+        setValue(L.DESC_COMMAND_UPDATE_ANNOTATION_LLM, "修改批注：备注内容、类别，以及是否连同所属段落交给模型（sendToPrompt）。text 或 type 为空则保持原值，省略 sendToPrompt 则保持原标记。批注用 list-annotations 给出的句柄指定。这里不改变所指文字和状态（见 reattach-annotation 与 resolve-annotation）。");
+        setValue(L.DESC_COMMAND_UPDATE_ANNOTATION_RETURN, "包含批注的 JSON");
+        setValue(L.DESC_COMMAND_RESOLVE_ANNOTATION, "设置批注的状态：resolved（默认）、dismissed 或 open。参数：annotation（句柄）、status。");
+        setValue(L.DESC_COMMAND_RESOLVE_ANNOTATION_LLM, "把批注关闭为 resolved（已处理）或 dismissed（无需处理），或用 open 重新打开。关闭的批注不再在正文中标出，但仍留在列表里。省略 status 时为 resolved。批注用 list-annotations 给出的句柄指定。");
+        setValue(L.DESC_COMMAND_RESOLVE_ANNOTATION_RETURN, "包含批注的 JSON");
+        setValue(L.DESC_COMMAND_REATTACH_ANNOTATION, "把批注挂到引文在其所属段落中找到的位置。参数：annotation（句柄）、quote。");
+        setValue(L.DESC_COMMAND_REATTACH_ANNOTATION_LLM, "把批注移到其所属段落中的另一处文字：该处由 quote 查找，quote 必须从该段正文复制。已失去位置（所指文字被删除）的批注会重新变为 open。批注用 list-annotations 给出的句柄指定。不给 quote 则批注针对整段。");
+        setValue(L.DESC_COMMAND_REATTACH_ANNOTATION_RETURN, "包含批注的 JSON");
+        setValue(L.DESC_COMMAND_DELETE_ANNOTATION, "删除批注。参数：annotation（句柄）。");
+        setValue(L.DESC_COMMAND_DELETE_ANNOTATION_LLM, "删除批注（用户可从回收站恢复）。若只想关闭批注并保留在列表里，请用 resolve-annotation。批注用 list-annotations 给出的句柄指定。");
+        setValue(L.DESC_COMMAND_DELETE_ANNOTATION_RETURN, "包含已删除批注句柄的 JSON");
+        setValue(L.DESC_TEMPLATE_ANNOTATIONS, "该段尚未处理的批注，每条一行：引号中的文字和备注（没有则为空）。");
+        setValue(L.DESC_TEMPLATE_ANNOTATE_INSTRUCTIONS, "作者希望检查该段的哪些方面（没有说明则为空）。");
+        setValue(L.DESC_TEMPLATE_OUTPUT_FORMAT, "告诉模型如何书写回答的格式，取决于索取批注的方式。");
+        setValue(L.DESC_TEMPLATE_STORY_ANNOTATIONS, "提示词所含故事中、被标记为交给模型的作者批注，每条一行（没有则为空）。");
     }
 
     @Override

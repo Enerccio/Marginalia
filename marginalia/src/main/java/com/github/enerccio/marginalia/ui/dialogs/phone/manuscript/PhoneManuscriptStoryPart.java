@@ -4,6 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.components.SummaryNode;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
+import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.*;
@@ -27,6 +28,7 @@ import com.github.enerccio.marginalia.ui.widgets.LazyContextMenu;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
 import com.github.enerccio.marginalia.utils.MarkdownArchive;
+import com.github.enerccio.marginalia.utils.TextMarkup;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonObject;
 import com.vaadin.flow.component.Component;
@@ -50,8 +52,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * The story tab of the {@link PhoneManuscriptDialog}. One column: the parts of the story fill the screen and the
@@ -111,6 +112,8 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
     private final StorySupport support = new StorySupport();
     private StoryLazyLoader<ChatMessageCard> lazyLoader;
     private StoryBranchSearch branchSearch;
+    private StoryAnnotations annotations;
+    private AnnotationsPanel annotationsPanel;
     private final StoryBackup backup = new StoryBackup();
     private Long scrollToMessageId;
 
@@ -449,9 +452,12 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                     @APILocals(name = "branch", type = List.class),
                     @APILocals(name = "header", type = String.class),
                     @APILocals(name = "msg", type = ChatMessage.class),
+                    @APILocals(name = "positions", type = Map.class),
                     @APILocals(name = "e", type = Exception.class)})
     private void renderStoryContent() {
         Set<Long> openedReasonings = cards.collectOpenedReasonings();
+        // the texts may have changed since the annotations were read
+        annotations.invalidate();
 
         centerContentPanel.removeAll();
         sidebarList.removeAll();
@@ -462,6 +468,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
             sidebarHeader.setText("");
             navTitle.setText("");
             branchSearch.refresh(List.of());
+            annotationsPanel.refresh(Map.of());
             Span emptyLabel = new Span(loc.getValue(L.MSG_NO_ACTIVE_BRANCH));
             centerContentPanel.add(UIUtils.centerComponent(emptyLabel));
         } else {
@@ -478,6 +485,11 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                 }
 
                 branchSearch.refresh(branch);
+                Map<Long, Integer> positions = new HashMap<>();
+                for (int i = 0; i < total; i++) {
+                    positions.put(branch.get(i).getId(), i + 1);
+                }
+                annotationsPanel.refresh(positions);
                 // the cards of the last parts only, the earlier ones are added when the user scrolls up
                 lazyLoader.render(branch, support.partsLimit(), scrollToMessageId, openedReasonings);
             } catch (Exception e) {
@@ -568,11 +580,37 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         outlineTab.setFlexGrow(1, sidebarList);
         leftBar.add(ManuscriptStoryPart.CHAPTERS_TAB, loc.getValue(L.LABEL_CHAPTERS), outlineTab);
 
+        annotations = new StoryAnnotations(() -> currentManuscript, ids -> lazyLoader.renderResponses(ids));
+        annotationsPanel = new AnnotationsPanel(annotations, new AnnotationView.Host() {
+            @Override
+            public boolean canGoToPart(Annotation annotation) {
+                return true;
+            }
+
+            @Override
+            public void goToPart(Annotation annotation) {
+                // the drawer covers the story
+                layout.setDrawerOpened(false);
+                lazyLoader.scrollTo(annotation.getPartId());
+            }
+        });
+        leftBar.add(ManuscriptStoryPart.ANNOTATIONS_TAB, loc.getValue(L.LABEL_ANNOTATIONS), annotationsPanel);
+
         VerticalLayout outline = new VerticalLayout(leftBar);
         outline.setSizeFull();
         outline.setPadding(false);
         outline.setSpacing(false);
         return outline;
+    }
+
+    /**
+     * The text of a part changed (an edit, a redraft): the passages of its annotations moved, so they are read again.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class))
+    private void annotationsChanged() {
+        annotations.invalidate();
+        annotationsPanel.refresh();
     }
 
     @PublicAPI(from = "1.1.0",
@@ -747,6 +785,9 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         private MenuItem regenerateItem;
         private MenuItem swipeItem;
         private MenuItem redraftItem;
+        private MenuItem annotateSelectionItem;
+        private MenuItem annotatePartItem;
+        private MenuItem annotateAiItem;
         private MenuItem branchItem;
         private MenuItem mergeItem;
         private MenuItem summaryItem;
@@ -761,6 +802,10 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         private MessageImages messageImages;
         private TextArea responseTextArea;
         private boolean editing = false;
+
+        private CardAnnotations cardAnnotations;
+        // the text is being generated again: the passages of the annotations are not in it yet
+        private boolean generating = false;
 
         private Popover infoPopover;
         private MessageMetrics metrics;
@@ -815,9 +860,15 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
             responseMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
             renderResponse();
 
+            // a tap on a mark of an annotation opens its note at the mark
+            cardAnnotations = new CardAnnotations(loc, annotations, () -> this.message, responseMarkdown,
+                    () -> responseTextArea, this::autosaveAndSwapToMarkdown);
+            headerBar.add(cardAnnotations.getBadge());
+            refreshAnnotationBadge();
+
             messageImages = new MessageImages(message.getImages());
 
-            add(headerBar, reasoningDetails, responseMarkdown, messageImages);
+            add(headerBar, reasoningDetails, responseMarkdown, messageImages, cardAnnotations.getAnchor());
         }
 
         @PublicAPI(from = "1.1.0",
@@ -893,6 +944,10 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
             discardItem.setVisible(editing);
             // the text that is redrafted is the saved one
             redraftItem.setVisible(!editing && StringUtils.isNotBlank(message.getResponse()));
+            // a part that is being generated has nothing to annotate yet
+            annotateSelectionItem.setVisible(message.getId() != null && StringUtils.isNotBlank(message.getResponse()));
+            annotatePartItem.setVisible(message.getId() != null);
+            annotateAiItem.setVisible(!editing && message.getId() != null && StringUtils.isNotBlank(message.getResponse()));
         }
 
         /**
@@ -914,6 +969,10 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
             swipeItem.setVisible(this.isLast);
 
             redraftItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_REDRAFT), event -> redraft());
+
+            annotateSelectionItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_ANNOTATE_SELECTION), event -> cardAnnotations.annotateSelection());
+            annotatePartItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_ANNOTATE_PART), event -> cardAnnotations.annotatePart());
+            annotateAiItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_ANNOTATE_WITH_AI), event -> annotateWithAi());
 
             branchItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_BRANCH_STORY), event -> branch());
 
@@ -1001,6 +1060,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                 currentManuscript = parent.refreshManuscript();
                 RedraftDialog.open(currentManuscript, message, saved -> {
                     message = saved;
+                    annotationsChanged();
                     renderResponse();
                     updateMetrics(message);
                 });
@@ -1178,6 +1238,8 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                 try {
                     String newResponse = responseTextArea.getValue();
                     message = support.saveEditedResponse(currentManuscript, message, newResponse);
+                    // the passages of the annotations moved with the edit
+                    annotationsChanged();
                     renderResponse();
                     remove(responseTextArea);
                     responseTextArea = null;
@@ -1230,13 +1292,52 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         }
 
         /**
-         * Draws the response of the message, the places the search of the outline found are marked.
+         * Draws the response of the message, the places the search of the outline found and the passages of the annotations are
+         * marked.
+         */
+        @PublicAPI(from = "1.5.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "response", type = String.class),
+                        @APILocals(name = "marks", type = List.class)})
+        @Override
+        public void renderResponse() {
+            String response = StringUtils.defaultString(message.getResponse());
+            List<TextMarkup.Mark> marks = new ArrayList<>(branchSearch.marks(message.getId(), response));
+            if (!generating) {
+                marks.addAll(annotations.marks(message, response));
+            }
+            responseMarkdown.setContent(TextMarkup.apply(response, marks));
+            refreshAnnotationBadge();
+        }
+
+        /**
+         * Opens the dialog that lets a model propose annotations for the part, see {@link AnnotateDialog}. The ones the author
+         * accepts are marked in the text.
+         */
+        @PublicAPI(from = "1.5.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "e", type = Exception.class)})
+        private void annotateWithAi() {
+            try {
+                currentManuscript = parent.refreshManuscript();
+                AnnotateDialog.open(currentManuscript, message, () -> {
+                    annotationsChanged();
+                    renderResponse();
+                });
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        }
+
+        /**
+         * Shows how many annotations of the part need a look.
          */
         @PublicAPI(from = "1.5.0",
                 returns = @APIReturn(type = void.class))
-        @Override
-        public void renderResponse() {
-            responseMarkdown.setContent(branchSearch.mark(message.getId(), StringUtils.defaultString(message.getResponse())));
+        private void refreshAnnotationBadge() {
+            if (cardAnnotations != null) {
+                cardAnnotations.refreshBadge(generating);
+            }
         }
 
         @PublicAPI(from = "1.2.0",
@@ -1251,6 +1352,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                 parameters = {@APIParameter(name = "msg", type = ChatMessage.class)})
         @Override
         public void restartStreaming(ChatMessage msg) {
+            generating = true;
             updateReasoning("");
             updateResponse("");
             updateMetrics(msg);

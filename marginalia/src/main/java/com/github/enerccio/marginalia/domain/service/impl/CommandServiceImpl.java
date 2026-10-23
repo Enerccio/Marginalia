@@ -84,6 +84,7 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
         registerCommands(new PartEditCommands());
         registerCommands(new PartStructureCommands());
         registerCommands(new SummaryWriteCommands());
+        registerCommands(new AnnotationWriteCommands());
         registerCommands(new BookSettingsCommands());
         registerCommands(new StoryGenerationCommands());
         registerCommands(new SummaryGenerationCommands());
@@ -114,6 +115,8 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
         registerCommands(new CountTokensCommand());
         registerCommands(new ListSummariesCommand());
         registerCommands(new GetSummaryCommand());
+        registerCommands(new ListAnnotationsCommand());
+        registerCommands(new GetAnnotationCommand());
         registerCommands(new CheckSummariesCommand());
         registerCommands(new GetTemplateVariablesCommand());
     }

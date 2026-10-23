@@ -20,6 +20,9 @@ public class MasterTemplateData extends TemplateData {
     @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_SUMMARIES)
     private String summaries;
 
+    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_STORY_ANNOTATIONS)
+    private String annotations;
+
     public String getBackgroundLore() {
         return backgroundLore;
     }
@@ -59,4 +62,13 @@ public class MasterTemplateData extends TemplateData {
     public void setSummaries(String summaries) {
         this.summaries = summaries;
     }
+
+    public String getAnnotations() {
+        return annotations;
+    }
+
+    public void setAnnotations(String annotations) {
+        this.annotations = annotations;
+    }
+
 }

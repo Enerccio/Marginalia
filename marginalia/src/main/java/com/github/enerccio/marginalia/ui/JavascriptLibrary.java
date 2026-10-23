@@ -418,6 +418,162 @@ public final class JavascriptLibrary {
                 """, comboBox);
     }
 
+    // --- annotations ---
+
+    /**
+     * Fires {@code annotation-click} ({@code detail.ids}, the uuids of the annotations separated by commas) on the markdown element when
+     * the user clicks a mark of an annotation: every annotation that covers the point, the innermost first. The anchor (a small
+     * absolutely placed element in the same container) is moved onto the mark first, so a popover that has it as its target opens at
+     * the mark. A click that ends a selection is not a click on a mark.
+     */
+    public static void fireAnnotationClickEvent(Element markdown, Element anchor) {
+        markdown.executeJs("""
+                const el = $0;
+                const anchor = $1;
+                if (!el._hasAnnotationClickListener) {
+                  el._hasAnnotationClickListener = true;
+                  el.addEventListener('click', e => {
+                    const selection = window.getSelection();
+                    if (selection && !selection.isCollapsed && String(selection).length > 0) {
+                      return;
+                    }
+                    const marks = [];
+                    for (let n = e.target; n && n !== el; n = n.parentElement) {
+                      if (n.dataset && n.dataset.annotation) {
+                        marks.push(n);
+                      }
+                    }
+                    if (!marks.length) {
+                      return;
+                    }
+                    const ids = [...new Set(marks.map(m => m.dataset.annotation))];
+                    const host = anchor.offsetParent || anchor.parentElement;
+                    const hostRect = host.getBoundingClientRect();
+                    const rect = marks[0].getBoundingClientRect();
+                    anchor.style.left = (rect.left - hostRect.left + host.scrollLeft) + 'px';
+                    anchor.style.top = (rect.top - hostRect.top + host.scrollTop) + 'px';
+                    anchor.style.width = rect.width + 'px';
+                    anchor.style.height = rect.height + 'px';
+                    el.dispatchEvent(new CustomEvent('annotation-click', { detail: { ids: ids.join(',') } }));
+                  });
+                }
+                """, markdown, anchor);
+    }
+
+    /**
+     * The script that works out the selection inside an element, as JSON ({@code {"text", "before", "after"}}) or an empty text. It is
+     * the body of the scripts below, which have the element as {@code $0} and the number of characters around the selection as {@code $1}.
+     */
+    private static final String SELECTION_SNAPSHOT = """
+            const snapshot = (el, around) => {
+              const selection = window.getSelection();
+              if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+                return '';
+              }
+              const range = selection.getRangeAt(0);
+              if (!el.contains(range.startContainer) || !el.contains(range.endContainer)) {
+                return '';
+              }
+              const text = String(selection);
+              if (!text.trim()) {
+                return '';
+              }
+              const before = document.createRange();
+              before.selectNodeContents(el);
+              before.setEnd(range.startContainer, range.startOffset);
+              const start = before.toString().length;
+              const all = el.textContent;
+              return JSON.stringify({
+                text: text,
+                before: all.substring(Math.max(0, start - around), start),
+                after: all.substring(start + text.length, start + text.length + around)
+              });
+            };
+            """;
+
+    /**
+     * Remembers the selection of the markdown element at the moment the user opens its context menu (right click, long press), before
+     * the menu can take it away; {@link #getSelectionContext} and {@link #copySelection} use it when nothing is selected any more. A
+     * click on the text forgets it.
+     */
+    public static void rememberSelectionOnContextMenu(Element markdown, int around) {
+        markdown.executeJs(SELECTION_SNAPSHOT + """
+                const el = $0;
+                if (!el._hasSelectionMemory) {
+                  el._hasSelectionMemory = true;
+                  el.addEventListener('contextmenu', () => {
+                    const found = snapshot(el, $1);
+                    if (found) {
+                      el._rememberedSelection = found;
+                    }
+                  }, true);
+                  el.addEventListener('mousedown', e => {
+                    if (e.button === 0) {
+                      el._rememberedSelection = null;
+                    }
+                  }, true);
+                }
+                """, markdown, around);
+    }
+
+    /**
+     * Resolves to the text the user selected inside the markdown element and some text around it, as JSON
+     * ({@code {"text": ..., "before": ..., "after": ...}}), or to an empty text when nothing is selected in it. The text is the one
+     * the browser shows, which is not the markdown source: the server finds it there. When the selection is gone but was
+     * remembered by {@link #rememberSelectionOnContextMenu}, the remembered one is given (once).
+     */
+    public static PendingJavaScriptResult getSelectionContext(Element markdown, int around) {
+        return markdown.executeJs(SELECTION_SNAPSHOT + """
+                const el = $0;
+                let found = snapshot(el, $1);
+                if (!found && el._rememberedSelection) {
+                  found = el._rememberedSelection;
+                }
+                el._rememberedSelection = null;
+                return found;
+                """, markdown, around);
+    }
+
+    /**
+     * Copies the text selected inside the markdown element (the remembered one when the selection is gone, see
+     * {@link #rememberSelectionOnContextMenu}) to the clipboard of the browser.
+     */
+    public static void copySelection(Element markdown) {
+        markdown.executeJs(SELECTION_SNAPSHOT + """
+                const el = $0;
+                let found = snapshot(el, 0) || el._rememberedSelection;
+                if (found) {
+                  navigator.clipboard.writeText(JSON.parse(found).text);
+                }
+                """, markdown);
+    }
+
+    /**
+     * Resolves to {@code start;end}, the selection in the text area.
+     */
+    public static PendingJavaScriptResult getTextAreaSelection(Element textArea) {
+        return textArea.executeJs("""
+                const input = $0.inputElement || $0.querySelector('textarea');
+                return input ? input.selectionStart + ';' + input.selectionEnd : '';
+                """, textArea);
+    }
+
+    /**
+     * Flashes the marks of the annotation inside the element.
+     */
+    public static void flashAnnotation(Element markdown, String uuid) {
+        markdown.executeJs("""
+                requestAnimationFrame(() => {
+                  const marks = $0.querySelectorAll('[data-annotation="' + $1 + '"]');
+                  if (marks.length) {
+                    marks[0].scrollIntoView({block: 'center'});
+                  }
+                  marks.forEach(m => m.animate([{outline: '3px solid var(--lumo-warning-color)'}, {outline: '3px solid transparent'}],
+                                               {duration: 1500}));
+                });
+                """, markdown, uuid);
+    }
+
     // --- tab sheet ---
 
     /**

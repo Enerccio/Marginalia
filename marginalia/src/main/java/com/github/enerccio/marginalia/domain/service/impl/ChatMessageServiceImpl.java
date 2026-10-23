@@ -36,6 +36,9 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     private SummaryService summaryService;
 
     @Autowired
+    private AnnotationService annotationService;
+
+    @Autowired
     @Lazy
     private AgentRunService agentRunService;
 
@@ -120,7 +123,9 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         ChatMessage clone = new ChatMessage();
         clone.loadFrom(branched);
         clone.setSummary(summaryService.copySummary(branched.getSummary()));
-        return save(clone);
+        ChatMessage saved = save(clone);
+        annotationService.copyForBranch(branched, saved);
+        return saved;
     }
 
     @Override
@@ -399,7 +404,8 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     }
 
     /**
-     * A soft deleted message takes its summary and everything below it (its children and their children) with it.
+     * A soft deleted message takes its summary, its annotations and everything below it (its children and their children) with
+     * it. A message deleted for good takes its annotations.
      */
     @Override
     @CommonTx
@@ -412,6 +418,9 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
             getRepository().softDeleteByIds(deleted);
             deleted.add(message.getId());
             summaryService.softDeleteForMessages(deleted);
+            annotationService.softDeleteForParts(deleted);
+        } else if (hard && message != null && message.getId() != null) {
+            annotationService.hardDeleteForParts(List.of(message.getId()));
         }
         return super.delete(message, hard);
     }
@@ -454,6 +463,7 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     @CommonTx
     public void softDeleteForManuscript(Manuscript manuscript) throws Exception {
         summaryService.softDeleteForManuscript(manuscript);
+        annotationService.softDeleteForManuscript(manuscript);
         getRepository().softDeleteByManuscript(manuscript);
     }
 
@@ -519,11 +529,15 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         Manuscript book = ownBook(manuscript);
         ChatMessage stored = ownPart(book, message);
         String newText = text == null ? "" : text;
+        String oldText = stored.getResponse();
         stored.setResponse(newText);
         stored.setTokenCount(countTokens(book, newText));
         stored.setWordCount(countWords(newText));
         stored.setEdited(true);
-        return save(stored);
+        ChatMessage saved = save(stored);
+        // the passages of the annotations move with the text
+        annotationService.shift(book, saved, oldText, newText);
+        return saved;
     }
 
     @Override
@@ -551,6 +565,8 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         PartMerge.Join joined = join == null ? PartMerge.Join.suggest(previous.getResponse(), later.getResponse()) : join;
 
         String text = PartMerge.join(previous.getResponse(), later.getResponse(), joined);
+        // where the text of the later part starts in the joined one
+        int laterOffset = StringUtils.isBlank(previous.getResponse()) ? 0 : previous.getResponse().length() + joined.separator().length();
         if (previous.getOriginalResponse() != null || later.getOriginalResponse() != null) {
             // the part that was not generated has no original text: its text is what the author added to the generated one
             previous.setOriginalResponse(PartMerge.join(previous.getOriginalResponse(), later.getOriginalResponse(), joined));
@@ -576,6 +592,7 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         previous.setAttributes(PartMerge.mergeAttributes(previous.getAttributes(), later.getAttributes(),
                 fromPrevious == null ? Set.of() : fromPrevious, dropped == null ? Set.of() : dropped));
         ChatMessage saved = save(previous);
+        annotationService.moveToPrevious(book, later, saved, laterOffset);
 
         // what follows the part follows the previous one now, the active leaf moves to it when the part was the leaf
         deleteNodeAndMigrateChildren(later, book, false);

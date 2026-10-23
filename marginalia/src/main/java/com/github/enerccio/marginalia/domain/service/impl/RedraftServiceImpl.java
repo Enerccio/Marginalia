@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.domain.components.AnnotationTexts;
 import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
@@ -9,7 +10,6 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.InferenceService.ChunkType;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncCallback;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncController;
-import com.github.enerccio.marginalia.domain.service.SummaryService.SummaryBlock;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
@@ -27,7 +27,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.web.context.request.RequestAttributes;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -40,12 +39,7 @@ public class RedraftServiceImpl implements RedraftService {
      */
     private static final long BUFFER_TOKENS = 100;
 
-    /**
-     * The share of the room for the story the part after the redrafted one may take, the rest is the story before it.
-     */
-    private static final int FOLLOWING_SHARE = 4;
-
-    private static final String SEPARATOR = "\n\n";
+    private static final String SEPARATOR = StoryAround.SEPARATOR;
 
     @Autowired
     private ManuscriptService manuscriptService;
@@ -55,6 +49,9 @@ public class RedraftServiceImpl implements RedraftService {
 
     @Autowired
     private SummaryService summaryService;
+
+    @Autowired
+    private AnnotationService annotationService;
 
     @Autowired
     private InferenceServices inferenceServices;
@@ -75,7 +72,7 @@ public class RedraftServiceImpl implements RedraftService {
     @Override
     @CommonTxReadOnly
     public CancellationToken redraft(Manuscript manuscript, ChatMessage part, String instructions, String prompt,
-                                     GenerationOptions options, Callback callback) throws Exception {
+                                     GenerationOptions options, boolean withAnnotations, Callback callback) throws Exception {
         if (manuscript == null || part == null || callback == null) {
             throw new IllegalArgumentException("The part does not exist");
         }
@@ -107,7 +104,7 @@ public class RedraftServiceImpl implements RedraftService {
         }
         InferenceService inferenceService = inferenceServices.forAIOrThrow(ai);
 
-        List<LLMChatMessage> payload = createPayload(book, stored, StringUtils.trimToEmpty(instructions), prompt, ai, protocol, inferenceService);
+        List<LLMChatMessage> payload = createPayload(book, stored, StringUtils.trimToEmpty(instructions), prompt, withAnnotations, ai, protocol, inferenceService);
 
         CancellationToken cancellationToken = new CancellationToken();
         InferenceAsyncCallback inferenceCallback = new InferenceAsyncCallback() {
@@ -169,11 +166,11 @@ public class RedraftServiceImpl implements RedraftService {
      * The prompt of the redraft: the redraft template of the book with the part in it and as much story around the part
      * as the context takes.
      */
-    private List<LLMChatMessage> createPayload(Manuscript book, ChatMessage part, String instructions, String prompt, AI ai, Protocol protocol,
+    private List<LLMChatMessage> createPayload(Manuscript book, ChatMessage part, String instructions, String prompt, boolean withAnnotations, AI ai, Protocol protocol,
                                                InferenceService inferenceService) throws Exception {
         List<ChatMessage> upToPart = new ArrayList<>(chatMessageService.getBranchFromLeaf(part));
         List<ChatMessage> before = upToPart.isEmpty() ? new ArrayList<>() : new ArrayList<>(upToPart.subList(0, upToPart.size() - 1));
-        List<ChatMessage> after = partsAfter(book, part);
+        List<ChatMessage> after = StoryAround.partsAfter(chatMessageService, book, part);
 
         String template = StringUtils.isNotBlank(prompt) ? prompt : manuscriptService.getRedraftPrompt(book);
         int maxTokens = TokenLimits.promptTokens(ai, protocol);
@@ -189,6 +186,7 @@ public class RedraftServiceImpl implements RedraftService {
         data.setInstructions(StringUtils.defaultString(part.getInstructions()));
         data.setText(part.getResponse());
         data.setRedraftInstructions(instructions);
+        data.setAnnotations(withAnnotations ? AnnotationTexts.openAnnotations(annotationService.listForPart(book, part)) : "");
         data.setSummaries("");
         data.setPreviousStory("");
         data.setFollowingStory("");
@@ -207,66 +205,10 @@ public class RedraftServiceImpl implements RedraftService {
             throw new ContextInsufficient(base, maxTokens);
         }
 
-        // the story after the part is only a hint of where it leads, so it gets a share of the room
-        long followingRoom = room / FOLLOWING_SHARE;
-        List<String> following = new ArrayList<>();
-        long followingTokens = 0;
-        for (ChatMessage next : after) {
-            if (StringUtils.isBlank(next.getResponse())) {
-                continue;
-            }
-            long tokens = tokensOf(inferenceService, next) + 2;
-            if (followingTokens + tokens > followingRoom) {
-                break;
-            }
-            following.add(next.getResponse());
-            followingTokens += tokens;
-        }
-
-        long previousRoom = room - followingTokens;
-        List<ChatMessage> newestFirst = new ArrayList<>(before.reversed());
-        List<SummaryBlock> blocks = summaryService.collectBlocks(newestFirst);
-        // summaries that do not describe the story anymore are not told to the model, the story is used as it is instead
-        boolean summarized = !blocks.isEmpty() && blocks.stream().allMatch(SummaryBlock::isValid);
-
-        List<String> summaries = new ArrayList<>();
-        long summaryTokens = 0;
-        if (summarized) {
-            // the newest summaries are the ones worth keeping when they do not fit
-            for (SummaryBlock block : blocks) {
-                String text = StringUtils.defaultString(block.summary().getSummary());
-                long tokens = inferenceService.countTokens(text) + 2;
-                if (summaryTokens + tokens > previousRoom) {
-                    break;
-                }
-                summaries.add(text);
-                summaryTokens += tokens;
-            }
-            Collections.reverse(summaries);
-        }
-
-        List<String> previous = new ArrayList<>();
-        long previousTokens = summaryTokens;
-        ChatMessage stop = summarized ? blocks.getFirst().head() : null;
-        for (ChatMessage earlier : newestFirst) {
-            if (stop != null && Objects.equals(stop.getId(), earlier.getId())) {
-                break;
-            }
-            if (StringUtils.isBlank(earlier.getResponse())) {
-                continue;
-            }
-            long tokens = tokensOf(inferenceService, earlier) + 2;
-            if (previousTokens + tokens > previousRoom) {
-                break;
-            }
-            previous.add(earlier.getResponse());
-            previousTokens += tokens;
-        }
-        Collections.reverse(previous);
-
-        data.setSummaries(String.join(SEPARATOR, summaries));
-        data.setPreviousStory(String.join(SEPARATOR, previous));
-        data.setFollowingStory(String.join(SEPARATOR, following));
+        StoryAround.Around around = StoryAround.collect(summaryService, inferenceService, before, after, room);
+        data.setSummaries(around.summaries());
+        data.setPreviousStory(around.previous());
+        data.setFollowingStory(around.following());
         data.setTemplateContext(context);
         String rendered = jailbreak + templateService.processTemplate(template, "redraftPrompt", data);
         long tokens = inferenceService.countTokens(rendered);
@@ -274,26 +216,5 @@ public class RedraftServiceImpl implements RedraftService {
             throw new ContextInsufficient(tokens, maxTokens);
         }
         return List.of(LLMChatMessage.of(LLMRole.SYSTEM, rendered));
-    }
-
-    /**
-     * The parts after the given one on the branch the book is at, oldest first; none when the part is not on it.
-     */
-    private List<ChatMessage> partsAfter(Manuscript book, ChatMessage part) throws Exception {
-        ChatMessage leaf = chatMessageService.find(book.getActiveLeaf());
-        if (leaf == null) {
-            return List.of();
-        }
-        List<ChatMessage> branch = chatMessageService.getBranchFromLeaf(leaf);
-        for (int i = 0; i < branch.size(); i++) {
-            if (Objects.equals(branch.get(i).getId(), part.getId())) {
-                return new ArrayList<>(branch.subList(i + 1, branch.size()));
-            }
-        }
-        return List.of();
-    }
-
-    private static long tokensOf(InferenceService inferenceService, ChatMessage message) throws Exception {
-        return message.getTokenCount() > 0 ? message.getTokenCount() : inferenceService.countTokens(message.getResponse());
     }
 }

@@ -65,6 +65,11 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
 
     String getMetaSummaryPrompt(Manuscript manuscript) throws Exception;
     String getRedraftPrompt(Manuscript manuscript) throws Exception;
+
+    /**
+     * The prompt that lets a model annotate a part: the one of the book, else the one of the user, else the built in one.
+     */
+    String getAnnotatePrompt(Manuscript manuscript) throws Exception;
     BackupStrategy getBackupStrategy(Manuscript manuscript) throws Exception;
     String getBackupStrategyValue(Manuscript manuscript) throws Exception;
 

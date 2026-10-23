@@ -1,14 +1,19 @@
 package com.github.enerccio.marginalia.ui.dialogs.story;
 
+import com.github.enerccio.marginalia.domain.collections.AnnotationSource;
+import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
+import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.AnnotationService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.textfield.TextArea;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +37,9 @@ class RedraftDialogTest extends MarginaliaTestBase {
 
     @Autowired
     private ManuscriptService manuscriptService;
+
+    @Autowired
+    private AnnotationService annotationService;
 
     // UI.setCurrent keeps only a weak reference, see WorkspaceStateTest
     private UI ui;
@@ -104,5 +112,39 @@ class RedraftDialogTest extends MarginaliaTestBase {
         assertThat(stored.getWordCount()).isEqualTo(9);
         assertThat(applied.get().getResponse()).isEqualTo(stored.getResponse());
         assertThat(dialog.isOpened()).isFalse();
+    }
+
+    @Test
+    void theCheckboxOfTheAnnotationsIsThereOnlyForAPartThatHasOpenOnes() throws Exception {
+        List<Component> without = components(RedraftDialog.create(book, part, saved -> {
+        }));
+        assertThat(without.stream().filter(Checkbox.class::isInstance).map(Checkbox.class::cast).findFirst().orElseThrow().isVisible()).isFalse();
+
+        annotationService.create(book, part, 0, 2, "Who?", AnnotationSource.AUTHOR, null, null);
+        Checkbox with = components(RedraftDialog.create(book, part, saved -> {
+        })).stream().filter(Checkbox.class::isInstance).map(Checkbox.class::cast).findFirst().orElseThrow();
+
+        assertThat(with.isVisible()).isTrue();
+        assertThat(with.getValue()).isTrue();
+    }
+
+    @Test
+    void applyResolvesTheAnnotationsTheRedraftWasAskedToDealWith() throws Exception {
+        Annotation open = annotationService.create(book, part, 0, 2, "Who?", AnnotationSource.AUTHOR, null, null);
+        // the redraft would have been asked to; the dialog remembers the open ones when it starts
+        RedraftDialog dialog = RedraftDialog.create(book, part, saved -> {
+        });
+        List<Component> components = components(dialog);
+        java.lang.reflect.Field addressed = RedraftDialog.class.getDeclaredField("addressed");
+        addressed.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        List<Annotation> list = (List<Annotation>) addressed.get(dialog);
+        list.add(open);
+        dialog.open();
+
+        redrafted(components).setValue("Arthur drew his sword.");
+        applyButton(components).click();
+
+        assertThat(annotationService.find(open.getId()).getStatus()).isEqualTo(AnnotationStatus.RESOLVED);
     }
 }

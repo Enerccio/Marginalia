@@ -37,6 +37,7 @@ point for your own version. The template fields also list the **Available Templa
 | **Default Summary Prompt** | summaries | The request for a [summary](summaries.md). A template. |
 | **Default Meta Summary Prompt** | meta summaries | The request for a [meta summary](summaries.md#meta-summaries), which merges summaries. A template. |
 | **Redraft Prompt** | redrafts | The request for a [redraft](story-editor.md#redrafting-a-part) of a part. A template. |
+| **Annotate Prompt** | annotating | The request for a model to [annotate](annotations.md#letting-a-model-annotate) a part. A template. |
 
 *Point of View*, *Tense* and *Style* are inserted into the master template as they are; macros don't work in them.
 
@@ -48,11 +49,12 @@ Templates are text with placeholders in double curly braces. Each template gets 
 
 | Template | Variables |
 |---|---|
-| Master Template | `{%{{{backgroundLore}}}%}` (activated lorebook entries), `{%{{{narrativePov}}}%}`, `{%{{{narrativeTense}}}%}`, `{%{{{style}}}%}`, `{%{{{summaries}}}%}` |
+| Master Template | `{%{{{backgroundLore}}}%}` (activated lorebook entries), `{%{{{narrativePov}}}%}`, `{%{{{narrativeTense}}}%}`, `{%{{{style}}}%}`, `{%{{{summaries}}}%}`, `{%{{{annotations}}}%}` (the notes you gave to the model) |
 | User Prompt | `{%{{{sceneSetting}}}%}`, `{%{{{povCharacter}}}%}`, `{%{{{presentCharacters}}}%}`, `{%{{{instructions}}}%}` |
 | Summary Prompt | `{%{{{backgroundLore}}}%}`, `{%{{{text}}}%}` (the parts to summarize) |
 | Meta Summary Prompt | `{%{{{backgroundLore}}}%}`, `{%{{{summaryBlocks}}}%}` (the summaries to merge) |
-| Redraft Prompt | `{%{{{text}}}%}` (the part), `{%{{{redraftInstructions}}}%}` (what you want changed), `{%{{{previousStory}}}%}`, `{%{{{summaries}}}%}`, `{%{{{followingStory}}}%}`, `{%{{{backgroundLore}}}%}`, `{%{{{narrativePov}}}%}`, `{%{{{narrativeTense}}}%}`, `{%{{{style}}}%}`, and the turn the part was written from: `{%{{{sceneSetting}}}%}`, `{%{{{povCharacter}}}%}`, `{%{{{presentCharacters}}}%}`, `{%{{{instructions}}}%}` |
+| Redraft Prompt | `{%{{{text}}}%}` (the part), `{%{{{redraftInstructions}}}%}` (what you want changed), `{%{{{previousStory}}}%}`, `{%{{{summaries}}}%}`, `{%{{{followingStory}}}%}`, `{%{{{backgroundLore}}}%}`, `{%{{{narrativePov}}}%}`, `{%{{{narrativeTense}}}%}`, `{%{{{style}}}%}`, and the turn the part was written from: `{%{{{sceneSetting}}}%}`, `{%{{{povCharacter}}}%}`, `{%{{{presentCharacters}}}%}`, `{%{{{instructions}}}%}`, and `{%{{{annotations}}}%}` (your open notes on the part, empty unless you ask for them in the redraft window) |
+| Annotate Prompt | The variables of the redraft prompt, with `{%{{{annotateInstructions}}}%}` (what you want looked at) instead of `{%{{{redraftInstructions}}}%}`, `{%{{{annotations}}}%}` (the notes the part already has) and `{%{{{outputFormat}}}%}` (how the model is told to answer) |
 
 A section prints its content only when the variable is not empty, so the prompt has no empty headings:
 
@@ -78,6 +80,7 @@ blocks:
 2. **World & lore context** - the activated [lorebook](../lorebooks/index.md) entries (`backgroundLore`).
 3. **Writing style & mechanics** - point of view, tense, style, and general prose rules.
 4. **Summary of story so far** - the [summaries](summaries.md).
+5. **Author's notes on the story** - only when you gave [notes to the model](annotations.md#giving-a-note-to-the-model).
 
 If the [inference provider](../inference-providers.md#general-settings) has a jailbreak prompt enabled, it is put
 before the master template.
@@ -100,6 +103,16 @@ what you did not ask to change, stay consistent with the story before and after 
 the redrafted part only. Your own version should keep the variables it needs: without `{%{{{text}}}%}` the model does not see
 the part. The redraft prompt follows the rule of all prompts: the book's field, else the *Redraft Prompt* in *Settings →
 Templates*, else the built-in one.
+
+## Annotate prompt
+
+When a model [annotates a part](annotations.md#letting-a-model-annotate) it gets one request, sent as the only message like the
+redraft. The built-in default makes the model an editor: it finds the passages that have a problem in the sense of your
+instructions, quotes each one letter for letter, and writes a short note for you, without praise or filler and without
+repeating the notes the part already has. The prompt has the variable `{%{{{outputFormat}}}%}` where the way of answering is
+described (JSON, text blocks or a free review, it depends on the answer format you choose); keep it in a prompt of your own, or the
+model is not told how to answer. The annotate prompt follows the rule of all prompts: the book's field, else the *Annotate Prompt* in
+*Settings → Templates*, else the built-in one.
 
 ## How the prompt is put together
 

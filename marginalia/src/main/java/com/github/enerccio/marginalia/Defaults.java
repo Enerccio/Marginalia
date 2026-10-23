@@ -25,6 +25,11 @@ Prose Rules:
 ===== SUMMARY OF STORY SO FAR =====
 {{.}}{{/summaries}}
 
+{{#annotations}}
+===== AUTHOR'S NOTES ON THE STORY =====
+The author marked these passages of the story above for you. Take the notes into account when you continue.
+{{.}}{{/annotations}}
+
 
 """;
 
@@ -123,6 +128,7 @@ Redraft one part of the ongoing narrative "MANUSCRIPT CHRONICLE". Rewrite the PA
 2. **Continuity**: The story before the part is established fact. The redrafted part begins where that story ends and must not contradict the text that follows it: events, names, injuries, possessions and promises that the following text relies on still have to happen.
 3. **Voice**: Keep the narrative voice, tense and style given below, and match the voice of the part and of the story before it.
 4. **Lore**: Use the BACKGROUND LORE strictly as a factual reference. Do not repeat it.
+5. **Annotations**: When the author's notes on passages of the part are given, they are problems the author found: deal with each of them (they are part of the AUTHOR'S INSTRUCTIONS).
 
 ### STRICT NEGATIVE CONSTRAINTS
 * **Output Only the Part**: Begin immediately with the redrafted text. No intro, no notes about what was changed, no headings, no quotation of the instructions.
@@ -162,8 +168,66 @@ Redraft one part of the ongoing narrative "MANUSCRIPT CHRONICLE". Rewrite the PA
 === PART TO REDRAFT END ===
 
 === AUTHOR'S INSTRUCTIONS START ===
-{{#redraftInstructions}}{{.}}{{/redraftInstructions}}{{^redraftInstructions}}Write the part again, better, keeping its events.{{/redraftInstructions}}
+{{#redraftInstructions}}{{.}}{{/redraftInstructions}}{{^redraftInstructions}}{{^annotations}}Write the part again, better, keeping its events.{{/annotations}}{{/redraftInstructions}}
 === AUTHOR'S INSTRUCTIONS END ===
+{{#annotations}}
+=== AUTHOR'S NOTES ON PASSAGES OF THE PART START ===
+{{.}}
+=== AUTHOR'S NOTES ON PASSAGES OF THE PART END ===
+{{/annotations}}
+""";
+
+    public static final String DEFAULT_ANNOTATE_PROMPT = """
+### OBJECTIVE
+Review one part of the ongoing narrative "MANUSCRIPT CHRONICLE" as its editor and annotate it: find the passages of the PART TO REVIEW that have a problem in the sense of the EDITOR'S TASK and write a short note for the author about each of them.
+
+### CORE DIRECTIVES
+1. **Quote exactly**: Every note is about a passage of the part. Quote the passage letter for letter, as short as it can be while still being found only once in the part (a sentence, or a part of one). Never paraphrase or correct the quote.
+2. **Notes for the author**: Say what is wrong or weak and, when you can, how to fix it, in a sentence or two. Do not rewrite the passage.
+3. **Continuity**: The story before the part is established fact, the story after it relies on the part. Use the lore and the story around the part to find contradictions.
+4. **Only real findings**: No praise and no filler. A part with nothing to flag gets no notes. Do not repeat what the author already noted (see EXISTING NOTES).
+
+### NARRATION
+{{#narrativePov}}Narrative Voice: {{.}}{{/narrativePov}}
+{{#narrativeTense}}Tense: {{.}}{{/narrativeTense}}
+{{#style}}Style & Tone Guidelines:
+{{.}}{{/style}}
+
+{{#backgroundLore}}=== BACKGROUND LORE START ===
+{{.}}
+=== BACKGROUND LORE END ===
+
+{{/backgroundLore}}{{#summaries}}=== SUMMARY OF THE STORY BEFORE THE PART START ===
+{{.}}
+=== SUMMARY OF THE STORY BEFORE THE PART END ===
+
+{{/summaries}}{{#previousStory}}=== STORY BEFORE THE PART START ===
+{{.}}
+=== STORY BEFORE THE PART END ===
+
+{{/previousStory}}{{#followingStory}}=== STORY AFTER THE PART START ===
+{{.}}
+=== STORY AFTER THE PART END ===
+
+{{/followingStory}}{{#povCharacter}}Point of View Character of the part: {{.}}
+{{/povCharacter}}{{#sceneSetting}}Location & Time of the part: {{.}}
+{{/sceneSetting}}{{#presentCharacters}}Characters present in the part: {{.}}
+{{/presentCharacters}}{{#instructions}}Plot specifications the part was written for:
+{{.}}
+{{/instructions}}
+=== PART TO REVIEW START ===
+{{text}}
+=== PART TO REVIEW END ===
+{{#annotations}}
+=== EXISTING NOTES START ===
+{{.}}
+=== EXISTING NOTES END ===
+{{/annotations}}
+=== EDITOR'S TASK START ===
+{{#annotateInstructions}}{{.}}{{/annotateInstructions}}{{^annotateInstructions}}Find the continuity errors, the contradictions with the lore, the weak or unclear passages and the slips of style.{{/annotateInstructions}}
+=== EDITOR'S TASK END ===
+
+{{outputFormat}}
 """;
 
     /**

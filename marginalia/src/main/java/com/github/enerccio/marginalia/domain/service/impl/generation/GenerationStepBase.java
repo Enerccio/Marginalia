@@ -57,6 +57,9 @@ public abstract class GenerationStepBase implements GenerationStep {
     @Autowired
     protected SummaryService summaryService;
 
+    @Autowired
+    protected AnnotationService annotationService;
+
     protected abstract void onStep(GenerationController controller) throws Exception;
 
     @Override
