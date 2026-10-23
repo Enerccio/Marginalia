@@ -642,6 +642,16 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_CLONE_LOREBOOK, "Clone Lorebook");
         setValue(L.LABEL_CLONE_PROTOCOL, "Clone Protocol");
         setValue(L.LABEL_CLONE_PROVIDER, "Clone Inference Provider");
+        setValue(L.LABEL_EXPORT_TO_SILLYTAVERN, "Export to SillyTavern");
+        setValue(L.LABEL_BRANCH_TOKENS, "Branch Tokens");
+        setValue(L.LABEL_TOKENS_WITHOUT_SUMMARIES, "Without summaries");
+        setValue(L.LABEL_TOKENS_WITH_SUMMARIES, "With summaries");
+        setValue(L.LABEL_TOKENS_COVERED_PARTS, "Parts covered by summaries");
+        setValue(L.LABEL_TOKENS_RECENT_PARTS, "Parts after the last summary");
+        setValue(L.LABEL_PARTS, "Parts");
+        setValue(L.LABEL_TOKEN_BUDGET_SHARE, "Share of the prompt budget");
+        setValue(L.LABEL_LIGHT_THEME, "Switch to the light theme");
+        setValue(L.LABEL_DARK_THEME, "Switch to the dark theme");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1072,6 +1082,12 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_PART_MERGED, "The part was merged into the previous one.");
         setValue(L.MSG_BRANCH_SEARCH_RESULT, "Match %s of %s, in part #%s");
         setValue(L.MSG_BOOKS_FOUND, "%s books found");
+        setValue(L.MSG_BRANCH_TOKENS_EMPTY, "The active branch has no story yet.");
+        setValue(L.MSG_BRANCH_TOKENS_BUDGET, "Prompt budget: %s tokens (context %s, minus %s reserved for the response).");
+        setValue(L.MSG_BRANCH_TOKENS_NO_BUDGET, "The model of the book has no context size set, the prompt budget is unknown.");
+        setValue(L.MSG_BRANCH_TOKENS_STALE, "%s summaries no longer match the story, they are dropped when a part is generated.");
+        setValue(L.MSG_BRANCH_TOKENS_HELP, "The story of the active branch as the next prompt would carry it, counted from the stored parts and summaries. The lore, the system template and the instructions of the turn take room from the same budget.");
+        setValue(L.MSG_CONFIRM_DISCARD_EDIT, "Throw away your changes to this part? It keeps the text it was last saved with.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

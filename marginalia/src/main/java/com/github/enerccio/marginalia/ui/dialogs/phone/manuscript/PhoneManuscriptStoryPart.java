@@ -236,6 +236,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         changeStyles = createChangeStylesMenuItem(cogs);
         createSearchReplaceMenuItem(cogs);
         createImportArchiveMenuItem(cogs);
+        createBranchTokensMenuItem(cogs);
         createExportMenuItem(cogs);
         return cogs;
     }
@@ -305,6 +306,31 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         ArchiveUploadDialog.show(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE), loc.getValue(L.MSG_IMPORT_ARCHIVE_TO_BOOK),
                 (archive, fileName) -> new ArchiveImportRunner().appendParts(parent.refreshManuscript(), MarkdownArchive.read(archive),
                         imported -> load(parent.refreshManuscript())));
+    }
+
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = MenuItem.class),
+            parameters = {@APIParameter(name = "cogs", type = MenuItem.class)})
+    private MenuItem createBranchTokensMenuItem(MenuItem cogs) {
+        return cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.CHART_BAR.create(), loc.getValue(L.LABEL_BRANCH_TOKENS)),
+                event -> openBranchTokensDialog());
+    }
+
+    /**
+     * Shows the tokens the story of the active branch takes in the next prompt, with and without the summaries.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = BranchTokensDialog.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void openBranchTokensDialog() {
+        try {
+            BranchTokensDialog dialog = new BranchTokensDialog(parent.refreshManuscript());
+            dialog.create();
+            dialog.open();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     @PublicAPI(from = "1.1.0",
@@ -717,6 +743,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         private ContextMenu hamburgerMenu;
         private boolean menuItemsCreated;
         private MenuItem editItem;
+        private MenuItem discardItem;
         private MenuItem regenerateItem;
         private MenuItem swipeItem;
         private MenuItem branchItem;
@@ -861,6 +888,8 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                 createMenuItems();
             }
             refreshSummaryMenuItems();
+            // there is something to discard only while the text is edited
+            discardItem.setVisible(editing);
         }
 
         /**
@@ -871,6 +900,9 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                 returns = @APIReturn(type = void.class))
         private void createMenuItems() {
             editItem = hamburgerMenu.addItem(loc.getValue(editing ? L.LABEL_SAVE : L.LABEL_EDIT), event -> toggleEdit());
+
+            discardItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_DISCARD_CHANGES), event -> discardEdit());
+            discardItem.setVisible(editing);
 
             regenerateItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_REGENERATE), event -> regenerate());
             regenerateItem.setVisible(this.isLast);
@@ -1077,6 +1109,38 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                 if (editItem != null) {
                     editItem.setText(loc.getValue(L.LABEL_SAVE));
                 }
+            }
+        }
+
+        /**
+         * Leaves the editor without saving: the part keeps the text it was last saved with. The author is asked first
+         * when the text in the editor differs from it.
+         */
+        @PublicAPI(from = "1.5.0",
+                returns = @APIReturn(type = void.class))
+        public void discardEdit() {
+            if (!editing) {
+                return;
+            }
+            if (StringUtils.defaultString(responseTextArea.getValue()).equals(StringUtils.defaultString(message.getResponse()))) {
+                closeEditor();
+            } else {
+                ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DISCARD_EDIT), this::closeEditor);
+            }
+        }
+
+        @PublicAPI(from = "1.5.0",
+                returns = @APIReturn(type = void.class))
+        private void closeEditor() {
+            if (!editing) {
+                return;
+            }
+            remove(responseTextArea);
+            responseTextArea = null;
+            responseMarkdown.setVisible(true);
+            editing = false;
+            if (editItem != null) {
+                editItem.setText(loc.getValue(L.LABEL_EDIT));
             }
         }
 

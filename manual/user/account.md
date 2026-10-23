@@ -16,6 +16,7 @@ The buttons at the bottom of the workspace:
 | Button | |
 |---|---|
 | **Language** | The language of the user interface, see [Language](#language). |
+| sun / moon button | Next to the language: switches between the dark and the light theme, see [Theme](#theme). |
 | **Change Password** | Changes your password, user name and full name, see below. |
 | **Logout** | Logs you out on this device. |
 | **Admin** | Only for administrators, see [Administration](administration/index.md). |
@@ -51,6 +52,13 @@ Dates are written the way that language does. Your books and their texts are not
 ![The Language selector](../images/language-selector.png)
 
 ![The workspace in Japanese](../images/ui-japanese.png)
+
+### Theme
+
+The button next to the **Language** selector switches the user interface between the dark theme (the default) and the
+light one. The choice is saved in your account and used again the next time you log in, on any device; a page that is
+already open in another tab changes when it is reloaded. Charts and the relationship map take the colors of the theme
+when they are opened.
 
 ### Logging in
 

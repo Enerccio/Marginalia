@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.extensions.charactertracker.ui;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.extensions.charactertracker.model.CharacterBook;
 import com.github.enerccio.marginalia.extensions.charactertracker.model.StoryCharacter;
 import com.github.enerccio.marginalia.extensions.charactertracker.service.CharacterTrackerService;
@@ -14,6 +15,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -24,6 +26,8 @@ import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -112,6 +116,7 @@ public class CharacterTrackerView extends VerticalLayout {
         buttons.setAlignItems(Alignment.CENTER);
         buttons.setWrap(true);
         buttons.setPadding(true);
+        HorizontalLayout promptRow = createPromptRow();
 
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_NO_ROW_BORDERS);
         grid.setDetailsVisibleOnClick(false);
@@ -119,8 +124,55 @@ public class CharacterTrackerView extends VerticalLayout {
         grid.setItemDetailsRenderer(new ComponentRenderer<>(this::createDetails));
         grid.setSizeFull();
 
-        add(buttons, grid);
+        add(buttons, promptRow, grid);
         setFlexGrow(1, grid);
+    }
+
+    /**
+     * One line with the switch that puts the characters into the prompt and where they go, like the Author's Note.
+     */
+    private HorizontalLayout createPromptRow() {
+        Checkbox enabled = new Checkbox("In prompt", book.isPromptEnabled());
+        enabled.setTooltipText("Insert the characters and their relationships into the prompt of every generation");
+        enabled.addValueChangeListener(e -> {
+            book.setPromptEnabled(e.getValue());
+            persist();
+        });
+
+        IntegerField depth = new IntegerField();
+        depth.setPrefixComponent(new Span("Depth"));
+        depth.setTooltipText("Messages after the characters: 0 = after the instructions, 1 = right before them");
+        depth.setMin(0);
+        depth.setStepButtonsVisible(true);
+        depth.setValue(book.getPromptDepth());
+        depth.setWidth("9.5em");
+        depth.addValueChangeListener(e -> {
+            if (e.getValue() != null && e.getValue() >= 0) {
+                book.setPromptDepth(e.getValue());
+                persist();
+            }
+        });
+
+        Select<LLMRole> role = new Select<>();
+        role.setTooltipText("Role of the message with the characters");
+        // text the model reads, not the result of a function call
+        role.setItems(LLMRole.SYSTEM, LLMRole.ASSISTANT, LLMRole.USER);
+        role.setItemLabelGenerator(r -> StringUtils.capitalize(r.name().toLowerCase()));
+        role.setValue(book.getPromptRole());
+        role.setWidth("8.5em");
+        role.addValueChangeListener(e -> {
+            if (e.getValue() != null) {
+                book.setPromptRole(e.getValue());
+                persist();
+            }
+        });
+
+        HorizontalLayout row = new HorizontalLayout(enabled, depth, role);
+        row.setAlignItems(Alignment.CENTER);
+        row.setWrap(true);
+        row.setPadding(true);
+        row.setSpacing(true);
+        return row;
     }
 
     private void refreshGrid() {

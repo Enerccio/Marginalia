@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.model.impl.settings;
 
+import com.github.enerccio.marginalia.domain.collections.ThemeMode;
 import com.github.enerccio.marginalia.domain.collections.WebhookFormat;
 import com.github.enerccio.marginalia.domain.model.Setting;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
@@ -109,6 +110,13 @@ public class UserSetting extends Setting {
     @ExtendedAttribute
     @Transient
     private String backupStrategyValue;
+
+    /**
+     * The color scheme of the UI, {@code null} for the default one ({@link ThemeMode#DARK}).
+     */
+    @ExtendedAttribute
+    @Transient
+    private ThemeMode themeMode;
 
     /**
      * Code of the language of the UI, {@code null} for the default one.
@@ -259,6 +267,14 @@ public class UserSetting extends Setting {
 
     public void setBackupStrategy(BackupStrategy backupStrategy) {
         this.backupStrategy = backupStrategy;
+    }
+
+    public ThemeMode getThemeMode() {
+        return themeMode == null ? ThemeMode.DARK : themeMode;
+    }
+
+    public void setThemeMode(ThemeMode themeMode) {
+        this.themeMode = themeMode;
     }
 
     public String getLanguage() {

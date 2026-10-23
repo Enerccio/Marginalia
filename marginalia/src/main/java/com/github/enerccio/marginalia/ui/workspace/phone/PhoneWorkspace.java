@@ -15,6 +15,7 @@ import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.components.InvalidExtensionsWarning;
 import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
 import com.github.enerccio.marginalia.ui.widgets.LanguageSelector;
+import com.github.enerccio.marginalia.ui.widgets.ThemeSwitch;
 import com.github.enerccio.marginalia.ui.workspace.*;
 import com.github.enerccio.marginalia.ui.workspace.parts.AgentPart;
 import com.github.enerccio.marginalia.ui.workspace.parts.ResourcesPart;
@@ -27,6 +28,8 @@ import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
@@ -329,7 +332,8 @@ public class PhoneWorkspace implements Workspace {
 
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = Component.class),
-            locals = {@APILocals(name = "footer", type = VerticalLayout.class)})
+            locals = {@APILocals(name = "footer", type = VerticalLayout.class),
+                    @APILocals(name = "languageRow", type = HorizontalLayout.class)})
     private Component createFooter() {
         VerticalLayout footer = new VerticalLayout();
         footer.setSpacing(true);
@@ -337,7 +341,12 @@ public class PhoneWorkspace implements Workspace {
 
         languageSelector = new LanguageSelector();
         languageSelector.setWidthFull();
-        footer.add(languageSelector);
+        HorizontalLayout languageRow = new HorizontalLayout(languageSelector, new ThemeSwitch());
+        languageRow.setWidthFull();
+        languageRow.setPadding(false);
+        languageRow.setAlignItems(FlexComponent.Alignment.END);
+        languageRow.setFlexGrow(1, languageSelector);
+        footer.add(languageRow);
 
         changePasswordButton = new Button(loc.getValue(L.LABEL_CHANGE_PASSWORD), Solid.KEY.create());
         changePasswordButton.setWidthFull();

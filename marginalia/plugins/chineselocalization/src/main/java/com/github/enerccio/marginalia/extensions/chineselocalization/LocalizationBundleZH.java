@@ -650,6 +650,16 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_CLONE_LOREBOOK, "复制世界书");
         setValue(L.LABEL_CLONE_PROTOCOL, "复制协议");
         setValue(L.LABEL_CLONE_PROVIDER, "复制推理提供方");
+        setValue(L.LABEL_EXPORT_TO_SILLYTAVERN, "导出到 SillyTavern");
+        setValue(L.LABEL_BRANCH_TOKENS, "分支令牌");
+        setValue(L.LABEL_TOKENS_WITHOUT_SUMMARIES, "不含摘要");
+        setValue(L.LABEL_TOKENS_WITH_SUMMARIES, "含摘要");
+        setValue(L.LABEL_TOKENS_COVERED_PARTS, "摘要涵盖的段落");
+        setValue(L.LABEL_TOKENS_RECENT_PARTS, "最后一份摘要之后的段落");
+        setValue(L.LABEL_PARTS, "段落");
+        setValue(L.LABEL_TOKEN_BUDGET_SHARE, "占提示预算的比例");
+        setValue(L.LABEL_LIGHT_THEME, "切换到浅色主题");
+        setValue(L.LABEL_DARK_THEME, "切换到深色主题");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1080,6 +1090,12 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_PART_MERGED, "该段已合并到上一段。");
         setValue(L.MSG_BRANCH_SEARCH_RESULT, "第 %s 个匹配，共 %s 个（第 #%s 段）");
         setValue(L.MSG_BOOKS_FOUND, "找到 %s 本书");
+        setValue(L.MSG_BRANCH_TOKENS_EMPTY, "当前分支还没有故事。");
+        setValue(L.MSG_BRANCH_TOKENS_BUDGET, "提示预算：%s 个令牌（上下文 %s，减去为回复预留的 %s）。");
+        setValue(L.MSG_BRANCH_TOKENS_NO_BUDGET, "该书的模型未设置上下文大小，提示预算未知。");
+        setValue(L.MSG_BRANCH_TOKENS_STALE, "%s 份摘要与故事不再匹配，生成段落时将被丢弃。");
+        setValue(L.MSG_BRANCH_TOKENS_HELP, "下一次提示将携带的当前分支故事，根据已保存的段落和摘要统计。世界书、系统模板和本回合的指令也占用同一预算。");
+        setValue(L.MSG_CONFIRM_DISCARD_EDIT, "放弃对此段落的修改？它将保留上次保存的文本。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
