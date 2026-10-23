@@ -33,7 +33,7 @@ One resource differs between a development build and a release build:
 
 | File | Development | Release |
 |---|---|---|
-| `log4j.properties` | `src/main/resources/` - `com.github.enerccio` at `DEBUG` | `src/main/resources-release/` - everything at `INFO`, no story content in the log |
+| `logback.xml` | `src/main/resources/` - `com.github.enerccio` at `DEBUG` | `src/main/resources-release/` - everything at `INFO`, no story content in the log |
 
 The build decides, not the packaging: IDE runs and `mvn jetty:run` use `target/classes`, which has the development
 file. The WAR plugin adds `src/main/resources-release/` to `WEB-INF/classes` and leaves the development file out, so

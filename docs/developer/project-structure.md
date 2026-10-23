@@ -41,8 +41,8 @@ Marginalia/
 marginalia/
 ├── pom.xml                       dependencies, build plugins, the desktop profile
 ├── src/main/java/                application code
-├── src/main/resources/           Spring XML, Flyway migrations, log4j, Vaadin build info
-├── src/main/resources-release/   WAR-only resources: the release log4j.properties
+├── src/main/resources/           Spring XML, Flyway migrations, logback, Vaadin build info
+├── src/main/resources-release/   WAR-only resources: the release logback.xml
 ├── src/main/resources-raw/       copied into WEB-INF/classes without filtering (empty)
 ├── src/main/webapp/config/       configuration.properties, persistence.xml
 ├── src/main/frontend/            CSS and JavaScript for the Vaadin frontend
@@ -250,8 +250,8 @@ See [Story export](services.md#story-export).
 | `.../spring/datasources-config.xml` | Data source, Flyway, JPA, transaction manager. |
 | `.../spring/services-config.xml` | Repositories, services, generation steps, extensions. |
 | `src/main/resources/migration/V<n>__<name>.sql` | Flyway migrations - currently `V1__initial` to `V18__agent_message_threads`. |
-| `src/main/resources/log4j.properties` | Logging for development (IDE, `mvn jetty:run`) - `DEBUG`. |
-| `src/main/resources-release/log4j.properties` | Logging packaged into the WAR instead - `INFO` (see [Packaging & releases](packaging.md#the-war)). |
+| `src/main/resources/logback.xml` | Logging for development (IDE, `mvn jetty:run`) - `DEBUG`. |
+| `src/main/resources-release/logback.xml` | Logging packaged into the WAR instead - `INFO` (see [Packaging & releases](packaging.md#the-war)). |
 | `src/main/resources/META-INF/build-info/build-info.properties` | Version and build time, filtered by Maven. |
 | `../manual/user/**/*.md` (outside `marginalia/`) | The user manual, copied by the `<resources>` of the POM to `classpath:/manual/` for the help assistant, see [Packaging & releases](packaging.md). |
 | `src/main/resources/META-INF/VAADIN/config/flow-build-info.json.DEVELOPMENT` | Template of a development build info for IDE runs; never packaged into the WAR (see [Development and production mode](building.md#development-and-production-mode)). |

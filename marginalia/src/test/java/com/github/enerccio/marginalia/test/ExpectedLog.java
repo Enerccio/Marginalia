@@ -1,9 +1,11 @@
 package com.github.enerccio.marginalia.test;
 
-import org.apache.log4j.AppenderSkeleton;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.spi.LoggingEvent;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.ThrowableProxy;
+import ch.qos.logback.core.AppenderBase;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -18,7 +20,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * }
  * </pre>
  */
-public final class ExpectedLog extends AppenderSkeleton implements AutoCloseable {
+public final class ExpectedLog extends AppenderBase<ILoggingEvent> implements AutoCloseable {
 
     public record Entry(Level level, String message, Throwable throwable) {
     }
@@ -29,24 +31,26 @@ public final class ExpectedLog extends AppenderSkeleton implements AutoCloseable
 
     private ExpectedLog(Logger logger) {
         this.logger = logger;
-        this.additivity = logger.getAdditivity();
+        this.additivity = logger.isAdditive();
+        setContext(logger.getLoggerContext());
+        start();
         logger.addAppender(this);
         // don't pass captured events to the console appender of the root logger
-        logger.setAdditivity(false);
+        logger.setAdditive(false);
     }
 
     public static ExpectedLog capture(String loggerName) {
-        return new ExpectedLog(Logger.getLogger(loggerName));
+        return new ExpectedLog((Logger) LoggerFactory.getLogger(loggerName));
     }
 
     public static ExpectedLog capture(Class<?> loggerClass) {
-        return new ExpectedLog(Logger.getLogger(loggerClass));
+        return new ExpectedLog((Logger) LoggerFactory.getLogger(loggerClass));
     }
 
     @Override
-    protected void append(LoggingEvent event) {
-        Throwable throwable = event.getThrowableInformation() == null ? null : event.getThrowableInformation().getThrowable();
-        entries.add(new Entry(event.getLevel(), event.getRenderedMessage(), throwable));
+    protected void append(ILoggingEvent event) {
+        Throwable throwable = event.getThrowableProxy() instanceof ThrowableProxy proxy ? proxy.getThrowable() : null;
+        entries.add(new Entry(event.getLevel(), event.getFormattedMessage(), throwable));
     }
 
     public List<Entry> entries() {
@@ -67,12 +71,8 @@ public final class ExpectedLog extends AppenderSkeleton implements AutoCloseable
 
     @Override
     public void close() {
-        logger.removeAppender(this);
-        logger.setAdditivity(additivity);
-    }
-
-    @Override
-    public boolean requiresLayout() {
-        return false;
+        logger.detachAppender(this);
+        logger.setAdditive(additivity);
+        stop();
     }
 }

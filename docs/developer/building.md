@@ -225,12 +225,13 @@ repository. See [Server (Docker)](../user/getting-started/docker-server.md) for 
 
 ### Logs
 
-Marginalia logs to standard output with log4j 1.x (reload4j). There are two configurations:
+Marginalia logs to standard output through SLF4J with logback; the `log4j-api` that Apache POI brings is routed into
+SLF4J by `log4j-to-slf4j`, so the output of the libraries that use it is not lost. There are two configurations:
 
-- `src/main/resources/log4j.properties` - **development**, used from `target/classes` by IDE runs and
+- `src/main/resources/logback.xml` - **development**, used from `target/classes` by IDE runs and
   `mvn jetty:run`. The `com.github.enerccio` loggers are at `DEBUG`, so a generation logs each pipeline step and the
   activated lore.
-- `src/main/resources-release/log4j.properties` - **release**, everything at `INFO`. `mvn package` puts it into the
+- `src/main/resources-release/logback.xml` - **release**, everything at `INFO`. `mvn package` puts it into the
   WAR in place of the development one, so the Docker image, the desktop app and any other deployed WAR log no story
   content (see [Packaging & releases](packaging.md#the-war)).
 

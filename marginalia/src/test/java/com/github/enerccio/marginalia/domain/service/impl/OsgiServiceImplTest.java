@@ -2,8 +2,8 @@ package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.domain.security.AdminGuard;
-import com.github.enerccio.marginalia.domain.service.IPCService;
 import com.github.enerccio.marginalia.domain.service.ExtensionVerificationException;
+import com.github.enerccio.marginalia.domain.service.IPCService;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.domain.service.OsgiService.ExtensionReport;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
@@ -715,7 +715,7 @@ class OsgiServiceImplTest {
         // chained to the application log
         assertThat(mainLog.errors()).anyMatch(m -> m.contains("failed x"));
         assertThat(mainLog.entries()).anyMatch(e -> e.throwable() instanceof IllegalStateException);
-        assertThat(mainLog.atLeast(org.apache.log4j.Level.INFO)).anyMatch(m -> m.contains("loaded 1 of two"));
+        assertThat(mainLog.atLeast(ch.qos.logback.classic.Level.INFO)).anyMatch(m -> m.contains("loaded 1 of two"));
         mainLog.close();
 
         service.clearLog(a);

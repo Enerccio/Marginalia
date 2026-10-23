@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846080449536">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846082569063">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846080449536" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846082569063" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846080449536" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846082569063" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846080449536" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846082569063" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -226,8 +226,8 @@ something. <a href="../architecture/">Architecture</a> explains how the parts wo
 <pre translate="no" class="language-none"><code v-pre class="language-none">marginalia/
 ├── pom.xml                       dependencies, build plugins, the desktop profile
 ├── src/main/java/                application code
-├── src/main/resources/           Spring XML, Flyway migrations, log4j, Vaadin build info
-├── src/main/resources-release/   WAR-only resources: the release log4j.properties
+├── src/main/resources/           Spring XML, Flyway migrations, logback, Vaadin build info
+├── src/main/resources-release/   WAR-only resources: the release logback.xml
 ├── src/main/resources-raw/       copied into WEB-INF/classes without filtering (empty)
 ├── src/main/webapp/config/       configuration.properties, persistence.xml
 ├── src/main/frontend/            CSS and JavaScript for the Vaadin frontend
@@ -933,8 +933,8 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 | `.../spring/datasources-config.xml` | Data source, Flyway, JPA, transaction manager. |
 | `.../spring/services-config.xml` | Repositories, services, generation steps, extensions. |
 | `src/main/resources/migration/V&lt;n&gt;__&lt;name&gt;.sql` | Flyway migrations - currently `V1__initial` to `V18__agent_message_threads`. |
-| `src/main/resources/log4j.properties` | Logging for development (IDE, `mvn jetty:run`) - `DEBUG`. |
-| `src/main/resources-release/log4j.properties` | Logging packaged into the WAR instead - `INFO` (see [Packaging &amp; releases](packaging.md#the-war)). |
+| `src/main/resources/logback.xml` | Logging for development (IDE, `mvn jetty:run`) - `DEBUG`. |
+| `src/main/resources-release/logback.xml` | Logging packaged into the WAR instead - `INFO` (see [Packaging &amp; releases](packaging.md#the-war)). |
 | `src/main/resources/META-INF/build-info/build-info.properties` | Version and build time, filtered by Maven. |
 | `../manual/user/**/*.md` (outside `marginalia/`) | The user manual, copied by the `&lt;resources&gt;` of the POM to `classpath:/manual/` for the help assistant, see [Packaging &amp; releases](packaging.md). |
 | `src/main/resources/META-INF/VAADIN/config/flow-build-info.json.DEVELOPMENT` | Template of a development build info for IDE runs; never packaged into the WAR (see [Development and production mode](building.md#development-and-production-mode)). |
@@ -970,11 +970,11 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 <td>Flyway migrations - currently <code translate="no" v-pre>V1__initial</code> to <code translate="no" v-pre>V18__agent_message_threads</code>.</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>src/main/resources/log4j.properties</code></td>
+<td><code translate="no" v-pre>src/main/resources/logback.xml</code></td>
 <td>Logging for development (IDE, <code translate="no" v-pre>mvn jetty:run</code>) - <code translate="no" v-pre>DEBUG</code>.</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>src/main/resources-release/log4j.properties</code></td>
+<td><code translate="no" v-pre>src/main/resources-release/logback.xml</code></td>
 <td>Logging packaged into the WAR instead - <code translate="no" v-pre>INFO</code> (see <a href="../packaging/#the-war">Packaging &amp; releases</a>).</td>
 </tr>
 <tr>
@@ -1447,7 +1447,7 @@ ignored by Git), see <a href="../packaging/#building-the-plugins-in-docker">Pack
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (3aa6e0ce).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (1daefe19).</p></div>
             </footer>
         </div>
     </div>
