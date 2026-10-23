@@ -58,6 +58,9 @@ public class AgentMergeServiceImpl implements AgentMergeService {
     private SummaryService summaryService;
 
     @Autowired
+    private AnnotationService annotationService;
+
+    @Autowired
     @Lazy
     private LorebookService lorebookService;
 
@@ -982,11 +985,14 @@ public class AgentMergeServiceImpl implements AgentMergeService {
             if (!text.equals(source.getResponse())) {
                 return chatMessageService.storeResponse(targetBook, message, text);
             }
+            String before = message.getResponse();
             message.setResponse(text);
             message.setTokenCount(source.getTokenCount());
             message.setWordCount(source.getWordCount());
             message.setEdited(true);
-            return chatMessageService.save(message);
+            ChatMessage saved = chatMessageService.save(message);
+            annotationService.shift(targetBook, saved, before, text);
+            return saved;
         }
 
         private void deleteMessage(Item item) throws Exception {

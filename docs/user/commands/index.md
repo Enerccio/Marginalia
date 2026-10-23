@@ -135,6 +135,8 @@ changes the book; **No** leaves everything as it was. The question stays until y
 | `/get-lore-entry <entry> [lorebook] [offset] [length]` | One entry: settings, keys, tags, comment and its text in slices. |
 | `/search-lore <query> [regex] [limit]` | The entries of all the lorebooks of the book whose name, text or comment contain the query, with snippets. |
 | `/preview-lore-activation <text> [limit]`, `/preview-lore-activation <part> <branch> <limit>` | Which entries a generation would use for a text, or for a turn like the one that made a part, and why (no filter, filter found, or not used because it is switched off, a tag of the book decides, or the filter is not in the text), with the lore text and its tokens. The text may be the handle of a part. |
+| `/list-annotations [status [part [offset [limit]]]]` | The [annotations](../books/annotations.md) of the book or of a part: the open ones unless `status` says `resolved`, `dismissed`, `orphaned` or `all`. |
+| `/get-annotation <annotation>` | One annotation in full, with the text around its passage. |
 
 ### Reading the story
 
@@ -193,6 +195,20 @@ describes): the answer lists them and says what to do, `/revalidate-summaries` i
 | `/set-lorebook <lorebook> [name] [enabled]` | Renames a lorebook or switches it on or off. |
 | `/add-subbook <lorebook> <subbook>`, `/remove-subbook <lorebook> <subbook>` | Changes which lorebooks a lorebook contains; a lorebook can't contain itself. For an [agent](../agents.md), `/add-subbook` also brings back a lorebook it deleted or took out of its parent earlier (it names it by the handle it had), with its entries. |
 | `/delete-lorebook <lorebook>` | Deletes a lorebook with its entries (not the root). Asks first. |
+
+### Annotations
+
+The commands that read [annotations](../books/annotations.md) (`/list-annotations`, `/get-annotation`) answer in JSON like the other reading commands;
+an annotation is given by its **handle**, a part by its handle for the commands that change something. These commands change only the notes,
+never the story, so only the delete asks first. An agent can read annotations, but the commands below are not offered to agents yet.
+
+| Command | What it does |
+|---------|--------------|
+| `/create-annotation <part> <text> [quote [type]]` | Adds a note to a part. `quote` is the words of the passage, copied from the part: the note sits on that passage and follows it when the text is edited. Without a quote, or with one that is not in the text, the note is about the whole part (the answer says so). |
+| `/update-annotation <annotation> <text> [type [sendToPrompt]]` | Changes the note, the type or whether the model gets the note; an empty text or type stays as it is. |
+| `/resolve-annotation <annotation> [status]` | Sets the status: `resolved` (default), `dismissed` or `open`. |
+| `/reattach-annotation <annotation> [quote]` | Moves a note to the passage the quote finds in its part; without a quote the note is about the whole part. |
+| `/delete-annotation <annotation>` | Deletes a note (it can be restored from the trash). Asks first. |
 
 The commands that have the model write (`/next`, `/swipe`, `/regenerate`, the two summaries) take time and show the **Stop** window.
 

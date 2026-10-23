@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.utils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,6 +22,23 @@ public final class SearchHighlighter {
      */
     public static int count(String text, Pattern pattern) {
         return text == null || pattern == null ? 0 : mark(text, pattern, null, -1, null).count();
+    }
+
+    /**
+     * The places the pattern matches in the text, as [start, end) offsets in the order of the text.
+     */
+    public static List<int[]> ranges(String text, Pattern pattern) {
+        List<int[]> ranges = new ArrayList<>();
+        if (text == null || pattern == null) {
+            return ranges;
+        }
+        Matcher matcher = pattern.matcher(text);
+        while (matcher.find()) {
+            if (matcher.end() > matcher.start()) {
+                ranges.add(new int[]{matcher.start(), matcher.end()});
+            }
+        }
+        return ranges;
     }
 
     /**

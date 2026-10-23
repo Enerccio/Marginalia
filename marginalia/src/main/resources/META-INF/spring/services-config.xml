@@ -131,7 +131,16 @@
         <property name="repository" ref="summaryRepository" />
     </bean>
 
+    <bean id="annotationRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaAnnotationRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AnnotationServiceImpl">
+        <property name="repository" ref="annotationRepository" />
+    </bean>
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.RedraftServiceImpl" />
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AnnotateServiceImpl" />
 
     <bean id="agentRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaAgentRepository">
         <property name="entityManager" ref="em"/>

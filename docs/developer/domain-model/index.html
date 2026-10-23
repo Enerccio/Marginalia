@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846069143524">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846078447034">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846069143524" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846078447034" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846069143524" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846078447034" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846069143524" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846069143524" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846078447034" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846078447034" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -177,6 +177,7 @@ delete, extended attributes and cleanup. Entities are in <code translate="no" v-
 | `Manuscript` | `manuscripts` | Book |
 | `ChatMessage` | `messages` | Part (of the story) |
 | `Summary` | `summaries` | Summary |
+| `Annotation` | `annotations` | Annotation (a note on a passage of a part) |
 | `Lorebook`, `LorebookEntry` | `lorebooks`, `entries` | Lorebook, entry |
 | `AI`, `OpenAICompatible`, `ExtensionAI` | `ais`, `ais_openaicompat`, `ais_extension` | Inference provider |
 | `Usage` | `usages` | Tokens sent / generated column of the Inference Providers tab |
@@ -212,6 +213,11 @@ delete, extended attributes and cleanup. Entities are in <code translate="no" v-
 <td><code translate="no" v-pre>Summary</code></td>
 <td><code translate="no" v-pre>summaries</code></td>
 <td>Summary</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Annotation</code></td>
+<td><code translate="no" v-pre>annotations</code></td>
+<td>Annotation (a note on a passage of a part)</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>Lorebook</code>, <code translate="no" v-pre>LorebookEntry</code></td>
@@ -391,7 +397,7 @@ when it is not a hard delete, soft delete those rows first (the <code translate=
 <retype-table copy-text="| Deleted | Also deleted |
 |---|---|
 | `Manuscript` | all its `ChatMessage`s and their `Summary`s (`ChatMessageService.softDeleteForManuscript`), its `TagRelation`s |
-| `ChatMessage` | its `Summary` and all messages below it (children, their children...) |
+| `ChatMessage` | its `Summary`, its `Annotation`s and all messages below it (children, their children...) |
 | `Lorebook` | its `LorebookEntry`s (through `LorebookEntryService.delete`, so with their tag relations), its `TagRelation`s |
 | `LorebookEntry` | its `TagRelation`s (positive and negative) |
 | `AI` | its `Usage`s |
@@ -411,7 +417,7 @@ when it is not a hard delete, soft delete those rows first (the <code translate=
 </tr>
 <tr>
 <td><code translate="no" v-pre>ChatMessage</code></td>
-<td>its <code translate="no" v-pre>Summary</code> and all messages below it (children, their children...)</td>
+<td>its <code translate="no" v-pre>Summary</code>, its <code translate="no" v-pre>Annotation</code>s and all messages below it (children, their children...)</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>Lorebook</code></td>
@@ -905,6 +911,107 @@ the hash was made). A normal block has no other summaries in it, so its hash is 
 (<code translate="no" v-pre>attachMetaSummary</code>), and the restored summary gets it back, so the <code translate="no" v-pre>nextSummaryUuid</code> of other meta summaries stays
 valid. Restoring a backup creates all summaries with new <code translate="no" v-pre>uuid</code>s, so <code translate="no" v-pre>ManuscriptServiceImpl.restoreMessages</code> rewrites
 the <code translate="no" v-pre>nextSummaryUuid</code> of the restored meta summaries (also inside <code translate="no" v-pre>replacedSummary</code>) to the new ones.</p>
+<h3 id="annotation"><code translate="no" v-pre>Annotation</code></h3>
+<p>A note of the author, a model, an agent or an extension about a passage of a part (see <a href="../../user/books/annotations/">Annotations</a>).
+A real table (<code translate="no" v-pre>annotations</code>, migration V19: the story view, the panel and the cleanup ask by part and status), the rest is
+extended content. <code translate="no" v-pre>part</code> is <code translate="no" v-pre>@CleanupReference(OWNED_BY)</code>: the part takes its annotations to the trash and the purge; the
+column <code translate="no" v-pre>part_id</code> is also mapped as <code translate="no" v-pre>partId</code> (read only), so code without a session (the commands, the UI lists) can tell the
+part without loading the lazy proxy.</p>
+<retype-table copy-text="| Field | |
+|---|---|
+| `part`, `partId` | The part. Moved by a merge (`AnnotationService.moveToPrevious`) and copied by a branch (`copyForBranch`). |
+| `status` | `AnnotationStatus`: `OPEN`, `RESOLVED`, `DISMISSED`, `ORPHANED`. Only `OPEN` is marked in the text (`isMarked`); `ORPHANED` is set by the text (the author can not choose it, `setStatus` refuses it). |
+| `source` | `AnnotationSource`: `AUTHOR`, `AI`, `AGENT`, `PLUGIN`. |
+| `start`, `end` | Columns `startOffset`, `endOffset`: the passage as offsets in the **source** text of the part (`ChatMessage.response`, markdown included), `end` exclusive. Both null: a note about the whole part (`hasRange()` is false), also an orphaned one. |
+| `text` | The note. |
+| `quote`, `contextBefore`, `contextAfter` | The passage as it was when the range was last set and `AnnotationService.CONTEXT_LENGTH` (60) characters around it: what finds the passage again when the offsets mean nothing. Kept up to date by every move of the range. |
+| `type`, `label` | A free word, and who exactly (the extension, the agent, the model). |
+| `sendToPrompt` | Open annotations with this flag go into the master template as `annotations`, see [Generation pipeline](generation-pipeline.md#4-prepare_content---preparecontentstep). |
+| `notLocated` | Made from a quote that was not found: a note about the whole part. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Field</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>part</code>, <code translate="no" v-pre>partId</code></td>
+<td>The part. Moved by a merge (<code translate="no" v-pre>AnnotationService.moveToPrevious</code>) and copied by a branch (<code translate="no" v-pre>copyForBranch</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>status</code></td>
+<td><code translate="no" v-pre>AnnotationStatus</code>: <code translate="no" v-pre>OPEN</code>, <code translate="no" v-pre>RESOLVED</code>, <code translate="no" v-pre>DISMISSED</code>, <code translate="no" v-pre>ORPHANED</code>. Only <code translate="no" v-pre>OPEN</code> is marked in the text (<code translate="no" v-pre>isMarked</code>); <code translate="no" v-pre>ORPHANED</code> is set by the text (the author can not choose it, <code translate="no" v-pre>setStatus</code> refuses it).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>source</code></td>
+<td><code translate="no" v-pre>AnnotationSource</code>: <code translate="no" v-pre>AUTHOR</code>, <code translate="no" v-pre>AI</code>, <code translate="no" v-pre>AGENT</code>, <code translate="no" v-pre>PLUGIN</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>start</code>, <code translate="no" v-pre>end</code></td>
+<td>Columns <code translate="no" v-pre>startOffset</code>, <code translate="no" v-pre>endOffset</code>: the passage as offsets in the <strong>source</strong> text of the part (<code translate="no" v-pre>ChatMessage.response</code>, markdown included), <code translate="no" v-pre>end</code> exclusive. Both null: a note about the whole part (<code translate="no" v-pre>hasRange()</code> is false), also an orphaned one.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>text</code></td>
+<td>The note.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>quote</code>, <code translate="no" v-pre>contextBefore</code>, <code translate="no" v-pre>contextAfter</code></td>
+<td>The passage as it was when the range was last set and <code translate="no" v-pre>AnnotationService.CONTEXT_LENGTH</code> (60) characters around it: what finds the passage again when the offsets mean nothing. Kept up to date by every move of the range.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>type</code>, <code translate="no" v-pre>label</code></td>
+<td>A free word, and who exactly (the extension, the agent, the model).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>sendToPrompt</code></td>
+<td>Open annotations with this flag go into the master template as <code translate="no" v-pre>annotations</code>, see <a href="../generation-pipeline/#4-prepare_content---preparecontentstep">Generation pipeline</a>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>notLocated</code></td>
+<td>Made from a quote that was not found: a note about the whole part.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p><strong>The text carries no marker.</strong> A marker in the stored text would leak into prompts, summaries, exports, search and extensions,
+so the ranges are kept apart and <strong>moved through every change of the text</strong>. The pieces:</p>
+<ul>
+<li>
+<p><code translate="no" v-pre>utils.TextAlignment</code> aligns an old and a new text token by token (<code translate="no" v-pre>TextTokens</code>: white space, words, single characters; longest
+common subsequence after the common start and end are cut off, 4 million cells at most, an insertion or deletion block is slid to
+the latest place it can sit, so &quot;hours. Then&quot; to &quot;hours. Very much. Then&quot; keeps the full stop with the old sentence) and refines the
+gaps by letters (a typo in a word is the same word). <code translate="no" v-pre>mapStart</code> / <code translate="no" v-pre>mapEnd</code> move a range like the markers of a word processor: an
+edit before moves it, inside grows or shrinks it, text typed exactly at the start or the end is outside; <code translate="no" v-pre>isPartlyRetained</code> is false
+when no letter of the range survived (it is gone), <code translate="no" v-pre>isApproximate</code> when the texts were too different to align (then a range that is
+not inside a retained stretch is handled by the quote).</p>
+</li>
+<li>
+<p><code translate="no" v-pre>utils.QuoteFinder</code> finds a quote in a text: letter for letter (several places: the context around it and the hint decide), then
+ignoring case and white space, then the passage with the most words of the quote in order (70 %). The same finder serves the AI
+annotate, the commands and the selection of the browser.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>AnnotationService.shift(book, part, oldText, newText)</code> is called after <strong>every edit of the text by the author</strong>:
+<code translate="no" v-pre>ChatMessageServiceImpl.storeResponse</code> (so <code translate="no" v-pre>updateResponse</code>, the redraft, the part edit commands, the agent merge of a text), the
+search and replace (<code translate="no" v-pre>ManuscriptReplaceServiceImpl.apply</code>) and the agent merge that keeps the counts (<code translate="no" v-pre>AgentMergeServiceImpl.storeResponse</code>).
+A text written another way needs its own call. <code translate="no" v-pre>mergeIntoPrevious</code> calls <code translate="no" v-pre>moveToPrevious</code> with the offset of the later text in the
+joined one, <code translate="no" v-pre>branch</code> calls <code translate="no" v-pre>copyForBranch</code> (a swipe is a new text and gets none), a generation of the same part (<code translate="no" v-pre>REGENERATE</code>) calls
+<code translate="no" v-pre>relocate</code> in <code translate="no" v-pre>CleanupStep</code> (quote search only, the text is not an edit of the old one). An orphaned annotation whose quote is back
+(an undo) is found again by <code translate="no" v-pre>shift</code>.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>ChatMessageService.delete</code> soft deletes the annotations of the part (and of the parts below it), a hard delete removes them first
+(<code translate="no" v-pre>hardDeleteForParts</code>: the foreign key), the delete of a book soft deletes them in bulk; the cleanup knows <code translate="no" v-pre>Annotation</code> as owned by a
+part (<code translate="no" v-pre>OWNED_ON_DELETE</code>).</p>
+</li>
+</ul>
+<p><strong>Backups.</strong> A message of the backup JSON has <code translate="no" v-pre>annotations</code>: an array of <code translate="no" v-pre>{uuid, status, source, start, end, extendedContent}</code>
+(<code translate="no" v-pre>AnnotationService.marshalForManuscript</code> makes them for the whole book with one query, <code translate="no" v-pre>restoreForPart</code> makes them again, with new
+uuids). Everything that copies a book through the backup form (the clone, the restore, the working copy of an agent) copies them.</p>
 <h2 id="lorebooks">Lorebooks</h2>
 <h3 id="lorebook"><code translate="no" v-pre>Lorebook</code></h3>
 <retype-table copy-text="| Field | |
@@ -1755,7 +1862,7 @@ define both beans in <code translate="no" v-pre>services-config.xml</code>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (468c9d84).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (1abf8038).</p></div>
             </footer>
         </div>
     </div>

@@ -573,6 +573,30 @@ visible (not the open tab), when a dialog is open above the one that holds the s
 itself), and for a key without Ctrl/Alt/Meta when an input, textarea or editable element has the focus (the focused
 element is found through shadow roots). Before it fires the event the script sends the change of a focused text field to the server (a Vaadin field syncs its value on `change`, i.e. on blur), so the action sees what was just typed. On a Mac a combination with `Meta` that no action has is tried again with `Ctrl` in its place. `recordKeyCombo` records the next combination for the table.
 
+### Annotations in the story
+
+The marks, the notes and the list share a few classes in `ui.dialogs.story`; the desktop and the phone card use them the same way.
+
+- `utils.TextMarkup` puts **all layers into the text in one go**: the generated text of the diff view (`GeneratedTextHighlighter.ranges`), the
+  matches of the search (`StoryBranchSearch.marks`) and the annotations (`StoryAnnotations.marks`) are ranges of the *raw* source
+  text, and `TextMarkup.apply` cuts the text where a range starts or ends and wraps each piece in the `<mark>` elements of the ranges that
+  cover it (the first range outermost), line by line and outside of the white space and the markdown that opens a line. The layers
+  can not be chained (the HTML of one would shift the offsets of the next). `renderResponse()` of the card collects the ranges and
+  sets the content of the `Markdown`. The sanitizer of the component (DOMPurify) keeps `class` and `data-*`, which the marks use:
+  `data-annotation` is the uuid of the annotation.
+- `StoryAnnotations` keeps the annotations of the book (one query, dropped by `invalidate()` when the story is drawn again or a text changed),
+  gives the marks and the counts, and makes the changes (`create`, `update`, `setStatus`, `reattach`, `remove`: they go through
+  `AnnotationService`, invalidate, redraw the card of the part through the `StoryLazyLoader` and tell the listeners, the list).
+  A mark is drawn only when the card is not `generating` (a regeneration streams into the card, the passages are not in the text yet).
+- `CardAnnotations` is what a card does with its part's annotations: the badge (the number of open and orphaned ones), the popover
+  (`Popover` whose target is a small absolutely placed anchor in the card; `JavascriptLibrary.fireAnnotationClickEvent` moves it onto the mark that was
+  clicked, in the browser, before it tells the server which annotations cover the point, innermost first), **Annotate part**, **Annotate selection**
+  and **Attach to selection**. The selection is the offsets of the editor when the part is edited (`getTextAreaSelection`, the edit is saved first),
+  otherwise the text the browser shows with some text around it (`getSelectionContext`), found in the source with `QuoteFinder` (`StoryAnnotations.locate`).
+- `AnnotationView` is one annotation with its actions, `AnnotationDialog` asks for a new note, `AnnotationsPanel` is the tab of the book (`ManuscriptStoryPart.ANNOTATIONS_TAB`,
+  in the default layout of the dock; the phone has it in the drawer), `AnnotateDialog` runs [`AnnotateService`](services.md) and lists the proposals.
+- The styles are `annotation-*` in `shared-styles.css` (wavy underline in the colour of the source, nested marks lower).
+
 ### Searching the story tree
 
 `ManuscriptTreePart` has a search bar above the tree: an editable `ComboBox` (the last 15 searches; typed text is a

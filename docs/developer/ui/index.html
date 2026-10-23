@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846069143524">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846078447034">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846069143524" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846078447034" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846069143524" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846078447034" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846069143524" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846069143524" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846078447034" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846078447034" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -1081,6 +1081,39 @@ keys are the page-wide <code translate="no" v-pre>window.marginaliaKeys</code> (
 visible (not the open tab), when a dialog is open above the one that holds the story (the book window is a modal dialog
 itself), and for a key without Ctrl/Alt/Meta when an input, textarea or editable element has the focus (the focused
 element is found through shadow roots). Before it fires the event the script sends the change of a focused text field to the server (a Vaadin field syncs its value on <code translate="no" v-pre>change</code>, i.e. on blur), so the action sees what was just typed. On a Mac a combination with <code translate="no" v-pre>Meta</code> that no action has is tried again with <code translate="no" v-pre>Ctrl</code> in its place. <code translate="no" v-pre>recordKeyCombo</code> records the next combination for the table.</p>
+<h3 id="annotations-in-the-story">Annotations in the story</h3>
+<p>The marks, the notes and the list share a few classes in <code translate="no" v-pre>ui.dialogs.story</code>; the desktop and the phone card use them the same way.</p>
+<ul>
+<li>
+<p><code translate="no" v-pre>utils.TextMarkup</code> puts <strong>all layers into the text in one go</strong>: the generated text of the diff view (<code translate="no" v-pre>GeneratedTextHighlighter.ranges</code>), the
+matches of the search (<code translate="no" v-pre>StoryBranchSearch.marks</code>) and the annotations (<code translate="no" v-pre>StoryAnnotations.marks</code>) are ranges of the <em>raw</em> source
+text, and <code translate="no" v-pre>TextMarkup.apply</code> cuts the text where a range starts or ends and wraps each piece in the <code translate="no" v-pre>&lt;mark&gt;</code> elements of the ranges that
+cover it (the first range outermost), line by line and outside of the white space and the markdown that opens a line. The layers
+can not be chained (the HTML of one would shift the offsets of the next). <code translate="no" v-pre>renderResponse()</code> of the card collects the ranges and
+sets the content of the <code translate="no" v-pre>Markdown</code>. The sanitizer of the component (DOMPurify) keeps <code translate="no" v-pre>class</code> and <code translate="no" v-pre>data-*</code>, which the marks use:
+<code translate="no" v-pre>data-annotation</code> is the uuid of the annotation.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>StoryAnnotations</code> keeps the annotations of the book (one query, dropped by <code translate="no" v-pre>invalidate()</code> when the story is drawn again or a text changed),
+gives the marks and the counts, and makes the changes (<code translate="no" v-pre>create</code>, <code translate="no" v-pre>update</code>, <code translate="no" v-pre>setStatus</code>, <code translate="no" v-pre>reattach</code>, <code translate="no" v-pre>remove</code>: they go through
+<code translate="no" v-pre>AnnotationService</code>, invalidate, redraw the card of the part through the <code translate="no" v-pre>StoryLazyLoader</code> and tell the listeners, the list).
+A mark is drawn only when the card is not <code translate="no" v-pre>generating</code> (a regeneration streams into the card, the passages are not in the text yet).</p>
+</li>
+<li>
+<p><code translate="no" v-pre>CardAnnotations</code> is what a card does with its part&#x27;s annotations: the badge (the number of open and orphaned ones), the popover
+(<code translate="no" v-pre>Popover</code> whose target is a small absolutely placed anchor in the card; <code translate="no" v-pre>JavascriptLibrary.fireAnnotationClickEvent</code> moves it onto the mark that was
+clicked, in the browser, before it tells the server which annotations cover the point, innermost first), <strong>Annotate part</strong>, <strong>Annotate selection</strong>
+and <strong>Attach to selection</strong>. The selection is the offsets of the editor when the part is edited (<code translate="no" v-pre>getTextAreaSelection</code>, the edit is saved first),
+otherwise the text the browser shows with some text around it (<code translate="no" v-pre>getSelectionContext</code>), found in the source with <code translate="no" v-pre>QuoteFinder</code> (<code translate="no" v-pre>StoryAnnotations.locate</code>).</p>
+</li>
+<li>
+<p><code translate="no" v-pre>AnnotationView</code> is one annotation with its actions, <code translate="no" v-pre>AnnotationDialog</code> asks for a new note, <code translate="no" v-pre>AnnotationsPanel</code> is the tab of the book (<code translate="no" v-pre>ManuscriptStoryPart.ANNOTATIONS_TAB</code>,
+in the default layout of the dock; the phone has it in the drawer), <code translate="no" v-pre>AnnotateDialog</code> runs <a href="../services/"><code translate="no" v-pre>AnnotateService</code></a> and lists the proposals.</p>
+</li>
+<li>
+<p>The styles are <code translate="no" v-pre>annotation-*</code> in <code translate="no" v-pre>shared-styles.css</code> (wavy underline in the colour of the source, nested marks lower).</p>
+</li>
+</ul>
 <h3 id="searching-the-story-tree">Searching the story tree</h3>
 <p><code translate="no" v-pre>ManuscriptTreePart</code> has a search bar above the tree: an editable <code translate="no" v-pre>ComboBox</code> (the last 15 searches; typed text is a
 custom value that the part sets as the value) and a button. A search calls <code translate="no" v-pre>ChatMessageService.searchFulltext</code> and
@@ -1427,7 +1460,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (468c9d84).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (1abf8038).</p></div>
             </footer>
         </div>
     </div>

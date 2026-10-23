@@ -1,7 +1,10 @@
 package com.github.enerccio.marginalia.domain.service.impl.generation.impl;
 
+import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
+import com.github.enerccio.marginalia.domain.components.AnnotationTexts;
 import com.github.enerccio.marginalia.domain.components.PromptTokenBreakdown;
 import com.github.enerccio.marginalia.domain.components.TokenLimits;
+import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.SummaryService;
@@ -16,10 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class PrepareContentStep extends GenerationStepBase {
@@ -87,6 +87,9 @@ public class PrepareContentStep extends GenerationStepBase {
                         return;
                     }
 
+                    // the notes of the author marked to be given to the model, by the part they are about
+                    Map<Long, List<Annotation>> flagged = flaggedAnnotations(controller);
+
                     if (activeMessage != null) {
                         List<ChatMessage> chain = finalFromRoot;
                         Collections.reverse(chain);
@@ -94,6 +97,8 @@ public class PrepareContentStep extends GenerationStepBase {
 
                         long tokens = baseTokens + reservedTokens;
                         List<String> storyText = new ArrayList<>();
+                        // the notes of the parts that are in the prompt, the newest part first like the story
+                        List<String> storyNotes = new ArrayList<>();
                         long historyTokens = 0;
                         // set when the room ended before the story did (the rest is cut, not replaced by a summary)
                         boolean outOfRoom = false;
@@ -117,6 +122,19 @@ public class PrepareContentStep extends GenerationStepBase {
                                     breakdown.setCutMessages(breakdown.getCutMessages() + 1);
                                     breakdown.setCutTokens(breakdown.getCutTokens() + message.getTokenCount());
                                     break;
+                                }
+                                String notes = AnnotationTexts.promptNotes(flagged.getOrDefault(message.getId(), List.of()), message);
+                                if (!notes.isEmpty()) {
+                                    // the notes take room in the system prompt
+                                    long noteTokens = inferenceService.countTokens(notes) + 1;
+                                    if (tokens + message.getTokenCount() + noteTokens + 100 > limit - 256) {
+                                        outOfRoom = true;
+                                        breakdown.setCutMessages(breakdown.getCutMessages() + 1);
+                                        breakdown.setCutTokens(breakdown.getCutTokens() + message.getTokenCount());
+                                        break;
+                                    }
+                                    storyNotes.add(notes);
+                                    tokens += noteTokens;
                                 }
                                 storyText.add(message.getResponse());
                                 historyTokens += message.getTokenCount();
@@ -143,6 +161,9 @@ public class PrepareContentStep extends GenerationStepBase {
                         Collections.reverse(storyText);
                         controller.getProperties().put(GenerationProperties.MANUSCRIPT_CHRONICLE, storyText);
 
+                        Collections.reverse(storyNotes);
+                        templateData.setAnnotations(String.join("\n", storyNotes));
+
                         controller.emitEvent(Events.AFTER_MANUSCRIPT_CONCATENATION, () -> {
                             String systemPrompt = templateService.processTemplate(data.getGeneralTemplate(), "systemTemplate", templateData);
                             data.setSystemPrompt(systemPrompt);
@@ -167,6 +188,19 @@ public class PrepareContentStep extends GenerationStepBase {
                 callback.returnFromEvent();
             }
         });
+    }
+
+    /**
+     * The open annotations of the book that are marked to be given to the model, by the id of the part.
+     */
+    private Map<Long, List<Annotation>> flaggedAnnotations(GenerationController controller) throws Exception {
+        Map<Long, List<Annotation>> flagged = new HashMap<>();
+        for (Annotation annotation : annotationService.listForManuscript(controller.getManuscript())) {
+            if (annotation.isSendToPrompt() && annotation.getStatus() == AnnotationStatus.OPEN) {
+                flagged.computeIfAbsent(annotation.getPartId(), id -> new ArrayList<>()).add(annotation);
+            }
+        }
+        return flagged;
     }
 
     /**

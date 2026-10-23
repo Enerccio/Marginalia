@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846069143524">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846078447034">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846069143524" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846078447034" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846069143524" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846078447034" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846069143524" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846069143524" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846078447034" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846078447034" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -467,7 +467,8 @@ limit, jailbreak, system template (the system prompt without lore and summaries)
 user prompt, the user prompt and <code translate="no" v-pre>reserved</code> - and what was cut: the parts that didn&#x27;t fit (<code translate="no" v-pre>cutMessages</code>,
 <code translate="no" v-pre>cutTokens</code>), without the parts a summary replaces. The counts are measured separately, so they need not add up exactly
 to the payload.</p>
-<p><strong>System prompt.</strong> The master template is rendered with <code translate="no" v-pre>MasterTemplateData</code> (<code translate="no" v-pre>backgroundLore</code>, <code translate="no" v-pre>summaries</code>,
+<p><strong>Notes of the author.</strong> The open <a href="../domain-model/#annotation">annotations</a> with <code translate="no" v-pre>sendToPrompt</code> are read once for the book (<code translate="no" v-pre>flaggedAnnotations</code>). A part that is taken into the story brings its notes (<code translate="no" v-pre>AnnotationTexts.promptNotes</code>: the passage in quotes, or the first words of the part for a note about the whole part, and the note), their tokens count against the room like the part itself, so a part whose notes do not fit is cut; the notes of the parts that made it become <code translate="no" v-pre>MasterTemplateData.annotations</code> for the final render (the estimation render has none).</p>
+<p><strong>System prompt.</strong> The master template is rendered with <code translate="no" v-pre>MasterTemplateData</code> (<code translate="no" v-pre>backgroundLore</code>, <code translate="no" v-pre>summaries</code>, <code translate="no" v-pre>annotations</code>,
 <code translate="no" v-pre>narrativePov</code>, <code translate="no" v-pre>narrativeTense</code>, <code translate="no" v-pre>style</code> + the template context) into <code translate="no" v-pre>systemPrompt</code>. The estimate above renders it
 with a <em>fork</em> of the template context, so macros that change variables don&#x27;t run twice.</p>
 <p>Events: <code translate="no" v-pre>BEFORE_PREPARE_CONTENT</code>, <code translate="no" v-pre>BEFORE_SUMMARIES</code> (<code translate="no" v-pre>SUMMARIES</code> can be changed), <code translate="no" v-pre>AFTER_MANUSCRIPT_CONCATENATION</code>
@@ -944,7 +945,7 @@ wait for it to finish. See <a href="../testing/">Testing</a>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (468c9d84).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (1abf8038).</p></div>
             </footer>
         </div>
     </div>

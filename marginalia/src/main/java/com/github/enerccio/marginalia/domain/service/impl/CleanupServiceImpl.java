@@ -4,10 +4,7 @@ import com.github.enerccio.marginalia.domain.listener.ExtendableEntityListener;
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.model.OwnedEntity;
-import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
-import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
-import com.github.enerccio.marginalia.domain.model.impl.Summary;
-import com.github.enerccio.marginalia.domain.model.impl.TagRelation;
+import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.security.AdminGuard;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.CleanupService;
@@ -44,7 +41,7 @@ public class CleanupServiceImpl implements CleanupService, TrashService {
     private static final int CHUNK_SIZE = 500;
     private static final List<Class<?>> PERMANENTLY_DELETABLE = List.of(ChatMessage.class, LorebookEntry.class);
     // what goes with a permanently deleted object
-    private static final Set<Class<?>> OWNED_ON_DELETE = Set.of(Summary.class, TagRelation.class);
+    private static final Set<Class<?>> OWNED_ON_DELETE = Set.of(Summary.class, TagRelation.class, Annotation.class);
     private static final int REMOVE_BATCH_SIZE = 200;
     private static final int MAX_REASONS = 5;
     private static final String[] LABEL_METHODS = {"getName", "getLogin", "getValue"};
@@ -789,7 +786,7 @@ public class CleanupServiceImpl implements CleanupService, TrashService {
         Closure closure = closure(m, selection, Set.of());
         Map<EntityKey, List<String>> reasons = new LinkedHashMap<>();
         Set<EntityKey> purge = new LinkedHashSet<>(closure.members);
-        // what else would go with the selection: only summaries and tag links belong to a part or an entry
+        // what else would go with the selection: only summaries, annotations and tag links belong to a part or an entry
         for (EntityKey member : closure.members) {
             if (!selection.contains(member) && !OWNED_ON_DELETE.contains(member.type())) {
                 for (EntityKey root : closure.origins.getOrDefault(member, selection)) {

@@ -189,7 +189,9 @@ user prompt, the user prompt and `reserved` - and what was cut: the parts that d
 `cutTokens`), without the parts a summary replaces. The counts are measured separately, so they need not add up exactly
 to the payload.
 
-**System prompt.** The master template is rendered with `MasterTemplateData` (`backgroundLore`, `summaries`,
+**Notes of the author.** The open [annotations](domain-model.md#annotation) with `sendToPrompt` are read once for the book (`flaggedAnnotations`). A part that is taken into the story brings its notes (`AnnotationTexts.promptNotes`: the passage in quotes, or the first words of the part for a note about the whole part, and the note), their tokens count against the room like the part itself, so a part whose notes do not fit is cut; the notes of the parts that made it become `MasterTemplateData.annotations` for the final render (the estimation render has none).
+
+**System prompt.** The master template is rendered with `MasterTemplateData` (`backgroundLore`, `summaries`, `annotations`,
 `narrativePov`, `narrativeTense`, `style` + the template context) into `systemPrompt`. The estimate above renders it
 with a *fork* of the template context, so macros that change variables don't run twice.
 

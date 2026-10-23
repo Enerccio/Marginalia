@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846069143524">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846078447034">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846069143524" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846078447034" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846069143524" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846078447034" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846069143524" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846069143524" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846078447034" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846078447034" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -321,6 +321,7 @@ fake is the model server.</p>
 | `domain/agents`, `ui/dialogs/agent`, `ui/workspace/parts` | `AgentServiceTest`, `AgentRunServiceTest`, `AgentRunnerTest`, `AgentMessageServiceTest`, `AgenticBooksTest`, `RunToolsTest`, `AgentRunStatusTest`, `AgentRunControlTest`, `ManuscriptLockTest`, `AgentSessionTest`, `CommandFunctionsTest`, `CommandFunctionsAgentTest`, `VirtualPathTest`, `VirtualFileSystemTest`, `AgentFileToolsTest`, `AgentVirtualFileSystemServiceTest`, `AgentDialogTest`, `AgentCloneAndStopDialogTest`, `AgentPartTest`, `AIGateTest`, `AgentApprovalTest`, `AgentAttentionTest`, `AgentContextTest`, `AgentCopyServiceTest`, `AgentDiagnosticsTest`, `AgentRunDiagnosticsTest`, `AgentHandlesTest`, `AgentMergeTest`, `AgentMergeNoLorebookTest`, `AgentRunPairsTest`, `AgentSubagentsTest`, `AgentSyncTest`, `AgentTranscriptExportTest`, `AgentWebhookTest`, `AgentWorkingCopyTest`, `CheckpointServiceTest`, `CommandScopeTest`, `ImageFilesTest`, `ImageToolsTest`, `LorebookLockTest`, `RequestSlotsTest`, `ZipUnpackTest`, `JsonMergeTest` (`domain/agents/jsonmerge`), `AgentConsoleDialogTest`, `AgentCheckpointBrowserTest`, `AgentContextViewTest`, `AgentCopyViewTest`, `AgentDiagnosticsViewTest`, `AgentMergeDialogTest`, `AgentModelsEditorTest`, `AgentSubAgentsViewTest`, `AgentWorkspaceBrowserTest`, `JsonMergeDialogTest`, `PhoneWorkspaceAgentsTest` | Agents (on `AgentTestBase`): who may have them and how many, the status table, start / pause / stop / resume, the lock of a book while a run works (every service that changes the book refuses, reading and a paused run do not); the request context of a run (the session beans resolve as the owner, the language of the run, the context handed to another thread); the commands as functions of an agent (names, the schema of the forms, the call that picks a form, bounded results, `Error:` messages, the destructive mode and the approval; every registered command makes a function and a call on a thread of a run reads the book of the run); the cage of the files of an agent (paths, mounts, symbolic links, limits, no real path in any message); the runner against the mock server (a reply ends the turn, calls of commands, files and run tools, `finish`, `ask_user` and a message that goes on, errors for the model, the budgets, the context cap, a pause or stop that waits for the round in the air, a model error, a transcript with an interrupted call, a trashed run); the transcript rows; the agentic flag of books (the old lists return both kinds, the regular and agentic ones split them); the dialogs and the table of the Agents tab built without a browser (`ComponentTree` finds buttons in a built view). `DesktopWorkspace` can't be built in a test (it needs OSGi), so the condition that shows the tab (`AgentService.isAllowed`) is tested in the service. |
 | `command` | `CommandServiceTest`, `CommandDispatchTest`, `CommandLineTest`, `CommandHelpTest`, `BuiltInCommandTextsTest`, `ManuscriptReadCommandsTest`, `ManuscriptWriteCommandsTest`, `LorebookReadCommandsTest`, `LorebookWriteCommandsTest`, `GenerationCommandsTest`, `SearchReplaceCommandsTest`, `BackupCommandsTest` | The command registry and dispatch (overloads, parameters, `async`, the scope a command runs in), the line parser and the help, every built-in text, and the read and write commands of the book and the lorebooks (their results, errors and the data severity), the commands that write with the model (on the mock LLM), search and replace, the backup command. The test fixture `HelloWorldCommands` (`test/commands`) is the model of a suite and of an `async` command. |
 | `search`, `manuscript`, `lorebook` (new) | `TextSearchTest`, `ManuscriptReplaceTest`, `LorebookReplaceTest`, `ManuscriptArchiveImportTest`, `LorebookArchiveImportTest`, `LorebookEditServicesTest`, `PartEditServicesTest` | Search and replace over the parts and the entries (the regular expression, the case, the dry run, the outdated summaries), the import of a zip of `.md` files into a book and a lorebook, the services that edit a part or an entry. |
+| `annotation`, `utils` (new) | `AnnotationServiceTest`, `AnnotationGenerationTest`, `AnnotateServiceTest`, `TextAlignmentTest`, `QuoteFinderTest`, `TextMarkupTest`, `AnnotationCleanupTest`, `AnnotationCrudTest` | Annotations: creating and listing, the passages moving with an edit (before, inside, at the edges, deleted and typed back, a typo, a replaced text found by the quote), merge, branch, delete and restore, the backup round trip, the notes marked for the prompt reaching the master template, a regenerated part; the model annotating against the mock LLM in every mode (a retry, an unreadable answer, two stages, quotes not found); the three text utilities. |
 | `cleanup` | `CleanupServiceTest`, `TrashServiceTest`, `SoftDeleteCascadeTest`, `PermanentDeleteTest`, `AgentCleanupTest` | Purging soft-deleted data (also an AI with usage rows), owned data, strong and weak references; the trash: own objects only, administrator sees all, restore refused while a deleted parent is not restored with it, extended content; `SoftDeleteCascadeTest`: a soft delete takes the owned objects with it and a restore brings them back (the purge tests there log in as administrator); `PermanentDeleteTest`: deleting parts and entries for good, children moved to the parent, active leaf, blocked deletes roll back. |
 | `instruct` | `ExtendableMethodVisitorTest`, `RuntimeInstrumentationTest`, `ExtensionVerifierTest`, `PublicAPISignatureTest` | The bytecode instrumentation of `@Extendable` methods and the runtime agent; the verification of extensions against the application; the `@PublicAPI` declarations of the `@Extendable` classes. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -437,6 +438,11 @@ fake is the model server.</p>
 <td><code translate="no" v-pre>search</code>, <code translate="no" v-pre>manuscript</code>, <code translate="no" v-pre>lorebook</code> (new)</td>
 <td><code translate="no" v-pre>TextSearchTest</code>, <code translate="no" v-pre>ManuscriptReplaceTest</code>, <code translate="no" v-pre>LorebookReplaceTest</code>, <code translate="no" v-pre>ManuscriptArchiveImportTest</code>, <code translate="no" v-pre>LorebookArchiveImportTest</code>, <code translate="no" v-pre>LorebookEditServicesTest</code>, <code translate="no" v-pre>PartEditServicesTest</code></td>
 <td>Search and replace over the parts and the entries (the regular expression, the case, the dry run, the outdated summaries), the import of a zip of <code translate="no" v-pre>.md</code> files into a book and a lorebook, the services that edit a part or an entry.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>annotation</code>, <code translate="no" v-pre>utils</code> (new)</td>
+<td><code translate="no" v-pre>AnnotationServiceTest</code>, <code translate="no" v-pre>AnnotationGenerationTest</code>, <code translate="no" v-pre>AnnotateServiceTest</code>, <code translate="no" v-pre>TextAlignmentTest</code>, <code translate="no" v-pre>QuoteFinderTest</code>, <code translate="no" v-pre>TextMarkupTest</code>, <code translate="no" v-pre>AnnotationCleanupTest</code>, <code translate="no" v-pre>AnnotationCrudTest</code></td>
+<td>Annotations: creating and listing, the passages moving with an edit (before, inside, at the edges, deleted and typed back, a typo, a replaced text found by the quote), merge, branch, delete and restore, the backup round trip, the notes marked for the prompt reaching the master template, a regenerated part; the model annotating against the mock LLM in every mode (a retry, an unreadable answer, two stages, quotes not found); the three text utilities.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>cleanup</code></td>
@@ -986,7 +992,7 @@ all migrations and validates the schema against the entities).</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (468c9d84).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (1abf8038).</p></div>
             </footer>
         </div>
     </div>

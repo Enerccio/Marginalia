@@ -673,6 +673,39 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_EDIT_LAST_PART, "Edit the last part");
         setValue(L.LABEL_SAVE_EDITED_PART, "Save the part being edited");
         setValue(L.LABEL_RESTORE_DEFAULT_LAYOUT, "Restore default layout");
+        setValue(L.LABEL_COMMAND_LIST_ANNOTATIONS, "List annotations");
+        setValue(L.LABEL_COMMAND_GET_ANNOTATION, "Show an annotation");
+        setValue(L.LABEL_COMMAND_CREATE_ANNOTATION, "Create an annotation");
+        setValue(L.LABEL_COMMAND_UPDATE_ANNOTATION, "Change an annotation");
+        setValue(L.LABEL_COMMAND_RESOLVE_ANNOTATION, "Resolve an annotation");
+        setValue(L.LABEL_COMMAND_DELETE_ANNOTATION, "Delete an annotation");
+        setValue(L.LABEL_COMMAND_REATTACH_ANNOTATION, "Attach an annotation to another passage");
+        setValue(L.LABEL_ANNOTATIONS, "Annotations");
+        setValue(L.LABEL_ANNOTATE_SELECTION, "Annotate selection");
+        setValue(L.LABEL_ANNOTATE_PART, "Annotate part");
+        setValue(L.LABEL_ANNOTATION_NEW, "New annotation");
+        setValue(L.LABEL_ANNOTATION_RESOLVE, "Resolve");
+        setValue(L.LABEL_ANNOTATION_DISMISS, "Dismiss");
+        setValue(L.LABEL_ANNOTATION_REOPEN, "Reopen");
+        setValue(L.LABEL_ANNOTATION_SEND_TO_PROMPT, "Give to the model with the part");
+        setValue(L.LABEL_ANNOTATION_ATTACH_SELECTION, "Attach to selection");
+        setValue(L.LABEL_ANNOTATION_PART_NUMBER, "Part %d");
+        setValue(L.LABEL_ANNOTATION_FILTER_OPEN, "Need a look");
+        setValue(L.LABEL_ANNOTATION_FILTER_CLOSED, "Closed");
+        setValue(L.LABEL_ALL, "All");
+        setValue(L.LABEL_ANNOTATE_PROMPT, "Annotate Prompt");
+        setValue(L.LABEL_DEFAULT_ANNOTATE_MODEL, "Default model for annotating");
+        setValue(L.LABEL_DEFAULT_ANNOTATE_PROTOCOL, "Default protocol for annotating");
+        setValue(L.LABEL_REDRAFT_WITH_ANNOTATIONS, "Deal with the open annotations of the part (they are marked resolved when the redraft is applied)");
+        setValue(L.LABEL_ANNOTATE_WITH_AI, "Annotate with AI");
+        setValue(L.LABEL_ANNOTATE_INSTRUCTIONS, "What to look for");
+        setValue(L.LABEL_ANNOTATE_MODE, "Answer format");
+        setValue(L.LABEL_ANNOTATE_EXTRACT_MODEL, "Model that extracts the notes from the critique");
+        setValue(L.LABEL_ANNOTATE_RUN, "Annotate");
+        setValue(L.LABEL_ANNOTATING, "Annotating");
+        setValue(L.LABEL_ANNOTATE_ACCEPT, "Add the selected annotations");
+        setValue(L.LABEL_ANNOTATE_RAW, "Answer of the model");
+        setValue(L.LABEL_ANNOTATE_PROPOSALS, "Proposed annotations");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -795,6 +828,19 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_PART_CHANGE_ONLY_MERGED, "Only on the merged part");
         setValue(L.ENUM_TAG_MATCH_ALL, "All of the tags");
         setValue(L.ENUM_TAG_MATCH_ANY, "Any of the tags");
+        setValue(L.ENUM_DOMAIN_ANNOTATION, "Annotation");
+        setValue(L.ENUM_ANNOTATION_STATUS_OPEN, "Open");
+        setValue(L.ENUM_ANNOTATION_STATUS_RESOLVED, "Resolved");
+        setValue(L.ENUM_ANNOTATION_STATUS_DISMISSED, "Dismissed");
+        setValue(L.ENUM_ANNOTATION_STATUS_ORPHANED, "Orphaned");
+        setValue(L.ENUM_ANNOTATION_SOURCE_AUTHOR, "Author");
+        setValue(L.ENUM_ANNOTATION_SOURCE_AI, "AI");
+        setValue(L.ENUM_ANNOTATION_SOURCE_AGENT, "Agent");
+        setValue(L.ENUM_ANNOTATION_SOURCE_PLUGIN, "Extension");
+        setValue(L.ENUM_ANNOTATE_MODE_AUTO, "Automatic");
+        setValue(L.ENUM_ANNOTATE_MODE_STRUCTURED, "Structured (JSON)");
+        setValue(L.ENUM_ANNOTATE_MODE_DELIMITED, "Text blocks");
+        setValue(L.ENUM_ANNOTATE_MODE_TWO_STAGE, "Free critique, then extraction");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -880,6 +926,10 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_REDRAFT_FAILED, "Failed to reach inference service for redrafting the part.");
         setValue(L.ERROR_COMMAND_REDRAFT_NOT_POSSIBLE, "The part cannot be redrafted: it has no text, or the book has no model.");
         setValue(L.ERROR_COMMAND_REDRAFT_CONTEXT, "The redraft does not fit the context of the model (%d tokens needed, %d available).");
+        setValue(L.ERROR_COMMAND_NO_SUCH_ANNOTATION, "The annotation does not exist in this book. An annotation is given by the handle that list-annotations shows.");
+        setValue(L.ERROR_COMMAND_ANNOTATION_STATUS, "Unknown status %s. Use one of: %s.");
+        setValue(L.ERROR_COMMAND_QUOTE_NOT_FOUND, "The quote is not in the part. Copy the words of the passage from the text of the part.");
+        setValue(L.ERROR_ANNOTATE_FAILED, "The part cannot be annotated: the book needs a model and a protocol (or choose them here).");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -1122,6 +1172,27 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_SHORTCUT_BROWSER_KEY, "The browser keeps this key, the page may never get it.");
         setValue(L.MSG_SHORTCUT_ALT_CHARACTER, "Alt with a letter types a character on some keyboards (macOS), it may not work.");
         setValue(L.MSG_CONFIRM_RESTORE_DEFAULT_LAYOUT, "Put the story, the outline and the other tabs back where a new book has them? Your texts are not touched, only the arrangement of the tabs of this book.");
+        setValue(L.MSG_COMMAND_DELETE_ANNOTATION_CONFIRM, "Delete the annotation?");
+        setValue(L.MSG_COMMAND_ANNOTATION_NOT_LOCATED, "The quote was not found in the part, so the note is about the whole part. Use reattach-annotation with words copied from the text to put it on a passage.");
+        setValue(L.MSG_ANNOTATION_ORPHANED_HINT, "The passage this note was about is gone from the text. Attach the note to another passage, or dismiss it.");
+        setValue(L.MSG_ANNOTATION_NOT_LOCATED_HINT, "The passage was not found in the text, so the note is about the whole part.");
+        setValue(L.MSG_ANNOTATION_WHOLE_PART, "The note is about the whole part.");
+        setValue(L.MSG_ANNOTATION_TYPE_PLACEHOLDER, "continuity, style, ...");
+        setValue(L.MSG_ANNOTATION_NOTE_REQUIRED, "The note is empty");
+        setValue(L.MSG_ANNOTATIONS_SUMMARY, "%d need a look, %d shown");
+        setValue(L.MSG_ANNOTATIONS_NONE, "No annotations here. Select a passage of the story and choose Annotate selection in the menu of the part.");
+        setValue(L.MSG_ANNOTATIONS_LIMITED, "The first %d of %d annotations are shown, narrow the list with the filter.");
+        setValue(L.MSG_ANNOTATION_OTHER_BRANCH, "Part of another branch");
+        setValue(L.MSG_ANNOTATION_SELECT_TEXT, "Select a passage of the text of the part first.");
+        setValue(L.MSG_ANNOTATION_NOT_IN_SOURCE, "The selected text could not be found in the text of the part. Select a passage without formatting, or edit the part and select there.");
+        setValue(L.MSG_ANNOTATIONS_OPEN_COUNT, "%d annotations need a look");
+        setValue(L.MSG_ANNOTATE_INFO, "A model reads the part with the story around it and proposes notes about passages. Nothing is added to the book before you accept the notes you want.");
+        setValue(L.MSG_ANNOTATE_PLACEHOLDER, "For example: flag continuity errors, weak dialogue, contradictions with the lore. Empty is the default task of the prompt.");
+        setValue(L.MSG_ANNOTATE_MODEL_HINT, "Leave the model empty for the one set for annotating in your settings, else the one of the book.");
+        setValue(L.MSG_ANNOTATE_NO_FINDINGS, "The model found nothing to flag.");
+        setValue(L.MSG_ANNOTATE_UNREADABLE, "The answer of the model could not be read (%s). It is shown below so that the work is not lost.");
+        setValue(L.MSG_ANNOTATE_NOT_LOCATED, "Not found in the text, the note will be about the whole part");
+        setValue(L.MSG_ANNOTATE_ADDED, "%d annotations added");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1524,6 +1595,39 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_REDRAFT_INSTRUCTIONS_PARAM, "What should change in the part; empty writes the part again with the same events");
         setValue(L.DESC_COMMAND_REDRAFT_PROMPT_PARAM, "A redraft prompt to use instead of the one of the book (a template); empty is the one of the book");
         setValue(L.DESC_COMMAND_REDRAFT_APPLY_PARAM, "false only returns the redrafted text and does not change the part; true (the default) replaces the text of the part");
+        setValue(L.DESC_COMMAND_ANNOTATION_PARAM, "Handle of the annotation (the \"handle\" of list-annotations)");
+        setValue(L.DESC_COMMAND_ANNOTATION_STATUS_FILTER_PARAM, "open (default), resolved, dismissed, orphaned or all");
+        setValue(L.DESC_COMMAND_ANNOTATION_STATUS_PARAM, "resolved (default), dismissed or open");
+        setValue(L.DESC_COMMAND_ANNOTATION_FILTER_PART_PARAM, "Only the annotations of this part: its handle, or its position on the active branch (the first part is 1). All parts when omitted");
+        setValue(L.DESC_COMMAND_ANNOTATION_TEXT_PARAM, "The note");
+        setValue(L.DESC_COMMAND_ANNOTATION_QUOTE_PARAM, "The words of the passage the note is about, copied from the part. Empty for a note about the whole part");
+        setValue(L.DESC_COMMAND_ANNOTATION_TYPE_PARAM, "A free word for the kind of note (continuity, style...), empty for none");
+        setValue(L.DESC_COMMAND_ANNOTATION_SEND_PARAM, "true to give the note to the model together with the part, false not to");
+        setValue(L.DESC_COMMAND_LIST_ANNOTATIONS, "Lists the annotations (notes on passages) of the book or of a part. Parameters: status, part, offset, limit.");
+        setValue(L.DESC_COMMAND_LIST_ANNOTATIONS_LLM, "Lists the annotations of the book, notes for the author that sit on a passage of a part (or on a whole part). Every row has its \"handle\", the handle of its part and the part's position when the part is on the active branch, the status (open, resolved, dismissed, orphaned: the passage is gone), the source (author, ai, agent, plugin), the type, the passage (start and end offsets in the text of the part and the quoted words) when it has one, and the note. The status is open when omitted, \"all\" lists every one. A part (its handle, or its position on the active branch) limits the list to it. Reads only. Options are positional and optional, in the order listed.");
+        setValue(L.DESC_COMMAND_LIST_ANNOTATIONS_RETURN, "JSON with the annotations and the paging");
+        setValue(L.DESC_COMMAND_GET_ANNOTATION, "Shows an annotation with its note and the passage it is about. Parameter: annotation (handle).");
+        setValue(L.DESC_COMMAND_GET_ANNOTATION_LLM, "One annotation in full: the note, the status, the source, the type, the quoted passage with some text before and after it, and where it is in the part. The annotation is given by its handle (from list-annotations). Reads only.");
+        setValue(L.DESC_COMMAND_GET_ANNOTATION_RETURN, "JSON with the annotation");
+        setValue(L.DESC_COMMAND_CREATE_ANNOTATION, "Adds a note to a passage of a part. Parameters: part (handle), text, quote, type.");
+        setValue(L.DESC_COMMAND_CREATE_ANNOTATION_LLM, "Annotates a passage of a part of the story with a note for the author. The text of the story is not changed and the note is not sent to the model. Give the words of the passage as quote, copied letter for letter (a few words are enough when they are only once in the part): the note then sits on that passage and follows it when the text is edited. Without a quote the note is about the whole part; a quote that is not in the text also makes a note about the whole part, and the answer says so. The type is a free word (continuity, style...). The part is given by its handle. Adds to the annotations of the book.");
+        setValue(L.DESC_COMMAND_CREATE_ANNOTATION_RETURN, "JSON with the new annotation");
+        setValue(L.DESC_COMMAND_UPDATE_ANNOTATION, "Changes the note, the type or the send to prompt flag of an annotation. Parameters: annotation (handle), text, type, sendToPrompt.");
+        setValue(L.DESC_COMMAND_UPDATE_ANNOTATION_LLM, "Changes an annotation: the text of the note, its type, and whether it is given to the model together with its part (sendToPrompt). A blank text or type keeps the current one; sendToPrompt left out keeps the flag. The annotation is given by its handle (from list-annotations). The passage and the status are not changed here (see reattach-annotation and resolve-annotation).");
+        setValue(L.DESC_COMMAND_UPDATE_ANNOTATION_RETURN, "JSON with the annotation");
+        setValue(L.DESC_COMMAND_RESOLVE_ANNOTATION, "Sets the status of an annotation: resolved (default), dismissed or open. Parameters: annotation (handle), status.");
+        setValue(L.DESC_COMMAND_RESOLVE_ANNOTATION_LLM, "Closes an annotation as resolved (the problem was dealt with) or dismissed (not worth dealing with), or opens it again (open). A closed annotation leaves the text and stays in the list. Resolved when the status is left out. The annotation is given by its handle (from list-annotations).");
+        setValue(L.DESC_COMMAND_RESOLVE_ANNOTATION_RETURN, "JSON with the annotation");
+        setValue(L.DESC_COMMAND_REATTACH_ANNOTATION, "Attaches an annotation to the passage that a quote finds in its part. Parameters: annotation (handle), quote.");
+        setValue(L.DESC_COMMAND_REATTACH_ANNOTATION_LLM, "Moves an annotation to another passage of its part: the passage is found by the quote, which has to be copied from the text of the part. An orphaned annotation (its passage was deleted) is open again. The annotation is given by its handle (from list-annotations). Without a quote the annotation is about the whole part.");
+        setValue(L.DESC_COMMAND_REATTACH_ANNOTATION_RETURN, "JSON with the annotation");
+        setValue(L.DESC_COMMAND_DELETE_ANNOTATION, "Deletes an annotation. Parameter: annotation (handle).");
+        setValue(L.DESC_COMMAND_DELETE_ANNOTATION_LLM, "Deletes an annotation (the user can bring it back from the trash). To close an annotation but keep it in the list use resolve-annotation. The annotation is given by its handle (from list-annotations).");
+        setValue(L.DESC_COMMAND_DELETE_ANNOTATION_RETURN, "JSON with the handle of the deleted annotation");
+        setValue(L.DESC_TEMPLATE_ANNOTATIONS, "The open annotations of the part, one line each: the passage in quotes and the note (empty when it has none).");
+        setValue(L.DESC_TEMPLATE_ANNOTATE_INSTRUCTIONS, "What the author wants looked at in the part (empty when they gave no instructions).");
+        setValue(L.DESC_TEMPLATE_OUTPUT_FORMAT, "How the model is told to write its answer; it depends on the way the notes are asked for.");
+        setValue(L.DESC_TEMPLATE_STORY_ANNOTATIONS, "The notes of the author on passages of the story in the prompt that are marked to be given to the model, one line each (empty when there are none).");
 
     }
 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846069143524">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846078447034">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846069143524" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846078447034" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846069143524" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846078447034" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846069143524" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846078447034" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -183,6 +183,7 @@ from the beginning to the end.</p>
 |---|---|
 | **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part (the parts before it are loaded first when it is not loaded yet). The header shows how many parts the branch has. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |
 | **Lorebook** (left, next to the Outline) | A read only look at the lore of the book, see [The lorebook tab](#the-lorebook-tab). |
+| **Annotations** (left, next to the Outline) | The [notes](annotations.md) on passages of the story, for the whole book. |
 | **Story** (center) | The text of each part, with its menu (☰) and its metadata on the right, and under it the bottom bar. |
 | **Bottom bar** | The **Summaries** button (list icon) and the settings menu (⚙) on the left, the command line, and the **+** button on the right. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -201,6 +202,10 @@ from the beginning to the end.</p>
 <tr>
 <td><strong>Lorebook</strong> (left, next to the Outline)</td>
 <td>A read only look at the lore of the book, see <doc-anchor-trigger to="#the-lorebook-tab">The lorebook tab</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td><strong>Annotations</strong> (left, next to the Outline)</td>
+<td>The <a href="../annotations/">notes</a> on passages of the story, for the whole book.</td>
 </tr>
 <tr>
 <td><strong>Story</strong> (center)</td>
@@ -395,6 +400,8 @@ prompt, the model gets them as <em>Current Location &amp; Time</em>, <em>Point o
 | **Regenerate** | Writes the last part again, replacing its text. Only on the last part. |
 | **Swipe** | Writes another version of the last part and keeps the old one as a separate branch. Only on the last part. See [Branches &amp; story tree](branches-and-story-tree.md#trying-another-version-of-the-last-part). |
 | **Redraft** | Lets the model write this part again from your instructions, on any part, see [below](#redrafting-a-part). Not while the text is edited. |
+| **Annotate selection** / **Annotate part** | Makes a [note](annotations.md#making-an-annotation) about the words you selected in the part, or about the whole part. |
+| **Annotate with AI** | Lets a model [review the part](annotations.md#letting-a-model-annotate) and propose notes. Not while the text is edited. |
 | **Branch Story** | Starts a new branch from this part, see [Branches &amp; story tree](branches-and-story-tree.md#branching-from-an-earlier-part). |
 | **Merge into previous part** | Adds the text of this part to the part before it, see [below](#merging-a-part-into-the-previous-one). Not on the first part. |
 | **Show Prompt** | Shows the exact prompt that was sent to the model for this part. |
@@ -431,6 +438,14 @@ prompt, the model gets them as <em>Current Location &amp; Time</em>, <em>Point o
 <tr>
 <td><strong>Redraft</strong></td>
 <td>Lets the model write this part again from your instructions, on any part, see <doc-anchor-trigger to="#redrafting-a-part">below</doc-anchor-trigger>. Not while the text is edited.</td>
+</tr>
+<tr>
+<td><strong>Annotate selection</strong> / <strong>Annotate part</strong></td>
+<td>Makes a <a href="../annotations/#making-an-annotation">note</a> about the words you selected in the part, or about the whole part.</td>
+</tr>
+<tr>
+<td><strong>Annotate with AI</strong></td>
+<td>Lets a model <a href="../annotations/#letting-a-model-annotate">review the part</a> and propose notes. Not while the text is edited.</td>
 </tr>
 <tr>
 <td><strong>Branch Story</strong></td>
@@ -595,7 +610,9 @@ the same events.</p>
 </li>
 <li>
 <p>Choose <strong>Redraft</strong>. The text streams into <strong>Redrafted text</strong>; <strong>Stop</strong> ends it early. Choose <strong>Redraft again</strong> for
-another try, with other instructions if you like. <strong>Differences</strong> shows what changed against the part, word by word.</p>
+another try, with other instructions if you like. <strong>Differences</strong> shows what changed against the part, word by word.
+When the part has open <a href="../annotations/">annotations</a>, <strong>Deal with the open annotations of the part</strong> (checked at first)
+gives them to the model as well, and <strong>Apply</strong> marks them resolved.</p>
 </li>
 <li>
 <p>The redrafted text is a field you can still edit. <strong>Apply</strong> replaces the text of the part with it; <strong>Close</strong> throws it
@@ -850,11 +867,11 @@ tense, style and <a href="../summaries/">summaries</a>. The jailbreak prompt of 
             
                 <nav id="retype-nextprev" class="print:hidden flex mt-14">
                     <div class="w-1/2">
-                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../../user/books/managing-books/">
+                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../../user/books/annotations/">
                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                             <span>
                                 <span class="block text-xs font-normal text-base-text-muted">Previous</span>
-                                <span class="block mt-1">Managing books</span>
+                                <span class="block mt-1">Annotations</span>
                             </span>
                         </a>
                     </div>
@@ -878,7 +895,7 @@ tense, style and <a href="../summaries/">summaries</a>. The jailbreak prompt of 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (468c9d84).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (1abf8038).</p></div>
             </footer>
         </div>
     </div>

@@ -673,6 +673,39 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_EDIT_LAST_PART, "最後のパートを編集");
         setValue(L.LABEL_SAVE_EDITED_PART, "編集中のパートを保存");
         setValue(L.LABEL_RESTORE_DEFAULT_LAYOUT, "既定のレイアウトに戻す");
+        setValue(L.LABEL_COMMAND_LIST_ANNOTATIONS, "注釈を一覧表示");
+        setValue(L.LABEL_COMMAND_GET_ANNOTATION, "注釈を表示");
+        setValue(L.LABEL_COMMAND_CREATE_ANNOTATION, "注釈を作成");
+        setValue(L.LABEL_COMMAND_UPDATE_ANNOTATION, "注釈を変更");
+        setValue(L.LABEL_COMMAND_RESOLVE_ANNOTATION, "注釈の状態を変更");
+        setValue(L.LABEL_COMMAND_DELETE_ANNOTATION, "注釈を削除");
+        setValue(L.LABEL_COMMAND_REATTACH_ANNOTATION, "注釈を別の箇所に付け替える");
+        setValue(L.LABEL_ANNOTATIONS, "注釈");
+        setValue(L.LABEL_ANNOTATE_SELECTION, "選択範囲に注釈を付ける");
+        setValue(L.LABEL_ANNOTATE_PART, "パートに注釈を付ける");
+        setValue(L.LABEL_ANNOTATION_NEW, "新しい注釈");
+        setValue(L.LABEL_ANNOTATION_RESOLVE, "解決済みにする");
+        setValue(L.LABEL_ANNOTATION_DISMISS, "却下する");
+        setValue(L.LABEL_ANNOTATION_REOPEN, "再び開く");
+        setValue(L.LABEL_ANNOTATION_SEND_TO_PROMPT, "パートと一緒にモデルへ渡す");
+        setValue(L.LABEL_ANNOTATION_ATTACH_SELECTION, "選択範囲に付ける");
+        setValue(L.LABEL_ANNOTATION_PART_NUMBER, "パート %d");
+        setValue(L.LABEL_ANNOTATION_FILTER_OPEN, "要確認");
+        setValue(L.LABEL_ANNOTATION_FILTER_CLOSED, "完了");
+        setValue(L.LABEL_ALL, "すべて");
+        setValue(L.LABEL_ANNOTATE_PROMPT, "注釈プロンプト");
+        setValue(L.LABEL_DEFAULT_ANNOTATE_MODEL, "注釈に使う既定のモデル");
+        setValue(L.LABEL_DEFAULT_ANNOTATE_PROTOCOL, "注釈に使う既定のプロトコル");
+        setValue(L.LABEL_REDRAFT_WITH_ANNOTATIONS, "パートの未対応の注釈に対処する（再執筆を適用すると解決済みになります）");
+        setValue(L.LABEL_ANNOTATE_WITH_AI, "AI で注釈を付ける");
+        setValue(L.LABEL_ANNOTATE_INSTRUCTIONS, "確認してほしい点");
+        setValue(L.LABEL_ANNOTATE_MODE, "回答の形式");
+        setValue(L.LABEL_ANNOTATE_EXTRACT_MODEL, "批評から注釈を取り出すモデル");
+        setValue(L.LABEL_ANNOTATE_RUN, "注釈を付ける");
+        setValue(L.LABEL_ANNOTATING, "注釈を付けています");
+        setValue(L.LABEL_ANNOTATE_ACCEPT, "選択した注釈を追加");
+        setValue(L.LABEL_ANNOTATE_RAW, "モデルの回答");
+        setValue(L.LABEL_ANNOTATE_PROPOSALS, "提案された注釈");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -795,6 +828,19 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_PART_CHANGE_ONLY_MERGED, "統合するパートのみ");
         setValue(L.ENUM_TAG_MATCH_ALL, "すべてのタグ");
         setValue(L.ENUM_TAG_MATCH_ANY, "いずれかのタグ");
+        setValue(L.ENUM_DOMAIN_ANNOTATION, "注釈");
+        setValue(L.ENUM_ANNOTATION_STATUS_OPEN, "未対応");
+        setValue(L.ENUM_ANNOTATION_STATUS_RESOLVED, "解決済み");
+        setValue(L.ENUM_ANNOTATION_STATUS_DISMISSED, "却下");
+        setValue(L.ENUM_ANNOTATION_STATUS_ORPHANED, "対象なし");
+        setValue(L.ENUM_ANNOTATION_SOURCE_AUTHOR, "著者");
+        setValue(L.ENUM_ANNOTATION_SOURCE_AI, "AI");
+        setValue(L.ENUM_ANNOTATION_SOURCE_AGENT, "エージェント");
+        setValue(L.ENUM_ANNOTATION_SOURCE_PLUGIN, "拡張機能");
+        setValue(L.ENUM_ANNOTATE_MODE_AUTO, "自動");
+        setValue(L.ENUM_ANNOTATE_MODE_STRUCTURED, "構造化（JSON）");
+        setValue(L.ENUM_ANNOTATE_MODE_DELIMITED, "テキストブロック");
+        setValue(L.ENUM_ANNOTATE_MODE_TWO_STAGE, "自由な批評のあと抽出");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -880,6 +926,10 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ERROR_REDRAFT_FAILED, "パートの書き直しのために推論サービスに接続できませんでした。");
         setValue(L.ERROR_COMMAND_REDRAFT_NOT_POSSIBLE, "このパートは書き直せません。文章がないか、本にモデルがありません。");
         setValue(L.ERROR_COMMAND_REDRAFT_CONTEXT, "書き直しがモデルのコンテキストに収まりません（必要 %d トークン、利用可能 %d）。");
+        setValue(L.ERROR_COMMAND_NO_SUCH_ANNOTATION, "この本にその注釈はありません。注釈は list-annotations が示すハンドルで指定します。");
+        setValue(L.ERROR_COMMAND_ANNOTATION_STATUS, "不明な状態 %s です。次のいずれかを使ってください: %s。");
+        setValue(L.ERROR_COMMAND_QUOTE_NOT_FOUND, "引用はこのパートにありません。パートの本文から該当箇所の言葉をそのままコピーしてください。");
+        setValue(L.ERROR_ANNOTATE_FAILED, "パートに注釈を付けられません: 本にモデルとプロトコルが必要です（またはここで選択してください）。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "フォームを保存できません。");
@@ -1122,6 +1172,27 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_SHORTCUT_BROWSER_KEY, "このキーはブラウザが使用するため、ページに届かない場合があります。");
         setValue(L.MSG_SHORTCUT_ALT_CHARACTER, "一部のキーボード（macOS）では Alt と文字キーで文字が入力されるため、動作しない場合があります。");
         setValue(L.MSG_CONFIRM_RESTORE_DEFAULT_LAYOUT, "ストーリー、アウトライン、その他のタブを新しい本と同じ配置に戻しますか？テキストには影響せず、この本のタブの配置だけが戻ります。");
+        setValue(L.MSG_COMMAND_DELETE_ANNOTATION_CONFIRM, "この注釈を削除しますか？");
+        setValue(L.MSG_COMMAND_ANNOTATION_NOT_LOCATED, "引用がパートの中に見つからなかったため、メモはパート全体に付きました。本文からコピーした言葉で reattach-annotation を使うと、特定の箇所に付け直せます。");
+        setValue(L.MSG_ANNOTATION_ORPHANED_HINT, "この注釈が付いていた箇所は本文からなくなりました。別の箇所に付け直すか、却下してください。");
+        setValue(L.MSG_ANNOTATION_NOT_LOCATED_HINT, "該当箇所が本文に見つからなかったため、この注釈はパート全体に付いています。");
+        setValue(L.MSG_ANNOTATION_WHOLE_PART, "この注釈はパート全体に付けます。");
+        setValue(L.MSG_ANNOTATION_TYPE_PLACEHOLDER, "continuity、style など");
+        setValue(L.MSG_ANNOTATION_NOTE_REQUIRED, "注釈の本文が空です");
+        setValue(L.MSG_ANNOTATIONS_SUMMARY, "要確認 %d 件、表示 %d 件");
+        setValue(L.MSG_ANNOTATIONS_NONE, "ここに注釈はありません。ストーリーの一部を選択し、パートのメニューから「選択範囲に注釈を付ける」を選んでください。");
+        setValue(L.MSG_ANNOTATIONS_LIMITED, "最初の %d 件を表示しています（注釈は全部で %d 件）。フィルターで絞り込んでください。");
+        setValue(L.MSG_ANNOTATION_OTHER_BRANCH, "別のブランチのパート");
+        setValue(L.MSG_ANNOTATION_SELECT_TEXT, "先にパートの本文の一部を選択してください。");
+        setValue(L.MSG_ANNOTATION_NOT_IN_SOURCE, "選択したテキストがパートの本文に見つかりませんでした。書式のない箇所を選択するか、パートを編集して選択してください。");
+        setValue(L.MSG_ANNOTATIONS_OPEN_COUNT, "要確認の注釈が %d 件あります");
+        setValue(L.MSG_ANNOTATE_INFO, "モデルがパートとその前後のストーリーを読み、箇所ごとのメモを提案します。選択したメモを承認するまで、本には何も追加されません。");
+        setValue(L.MSG_ANNOTATE_PLACEHOLDER, "例: 設定の矛盾、弱い会話、ロアとの矛盾を指摘する。空の場合はプロンプトの既定のタスクになります。");
+        setValue(L.MSG_ANNOTATE_MODEL_HINT, "モデルを空にすると、設定で注釈用に指定したモデル、なければ本のモデルが使われます。");
+        setValue(L.MSG_ANNOTATE_NO_FINDINGS, "モデルは指摘すべき点を見つけませんでした。");
+        setValue(L.MSG_ANNOTATE_UNREADABLE, "モデルの回答を読み取れませんでした（%s）。作業が失われないよう、下に表示します。");
+        setValue(L.MSG_ANNOTATE_NOT_LOCATED, "本文に見つからないため、パート全体への注釈になります");
+        setValue(L.MSG_ANNOTATE_ADDED, "注釈を %d 件追加しました");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1524,6 +1595,39 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_REDRAFT_INSTRUCTIONS_PARAM, "パートで変えたい内容。空のときは同じ出来事で書き直す");
         setValue(L.DESC_COMMAND_REDRAFT_PROMPT_PARAM, "本の書き直しプロンプトの代わりに使うプロンプト（テンプレート）。空のときは本のもの");
         setValue(L.DESC_COMMAND_REDRAFT_APPLY_PARAM, "false のときは書き直した文章を返すだけでパートは変更しない。true（既定）ではパートの文章を置き換える");
+        setValue(L.DESC_COMMAND_ANNOTATION_PARAM, "注釈のハンドル（list-annotations の \"handle\"）");
+        setValue(L.DESC_COMMAND_ANNOTATION_STATUS_FILTER_PARAM, "open（既定）、resolved、dismissed、orphaned、all");
+        setValue(L.DESC_COMMAND_ANNOTATION_STATUS_PARAM, "resolved（既定）、dismissed、open");
+        setValue(L.DESC_COMMAND_ANNOTATION_FILTER_PART_PARAM, "このパートの注釈のみ：ハンドル、またはアクティブなブランチでの位置（最初のパートは1）。省略するとすべてのパート");
+        setValue(L.DESC_COMMAND_ANNOTATION_TEXT_PARAM, "注釈の本文");
+        setValue(L.DESC_COMMAND_ANNOTATION_QUOTE_PARAM, "注釈の対象箇所の言葉（パートの本文からのコピー）。空ならパート全体への注釈");
+        setValue(L.DESC_COMMAND_ANNOTATION_TYPE_PARAM, "注釈の種類を表す自由な語（continuity、style など）。空なら種類なし");
+        setValue(L.DESC_COMMAND_ANNOTATION_SEND_PARAM, "true にするとパートと一緒に注釈もモデルに渡し、false なら渡しません");
+        setValue(L.DESC_COMMAND_LIST_ANNOTATIONS, "本またはパートの注釈（箇所に付けたメモ）を一覧表示します。パラメータ: status, part, offset, limit。");
+        setValue(L.DESC_COMMAND_LIST_ANNOTATIONS_LLM, "本の注釈を一覧表示します。注釈は、パートの一部（またはパート全体）に付けた著者向けのメモです。各行には \"handle\"、そのパートのハンドル（アクティブなブランチ上にあれば位置も）、状態（open, resolved, dismissed, orphaned：対象箇所が失われた）、出所（author, ai, agent, plugin）、種類、対象箇所（ある場合は本文中の開始・終了オフセットと引用文）、メモ本文が含まれます。status を省略すると open、\"all\" ですべて。part（ハンドル、またはアクティブなブランチでの位置）を指定するとそのパートに限定します。読み取り専用です。オプションは位置引数で、記載順にすべて省略可能です。");
+        setValue(L.DESC_COMMAND_LIST_ANNOTATIONS_RETURN, "注釈とページ情報を含む JSON");
+        setValue(L.DESC_COMMAND_GET_ANNOTATION, "注釈のメモと対象箇所を表示します。パラメータ: annotation（ハンドル）。");
+        setValue(L.DESC_COMMAND_GET_ANNOTATION_LLM, "注釈1件の全内容：メモ、状態、出所、種類、引用箇所とその前後の文、パート内での位置。注釈は list-annotations のハンドルで指定します。読み取り専用です。");
+        setValue(L.DESC_COMMAND_GET_ANNOTATION_RETURN, "注釈を含む JSON");
+        setValue(L.DESC_COMMAND_CREATE_ANNOTATION, "パートの一部にメモを付けます。パラメータ: part（ハンドル）, text, quote, type。");
+        setValue(L.DESC_COMMAND_CREATE_ANNOTATION_LLM, "ストーリーのパートの一部に、著者向けのメモを付けます。本文は変更されず、メモはモデルには送られません。対象箇所の言葉を quote に一字一句そのままコピーして渡します（パート内に一か所しかなければ数語で十分です）。メモはその箇所に付き、本文が編集されても追従します。quote を省略するとパート全体へのメモになり、本文にない quote でもパート全体へのメモになり、その旨が応答に示されます。type は自由な語です（continuity、style など）。パートはハンドルで指定します。本の注釈を追加します。");
+        setValue(L.DESC_COMMAND_CREATE_ANNOTATION_RETURN, "作成した注釈を含む JSON");
+        setValue(L.DESC_COMMAND_UPDATE_ANNOTATION, "注釈のメモ、種類、プロンプトへの送信フラグを変更します。パラメータ: annotation（ハンドル）, text, type, sendToPrompt。");
+        setValue(L.DESC_COMMAND_UPDATE_ANNOTATION_LLM, "注釈を変更します：メモの本文、種類、パートと一緒にモデルへ渡すか（sendToPrompt）。text や type が空なら現在の値のまま、sendToPrompt を省略するとフラグはそのままです。注釈は list-annotations のハンドルで指定します。対象箇所と状態はここでは変更しません（reattach-annotation と resolve-annotation を参照）。");
+        setValue(L.DESC_COMMAND_UPDATE_ANNOTATION_RETURN, "注釈を含む JSON");
+        setValue(L.DESC_COMMAND_RESOLVE_ANNOTATION, "注釈の状態を設定します：resolved（既定）、dismissed、open。パラメータ: annotation（ハンドル）, status。");
+        setValue(L.DESC_COMMAND_RESOLVE_ANNOTATION_LLM, "注釈を resolved（対処済み）または dismissed（対処不要）として閉じる、あるいは open で再び開きます。閉じた注釈は本文のマーク表示から外れ、一覧には残ります。status を省略すると resolved です。注釈は list-annotations のハンドルで指定します。");
+        setValue(L.DESC_COMMAND_RESOLVE_ANNOTATION_RETURN, "注釈を含む JSON");
+        setValue(L.DESC_COMMAND_REATTACH_ANNOTATION, "引用で見つかる箇所に注釈を付け替えます。パラメータ: annotation（ハンドル）, quote。");
+        setValue(L.DESC_COMMAND_REATTACH_ANNOTATION_LLM, "注釈を同じパート内の別の箇所に移します。箇所は quote で探すので、パートの本文からコピーしてください。孤立した注釈（対象箇所が削除された）は再び open になります。注釈は list-annotations のハンドルで指定します。quote を省略するとパート全体への注釈になります。");
+        setValue(L.DESC_COMMAND_REATTACH_ANNOTATION_RETURN, "注釈を含む JSON");
+        setValue(L.DESC_COMMAND_DELETE_ANNOTATION, "注釈を削除します。パラメータ: annotation（ハンドル）。");
+        setValue(L.DESC_COMMAND_DELETE_ANNOTATION_LLM, "注釈を削除します（ユーザーはゴミ箱から戻せます）。注釈を閉じて一覧に残すには resolve-annotation を使います。注釈は list-annotations のハンドルで指定します。");
+        setValue(L.DESC_COMMAND_DELETE_ANNOTATION_RETURN, "削除した注釈のハンドルを含む JSON");
+        setValue(L.DESC_TEMPLATE_ANNOTATIONS, "パートの未対応の注釈。1件1行で、引用箇所とメモを含みます（なければ空）。");
+        setValue(L.DESC_TEMPLATE_ANNOTATE_INSTRUCTIONS, "パートで確認してほしい点（指示がなければ空）。");
+        setValue(L.DESC_TEMPLATE_OUTPUT_FORMAT, "モデルに指示する回答の書式。注釈の取得方法によって変わります。");
+        setValue(L.DESC_TEMPLATE_STORY_ANNOTATIONS, "プロンプトに含まれるストーリーの箇所についての著者のメモのうち、モデルに渡す設定のもの（1件1行、なければ空）。");
     }
 
     @Override

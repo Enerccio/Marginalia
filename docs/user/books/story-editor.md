@@ -12,6 +12,7 @@ This page describes the desktop layout. On a phone the story is one column with 
 |---|---|
 | **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part (the parts before it are loaded first when it is not loaded yet). The header shows how many parts the branch has. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |
 | **Lorebook** (left, next to the Outline) | A read only look at the lore of the book, see [The lorebook tab](#the-lorebook-tab). |
+| **Annotations** (left, next to the Outline) | The [notes](annotations.md) on passages of the story, for the whole book. |
 | **Story** (center) | The text of each part, with its menu (☰) and its metadata on the right, and under it the bottom bar. |
 | **Bottom bar** | The **Summaries** button (list icon) and the settings menu (⚙) on the left, the command line, and the **+** button on the right. |
 
@@ -144,6 +145,8 @@ Every part has a menu (☰) in its top right corner:
 | **Regenerate** | Writes the last part again, replacing its text. Only on the last part. |
 | **Swipe** | Writes another version of the last part and keeps the old one as a separate branch. Only on the last part. See [Branches & story tree](branches-and-story-tree.md#trying-another-version-of-the-last-part). |
 | **Redraft** | Lets the model write this part again from your instructions, on any part, see [below](#redrafting-a-part). Not while the text is edited. |
+| **Annotate selection** / **Annotate part** | Makes a [note](annotations.md#making-an-annotation) about the words you selected in the part, or about the whole part. |
+| **Annotate with AI** | Lets a model [review the part](annotations.md#letting-a-model-annotate) and propose notes. Not while the text is edited. |
 | **Branch Story** | Starts a new branch from this part, see [Branches & story tree](branches-and-story-tree.md#branching-from-an-earlier-part). |
 | **Merge into previous part** | Adds the text of this part to the part before it, see [below](#merging-a-part-into-the-previous-one). Not on the first part. |
 | **Show Prompt** | Shows the exact prompt that was sent to the model for this part. |
@@ -220,6 +223,8 @@ old one in the middle of the story, and keeps what you do not ask to change. Cho
    the same events.
 2. Choose **Redraft**. The text streams into **Redrafted text**; **Stop** ends it early. Choose **Redraft again** for
    another try, with other instructions if you like. **Differences** shows what changed against the part, word by word.
+   When the part has open [annotations](annotations.md), **Deal with the open annotations of the part** (checked at first)
+   gives them to the model as well, and **Apply** marks them resolved.
 3. The redrafted text is a field you can still edit. **Apply** replaces the text of the part with it; **Close** throws it
    away. Nothing in the book changes before **Apply**.
 

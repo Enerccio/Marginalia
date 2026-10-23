@@ -50,6 +50,9 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     private SummaryService summaryService;
 
     @Autowired
+    private AnnotationService annotationService;
+
+    @Autowired
     private TagRelationService tagRelationService;
 
     @Autowired
@@ -252,6 +255,18 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     }
 
     @Override
+    public String getAnnotatePrompt(Manuscript manuscript) throws Exception {
+        if (StringUtils.isNotBlank(manuscript.getAnnotatePrompt())) {
+            return manuscript.getAnnotatePrompt();
+        }
+        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+        if (StringUtils.isNotBlank(userSetting.getDefaultAnnotatePrompt())) {
+            return userSetting.getDefaultAnnotatePrompt();
+        }
+        return Defaults.DEFAULT_ANNOTATE_PROMPT;
+    }
+
+    @Override
     public String getMetaSummaryPrompt(Manuscript manuscript) throws Exception {
         if (StringUtils.isNotBlank(manuscript.getMetaSummaryPrompt())) {
             return manuscript.getMetaSummaryPrompt();
@@ -361,6 +376,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         List<ChatMessage> allMessages = chatMessageService.getAllMessages(m);
         JsonArray messagesArray = new JsonArray();
         ExtendableEntityListener listener = new ExtendableEntityListener();
+        Map<Long, JsonArray> annotations = annotationService.marshalForManuscript(m);
 
         for (ChatMessage msg : allMessages) {
             JsonObject msgObj = new JsonObject();
@@ -401,6 +417,11 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
                     }
                     msgObj.add("summary", sumObj);
                 }
+            }
+
+            JsonArray messageAnnotations = annotations.get(msg.getId());
+            if (messageAnnotations != null) {
+                msgObj.add("annotations", messageAnnotations);
             }
 
             messagesArray.add(msgObj);
@@ -867,6 +888,10 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
             }
 
             msg = chatMessageService.saveWithoutEvent(msg);
+
+            if (msgObj.has("annotations") && msgObj.get("annotations").isJsonArray()) {
+                annotationService.restoreForPart(msg, msgObj.getAsJsonArray("annotations"));
+            }
 
             if (msgObj.has("uuid") && !msgObj.get("uuid").isJsonNull()) {
                 String uuid = msgObj.get("uuid").getAsString();

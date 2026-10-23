@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846069143524">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846078447034">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846069143524" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846078447034" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846069143524" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846078447034" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846069143524" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846069143524" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846078447034" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846078447034" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -201,7 +201,8 @@ point for your own version. The template fields also list the <strong>Available 
 | **Default User Prompt** | last message | The request for the next part, built from the [turn instructions](story-editor.md#writing-the-next-part). A template. |
 | **Default Summary Prompt** | summaries | The request for a [summary](summaries.md). A template. |
 | **Default Meta Summary Prompt** | meta summaries | The request for a [meta summary](summaries.md#meta-summaries), which merges summaries. A template. |
-| **Redraft Prompt** | redrafts | The request for a [redraft](story-editor.md#redrafting-a-part) of a part. A template. |">
+| **Redraft Prompt** | redrafts | The request for a [redraft](story-editor.md#redrafting-a-part) of a part. A template. |
+| **Annotate Prompt** | annotating | The request for a model to [annotate](annotations.md#letting-a-model-annotate) a part. A template. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -252,6 +253,11 @@ point for your own version. The template fields also list the <strong>Available 
 <td>redrafts</td>
 <td>The request for a <a href="../story-editor/#redrafting-a-part">redraft</a> of a part. A template.</td>
 </tr>
+<tr>
+<td><strong>Annotate Prompt</strong></td>
+<td>annotating</td>
+<td>The request for a model to <a href="../annotations/#letting-a-model-annotate">annotate</a> a part. A template.</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -262,11 +268,12 @@ point for your own version. The template fields also list the <strong>Available 
 <p>Templates are text with placeholders in double curly braces. Each template gets its own variables:</p>
 <retype-table copy-text="| Template | Variables |
 |---|---|
-| Master Template | `{{backgroundLore}}` (activated lorebook entries), `{{narrativePov}}`, `{{narrativeTense}}`, `{{style}}`, `{{summaries}}` |
+| Master Template | `{{backgroundLore}}` (activated lorebook entries), `{{narrativePov}}`, `{{narrativeTense}}`, `{{style}}`, `{{summaries}}`, `{{annotations}}` (the notes you gave to the model) |
 | User Prompt | `{{sceneSetting}}`, `{{povCharacter}}`, `{{presentCharacters}}`, `{{instructions}}` |
 | Summary Prompt | `{{backgroundLore}}`, `{{text}}` (the parts to summarize) |
 | Meta Summary Prompt | `{{backgroundLore}}`, `{{summaryBlocks}}` (the summaries to merge) |
-| Redraft Prompt | `{{text}}` (the part), `{{redraftInstructions}}` (what you want changed), `{{previousStory}}`, `{{summaries}}`, `{{followingStory}}`, `{{backgroundLore}}`, `{{narrativePov}}`, `{{narrativeTense}}`, `{{style}}`, and the turn the part was written from: `{{sceneSetting}}`, `{{povCharacter}}`, `{{presentCharacters}}`, `{{instructions}}` |">
+| Redraft Prompt | `{{text}}` (the part), `{{redraftInstructions}}` (what you want changed), `{{previousStory}}`, `{{summaries}}`, `{{followingStory}}`, `{{backgroundLore}}`, `{{narrativePov}}`, `{{narrativeTense}}`, `{{style}}`, and the turn the part was written from: `{{sceneSetting}}`, `{{povCharacter}}`, `{{presentCharacters}}`, `{{instructions}}`, and `{{annotations}}` (your open notes on the part, empty unless you ask for them in the redraft window) |
+| Annotate Prompt | The variables of the redraft prompt, with `{{annotateInstructions}}` (what you want looked at) instead of `{{redraftInstructions}}`, `{{annotations}}` (the notes the part already has) and `{{outputFormat}}` (how the model is told to answer) |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -278,7 +285,7 @@ point for your own version. The template fields also list the <strong>Available 
 <tbody>
 <tr>
 <td>Master Template</td>
-<td><code translate="no" v-pre>{{backgroundLore}}</code> (activated lorebook entries), <code translate="no" v-pre>{{narrativePov}}</code>, <code translate="no" v-pre>{{narrativeTense}}</code>, <code translate="no" v-pre>{{style}}</code>, <code translate="no" v-pre>{{summaries}}</code></td>
+<td><code translate="no" v-pre>{{backgroundLore}}</code> (activated lorebook entries), <code translate="no" v-pre>{{narrativePov}}</code>, <code translate="no" v-pre>{{narrativeTense}}</code>, <code translate="no" v-pre>{{style}}</code>, <code translate="no" v-pre>{{summaries}}</code>, <code translate="no" v-pre>{{annotations}}</code> (the notes you gave to the model)</td>
 </tr>
 <tr>
 <td>User Prompt</td>
@@ -294,7 +301,11 @@ point for your own version. The template fields also list the <strong>Available 
 </tr>
 <tr>
 <td>Redraft Prompt</td>
-<td><code translate="no" v-pre>{{text}}</code> (the part), <code translate="no" v-pre>{{redraftInstructions}}</code> (what you want changed), <code translate="no" v-pre>{{previousStory}}</code>, <code translate="no" v-pre>{{summaries}}</code>, <code translate="no" v-pre>{{followingStory}}</code>, <code translate="no" v-pre>{{backgroundLore}}</code>, <code translate="no" v-pre>{{narrativePov}}</code>, <code translate="no" v-pre>{{narrativeTense}}</code>, <code translate="no" v-pre>{{style}}</code>, and the turn the part was written from: <code translate="no" v-pre>{{sceneSetting}}</code>, <code translate="no" v-pre>{{povCharacter}}</code>, <code translate="no" v-pre>{{presentCharacters}}</code>, <code translate="no" v-pre>{{instructions}}</code></td>
+<td><code translate="no" v-pre>{{text}}</code> (the part), <code translate="no" v-pre>{{redraftInstructions}}</code> (what you want changed), <code translate="no" v-pre>{{previousStory}}</code>, <code translate="no" v-pre>{{summaries}}</code>, <code translate="no" v-pre>{{followingStory}}</code>, <code translate="no" v-pre>{{backgroundLore}}</code>, <code translate="no" v-pre>{{narrativePov}}</code>, <code translate="no" v-pre>{{narrativeTense}}</code>, <code translate="no" v-pre>{{style}}</code>, and the turn the part was written from: <code translate="no" v-pre>{{sceneSetting}}</code>, <code translate="no" v-pre>{{povCharacter}}</code>, <code translate="no" v-pre>{{presentCharacters}}</code>, <code translate="no" v-pre>{{instructions}}</code>, and <code translate="no" v-pre>{{annotations}}</code> (your open notes on the part, empty unless you ask for them in the redraft window)</td>
+</tr>
+<tr>
+<td>Annotate Prompt</td>
+<td>The variables of the redraft prompt, with <code translate="no" v-pre>{{annotateInstructions}}</code> (what you want looked at) instead of <code translate="no" v-pre>{{redraftInstructions}}</code>, <code translate="no" v-pre>{{annotations}}</code> (the notes the part already has) and <code translate="no" v-pre>{{outputFormat}}</code> (how the model is told to answer)</td>
 </tr>
 </tbody>
 </table>
@@ -317,6 +328,7 @@ blocks:</p>
 <li><strong>World &amp; lore context</strong> - the activated <a href="../../lorebooks/">lorebook</a> entries (<code translate="no" v-pre>backgroundLore</code>).</li>
 <li><strong>Writing style &amp; mechanics</strong> - point of view, tense, style, and general prose rules.</li>
 <li><strong>Summary of story so far</strong> - the <a href="../summaries/">summaries</a>.</li>
+<li><strong>Author&#x27;s notes on the story</strong> - only when you gave <a href="../annotations/#giving-a-note-to-the-model">notes to the model</a>.</li>
 </ol>
 <p>If the <a href="../../inference-providers/#general-settings">inference provider</a> has a jailbreak prompt enabled, it is put
 before the master template.</p>
@@ -334,6 +346,14 @@ what you did not ask to change, stay consistent with the story before and after 
 the redrafted part only. Your own version should keep the variables it needs: without <code translate="no" v-pre>{{text}}</code> the model does not see
 the part. The redraft prompt follows the rule of all prompts: the book&#x27;s field, else the <em>Redraft Prompt</em> in <em>Settings →
 Templates</em>, else the built-in one.</p>
+<h2 id="annotate-prompt">Annotate prompt</h2>
+<p>When a model <a href="../annotations/#letting-a-model-annotate">annotates a part</a> it gets one request, sent as the only message like the
+redraft. The built-in default makes the model an editor: it finds the passages that have a problem in the sense of your
+instructions, quotes each one letter for letter, and writes a short note for you, without praise or filler and without
+repeating the notes the part already has. The prompt has the variable <code translate="no" v-pre>{{outputFormat}}</code> where the way of answering is
+described (JSON, text blocks or a free review, it depends on the answer format you choose); keep it in a prompt of your own, or the
+model is not told how to answer. The annotate prompt follows the rule of all prompts: the book&#x27;s field, else the <em>Annotate Prompt</em> in
+<em>Settings → Templates</em>, else the built-in one.</p>
 <h2 id="how-the-prompt-is-put-together">How the prompt is put together</h2>
 <div id="how-the-prompt-is-put-together-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-none"><code v-pre class="language-none">system     jailbreak (if enabled) + master template
@@ -402,7 +422,7 @@ text off.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (468c9d84).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (1abf8038).</p></div>
             </footer>
         </div>
     </div>

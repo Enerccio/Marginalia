@@ -35,6 +35,9 @@ public class ManuscriptReplaceServiceImpl implements ManuscriptReplaceService {
     private SummaryService summaryService;
 
     @Autowired
+    private AnnotationService annotationService;
+
+    @Autowired
     private InferenceServices inferenceServices;
 
     @Autowired
@@ -254,12 +257,15 @@ public class ManuscriptReplaceServiceImpl implements ManuscriptReplaceService {
                     skipped++;
                     continue;
                 }
+                String responseBefore = message.getResponse();
                 EntityTextSearch.apply(message, change.fields());
                 String response = message.getResponse();
                 message.setTokenCount(countTokens(owned, response));
                 message.setWordCount(chatMessageService.countWords(response));
                 message.setEdited(true);
                 chatMessageService.save(message);
+                // the passages of the annotations move with the text
+                annotationService.shift(owned, message, responseBefore, response);
             } else {
                 Summary summary = Hibernate.unproxy(summaryService.find(change.id()), Summary.class);
                 if (!unchanged(summary, change)) {

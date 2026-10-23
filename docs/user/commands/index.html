@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846069143524">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846078447034">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846069143524" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846078447034" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846069143524" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846078447034" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846069143524" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846078447034" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -364,7 +364,9 @@ changes the book; <strong>No</strong> leaves everything as it was. The question 
 | `/list-lore-entries [lorebook] [filter] [offset] [limit]` | The entries of a lorebook with their settings and a preview; the filter keeps the entries whose name or tag contains it. |
 | `/get-lore-entry &lt;entry&gt; [lorebook] [offset] [length]` | One entry: settings, keys, tags, comment and its text in slices. |
 | `/search-lore &lt;query&gt; [regex] [limit]` | The entries of all the lorebooks of the book whose name, text or comment contain the query, with snippets. |
-| `/preview-lore-activation &lt;text&gt; [limit]`, `/preview-lore-activation &lt;part&gt; &lt;branch&gt; &lt;limit&gt;` | Which entries a generation would use for a text, or for a turn like the one that made a part, and why (no filter, filter found, or not used because it is switched off, a tag of the book decides, or the filter is not in the text), with the lore text and its tokens. The text may be the handle of a part. |">
+| `/preview-lore-activation &lt;text&gt; [limit]`, `/preview-lore-activation &lt;part&gt; &lt;branch&gt; &lt;limit&gt;` | Which entries a generation would use for a text, or for a turn like the one that made a part, and why (no filter, filter found, or not used because it is switched off, a tag of the book decides, or the filter is not in the text), with the lore text and its tokens. The text may be the handle of a part. |
+| `/list-annotations [status [part [offset [limit]]]]` | The [annotations](../books/annotations.md) of the book or of a part: the open ones unless `status` says `resolved`, `dismissed`, `orphaned` or `all`. |
+| `/get-annotation &lt;annotation&gt;` | One annotation in full, with the text around its passage. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -465,6 +467,14 @@ changes the book; <strong>No</strong> leaves everything as it was. The question 
 <tr>
 <td><code translate="no" v-pre>/preview-lore-activation &lt;text&gt; [limit]</code>, <code translate="no" v-pre>/preview-lore-activation &lt;part&gt; &lt;branch&gt; &lt;limit&gt;</code></td>
 <td>Which entries a generation would use for a text, or for a turn like the one that made a part, and why (no filter, filter found, or not used because it is switched off, a tag of the book decides, or the filter is not in the text), with the lore text and its tokens. The text may be the handle of a part.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/list-annotations [status [part [offset [limit]]]]</code></td>
+<td>The <a href="../books/annotations/">annotations</a> of the book or of a part: the open ones unless <code translate="no" v-pre>status</code> says <code translate="no" v-pre>resolved</code>, <code translate="no" v-pre>dismissed</code>, <code translate="no" v-pre>orphaned</code> or <code translate="no" v-pre>all</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/get-annotation &lt;annotation&gt;</code></td>
+<td>One annotation in full, with the text around its passage.</td>
 </tr>
 </tbody>
 </table>
@@ -655,6 +665,50 @@ describes): the answer lists them and says what to do, <code translate="no" v-pr
 </table>
 </div>
 </retype-table>
+<h3 id="annotations">Annotations</h3>
+<p>The commands that read <a href="../books/annotations/">annotations</a> (<code translate="no" v-pre>/list-annotations</code>, <code translate="no" v-pre>/get-annotation</code>) answer in JSON like the other reading commands;
+an annotation is given by its <strong>handle</strong>, a part by its handle for the commands that change something. These commands change only the notes,
+never the story, so only the delete asks first. An agent can read annotations, but the commands below are not offered to agents yet.</p>
+<retype-table copy-text="| Command | What it does |
+|---------|--------------|
+| `/create-annotation &lt;part&gt; &lt;text&gt; [quote [type]]` | Adds a note to a part. `quote` is the words of the passage, copied from the part: the note sits on that passage and follows it when the text is edited. Without a quote, or with one that is not in the text, the note is about the whole part (the answer says so). |
+| `/update-annotation &lt;annotation&gt; &lt;text&gt; [type [sendToPrompt]]` | Changes the note, the type or whether the model gets the note; an empty text or type stays as it is. |
+| `/resolve-annotation &lt;annotation&gt; [status]` | Sets the status: `resolved` (default), `dismissed` or `open`. |
+| `/reattach-annotation &lt;annotation&gt; [quote]` | Moves a note to the passage the quote finds in its part; without a quote the note is about the whole part. |
+| `/delete-annotation &lt;annotation&gt;` | Deletes a note (it can be restored from the trash). Asks first. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Command</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>/create-annotation &lt;part&gt; &lt;text&gt; [quote [type]]</code></td>
+<td>Adds a note to a part. <code translate="no" v-pre>quote</code> is the words of the passage, copied from the part: the note sits on that passage and follows it when the text is edited. Without a quote, or with one that is not in the text, the note is about the whole part (the answer says so).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/update-annotation &lt;annotation&gt; &lt;text&gt; [type [sendToPrompt]]</code></td>
+<td>Changes the note, the type or whether the model gets the note; an empty text or type stays as it is.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/resolve-annotation &lt;annotation&gt; [status]</code></td>
+<td>Sets the status: <code translate="no" v-pre>resolved</code> (default), <code translate="no" v-pre>dismissed</code> or <code translate="no" v-pre>open</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/reattach-annotation &lt;annotation&gt; [quote]</code></td>
+<td>Moves a note to the passage the quote finds in its part; without a quote the note is about the whole part.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/delete-annotation &lt;annotation&gt;</code></td>
+<td>Deletes a note (it can be restored from the trash). Asks first.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
 <p>The commands that have the model write (<code translate="no" v-pre>/next</code>, <code translate="no" v-pre>/swipe</code>, <code translate="no" v-pre>/regenerate</code>, the two summaries) take time and show the <strong>Stop</strong> window.</p>
 <h2 id="commands-that-come-with-extensions">Commands that come with extensions</h2>
 <p>You see these in the list as long as the extension is loaded; each is described in the documentation of its extension.</p>
@@ -797,7 +851,7 @@ Character Tracker also change the outline and the characters of the open book; o
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (468c9d84).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (1abf8038).</p></div>
             </footer>
         </div>
     </div>

@@ -1,8 +1,11 @@
 package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
+import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.AnnotationService;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.RedraftService;
@@ -15,6 +18,7 @@ import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Span;
@@ -25,6 +29,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -44,11 +50,17 @@ public class RedraftDialog extends Dialog {
     @Autowired
     private ChatMessageService chatMessageService;
 
+    @Autowired
+    private AnnotationService annotationService;
+
     private final Manuscript manuscript;
     private final ChatMessage part;
     private final Consumer<ChatMessage> onApplied;
 
     private final TextArea instructions = new TextArea();
+    private final Checkbox withAnnotations = new Checkbox();
+    // the open annotations the redraft was asked to deal with
+    private final List<Annotation> addressed = new ArrayList<>();
     private final Button start = new Button();
     private final Details reasoningDetails;
     private final Markdown reasoningMarkdown = new Markdown();
@@ -96,6 +108,16 @@ public class RedraftDialog extends Dialog {
         instructions.setMinRows(3);
         instructions.setMaxRows(8);
 
+        withAnnotations.setLabel(loc.getValue(L.LABEL_REDRAFT_WITH_ANNOTATIONS));
+        withAnnotations.setVisible(false);
+        try {
+            boolean any = annotationService.listForPart(manuscript, part).stream().anyMatch(a -> a.getStatus() == AnnotationStatus.OPEN);
+            withAnnotations.setVisible(any);
+            withAnnotations.setValue(any);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+
         start.addClickListener(_ -> startOrStop());
         showGenerating(false);
 
@@ -117,7 +139,7 @@ public class RedraftDialog extends Dialog {
         changesDetails.setWidthFull();
         changesDetails.setVisible(false);
 
-        VerticalLayout content = new VerticalLayout(info, instructions, start, reasoningDetails, result, changesDetails);
+        VerticalLayout content = new VerticalLayout(info, instructions, withAnnotations, start, reasoningDetails, result, changesDetails);
         content.setPadding(false);
         content.setWidthFull();
         content.addClassName(CssStyles.GAP_S);
@@ -151,6 +173,7 @@ public class RedraftDialog extends Dialog {
             start.setThemeName("primary");
         }
         instructions.setReadOnly(running);
+        withAnnotations.setReadOnly(running);
         result.setReadOnly(running);
         apply.setEnabled(!running && StringUtils.isNotBlank(result.getValue()));
     }
@@ -206,7 +229,14 @@ public class RedraftDialog extends Dialog {
         result.setVisible(true);
         showGenerating(true);
         try {
-            cancellationToken = redraftService.redraft(manuscript, part, instructions.getValue(), callback);
+            addressed.clear();
+            boolean give = withAnnotations.isVisible() && withAnnotations.getValue();
+            if (give) {
+                annotationService.listForPart(manuscript, part).stream()
+                        .filter(a -> a.getStatus() == AnnotationStatus.OPEN).forEach(addressed::add);
+            }
+            cancellationToken = redraftService.redraft(manuscript, part, instructions.getValue(), null,
+                    com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions.defaults(), give, callback);
             if (cancellationToken == null) {
                 showGenerating(false);
                 Notification.error(loc.getValue(L.ERROR_REDRAFT_FAILED));
@@ -248,6 +278,10 @@ public class RedraftDialog extends Dialog {
         }
         try {
             ChatMessageService.PartEdit edit = chatMessageService.updateResponse(manuscript, part, text);
+            // the notes the redraft was asked to deal with are dealt with
+            for (Annotation annotation : addressed) {
+                annotationService.setStatus(manuscript, annotation, AnnotationStatus.RESOLVED);
+            }
             if (edit.outdated().isEmpty()) {
                 Notification.success(loc.getValue(L.MSG_REDRAFT_APPLIED));
             } else {

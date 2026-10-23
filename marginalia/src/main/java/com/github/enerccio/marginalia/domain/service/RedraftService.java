@@ -35,8 +35,20 @@ public interface RedraftService {
      * @param options the AI and the protocol to write with when they are set (see {@link GenerationOptions}), otherwise
      *                the ones of the book; the book is not changed by them
      */
+    default CancellationToken redraft(Manuscript manuscript, ChatMessage part, String instructions, String prompt, GenerationOptions options,
+                                      Callback callback) throws Exception {
+        return redraft(manuscript, part, instructions, prompt, options, false, callback);
+    }
+
+    /**
+     * As {@link #redraft(Manuscript, ChatMessage, String, String, GenerationOptions, Callback)}, and the model is told the notes of the
+     * author on the part (its open annotations, the variable {@code annotations} of the prompt) to deal with, so that redrafting to address
+     * the open annotations is one step.
+     *
+     * @param withAnnotations whether the open annotations of the part are given to the model
+     */
     CancellationToken redraft(Manuscript manuscript, ChatMessage part, String instructions, String prompt, GenerationOptions options,
-                              Callback callback) throws Exception;
+                              boolean withAnnotations, Callback callback) throws Exception;
 
     /**
      * What the redraft ends in; each call is made on the thread of the inference.

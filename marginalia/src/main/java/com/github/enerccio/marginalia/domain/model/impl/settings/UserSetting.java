@@ -62,6 +62,24 @@ public class UserSetting extends Setting {
     @Transient
     private String defaultRedraftPrompt;
 
+    @ExtendedAttribute
+    @Transient
+    private String defaultAnnotatePrompt;
+
+    /**
+     * The AI that annotates a part when the author does not choose another one for the run; annotating is analysis, which is
+     * usually not done by the model that writes the prose. Null is the AI of the book.
+     */
+    @ExtendedAttribute
+    @Transient
+    @CleanupReference(value = Policy.WEAK, target = AI.class)
+    private Long defaultAnnotateModel;
+
+    @ExtendedAttribute
+    @Transient
+    @CleanupReference(value = Policy.WEAK, target = Protocol.class)
+    private Long defaultAnnotateProtocol;
+
     /**
      * The system prompt of the agents of the user that have none of their own; blank is the one of the application
      * settings, and then {@code Defaults.DEFAULT_AGENT_PROMPT}.
@@ -223,6 +241,30 @@ public class UserSetting extends Setting {
 
     public void setDefaultMetaSummaryPrompt(String defaultMetaSummaryPrompt) {
         this.defaultMetaSummaryPrompt = defaultMetaSummaryPrompt;
+    }
+
+    public String getDefaultAnnotatePrompt() {
+        return defaultAnnotatePrompt;
+    }
+
+    public void setDefaultAnnotatePrompt(String defaultAnnotatePrompt) {
+        this.defaultAnnotatePrompt = defaultAnnotatePrompt;
+    }
+
+    public Long getDefaultAnnotateModel() {
+        return defaultAnnotateModel;
+    }
+
+    public void setDefaultAnnotateModel(Long defaultAnnotateModel) {
+        this.defaultAnnotateModel = defaultAnnotateModel;
+    }
+
+    public Long getDefaultAnnotateProtocol() {
+        return defaultAnnotateProtocol;
+    }
+
+    public void setDefaultAnnotateProtocol(Long defaultAnnotateProtocol) {
+        this.defaultAnnotateProtocol = defaultAnnotateProtocol;
     }
 
     public String getDefaultRedraftPrompt() {

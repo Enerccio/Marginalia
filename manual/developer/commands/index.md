@@ -273,6 +273,14 @@ parts as a tree, with the numbers of the branches). All are `NON_DESTRUCTIVE`, s
 Tests: `ManuscriptReadCommandsTest` runs them in an agent session (`AgenticRequestAttributes` in the test sources puts an
 `AgenticSessionPoint` into the session scope of the logged in test user).
 
+### Commands for annotations
+
+`ListAnnotationsCommand` (`list-annotations [status [part [offset [limit]]]]`) and `GetAnnotationCommand` (`get-annotation`) read, `AnnotationWriteCommands`
+(`create-annotation`, `update-annotation`, `resolve-annotation`, `reattach-annotation`, `delete-annotation`) change the [annotations](../domain-model.md#annotation). An annotation is given
+by its uuid (`Book.annotation` checks that it is one of a part of the book of the scope). They change only the notes, never the story, so they are `NON_DESTRUCTIVE`
+except the delete. The ones that write have `availableForAgent = false`: the working copy of an agent is not merged back with its annotations (a known gap), so an agent
+could write notes that vanish. Tests: `AnnotationCommandsTest`.
+
 ### Commands that read the lorebooks
 
 The package `domain.service.impl.commands.lorebook.read` has `ListLorebooksCommand`, `ListLoreEntriesCommand`, `GetLoreEntryCommand`,

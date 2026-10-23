@@ -612,6 +612,7 @@ vaadin-markdown.agent-report td {
 
 /* Story messages and summaries */
 .chat-message-content {
+    position: relative;
     padding: 8px 12px;
     min-width: 0;
     max-width: 100%;
@@ -648,6 +649,123 @@ vaadin-markdown.agent-report td {
     background-color: var(--lumo-warning-color);
     color: var(--lumo-warning-contrast-color);
     outline: 2px solid var(--lumo-warning-color);
+}
+
+/* Annotations: the passage a note is about is underlined with a wave (a block would clash with the highlight of the generated
+   text), coloured by who wrote the note; a note inside another one is underlined lower so both can be seen */
+.annotation-mark {
+    --annotation-color: var(--lumo-primary-color);
+    background: none;
+    color: inherit;
+    cursor: pointer;
+    text-decoration: underline wavy var(--annotation-color);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+    text-decoration-skip-ink: none;
+}
+
+.annotation-mark .annotation-mark {
+    text-underline-offset: 6px;
+}
+
+.annotation-mark:hover {
+    background-color: color-mix(in srgb, var(--annotation-color) 15%, transparent);
+}
+
+.annotation-mark-author {
+    --annotation-color: var(--lumo-primary-color);
+}
+
+.annotation-mark-ai {
+    --annotation-color: var(--lumo-warning-color);
+}
+
+.annotation-mark-agent {
+    --annotation-color: var(--lumo-success-color);
+}
+
+.annotation-mark-plugin {
+    --annotation-color: var(--lumo-error-color);
+}
+
+/* Where the popover of a mark opens: moved onto the mark that was clicked, takes no room and no click */
+.annotation-anchor {
+    position: absolute;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.annotation-badge {
+    color: var(--lumo-primary-text-color);
+}
+
+.annotation-view {
+    box-sizing: border-box;
+    padding: var(--lumo-space-s);
+    border: 1px solid var(--lumo-contrast-10pct);
+    border-radius: var(--lumo-border-radius-m);
+    background-color: var(--lumo-base-color);
+}
+
+.annotation-status {
+    padding: 0 var(--lumo-space-s);
+    border-radius: var(--lumo-border-radius-l);
+    font-size: var(--lumo-font-size-xs);
+    background-color: var(--lumo-contrast-10pct);
+}
+
+.annotation-status-open {
+    background-color: var(--lumo-primary-color-10pct);
+    color: var(--lumo-primary-text-color);
+}
+
+.annotation-status-orphaned {
+    background-color: var(--lumo-warning-color-10pct);
+    color: var(--lumo-warning-text-color);
+}
+
+.annotation-status-resolved {
+    background-color: var(--lumo-success-color-10pct);
+    color: var(--lumo-success-text-color);
+}
+
+.annotation-status-dismissed {
+    color: var(--lumo-secondary-text-color);
+}
+
+.annotation-type {
+    font-size: var(--lumo-font-size-xs);
+    color: var(--lumo-secondary-text-color);
+    border: 1px solid var(--lumo-contrast-20pct);
+    border-radius: var(--lumo-border-radius-l);
+    padding: 0 var(--lumo-space-s);
+}
+
+.annotation-quote {
+    font-style: italic;
+    color: var(--lumo-secondary-text-color);
+    border-left: 3px solid var(--lumo-contrast-20pct);
+    padding-left: var(--lumo-space-s);
+    overflow-wrap: anywhere;
+}
+
+.annotation-note {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.annotation-panel {
+    overflow-y: auto;
+}
+
+.annotation-part {
+    font-weight: 600;
+}
+
+.annotation-popover {
+    width: min(420px, 90vw);
+    max-height: 60vh;
+    overflow-y: auto;
 }
 
 .summary-content {
@@ -705,6 +823,7 @@ vaadin-dialog-overlay.phone-dialog::part(overlay) {
 }
 
 .phone-message {
+    position: relative;
     width: 100%;
     min-width: 0;
     box-sizing: border-box;

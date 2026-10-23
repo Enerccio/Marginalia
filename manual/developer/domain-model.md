@@ -27,6 +27,7 @@ Some entities kept their early names. The UI and this manual use the names on th
 | `Manuscript` | `manuscripts` | Book |
 | `ChatMessage` | `messages` | Part (of the story) |
 | `Summary` | `summaries` | Summary |
+| `Annotation` | `annotations` | Annotation (a note on a passage of a part) |
 | `Lorebook`, `LorebookEntry` | `lorebooks`, `entries` | Lorebook, entry |
 | `AI`, `OpenAICompatible`, `ExtensionAI` | `ais`, `ais_openaicompat`, `ais_extension` | Inference provider |
 | `Usage` | `usages` | Tokens sent / generated column of the Inference Providers tab |
@@ -138,7 +139,7 @@ when it is not a hard delete, soft delete those rows first (the `OWNED_BY` / `OW
 | Deleted | Also deleted |
 |---|---|
 | `Manuscript` | all its `ChatMessage`s and their `Summary`s (`ChatMessageService.softDeleteForManuscript`), its `TagRelation`s |
-| `ChatMessage` | its `Summary` and all messages below it (children, their children...) |
+| `ChatMessage` | its `Summary`, its `Annotation`s and all messages below it (children, their children...) |
 | `Lorebook` | its `LorebookEntry`s (through `LorebookEntryService.delete`, so with their tag relations), its `TagRelation`s |
 | `LorebookEntry` | its `TagRelation`s (positive and negative) |
 | `AI` | its `Usage`s |
@@ -353,6 +354,54 @@ Deleting a meta summary (`SummaryService.removeSummary(part, unwind)`) with `unw
 (`attachMetaSummary`), and the restored summary gets it back, so the `nextSummaryUuid` of other meta summaries stays
 valid. Restoring a backup creates all summaries with new `uuid`s, so `ManuscriptServiceImpl.restoreMessages` rewrites
 the `nextSummaryUuid` of the restored meta summaries (also inside `replacedSummary`) to the new ones.
+
+### `Annotation`
+
+A note of the author, a model, an agent or an extension about a passage of a part (see [Annotations](../user/books/annotations.md)).
+A real table (`annotations`, migration V19: the story view, the panel and the cleanup ask by part and status), the rest is
+extended content. `part` is `@CleanupReference(OWNED_BY)`: the part takes its annotations to the trash and the purge; the
+column `part_id` is also mapped as `partId` (read only), so code without a session (the commands, the UI lists) can tell the
+part without loading the lazy proxy.
+
+| Field | |
+|---|---|
+| `part`, `partId` | The part. Moved by a merge (`AnnotationService.moveToPrevious`) and copied by a branch (`copyForBranch`). |
+| `status` | `AnnotationStatus`: `OPEN`, `RESOLVED`, `DISMISSED`, `ORPHANED`. Only `OPEN` is marked in the text (`isMarked`); `ORPHANED` is set by the text (the author can not choose it, `setStatus` refuses it). |
+| `source` | `AnnotationSource`: `AUTHOR`, `AI`, `AGENT`, `PLUGIN`. |
+| `start`, `end` | Columns `startOffset`, `endOffset`: the passage as offsets in the **source** text of the part (`ChatMessage.response`, markdown included), `end` exclusive. Both null: a note about the whole part (`hasRange()` is false), also an orphaned one. |
+| `text` | The note. |
+| `quote`, `contextBefore`, `contextAfter` | The passage as it was when the range was last set and `AnnotationService.CONTEXT_LENGTH` (60) characters around it: what finds the passage again when the offsets mean nothing. Kept up to date by every move of the range. |
+| `type`, `label` | A free word, and who exactly (the extension, the agent, the model). |
+| `sendToPrompt` | Open annotations with this flag go into the master template as `annotations`, see [Generation pipeline](generation-pipeline.md#4-prepare_content---preparecontentstep). |
+| `notLocated` | Made from a quote that was not found: a note about the whole part. |
+
+**The text carries no marker.** A marker in the stored text would leak into prompts, summaries, exports, search and extensions,
+so the ranges are kept apart and **moved through every change of the text**. The pieces:
+
+- `utils.TextAlignment` aligns an old and a new text token by token (`TextTokens`: white space, words, single characters; longest
+  common subsequence after the common start and end are cut off, 4 million cells at most, an insertion or deletion block is slid to
+  the latest place it can sit, so "hours. Then" to "hours. Very much. Then" keeps the full stop with the old sentence) and refines the
+  gaps by letters (a typo in a word is the same word). `mapStart` / `mapEnd` move a range like the markers of a word processor: an
+  edit before moves it, inside grows or shrinks it, text typed exactly at the start or the end is outside; `isPartlyRetained` is false
+  when no letter of the range survived (it is gone), `isApproximate` when the texts were too different to align (then a range that is
+  not inside a retained stretch is handled by the quote).
+- `utils.QuoteFinder` finds a quote in a text: letter for letter (several places: the context around it and the hint decide), then
+  ignoring case and white space, then the passage with the most words of the quote in order (70 %). The same finder serves the AI
+  annotate, the commands and the selection of the browser.
+- `AnnotationService.shift(book, part, oldText, newText)` is called after **every edit of the text by the author**:
+  `ChatMessageServiceImpl.storeResponse` (so `updateResponse`, the redraft, the part edit commands, the agent merge of a text), the
+  search and replace (`ManuscriptReplaceServiceImpl.apply`) and the agent merge that keeps the counts (`AgentMergeServiceImpl.storeResponse`).
+  A text written another way needs its own call. `mergeIntoPrevious` calls `moveToPrevious` with the offset of the later text in the
+  joined one, `branch` calls `copyForBranch` (a swipe is a new text and gets none), a generation of the same part (`REGENERATE`) calls
+  `relocate` in `CleanupStep` (quote search only, the text is not an edit of the old one). An orphaned annotation whose quote is back
+  (an undo) is found again by `shift`.
+- `ChatMessageService.delete` soft deletes the annotations of the part (and of the parts below it), a hard delete removes them first
+  (`hardDeleteForParts`: the foreign key), the delete of a book soft deletes them in bulk; the cleanup knows `Annotation` as owned by a
+  part (`OWNED_ON_DELETE`).
+
+**Backups.** A message of the backup JSON has `annotations`: an array of `{uuid, status, source, start, end, extendedContent}`
+(`AnnotationService.marshalForManuscript` makes them for the whole book with one query, `restoreForPart` makes them again, with new
+uuids). Everything that copies a book through the backup form (the clone, the restore, the working copy of an agent) copies them.
 
 ## Lorebooks
 

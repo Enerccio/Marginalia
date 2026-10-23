@@ -24,6 +24,7 @@
 
 - [Books](https://enerccio.github.io/Marginalia/user/books/index.md): A book is one story. You give it instructions part by part, the model writes the text, and the book keeps everything that goes with it: the story tree with all its branches, the prompts that shape the style, the lorebook with the world and characters, summaries and backups.
 - [Managing books](https://enerccio.github.io/Marginalia/user/books/managing-books.md): The Books tab lists your books. Other users' books are not shown.
+- [Annotations](https://enerccio.github.io/Marginalia/user/books/annotations.md): An annotation is a note for you about a passage of a part: weak scene, timeline is wrong, revisit. It works like a comment in a word processor: the text of the story stays clean, the passage is only marked, and the note lives next to it.
 - [Story editor](https://enerccio.github.io/Marginalia/user/books/story-editor.md): The Story tab of a book is where you write. It shows the parts of the active branch from the beginning to the end.
 - [Branches & story tree](https://enerccio.github.io/Marginalia/user/books/branches-and-story-tree.md): Marginalia never makes you throw a version away. Every alternative you try is kept as a branch of the story, and you can go back to any of them.
 - [Book prompts](https://enerccio.github.io/Marginalia/user/books/prompts.md): The Prompts tab of a book holds the texts Marginalia builds the prompt from: two templates, the narrative settings and the summary and redraft prompts. They decide the voice of the book far more than the model settings do.
