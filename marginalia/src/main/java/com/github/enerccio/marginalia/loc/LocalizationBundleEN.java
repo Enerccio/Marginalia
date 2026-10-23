@@ -661,6 +661,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_APPLY, "Apply");
         setValue(L.LABEL_SEARCH_COMMANDS, "Search commands");
         setValue(L.LABEL_COMMAND_REDRAFT_PART, "Redraft part");
+        setValue(L.LABEL_LAST_RUN, "Last run");
+        setValue(L.LABEL_SORT_BY, "Sort by");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");

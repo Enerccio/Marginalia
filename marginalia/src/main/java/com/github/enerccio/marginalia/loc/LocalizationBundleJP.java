@@ -661,6 +661,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_APPLY, "適用");
         setValue(L.LABEL_SEARCH_COMMANDS, "コマンドを検索");
         setValue(L.LABEL_COMMAND_REDRAFT_PART, "パートを書き直す");
+        setValue(L.LABEL_LAST_RUN, "最終実行");
+        setValue(L.LABEL_SORT_BY, "並べ替え");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");

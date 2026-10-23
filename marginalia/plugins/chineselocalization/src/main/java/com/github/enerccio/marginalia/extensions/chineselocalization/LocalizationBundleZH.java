@@ -669,6 +669,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_APPLY, "应用");
         setValue(L.LABEL_SEARCH_COMMANDS, "搜索命令");
         setValue(L.LABEL_COMMAND_REDRAFT_PART, "重写段落");
+        setValue(L.LABEL_LAST_RUN, "上次运行");
+        setValue(L.LABEL_SORT_BY, "排序方式");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
