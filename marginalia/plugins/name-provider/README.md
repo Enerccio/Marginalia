@@ -8,14 +8,14 @@ makes up new names that sound like a category, this one hands out names that exi
 
 | Function | Arguments | Answer |
 |---|---|---|
-| `list_real_name_lists` | none | the lists (categories) of names that can be picked from |
+| `list_real_name_lists` | `filter` (optional: words the name of the list has to contain) | the lists (categories) of names that can be picked from |
 | `pick_real_names` | `category`, `count` | up to `count` different names of the category chosen at random, each `{"romanized": "Satō", "original": "佐藤"}`; `count` is limited to 1-100 whatever the model asks for, a list with fewer names returns all of them |
 
 The names of the functions differ from the ones of the Name generator, so a request can offer both.
 
 ## Commands
 
-The same names for the command bar and for agents (`NameProviderCommands`, both `NON_DESTRUCTIVE`): `/list-real-name-lists` (a JSON array) and `/pick-real-names list count` (a JSON array of `{romanized, original}`, same limit as the function).
+The same names for the command bar and for agents (`NameProviderCommands`, both `NON_DESTRUCTIVE`): `/list-real-name-lists [filter]` (a JSON array; `filter` is words that start words in the name of the lists, in any order, not case sensitive) and `/pick-real-names list count` (a JSON array of `{romanized, original}`, same limit as the function).
 
 ## Categories
 

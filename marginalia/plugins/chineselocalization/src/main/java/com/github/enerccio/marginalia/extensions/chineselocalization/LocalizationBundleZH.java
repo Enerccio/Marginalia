@@ -660,6 +660,15 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_TOKEN_BUDGET_SHARE, "占提示预算的比例");
         setValue(L.LABEL_LIGHT_THEME, "切换到浅色主题");
         setValue(L.LABEL_DARK_THEME, "切换到深色主题");
+        setValue(L.LABEL_REDRAFT, "重写");
+        setValue(L.LABEL_REDRAFT_PROMPT, "重写提示词");
+        setValue(L.LABEL_REDRAFT_INSTRUCTIONS, "重写说明");
+        setValue(L.LABEL_REDRAFT_AGAIN, "重新重写");
+        setValue(L.LABEL_REDRAFTED_TEXT, "重写后的文本");
+        setValue(L.LABEL_REDRAFTING, "正在重写…");
+        setValue(L.LABEL_APPLY, "应用");
+        setValue(L.LABEL_SEARCH_COMMANDS, "搜索命令");
+        setValue(L.LABEL_COMMAND_REDRAFT_PART, "重写段落");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -864,6 +873,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_PROFILE_UNUSABLE, "配置“%s”的模型无法使用（用户无法使用）。");
         setValue(L.ERROR_COMMAND_SUMMARY_NOT_POSSIBLE, "无法在此生成摘要：书没有模型，或没有可摘要的内容，或范围不正确。");
         setValue(L.ERROR_COMMAND_GENERATION_CANCELLED, "生成已取消。");
+        setValue(L.ERROR_REDRAFT_FAILED, "无法连接到推理服务以重写该段。");
+        setValue(L.ERROR_COMMAND_REDRAFT_NOT_POSSIBLE, "无法重写该段：它没有文本，或本书没有模型。");
+        setValue(L.ERROR_COMMAND_REDRAFT_CONTEXT, "重写内容超出模型上下文（需要 %d 个令牌，可用 %d 个）。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "无法保存表单。");
@@ -1096,6 +1108,12 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_BRANCH_TOKENS_STALE, "%s 份摘要与故事不再匹配，生成段落时将被丢弃。");
         setValue(L.MSG_BRANCH_TOKENS_HELP, "下一次提示将携带的当前分支故事，根据已保存的段落和摘要统计。世界书、系统模板和本回合的指令也占用同一预算。");
         setValue(L.MSG_CONFIRM_DISCARD_EDIT, "放弃对此段落的修改？它将保留上次保存的文本。");
+        setValue(L.MSG_REDRAFT_INFO, "模型会根据您的说明重写这一段。它会看到这一段之前的故事（有摘要的部分以摘要代替）、在上下文容量内尽可能多的后续故事、写这一段时使用的背景设定以及这一段本身。在您应用结果之前，书中的内容不会改变。");
+        setValue(L.MSG_REDRAFT_PLACEHOLDER, "例如：增加两人之间的对话，让战斗更长，保持结尾不变。");
+        setValue(L.MSG_REDRAFT_APPLIED, "该段已被重写的文本替换。");
+        setValue(L.MSG_REDRAFT_OUTDATED_SUMMARIES, "有 %d 条摘要基于旧文本，现已过时。");
+        setValue(L.MSG_COMMAND_REDRAFTING, "正在重写该段…");
+        setValue(L.MSG_COMMAND_REDRAFT_CONFIRM, "用重写的文本替换第 %d 段吗？");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1175,6 +1193,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_LANGUAGE, "代理读到的所有文本（命令的说明、结果和错误）所用的语言。它与书的语言无关：无论如何设置，代理都用书的语言写书。命令及其参数在所有语言中都是英文，因此英语最可靠，尤其是对小模型。列表中是已安装的语言；一次运行保持它开始时的语言。");
         setValue(L.HELP_JSON_MERGE, "将智能体、书籍当前和运行开始时的数据叠放在一起。选择一个位置,可以采用其中一方的数据、不保留,或由其内部的各个位置合成。只有一方更改的内容采用该方的,双方都更改的内容按位置合并;双方对同一位置做了不同的更改即为冲突,在您决定之前采用智能体的内容。打开某个位置即可只处理它。列表中的元素按其内容匹配(相同的数据、相同的 id 或名称、相似的元素);猜错时,可拆分元素或与另一个元素匹配。在文本视图中可以手动编写已打开位置的智能体数据,返回树视图时会进行检查。");
         setValue(L.HELP_NOTIFICATIONS_ALLOW_LOCAL, "仅在已授予权限时有效。服务器随后也会向 localhost、可访问的私有网络和链路本地地址（例如您自己网络中的 ntfy 或 Gotify）发送消息。否则只调用公共地址。管理员不受限制。");
+        setValue(L.HELP_COMMAND_SEARCH, "命令名称或说明中的词（顺序不限）。表中只显示包含所有这些词的命令；上方的选择仍适用于所有命令。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");
@@ -1486,6 +1505,16 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_INSERT_PART_RETURN, "包含新段落(句柄、位置、字数、令牌数)、延续它的分支数、其分支长度以及已过期摘要的 JSON");
         setValue(L.DESC_COMMAND_INSERT_ANCHOR_PARAM, "插入新段落时作为参照的段落(其句柄):插在它之后,before 为 true 时插在它之前");
         setValue(L.DESC_COMMAND_INSERT_BEFORE_PARAM, "为 true 时插在该段落之前而不是之后;省略时为 false");
+        setValue(L.DESC_TEMPLATE_PREVIOUS_STORY, "该段之前的故事，容量允许的结尾部分（更早的故事在摘要中）。");
+        setValue(L.DESC_TEMPLATE_PART_TEXT, "要重写的这一段的文本。");
+        setValue(L.DESC_TEMPLATE_FOLLOWING_STORY, "该段之后的故事，容量允许的部分。");
+        setValue(L.DESC_TEMPLATE_REDRAFT_INSTRUCTIONS, "作者希望在这一段中修改的内容（未提供说明时为空）。");
+        setValue(L.DESC_COMMAND_REDRAFT_PART, "让模型根据说明重写故事中的某一段（任意段落，不限于最后一段），并替换其文本。会消耗令牌。");
+        setValue(L.DESC_COMMAND_REDRAFT_PART_LLM, "让模型重写片段 `part`（其句柄）并用结果替换其文本；该片段可位于故事中的任意位置。`instructions` 是要修改的内容（“增加对话”“让战斗更长”“保持结尾”），省略则以相同事件重写该段。模型会看到该段、其前后的故事（较早的故事以摘要代替）、写这一段时使用的背景设定及该回合的数据。`prompt` 是代替本书重写提示词的提示词（带有变量 text、redraftInstructions、previousStory、summaries、followingStory、backgroundLore、narrativePov、narrativeTense、style、povCharacter、sceneSetting、presentCharacters、instructions 的模板）；`profile` 是代替本次运行模型的代理模型配置；`apply` 为 false 时只返回重写的文本，不改动该段（先查看，再用 replace-part-text）。会替换文本，因此覆盖该段的摘要将过时（会报告）。较慢，消耗令牌。返回该段，apply 为 false 时还返回文本。");
+        setValue(L.DESC_COMMAND_REDRAFT_PART_RETURN, "JSON 对象：该段的句柄、位置、字数、令牌数、已编辑标记、applied、文本（apply 为 false 时为全文）以及过时的摘要");
+        setValue(L.DESC_COMMAND_REDRAFT_INSTRUCTIONS_PARAM, "要在该段中修改的内容；留空则以相同事件重写");
+        setValue(L.DESC_COMMAND_REDRAFT_PROMPT_PARAM, "代替本书重写提示词的提示词（模板）；留空则使用本书的");
+        setValue(L.DESC_COMMAND_REDRAFT_APPLY_PARAM, "false 仅返回重写的文本，不改动该段；true（默认）则替换该段文本");
     }
 
     @Override

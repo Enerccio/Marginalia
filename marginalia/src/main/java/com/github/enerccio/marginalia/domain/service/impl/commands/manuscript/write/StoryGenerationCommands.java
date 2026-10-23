@@ -1,12 +1,12 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.write;
 
 import com.github.enerccio.marginalia.domain.components.TurnInput;
-import com.github.enerccio.marginalia.domain.model.AgentModelProfile;
-import com.github.enerccio.marginalia.domain.model.impl.Agent;
-import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.AIGate;
+import com.github.enerccio.marginalia.domain.service.CancellationToken;
+import com.github.enerccio.marginalia.domain.service.GenerationListener;
+import com.github.enerccio.marginalia.domain.service.StoryGenerationService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
@@ -299,9 +299,6 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
     @Autowired
     private StoryGenerationService storyGenerationService;
 
-    @Autowired
-    private AgentService agentService;
-
     private void next(CommandContext context, String scene, String pov, String present, String instructions, String after,
                       String profile) throws Exception {
         generate(context, GenerationRequestType.NEW_MESSAGE, null, after, scene, pov, present, instructions, profile);
@@ -397,28 +394,6 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
 
     private static String text(String text) {
         return text == null ? "" : text;
-    }
-
-    /**
-     * The AI and the protocol to write with: those of the book, or those of the model profile of the agent.
-     */
-    private GenerationOptions options(CommandContext context, String profile) throws Exception {
-        if (profile == null || profile.isBlank()) {
-            return GenerationOptions.defaults();
-        }
-        AgentRun run = context.getScope().getRun();
-        if (run == null) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_PROFILE_AGENT_ONLY));
-        }
-        Agent agent = agentService.findForUser(run.getAgent().getUuid());
-        AgentModelProfile found = agent.getModelProfiles().stream().filter(p -> p.getRole().equalsIgnoreCase(profile.strip()))
-                .findFirst().orElseThrow(() -> new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_UNKNOWN_PROFILE),
-                        profile, agent.getModelProfiles().stream().map(AgentModelProfile::getRole).toList())));
-        AgentService.ResolvedProfile resolved = agentService.resolveProfile(found);
-        if (resolved == null) {
-            throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_PROFILE_UNUSABLE), found.getRole()));
-        }
-        return GenerationOptions.defaults().withModel(resolved.ai(), resolved.protocol());
     }
 
     /**

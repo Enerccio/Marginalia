@@ -62,6 +62,27 @@ public class NameLists {
         return categories.keySet().stream().sorted().toList();
     }
 
+    /**
+     * The titles in which every word of the filter starts a word (ignoring the case; the words of the filter are separated
+     * by spaces), in the given order; all of them for a blank filter. So "chad male" finds "Africa - Chad - Male" but not
+     * "Africa - Chad - Female".
+     */
+    static List<String> filter(List<String> titles, String filter) {
+        if (filter == null || filter.isBlank()) {
+            return List.copyOf(titles);
+        }
+        List<java.util.regex.Pattern> words = Arrays.stream(filter.strip().split("\\s+"))
+                .map(word -> java.util.regex.Pattern.compile("(?<![\\p{L}\\p{N}])" + java.util.regex.Pattern.quote(word),
+                        java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.UNICODE_CASE))
+                .toList();
+        return titles.stream().filter(title -> words.stream().allMatch(word -> word.matcher(title).find())).toList();
+    }
+
+    /** The titles of the categories that contain every word of the filter, see {@link #filter}. */
+    public List<String> categories(String filter) {
+        return filter(categories(), filter);
+    }
+
     public boolean has(String category) {
         return category != null && categories.containsKey(category.strip());
     }

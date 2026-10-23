@@ -66,7 +66,7 @@ class BuiltInCommandTextsTest extends MarginaliaTestBase {
                 "set-lore-entry-tags", "create-lorebook", "set-lorebook", "add-subbook", "remove-subbook")) {
             expected.put(name, CommandDataSeverity.NON_DESTRUCTIVE);
         }
-        for (String name : List.of("replace-part-text", "delete-part", "remove-summary", "regenerate", "set-book-prompts",
+        for (String name : List.of("replace-part-text", "delete-part", "remove-summary", "regenerate", "redraft-part", "set-book-prompts",
                 "delete-lore-entry", "delete-lorebook")) {
             expected.put(name, CommandDataSeverity.DESTRUCTIVE);
         }

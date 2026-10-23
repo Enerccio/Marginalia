@@ -65,6 +65,7 @@ parameters (`{{#if name}}`) are not checked.
 | Master template | `PrepareContentStep` (twice: token estimate on a fork, then for real) | `MasterTemplateData` | `backgroundLore`, `narrativePov`, `narrativeTense`, `style`, `summaries` |
 | Summary prompt | `SummaryServiceImpl.createSummaryPayload` | `SummaryTemplateData` | `backgroundLore`, `text` (the parts to summarize) |
 | Meta summary prompt | `SummaryServiceImpl.createMetaSummaryPayload` | `MetaSummaryTemplateData` | `backgroundLore`, `summaryBlocks` (the summaries to merge, oldest first) |
+| Redraft prompt | `RedraftServiceImpl.createPayload` (an estimation render on a fork, then for real) | `RedraftTemplateData` | `text` (the part), `redraftInstructions`, `previousStory`, `summaries`, `followingStory`, `backgroundLore` (stored on the part), `narrativePov`, `narrativeTense`, `style`, and the turn of the part: `povCharacter`, `sceneSetting`, `presentCharacters`, `instructions` |
 
 The order of the [generation pipeline](generation-pipeline.md) matters: the user prompt is rendered first, then the
 lorebook entries, then the master template - a variable set in the user prompt is visible in lore, and lore can set
@@ -106,7 +107,7 @@ token estimate of the master template uses one.
 
 Summaries and meta summaries build their own context (`SummaryServiceImpl.createTemplateContext`) from the part being
 summarized (for a meta summary: the part it is stored on); the variable changes made by a summary prompt are not
-stored.
+stored. A redraft uses the same method for the part being redrafted.
 
 ## How macros are translated
 

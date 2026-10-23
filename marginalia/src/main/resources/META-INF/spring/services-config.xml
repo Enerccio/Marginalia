@@ -131,6 +131,8 @@
         <property name="repository" ref="summaryRepository" />
     </bean>
 
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.RedraftServiceImpl" />
+
     <bean id="agentRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaAgentRepository">
         <property name="entityManager" ref="em"/>
     </bean>

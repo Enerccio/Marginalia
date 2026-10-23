@@ -26,6 +26,7 @@ import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.popover.Popover;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
@@ -102,9 +103,14 @@ public class CharacterTrackerView extends VerticalLayout {
     }
 
     private void buildUI() {
-        Button add = new Button("Add new character", Solid.PLUS.create(), _ -> openDialog(null));
-        add.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        Button map = new Button("Relationship map", Solid.SITEMAP.create(), _ -> new RelationshipMapDialog(book).open());
+        Button add = new Button("Add", Solid.PLUS.create(), _ -> openDialog(null));
+        add.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
+        add.setTooltipText("Add new character");
+        Button map = new Button(Solid.SITEMAP.create(), _ -> new RelationshipMapDialog(book).open());
+        map.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
+        map.setTooltipText("Relationship map");
+        map.getElement().setAttribute("aria-label", "Relationship map");
+        Button prompt = createPromptButton();
 
         MenuBar tools = new MenuBar();
         tools.addThemeVariants(MenuBarVariant.LUMO_TERTIARY);
@@ -112,11 +118,10 @@ public class CharacterTrackerView extends VerticalLayout {
         toolsItem.getElement().setAttribute("aria-label", "More actions");
         toolsItem.getSubMenu().addItem("Import lore entries as characters", _ -> openImportDialog());
 
-        HorizontalLayout buttons = new HorizontalLayout(add, tools, map);
+        HorizontalLayout buttons = new HorizontalLayout(add, tools, map, prompt);
         buttons.setAlignItems(Alignment.CENTER);
-        buttons.setWrap(true);
         buttons.setPadding(true);
-        HorizontalLayout promptRow = createPromptRow();
+        buttons.setSpacing(false);
 
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_NO_ROW_BORDERS);
         grid.setDetailsVisibleOnClick(false);
@@ -124,18 +129,42 @@ public class CharacterTrackerView extends VerticalLayout {
         grid.setItemDetailsRenderer(new ComponentRenderer<>(this::createDetails));
         grid.setSizeFull();
 
-        add(buttons, promptRow, grid);
+        add(buttons, grid);
         setFlexGrow(1, grid);
     }
 
     /**
-     * One line with the switch that puts the characters into the prompt and where they go, like the Author's Note.
+     * The button that opens the popover with the switch that puts the characters into the prompt and where they go,
+     * like the Author's Note. It is green while the characters are in the prompt.
      */
-    private HorizontalLayout createPromptRow() {
+    private Button createPromptButton() {
+        Button button = new Button(Solid.COMMENT_DOTS.create());
+        button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
+        button.getElement().setAttribute("aria-label", "Characters in the prompt");
+        button.setTooltipText("Characters in the prompt");
+        showPromptState(button);
+
+        Popover popover = new Popover();
+        popover.setTarget(button);
+        popover.setModal(false);
+        popover.add(createPromptControls(button));
+        return button;
+    }
+
+    private void showPromptState(Button button) {
+        if (book.isPromptEnabled()) {
+            button.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+        } else {
+            button.removeThemeVariants(ButtonVariant.LUMO_SUCCESS);
+        }
+    }
+
+    private VerticalLayout createPromptControls(Button button) {
         Checkbox enabled = new Checkbox("In prompt", book.isPromptEnabled());
         enabled.setTooltipText("Insert the characters and their relationships into the prompt of every generation");
         enabled.addValueChangeListener(e -> {
             book.setPromptEnabled(e.getValue());
+            showPromptState(button);
             persist();
         });
 
@@ -145,7 +174,7 @@ public class CharacterTrackerView extends VerticalLayout {
         depth.setMin(0);
         depth.setStepButtonsVisible(true);
         depth.setValue(book.getPromptDepth());
-        depth.setWidth("9.5em");
+        depth.setWidth("11em");
         depth.addValueChangeListener(e -> {
             if (e.getValue() != null && e.getValue() >= 0) {
                 book.setPromptDepth(e.getValue());
@@ -159,7 +188,7 @@ public class CharacterTrackerView extends VerticalLayout {
         role.setItems(LLMRole.SYSTEM, LLMRole.ASSISTANT, LLMRole.USER);
         role.setItemLabelGenerator(r -> StringUtils.capitalize(r.name().toLowerCase()));
         role.setValue(book.getPromptRole());
-        role.setWidth("8.5em");
+        role.setWidth("11em");
         role.addValueChangeListener(e -> {
             if (e.getValue() != null) {
                 book.setPromptRole(e.getValue());
@@ -167,12 +196,10 @@ public class CharacterTrackerView extends VerticalLayout {
             }
         });
 
-        HorizontalLayout row = new HorizontalLayout(enabled, depth, role);
-        row.setAlignItems(Alignment.CENTER);
-        row.setWrap(true);
-        row.setPadding(true);
-        row.setSpacing(true);
-        return row;
+        VerticalLayout controls = new VerticalLayout(enabled, depth, role);
+        controls.setPadding(false);
+        controls.setSpacing(true);
+        return controls;
     }
 
     private void refreshGrid() {

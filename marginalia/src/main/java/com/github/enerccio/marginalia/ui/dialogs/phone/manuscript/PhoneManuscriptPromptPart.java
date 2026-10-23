@@ -48,6 +48,7 @@ public class PhoneManuscriptPromptPart implements PhoneManuscriptDialogPart {
     private TextAreaPopoverComponent userPromptField;
     private TextAreaPopoverComponent summaryField;
     private TextAreaPopoverComponent metaSummaryField;
+    private TextAreaPopoverComponent redraftField;
 
     private boolean loading = false;
 
@@ -68,7 +69,7 @@ public class PhoneManuscriptPromptPart implements PhoneManuscriptDialogPart {
 
         createFields();
 
-        mainLayout.add(masterTemplateField, povField, tenseField, styleField, userPromptField, summaryField, metaSummaryField);
+        mainLayout.add(masterTemplateField, povField, tenseField, styleField, userPromptField, summaryField, metaSummaryField, redraftField);
         return mainLayout;
     }
 
@@ -106,6 +107,15 @@ public class PhoneManuscriptPromptPart implements PhoneManuscriptDialogPart {
         metaSummaryField.setWidthFull();
         ResizableTextArea.install(loc, metaSummaryField, "160px");
         metaSummaryField.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                autosave();
+            }
+        });
+
+        redraftField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_REDRAFT_PROMPT));
+        redraftField.setWidthFull();
+        ResizableTextArea.install(loc, redraftField, "160px");
+        redraftField.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 autosave();
             }
@@ -159,6 +169,7 @@ public class PhoneManuscriptPromptPart implements PhoneManuscriptDialogPart {
                     @APILocals(name = "userPrompt", type = String.class),
                     @APILocals(name = "summaryPrompt", type = String.class),
                     @APILocals(name = "metaSummaryPrompt", type = String.class),
+                    @APILocals(name = "redraftPrompt", type = String.class),
                     @APILocals(name = "manuscript", type = Manuscript.class),
                     @APILocals(name = "e", type = Exception.class)})
     private void autosave() {
@@ -169,7 +180,8 @@ public class PhoneManuscriptPromptPart implements PhoneManuscriptDialogPart {
         if (!validateTemplate(masterTemplateField, "masterTemplate", MasterTemplateData.class)
                 || !validateTemplate(userPromptField, "userPrompt", UserPromptData.class)
                 || !validateTemplate(summaryField, "summaryPrompt", SummaryTemplateData.class)
-                || !validateTemplate(metaSummaryField, "metaSummaryPrompt", MetaSummaryTemplateData.class)) {
+                || !validateTemplate(metaSummaryField, "metaSummaryPrompt", MetaSummaryTemplateData.class)
+                || !validateTemplate(redraftField, "redraftPrompt", RedraftTemplateData.class)) {
             return;
         }
 
@@ -177,6 +189,7 @@ public class PhoneManuscriptPromptPart implements PhoneManuscriptDialogPart {
         String userPrompt = userPromptField.getValue();
         String summaryPrompt = summaryField.getValue();
         String metaSummaryPrompt = metaSummaryField.getValue();
+        String redraftPrompt = redraftField.getValue();
 
         try {
             Manuscript manuscript = refreshModel();
@@ -191,6 +204,7 @@ public class PhoneManuscriptPromptPart implements PhoneManuscriptDialogPart {
             manuscript.setUserPrompt(userPrompt);
             manuscript.setSummaryPrompt(summaryPrompt);
             manuscript.setMetaSummaryPrompt(metaSummaryPrompt);
+            manuscript.setRedraftPrompt(redraftPrompt);
 
             parent.save();
         } catch (Exception e) {
@@ -248,6 +262,7 @@ public class PhoneManuscriptPromptPart implements PhoneManuscriptDialogPart {
                     @APILocals(name = "defaultUserPrompt", type = String.class),
                     @APILocals(name = "defaultSummaryPrompt", type = String.class),
                     @APILocals(name = "defaultMetaSummaryPrompt", type = String.class),
+                    @APILocals(name = "defaultRedraftPrompt", type = String.class),
                     @APILocals(name = "e", type = Exception.class)})
     @Override
     public void load(Manuscript manuscript) {
@@ -272,6 +287,8 @@ public class PhoneManuscriptPromptPart implements PhoneManuscriptDialogPart {
                     ? userSetting.getDefaultSummaryPrompt() : Defaults.DEFAULT_SUMMARY_PROMPT;
             String defaultMetaSummaryPrompt = StringUtils.isNotBlank(userSetting.getDefaultMetaSummaryPrompt())
                     ? userSetting.getDefaultMetaSummaryPrompt() : Defaults.DEFAULT_META_SUMMARY;
+            String defaultRedraftPrompt = StringUtils.isNotBlank(userSetting.getDefaultRedraftPrompt())
+                    ? userSetting.getDefaultRedraftPrompt() : Defaults.DEFAULT_REDRAFT_PROMPT;
 
             masterTemplateField.setPlaceholder(defaultMasterTemplate);
             povField.setPlaceholder(defaultPov);
@@ -280,6 +297,7 @@ public class PhoneManuscriptPromptPart implements PhoneManuscriptDialogPart {
             userPromptField.setPlaceholder(defaultUserPrompt);
             summaryField.setPlaceholder(defaultSummaryPrompt);
             metaSummaryField.setPlaceholder(defaultMetaSummaryPrompt);
+            redraftField.setPlaceholder(defaultRedraftPrompt);
 
             masterTemplateField.setValue(StringUtils.defaultString(manuscript.getTemplate()));
             povField.setValue(StringUtils.defaultString(manuscript.getPov()));
@@ -288,11 +306,13 @@ public class PhoneManuscriptPromptPart implements PhoneManuscriptDialogPart {
             userPromptField.setValue(StringUtils.defaultString(manuscript.getUserPrompt()));
             summaryField.setValue(StringUtils.defaultString(manuscript.getSummaryPrompt()));
             metaSummaryField.setValue(StringUtils.defaultString(manuscript.getMetaSummaryPrompt()));
+            redraftField.setValue(StringUtils.defaultString(manuscript.getRedraftPrompt()));
 
             validateTemplate(masterTemplateField, "masterTemplate", MasterTemplateData.class);
             validateTemplate(userPromptField, "userPrompt", UserPromptData.class);
             validateTemplate(summaryField, "summaryPrompt", SummaryTemplateData.class);
             validateTemplate(metaSummaryField, "metaSummaryPrompt", MetaSummaryTemplateData.class);
+            validateTemplate(redraftField, "redraftPrompt", RedraftTemplateData.class);
 
             masterTemplateField.setPopoverContent(createTemplateHintPopoverContent(
                     masterTemplateField, masterTemplateField.getPopover(), MasterTemplateData.class, defaultMasterTemplate));
@@ -308,6 +328,8 @@ public class PhoneManuscriptPromptPart implements PhoneManuscriptDialogPart {
                     summaryField, summaryField.getPopover(), SummaryTemplateData.class, defaultSummaryPrompt));
             metaSummaryField.setPopoverContent(createTemplateHintPopoverContent(
                     metaSummaryField, metaSummaryField.getPopover(), MetaSummaryTemplateData.class, defaultMetaSummaryPrompt));
+            redraftField.setPopoverContent(createTemplateHintPopoverContent(
+                    redraftField, redraftField.getPopover(), RedraftTemplateData.class, defaultRedraftPrompt));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         } finally {

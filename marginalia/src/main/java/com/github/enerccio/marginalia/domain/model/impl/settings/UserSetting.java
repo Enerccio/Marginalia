@@ -58,6 +58,10 @@ public class UserSetting extends Setting {
     @Transient
     private String defaultMetaSummaryPrompt;
 
+    @ExtendedAttribute
+    @Transient
+    private String defaultRedraftPrompt;
+
     /**
      * The system prompt of the agents of the user that have none of their own; blank is the one of the application
      * settings, and then {@code Defaults.DEFAULT_AGENT_PROMPT}.
@@ -211,6 +215,14 @@ public class UserSetting extends Setting {
 
     public void setDefaultMetaSummaryPrompt(String defaultMetaSummaryPrompt) {
         this.defaultMetaSummaryPrompt = defaultMetaSummaryPrompt;
+    }
+
+    public String getDefaultRedraftPrompt() {
+        return defaultRedraftPrompt;
+    }
+
+    public void setDefaultRedraftPrompt(String defaultRedraftPrompt) {
+        this.defaultRedraftPrompt = defaultRedraftPrompt;
     }
 
     public String getDefaultAgentCompactionPrompt() {

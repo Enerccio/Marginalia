@@ -6,12 +6,12 @@ Gives the model functions to get names instead of inventing them, from Markov ch
 
 | Function | Arguments | Answer |
 |---|---|---|
-| `list_name_categories` | none | the categories of names that can be generated |
+| `list_name_categories` | `filter` (optional: words the name of the category has to contain, e.g. `chad male`) | the categories of names that can be generated |
 | `generate_names` | `category`, `count`, optional `min_length`, `max_length` | `count` names of the category; `count` is limited to 1-100 and the lengths (in letters) to 2-30, whatever the model asks for; without lengths the usual ones of the category are used (see *Chain settings*), else 3 and 20; limits the wrong way round are swapped |
 
 ## Commands
 
-The same names for the command bar and for agents (`NameGeneratorCommands`, both `NON_DESTRUCTIVE`): `/list-name-categories [filter]` (a JSON array with a category on each line; `filter` is the start of the name of the categories to list, not case sensitive, since there are over a thousand of them) and `/generate-names category count [min_length [max_length]]` (a JSON array of names, same limits as the function).
+The same names for the command bar and for agents (`NameGeneratorCommands`, both `NON_DESTRUCTIVE`): `/list-name-categories [filter]` (a JSON array with a category on each line; `filter` is words that start words in the name of the categories to list, in any order, not case sensitive, since there are over a thousand of them) and `/generate-names category count [min_length [max_length]]` (a JSON array of names, same limits as the function).
 
 ## For developers
 

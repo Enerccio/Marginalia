@@ -64,6 +64,7 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
     String getSummaryPrompt(Manuscript manuscript) throws Exception;
 
     String getMetaSummaryPrompt(Manuscript manuscript) throws Exception;
+    String getRedraftPrompt(Manuscript manuscript) throws Exception;
     BackupStrategy getBackupStrategy(Manuscript manuscript) throws Exception;
     String getBackupStrategyValue(Manuscript manuscript) throws Exception;
 

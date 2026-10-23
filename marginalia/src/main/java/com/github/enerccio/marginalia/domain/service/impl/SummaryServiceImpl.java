@@ -616,7 +616,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
      *
      * @param newestFirst branch from {@code from} back to the root
      */
-    private TemplateContext createTemplateContext(Manuscript manuscript, ChatMessage from, AI ai, Protocol protocol, List<ChatMessage> newestFirst) {
+    static TemplateContext createTemplateContext(Manuscript manuscript, ChatMessage from, AI ai, Protocol protocol, List<ChatMessage> newestFirst) {
         TemplateContext context = new TemplateContext();
         context.setPovCharacter(from.getPovCharacter());
         context.setPresentCharacters(from.getPresentCharacters());

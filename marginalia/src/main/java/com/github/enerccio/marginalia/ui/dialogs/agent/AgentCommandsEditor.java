@@ -18,6 +18,9 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.ListDataProvider;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -50,7 +53,9 @@ public class AgentCommandsEditor extends VerticalLayout {
     private TokenizerService tokenizerService;
 
     private final ComboBox<AgentCommandPreset> presetCombo;
+    private final TextField searchField;
     private final Grid<Row> grid;
+    private final ListDataProvider<Row> dataProvider = new ListDataProvider<>(new ArrayList<>());
     private final List<Row> rows = new ArrayList<>();
     private final Set<String> selected = new LinkedHashSet<>();
     // allowed names that no command has now
@@ -79,7 +84,15 @@ public class AgentCommandsEditor extends VerticalLayout {
             }
         });
 
+        searchField = new TextField(loc.getValue(L.LABEL_SEARCH_COMMANDS));
+        searchField.setClearButtonVisible(true);
+        searchField.setPrefixComponent(com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid.MAGNIFYING_GLASS.create());
+        searchField.setHelperText(loc.getValue(L.HELP_COMMAND_SEARCH));
+        searchField.setValueChangeMode(ValueChangeMode.LAZY);
+        searchField.addValueChangeListener(event -> dataProvider.setFilter(row -> matches(row, event.getValue())));
+
         grid = new Grid<>(Row.class, false);
+        grid.setDataProvider(dataProvider);
         grid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES);
         if (phone) {
             grid.setHeight("420px");
@@ -100,7 +113,12 @@ public class AgentCommandsEditor extends VerticalLayout {
 
         setPadding(false);
         setSpacing(false);
-        add(presetCombo, grid);
+        HorizontalLayout controls = new HorizontalLayout(presetCombo, searchField);
+        controls.setWidthFull();
+        controls.setPadding(false);
+        controls.setWrap(true);
+        controls.setFlexGrow(1, presetCombo, searchField);
+        add(controls, grid);
         loadCommands();
     }
 
@@ -171,7 +189,21 @@ public class AgentCommandsEditor extends VerticalLayout {
                     definition.readOnly(), tokensOf(definition.commandName())));
         }
         rows.sort(Comparator.comparing(Row::humanName, loc.createLocaleComparator()));
-        grid.setItems(rows);
+        dataProvider.getItems().clear();
+        dataProvider.getItems().addAll(rows);
+        dataProvider.refreshAll();
+    }
+
+    /**
+     * Whether the command has every word of the filter (in any order, ignoring the case) in its name, human name or
+     * description; every command for a blank filter.
+     */
+    static boolean matches(Row row, String filter) {
+        if (filter == null || filter.isBlank()) {
+            return true;
+        }
+        String text = (row.name() + " " + row.humanName() + " " + row.description()).toLowerCase(Locale.ROOT);
+        return Arrays.stream(filter.strip().toLowerCase(Locale.ROOT).split("\\s+")).allMatch(text::contains);
     }
 
     /**
@@ -349,6 +381,12 @@ public class AgentCommandsEditor extends VerticalLayout {
             returns = @APIReturn(type = ComboBox.class))
     ComboBox<AgentCommandPreset> getPresetCombo() {
         return presetCombo;
+    }
+
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = TextField.class))
+    TextField getSearchField() {
+        return searchField;
     }
 
     @PublicAPI(from = "1.4.0",

@@ -20,8 +20,8 @@ public class NameGeneratorFunctionsImpl implements NameGeneratorFunctions {
     }
 
     @Override
-    public void listCategories(FunctionContinuation<List<String>> done) {
-        done.complete(tables.categories());
+    public void listCategories(FunctionContinuation<List<String>> done, String filter) {
+        done.complete(tables.categories(filter));
     }
 
     @Override

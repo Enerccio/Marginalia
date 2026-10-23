@@ -240,6 +240,18 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     }
 
     @Override
+    public String getRedraftPrompt(Manuscript manuscript) throws Exception {
+        if (StringUtils.isNotBlank(manuscript.getRedraftPrompt())) {
+            return manuscript.getRedraftPrompt();
+        }
+        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+        if (StringUtils.isNotBlank(userSetting.getDefaultRedraftPrompt())) {
+            return userSetting.getDefaultRedraftPrompt();
+        }
+        return Defaults.DEFAULT_REDRAFT_PROMPT;
+    }
+
+    @Override
     public String getMetaSummaryPrompt(Manuscript manuscript) throws Exception {
         if (StringUtils.isNotBlank(manuscript.getMetaSummaryPrompt())) {
             return manuscript.getMetaSummaryPrompt();

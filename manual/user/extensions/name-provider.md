@@ -18,7 +18,7 @@ check lists of both, of one of them or of none.
 
 | Function | What it does |
 |---|---|
-| `list_real_name_lists` | Lists the lists of names. |
+| `list_real_name_lists` | Lists the lists of names; with a `filter` only those that have its words in the name. |
 | `pick_real_names` | Picks up to 100 different names of one list at random. Every name is a pair, the romanized name and the original one. |
 
 A list with fewer names than asked for returns all of them. The model is told (see the hint of the *Name provider* suite
@@ -32,7 +32,7 @@ which can use them in their own prompts (for example for `/generate-lore-entry` 
 
 | Command | What it does |
 |---|---|
-| `/list-real-name-lists` | Lists the lists as a JSON array. |
+| `/list-real-name-lists [<filter>]` | Lists the lists as a JSON array; with a filter only those whose name has all its words (each at the start of a word, in any order, not case sensitive). |
 | `/pick-real-names list count` | Picks up to 100 names of the list at random and returns them as a JSON array of pairs, the romanized name and the original one. |
 
 Both only read.

@@ -20,13 +20,13 @@ public class NameGeneratorCommands {
 
     private static final Gson GSON = new Gson();
 
-    private static final String LIST_TEXT = "Lists the categories of names that generate-names accepts, all of them or those whose name starts with "
-            + "the filter. Reads only.";
+    private static final String LIST_TEXT = "Lists the categories of names that generate-names accepts, all of them or those in whose name every "
+            + "word of the filter starts a word. Reads only.";
     private static final String LIST_LLM = "Lists the categories of made-up names that generate-names accepts. There are over a thousand, so give "
-            + "`filter`, the start of the name of the category (not case sensitive; the names are paths like \"Africa - Central Africa - Chad - Male\", so \"Africa - Central\" lists that region), and only the categories that start so are listed. "
+            + "`filter`, words the name of the category contains (in any order, not case sensitive; the names are paths like \"Africa - Central Africa - Chad - Male\", so \"chad male\" or \"Africa - Central\" finds that), and only the categories that contain all the words are listed. "
             + "Returns a JSON array. Reads only.";
     private static final String LIST_RESULT = "JSON array of the categories";
-    private static final String PARAM_FILTER = "The start of the name of the categories to list, not case sensitive";
+    private static final String PARAM_FILTER = "Words the name of the categories contains, in any order, not case sensitive";
     private static final String GENERATE_TEXT = "Generates made-up names of a category from Markov chains (at most "
             + NameGeneratorFunctionsImpl.MAX_COUNT + " at a time). Reads only.";
     private static final String GENERATE_LLM = "Generates made-up names of one category (see list-name-categories), at random each time. Use it "

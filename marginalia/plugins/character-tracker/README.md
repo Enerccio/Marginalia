@@ -12,7 +12,7 @@ The story view gets a *Characters* tab in its left sidebar (next to the outline)
 - **Add new character** - a dialog with *Name*, *Tagline*, *Note*, *Icon* and *Color*. The same dialog edits a
   character (the pen). An uploaded icon is scaled down to at most 200 x 200 pixels (the proportions are kept, smaller
   images stay as they are) and stored in the book as a base64 PNG.
-- A line under the buttons, **In prompt** with **Depth** and a role: when checked, every generation gets the characters
+- A button with a speech-bubble icon in the top bar opens a popover with **In prompt**, **Depth** and a role (the button is green while it is on): when checked, every generation gets the characters
   (name, tagline in brackets and note of each, then the relationships as `A -> B: name, tagline`, `<->` when both ways)
   as one message, `Depth` messages before the end of the prompt like the Author's Note (`0` the very end, `1` right
   before the instructions), as a system, assistant or user message. Its tokens are reserved from the room for the story.

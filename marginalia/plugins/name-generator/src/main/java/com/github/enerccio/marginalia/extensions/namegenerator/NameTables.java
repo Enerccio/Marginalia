@@ -85,12 +85,27 @@ public class NameTables {
     }
 
     /**
-     * The categories whose title starts with the text, ignoring the case and the spaces around it, in the order of
-     * {@link #categories()}; all of them for a blank text.
+     * The categories in whose title every word of the filter starts a word, see {@link #filter}, in the order of
+     * {@link #categories()}.
      */
-    public List<String> categories(String prefix) {
-        String start = prefix == null ? "" : prefix.strip().toLowerCase(Locale.ROOT);
-        return categories().stream().filter(title -> title.toLowerCase(Locale.ROOT).startsWith(start)).toList();
+    public List<String> categories(String filter) {
+        return filter(categories(), filter);
+    }
+
+    /**
+     * The titles in which every word of the filter starts a word (ignoring the case; the words of the filter are separated
+     * by spaces), in the given order; all of them for a blank filter. So "chad male" finds "Africa - Chad - Male" but not
+     * "Africa - Chad - Female".
+     */
+    static List<String> filter(List<String> titles, String filter) {
+        if (filter == null || filter.isBlank()) {
+            return List.copyOf(titles);
+        }
+        List<java.util.regex.Pattern> words = Arrays.stream(filter.strip().split("\\s+"))
+                .map(word -> java.util.regex.Pattern.compile("(?<![\\p{L}\\p{N}])" + java.util.regex.Pattern.quote(word),
+                        java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.UNICODE_CASE))
+                .toList();
+        return titles.stream().filter(title -> words.stream().allMatch(word -> word.matcher(title).find())).toList();
     }
 
     public boolean has(String category) {

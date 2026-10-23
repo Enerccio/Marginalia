@@ -1,13 +1,18 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.write;
 
+import com.github.enerccio.marginalia.domain.model.AgentModelProfile;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
+import com.github.enerccio.marginalia.domain.model.impl.Agent;
+import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.AIGate;
+import com.github.enerccio.marginalia.domain.service.AgentService;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.SummaryService.SummaryBlock;
 import com.github.enerccio.marginalia.domain.service.TagService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read.ManuscriptReadSupport;
+import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.utils.CommandUtils;
 import com.google.gson.JsonArray;
@@ -36,6 +41,9 @@ public abstract class ManuscriptWriteSupport extends ManuscriptReadSupport {
 
     @Autowired
     protected AIGate aiGate;
+
+    @Autowired
+    protected AgentService agentService;
 
     /** The fields of a part that can be changed as text, with the name they have in the commands. */
     protected static final List<String> FIELDS = List.of("response", "instructions", "scene", "pov", "present");
@@ -230,5 +238,27 @@ public abstract class ManuscriptWriteSupport extends ManuscriptReadSupport {
             context.setReturn(loc.getValue(L.MSG_COMMAND_NOTHING_CHANGED));
         }
         return false;
+    }
+
+    /**
+     * The AI and the protocol to write with: those of the book, or those of the model profile of the agent.
+     */
+    protected GenerationOptions options(CommandContext context, String profile) throws Exception {
+        if (profile == null || profile.isBlank()) {
+            return GenerationOptions.defaults();
+        }
+        AgentRun run = context.getScope().getRun();
+        if (run == null) {
+            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_PROFILE_AGENT_ONLY));
+        }
+        Agent agent = agentService.findForUser(run.getAgent().getUuid());
+        AgentModelProfile found = agent.getModelProfiles().stream().filter(p -> p.getRole().equalsIgnoreCase(profile.strip()))
+                .findFirst().orElseThrow(() -> new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_UNKNOWN_PROFILE),
+                        profile, agent.getModelProfiles().stream().map(AgentModelProfile::getRole).toList())));
+        AgentService.ResolvedProfile resolved = agentService.resolveProfile(found);
+        if (resolved == null) {
+            throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_PROFILE_UNUSABLE), found.getRole()));
+        }
+        return GenerationOptions.defaults().withModel(resolved.ai(), resolved.protocol());
     }
 }

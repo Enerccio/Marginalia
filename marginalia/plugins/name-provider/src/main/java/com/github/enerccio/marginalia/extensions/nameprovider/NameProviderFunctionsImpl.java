@@ -20,8 +20,8 @@ public class NameProviderFunctionsImpl implements NameProviderFunctions {
     }
 
     @Override
-    public void listLists(FunctionContinuation<List<String>> done) {
-        done.complete(lists.categories());
+    public void listLists(FunctionContinuation<List<String>> done, String filter) {
+        done.complete(lists.categories(filter));
     }
 
     @Override
