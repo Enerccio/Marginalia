@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846055218379">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846055927743">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846055218379" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846055927743" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846055218379" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846055927743" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846055218379" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846055927743" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -206,7 +206,9 @@ have it, but the limits are the same as for everybody: the defaults unless they 
 |---|---|
 | **Agent ID** | The identifier of the agent. |
 | **Name** | The name you gave it. |
-| **Status** | What its run is doing: *Running*, *Waiting for you*, *Waiting for approval*, *Pausing*, *Paused*, *Stopping*, *Stopped, result kept*, *Done, waits for the review*, *Applied*. An agent without a run says *Not running*, or *Disabled* when it is switched off. |">
+| **Book** | The book the agent works on. |
+| **Status** | What its run is doing: *Running*, *Waiting for you*, *Waiting for approval*, *Pausing*, *Paused*, *Stopping*, *Stopped, result kept*, *Done, waits for the review*, *Applied*. An agent without a run says *Not running*, or *Disabled* when it is switched off. |
+| **Last run** | When the newest run of the agent started, *never* for an agent without a run. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -225,8 +227,16 @@ have it, but the limits are the same as for everybody: the defaults unless they 
 <td>The name you gave it.</td>
 </tr>
 <tr>
+<td><strong>Book</strong></td>
+<td>The book the agent works on.</td>
+</tr>
+<tr>
 <td><strong>Status</strong></td>
 <td>What its run is doing: <em>Running</em>, <em>Waiting for you</em>, <em>Waiting for approval</em>, <em>Pausing</em>, <em>Paused</em>, <em>Stopping</em>, <em>Stopped, result kept</em>, <em>Done, waits for the review</em>, <em>Applied</em>. An agent without a run says <em>Not running</em>, or <em>Disabled</em> when it is switched off.</td>
+</tr>
+<tr>
+<td><strong>Last run</strong></td>
+<td>When the newest run of the agent started, <em>never</em> for an agent without a run.</td>
 </tr>
 </tbody>
 </table>
@@ -236,6 +246,7 @@ have it, but the limits are the same as for everybody: the defaults unless they 
     <img src="../../images/agents-tab.png" alt="The Agents tab" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
     <figcaption class="caption">The Agents tab</figcaption>
 </figure>
+<p>Above the table, two fields narrow the list: <strong>Name</strong> and <strong>Book</strong> show only the agents whose name, or whose book&#x27;s name, contains all the words you type, in any order and whatever the case. The headers <strong>Name</strong>, <strong>Book</strong>, <strong>Status</strong> and <strong>Last run</strong> sort the table (press again to reverse; the agents that never ran come first when the last run is ascending). On a phone, a <strong>Sort by</strong> selector above the cards orders them by name, status, or the newest run first.</p>
 <p>The buttons at the end of a row depend on the run:</p>
 <retype-table copy-text="| Button | |
 |---|---|
@@ -1034,7 +1045,7 @@ editing again after you paused or stopped the run. Other lorebooks are not affec
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (370c28e2).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (ed60f1a3).</p></div>
             </footer>
         </div>
     </div>

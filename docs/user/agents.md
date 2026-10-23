@@ -26,9 +26,13 @@ have it, but the limits are the same as for everybody: the defaults unless they 
 |---|---|
 | **Agent ID** | The identifier of the agent. |
 | **Name** | The name you gave it. |
+| **Book** | The book the agent works on. |
 | **Status** | What its run is doing: *Running*, *Waiting for you*, *Waiting for approval*, *Pausing*, *Paused*, *Stopping*, *Stopped, result kept*, *Done, waits for the review*, *Applied*. An agent without a run says *Not running*, or *Disabled* when it is switched off. |
+| **Last run** | When the newest run of the agent started, *never* for an agent without a run. |
 
 ![The Agents tab](../images/agents-tab.png)
+
+Above the table, two fields narrow the list: **Name** and **Book** show only the agents whose name, or whose book's name, contains all the words you type, in any order and whatever the case. The headers **Name**, **Book**, **Status** and **Last run** sort the table (press again to reverse; the agents that never ran come first when the last run is ascending). On a phone, a **Sort by** selector above the cards orders them by name, status, or the newest run first.
 
 The buttons at the end of a row depend on the run:
 
