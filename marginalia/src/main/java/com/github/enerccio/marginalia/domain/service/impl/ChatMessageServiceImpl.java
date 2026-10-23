@@ -641,6 +641,18 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
 
     @Override
     @CommonTx
+    public ChatMessage addPart(Manuscript manuscript, ChatMessage parent, ChatMessage part) throws Exception {
+        Manuscript book = ownBook(manuscript);
+        ChatMessage above = parent == null ? null : ownPart(book, parent);
+        String text = part.getResponse() == null ? "" : part.getResponse();
+        part.setResponse(text);
+        part.setTokenCount(countTokens(book, text));
+        part.setWordCount(countWords(text));
+        return above == null ? createRoot(book, part) : addChild(above, part);
+    }
+
+    @Override
+    @CommonTx
     public ChatMessage insertPart(Manuscript manuscript, ChatMessage after, String text, TurnInput input) throws Exception {
         Manuscript book = ownBook(manuscript);
         ChatMessage above = after == null ? null : ownPart(book, after);

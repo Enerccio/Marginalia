@@ -709,6 +709,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_ANNOTATION_PASSAGE, "Passage");
         setValue(L.LABEL_SELECT_ANNOTATIONS, "Only annotations");
         setValue(L.LABEL_ANNOTATIONS_IN_MARGIN, "Annotations in the margin");
+        setValue(L.LABEL_ST_MERGE_TURNS, "Merge user and assistant messages into one part");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1197,6 +1198,12 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_ANNOTATE_NOT_LOCATED, "Not found in the text, the note will be about the whole part");
         setValue(L.MSG_ANNOTATE_ADDED, "%d annotations added");
         setValue(L.MSG_MERGE_PROBLEM_NEEDS_PART, "The part of this annotation was deleted from the book.");
+        setValue(L.MSG_IMPORT_SILLYTAVERN, "Upload one or more SillyTavern chats (.jsonl). Chats that share their beginning (branches, checkpoints) are joined into one tree, the swipes of a message become alternative parts. The result is a new book.");
+        setValue(L.MSG_INVALID_SILLYTAVERN_CHAT, "%s is not a SillyTavern chat (.jsonl).");
+        setValue(L.MSG_ST_NO_MESSAGES, "The chats have no messages to import.");
+        setValue(L.MSG_ST_CHATS_READY, "%d chats ready to import.");
+        setValue(L.MSG_ST_IMPORT_STOPPED, "Stopped: %d of %d parts imported, the rest was not.");
+        setValue(L.MSG_IMPORTING_SILLYTAVERN, "Importing from SillyTavern");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1278,6 +1285,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_NOTIFICATIONS_ALLOW_LOCAL, "Only with the permission granted. The server then also sends messages to localhost, to the private networks it can reach and to link-local addresses (for example a ntfy or Gotify on your own network). Without it only public addresses are called. Administrators are not restricted.");
         setValue(L.HELP_COMMAND_SEARCH, "Words of the name or the description of a command, in any order. The table shows only the commands that have all of them; the selection above still applies to all commands.");
         setValue(L.HELP_KEYBOARD_SHORTCUTS, "Click Record and press the new key combination. A key without Ctrl, Alt or Meta works only when no text field has the focus. The shortcuts work in the story tab of an open book.");
+        setValue(L.HELP_ST_MERGE_TURNS, "The message of the user becomes the instructions of the part made of the answer after it. Without it every message is a part of its own.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

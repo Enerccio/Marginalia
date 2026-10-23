@@ -717,6 +717,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_ANNOTATION_PASSAGE, "段落内容");
         setValue(L.LABEL_SELECT_ANNOTATIONS, "仅批注");
         setValue(L.LABEL_ANNOTATIONS_IN_MARGIN, "在页边显示批注");
+        setValue(L.LABEL_ST_MERGE_TURNS, "将用户和助手的消息合并为一个段落");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1205,6 +1206,12 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_ANNOTATE_NOT_LOCATED, "在正文中没有找到，将作为针对整段的批注");
         setValue(L.MSG_ANNOTATE_ADDED, "已添加 %d 条批注");
         setValue(L.MSG_MERGE_PROBLEM_NEEDS_PART, "此批注所在的段落已从书中删除。");
+        setValue(L.MSG_IMPORT_SILLYTAVERN, "上传一个或多个 SillyTavern 聊天（.jsonl）。开头相同的聊天（分支、检查点）会合并为一棵树，消息的滑动（swipe）成为替代段落。结果是一本新书。");
+        setValue(L.MSG_INVALID_SILLYTAVERN_CHAT, "%s 不是 SillyTavern 聊天（.jsonl）。");
+        setValue(L.MSG_ST_NO_MESSAGES, "这些聊天中没有可导入的消息。");
+        setValue(L.MSG_ST_CHATS_READY, "已准备好导入 %d 个聊天。");
+        setValue(L.MSG_ST_IMPORT_STOPPED, "已停止：已导入 %d / %d 个段落，其余未导入。");
+        setValue(L.MSG_IMPORTING_SILLYTAVERN, "正在从 SillyTavern 导入");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1286,6 +1293,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_NOTIFICATIONS_ALLOW_LOCAL, "仅在已授予权限时有效。服务器随后也会向 localhost、可访问的私有网络和链路本地地址（例如您自己网络中的 ntfy 或 Gotify）发送消息。否则只调用公共地址。管理员不受限制。");
         setValue(L.HELP_COMMAND_SEARCH, "命令名称或说明中的词（顺序不限）。表中只显示包含所有这些词的命令；上方的选择仍适用于所有命令。");
         setValue(L.HELP_KEYBOARD_SHORTCUTS, "点击“录制”并按下新的组合键。不带 Ctrl、Alt 或 Meta 的按键仅在没有文本框获得焦点时生效。快捷键在已打开书籍的故事标签页中有效。");
+        setValue(L.HELP_ST_MERGE_TURNS, "用户的消息成为其后回答所生成段落的指示。不勾选时，每条消息都是独立的段落。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

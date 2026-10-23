@@ -29,5 +29,6 @@
     <module>marginalia/plugins/place-provider</module>
     <module>marginalia/plugins/reviewer</module>
     <module>marginalia/plugins/sidequery</module>
+    <module>marginalia/plugins/sillytavern-converter</module>
   </modules>
 </project>

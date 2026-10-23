@@ -8,9 +8,7 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
-import com.github.enerccio.marginalia.ui.dialogs.ArchiveImportRunner;
-import com.github.enerccio.marginalia.ui.dialogs.ArchiveUploadDialog;
-import com.github.enerccio.marginalia.ui.dialogs.TextInputDialog;
+import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.workspace.ManuscriptSection;
 import com.github.enerccio.marginalia.utils.MarkdownArchive;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -89,6 +87,20 @@ public class NewBookAction {
                     // a stopped import leaves the book with the parts until then, it is opened too
                     new ArchiveImportRunner().appendParts(manuscript, content, imported -> opener.open(manuscriptService.find(manuscript)));
                 });
+    }
+
+    /**
+     * Asks for chats of SillyTavern and opens a new book with their messages as a tree of parts, see
+     * {@link SillyTavernImportService#importTree}.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class))
+    public void runFromSillyTavern() {
+        SillyTavernImportDialog.show((tree, name) -> {
+            Manuscript manuscript = createBook(StringUtils.defaultIfBlank(name, loc.getValue(L.LABEL_NEW_BOOK)));
+            // a stopped import leaves the book with the parts until then, it is opened too
+            new SillyTavernImportRunner().run(manuscript, tree, imported -> opener.open(manuscriptService.find(manuscript)));
+        });
     }
 
     @PublicAPI(from = "1.4.0",

@@ -709,6 +709,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_ANNOTATION_PASSAGE, "該当箇所");
         setValue(L.LABEL_SELECT_ANNOTATIONS, "注釈のみ");
         setValue(L.LABEL_ANNOTATIONS_IN_MARGIN, "注釈を余白に表示");
+        setValue(L.LABEL_ST_MERGE_TURNS, "ユーザーとアシスタントのメッセージを 1 つのパートにまとめる");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1197,6 +1198,12 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_ANNOTATE_NOT_LOCATED, "本文に見つからないため、パート全体への注釈になります");
         setValue(L.MSG_ANNOTATE_ADDED, "注釈を %d 件追加しました");
         setValue(L.MSG_MERGE_PROBLEM_NEEDS_PART, "この注釈のパートがブックから削除されました。");
+        setValue(L.MSG_IMPORT_SILLYTAVERN, "SillyTavern のチャット（.jsonl）を 1 つ以上アップロードします。冒頭が共通のチャット（ブランチ、チェックポイント）は 1 つのツリーにまとめられ、メッセージのスワイプは代替パートになります。結果は新しい本になります。");
+        setValue(L.MSG_INVALID_SILLYTAVERN_CHAT, "%s は SillyTavern のチャット（.jsonl）ではありません。");
+        setValue(L.MSG_ST_NO_MESSAGES, "インポートするメッセージがチャットにありません。");
+        setValue(L.MSG_ST_CHATS_READY, "インポートの準備ができたチャット: %d 件。");
+        setValue(L.MSG_ST_IMPORT_STOPPED, "停止しました: %d / %d パートをインポートし、残りはインポートされませんでした。");
+        setValue(L.MSG_IMPORTING_SILLYTAVERN, "SillyTavern からインポート中");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1278,6 +1285,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_NOTIFICATIONS_ALLOW_LOCAL, "権限が付与されている場合のみ有効です。サーバーは localhost、到達可能なプライベートネットワーク、リンクローカルアドレス（自分のネットワークの ntfy や Gotify など）にもメッセージを送ります。許可がなければ公開アドレスだけを呼び出します。管理者は制限されません。");
         setValue(L.HELP_COMMAND_SEARCH, "コマンドの名前または説明に含まれる語（順不同）。表にはそのすべてを含むコマンドだけが表示されます。上の選択は引き続きすべてのコマンドに適用されます。");
         setValue(L.HELP_KEYBOARD_SHORTCUTS, "「記録」をクリックして新しいキーの組み合わせを押します。Ctrl・Alt・Meta のないキーは、テキスト欄にフォーカスがないときだけ動作します。ショートカットは開いている本のストーリータブで有効です。");
+        setValue(L.HELP_ST_MERGE_TURNS, "ユーザーのメッセージは、その後の返答から作られるパートの指示になります。オフの場合、すべてのメッセージが個別のパートになります。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

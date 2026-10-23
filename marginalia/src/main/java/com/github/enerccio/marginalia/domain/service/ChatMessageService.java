@@ -156,6 +156,17 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
     ChatMessage createPart(Manuscript manuscript, ChatMessage parent, String text, TurnInput input) throws Exception;
 
     /**
+     * Stores a prepared part as a child of {@code parent}, or as one more first part of the book when the parent is null (the
+     * book may have parts already): counts the tokens and words of its text, nothing else of it is changed, and the active leaf
+     * of the book stays where it is. For the imports that build a whole tree of parts.
+     *
+     * @param part the part to store, with its text, instructions and the data kept on it; not stored yet
+     * @return the stored part
+     * @throws IllegalArgumentException when the parent is not a part of the manuscript, or the manuscript is not the user's
+     */
+    ChatMessage addPart(Manuscript manuscript, ChatMessage parent, ChatMessage part) throws Exception;
+
+    /**
      * Inserts a part into the story, between a part and what follows it: the new part becomes the only child of {@code after},
      * and everything that followed {@code after} (all its continuations, the swipes of the next part with their own
      * continuations) follows the new part now. No part is deleted or made again, so their uuids, summaries and the data
