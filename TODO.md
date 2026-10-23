@@ -248,20 +248,15 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 25. **Writing statistics** — words per day/session, per-book totals, goals. 🧩
 26. **Undo for edits** — (*Discard Changes* in the part menu drops an edit that is not saved yet.) message edits overwrite text in place; keep per-message edit history (branching
     covers generations but not manual edits). 🧩 (similar to `lorebookvcs`)
-27. **Keyboard shortcuts** in the story editor (generate, stop, swipe, regenerate, edit), so most of the writing loop
-    works with the keyboard and tabs. First step: a shortcut on the open story tab that opens the new-turn popover
-    (`NewTurnForm.focusInstructions` already puts the cursor into the instructions), Ctrl+Enter in the popover to
-    generate and Esc to close it, the focus going back to the story afterwards. Single keys such as `+` fire only when
-    no text field (or other input) has the focus, the ones that would collide with typing need a modifier. Check the
-    browser and OS collisions (Ctrl+N/T/W are the browser's, Option+letter types characters on a Mac) in a real browser
-    before choosing the defaults, show the key in the tooltip of the button it triggers, and make the shortcuts active
-    only for the open story tab. The command bar (`/`), search and replace and next/previous tab are the next
-    candidates; the phone layout needs none.
-    **Key binding dialog.** The defaults are not final, so the user changes them in a dialog (user settings): a table of
-    actions with their current key, a field that records the next key combination pressed, a reset to the default and a
-    warning when two actions get the same key or the key is one the browser keeps. The bindings are a per-user setting
-    (an `@ExtendedAttribute` of `UserSetting`, travels with backups); plugins register their actions with a default key
-    so they show up in the same dialog.
+27. ✅ **Keyboard shortcuts** in the story editor, desktop layout only (no phone twin). `+` opens the new turn popover (cursor in the instructions), `Ctrl+Enter` generates, Esc closes it
+    and the focus goes back to the story, `Ctrl+.` stops, `s` swipes, `r` regenerates, `e` edits the last part, `Ctrl+S`
+    saves the edited part; a key without Ctrl/Alt/Meta fires only when no input has the focus, the shortcuts fire only in the
+    visible story tab with no dialog above it, the round button and the generate button show the key in their tooltip. The
+    user changes the keys in *Settings → Keyboard shortcuts* (`KeyBindingsEditor`: table, record, reset, clear, warnings for
+    duplicates, browser keys and Alt+letter; `UserSetting.keyBindings`), plugins register their actions with
+    `ShortcutRegistry` (`ui.shortcuts`). Not done: the defaults were chosen without trying them in real browsers (Chrome,
+    Firefox, Safari; check `Ctrl+.`, `Ctrl+S` and the Esc of the popover); the command bar (`/`), search and replace and
+    next/previous tab are not bound yet; the hamburger menu items do not show their key; the phone layout needs none.
 28. ✅ **Mobile layout** — below 768 px (decided once, at page load) the app uses `PhoneWorkspace`: a drawer instead of
     the tab bar and phone twins of the parts (`workspace/phone/parts`) and of the book window
     (`PhoneManuscriptDialog`, tabs in `dialogs/phone/manuscript`), documented in `manual/user/phone.md`. Not done: the

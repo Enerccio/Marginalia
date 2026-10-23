@@ -145,6 +145,14 @@ public class UserSetting extends Setting {
     @Transient
     private JsonObject workspaceState = new JsonObject();
 
+    /**
+     * The keys of the user for the keyboard shortcuts of the story editor: action id to key combination, only the ones
+     * that differ from the default of the action (an empty text is no key), see {@code KeyBindings}.
+     */
+    @ExtendedAttribute(inject = true, injectPrefix = "keyBindings")
+    @Transient
+    private JsonObject keyBindings = new JsonObject();
+
     public Long getDefaultModel() {
         return defaultModel;
     }
@@ -319,5 +327,13 @@ public class UserSetting extends Setting {
 
     public void setWorkspaceState(JsonObject workspaceState) {
         this.workspaceState = workspaceState == null ? new JsonObject() : workspaceState;
+    }
+
+    public JsonObject getKeyBindings() {
+        return keyBindings;
+    }
+
+    public void setKeyBindings(JsonObject keyBindings) {
+        this.keyBindings = keyBindings == null ? new JsonObject() : keyBindings;
     }
 }

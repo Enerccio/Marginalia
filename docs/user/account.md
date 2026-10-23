@@ -148,6 +148,23 @@ changes, the tag keeps its old name.
 
 ![Asking whether to merge two tags](../images/tag-merge.png)
 
+### Keyboard shortcuts
+
+The keys of the [story editor shortcuts](books/story-editor.md#keyboard-shortcuts) (they work in the story
+editor on a computer, the [phone layout](phone.md) has none).
+The table lists every action, also the ones [extensions](extensions/index.md) bring, with its key.
+
+| Button | |
+|---|---|
+| **Record** | Press the new key combination (modifiers first or together, e.g. `Ctrl+Shift+K`); a click anywhere else cancels. |
+| **Reset to default** | Gives the action its default key back. |
+| **Clear** | The action has no key. |
+
+A red note names a key two actions share, a key the browser keeps for itself (`Ctrl+N`, `Ctrl+T`, `Ctrl+W` and the like,
+the page never gets them) and `Alt` with a letter (types a character on some keyboards, e.g. macOS). A key without
+`Ctrl`, `Alt` or `Meta` works only when no text field has the focus. The keys are saved with **Save** like the other
+settings and apply at once in the open stories.
+
 ### Extension Settings
 
 Settings of the installed [extensions](extensions/index.md), one section per extension (for example *Reviewer Settings*

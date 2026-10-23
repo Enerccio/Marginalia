@@ -6,11 +6,13 @@ import com.github.enerccio.marginalia.domain.components.SummaryNode;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.components.CommandBar;
 import com.github.enerccio.marginalia.ui.components.CommandResultView;
@@ -19,6 +21,10 @@ import com.github.enerccio.marginalia.ui.components.MessageImages;
 import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.dialogs.search.ManuscriptSearchReplaceDialog;
 import com.github.enerccio.marginalia.ui.dialogs.story.*;
+import com.github.enerccio.marginalia.ui.shortcuts.KeyBindings;
+import com.github.enerccio.marginalia.ui.shortcuts.ShortcutAction;
+import com.github.enerccio.marginalia.ui.shortcuts.ShortcutActions;
+import com.github.enerccio.marginalia.ui.shortcuts.ShortcutRegistry;
 import com.github.enerccio.marginalia.ui.widgets.LazyContextMenu;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
@@ -93,6 +99,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     @Autowired
     private SummaryService summaryService;
 
+    @Autowired
+    private SettingService settingService;
+
     private final ManuscriptDialog parent;
     private CancellationToken activeGenerationToken;
 
@@ -117,6 +126,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
     private Popover newTurnPopover;
     private NewTurnForm newTurnForm;
+    // the keys of the user for the shortcuts, null while the shortcuts are off (not the desktop app)
+    private KeyBindings keyBindings;
 
     private Manuscript currentManuscript;
     private boolean isFrozen = false;
@@ -185,7 +196,113 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         mainLayout.addSplitterDragEndListener(event -> saveSplitPosition());
 
         container.add(loc.getValue(L.LABEL_STORY_PART), mainLayout);
+        installShortcuts();
         return mainLayout;
+    }
+
+    /**
+     * Keyboard shortcuts of the story (the phone twin has none): the browser script fires an event on the story when the user
+     * presses the key of an action, {@link #handleShortcut} does it.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class))
+    private void installShortcuts() {
+        loadKeyBindings();
+        JavascriptLibrary.fireShortcutEvents(mainLayout.getElement(), keyBindings.toJson());
+        mainLayout.getElement().addEventListener("marginalia-shortcut",
+                event -> handleShortcut(event.getEventData().get("event.detail").asString())).addEventData("event.detail");
+        newTurnForm.setGenerateShortcut(keyBindings.get(ShortcutActions.STORY_GENERATE));
+        refreshActionTooltip();
+    }
+
+    /**
+     * Reads the keys of the user again, they may have changed them in the settings since.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    private void loadKeyBindings() {
+        try {
+            keyBindings = KeyBindings.of(settingService.getOrCreate(UserSetting.class));
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+            keyBindings = KeyBindings.of(null);
+        }
+    }
+
+    /**
+     * The tooltip of the round button names what it does now and its key.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "key", type = String.class),
+                    @APILocals(name = "label", type = String.class)})
+    private void refreshActionTooltip() {
+        if (keyBindings == null || actionButton == null) {
+            return;
+        }
+        String key = keyBindings.get(isFrozen ? ShortcutActions.STORY_STOP : ShortcutActions.STORY_NEW_TURN);
+        String label = loc.getValue(isFrozen ? L.LABEL_STOP : L.LABEL_OPEN_NEW_TURN_FORM);
+        actionButton.setTooltipText(key == null ? label : label + " (" + key + ")");
+    }
+
+    /**
+     * Does what the key the user pressed stands for. Nothing happens while the story is frozen (a generation runs) except
+     * the stop.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "actionId", type = String.class)},
+            locals = {@APILocals(name = "last", type = ChatMessageCard.class),
+                    @APILocals(name = "action", type = ShortcutAction.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void handleShortcut(String actionId) {
+        if (isFrozen) {
+            if (ShortcutActions.STORY_STOP.equals(actionId) && activeGenerationToken != null) {
+                activeGenerationToken.cancel();
+            }
+            return;
+        }
+        ChatMessageCard last = cards.size() == 0 ? null : cards.last();
+        switch (actionId) {
+            case ShortcutActions.STORY_NEW_TURN -> {
+                if (currentManuscript != null) {
+                    newTurnPopover.setOpened(true);
+                }
+            }
+            case ShortcutActions.STORY_GENERATE -> {
+                if (newTurnPopover.isOpened()) {
+                    generateFromNewTurnForm();
+                }
+            }
+            case ShortcutActions.STORY_SWIPE -> {
+                if (last != null) {
+                    last.swipe();
+                }
+            }
+            case ShortcutActions.STORY_REGENERATE -> {
+                if (last != null) {
+                    last.regenerate();
+                }
+            }
+            case ShortcutActions.STORY_EDIT -> {
+                if (last != null && !last.isEditing()) {
+                    last.toggleEdit();
+                }
+            }
+            case ShortcutActions.STORY_SAVE_EDIT -> cards.values().stream().filter(ChatMessageCard::isEditing)
+                    .forEach(ChatMessageCard::autosaveAndSwapToMarkdown);
+            default -> {
+                ShortcutAction action = ShortcutRegistry.get(actionId);
+                if (action != null && action.getHandler() != null) {
+                    try {
+                        action.getHandler().accept(mainLayout);
+                    } catch (Exception e) {
+                        UIUtils.internalServerError(loc, e);
+                    }
+                }
+            }
+        }
     }
 
     @PublicAPI(from = "1.1.0",
@@ -495,15 +612,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 parent.stateChanged();
             }
         });
-        VerticalLayout content = newTurnForm.createContent(() -> {
-            popover.close();
-            if (parent != null) {
-                newTurnForm.consume();
-                parent.stateChanged();
-                autosaveAndSwapAllToMarkdown();
-                startGeneration();
-            }
-        });
+        VerticalLayout content = newTurnForm.createContent(this::generateFromNewTurnForm);
         content.setWidth("540px");
         popover.add(content);
 
@@ -511,10 +620,28 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             if (event.isOpened()) {
                 newTurnForm.syncIfUntouched(currentManuscript != null ? currentManuscript.getActiveLeaf() : null);
                 newTurnForm.focusInstructions();
+            } else {
+                // the keyboard goes on in the story
+                JavascriptLibrary.focusIfFocusLost(targetButton.getElement());
             }
         });
 
         return popover;
+    }
+
+    /**
+     * Closes the new turn popover and generates the next part from what is in it.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class))
+    private void generateFromNewTurnForm() {
+        newTurnPopover.close();
+        if (parent != null) {
+            newTurnForm.consume();
+            parent.stateChanged();
+            autosaveAndSwapAllToMarkdown();
+            startGeneration();
+        }
     }
 
     /**
@@ -732,6 +859,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             actionButton.setIcon(Solid.PLUS.create());
             actionButton.setThemeName("primary icon small");
         }
+        refreshActionTooltip();
     }
 
     @PublicAPI(from = "1.1.0",
@@ -875,6 +1003,13 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     public void onTabEnter() throws Exception {
         if (parent != null) {
             load(parent.refreshManuscript());
+        }
+        if (keyBindings != null) {
+            // the user may have changed the keys in the settings
+            loadKeyBindings();
+            JavascriptLibrary.setShortcutKeys(UI.getCurrent().getPage(), keyBindings.toJson());
+            newTurnForm.setGenerateShortcut(keyBindings.get(ShortcutActions.STORY_GENERATE));
+            refreshActionTooltip();
         }
     }
 
@@ -1285,6 +1420,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 responseTextArea.setValue(StringUtils.defaultString(message.getResponse()));
                 contentLayout.addComponentAtIndex(contentLayout.indexOf(responseMarkdown) + 1, responseTextArea);
                 responseMarkdown.setVisible(false);
+                JavascriptLibrary.focusAfterRender(responseTextArea.getElement());
                 if (editItem != null) {
                     editItem.setText(loc.getValue(L.LABEL_SAVE));
                 }

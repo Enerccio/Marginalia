@@ -31,6 +31,7 @@ public class NewTurnForm implements Restorable {
     private TextField povCharacterField;
     private TextArea presentCharactersField;
     private TextArea instructionsField;
+    private Button generateButton;
 
     private String pendingSceneSetting = "";
     private String pendingPovCharacter = "";
@@ -98,9 +99,24 @@ public class NewTurnForm implements Restorable {
         Button generateBtn = new Button(loc.getValue(L.LABEL_GENERATE), Solid.PLAY.create(), event -> onGenerate.run());
         generateBtn.setThemeName("primary small");
         generateBtn.setWidthFull();
+        generateButton = generateBtn;
 
         content.add(title, sceneSettingField, povCharacterField, presentCharactersField, instructionsField, generateBtn);
         return content;
+    }
+
+    /**
+     * Shows the key that generates in the tooltip of the generate button.
+     *
+     * @param key the key combination, null for none
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "key", type = String.class)})
+    public void setGenerateShortcut(String key) {
+        if (generateButton != null) {
+            generateButton.setTooltipText(key == null ? null : loc.getValue(L.LABEL_GENERATE) + " (" + key + ")");
+        }
     }
 
     /**

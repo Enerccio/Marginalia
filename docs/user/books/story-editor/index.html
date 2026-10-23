@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846055927743">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846061975790">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846055927743" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846061975790" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846055927743" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846061975790" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846055927743" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846061975790" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -518,6 +518,57 @@ written from. For the last part they can be changed (changes are saved right awa
 parts are sent to the model as you edited them.</p>
 <p>Editing a part that a <a href="../summaries/">summary</a> covers makes that summary outdated; Marginalia notices it at the next
 generation and drops the summary.</p>
+<h2 id="keyboard-shortcuts">Keyboard shortcuts</h2>
+<p>On a computer (the <a href="../../phone/">phone layout</a> has none) the writing loop works with the keyboard:</p>
+<retype-table copy-text="| Key | |
+|---|---|
+| `+` | Opens the *New Turn Instructions* panel with the cursor in *Instructions*. |
+| `Ctrl+Enter` | Generates from the open panel. `Esc` closes it; the keyboard goes back to the story. |
+| `Ctrl+.` | Stops the generation that runs. |
+| `s` / `r` | **Swipe** / **Regenerate** the last part. |
+| `e` | Opens the editor of the last part. |
+| `Ctrl+S` | Saves the part that is being edited (also while the cursor is in its text). |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Key</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>+</code></td>
+<td>Opens the <em>New Turn Instructions</em> panel with the cursor in <em>Instructions</em>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Ctrl+Enter</code></td>
+<td>Generates from the open panel. <code translate="no" v-pre>Esc</code> closes it; the keyboard goes back to the story.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Ctrl+.</code></td>
+<td>Stops the generation that runs.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>s</code> / <code translate="no" v-pre>r</code></td>
+<td><strong>Swipe</strong> / <strong>Regenerate</strong> the last part.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>e</code></td>
+<td>Opens the editor of the last part.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Ctrl+S</code></td>
+<td>Saves the part that is being edited (also while the cursor is in its text).</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>A key without <code translate="no" v-pre>Ctrl</code>, <code translate="no" v-pre>Alt</code> or <code translate="no" v-pre>Meta</code> (such as <code translate="no" v-pre>+</code>, <code translate="no" v-pre>s</code>, <code translate="no" v-pre>r</code>, <code translate="no" v-pre>e</code>) works only when no text field has the focus, so it
+never gets in the way of typing. The shortcuts work in the story tab of the open book and not while another window is
+open above it. The buttons show their key in the tooltip. On a Mac <code translate="no" v-pre>Cmd</code> works where a key says <code translate="no" v-pre>Ctrl</code> (unless you gave that <code translate="no" v-pre>Cmd</code> key to another action). You can change every key in
+<a href="../../account/#keyboard-shortcuts">Settings → Keyboard shortcuts</a>.</p>
 <h2 id="deleting-a-part">Deleting a part</h2>
 <p><strong>Delete</strong> removes the part from the story. The parts that followed it stay and continue from the part before it, so
 deleting a part in the middle of the story just takes it out. Deleting the last part makes the part before it the new
@@ -816,7 +867,7 @@ tense, style and <a href="../summaries/">summaries</a>. The jailbreak prompt of 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (ed60f1a3).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (05b5912b).</p></div>
             </footer>
         </div>
     </div>

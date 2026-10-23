@@ -161,6 +161,23 @@ sidebarBtn.addClassNames(CssStyles.TEXT_PRIMARY, CssStyles.TEXT_SEMIBOLD);
 If more plugins change the same component, they run in the order they were loaded and the last one wins - append
 or prefix rather than replace where you can.
 
+### Keyboard shortcuts
+
+Shortcuts work in the desktop layout only (the phone twin of the story has none). Register an action with a default key; it is listed in
+*Settings → Keyboard shortcuts*, where the user can change or clear the key, and the handler runs when the key is pressed
+in the open story tab (not while a generation runs). The handler gets the component of the story tab.
+
+```java
+ShortcutRegistry.register(new ShortcutAction("myplugin.summarize",
+        loc -> "Summarize the last part",      // the name in the table, in the language of the session
+        "Ctrl+Shift+y",                         // canonical key combination (KeyCombo), null for none
+        storyTab -> summarizeLastPart(storyTab)));
+```
+
+Prefix the id with the plugin name. A key without Ctrl/Alt/Meta fires only when no text field has the focus; avoid keys
+the browser keeps (`Ctrl+N/T/W`) and `Alt` with a letter (types a character on a Mac). Unregister in `onExtensionUnload`
+(`ShortcutRegistry.unregister(id)`); the stored key of the user stays for when the plugin is back.
+
 ### Settings panels
 
 The *Settings* screen (`UserPart`) has an *Extension Settings* tab with an `Accordion` in the field

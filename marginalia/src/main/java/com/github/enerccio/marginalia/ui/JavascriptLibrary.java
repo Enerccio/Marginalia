@@ -491,6 +491,152 @@ public final class JavascriptLibrary {
                 """, element);
     }
 
+    // --- keyboard shortcuts ---
+
+    /**
+     * Turns a keydown event into the canonical key combination ({@code KeyCombo}): the modifiers {@code Ctrl},
+     * {@code Alt}, {@code Shift}, {@code Meta} in that order, then the key (a character in lower case, {@code Space} or a
+     * name such as {@code Enter}); {@code Shift} is left out for a character that is no letter or digit. Returns null for a
+     * modifier alone and for a character typed with AltGr.
+     */
+    private static final String KEY_COMBO = """
+            window.marginaliaKeyCombo = window.marginaliaKeyCombo || function (e) {
+                var key = e.key;
+                if (!key || ['Control', 'Shift', 'Alt', 'Meta', 'AltGraph', 'Dead', 'Unidentified', 'CapsLock', 'OS'].indexOf(key) >= 0) { return null; }
+                if (e.getModifierState && e.getModifierState('AltGraph')) { return null; }
+                if (e.altKey && /^(Key[A-Z]|Digit[0-9])$/.test(e.code || '')) {
+                    // Option/Alt composes another character on some keyboards, the physical key is what the user means
+                    key = e.code.charAt(e.code.length - 1);
+                } else if ((e.ctrlKey || e.metaKey) && /^Key[A-Z]$/.test(e.code || '') && !/^[\\x00-\\x7f]$/.test(key)) {
+                    // a layout that types no Latin letter (Cyrillic, Greek...): Ctrl+S is still the key where the S is
+                    key = e.code.charAt(3);
+                }
+                if (key === ' ') { key = 'Space'; }
+                else if (Array.from(key).length === 1) { key = key.toLowerCase(); }
+                var shift = e.shiftKey && !(Array.from(key).length === 1 && !/[\\p{L}\\p{N}]/u.test(key));
+                return (e.ctrlKey ? 'Ctrl+' : '') + (e.altKey ? 'Alt+' : '') + (shift ? 'Shift+' : '') + (e.metaKey ? 'Meta+' : '') + key;
+            };
+            """;
+
+    /**
+     * Makes the element fire {@code marginalia-shortcut} ({@code detail}: the id of the action) when the user presses the
+     * key of an action. The keys are the page wide map in {@code window.marginaliaKeys} ({@link #setShortcutKeys}), so
+     * a change of the settings reaches the open story tabs. The shortcut fires only while the element is visible (the tab is
+     * the open one) and nothing is open above it (a dialog over the book); a key without Ctrl, Alt or Meta fires only
+     * when no input has the focus. On a Mac a combination with Cmd that no action has fires the action of the same combination with
+     * Ctrl. Done once for an element.
+     *
+     * @param keys JSON object, action id to canonical key combination
+     */
+    public static void fireShortcutEvents(Element element, String keys) {
+        element.executeJs(KEY_COMBO + """
+                var el = $0;
+                window.marginaliaKeys = JSON.parse($1);
+                if (el.__shortcutHandler) { return; }
+                var handler = function (e) {
+                    if (!el.isConnected) {
+                        document.removeEventListener('keydown', handler, true);
+                        el.__shortcutHandler = null;
+                        return;
+                    }
+                    if (e.defaultPrevented || e.isComposing || e.repeat || el.getClientRects().length === 0) { return; }
+                    var combo = window.marginaliaKeyCombo(e);
+                    if (!combo) { return; }
+                    var keys = window.marginaliaKeys || {};
+                    var find = function (c) { return Object.keys(keys).find(function (k) { return keys[k] === c; }); };
+                    var id = find(combo);
+                    if (!id && e.metaKey && !e.ctrlKey && /Mac/.test(navigator.platform || '')) {
+                        // on a Mac Cmd is what Ctrl is elsewhere (Cmd+S is the browser's save), and a keyboard may swap the two
+                        id = find('Ctrl+' + combo.replace('Meta+', ''));
+                    }
+                    if (!id) { return; }
+                    var overlays = document.querySelectorAll('vaadin-dialog-overlay[opened], vaadin-confirm-dialog-overlay[opened]');
+                    if (overlays.length > 0 && !overlays[overlays.length - 1].contains(el)) { return; }
+                    var active = document.activeElement;
+                    while (active && active.shadowRoot && active.shadowRoot.activeElement) { active = active.shadowRoot.activeElement; }
+                    if (!/(Ctrl|Alt|Meta)\\+./.test(combo)) {
+                        if (active && (['INPUT', 'TEXTAREA', 'SELECT'].indexOf(active.tagName) >= 0 || active.isContentEditable)) { return; }
+                    }
+                    // a field sends its value to the server on change (when it loses the focus): what the user typed must be there first
+                    var field = active && active.closest ? active.closest('vaadin-text-area, vaadin-text-field') : null;
+                    if (field) { field.dispatchEvent(new Event('change', { bubbles: true })); }
+                    e.preventDefault();
+                    e.stopPropagation();
+                    el.dispatchEvent(new CustomEvent('marginalia-shortcut', { detail: id }));
+                };
+                el.__shortcutHandler = handler;
+                document.addEventListener('keydown', handler, true);
+                """, element, keys);
+    }
+
+    /**
+     * Replaces the keys of the shortcuts on the page (the open story tabs use them from the next key on).
+     *
+     * @param keys JSON object, action id to canonical key combination
+     */
+    public static void setShortcutKeys(Page page, String keys) {
+        page.executeJs("window.marginaliaKeys = JSON.parse($0);", keys);
+    }
+
+    /**
+     * Records the next key combination the user presses: fires {@code key-recorded} ({@code detail}: the canonical
+     * combination) on the element, or {@code key-record-cancelled} when the user clicks anywhere first. The key press does
+     * nothing else (not even in the browser). Pressing a modifier alone waits for the key.
+     */
+    public static void recordKeyCombo(Element element) {
+        element.executeJs(KEY_COMBO + """
+                var el = $0;
+                if (el.__keyRecorder) { el.__keyRecorder(null); }
+                var finish = function (combo) {
+                    window.removeEventListener('keydown', onKey, true);
+                    window.removeEventListener('mousedown', onMouse, true);
+                    el.__keyRecorder = null;
+                    el.dispatchEvent(new CustomEvent(combo ? 'key-recorded' : 'key-record-cancelled', { detail: combo }));
+                };
+                var onKey = function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var combo = window.marginaliaKeyCombo(e);
+                    if (combo) { finish(combo); }
+                };
+                var onMouse = function () { finish(null); };
+                el.__keyRecorder = finish;
+                window.addEventListener('keydown', onKey, true);
+                window.addEventListener('mousedown', onMouse, true);
+                """, element);
+    }
+
+    /**
+     * Gives the element the focus once the browser has rendered it and a menu that was just closed has given the focus
+     * back to its button (a focus asked for from the server right away is lost to one of them): tries again until it has it.
+     */
+    public static void focusAfterRender(Element element) {
+        element.executeJs("""
+                var el = $0;
+                var tries = 0;
+                var timer = setInterval(function () {
+                    el.focus();
+                    var active = document.activeElement;
+                    while (active && active.shadowRoot && active.shadowRoot.activeElement) { active = active.shadowRoot.activeElement; }
+                    if (el.contains(active) || ++tries > 20) { clearInterval(timer); }
+                }, 50);
+                """, element);
+    }
+
+    /**
+     * Gives the element the focus when a closing popover left it nowhere (on the page body or still in the popover), so the
+     * keyboard goes on where the user was.
+     */
+    public static void focusIfFocusLost(Element element) {
+        element.executeJs("""
+                var el = $0;
+                setTimeout(function () {
+                    var active = document.activeElement;
+                    if (!active || active === document.body || (active.closest && active.closest('vaadin-popover-overlay'))) { el.focus(); }
+                }, 50);
+                """, element);
+    }
+
     // --- help assistant ---
 
     /** The sessionStorage key of the problems the browser keeps for the help assistant. */

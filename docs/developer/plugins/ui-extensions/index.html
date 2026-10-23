@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846055927743">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846061975790">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846055927743" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846061975790" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846055927743" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846061975790" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846055927743" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846055927743" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846061975790" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846061975790" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -319,6 +319,19 @@ sidebarBtn.addClassNames(CssStyles.TEXT_PRIMARY, CssStyles.TEXT_SEMIBOLD);</code
 </doc-codeblock></div>
 <p>If more plugins change the same component, they run in the order they were loaded and the last one wins - append
 or prefix rather than replace where you can.</p>
+<h3 id="keyboard-shortcuts">Keyboard shortcuts</h3>
+<p>Shortcuts work in the desktop layout only (the phone twin of the story has none). Register an action with a default key; it is listed in
+<em>Settings → Keyboard shortcuts</em>, where the user can change or clear the key, and the handler runs when the key is pressed
+in the open story tab (not while a generation runs). The handler gets the component of the story tab.</p>
+<div id="keyboard-shortcuts-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">ShortcutRegistry.register(new ShortcutAction(&quot;myplugin.summarize&quot;,
+        loc -&gt; &quot;Summarize the last part&quot;,      // the name in the table, in the language of the session
+        &quot;Ctrl+Shift+y&quot;,                         // canonical key combination (KeyCombo), null for none
+        storyTab -&gt; summarizeLastPart(storyTab)));</code></pre>
+</doc-codeblock></div>
+<p>Prefix the id with the plugin name. A key without Ctrl/Alt/Meta fires only when no text field has the focus; avoid keys
+the browser keeps (<code translate="no" v-pre>Ctrl+N/T/W</code>) and <code translate="no" v-pre>Alt</code> with a letter (types a character on a Mac). Unregister in <code translate="no" v-pre>onExtensionUnload</code>
+(<code translate="no" v-pre>ShortcutRegistry.unregister(id)</code>); the stored key of the user stays for when the plugin is back.</p>
 <h3 id="settings-panels">Settings panels</h3>
 <p>The <em>Settings</em> screen (<code translate="no" v-pre>UserPart</code>) has an <em>Extension Settings</em> tab with an <code translate="no" v-pre>Accordion</code> in the field
 <code translate="no" v-pre>extensionSettings</code>, empty unless plugins add to it. The bundled plugins use two decorators:</p>
@@ -648,7 +661,7 @@ uninstalled for good, its data stays in the database (and in backups) - harmless
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (ed60f1a3).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (05b5912b).</p></div>
             </footer>
         </div>
     </div>

@@ -14,10 +14,13 @@ import com.github.enerccio.marginalia.domain.templates.*;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.components.TagsView;
 import com.github.enerccio.marginalia.ui.dialogs.LorebookImportDialog;
+import com.github.enerccio.marginalia.ui.shortcuts.KeyBindings;
+import com.github.enerccio.marginalia.ui.shortcuts.KeyBindingsEditor;
 import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
@@ -25,6 +28,7 @@ import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.HasValue;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -124,7 +128,10 @@ public class UserPart implements WorkspaceComponent {
     // Tab 3 Tags, not a setting: acts at once, outside of the save and discard of the part
     private TagsView tagsView;
 
-    // Tab 4 Extensions
+    // Tab 4 Keyboard shortcuts
+    private KeyBindingsEditor keyBindingsEditor;
+
+    // Tab 5 Extensions
     private Accordion extensionSettings;
 
     private UserSetting userSetting;
@@ -212,6 +219,8 @@ public class UserPart implements WorkspaceComponent {
         tagsView = new TagsView();
         tabSheet.add(loc.getValue(L.LABEL_TAGS), tagsView);
 
+        tabSheet.add(loc.getValue(L.LABEL_KEYBOARD_SHORTCUTS), createShortcutsTab());
+
         extensionSettings = new Accordion();
         extensionSettings.setSizeFull();
         tabSheet.add(loc.getValue(L.LABEL_EXTENSION_SETTINGS), extensionSettings);
@@ -222,6 +231,24 @@ public class UserPart implements WorkspaceComponent {
         refresh();
 
         return mainLayout;
+    }
+
+    /**
+     * The key bindings of the story editor shortcuts.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "layout", type = VerticalLayout.class),
+                    @APILocals(name = "help", type = Span.class)})
+    private Component createShortcutsTab() {
+        keyBindingsEditor = new KeyBindingsEditor(loc);
+        keyBindingsEditor.setWidthFull();
+        VerticalLayout layout = new VerticalLayout();
+        layout.setPadding(false);
+        Span help = new Span(loc.getValue(L.HELP_KEYBOARD_SHORTCUTS));
+        help.addClassName(CssStyles.TEXT_SECONDARY);
+        layout.add(help, keyBindingsEditor);
+        return layout;
     }
 
     /**
@@ -584,6 +611,7 @@ public class UserPart implements WorkspaceComponent {
             validateTemplate(defaultMetaSummaryPromptField, "defaultMetaSummaryPrompt", MetaSummaryTemplateData.class);
             validateTemplate(defaultRedraftPromptField, "defaultRedraftPrompt", RedraftTemplateData.class);
             tagsView.refresh();
+            keyBindingsEditor.setValue(KeyBindings.of(userSetting).asMap());
 
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -730,7 +758,11 @@ public class UserPart implements WorkspaceComponent {
                 userSetting.setDefaultAgentCompactionPrompt(defaultAgentCompactionPromptField.getValue());
             }
 
+            userSetting.setKeyBindings(KeyBindings.toStored(userSetting.getKeyBindings(), keyBindingsEditor.getValue()));
+
             settingService.save(userSetting);
+            // the open story tabs use the new keys from the next key press
+            JavascriptLibrary.setShortcutKeys(UI.getCurrent().getPage(), KeyBindings.of(userSetting).toJson());
             setChanged(false);
             Notification.success(loc.getValue(L.MSG_SETTINGS_SAVED));
         } catch (Exception e) {
