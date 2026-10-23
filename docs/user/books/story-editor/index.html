@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846024434294">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846025872724">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846024434294" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846025872724" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846024434294" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846025872724" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846024434294" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846025872724" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -380,6 +380,7 @@ prompt, the model gets them as <em>Current Location &amp; Time</em>, <em>Point o
 <retype-table copy-text="| Item | |
 |---|---|
 | **Edit** | Turns the text into an editable field. **Save** (the same menu item) saves it. Starting a generation or leaving the tab saves open edits too. |
+| **Discard Changes** | Only while the text is edited: closes the field without saving, the part keeps the text it was last saved with. If you changed the text, you are asked first. |
 | **Regenerate** | Writes the last part again, replacing its text. Only on the last part. |
 | **Swipe** | Writes another version of the last part and keeps the old one as a separate branch. Only on the last part. See [Branches &amp; story tree](branches-and-story-tree.md#trying-another-version-of-the-last-part). |
 | **Branch Story** | Starts a new branch from this part, see [Branches &amp; story tree](branches-and-story-tree.md#branching-from-an-earlier-part). |
@@ -402,6 +403,10 @@ prompt, the model gets them as <em>Current Location &amp; Time</em>, <em>Point o
 <tr>
 <td><strong>Edit</strong></td>
 <td>Turns the text into an editable field. <strong>Save</strong> (the same menu item) saves it. Starting a generation or leaving the tab saves open edits too.</td>
+</tr>
+<tr>
+<td><strong>Discard Changes</strong></td>
+<td>Only while the text is edited: closes the field without saving, the part keeps the text it was last saved with. If you changed the text, you are asked first.</td>
 </tr>
 <tr>
 <td><strong>Regenerate</strong></td>
@@ -589,6 +594,13 @@ part that uses it. The file itself stays in the data folder.</p>
 <p>The <strong>Summaries</strong> button in the bottom bar (left of the settings menu ⚙) opens the overview of the summaries of the
 branch, where they can be edited, deleted and merged into meta summaries. The tooltip of the button shows how many
 tokens the summaries in use take in the prompt. See <a href="../summaries/#the-summaries-overview">Summaries</a>.</p>
+<h2 id="how-much-of-the-context-the-story-takes">How much of the context the story takes</h2>
+<p>The settings menu (⚙) has <strong>Branch Tokens</strong>. It shows, before you generate anything, what the story of the active branch
+takes of the prompt: a bar for the story <strong>without summaries</strong> (all the parts) and <strong>with summaries</strong> (the summaries
+and the parts after the newest one), and a table with the parts, the tokens and the share of the <strong>prompt budget</strong>
+(the context of the book&#x27;s model minus the room for the response). Only summaries that still describe the story count;
+the ones that no longer match are named, they are dropped when a part is generated. The lore, the system template and the
+instructions of the turn take room from the same budget. Without a model with a context size the table has no shares.</p>
 <h2 id="book-styles">Book styles</h2>
 <p>The settings menu (⚙) in the bottom bar has <strong>Change Styles For Text</strong>. It switches the text of the parts between the
 normal look of the application and a book-like reading style (the one the <a href="../publishing/">viewer</a> uses). The setting
@@ -772,7 +784,7 @@ tense, style and <a href="../summaries/">summaries</a>. The jailbreak prompt of 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (068640a8).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (5ed1c171).</p></div>
             </footer>
         </div>
     </div>

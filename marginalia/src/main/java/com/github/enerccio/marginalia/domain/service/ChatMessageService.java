@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service;
 
+import com.github.enerccio.marginalia.domain.components.BranchTokens;
 import com.github.enerccio.marginalia.domain.components.PartMerge;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
@@ -101,6 +102,12 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
     int getBranchWordCount(ChatMessage leaf) throws Exception;
 
     long getBranchTokenCount(ChatMessage leaf) throws Exception;
+
+    /**
+     * The tokens the story of the branch ending in the leaf takes in a prompt without and with its summaries, see
+     * {@link BranchTokens}.
+     */
+    BranchTokens getBranchTokens(ChatMessage leaf) throws Exception;
 
     int getTotalWordCount(Manuscript manuscript) throws Exception;
 

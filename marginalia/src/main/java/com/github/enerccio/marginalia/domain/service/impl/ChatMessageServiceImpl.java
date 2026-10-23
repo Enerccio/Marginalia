@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.domain.components.BranchTokens;
 import com.github.enerccio.marginalia.domain.components.PartMerge;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.ImageAttachment;
@@ -15,6 +16,7 @@ import com.github.enerccio.marginalia.domain.service.search.FulltextQuery;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.domain.traits.NoTx;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -338,6 +340,62 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
             total += msg.getTokenCount();
         }
         return total;
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public BranchTokens getBranchTokens(ChatMessage leaf) throws Exception {
+        if (leaf == null || leaf.getId() == null) {
+            return new BranchTokens(0, 0, 0, 0, 0, 0, 0);
+        }
+        List<ChatMessage> branch = getBranchFromLeaf(leaf);
+        List<SummaryService.SummaryBlock> blocks = summaryService.collectBlocks(new ArrayList<>(branch.reversed()));
+
+        int summaries = 0;
+        long summaryTokens = 0;
+        int stale = 0;
+        Long newestSummarized = null;
+        // newest first: the first valid block ends the summarized part
+        for (SummaryService.SummaryBlock block : blocks) {
+            if (!block.isValid()) {
+                stale++;
+                continue;
+            }
+            summaries++;
+            summaryTokens += summaryTokens(block.summary());
+            if (newestSummarized == null) {
+                newestSummarized = block.head().getId();
+            }
+        }
+
+        int parts = 0;
+        long partTokens = 0;
+        int summarizedParts = 0;
+        long summarizedTokens = 0;
+        // the branch goes from the root, the parts up to the head of the newest valid summary are summarized
+        boolean summarized = newestSummarized != null;
+        for (ChatMessage message : branch) {
+            if (StringUtils.isNotBlank(message.getResponse())) {
+                parts++;
+                partTokens += message.getTokenCount();
+                if (summarized) {
+                    summarizedParts++;
+                    summarizedTokens += message.getTokenCount();
+                }
+            }
+            if (summarized && message.getId().equals(newestSummarized)) {
+                summarized = false;
+            }
+        }
+        return new BranchTokens(parts, partTokens, summaries, summaryTokens, summarizedParts, summarizedTokens, stale);
+    }
+
+    private static long summaryTokens(Summary summary) {
+        if (summary.getSummaryTokens() != null && summary.getSummaryTokens() > 0) {
+            return summary.getSummaryTokens();
+        }
+        // not counted yet: about four characters to a token
+        return StringUtils.length(summary.getSummary()) / 4;
     }
 
     /**

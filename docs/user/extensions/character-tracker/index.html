@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846024434294">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846025872724">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846024434294" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846025872724" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846024434294" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846025872724" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846024434294" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846025872724" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -176,6 +176,12 @@ relationships between them, and a map of those relationships.</p>
 <h2 id="the-characters-tab">The Characters tab</h2>
 <p>The left sidebar of the <a href="../../books/story-editor/">story editor</a> gets a <strong>Characters</strong> tab next to <em>Outline</em>. Above the
 list are two buttons, <strong>Add new character</strong> and <strong>Relationship map</strong>.</p>
+<p>Under them is one line, <strong>In prompt</strong>, with <strong>Depth</strong> and a role, like the <a href="../authors-note/">Author&#x27;s Note</a>. When <em>In
+prompt</em> is checked, every generation gets the characters as a message: a line with the name, the tagline in brackets
+and the note of each character, and a list of the relationships (<code translate="no" v-pre>Mara -&gt; Tomas: employs</code>, <code translate="no" v-pre>&lt;-&gt;</code> when it goes both
+ways). <em>Depth</em> is the number of messages after it (<code translate="no" v-pre>0</code> the very end, after your instructions, <code translate="no" v-pre>1</code> right before them) and
+the role is <em>System</em>, <em>Assistant</em> or <em>User</em>. The text takes its tokens from the room for the story. Nothing is inserted
+while the book has no characters. The settings are saved with the book.</p>
 <p>The wand button between them has the menu item <strong>Import lore entries as characters</strong>, see
 <doc-anchor-trigger to="#importing-characters-from-the-lorebook">below</doc-anchor-trigger>.</p>
 <p>The list is ordered by name. Every character is on its own color and shows its <strong>name</strong> with the <strong>tagline</strong> below it in
@@ -407,7 +413,7 @@ dialog.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (068640a8).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (5ed1c171).</p></div>
             </footer>
         </div>
     </div>

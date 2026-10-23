@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846024434294">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846025872724">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846024434294" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846025872724" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846024434294" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846025872724" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846024434294" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846024434294" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846025872724" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846025872724" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -786,6 +786,8 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 <retype-table copy-text="| Widget | Used for |
 |---|---|
 | `HTabSheet` | The workspace's left-hand tab sheet with a footer area. |
+| `ThemeSwitch` | The button next to the `LanguageSelector` in the workspace footers: toggles `UserSetting.themeMode` (`ThemeMode` DARK / LIGHT, dark when not chosen) and applies it with `Page.setColorScheme`; `ThemeSwitch.apply` is also called by `Main.proceedWithLogin`, so the scheme is set when the workspace opens. Only the current page changes at once. |
+| `BranchTokensDialog` (`ui.dialogs`) | The *Branch Tokens* item of the settings menu of `ManuscriptStoryPart` / `PhoneManuscriptStoryPart`: a stacked bar (`ChartJs`) and a table of `ChatMessageService.getBranchTokens` against `TokenLimits.promptTokens` of the book's model and protocol. Not `@Extendable`. |
 | `LanguageSelector` | The language combo box of the workspace footers: saves the choice in `UserSetting.language`, sets `SessionPoint.language` and reloads every page of the user ([Localization](architecture.md#localization)). |
 | `TagsView` (`ui.components`) | The Tags tab of `UserPart`: a grid of the tags with their relation counts, rename (a name that exists asks to merge) and delete. It acts at once and is not tracked as an unsaved setting. |
 | `LLMInteract` / `LLMSnapshot` (`ui`) | What the help assistant's model can read of the screen, see [Letting the help assistant see the UI](#letting-the-help-assistant-see-the-ui). |
@@ -820,6 +822,14 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 <tr>
 <td><code translate="no" v-pre>HTabSheet</code></td>
 <td>The workspace&#x27;s left-hand tab sheet with a footer area.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ThemeSwitch</code></td>
+<td>The button next to the <code translate="no" v-pre>LanguageSelector</code> in the workspace footers: toggles <code translate="no" v-pre>UserSetting.themeMode</code> (<code translate="no" v-pre>ThemeMode</code> DARK / LIGHT, dark when not chosen) and applies it with <code translate="no" v-pre>Page.setColorScheme</code>; <code translate="no" v-pre>ThemeSwitch.apply</code> is also called by <code translate="no" v-pre>Main.proceedWithLogin</code>, so the scheme is set when the workspace opens. Only the current page changes at once.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>BranchTokensDialog</code> (<code translate="no" v-pre>ui.dialogs</code>)</td>
+<td>The <em>Branch Tokens</em> item of the settings menu of <code translate="no" v-pre>ManuscriptStoryPart</code> / <code translate="no" v-pre>PhoneManuscriptStoryPart</code>: a stacked bar (<code translate="no" v-pre>ChartJs</code>) and a table of <code translate="no" v-pre>ChatMessageService.getBranchTokens</code> against <code translate="no" v-pre>TokenLimits.promptTokens</code> of the book&#x27;s model and protocol. Not <code translate="no" v-pre>@Extendable</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>LanguageSelector</code></td>
@@ -1358,7 +1368,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (068640a8).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (5ed1c171).</p></div>
             </footer>
         </div>
     </div>

@@ -94,7 +94,6 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
     private Button importLorebookButton;
     private Button tagLorebooksButton;
     private Button tagEntriesButton;
-    private Anchor exportLorebookAnchor;
     private Button exportLorebookButton;
 
     private TextField lorebookNameField;
@@ -150,6 +149,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             returns = @APIReturn(type = Component.class),
             locals = {@APILocals(name = "controlsLayout", type = HorizontalLayout.class),
                     @APILocals(name = "importMenu", type = ContextMenu.class),
+                    @APILocals(name = "exportMenu", type = ContextMenu.class),
                     @APILocals(name = "lorebookHeaderLayout", type = HorizontalLayout.class)})
     public Component create() throws Exception {
         setSizeFull();
@@ -206,19 +206,14 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
                 openImportDialog(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN), lorebookService::importFromSillytavern));
         importMenu.addItem(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE), event -> openArchiveImportDialog());
 
-        exportLorebookAnchor = new Anchor(new InputStreamDownloadHandler((InputStreamDownloadCallback) downloadEvent -> {
-            try {
-                byte[] data = lorebookService.exportLorebook(currentLorebook).getBytes(StandardCharsets.UTF_8);
-                return new DownloadResponse(new ByteArrayInputStream(data),
-                        getExportFileName(), "application/json", data.length);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }), "");
-        exportLorebookAnchor.getElement().setAttribute("download", true);
         exportLorebookButton = new Button(Solid.FILE_EXPORT.create());
         exportLorebookButton.setTooltipText(loc.getValue(L.LABEL_EXPORT_LOREBOOK));
-        exportLorebookAnchor.add(exportLorebookButton);
+
+        ContextMenu exportMenu = new ContextMenu();
+        exportMenu.setTarget(exportLorebookButton);
+        exportMenu.setOpenOnClick(true);
+        exportMenu.addItem(createExportLink(loc.getValue(L.LABEL_EXPORT_LOREBOOK), lorebookService::exportLorebook));
+        exportMenu.addItem(createExportLink(loc.getValue(L.LABEL_EXPORT_TO_SILLYTAVERN), lorebookService::exportToSillytavern));
 
         tagLorebooksButton = new Button(Solid.TAGS.create(), event -> openTagDialog(false));
         tagLorebooksButton.setTooltipText(loc.getValue(L.LABEL_TAG_LOREBOOKS));
@@ -242,7 +237,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
-        controlsLayout.add(lorebookCombo, rootOnlyCheckbox, addLorebookButton, cloneLorebookButton, deleteLorebookButton, importLorebookButton, exportLorebookAnchor, tagLorebooksButton);
+        controlsLayout.add(lorebookCombo, rootOnlyCheckbox, addLorebookButton, cloneLorebookButton, deleteLorebookButton, importLorebookButton, exportLorebookButton, tagLorebooksButton);
         controlsLayout.setAlignItems(Alignment.END);
         // the buttons are many: in a narrow window (a book, a small screen) they go to the next line instead of off the edge
         controlsLayout.setWrap(true);
@@ -354,6 +349,30 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
     private String getExportFileName() {
         String name = currentLorebook != null ? StringUtils.defaultIfBlank(currentLorebook.getName(), "lorebook") : "lorebook";
         return name.replaceAll("[\\\\/:*?\"<>|]", "_") + ".json";
+    }
+
+    @FunctionalInterface
+    private interface LorebookExporter {
+        String export(Lorebook lorebook) throws Exception;
+    }
+
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = Anchor.class),
+            parameters = {@APIParameter(name = "text", type = String.class),
+                    @APIParameter(name = "exporter", type = LorebookExporter.class)},
+            locals = {@APILocals(name = "link", type = Anchor.class)})
+    private Anchor createExportLink(String text, LorebookExporter exporter) {
+        Anchor link = new Anchor(new InputStreamDownloadHandler((InputStreamDownloadCallback) downloadEvent -> {
+            try {
+                byte[] data = exporter.export(currentLorebook).getBytes(StandardCharsets.UTF_8);
+                return new DownloadResponse(new ByteArrayInputStream(data),
+                        getExportFileName(), "application/json", data.length);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }), text);
+        link.getElement().setAttribute("download", true);
+        return link;
     }
 
     @FunctionalInterface
@@ -839,7 +858,6 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         if (locking != null) {
             // read only, but it can be exported, and refreshed to see when the lock is gone
             exportLorebookButton.setEnabled(true);
-            exportLorebookAnchor.setEnabled(true);
             refreshButton.setEnabled(true);
             return;
         }
@@ -855,7 +873,6 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         cloneLorebookButton.setEnabled(hasLorebook);
         deleteLorebookButton.setEnabled(hasLorebook);
         exportLorebookButton.setEnabled(hasLorebook);
-        exportLorebookAnchor.setEnabled(hasLorebook);
         refreshButton.setEnabled(hasLorebook);
         tagMultiComboBox.setEnabled(hasLorebook);
         tagMultiComboBox.setForEntity(currentLorebook);

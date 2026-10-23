@@ -54,14 +54,14 @@
 .manuscript-styles .chat-message-markdown em,
 .manuscript-styles .chat-message-markdown i {
     font-style: italic;
-    color: #d1c4e9; /* Soft lavender tint */
+    color: light-dark(#5e35b1, #d1c4e9); /* Soft lavender tint */
 }
 
 /* Strong Text (** **) */
 .manuscript-styles .chat-message-markdown strong,
 .manuscript-styles .chat-message-markdown b {
     font-weight: 700;
-    color: var(--lumo-header-text-color, #ffffff);
+    color: var(--lumo-header-text-color, light-dark(#000000, #ffffff));
 }
 
 /* Blockquotes / Lore Highlights (> ) */
@@ -72,7 +72,7 @@
     background-color: var(--lumo-contrast-5pct, rgba(255, 255, 255, 0.03));
     border-radius: 0 4px 4px 0;
     font-style: italic;
-    color: #b0bec5;
+    color: light-dark(#546e7a, #b0bec5);
 }
 
 .manuscript-styles .chat-message-markdown blockquote p {
@@ -116,7 +116,7 @@
     letter-spacing: 0.05em;
     margin-top: 1.5em;
     margin-bottom: 0.6em;
-    color: var(--lumo-header-text-color, #ffffff);
+    color: var(--lumo-header-text-color, light-dark(#000000, #ffffff));
 }
 
 .manuscript-styles .chat-message-markdown h1 {

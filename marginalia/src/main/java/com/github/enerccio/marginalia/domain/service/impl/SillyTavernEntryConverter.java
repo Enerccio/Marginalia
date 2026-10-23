@@ -158,6 +158,86 @@ public final class SillyTavernEntryConverter {
         return "Imported from SillyTavern, not supported: " + String.join(", ", notes) + ".";
     }
 
+    /**
+     * The keys of an entry as SillyTavern stores them, the reverse of {@link #filter}.
+     *
+     * @param primary   the keys that activate the entry (any of them)
+     * @param secondary the keys that also have to be found (all of them, {@code selectiveLogic} AND ALL)
+     * @param regex     whether the keys are written as {@code /pattern/flags}
+     */
+    public record ExportedKeys(List<String> primary, List<String> secondary, boolean regex) {
+
+        /**
+         * Always active.
+         */
+        public boolean constant() {
+            return primary.isEmpty();
+        }
+    }
+
+    /**
+     * Maps the filter of an entry on SillyTavern keys: a text is one key, keywords are keys (all keywords: the first
+     * is the primary key, the others secondary with AND ALL), a regular expression becomes a {@code /pattern/flags}
+     * key. An entry without a filter has no keys, so it is exported as constant.
+     */
+    public static ExportedKeys exportKeys(String filtering, FilteringMode mode) {
+        if (StringUtils.isBlank(filtering)) {
+            return new ExportedKeys(List.of(), List.of(), false);
+        }
+        FilteringMode m = mode == null ? FilteringMode.TEXT : mode;
+        switch (m) {
+            case KEYWORDS_OR:
+                return new ExportedKeys(keywords(filtering), List.of(), false);
+            case KEYWORDS_AND:
+                List<String> words = keywords(filtering);
+                if (words.isEmpty()) {
+                    return new ExportedKeys(List.of(), List.of(), false);
+                }
+                return new ExportedKeys(List.of(words.getFirst()), words.subList(1, words.size()), false);
+            case REGEX:
+                return new ExportedKeys(List.of(javaScriptRegex(filtering)), List.of(), true);
+            default:
+                return new ExportedKeys(List.of(filtering), List.of(), false);
+        }
+    }
+
+    private static List<String> keywords(String filtering) {
+        List<String> words = new ArrayList<>();
+        for (String word : filtering.split(",")) {
+            if (!word.isBlank()) {
+                words.add(word.strip());
+            }
+        }
+        return words;
+    }
+
+    /**
+     * A Java expression as a JavaScript {@code /pattern/flags} key: the flags in the leading {@code (?flags)} group move
+     * after the pattern (Marginalia matches ignoring case unless {@code (?-i)}), {@code \Q...\E} quotes become
+     * escaped text. Other Java-only syntax stays and does not match in SillyTavern.
+     */
+    static String javaScriptRegex(String expression) {
+        String pattern = expression;
+        boolean ignoreCase = true;
+        boolean dotAll = false;
+        boolean multiline = false;
+        Matcher lead = Pattern.compile("^\\(\\?([a-zA-Z]*)(?:-([a-zA-Z]*))?\\)").matcher(pattern);
+        while (lead.find()) {
+            String on = lead.group(1);
+            String off = lead.group(2) == null ? "" : lead.group(2);
+            dotAll = (dotAll || on.contains("s")) && !off.contains("s");
+            multiline = (multiline || on.contains("m")) && !off.contains("m");
+            ignoreCase = (ignoreCase || on.contains("i")) && !off.contains("i");
+            pattern = pattern.substring(lead.end());
+            lead = Pattern.compile("^\\(\\?([a-zA-Z]*)(?:-([a-zA-Z]*))?\\)").matcher(pattern);
+        }
+        Matcher quoted = Pattern.compile("\\\\Q(.*?)\\\\E", Pattern.DOTALL).matcher(pattern);
+        pattern = quoted.replaceAll(m -> Matcher.quoteReplacement(m.group(1).replaceAll("[\\\\^$.|?*+()\\[\\]{}/]", "\\\\$0")));
+        // the slash ends the pattern in /pattern/flags
+        pattern = pattern.replaceAll("(?<!\\\\)/", "\\\\/");
+        return "/" + pattern + "/" + (dotAll ? "s" : "") + (multiline ? "m" : "") + (ignoreCase ? "i" : "");
+    }
+
     private static String anyOf(List<String> keys, boolean wholeWords) {
         List<String> parts = new ArrayList<>();
         for (String key : keys) {

@@ -132,6 +132,7 @@ Every part has a menu (☰) in its top right corner:
 | Item | |
 |---|---|
 | **Edit** | Turns the text into an editable field. **Save** (the same menu item) saves it. Starting a generation or leaving the tab saves open edits too. |
+| **Discard Changes** | Only while the text is edited: closes the field without saving, the part keeps the text it was last saved with. If you changed the text, you are asked first. |
 | **Regenerate** | Writes the last part again, replacing its text. Only on the last part. |
 | **Swipe** | Writes another version of the last part and keeps the old one as a separate branch. Only on the last part. See [Branches & story tree](branches-and-story-tree.md#trying-another-version-of-the-last-part). |
 | **Branch Story** | Starts a new branch from this part, see [Branches & story tree](branches-and-story-tree.md#branching-from-an-earlier-part). |
@@ -241,6 +242,15 @@ Good to know:
 The **Summaries** button in the bottom bar (left of the settings menu ⚙) opens the overview of the summaries of the
 branch, where they can be edited, deleted and merged into meta summaries. The tooltip of the button shows how many
 tokens the summaries in use take in the prompt. See [Summaries](summaries.md#the-summaries-overview).
+
+## How much of the context the story takes
+
+The settings menu (⚙) has **Branch Tokens**. It shows, before you generate anything, what the story of the active branch
+takes of the prompt: a bar for the story **without summaries** (all the parts) and **with summaries** (the summaries
+and the parts after the newest one), and a table with the parts, the tokens and the share of the **prompt budget**
+(the context of the book's model minus the room for the response). Only summaries that still describe the story count;
+the ones that no longer match are named, they are dropped when a part is generated. The lore, the system template and the
+instructions of the turn take room from the same budget. Without a model with a context size the table has no shares.
 
 ## Book styles
 

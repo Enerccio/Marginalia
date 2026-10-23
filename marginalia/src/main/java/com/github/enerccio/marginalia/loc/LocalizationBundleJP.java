@@ -642,6 +642,16 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_CLONE_LOREBOOK, "ロアブックを複製");
         setValue(L.LABEL_CLONE_PROTOCOL, "プロトコルを複製");
         setValue(L.LABEL_CLONE_PROVIDER, "推論プロバイダーを複製");
+        setValue(L.LABEL_EXPORT_TO_SILLYTAVERN, "SillyTavern へエクスポート");
+        setValue(L.LABEL_BRANCH_TOKENS, "ブランチのトークン");
+        setValue(L.LABEL_TOKENS_WITHOUT_SUMMARIES, "要約なし");
+        setValue(L.LABEL_TOKENS_WITH_SUMMARIES, "要約あり");
+        setValue(L.LABEL_TOKENS_COVERED_PARTS, "要約でカバーされるパート");
+        setValue(L.LABEL_TOKENS_RECENT_PARTS, "最後の要約より後のパート");
+        setValue(L.LABEL_PARTS, "パート");
+        setValue(L.LABEL_TOKEN_BUDGET_SHARE, "プロンプト予算に占める割合");
+        setValue(L.LABEL_LIGHT_THEME, "ライトテーマに切り替え");
+        setValue(L.LABEL_DARK_THEME, "ダークテーマに切り替え");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1072,6 +1082,12 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_PART_MERGED, "パートを前のパートに統合しました。");
         setValue(L.MSG_BRANCH_SEARCH_RESULT, "一致 %s / %s（パート #%s）");
         setValue(L.MSG_BOOKS_FOUND, "%s 冊が見つかりました");
+        setValue(L.MSG_BRANCH_TOKENS_EMPTY, "アクティブなブランチにはまだストーリーがありません。");
+        setValue(L.MSG_BRANCH_TOKENS_BUDGET, "プロンプト予算: %s トークン（コンテキスト %s から応答用に予約された %s を除く）。");
+        setValue(L.MSG_BRANCH_TOKENS_NO_BUDGET, "ブックのモデルにコンテキストサイズが設定されていないため、プロンプト予算は不明です。");
+        setValue(L.MSG_BRANCH_TOKENS_STALE, "%s 件の要約はストーリーと一致しなくなっており、パート生成時に破棄されます。");
+        setValue(L.MSG_BRANCH_TOKENS_HELP, "次のプロンプトが運ぶアクティブなブランチのストーリー。保存されたパートと要約から数えています。ロア、システムテンプレート、ターンの指示は同じ予算を使用します。");
+        setValue(L.MSG_CONFIRM_DISCARD_EDIT, "このパートへの変更を破棄しますか？最後に保存したテキストが残ります。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

@@ -13,6 +13,35 @@ Use it to keep a copy, to share a world with other users, or to move it to anoth
 Entry revisions of the [Lorebook VCS](../extensions/lorebook-vcs.md) extension belong to the old entries and do not show
 on the entries the import creates; the extension has its own export for them.
 
+### Exporting for SillyTavern
+
+The **export** button opens a menu with two items: **Export Lorebook** (the file above) and **Export to SillyTavern**,
+which downloads the lorebook as a SillyTavern world info file that SillyTavern can import. It is the reverse of the
+[import](#importing-sillytavern-world-info):
+
+| Marginalia | SillyTavern |
+|---|---|
+| *Entry Name* | Title / memo (`comment`) |
+| *Content*, *Order*, *Enabled* | Content, order, disabled |
+| No filter | Constant entry (🔵) |
+| *Text* filter | One primary key |
+| *Keywords (any)* | One primary key for each keyword |
+| *Keywords (all)* | The first keyword is the primary key, the others are secondary keys with the logic *AND ALL* |
+| *Regex* | One key written as `/pattern/flags` |
+| *In Lore Block* | Position *before character definitions* |
+| *Before User Prompt* | Position *at depth* 1 |
+| Tags | Character filter (by name); negative tags only when the entry has no tags (*exclude*) |
+
+The **sub lorebooks are merged**: the file has the entries of the lorebook first, then those of its sub lorebooks, as
+SillyTavern has no lorebooks inside lorebooks. What SillyTavern has no counterpart for is left out: the *Note* of an
+entry, negative tags together with tags, the data of extensions. SillyTavern matches the keys in the recent chat, see
+[what works differently](#what-works-differently) for the other direction.
+
+!!! warning
+A regular expression is written in the Java syntax. SillyTavern uses JavaScript, so simple expressions work, but
+something Java-only (possessive quantifiers, `\p{...}` classes) does not match there.
+!!!
+
 ## Importing a Marginalia lorebook
 
 1. Click the **import** button (file icon) and choose **Import Marginalia Lorebook**.

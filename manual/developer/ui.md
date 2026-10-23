@@ -400,6 +400,8 @@ page (`service.find(id)`) and wraps them in a `BackendTableItem` subclass. It al
 | Widget | Used for |
 |---|---|
 | `HTabSheet` | The workspace's left-hand tab sheet with a footer area. |
+| `ThemeSwitch` | The button next to the `LanguageSelector` in the workspace footers: toggles `UserSetting.themeMode` (`ThemeMode` DARK / LIGHT, dark when not chosen) and applies it with `Page.setColorScheme`; `ThemeSwitch.apply` is also called by `Main.proceedWithLogin`, so the scheme is set when the workspace opens. Only the current page changes at once. |
+| `BranchTokensDialog` (`ui.dialogs`) | The *Branch Tokens* item of the settings menu of `ManuscriptStoryPart` / `PhoneManuscriptStoryPart`: a stacked bar (`ChartJs`) and a table of `ChatMessageService.getBranchTokens` against `TokenLimits.promptTokens` of the book's model and protocol. Not `@Extendable`. |
 | `LanguageSelector` | The language combo box of the workspace footers: saves the choice in `UserSetting.language`, sets `SessionPoint.language` and reloads every page of the user ([Localization](architecture.md#localization)). |
 | `TagsView` (`ui.components`) | The Tags tab of `UserPart`: a grid of the tags with their relation counts, rename (a name that exists asks to merge) and delete. It acts at once and is not tracked as an unsaved setting. |
 | `LLMInteract` / `LLMSnapshot` (`ui`) | What the help assistant's model can read of the screen, see [Letting the help assistant see the UI](#letting-the-help-assistant-see-the-ui). |

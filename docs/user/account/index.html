@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846024434294">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846025872724">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846024434294" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846025872724" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846024434294" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846025872724" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846024434294" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846025872724" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -178,6 +178,7 @@ and settings. Other users don&#x27;t see them (except books you <a href="../book
 <retype-table copy-text="| Button | |
 |---|---|
 | **Language** | The language of the user interface, see [Language](#language). |
+| sun / moon button | Next to the language: switches between the dark and the light theme, see [Theme](#theme). |
 | **Change Password** | Changes your password, user name and full name, see below. |
 | **Logout** | Logs you out on this device. |
 | **Admin** | Only for administrators, see [Administration](administration/index.md). |">
@@ -193,6 +194,10 @@ and settings. Other users don&#x27;t see them (except books you <a href="../book
 <tr>
 <td><strong>Language</strong></td>
 <td>The language of the user interface, see <doc-anchor-trigger to="#language">Language</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td>sun / moon button</td>
+<td>Next to the language: switches between the dark and the light theme, see <doc-anchor-trigger to="#theme">Theme</doc-anchor-trigger>.</td>
 </tr>
 <tr>
 <td><strong>Change Password</strong></td>
@@ -240,6 +245,11 @@ Dates are written the way that language does. Your books and their texts are not
     <img src="../../images/ui-japanese.png" alt="The workspace in Japanese" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
     <figcaption class="caption">The workspace in Japanese</figcaption>
 </figure>
+<h3 id="theme">Theme</h3>
+<p>The button next to the <strong>Language</strong> selector switches the user interface between the dark theme (the default) and the
+light one. The choice is saved in your account and used again the next time you log in, on any device; a page that is
+already open in another tab changes when it is reloaded. Charts and the relationship map take the colors of the theme
+when they are opened.</p>
 <h3 id="logging-in">Logging in</h3>
 <p><strong>Save login</strong> on the login screen keeps you logged in on this device for 30 days (it needs HTTPS on a server, see
 <a href="../getting-started/docker-server/#https-and-reverse-proxy">Server (Docker)</a>). <strong>Logout</strong> ends it.</p>
@@ -494,7 +504,7 @@ settings is installed.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (068640a8).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (5ed1c171).</p></div>
             </footer>
         </div>
     </div>

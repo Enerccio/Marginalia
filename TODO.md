@@ -165,14 +165,15 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     prompt section (jailbreak, template, lore, summaries, story, user lore, user prompt, reserved), the budget, the
     story parts that were cut and the tokens of each payload message; it is stored with the part
     (`ChatMessage.tokenBreakdown`, `null` for older parts) and *Token Usage* in the part menu shows it with Chart.js
-    (`ChartJs` widget, `TokenUsageDialog`). Not done: a view of the whole book's budget before generating.
+    (`ChartJs` widget, `TokenUsageDialog`). *Branch Tokens* in the settings menu of the story shows the budget of the whole active
+    branch before generating, with and without summaries (`ChatMessageService.getBranchTokens`, `BranchTokensDialog`).
 
 20. **Lorebook improvements.**
     - ✅ Edit lorebook-level tags in `LorebookView` (generation reads them in `fillEntries`, but there's no UI).
     - Bulk edit: ✅ *Mass edit* (`LorebookMassEditDialog`: all entries of the lorebook and its subbooks in one table, move
       to another lorebook) and *Tag entries* (`MultiTagDialog`). Still open: entry search/filter and bulk delete in the
       entry grid.
-    - SillyTavern **export** (import exists).
+    - ✅ SillyTavern **export** (`LorebookService.exportToSillytavern`: sub lorebooks merged, filters as keys, tags as the character filter).
     - Recursive activation / scan depth (entries activating other entries) and activation preview
       ("which entries would fire for this prompt").
     - ✅ A read only *Lorebook* tab in the story editor (desktop) shows the lorebook of the story without leaving it:
@@ -185,6 +186,7 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     - ✅ Characters per book (name, tagline, note, icon scaled to 200 x 200, colour), relationships between them and a
       relationship map, in the story sidebar; characters can be created from lorebook entries. The **Character
       Tracker** plugin (`marginalia/plugins/character-tracker`) keeps them in the book's attributes, not in an entity.
+    - ✅ The Character Tracker can insert the characters and their relationships into the prompt (*In prompt*, depth and role, like the Author's Note).
     - Link characters to lorebook entries (the import only copies the names).
     - Pick-lists of the characters for the POV and present characters of a turn.
     - SillyTavern character card import.
@@ -244,7 +246,7 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 ## P3 — Nice to have
 
 25. **Writing statistics** — words per day/session, per-book totals, goals. 🧩
-26. **Undo for edits** — message edits overwrite text in place; keep per-message edit history (branching
+26. **Undo for edits** — (*Discard Changes* in the part menu drops an edit that is not saved yet.) message edits overwrite text in place; keep per-message edit history (branching
     covers generations but not manual edits). 🧩 (similar to `lorebookvcs`)
 27. **Keyboard shortcuts** in the story editor (generate, stop, swipe, regenerate, edit), so most of the writing loop
     works with the keyboard and tabs. First step: a shortcut on the open story tab that opens the new-turn popover
@@ -269,7 +271,8 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     The story twins share their helpers in `ui.dialogs.story` (generation listener, cards registry, new turn form,
     backup...); the other twins (tree, info, prompt, backup, lorebook parts) still duplicate the desktop classes: move
     shared code out when either is touched next.
-29. **Theming** — light/dark toggle per user, editor font/size settings.
+29. **Theming** — ✅ light/dark toggle per user (`ThemeSwitch` next to the language selector, `UserSetting.themeMode`, Vaadin
+    `Page.setColorScheme`). Still open: editor font/size settings; open pages of the user's other sessions change on reload only.
 30. **Import from other tools** — SillyTavern chats → book with branches, NovelAI/KoboldAI stories. 🧩
 31. **Image generation / illustrations** for scenes (would use `Resource`; attaching images by hand is done, see
     *Images* in the part menu - generation, sending images to vision models and showing them to the readers of a
