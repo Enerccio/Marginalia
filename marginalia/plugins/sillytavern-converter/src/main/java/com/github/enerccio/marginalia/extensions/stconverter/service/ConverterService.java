@@ -310,6 +310,88 @@ public class ConverterService {
         return turns;
     }
 
+    // --- turn boundaries ---
+
+    /**
+     * Moves the range to the boundaries of the turns. A turn ends with a message of the character (the messages of the user
+     * before it are its instructions), so the end of the range snaps back to the last message of the character at or before
+     * it, and the start back to the first message after the one before. The end of the chat is a boundary too. When nothing
+     * is left between them (a range inside the instructions of a turn) the end goes forward to the end of that turn.
+     *
+     * @param from the first message of the range, from 1
+     * @param to   the last message of the range, from 1
+     * @return {first, last}, from 1
+     */
+    public static int[] alignRange(List<ChatLine> chat, int from, int to) {
+        int size = chat.size();
+        if (size == 0) {
+            return new int[]{1, 1};
+        }
+        int first = alignStart(chat, Math.max(1, Math.min(from, size)));
+        int last = alignEnd(chat, Math.max(first, Math.min(to, size)));
+        if (last < first) {
+            last = turnEnd(chat, Math.max(1, Math.min(to, size)));
+        }
+        return new int[]{first, last};
+    }
+
+    /** The first message of the turn the message {@code number} (from 1) is in. */
+    static int alignStart(List<ChatLine> chat, int number) {
+        int start = number;
+        while (start > 1 && chat.get(start - 2).isUser()) {
+            start--;
+        }
+        return start;
+    }
+
+    /**
+     * The last message of the character at or before the message {@code number} (from 1); the end of the chat stays; 0 when
+     * there is none.
+     */
+    static int alignEnd(List<ChatLine> chat, int number) {
+        if (number >= chat.size()) {
+            return chat.size();
+        }
+        int end = number;
+        while (end > 0 && chat.get(end - 1).isUser()) {
+            end--;
+        }
+        return end;
+    }
+
+    /** The first message of the character at or after the message {@code number} (from 1); the end of the chat when none. */
+    static int turnEnd(List<ChatLine> chat, int number) {
+        int end = number;
+        while (end < chat.size() && chat.get(end - 1).isUser()) {
+            end++;
+        }
+        return end;
+    }
+
+    /**
+     * Splits the messages {@code from} to {@code to} (from 1) into blocks of about {@code size} messages for the auto mode,
+     * every block starts after the one before. With {@code align} a block ends at the end of a turn (the last message of the
+     * character within the size, or when the turn is longer than that, the end of the turn), so no turn is cut in two.
+     *
+     * @return {first, last} of every block, from 1, never empty for a valid range
+     */
+    public static List<int[]> splitBlocks(List<ChatLine> chat, int from, int to, int size, boolean align) {
+        List<int[]> blocks = new ArrayList<>();
+        int last = Math.min(to, chat.size());
+        int step = Math.max(1, size);
+        int start = Math.max(1, from);
+        while (start <= last) {
+            int end = Math.min(last, start + step - 1);
+            if (align && end < last) {
+                int aligned = alignEnd(chat, end);
+                end = aligned >= start ? aligned : Math.min(last, turnEnd(chat, end));
+            }
+            blocks.add(new int[]{start, end});
+            start = end + 1;
+        }
+        return blocks;
+    }
+
     /**
      * The next row that is not checked, going down from the row after {@code after} and starting again from the top when
      * there is none below.

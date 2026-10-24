@@ -20,25 +20,33 @@
     padding: 0.25rem 0.375rem;
 }
 
-/* The lists keep a height of their own, so that the tab scrolls instead of squeezing them away */
+/* The tabs take the height that is left below the bar, and the grid in them scrolls by itself; the tab as a whole scrolls
+   only when the sidebar is lower than the minimum below */
 .stc-tabs {
-    flex: 1 0 auto;
-    min-height: 420px;
+    flex: 1 1 0;
+    min-height: 300px;
+}
+
+.stc-tabs::part(content) {
+    overflow: hidden;
 }
 
 .stc-lists {
-    min-height: 360px;
+    min-height: 0;
 }
 
-/* The model and the protocol one under the other, as wide as the tab */
+/* The model and the protocol side by side, one under the other when the tab is too narrow for both */
 .stc-picker {
     flex-wrap: wrap;
     width: 100%;
+    gap: 0.25rem;
 }
 
 .stc-picker > vaadin-combo-box {
-    width: 100% !important;
+    /* the combo boxes have a width of their own set inline */
+    flex: 1 1 9rem;
     min-width: 0;
+    width: auto !important;
 }
 
 .stc-pad {

@@ -98,6 +98,12 @@ public class ConverterView extends VerticalLayout {
     private Span hint;
     private Button wandButton;
     private Button promptButton;
+    private Checkbox alignBox;
+    private Button autoButton;
+    private HorizontalLayout autoBar;
+    private IntegerField batchField;
+    private Button autoStartButton;
+    private Span autoInfo;
     private Span status;
     private TabSheet tabs;
     private Tab chatTab;
@@ -125,6 +131,14 @@ public class ConverterView extends VerticalLayout {
     private boolean generating;
     private CancellationToken running;
     private final StringBuilder output = new StringBuilder();
+
+    /** The auto mode: the blocks of messages sent one after another (null while it is not running), the one it is at, and the range to give back. */
+    private List<int[]> autoBlocks;
+    private int autoIndex;
+    private int[] autoOriginal;
+    private boolean autoStopped;
+    private int autoAdded;
+    private int autoReplaced;
 
     public ConverterView(ConverterService service, Manuscript manuscript, TurnOpener opener) {
         this.service = service;
@@ -193,15 +207,75 @@ public class ConverterView extends VerticalLayout {
         promptButton.setTooltipText("Edit the prompt of the wand");
 
         HorizontalLayout fields = new HorizontalLayout(fromField, toField, allButton);
-        fields.setAlignItems(FlexComponent.Alignment.BASELINE);
+        // the buttons sit on the line of the bottom of the fields, not of their labels
+        fields.setAlignItems(FlexComponent.Alignment.END);
+        fields.setSpacing(false);
+        fields.getThemeList().add("spacing-xs");
         HorizontalLayout actions = new HorizontalLayout(wandButton, promptButton);
-        actions.setAlignItems(FlexComponent.Alignment.CENTER);
+        actions.setAlignItems(FlexComponent.Alignment.END);
+        actions.setSpacing(false);
+        actions.getThemeList().add("spacing-xs");
         rangeBar = new HorizontalLayout(fields, actions, tokenInfo);
         rangeBar.setWidthFull();
         rangeBar.setWrap(true);
         rangeBar.setSpacing(false);
-        rangeBar.setAlignItems(FlexComponent.Alignment.CENTER);
+        rangeBar.getThemeList().add("spacing-xs");
+        rangeBar.setAlignItems(FlexComponent.Alignment.END);
         rangeBar.setPadding(false);
+
+        alignBox = new Checkbox("Align to turns", data.isAlign());
+        alignBox.setTooltipText("The range starts at the beginning of a turn and ends with a message of the character "
+                + "(the end of the range moves back to the last message of the character before it)");
+        alignBox.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                data.setAlign(e.getValue());
+                persist();
+                applyAlign();
+                rangeChanged();
+            }
+        });
+        autoButton = new Button("Auto mode", Solid.GEARS.create(), e -> autoBar.setVisible(!autoBar.isVisible()));
+        autoButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
+        autoButton.setTooltipText("Convert the whole range in batches of messages, one request after another");
+        HorizontalLayout options = new HorizontalLayout(alignBox, autoButton);
+        options.setAlignItems(FlexComponent.Alignment.CENTER);
+        options.setSpacing(false);
+        options.setPadding(false);
+
+        batchField = new IntegerField("Messages per batch");
+        batchField.setMin(1);
+        batchField.setMax(1000);
+        batchField.addThemeName("small");
+        batchField.setWidth("150px");
+        batchField.setStepButtonsVisible(false);
+        batchField.setValue(data.getBatchSize());
+        batchField.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                data.setBatchSize(e.getValue() != null ? Math.max(1, e.getValue()) : ConverterData.DEFAULT_BATCH_SIZE);
+                persist();
+                updateTokenInfo();
+            }
+        });
+        autoStartButton = new Button("Convert in batches", Solid.FORWARD.create(), e -> {
+            if (generating) {
+                stop();
+            } else {
+                startAuto();
+            }
+        });
+        autoStartButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
+        autoStartButton.setTooltipText("Ask the model for the turn details of the range, one batch of messages after another");
+        autoInfo = new Span();
+        autoInfo.addClassName(CssStyles.TEXT_SECONDARY);
+        autoInfo.setWidthFull();
+        autoBar = new HorizontalLayout(batchField, autoStartButton, autoInfo);
+        autoBar.setWidthFull();
+        autoBar.setWrap(true);
+        autoBar.setSpacing(false);
+        autoBar.getThemeList().add("spacing-xs");
+        autoBar.setPadding(false);
+        autoBar.setAlignItems(FlexComponent.Alignment.END);
+        autoBar.setVisible(false);
 
         hint = new Span("Click a message to start a range, Shift+click to extend it.");
         hint.addClassName(STConverterStyles.HINT);
@@ -210,7 +284,7 @@ public class ConverterView extends VerticalLayout {
         status.setVisible(false);
 
         // closed until the author needs the wand: the lists get the room
-        VerticalLayout convertContent = new VerticalLayout(picker, rangeBar, hint);
+        VerticalLayout convertContent = new VerticalLayout(picker, rangeBar, options, autoBar, hint);
         convertContent.setWidthFull();
         convertContent.setSpacing(false);
         convertContent.setPadding(false);
@@ -251,7 +325,7 @@ public class ConverterView extends VerticalLayout {
         turnsPanel.setFlexGrow(1, turnGrid);
 
         tabs = new TabSheet();
-        tabs.setSizeFull();
+        tabs.setWidthFull();
         tabs.addClassName(STConverterStyles.TABS);
         chatTab = new Tab("Chat");
         turnsTab = new Tab("Turn details");
@@ -518,6 +592,16 @@ public class ConverterView extends VerticalLayout {
         from = 1;
         to = Math.max(1, data.getChat().size());
         anchor = from;
+        applyAlign();
+    }
+
+    /** Moves the range to the boundaries of the turns when the author wants that. */
+    private void applyAlign() {
+        if (data.isAlign() && !data.getChat().isEmpty()) {
+            int[] aligned = ConverterService.alignRange(data.getChat(), from, to);
+            from = aligned[0];
+            to = aligned[1];
+        }
     }
 
     private void clickMessage(int number, boolean extend) {
@@ -530,6 +614,7 @@ public class ConverterView extends VerticalLayout {
             from = number;
             to = number;
         }
+        applyAlign();
         rangeChanged();
     }
 
@@ -543,6 +628,7 @@ public class ConverterView extends VerticalLayout {
         from = Math.max(1, Math.min(typedFrom, Math.max(1, size)));
         to = Math.max(from, Math.min(typedTo, Math.max(1, size)));
         anchor = from;
+        applyAlign();
         rangeChanged();
     }
 
@@ -579,6 +665,7 @@ public class ConverterView extends VerticalLayout {
         List<ChatLine> chat = data.getChat();
         if (chat.isEmpty()) {
             tokenInfo.setText("");
+            autoInfo.setText("");
             return;
         }
         AI ai = picker.getAi();
@@ -604,31 +691,43 @@ public class ConverterView extends VerticalLayout {
         }
         tokenInfo.setText((to - from + 1) + " messages: about " + numbers.format(chatTokens + baseTokens)
                 + " tokens (chat " + numbers.format(chatTokens) + " + prompt " + numbers.format(baseTokens) + ")");
+
+        // the auto mode sends the range in batches, each with the prompt
+        int requests = ConverterService.splitBlocks(chat, from, to, data.getBatchSize(), data.isAlign()).size();
+        autoInfo.setText(requests + (requests == 1 ? " request" : " requests") + ", about "
+                + numbers.format(chatTokens + baseTokens * requests) + " tokens in all");
     }
 
     // --- the wand ---
 
     private void generate() {
+        startRun(from, to);
+    }
+
+    /**
+     * Sends the messages {@code runFrom} to {@code runTo} to the model.
+     *
+     * @return false when nothing runs (the reason is shown)
+     */
+    private boolean startRun(int runFrom, int runTo) {
         if (data.getChat().isEmpty()) {
             Notification.warning("Load a chat first");
-            return;
+            return false;
         }
         AI ai = picker.getAi();
         if (ai == null) {
             Notification.warning("Choose a model");
-            return;
+            return false;
         }
         try {
-            String prompt = service.buildPrompt(manuscript, data, service.promptTemplate(data), from, to);
+            String prompt = service.buildPrompt(manuscript, data, service.promptTemplate(data), runFrom, runTo);
             JsonNode schema = service.schema();
-            int runFrom = from;
-            int runTo = to;
             output.setLength(0);
             showStatus(null);
             InferenceService inference = inferenceServices.forAIOrThrow(ai);
             generating = true;
             updateControls();
-            showStatus("Waiting for the model...");
+            showStatus(progress("Waiting for the model..."));
             try {
                 running = inference.stream(service.toPayload(prompt), picker.getProtocol(), schema, null, callback(runFrom, runTo));
             } catch (Exception e) {
@@ -638,6 +737,7 @@ public class ConverterView extends VerticalLayout {
                 updateControls();
                 throw e;
             }
+            return true;
         } catch (IllegalArgumentException | UnsupportedOperationException e) {
             // a provider that can't take a response schema
             Notification.warning(e.getMessage());
@@ -647,6 +747,12 @@ public class ConverterView extends VerticalLayout {
             Notification.error("Can't convert: " + StringUtils.defaultIfBlank(e.getMessage(), e.toString()));
             showStatus(null);
         }
+        return false;
+    }
+
+    /** The text with the batch the auto mode is at in front of it. */
+    private String progress(String text) {
+        return autoBlocks == null ? text : "Batch " + (autoIndex + 1) + " of " + autoBlocks.size() + ": " + text;
     }
 
     private InferenceService.InferenceAsyncCallback callback(int runFrom, int runTo) {
@@ -658,9 +764,9 @@ public class ConverterView extends VerticalLayout {
                         output.append(text);
                         JsonNode partial = PartialJson.parse(output.toString());
                         int turns = partial != null && partial.path("turns").isArray() ? partial.path("turns").size() : 0;
-                        showStatus("Writing the turn details... " + turns + " so far");
+                        showStatus(progress("Writing the turn details... " + turns + " so far"));
                     } else {
-                        showStatus("The model is thinking...");
+                        showStatus(progress("The model is thinking..."));
                     }
                     UIPushGuard.push(ui);
                     controller.continueInference();
@@ -695,41 +801,140 @@ public class ConverterView extends VerticalLayout {
             generating = false;
             running = null;
             showStatus(null);
+            boolean accepted = false;
             if (error != null) {
                 UIUtils.inferenceError(loc, error);
             } else if (stopped) {
-                Notification.warning("Stopped, nothing was changed");
+                if (autoBlocks == null) {
+                    Notification.warning("Stopped, nothing was changed");
+                }
             } else if (output.isEmpty()) {
                 showStatus("The model did not answer.");
             } else {
-                accept(runFrom, runTo);
+                accepted = accept(runFrom, runTo);
             }
-            updateControls();
+            if (autoBlocks == null) {
+                updateControls();
+            } else if (accepted && !autoStopped) {
+                autoIndex++;
+                runNextBlock();
+            } else {
+                endAuto();
+            }
             UIPushGuard.push(ui);
         });
     }
 
-    /** Checks the answer and puts its turns into the turn details of the book. */
-    private void accept(int runFrom, int runTo) {
+    /**
+     * Checks the answer and puts its turns into the turn details of the book.
+     *
+     * @return false when the answer is not usable (shown)
+     */
+    private boolean accept(int runFrom, int runTo) {
         try {
             List<TurnItem> added = service.readAnswer(output.toString(), runFrom, runTo);
             int replaced = ConverterService.mergeTurns(data.getTurns(), added, runFrom, runTo);
             persist();
             refreshTurns();
+            if (autoBlocks != null) {
+                autoAdded += added.size();
+                autoReplaced += replaced;
+                return true;
+            }
             baseTokens = null;
             tabs.setSelectedTab(turnsTab);
             Notification.success(added.size() + " turns for the messages " + runFrom + "-" + runTo
                     + (replaced > 0 ? " (" + replaced + " earlier ones replaced)" : ""));
+            return true;
         } catch (Exception e) {
             STConverterLog.get().warn("The answer of the model is not usable: {}", e.getMessage());
             showStatus(StringUtils.defaultIfBlank(e.getMessage(), e.toString()));
+            return false;
         }
     }
 
     private void stop() {
+        autoStopped = autoBlocks != null;
         CancellationToken token = running;
         if (token != null) {
             token.cancel();
+        }
+    }
+
+    // --- the auto mode ---
+
+    /** Asks before it sends the range to the model in batches. */
+    private void startAuto() {
+        if (generating || data.getChat().isEmpty()) {
+            return;
+        }
+        List<int[]> blocks = ConverterService.splitBlocks(data.getChat(), from, to, data.getBatchSize(), data.isAlign());
+        if (blocks.isEmpty()) {
+            return;
+        }
+        ConfirmDialog.show("Convert the messages " + from + "-" + to + " in " + blocks.size() + " requests to the model, "
+                + "one after another? The earlier turn details of the range that you have not ticked are replaced.", () -> {
+            autoBlocks = blocks;
+            autoIndex = 0;
+            autoOriginal = new int[]{from, to, anchor};
+            autoStopped = false;
+            autoAdded = 0;
+            autoReplaced = 0;
+            runNextBlock();
+        });
+    }
+
+    /** Sends the block the auto mode is at, or ends the auto mode when they are all done or a block can't be sent. */
+    private void runNextBlock() {
+        if (autoIndex >= autoBlocks.size()) {
+            endAuto();
+            return;
+        }
+        int[] block = autoBlocks.get(autoIndex);
+        // show where it is
+        from = block[0];
+        to = block[1];
+        chatCursor = from;
+        rangeChanged();
+        if (chatGrid != null) {
+            chatGrid.scrollToIndex(from - 1);
+        }
+        if (!startRun(block[0], block[1])) {
+            endAuto();
+        }
+    }
+
+    /**
+     * Ends the auto mode. When all blocks are done the range is given back and the turn details are shown, otherwise the
+     * range is what is left, so that it can go on from there.
+     */
+    private void endAuto() {
+        int done = autoIndex;
+        int total = autoBlocks.size();
+        boolean complete = done >= total;
+        if (complete) {
+            from = autoOriginal[0];
+            to = autoOriginal[1];
+            anchor = autoOriginal[2];
+        } else {
+            from = autoBlocks.get(done)[0];
+            to = autoOriginal[1];
+            anchor = from;
+        }
+        int added = autoAdded;
+        int replaced = autoReplaced;
+        autoBlocks = null;
+        autoOriginal = null;
+        baseTokens = null;
+        rangeChanged();
+        updateControls();
+        if (complete) {
+            tabs.setSelectedTab(turnsTab);
+            Notification.success(added + " turns made in " + total + " requests"
+                    + (replaced > 0 ? " (" + replaced + " earlier ones replaced)" : ""));
+        } else {
+            Notification.warning("Stopped after " + done + " of " + total + " requests (" + added + " turns made). "
+                    + "The range is what is left.");
         }
     }
 
@@ -786,6 +991,16 @@ public class ConverterView extends VerticalLayout {
         fromField.setEnabled(!generating);
         toField.setEnabled(!generating);
         promptButton.setEnabled(!generating);
+        alignBox.setEnabled(!generating);
+        batchField.setEnabled(!generating);
+        autoButton.setEnabled(!generating);
+        wandButton.setEnabled(autoBlocks == null);
+        autoStartButton.setText(generating ? "Stop" : "Convert in batches");
+        autoStartButton.setIcon((generating ? Solid.STOP : Solid.FORWARD).create());
+        autoStartButton.removeThemeVariants(ButtonVariant.LUMO_ERROR);
+        if (generating) {
+            autoStartButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        }
         wandButton.setText(generating ? "Stop" : "Convert range");
         wandButton.setIcon((generating ? Solid.STOP : Solid.WAND_MAGIC_SPARKLES).create());
         wandButton.removeThemeVariants(ButtonVariant.LUMO_ERROR);

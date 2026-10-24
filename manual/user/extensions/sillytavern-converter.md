@@ -30,6 +30,30 @@ the lists get the room. It holds:
 | Token count | How many tokens the request takes: the messages of the range plus the prompt and the lore (counted once). Use it to keep the range within the context of the model. |
 | **Convert range** | The wand: asks the model for the turn details of the range. It becomes **Stop** while the model works. |
 | Pen button | Edits the prompt of the wand (variables `{{backgroundLore}}`, `{{chat}}`, `{{firstMessage}}`, `{{lastMessage}}`), with a **Default** button. |
+| **Align to turns** | Moves the range to the boundaries of the turns, see below. Kept with the book. |
+| **Auto mode** | Shows the controls that convert the whole range in batches, see below. |
+
+### Align to turns
+
+A turn of the story is the messages of the user (the instructions) followed by the message of the character. With **Align to
+turns** ticked, every range you choose (by clicking, typing the numbers or **All**) is moved to the boundaries of the turns:
+the start goes back to the first message of its turn, and the end goes back to the last message of the character before it,
+so the range never ends on a message of the user that belongs to the turn after it. The end of the chat stays where it is. A
+range that lies wholly in the messages of the user before a reply is extended forward to that reply.
+
+### Auto mode
+
+**Auto mode** shows a line with **Messages per batch**, the button **Convert in batches** and how many requests that makes,
+with the tokens they take in all. The button splits the current range into batches of that many messages and sends
+them to the model one after another (after asking), the same as the wand does for one range. With **Align to turns** every
+batch ends at the end of a turn (the last message of the character within the size, or the end of the turn when it is longer
+than the size), so no turn is cut in two; without it the batches are cut exactly by the number, and a turn on the border
+can be split in two.
+
+While it runs the chat shows the batch it is at, the status line tells which batch of how many, and the button becomes
+**Stop**. The turn details of each batch are stored as soon as it is done, as with the wand (the turns that touch the range
+and that you have not ticked are replaced). When all batches are done the range is as you had it and the **Turn details**
+tab opens. When you stop, or a batch fails, the range is what is left, so you can go on from there.
 
 ## The chat
 
