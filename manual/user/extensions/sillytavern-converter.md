@@ -86,5 +86,12 @@ The model is told to cover every message of the range exactly once; numbers outs
 
 ## Storage
 
-The chat, the ticks, the turn details, the model and the prompt are stored with the book (in its attributes), so they are
-in [book backups](../books/backups.md) and copies.
+The uploaded file is stored as a [resource](../resources.md) of yours (a chat of SillyTavern can be megabytes, with all
+that SillyTavern adds to the messages), linked to the book. The ticks, the turn details, the model and the prompt are stored in
+the attributes of the book, so they are in [book backups](../books/backups.md) and copies.
+
+!!!warning
+The file of the chat is not in book backups, and a copy of a book points to the same file. After a restore the ticks and turn
+details are there, but the converter asks for the chat again (upload the same file; this replaces the turn details
+and the ticks). Removing the chat with the cross deletes the resource.
+!!!

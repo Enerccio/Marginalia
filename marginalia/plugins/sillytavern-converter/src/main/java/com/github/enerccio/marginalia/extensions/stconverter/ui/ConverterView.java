@@ -510,7 +510,7 @@ public class ConverterView extends VerticalLayout {
 
     private void upload(byte[] bytes, String fileName) {
         try {
-            int count = service.importChat(data, bytes, fileName);
+            int count = service.importChat(manuscript, data, bytes, fileName);
             service.save(manuscript, data);
             lineTokens = null;
             resetRange();
@@ -526,9 +526,12 @@ public class ConverterView extends VerticalLayout {
     private void removeChat() {
         chatCursor = 0;
         turnCursor = 0;
-        data.setChat(new ArrayList<>());
-        data.setTurns(new ArrayList<>());
-        data.setFileName(null);
+        try {
+            service.removeChat(data);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+            return;
+        }
         persist();
         lineTokens = null;
         resetRange();
