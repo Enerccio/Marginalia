@@ -79,6 +79,8 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     // after a command: the answer of a run that waits comes in a moment, looked for faster for a while
     static final int COMMAND_POLL_MILLIS = 500;
     static final long COMMAND_POLL_FOR_MILLIS = 15_000;
+    // how long the quick poll goes on after the answer of the model was last seen being written (every poll that sees it renews this)
+    static final long LIVE_POLL_FOR_MILLIS = 5_000;
 
     /**
      * Where the images attached to a message are kept in the workspace, for the agent to look at.
@@ -157,6 +159,8 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     // the messages that wait for the agent: their bubbles are the last ones of the transcript, and the ids they show
     private final List<Div> queuedBubbles = new ArrayList<>();
     private List<String> shownQueued = List.of();
+    // the answer the model is writing now, after the transcript and before the queued messages; null when no request goes on
+    private AgentLiveBubble liveBubble;
     // the buttons that take the conversation back to before a message, enabled while the run waits or is paused
     private final List<Button> rollbackButtons = new ArrayList<>();
 
@@ -844,10 +848,11 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         }
     }
 
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.5.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "runId", type = Long.class),
                     @APILocals(name = "queued", type = List.class),
+                    @APILocals(name = "live", type = AgentRunner.LiveAnswer.class),
                     @APILocals(name = "message", type = AgentRunner.QueuedMessage.class),
                     @APILocals(name = "bubble", type = Div.class)})
     private void showTranscript() throws Exception {
@@ -860,26 +865,50 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             rollbackButtons.clear();
             queuedBubbles.clear();
             shownQueued = List.of();
+            liveBubble = null;
         }
-        // the messages that wait stay the last bubbles: they come off while the transcript grows and go back after it
+        // the messages that wait stay the last bubbles, after the answer that is being written: they come off while the transcript
+        // grows and go back after it
         List<AgentRunner.QueuedMessage> queued = run == null ? List.of() : agentRunner.queued(run);
-        boolean queuedChanged = !queued.stream().map(AgentRunner.QueuedMessage::id).toList().equals(shownQueued)
-                || run != null && agentMessageService.count(run) != shown;
-        if (queuedChanged) {
+        AgentRunner.LiveAnswer live = run == null ? null : agentRunner.live(run);
+        boolean messagesChanged = run != null && agentMessageService.count(run) != shown;
+        // the written answer is stored (or the request is over) when a message came: the real blocks take its place
+        boolean liveGone = liveBubble != null && (live == null || messagesChanged);
+        boolean liveNew = live != null && (liveBubble == null || liveGone);
+        boolean regroup = !queued.stream().map(AgentRunner.QueuedMessage::id).toList().equals(shownQueued)
+                || messagesChanged || liveGone || liveNew;
+        if (regroup) {
             queuedBubbles.forEach(transcriptBox::remove);
             queuedBubbles.clear();
         }
+        if (liveGone) {
+            transcriptBox.remove(liveBubble);
+            liveBubble = null;
+        }
         showMessages();
-        if (queuedChanged) {
+        boolean liveChanged = false;
+        if (live != null) {
+            if (liveBubble == null) {
+                liveBubble = new AgentLiveBubble(renderer, loc, loc.getValue(L.ENUM_DOMAIN_AGENT));
+                transcriptBox.add(liveBubble);
+            }
+            liveChanged = liveBubble.show(live);
+        }
+        if (regroup) {
             for (AgentRunner.QueuedMessage message : queued) {
                 Div bubble = queuedBubble(message);
                 queuedBubbles.add(bubble);
                 transcriptBox.add(bubble);
             }
             shownQueued = queued.stream().map(AgentRunner.QueuedMessage::id).toList();
-            if (!queued.isEmpty()) {
-                JavascriptLibrary.scrollToBottomIfAtBottom(transcriptBox.getElement());
-            }
+        }
+        if (liveChanged || regroup && (!queued.isEmpty() || liveNew)) {
+            JavascriptLibrary.scrollToBottomIfAtBottom(transcriptBox.getElement());
+        }
+        if (live != null) {
+            // quicker than the ordinary poll while the answer is written, so it can be followed
+            fastPollUntil = Math.max(fastPollUntil, System.currentTimeMillis() + LIVE_POLL_FOR_MILLIS);
+            getUI().ifPresent(ui -> ui.setPollInterval(COMMAND_POLL_MILLIS));
         }
     }
 

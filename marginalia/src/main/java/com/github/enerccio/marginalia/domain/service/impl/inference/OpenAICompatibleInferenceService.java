@@ -196,6 +196,12 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
     @Override
     public CancellationToken round(List<LLMChatMessage> payload, Protocol protocol, FunctionSet functions,
                                    InferenceRoundCallback callback) throws Exception {
+        return round(payload, protocol, functions, false, callback);
+    }
+
+    @Override
+    public CancellationToken round(List<LLMChatMessage> payload, Protocol protocol, FunctionSet functions, boolean noFunctionCalls,
+                                   InferenceRoundCallback callback) throws Exception {
         boolean metered = !UnmeteredScope.isActive();
         if (metered) {
             limitService.check(ai, approximatePromptTokens(payload), TokenLimits.responseTokens(ai, protocol));
@@ -208,7 +214,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
         // streamed and put together here: the read timeout is the wait for the next chunk, so a model that thinks for
         // long (its reasoning arrives chunk by chunk) is not cut as one that waits for the whole answer would be
         ChatCompletionCreateParams params = buildParams(protocol, conversation, functionsOffered ? functions : null,
-                false, true, null).build();
+                noFunctionCalls, true, null).build();
 
         AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
         CompletableFuture.runAsync(() -> {
@@ -244,6 +250,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                                 if (thought != null) {
                                     reasoning.append(thought);
                                     received.append(thought);
+                                    showChunk(callback, ChunkType.REASONING, thought);
                                 }
                                 if (functionsOffered && delta.toolCalls().isPresent()) {
                                     collectToolCalls(pending, delta.toolCalls().get());
@@ -253,6 +260,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                                 delta.content().ifPresent(content -> {
                                     text.append(content);
                                     received.append(content);
+                                    showChunk(callback, ChunkType.RESPONSE, content);
                                 });
                             }
                         }
@@ -500,6 +508,15 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
             }
         }
         return paramsBuilder;
+    }
+
+    /** What a view that shows the answer as it is written gets; its failure is not the failure of the round. */
+    private static void showChunk(InferenceRoundCallback callback, ChunkType type, String text) {
+        try {
+            callback.onChunk(type, text);
+        } catch (RuntimeException e) {
+            log.debug("A view of the answer failed: {}", e.getMessage());
+        }
     }
 
     private static ChatCompletionFunctionTool toTool(FunctionDefinition function) {

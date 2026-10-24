@@ -713,6 +713,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_REDRAFT_SELECTION, "選択範囲を書き直す");
         setValue(L.LABEL_REDRAFT_SELECTED_TEXT, "選択したテキスト");
         setValue(L.LABEL_REDRAFT_WITH_ANNOTATIONS_SELECTION, "選択範囲内の未対応の注釈に対処する（再執筆を適用すると解決済みになります）");
+        setValue(L.LABEL_AGENT_WORKING, "作業中...");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
