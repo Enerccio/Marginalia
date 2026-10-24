@@ -24,6 +24,7 @@ public class NameGeneratorCommands {
             + "word of the filter starts a word. Reads only.";
     private static final String LIST_LLM = "Lists the categories of made-up names that generate-names accepts. There are over a thousand, so give "
             + "`filter`, words the name of the category contains (in any order, not case sensitive; the names are paths like \"Africa - Central Africa - Chad - Male\", so \"chad male\" or \"Africa - Central\" finds that), and only the categories that contain all the words are listed. "
+            + "Some entries are groups of categories (\"Native American - Male\"): every name of a group comes from one of its categories picked at random. "
             + "Returns a JSON array. Reads only.";
     private static final String LIST_RESULT = "JSON array of the categories";
     private static final String PARAM_FILTER = "Words the name of the categories contains, in any order, not case sensitive";
@@ -105,8 +106,7 @@ public class NameGeneratorCommands {
     private void generateNames(CommandContext context, Integer minLength, Integer maxLength) {
         String category = context.get("category", String.class);
         if (category == null || !tables.has(category)) {
-            throw new IllegalArgumentException("Unknown category '" + category + "'. Call list-name-categories with a filter, the start of the name "
-                    + "of the category, to find it.");
+            throw new IllegalArgumentException(NameTables.unknown("category", category, tables.categories(), LIST));
         }
         int count = NameGeneratorFunctionsImpl.clampCount(context.get("count", Integer.class));
         context.setReturn(GSON.toJson(tables.generate(category, count, minLength, maxLength, ThreadLocalRandom.current())));

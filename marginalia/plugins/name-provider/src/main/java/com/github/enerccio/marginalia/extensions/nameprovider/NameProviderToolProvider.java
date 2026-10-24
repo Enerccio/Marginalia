@@ -45,7 +45,7 @@ public class NameProviderToolProvider implements ToolProvider {
 
     @Override
     public String description() {
-        return "Real names: the most common forenames and surnames of about 100 countries, with the original spelling.";
+        return "Real names: the most common forenames and surnames of about 100 countries, with the original spelling. Groups (like the Nordic countries) pick a list at random for every name.";
     }
 
     @Override
@@ -74,7 +74,7 @@ public class NameProviderToolProvider implements ToolProvider {
         @Override
         public void pickNames(FunctionContinuation<List<NameEntry>> done, String category, int count) {
             if (category == null || !allowed.contains(category.strip())) {
-                done.fail("Unknown category '" + category + "'. Categories: " + String.join(", ", categories));
+                done.fail(NameLists.unknown("category", category, categories, "list_real_name_lists"));
                 return;
             }
             delegate.pickNames(done, category, count);
