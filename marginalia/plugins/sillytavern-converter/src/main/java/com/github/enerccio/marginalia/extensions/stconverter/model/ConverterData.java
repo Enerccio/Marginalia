@@ -11,6 +11,8 @@ public class ConverterData {
 
     public static final String KEY = "com.github.enerccio.marginalia.extensions.stconverter";
 
+    public static final int DEFAULT_BATCH_SIZE = 20;
+
     /** The name of the uploaded file, null while no chat is loaded. */
     private String fileName;
     private List<ChatLine> chat = new ArrayList<>();
@@ -21,6 +23,9 @@ public class ConverterData {
     private Long protocolId;
     /** The prompt template of the user, null for the default one. */
     private String prompt;
+    /** Whether the range snaps to the boundaries of the turns, and how many messages the auto mode sends at once. */
+    private boolean align;
+    private int batchSize = DEFAULT_BATCH_SIZE;
 
     public String getFileName() {
         return fileName;
@@ -74,5 +79,21 @@ public class ConverterData {
 
     public void setPrompt(String prompt) {
         this.prompt = prompt;
+    }
+
+    public boolean isAlign() {
+        return align;
+    }
+
+    public void setAlign(boolean align) {
+        this.align = align;
+    }
+
+    public int getBatchSize() {
+        return batchSize > 0 ? batchSize : DEFAULT_BATCH_SIZE;
+    }
+
+    public void setBatchSize(int batchSize) {
+        this.batchSize = batchSize;
     }
 }

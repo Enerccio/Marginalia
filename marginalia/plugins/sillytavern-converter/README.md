@@ -14,6 +14,10 @@ turn details get the room), holds:
 - the **range** of the chat the wand works on, **From** and **To**, with the number of tokens the request takes (the
   messages of the range, and the template and lore, which are counted once),
 - the **wand** (*Convert range*) and a pen button that edits its prompt.
+- **Align to turns**: every chosen range snaps to the boundaries of the turns (the end back to the last message of the
+  character, the start to the first message of its turn),
+- **Auto mode**: converts the whole range in batches of a chosen number of messages, one request after another (a batch
+  ends at the end of a turn when aligned); a stop or a failed batch leaves the rest of the range selected.
 
 Under that, two tabs:
 
