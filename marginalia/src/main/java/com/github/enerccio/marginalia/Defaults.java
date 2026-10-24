@@ -512,6 +512,44 @@ You are a sub-agent: another agent started you for one task, which is your first
             + "once. Go on with the next step of your task.";
 
     /**
+     * How many rounds that changed nothing and are the same as one of the last {@link #AGENT_REPEAT_WINDOW} (same calls, same
+     * results) it takes to tell the agent so, and to take its tools away and end the turn, see {@code RepeatDetector}.
+     */
+    public static final int AGENT_REPEAT_NOTICE_AFTER = 3;
+    public static final int AGENT_REPEAT_STOP_AFTER = 5;
+    public static final int AGENT_REPEAT_WINDOW = 15;
+
+    /**
+     * The notice after a round that is the same as two earlier ones: it learned nothing, the next one will not either.
+     */
+    public static final String AGENT_REPEATING_NOTICE = "Notice from the run: you have now made these same calls %d times and got the "
+            + "same results each time, nothing has changed. Repeating them again will not help. Do something different: use what you "
+            + "already have, try another tool or other arguments, or call ask_user (or finish) and say what is blocking you.";
+
+    /**
+     * The message before the one request that is made without the tools: the agent that repeats itself has to say what it is doing.
+     */
+    public static final String AGENT_REPEATING_NO_TOOLS = "Notice from the run: you kept repeating the same calls with the same results "
+            + "even after you were told, so your tools are taken away for this answer and the run ends its turn after it. Answer in plain "
+            + "text: say what you were trying to do, what you already know, and what is blocking you or what you need from the author.";
+
+    /**
+     * The reason of the pause after such an answer.
+     */
+    public static final String AGENT_REPEATING_PAUSED = "The agent repeated the same calls with the same results and was stopped; "
+            + "its last answer says what it was doing. Rewind or write to it to go on.";
+
+    /**
+     * What a sub-agent that was stopped for repeating itself answers its parent, in front of what it said.
+     */
+    public static final String AGENT_REPEATING_SUBAGENT = "(The sub-agent was stopped because it repeated the same calls with the same results. This is what it said:)\n";
+
+    /**
+     * What stands in for the answer of a model that gave no text when its tools were taken away.
+     */
+    public static final String AGENT_REPEATING_NO_ANSWER = "(The agent gave no explanation.)";
+
+    /**
      * The result given to the calls of an answer that were not made because a call before them failed: the model reads the
      * error first, the calls after it may need what it did not do.
      */

@@ -721,6 +721,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_REDRAFT_SELECTION, "重写选中文字");
         setValue(L.LABEL_REDRAFT_SELECTED_TEXT, "选中的文字");
         setValue(L.LABEL_REDRAFT_WITH_ANNOTATIONS_SELECTION, "处理选中文字内尚未处理的批注（应用重写后会标记为已解决）");
+        setValue(L.LABEL_AGENT_WORKING, "工作中...");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");

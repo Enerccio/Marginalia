@@ -713,6 +713,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_REDRAFT_SELECTION, "Redraft selection");
         setValue(L.LABEL_REDRAFT_SELECTED_TEXT, "Selected text");
         setValue(L.LABEL_REDRAFT_WITH_ANNOTATIONS_SELECTION, "Deal with the open annotations in the selection (they are marked resolved when the redraft is applied)");
+        setValue(L.LABEL_AGENT_WORKING, "Working...");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
