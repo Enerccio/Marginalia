@@ -51,7 +51,7 @@ There are about 1270 categories. Their names say what they are:
 
 ### Groups
 
-About 130 entries are **groups** of categories. They put the many small lists of a language together, so you ask for
+About 170 entries are **groups** of categories. They put the many small lists of a language together, so you ask for
 `German - Male` instead of picking among *Germany - Germanic - Male*, *Germany - Biblical - Male*, *Austria - First names - Male*
 and the rest. They are listed like any category, and a group is one item in the [tools window](tools.md). The groups:
 
@@ -60,6 +60,11 @@ and the rest. They are listed like any category, and a group is one item in the 
   of them), West, East and South Slavic, Greek, Hungarian, Romanian, Albanian, Caucasian, Turkic, Persian, Arabic, Jewish, Hindu
   (the four alphabetical lists of male names as one), South Asian, Southeast Asian, Malay-Indonesian, Polynesian and the African
   regions (West, East, Southern, North, Central). `Chinese`, `Japanese`, `Korean` and `Vietnamese` have `- Surnames`.
+- **Any gender**: `<Language> - Forenames` (`German - Forenames`, `Spanish - Forenames`, `Celtic - Forenames`...) takes the male
+  and the female lists of the language and its lists of names for both genders, so a call returns men's and women's names mixed
+  (the shares follow the sizes of the lists, mostly between half and three quarters men). Chinese, Japanese, Korean and Vietnamese
+  have it too. Languages where the mix would be lopsided (Turkic, South Asian, West and Southern African, Malay-Indonesian) have only the
+  male and female groups.
 - **Of the past**: Anglo-Saxon, Medieval Germanic, Medieval English, Ancient Near East.
 - **Native American**: `Native American - Male`, `- Female` and `- Surnames` (the northern American categories of the Onomastikon:
   Apache, Sioux, Iroquois, Cherokee, Inuit...) and the same for Central and South America (Aztec, Maya, Inca, Amazonian).
