@@ -24,7 +24,7 @@ the lists get the room. It holds:
 | **From**, **To** | The range of messages the wand works on. Type the numbers, click in the chat, or use **All**. |
 | Token count | How many tokens the request takes: the messages of the range plus the prompt and the lore (counted once). Use it to keep the range within the context of the model. |
 | **Convert range** | The wand: asks the model for the turn details of the range. It becomes **Stop** while the model works. |
-| Pen button | Edits the prompt of the wand (variables ``, ``, ``, ``), with a **Default** button. |
+| Pen button | Edits the prompt of the wand (variables ``, ``, ``, ``, ``), with a **Default** button. |
 | **Align to turns** | Moves the range to the boundaries of the turns, see below. Kept with the book. |
 | **Auto mode** | Shows the controls that convert the whole range in batches, see below. |
 
@@ -49,6 +49,13 @@ While it runs the chat shows the batch it is at, the status line tells which bat
 **Stop**. The turn details of each batch are stored as soon as it is done, as with the wand (the turns that touch the range
 and that you have not ticked are replaced). When all batches are done the range is as you had it and the **Turn details**
 tab opens. When you stop, or a batch fails, the range is what is left, so you can go on from there.
+
+### What a range continues from
+
+The prompt tells the model the details of the last turn that ends before the range (its scene setting, POV character, present
+characters and instructions, in ``), so the turns of the range keep the same point of view and scene until
+the chat changes them. This is how a batch of the auto mode continues from the one before it: the turn details of
+a batch are stored before the next one is sent. When there is no turn before the range the part of the prompt is left out.
 
 ## The chat
 

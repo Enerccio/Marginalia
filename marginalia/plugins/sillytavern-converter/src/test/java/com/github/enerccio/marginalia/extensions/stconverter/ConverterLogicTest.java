@@ -191,4 +191,25 @@ class ConverterLogicTest {
         assertEquals(List.of(1), back.getReviewed());
         assertTrue(back.getChat().isEmpty());
     }
+
+    @Test
+    void theRangeContinuesFromTheLastTurnBeforeIt() {
+        List<TurnItem> turns = List.of(item(1, 4, false), item(5, 9, false), item(10, 14, false));
+
+        assertEquals("5-9", ConverterService.previousTurn(turns, 10).messages());
+        assertEquals("1-4", ConverterService.previousTurn(turns, 5).messages());
+        // a turn that reaches into the range is not before it
+        assertEquals("1-4", ConverterService.previousTurn(turns, 9).messages());
+        assertNull(ConverterService.previousTurn(turns, 1));
+        assertEquals("", ConverterService.describePreviousTurn(null));
+    }
+
+    @Test
+    void thePreviousTurnShowsItsDetails() {
+        TurnItem turn = new TurnItem(5, 9, "A tavern", "Robin", "Robin, Julia", "");
+
+        String text = ConverterService.describePreviousTurn(turn);
+
+        assertEquals("Messages 5-9\nScene setting: A tavern\nPOV character: Robin\nPresent characters: Robin, Julia", text);
+    }
 }

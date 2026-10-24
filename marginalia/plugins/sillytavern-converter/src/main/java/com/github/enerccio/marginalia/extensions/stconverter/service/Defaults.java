@@ -1,8 +1,8 @@
 package com.github.enerccio.marginalia.extensions.stconverter.service;
 
 /**
- * The default prompt of the wand. The variables are {@code backgroundLore}, {@code chat}, {@code firstMessage} and
- * {@code lastMessage}.
+ * The default prompt of the wand. The variables are {@code backgroundLore}, {@code chat}, {@code firstMessage},
+ * {@code lastMessage} and {@code previousTurn} (empty when no turn before the range is known).
  */
 public final class Defaults {
 
@@ -20,6 +20,13 @@ The messages below are the chat in the order they were written, messages {{first
 
 {{chat}}
 
+{{#if previousTurn}}
+### Where the story stands
+The turns before message {{firstMessage}} are already done. The last of them has these details; continue from them. Keep the same point of view character and the same scene (place, time, characters present) until the chat changes them, and do not tell again what they already tell.
+
+{{previousTurn}}
+
+{{/if}}
 ### Guidelines
 1. Divide the chat into turns at its natural turning points (a change of place, time, point of view or situation, or when a part of the action is finished), in the order the messages were written. A turn is made of one or more messages that follow each other; the turns together cover every message from {{firstMessage}} to {{lastMessage}} exactly once, with nothing left out and nothing in two turns. Prefer turns that are long enough to be a scene of the story, not a single line of dialogue.
 2. Say which messages a turn is made from with "firstMessage" and "lastMessage" (the numbers of the headings).

@@ -15,6 +15,8 @@ public class ConverterTemplateData extends TemplateData {
     private int firstMessage;
     /** The number of the last message of the range. */
     private int lastMessage;
+    /** The details of the last turn before the range (the scene, the POV, who is present), empty when there is none. */
+    private String previousTurn = "";
 
     public String getBackgroundLore() {
         return backgroundLore;
@@ -38,6 +40,14 @@ public class ConverterTemplateData extends TemplateData {
 
     public void setFirstMessage(int firstMessage) {
         this.firstMessage = firstMessage;
+    }
+
+    public String getPreviousTurn() {
+        return previousTurn;
+    }
+
+    public void setPreviousTurn(String previousTurn) {
+        this.previousTurn = previousTurn;
     }
 
     public int getLastMessage() {
