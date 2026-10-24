@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.service.TokenizerService;
 import com.github.enerccio.marginalia.domain.service.impl.inference.tokenizer.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,13 @@ public class TokenizerServiceImpl implements TokenizerService {
     public long countTokens(AI ai, String text) throws Exception {
         if (text == null || text.isEmpty()) {
             return 0;
+        }
+
+        // a read-write transaction holds the database write lock, and the strategies may call the model server, which can be
+        // busy or loading the model first: everybody else who writes would fail with SQLITE_BUSY meanwhile
+        if (TransactionSynchronizationManager.isActualTransactionActive() && !TransactionSynchronizationManager.isCurrentTransactionReadOnly()) {
+            log.debug("Counting the tokens of AI ID {} approximately, a write transaction is active", ai == null ? null : ai.getId());
+            return countTokensApprox(text);
         }
 
         String cacheKey = getCacheKey(ai);

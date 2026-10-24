@@ -19,7 +19,10 @@ import com.github.enerccio.marginalia.domain.traits.NoTx;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -45,6 +48,52 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     @Autowired
     @Lazy
     private InferenceServices inferenceServices;
+
+    @Autowired
+    @Qualifier("common")
+    private PlatformTransactionManager transactionManager;
+
+    @FunctionalInterface
+    private interface Work<T> {
+        T run() throws Exception;
+    }
+
+    private static final class WorkFailure extends RuntimeException {
+        private final Exception cause;
+
+        private WorkFailure(Exception cause) {
+            super(cause);
+            this.cause = cause;
+        }
+    }
+
+    /**
+     * Runs the work in a transaction, joining the one of the caller. Counting the tokens may be a call to the model server
+     * (which can be loading the model first), and a read-write transaction holds the database write lock from its begin, so
+     * the methods count first with {@link #counted} and write in here, never the other way round.
+     */
+    private <T> T inTx(boolean readOnly, Work<T> work) throws Exception {
+        TransactionTemplate template = new TransactionTemplate(transactionManager);
+        template.setReadOnly(readOnly);
+        try {
+            return template.execute(status -> {
+                try {
+                    return work.run();
+                } catch (Exception e) {
+                    throw new WorkFailure(e);
+                }
+            });
+        } catch (WorkFailure failure) {
+            throw failure.cause;
+        }
+    }
+
+    /**
+     * The tokens of the text as the AI of the book counts them, in a transaction that does not write.
+     */
+    private long counted(Manuscript manuscript, String text) throws Exception {
+        return inTx(true, () -> countTokens(ownBook(manuscript), text == null ? "" : text));
+    }
 
     /**
      * A part of a book an agent works on can't be changed, see {@link AgentRunService#checkNotLocked}.
@@ -500,8 +549,12 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
 
 
     @Override
-    @CommonTx
     public PartEdit updateResponse(Manuscript manuscript, ChatMessage message, String text) throws Exception {
+        long tokens = counted(manuscript, text);
+        return inTx(false, () -> updateResponse(manuscript, message, text, tokens));
+    }
+
+    private PartEdit updateResponse(Manuscript manuscript, ChatMessage message, String text, long tokens) throws Exception {
         Manuscript book = ownBook(manuscript);
         ChatMessage stored = ownPart(book, message);
         String newText = text == null ? "" : text;
@@ -511,7 +564,7 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         List<ChatMessage> newestFirst = leaf == null ? List.of() : new ArrayList<>(getBranchFromLeaf(leaf).reversed());
         Set<Long> outdatedBefore = outdatedHeads(newestFirst);
 
-        ChatMessage saved = storeResponse(book, stored, newText);
+        ChatMessage saved = storeResponse(book, stored, newText, tokens);
 
         List<SummaryBlock> outdated = new ArrayList<>();
         for (SummaryBlock block : summaryService.collectBlocks(newestFirst)) {
@@ -524,14 +577,18 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     }
 
     @Override
-    @CommonTx
     public ChatMessage storeResponse(Manuscript manuscript, ChatMessage message, String text) throws Exception {
+        long tokens = counted(manuscript, text);
+        return inTx(false, () -> storeResponse(manuscript, message, text, tokens));
+    }
+
+    private ChatMessage storeResponse(Manuscript manuscript, ChatMessage message, String text, long tokens) throws Exception {
         Manuscript book = ownBook(manuscript);
         ChatMessage stored = ownPart(book, message);
         String newText = text == null ? "" : text;
         String oldText = stored.getResponse();
         stored.setResponse(newText);
-        stored.setTokenCount(countTokens(book, newText));
+        stored.setTokenCount(tokens);
         stored.setWordCount(countWords(newText));
         stored.setEdited(true);
         ChatMessage saved = save(stored);
@@ -625,14 +682,18 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     }
 
     @Override
-    @CommonTx
     public ChatMessage createPart(Manuscript manuscript, ChatMessage parent, String text, TurnInput input) throws Exception {
+        long tokens = counted(manuscript, text);
+        return inTx(false, () -> createPart(manuscript, parent, text, input, tokens));
+    }
+
+    private ChatMessage createPart(Manuscript manuscript, ChatMessage parent, String text, TurnInput input, long tokens) throws Exception {
         Manuscript book = ownBook(manuscript);
         ChatMessage above = parent == null ? null : ownPart(book, parent);
         if (above == null && hasAnyMessages(book)) {
             throw new IllegalArgumentException("The book has parts already, say after which part the new one comes");
         }
-        ChatMessage created = newPart(book, text, input);
+        ChatMessage created = newPart(text, input, tokens);
         ChatMessage saved = above == null ? createRoot(book, created) : addChild(above, created);
         book.setActiveLeaf(saved);
         manuscriptService.save(book);
@@ -640,26 +701,34 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     }
 
     @Override
-    @CommonTx
     public ChatMessage addPart(Manuscript manuscript, ChatMessage parent, ChatMessage part) throws Exception {
+        long tokens = counted(manuscript, part.getResponse());
+        return inTx(false, () -> addPart(manuscript, parent, part, tokens));
+    }
+
+    private ChatMessage addPart(Manuscript manuscript, ChatMessage parent, ChatMessage part, long tokens) throws Exception {
         Manuscript book = ownBook(manuscript);
         ChatMessage above = parent == null ? null : ownPart(book, parent);
         String text = part.getResponse() == null ? "" : part.getResponse();
         part.setResponse(text);
-        part.setTokenCount(countTokens(book, text));
+        part.setTokenCount(tokens);
         part.setWordCount(countWords(text));
         return above == null ? createRoot(book, part) : addChild(above, part);
     }
 
     @Override
-    @CommonTx
     public ChatMessage insertPart(Manuscript manuscript, ChatMessage after, String text, TurnInput input) throws Exception {
+        long tokens = counted(manuscript, text);
+        return inTx(false, () -> insertPart(manuscript, after, text, input, tokens));
+    }
+
+    private ChatMessage insertPart(Manuscript manuscript, ChatMessage after, String text, TurnInput input, long tokens) throws Exception {
         Manuscript book = ownBook(manuscript);
         ChatMessage above = after == null ? null : ownPart(book, after);
         if (!hasAnyMessages(book)) {
-            return createPart(book, null, text, input);
+            return createPart(book, null, text, input, tokens);
         }
-        ChatMessage created = newPart(book, text, input);
+        ChatMessage created = newPart(text, input, tokens);
         ChatMessage saved = above == null ? createRoot(book, created) : addChild(above, created);
         // what followed the part follows the new one now, the new part is saved first so that it is not moved under itself
         if (above == null) {
@@ -678,11 +747,11 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     /**
      * A part that is not stored yet: the text counted, the turn input it stands for.
      */
-    private ChatMessage newPart(Manuscript book, String text, TurnInput input) throws Exception {
+    private ChatMessage newPart(String text, TurnInput input, long tokens) {
         String newText = text == null ? "" : text;
         ChatMessage created = new ChatMessage();
         created.setResponse(newText);
-        created.setTokenCount(countTokens(book, newText));
+        created.setTokenCount(tokens);
         created.setWordCount(countWords(newText));
         if (input != null) {
             created.setSceneSetting(input.sceneSetting());
