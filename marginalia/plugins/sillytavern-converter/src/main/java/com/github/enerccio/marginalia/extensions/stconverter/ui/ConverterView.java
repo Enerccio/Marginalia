@@ -17,6 +17,8 @@ import com.github.enerccio.marginalia.extensions.stconverter.service.ConverterSe
 import com.github.enerccio.marginalia.extensions.stconverter.service.ConverterService.ModelSelection;
 import com.github.enerccio.marginalia.extensions.stconverter.service.Defaults;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
+import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.ModelProtocolPicker;
@@ -44,6 +46,7 @@ import com.vaadin.flow.server.streams.InMemoryUploadHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+import org.springframework.web.context.request.RequestAttributes;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -127,6 +130,13 @@ public class ConverterView extends VerticalLayout {
     private long[] lineTokens;
     /** Tokens of the prompt without the chat (the template and the lore), null until counted. */
     private Long baseTokens;
+
+    /**
+     * The request context of the browser session. The model answers on other threads, which have none, and the services (the
+     * prompt, the book, the tokens) need the session of the user; the work that follows an answer runs inside of it. Taken
+     * again whenever the user starts something, on the thread of their request.
+     */
+    private RequestAttributes requestScope = ThreadCopyRequestAttributes.create();
 
     private boolean generating;
     private CancellationToken running;
@@ -718,6 +728,10 @@ public class ConverterView extends VerticalLayout {
      * @return false when nothing runs (the reason is shown)
      */
     private boolean startRun(int runFrom, int runTo) {
+        RequestAttributes fresh = ThreadCopyRequestAttributes.create();
+        if (fresh != null) {
+            requestScope = fresh;
+        }
         if (data.getChat().isEmpty()) {
             Notification.warning("Load a chat first");
             return false;
@@ -748,12 +762,15 @@ public class ConverterView extends VerticalLayout {
             return true;
         } catch (IllegalArgumentException | UnsupportedOperationException e) {
             // a provider that can't take a response schema
-            Notification.warning(e.getMessage());
-            showStatus(null);
+            autoProblem = StringUtils.defaultIfBlank(e.getMessage(), e.toString());
+            Notification.warning(autoProblem, Notification.DURATION_LONGER);
+            showStatus(autoProblem);
         } catch (Exception e) {
             // most likely a prompt that is not a valid template
-            Notification.error("Can't convert: " + StringUtils.defaultIfBlank(e.getMessage(), e.toString()));
-            showStatus(null);
+            STConverterLog.get().warn("Can't convert", e);
+            autoProblem = "Can't convert: " + StringUtils.defaultIfBlank(e.getMessage(), e.toString());
+            Notification.error(autoProblem, Notification.DURATION_LONGER);
+            showStatus(autoProblem);
         }
         return false;
     }
@@ -806,7 +823,7 @@ public class ConverterView extends VerticalLayout {
 
     private void finish(int runFrom, int runTo, Throwable error) {
         ui.access(() -> {
-            try {
+            try (InRequestScope _ = new InRequestScope(requestScope)) {
                 afterRun(runFrom, runTo, error);
             } catch (RuntimeException e) {
                 // nothing may leave the controls frozen or the auto mode half way without a word
@@ -975,8 +992,11 @@ public class ConverterView extends VerticalLayout {
             Notification.success(added + " turns made in " + total + " requests"
                     + (replaced > 0 ? " (" + replaced + " earlier ones replaced)" : ""));
         } else {
-            Notification.warning("Stopped after " + done + " of " + total + " requests (" + added + " turns made)"
-                    + (autoProblem != null ? ": " + autoProblem : "") + ". The range is what is left.");
+            String message = "Stopped after " + done + " of " + total + " requests (" + added + " turns made)"
+                    + (autoProblem != null ? ": " + autoProblem : "") + ". The range is what is left.";
+            // the notification goes away, the status line stays until the next request
+            Notification.warning(message, Notification.DURATION_LONGER);
+            showStatus(message);
         }
     }
 
