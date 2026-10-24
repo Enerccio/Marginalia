@@ -139,6 +139,11 @@ public class ConverterView extends VerticalLayout {
     private boolean autoStopped;
     private int autoAdded;
     private int autoReplaced;
+    /** Which try of the block it is at (from 0) and why the last one did not give turn details. */
+    private int autoAttempt;
+    private String autoProblem;
+    /** How often a block is sent when the answer of the model can't be used. */
+    private static final int MAX_ATTEMPTS = 3;
 
     public ConverterView(ConverterService service, Manuscript manuscript, TurnOpener opener) {
         this.service = service;
@@ -755,7 +760,8 @@ public class ConverterView extends VerticalLayout {
 
     /** The text with the batch the auto mode is at in front of it. */
     private String progress(String text) {
-        return autoBlocks == null ? text : "Batch " + (autoIndex + 1) + " of " + autoBlocks.size() + ": " + text;
+        return autoBlocks == null ? text : "Batch " + (autoIndex + 1) + " of " + autoBlocks.size()
+                + (autoAttempt > 0 ? " (try " + (autoAttempt + 1) + " of " + MAX_ATTEMPTS + ")" : "") + ": " + text;
     }
 
     private InferenceService.InferenceAsyncCallback callback(int runFrom, int runTo) {
@@ -800,32 +806,62 @@ public class ConverterView extends VerticalLayout {
 
     private void finish(int runFrom, int runTo, Throwable error) {
         ui.access(() -> {
-            boolean stopped = running != null && running.isCancelled();
-            generating = false;
-            running = null;
-            showStatus(null);
-            boolean accepted = false;
-            if (error != null) {
-                UIUtils.inferenceError(loc, error);
-            } else if (stopped) {
-                if (autoBlocks == null) {
-                    Notification.warning("Stopped, nothing was changed");
+            try {
+                afterRun(runFrom, runTo, error);
+            } catch (RuntimeException e) {
+                // nothing may leave the controls frozen or the auto mode half way without a word
+                STConverterLog.get().error("The converter failed after a request", e);
+                generating = false;
+                running = null;
+                if (autoBlocks != null) {
+                    autoProblem = StringUtils.defaultIfBlank(e.getMessage(), e.toString());
+                    endAuto();
+                } else {
+                    updateControls();
                 }
-            } else if (output.isEmpty()) {
-                showStatus("The model did not answer.");
-            } else {
-                accepted = accept(runFrom, runTo);
-            }
-            if (autoBlocks == null) {
-                updateControls();
-            } else if (accepted && !autoStopped) {
-                autoIndex++;
-                runNextBlock();
-            } else {
-                endAuto();
+                Notification.error("Can't go on: " + StringUtils.defaultIfBlank(e.getMessage(), e.toString()));
             }
             UIPushGuard.push(ui);
         });
+    }
+
+    private void afterRun(int runFrom, int runTo, Throwable error) {
+        boolean stopped = running != null && running.isCancelled();
+        generating = false;
+        running = null;
+        showStatus(null);
+        boolean accepted = false;
+        boolean usable = true;
+        if (error != null) {
+            UIUtils.inferenceError(loc, error);
+            autoProblem = StringUtils.defaultIfBlank(error.getMessage(), error.toString());
+            usable = false;
+        } else if (stopped) {
+            if (autoBlocks == null) {
+                Notification.warning("Stopped, nothing was changed");
+            }
+            usable = false;
+        } else if (output.isEmpty()) {
+            autoProblem = "The model did not answer.";
+            showStatus(autoProblem);
+        } else {
+            accepted = accept(runFrom, runTo);
+        }
+        if (autoBlocks == null) {
+            updateControls();
+        } else if (accepted && !autoStopped) {
+            autoIndex++;
+            autoAttempt = 0;
+            autoProblem = null;
+            runNextBlock();
+        } else if (usable && !accepted && !autoStopped && autoAttempt + 1 < MAX_ATTEMPTS) {
+            // an answer that can't be used happens, the same batch is asked for again
+            STConverterLog.get().warn("Batch {} of {} gave no usable answer, trying again: {}", autoIndex + 1, autoBlocks.size(), autoProblem);
+            autoAttempt++;
+            runNextBlock();
+        } else {
+            endAuto();
+        }
     }
 
     /**
@@ -851,7 +887,8 @@ public class ConverterView extends VerticalLayout {
             return true;
         } catch (Exception e) {
             STConverterLog.get().warn("The answer of the model is not usable: {}", e.getMessage());
-            showStatus(StringUtils.defaultIfBlank(e.getMessage(), e.toString()));
+            autoProblem = StringUtils.defaultIfBlank(e.getMessage(), e.toString());
+            showStatus(autoProblem);
             return false;
         }
     }
@@ -883,6 +920,8 @@ public class ConverterView extends VerticalLayout {
             autoStopped = false;
             autoAdded = 0;
             autoReplaced = 0;
+            autoAttempt = 0;
+            autoProblem = null;
             runNextBlock();
         });
     }
@@ -936,8 +975,8 @@ public class ConverterView extends VerticalLayout {
             Notification.success(added + " turns made in " + total + " requests"
                     + (replaced > 0 ? " (" + replaced + " earlier ones replaced)" : ""));
         } else {
-            Notification.warning("Stopped after " + done + " of " + total + " requests (" + added + " turns made). "
-                    + "The range is what is left.");
+            Notification.warning("Stopped after " + done + " of " + total + " requests (" + added + " turns made)"
+                    + (autoProblem != null ? ": " + autoProblem : "") + ". The range is what is left.");
         }
     }
 

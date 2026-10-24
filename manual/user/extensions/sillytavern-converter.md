@@ -53,7 +53,7 @@ can be split in two.
 While it runs the chat shows the batch it is at, the status line tells which batch of how many, and the button becomes
 **Stop**. The turn details of each batch are stored as soon as it is done, as with the wand (the turns that touch the range
 and that you have not ticked are replaced). When all batches are done the range is as you had it and the **Turn details**
-tab opens. When you stop, or a batch fails, the range is what is left, so you can go on from there.
+tab opens. A batch whose answer can't be used (empty, or not matching what was asked for) is sent again, up to three times in all. When you stop, or a batch still fails, the notification says why and the range is what is left, so you can go on from there.
 
 ### What a range continues from
 
