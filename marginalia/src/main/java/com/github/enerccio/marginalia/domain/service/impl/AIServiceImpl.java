@@ -79,6 +79,7 @@ public class AIServiceImpl extends ExtendableServiceImpl<AI, AIRepository> imple
             target.setApiKey(openAI.getApiKey());
             target.setRequestTimeoutSeconds(openAI.getRequestTimeoutSeconds());
             target.setMaxRetries(openAI.getMaxRetries());
+            target.setTokenizer(openAI.getTokenizer());
             if (openAI.getAdditionalParameters() != null) {
                 target.setAdditionalParameters(openAI.getAdditionalParameters().deepCopy());
             }

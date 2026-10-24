@@ -714,6 +714,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_REDRAFT_SELECTED_TEXT, "選択したテキスト");
         setValue(L.LABEL_REDRAFT_WITH_ANNOTATIONS_SELECTION, "選択範囲内の未対応の注釈に対処する（再執筆を適用すると解決済みになります）");
         setValue(L.LABEL_AGENT_WORKING, "作業中...");
+        setValue(L.LABEL_TOKENIZER, "トークナイザー");
+        setValue(L.LABEL_AUTOMATIC, "自動");
+        setValue(L.LABEL_TEST_TOKENIZER, "トークナイザーをテスト");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1210,6 +1213,10 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_IMPORTING_SILLYTAVERN, "SillyTavern からインポート中");
         setValue(L.MSG_REDRAFT_SELECTION_INFO, "モデルは指示に従って、選択した文章を書き直します。選択範囲を示したパート全体、その前後の物語、パート作成時のロアが渡され、置き換わるのは選択した文章だけです。結果を適用するまで、本は変更されません。");
         setValue(L.MSG_REDRAFT_SELECTION_CHANGED, "選択した後にパートの文章が変わりました。もう一度文章を選択してください。");
+        setValue(L.MSG_TOKENIZER_NOT_LOADED, "%s（読み込まれていません）");
+        setValue(L.MSG_TOKENIZER_TEST_OK, "%s：%sトークン");
+        setValue(L.MSG_TOKENIZER_TEST_FAILED, "%s：失敗（%s）");
+        setValue(L.MSG_TOKENIZER_TEST_NONE, "どのトークナイザーも応答しませんでした。トークン数はローカルで推定されます。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1292,6 +1299,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_COMMAND_SEARCH, "コマンドの名前または説明に含まれる語（順不同）。表にはそのすべてを含むコマンドだけが表示されます。上の選択は引き続きすべてのコマンドに適用されます。");
         setValue(L.HELP_KEYBOARD_SHORTCUTS, "「記録」をクリックして新しいキーの組み合わせを押します。Ctrl・Alt・Meta のないキーは、テキスト欄にフォーカスがないときだけ動作します。ショートカットは開いている本のストーリータブで有効です。");
         setValue(L.HELP_ST_MERGE_TURNS, "ユーザーのメッセージは、その後の返答から作られるパートの指示になります。オフの場合、すべてのメッセージが個別のパートになります。");
+        setValue(L.HELP_AI_TOKENIZER, "このAIのトークン数の数え方。自動ではサーバーのトークナイザーエンドポイント（OpenAI、llama.cpp、LiteLLM）を順に試し、使えない場合はローカルの推定にフォールバックします。1つを選ぶとそれだけを使います。プラグインのトークナイザーは、ここで選択された場合にのみ、エンドポイント、モデル、テキストを受け取ります。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

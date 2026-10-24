@@ -82,8 +82,10 @@ Everything a story needs works as with an OpenAI-compatible provider: streaming,
 **Tokens sent** and **Tokens generated** columns from the numbers Google reports, and the
 [limits](../inference-providers.md#limits-of-shared-providers) of a shared provider apply.
 
-The token counts shown in the story (the size of a part, the prompt) are an estimate made by Marginalia, not Google's own
-count, so they differ a little from what Google bills.
+The token counts shown in the story (the size of a part, the prompt) are counted by Google (the `countTokens` request of the
+model), once for each text: the answers are remembered. When Google cannot be asked (no key, no network, an error), Marginalia
+estimates the count itself for a minute and then tries Google again; a text that is saved or edited while another save is
+going on is estimated too. The estimate differs a little from what Google bills.
 
 ## When the extension is not loaded
 

@@ -722,6 +722,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_REDRAFT_SELECTED_TEXT, "选中的文字");
         setValue(L.LABEL_REDRAFT_WITH_ANNOTATIONS_SELECTION, "处理选中文字内尚未处理的批注（应用重写后会标记为已解决）");
         setValue(L.LABEL_AGENT_WORKING, "工作中...");
+        setValue(L.LABEL_TOKENIZER, "分词器");
+        setValue(L.LABEL_AUTOMATIC, "自动");
+        setValue(L.LABEL_TEST_TOKENIZER, "测试分词器");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1218,6 +1221,10 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_IMPORTING_SILLYTAVERN, "正在从 SillyTavern 导入");
         setValue(L.MSG_REDRAFT_SELECTION_INFO, "模型会根据您的说明重写您选中的文字。它会看到标出选中部分的整段文字、其前后的故事以及写这一段时使用的背景设定，只有选中的文字会被替换。在您应用结果之前，书中的内容不会改变。");
         setValue(L.MSG_REDRAFT_SELECTION_CHANGED, "选中文字之后，该段的文本已发生变化。请重新选择文字。");
+        setValue(L.MSG_TOKENIZER_NOT_LOADED, "%s（未加载）");
+        setValue(L.MSG_TOKENIZER_TEST_OK, "%s：%s 个词元");
+        setValue(L.MSG_TOKENIZER_TEST_FAILED, "%s：失败（%s）");
+        setValue(L.MSG_TOKENIZER_TEST_NONE, "没有分词器响应，词元数将在本地估算。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1300,6 +1307,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_COMMAND_SEARCH, "命令名称或说明中的词（顺序不限）。表中只显示包含所有这些词的命令；上方的选择仍适用于所有命令。");
         setValue(L.HELP_KEYBOARD_SHORTCUTS, "点击“录制”并按下新的组合键。不带 Ctrl、Alt 或 Meta 的按键仅在没有文本框获得焦点时生效。快捷键在已打开书籍的故事标签页中有效。");
         setValue(L.HELP_ST_MERGE_TURNS, "用户的消息成为其后回答所生成段落的指示。不勾选时，每条消息都是独立的段落。");
+        setValue(L.HELP_AI_TOKENIZER, "此 AI 计算词元数的方式。“自动”会依次尝试服务器的分词端点（OpenAI、llama.cpp、LiteLLM），不可用时回退到本地估算；选择其中一项则只使用该项。插件提供的分词器只有在此处被选中时，才会收到端点、模型和文本。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");
