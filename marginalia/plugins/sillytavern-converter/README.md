@@ -37,5 +37,8 @@ turns of the earlier runs that touch the range, except those you ticked as revie
 
 ## Storage
 
-Everything is stored with the book (its attributes), so it is in the book backups and copies: the chat, the ticks, the
-turn details, the model and the prompt. The chat is kept as read (who said what), not as the file.
+The uploaded file is a resource of the user (`ResourceService.upload`, content type `application/x-ndjson`, linked to the
+book), because a chat with everything SillyTavern keeps in it can be megabytes and the attributes of a book are loaded
+with every fetch of it. The attributes (`ConverterData`) hold the uuid of the resource, the numbers of the ticked messages,
+the turn details, the model and the prompt; the messages are read from the file when the tab opens. A resource is not in the
+book backups (only images are), so after a restore the chat has to be uploaded again.

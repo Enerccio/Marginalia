@@ -26,6 +26,9 @@ import java.util.*;
 @Configurable
 public class ConverterService {
 
+    /** The content type of the resource with the chat. */
+    static final String CHAT_MIME_TYPE = "application/x-ndjson";
+
     /** The model and the protocol the wand runs with. The protocol is optional. */
     public record ModelSelection(AI ai, Protocol protocol) {
     }
@@ -49,6 +52,9 @@ public class ConverterService {
     private TemplateService templateService;
 
     @Autowired
+    private ResourceService resourceService;
+
+    @Autowired
     private TokenizerService tokenizerService;
 
     @Autowired
@@ -60,7 +66,8 @@ public class ConverterService {
 
     /**
      * The data of the book as it is stored now - the story view keeps the book it was opened with, the data may have been
-     * saved since.
+     * saved since - with the chat read from its resource. A chat whose resource is gone (it is not in the backups of the
+     * book) is dropped: the author uploads it again.
      */
     public ConverterData load(Manuscript manuscript) throws Exception {
         Manuscript current = manuscriptService.find(manuscript);
@@ -69,7 +76,28 @@ public class ConverterService {
         if (attrs != null && attrs.has(ConverterData.KEY)) {
             data = gson.fromJson(attrs.get(ConverterData.KEY), ConverterData.class);
         }
-        return data != null ? data : new ConverterData();
+        if (data == null) {
+            return new ConverterData();
+        }
+        if (data.getResourceUuid() != null) {
+            try {
+                Resource resource = resourceService.findForUser(data.getResourceUuid());
+                if (resource == null || resource.isDeleted()) {
+                    throw new IllegalStateException("the resource " + data.getResourceUuid() + " is gone");
+                }
+                List<ChatLine> lines = readLines(resourceService.getResourceData(resource), data.getFileName());
+                Set<Integer> reviewed = new HashSet<>(data.getReviewed());
+                for (int i = 0; i < lines.size(); i++) {
+                    lines.get(i).setReviewed(reviewed.contains(i + 1));
+                }
+                data.setChat(lines);
+            } catch (Exception e) {
+                STConverterLog.get().warn("Can't read the chat of the book: {}", e.getMessage());
+                data.setResourceUuid(null);
+                data.setChat(new ArrayList<>());
+            }
+        }
+        return data;
     }
 
     public void save(Manuscript manuscript, ConverterData data) throws Exception {
@@ -82,6 +110,13 @@ public class ConverterService {
             attrs = new JsonObject();
             current.setAttributes(attrs);
         }
+        List<Integer> reviewed = new ArrayList<>();
+        for (int i = 0; i < data.getChat().size(); i++) {
+            if (data.getChat().get(i).isReviewed()) {
+                reviewed.add(i + 1);
+            }
+        }
+        data.setReviewed(reviewed);
         attrs.add(ConverterData.KEY, gson.toJsonTree(data));
         manuscriptService.save(current);
     }
@@ -90,25 +125,64 @@ public class ConverterService {
 
     /**
      * Reads an uploaded SillyTavern chat ({@code .jsonl}) into the data of the book, replacing the chat and the turn
-     * details, which describe the chat. The branches of the chat are not followed: every message is the swipe that was
-     * shown; hidden (system) messages and empty ones are left out.
+     * details, which describe the chat. The file is stored as a resource of the user (linked to the book), the book keeps
+     * only its uuid. The branches of the chat are not followed: every message is the swipe that was shown; hidden (system)
+     * messages and empty ones are left out.
      *
      * @return the number of messages
      * @throws IllegalArgumentException when the file is not a SillyTavern chat or has no messages
      */
-    public int importChat(ConverterData data, byte[] file, String fileName) {
+    public int importChat(Manuscript manuscript, ConverterData data, byte[] file, String fileName) throws Exception {
+        String name = StringUtils.defaultIfBlank(fileName, "chat.jsonl");
+        List<ChatLine> lines = readLines(file, name);
+
+        Resource resource = resourceService.upload(name, file, CHAT_MIME_TYPE);
+        if (manuscript.getId() != null) {
+            resourceService.link(resource, Manuscript.class, manuscript.getId());
+        }
+        discardResource(data);
+        data.setFileName(name);
+        data.setResourceUuid(resource.getUuid());
+        data.setChat(lines);
+        data.setReviewed(new ArrayList<>());
+        data.setTurns(new ArrayList<>());
+        return lines.size();
+    }
+
+    /**
+     * Forgets the chat and the turn details made of it; the resource with the file is deleted (like any resource, it can be
+     * restored from the trash).
+     */
+    public void removeChat(ConverterData data) throws Exception {
+        discardResource(data);
+        data.setFileName(null);
+        data.setResourceUuid(null);
+        data.setChat(new ArrayList<>());
+        data.setReviewed(new ArrayList<>());
+        data.setTurns(new ArrayList<>());
+    }
+
+    private void discardResource(ConverterData data) throws Exception {
+        if (data.getResourceUuid() != null) {
+            resourceService.softDelete(List.of(data.getResourceUuid()));
+        }
+    }
+
+    /**
+     * The messages of the chat in the file.
+     *
+     * @throws IllegalArgumentException when the file is not a SillyTavern chat or has no messages
+     */
+    static List<ChatLine> readLines(byte[] file, String fileName) {
         String text = new String(file, StandardCharsets.UTF_8);
-        if (text.startsWith("﻿")) {
+        if (text.startsWith("\uFEFF")) {
             text = text.substring(1);
         }
         List<ChatLine> lines = toLines(SillyTavernChats.parse(text, fileName));
         if (lines.isEmpty()) {
             throw new IllegalArgumentException("The chat has no messages");
         }
-        data.setFileName(StringUtils.defaultIfBlank(fileName, "chat.jsonl"));
-        data.setChat(lines);
-        data.setTurns(new ArrayList<>());
-        return lines.size();
+        return lines;
     }
 
     /**

@@ -4,8 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Everything the converter keeps with a book, as the attribute {@link #KEY} of the book (so it is in the backups and copies
- * of the book): the imported chat, the turn details made of it, the model chosen for the wand and the prompt of the user.
+ * Everything the converter keeps with a book, as the attribute {@link #KEY} of the book: which chat was imported (the file
+ * itself is a resource of the user, a chat can be megabytes, and is not in this attribute) and the messages the author has
+ * ticked, the turn details made of the chat, the model chosen for the wand and the prompt of the user.
  */
 public class ConverterData {
 
@@ -15,7 +16,12 @@ public class ConverterData {
 
     /** The name of the uploaded file, null while no chat is loaded. */
     private String fileName;
-    private List<ChatLine> chat = new ArrayList<>();
+    /** The uuid of the resource with the uploaded file, null while no chat is loaded. */
+    private String resourceUuid;
+    /** The numbers (from 1) of the messages the author has ticked; {@link ChatLine#isReviewed} is made of it when the chat is read. */
+    private List<Integer> reviewed = new ArrayList<>();
+    /** The messages of the chat, read from the resource when the data is loaded; not stored here. */
+    private transient List<ChatLine> chat = new ArrayList<>();
     /** The turn details, in the order of the chat. */
     private List<TurnItem> turns = new ArrayList<>();
     /** The model the wand runs with, null for the model of the book. */
@@ -33,6 +39,25 @@ public class ConverterData {
 
     public void setFileName(String fileName) {
         this.fileName = fileName;
+    }
+
+    public String getResourceUuid() {
+        return resourceUuid;
+    }
+
+    public void setResourceUuid(String resourceUuid) {
+        this.resourceUuid = resourceUuid;
+    }
+
+    public List<Integer> getReviewed() {
+        if (reviewed == null) {
+            reviewed = new ArrayList<>();
+        }
+        return reviewed;
+    }
+
+    public void setReviewed(List<Integer> reviewed) {
+        this.reviewed = reviewed;
     }
 
     public List<ChatLine> getChat() {

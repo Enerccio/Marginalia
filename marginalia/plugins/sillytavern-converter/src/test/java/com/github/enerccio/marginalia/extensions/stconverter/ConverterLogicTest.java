@@ -1,11 +1,9 @@
 package com.github.enerccio.marginalia.extensions.stconverter;
 
-import com.github.enerccio.marginalia.extensions.stconverter.model.ChatLine;
-import com.github.enerccio.marginalia.extensions.stconverter.model.GeneratedTurn;
-import com.github.enerccio.marginalia.extensions.stconverter.model.GeneratedTurns;
-import com.github.enerccio.marginalia.extensions.stconverter.model.TurnItem;
+import com.github.enerccio.marginalia.extensions.stconverter.model.*;
 import com.github.enerccio.marginalia.extensions.stconverter.service.ConverterService;
 import com.github.enerccio.marginalia.utils.SillyTavernChats;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.junit.jupiter.api.Test;
 
@@ -175,5 +173,22 @@ class ConverterLogicTest {
         assertEquals(List.of("4-8"), blocks(ConverterService.splitBlocks(chat, 4, 8, 100, true)));
         assertEquals(8, ConverterService.splitBlocks(chat, 1, 8, 1, false).size());
         assertTrue(ConverterService.splitBlocks(chat, 5, 4, 3, false).isEmpty());
+    }
+
+    @Test
+    void theBookKeepsNoTextOfTheChat() {
+        ConverterData data = new ConverterData();
+        data.setResourceUuid("resource-uuid");
+        data.setFileName("chat.jsonl");
+        data.setChat(List.of(new ChatLine("Robin", true, "a long secret message")));
+        data.setReviewed(List.of(1));
+
+        String json = new Gson().toJson(data);
+        ConverterData back = new Gson().fromJson(json, ConverterData.class);
+
+        assertFalse(json.contains("secret"));
+        assertEquals("resource-uuid", back.getResourceUuid());
+        assertEquals(List.of(1), back.getReviewed());
+        assertTrue(back.getChat().isEmpty());
     }
 }
