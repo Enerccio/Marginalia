@@ -49,6 +49,30 @@ There are about 1270 categories. Their names say what they are:
   Corpora (animals, tarot, Tolkien names, Game of Thrones houses, drugs, hospitals, fabrics, gemstones, programming
   languages...) and markov-namegen-lib (Pokemon, dragons, cocktails, banks, Roman place names...).
 
+### Groups
+
+About 130 entries are **groups** of categories. They put the many small lists of a language together, so you ask for
+`German - Male` instead of picking among *Germany - Germanic - Male*, *Germany - Biblical - Male*, *Austria - First names - Male*
+and the rest. They are listed like any category, and a group is one item in the [tools window](tools.md). The groups:
+
+- **By language**, each as `- Male`, `- Female` and `- Surnames` where there are such lists: German, French, Spanish (the
+  surnames include Latin America), Italian, Portuguese, Dutch, Scandinavian, Finnic, Baltic, Irish, Scottish, Welsh, Celtic (all
+  of them), West, East and South Slavic, Greek, Hungarian, Romanian, Albanian, Caucasian, Turkic, Persian, Arabic, Jewish, Hindu
+  (the four alphabetical lists of male names as one), South Asian, Southeast Asian, Malay-Indonesian, Polynesian and the African
+  regions (West, East, Southern, North, Central). `Chinese`, `Japanese`, `Korean` and `Vietnamese` have `- Surnames`.
+- **Of the past**: Anglo-Saxon, Medieval Germanic, Medieval English, Ancient Near East.
+- **Native American**: `Native American - Male`, `- Female` and `- Surnames` (the northern American categories of the Onomastikon:
+  Apache, Sioux, Iroquois, Cherokee, Inuit...) and the same for Central and South America (Aztec, Maya, Inca, Amazonian).
+- **Other**: `English - Surnames` (patronymics, trades, places...), `Saints`, `Deities`, `Fantasy Creatures`, `Game of Thrones Houses`.
+
+For every name the extension first picks one of the categories of the group at random, and then makes the name with the
+chain of that category (with its usual lengths). A name sounds like one people and language instead of a blend of all of them,
+and one call returns names of several. The lists of the countries, which are split by origin or by letter, are chosen by
+their size (a list of 600 names is chosen more often than one of 10); in the groups of whole languages and countries (Turkic,
+Caucasian, Baltic, Polynesian, the African regions, Native American...) every member has the same chance. The sources of some
+groups are short and partly English translations (*Calf-Woman*), so the names are rough.
+A group is a line in `name-groups.json` (the members and how they are chosen), see the [plugin README](https://github.com/Enerccio/Marginalia/blob/master/marginalia/plugins/name-generator/README.md#groups).
+
 Each category has a chain of the length that suited it best (short lists get short chains, which repeat the originals
 less) and the lengths its names usually have. The lists themselves are not part of Marginalia: only the probabilities
 are, so the original names can't be read out of the extension. Some of the sources have licences of their own, see the

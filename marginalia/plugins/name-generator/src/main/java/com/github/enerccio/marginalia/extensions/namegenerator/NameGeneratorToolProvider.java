@@ -45,7 +45,7 @@ public class NameGeneratorToolProvider implements ToolProvider {
 
     @Override
     public String description() {
-        return "Names made up by Markov chains trained on lists of names: places, deities, companies, surnames of countries...";
+        return "Names made up by Markov chains trained on lists of names: places, deities, companies, surnames of countries... Groups (like all Native American names) pick a category at random for every name.";
     }
 
     @Override
@@ -75,7 +75,7 @@ public class NameGeneratorToolProvider implements ToolProvider {
         public void generateNames(FunctionContinuation<List<String>> done, String category, int count,
                                   Integer minLength, Integer maxLength) {
             if (category == null || !allowed.contains(category.strip())) {
-                done.fail("Unknown category '" + category + "'. Categories: " + String.join(", ", categories));
+                done.fail(NameTables.unknown("category", category, categories, "list_name_categories"));
                 return;
             }
             delegate.generateNames(done, category, count, minLength, maxLength);

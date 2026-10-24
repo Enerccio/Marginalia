@@ -28,7 +28,7 @@ public class NameGeneratorFunctionsImpl implements NameGeneratorFunctions {
     public void generateNames(FunctionContinuation<List<String>> done, String category, int count,
                               Integer minLength, Integer maxLength) {
         if (!tables.has(category)) {
-            done.fail("Unknown category '" + category + "'. Categories: " + String.join(", ", tables.categories()));
+            done.fail(NameTables.unknown("category", category, tables.categories(), "list_name_categories"));
             return;
         }
         done.complete(tables.generate(category, clampCount(count), minLength, maxLength, ThreadLocalRandom.current()));

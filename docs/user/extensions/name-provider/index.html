@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846162426200">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846176111458">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846162426200" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846176111458" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846162426200" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846176111458" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846162426200" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846176111458" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -235,6 +235,13 @@ which can use them in their own prompts (for example for <code translate="no" v-
 106 (<code translate="no" v-pre>Japan - Surnames</code>, <code translate="no" v-pre>Czechia - Forenames</code>, <code translate="no" v-pre>Kosovo - Surnames</code>). Forenames of both genders are in one list. A list has
 from 5 to about 150 names, the most common ones of the country. The names are not made new: a name you get is a name that
 people have.</p>
+<p>A few dozen entries are <strong>groups</strong> of lists by language: <code translate="no" v-pre>&lt;Language&gt; - Forenames</code> and <code translate="no" v-pre>&lt;Language&gt; - Surnames</code> for Spanish
+(18 countries), Portuguese, French, German, English, Arabic, West, East and South Slavic, North Germanic, Nordic, Uralic,
+Baltic, Turkic, Persian, Chinese, South Asian, Southeast Asian, Caucasus, Albanian and Romanian (where there are such lists). They
+are listed like any list and are one item in the <a href="../tools/">tools window</a>. Every name of a group is picked from one of its lists
+chosen at random, each country with the same chance, so a request for 20 names gets names of several countries, never the same name
+twice. Countries where several languages are spoken (Belgium, Luxembourg, Malta, Andorra) are in no group. A group is a
+line in <code translate="no" v-pre>name-groups.json</code>, see the <a href="https://github.com/Enerccio/Marginalia/blob/master/marginalia/plugins/name-provider/README.md#groups">plugin README</a>.</p>
 <p>The data is the <a href="https://github.com/sigpwned/popular-names-by-country-dataset">popular names by country dataset</a> (CC0), which
 takes them from Wikipedia&#x27;s lists of the most common surnames and the most popular given names. The names written in
 non-Latin scripts (Chinese, Japanese, Korean, Arabic, Cyrillic...) have a romanization, either one from the source or
@@ -280,7 +287,7 @@ button.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (fc8a49c4).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (0cdb603b).</p></div>
             </footer>
         </div>
     </div>

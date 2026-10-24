@@ -23,6 +23,28 @@ One category per country and kind, `<Country> - Surnames` or `<Country> - Forena
 expanded to the English name of the country, `XK` is `Kosovo`): about 180, 75 countries with surnames and 106 with
 forenames. Forenames of both genders are in one list.
 
+## Groups
+
+A list can also be a **group** of lists (`src/main/resources/name-groups.json`, committed, read at run time):
+
+```json
+{"groups": [{"title": "Nordic - Surnames", "members": ["Denmark - Surnames", "Norway - Surnames"]}]}
+```
+
+The shipped groups are by language or language family, `<Language> - Forenames` and `<Language> - Surnames` (a group with
+one list or none is not made): Nordic, Spanish (18 countries), Portuguese, French, German, English (UK, US, Australia, Canada, New Zealand,
+Ireland, South Africa, Jamaica, the Channel Islands, Isle of Man), Arabic, West, East and South Slavic, North Germanic, Uralic,
+Baltic, Turkic, Persian, Chinese, South Asian, Southeast Asian, Caucasus, Albanian and Romanian. Countries where several languages
+are spoken (Belgium, Luxembourg, Malta, Andorra) are in none. Every member has the same chance, there is no weight like in the
+Name generator (the lists are short and a country should not drown the others).
+
+`members` are patterns for whole list titles, not case sensitive, `*` stands for any text (`Denmark - *` is both lists of
+Denmark). `pick_real_names` on a group takes every name from a member chosen at random among those that still have
+names, so a request for 20 names mixes the lists, no name is returned twice and a group with fewer names than asked for
+returns all of them. Groups are listed with the lists (and are items of the tool dialog); `NameLists.isGroup` and `members`
+tell them apart. A group with no member, or with the title of a list, is left out; groups can't contain groups. `NameGroupsTest`
+checks that every pattern of the shipped file matches a list.
+
 ## Data
 
 The names are in `src/main/resources/name-lists.json` (committed, about 110 KB):

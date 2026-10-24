@@ -28,6 +28,7 @@ public class NameProviderCommands {
             + "all of them or those whose name contains the words of the filter. Reads only.";
     private static final String LIST_LLM = "Lists the lists of real names (forenames and surnames of countries) that pick-real-names accepts. "
             + "Call it first; give `filter`, words the name of the list contains (in any order, not case sensitive), to list only those. "
+            + "Some entries are groups of lists (\"Nordic - Surnames\"): every name of a group comes from one of its lists picked at random. "
             + "Returns a JSON array. Reads only.";
 
     @Command(commandName = LIST, humanNameText = "List real name lists", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
@@ -64,7 +65,7 @@ public class NameProviderCommands {
     public void pick(CommandContext context) {
         String list = context.get("list", String.class);
         if (list == null || !lists.has(list)) {
-            throw new IllegalArgumentException("Unknown list '" + list + "'. Lists: " + String.join(", ", lists.categories()));
+            throw new IllegalArgumentException(NameLists.unknown("list", list, lists.categories(), LIST));
         }
         int count = NameProviderFunctionsImpl.clampCount(context.get("count", Integer.class));
         context.setReturn(GSON.toJson(lists.pick(list, count, ThreadLocalRandom.current())));

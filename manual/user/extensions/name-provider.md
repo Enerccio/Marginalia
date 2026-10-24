@@ -44,6 +44,14 @@ There are about 180 lists, named `<Country> - Surnames` and `<Country> - Forenam
 from 5 to about 150 names, the most common ones of the country. The names are not made new: a name you get is a name that
 people have.
 
+A few dozen entries are **groups** of lists by language: `<Language> - Forenames` and `<Language> - Surnames` for Spanish
+(18 countries), Portuguese, French, German, English, Arabic, West, East and South Slavic, North Germanic, Nordic, Uralic,
+Baltic, Turkic, Persian, Chinese, South Asian, Southeast Asian, Caucasus, Albanian and Romanian (where there are such lists). They
+are listed like any list and are one item in the [tools window](tools.md). Every name of a group is picked from one of its lists
+chosen at random, each country with the same chance, so a request for 20 names gets names of several countries, never the same name
+twice. Countries where several languages are spoken (Belgium, Luxembourg, Malta, Andorra) are in no group. A group is a
+line in `name-groups.json`, see the [plugin README](https://github.com/Enerccio/Marginalia/blob/master/marginalia/plugins/name-provider/README.md#groups).
+
 The data is the [popular names by country dataset](https://github.com/sigpwned/popular-names-by-country-dataset) (CC0), which
 takes them from Wikipedia's lists of the most common surnames and the most popular given names. The names written in
 non-Latin scripts (Chinese, Japanese, Korean, Arabic, Cyrillic...) have a romanization, either one from the source or
