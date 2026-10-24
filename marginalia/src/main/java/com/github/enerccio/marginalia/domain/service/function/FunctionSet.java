@@ -10,7 +10,9 @@ import java.util.function.BooleanSupplier;
 
 /**
  * Functions the model may call in one request: {@link FunctionDefinition}s bound to the objects that implement them.
- * Cheap to create and immutable; the expensive part is in the definitions, which the registry caches.
+ * Cheap to create and immutable; the expensive part is in the definitions, which the registry caches. A function whose
+ * {@linkplain FunctionDefinition#getLinkedTools() linked tools} are not all in the set is not offered (it is, once the set
+ * with them is added with {@link #and}).
  * <pre>
  * FunctionSet functions = inferenceServices.getFunctionRegistry().bind(Weather.class, new WeatherImpl());
  * inferenceService.stream(payload, protocol, functions, callback);
@@ -22,10 +24,24 @@ public final class FunctionSet {
 
     private record Binding(FunctionDefinition definition, Object target) {}
 
+    // everything bound, so that a function that waits for its linked tool is there when the set it needs is added
+    private final Map<String, Binding> bound;
+    // what is offered: the functions whose linked tools are all bound too
     private final Map<String, Binding> functions;
 
-    private FunctionSet(Map<String, Binding> functions) {
-        this.functions = functions;
+    private FunctionSet(Map<String, Binding> bound) {
+        this.bound = bound;
+        this.functions = complete(bound);
+    }
+
+    // a function is out when a function linked to it is missing, and so is everything linked to that one in turn
+    private static Map<String, Binding> complete(Map<String, Binding> bound) {
+        Map<String, Binding> offered = new LinkedHashMap<>(bound);
+        boolean changed = true;
+        while (changed) {
+            changed = offered.values().removeIf(binding -> !offered.keySet().containsAll(binding.definition().getLinkedTools()));
+        }
+        return offered.size() == bound.size() ? bound : offered;
     }
 
     public static FunctionSet empty() {
@@ -45,14 +61,14 @@ public final class FunctionSet {
      * @throws IllegalArgumentException when both have a function of the same name
      */
     public FunctionSet and(FunctionSet other) {
-        if (other.isEmpty()) {
+        if (other.bound.isEmpty()) {
             return this;
         }
-        if (isEmpty()) {
+        if (bound.isEmpty()) {
             return other;
         }
-        Map<String, Binding> bindings = new LinkedHashMap<>(functions);
-        for (Map.Entry<String, Binding> binding : other.functions.entrySet()) {
+        Map<String, Binding> bindings = new LinkedHashMap<>(bound);
+        for (Map.Entry<String, Binding> binding : other.bound.entrySet()) {
             if (bindings.putIfAbsent(binding.getKey(), binding.getValue()) != null) {
                 throw new IllegalArgumentException("Function " + binding.getKey() + " is bound twice");
             }

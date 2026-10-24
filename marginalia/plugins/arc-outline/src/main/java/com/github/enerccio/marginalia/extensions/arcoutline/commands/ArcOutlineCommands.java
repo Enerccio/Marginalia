@@ -131,7 +131,7 @@ public class ArcOutlineCommands extends ArcOutlineCommandSupport {
 
     // --- add-arc ---
 
-    @Command(commandName = ADD_ARC, humanNameText = "Add arc", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = ADD_ARC, linkedCommand = GET, humanNameText = "Add arc", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = ADD_ARC_TEXT, llmDescriptionText = ADD_ARC_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "title", type = String.class, descriptionText = PARAM_TITLE)}),
@@ -140,7 +140,7 @@ public class ArcOutlineCommands extends ArcOutlineCommandSupport {
         runAddArc(context);
     }
 
-    @Command(commandName = ADD_ARC, humanNameText = "Add arc", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = ADD_ARC, linkedCommand = GET, humanNameText = "Add arc", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = ADD_ARC_TEXT, llmDescriptionText = ADD_ARC_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "title", type = String.class, descriptionText = PARAM_TITLE),
@@ -150,7 +150,7 @@ public class ArcOutlineCommands extends ArcOutlineCommandSupport {
         runAddArc(context);
     }
 
-    @Command(commandName = ADD_ARC, humanNameText = "Add arc", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = ADD_ARC, linkedCommand = GET, humanNameText = "Add arc", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = ADD_ARC_TEXT, llmDescriptionText = ADD_ARC_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "title", type = String.class, descriptionText = PARAM_TITLE),
@@ -161,7 +161,7 @@ public class ArcOutlineCommands extends ArcOutlineCommandSupport {
         runAddArc(context);
     }
 
-    @Command(commandName = ADD_ARC, humanNameText = "Add arc", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = ADD_ARC, linkedCommand = GET, humanNameText = "Add arc", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = ADD_ARC_TEXT, llmDescriptionText = ADD_ARC_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "title", type = String.class, descriptionText = PARAM_TITLE),
@@ -174,7 +174,7 @@ public class ArcOutlineCommands extends ArcOutlineCommandSupport {
         runAddArc(context);
     }
 
-    @Command(commandName = ADD_ARC, humanNameText = "Add arc", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = ADD_ARC, linkedCommand = GET, humanNameText = "Add arc", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = ADD_ARC_TEXT, llmDescriptionText = ADD_ARC_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "title", type = String.class, descriptionText = PARAM_TITLE),
@@ -203,7 +203,7 @@ public class ArcOutlineCommands extends ArcOutlineCommandSupport {
 
     // --- update-arc ---
 
-    @Command(commandName = UPDATE_ARC, humanNameText = "Update arc", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = UPDATE_ARC, linkedCommand = GET, humanNameText = "Update arc", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = UPDATE_ARC_TEXT, llmDescriptionText = UPDATE_ARC_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "arc", type = Integer.class, descriptionText = PARAM_ARC),
@@ -213,7 +213,7 @@ public class ArcOutlineCommands extends ArcOutlineCommandSupport {
         runUpdateArc(context);
     }
 
-    @Command(commandName = UPDATE_ARC, humanNameText = "Update arc", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = UPDATE_ARC, linkedCommand = GET, humanNameText = "Update arc", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = UPDATE_ARC_TEXT, llmDescriptionText = UPDATE_ARC_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "arc", type = Integer.class, descriptionText = PARAM_ARC),
@@ -224,7 +224,7 @@ public class ArcOutlineCommands extends ArcOutlineCommandSupport {
         runUpdateArc(context);
     }
 
-    @Command(commandName = UPDATE_ARC, humanNameText = "Update arc", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = UPDATE_ARC, linkedCommand = GET, humanNameText = "Update arc", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = UPDATE_ARC_TEXT, llmDescriptionText = UPDATE_ARC_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "arc", type = Integer.class, descriptionText = PARAM_ARC),
@@ -236,7 +236,7 @@ public class ArcOutlineCommands extends ArcOutlineCommandSupport {
         runUpdateArc(context);
     }
 
-    @Command(commandName = UPDATE_ARC, humanNameText = "Update arc", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = UPDATE_ARC, linkedCommand = GET, humanNameText = "Update arc", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = UPDATE_ARC_TEXT, llmDescriptionText = UPDATE_ARC_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "arc", type = Integer.class, descriptionText = PARAM_ARC),
@@ -286,7 +286,7 @@ public class ArcOutlineCommands extends ArcOutlineCommandSupport {
 
     // --- move-arc ---
 
-    @Command(commandName = MOVE_ARC, humanNameText = "Move arc", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = MOVE_ARC, linkedCommand = GET, humanNameText = "Move arc", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = MOVE_ARC_TEXT, llmDescriptionText = MOVE_ARC_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "arc", type = Integer.class, descriptionText = PARAM_ARC),
@@ -303,7 +303,7 @@ public class ArcOutlineCommands extends ArcOutlineCommandSupport {
 
     // --- delete-arc ---
 
-    @Command(commandName = DELETE_ARC, humanNameText = "Delete arc", dataSeverity = CommandDataSeverity.DESTRUCTIVE,
+    @Command(commandName = DELETE_ARC, linkedCommand = GET, humanNameText = "Delete arc", dataSeverity = CommandDataSeverity.DESTRUCTIVE,
             descriptionText = DELETE_ARC_TEXT, llmDescriptionText = DELETE_ARC_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "arc", type = Integer.class, descriptionText = PARAM_ARC)}),
@@ -328,7 +328,7 @@ public class ArcOutlineCommands extends ArcOutlineCommandSupport {
 
     // --- add-outline-chapter ---
 
-    @Command(commandName = ADD_CHAPTER, humanNameText = "Add outline chapter", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = ADD_CHAPTER, linkedCommand = GET, humanNameText = "Add outline chapter", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = ADD_CHAPTER_TEXT, llmDescriptionText = ADD_CHAPTER_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "arc", type = Integer.class, descriptionText = PARAM_ARC),
@@ -338,7 +338,7 @@ public class ArcOutlineCommands extends ArcOutlineCommandSupport {
         runAddChapter(context);
     }
 
-    @Command(commandName = ADD_CHAPTER, humanNameText = "Add outline chapter", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = ADD_CHAPTER, linkedCommand = GET, humanNameText = "Add outline chapter", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = ADD_CHAPTER_TEXT, llmDescriptionText = ADD_CHAPTER_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "arc", type = Integer.class, descriptionText = PARAM_ARC),
@@ -349,7 +349,7 @@ public class ArcOutlineCommands extends ArcOutlineCommandSupport {
         runAddChapter(context);
     }
 
-    @Command(commandName = ADD_CHAPTER, humanNameText = "Add outline chapter", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = ADD_CHAPTER, linkedCommand = GET, humanNameText = "Add outline chapter", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = ADD_CHAPTER_TEXT, llmDescriptionText = ADD_CHAPTER_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "arc", type = Integer.class, descriptionText = PARAM_ARC),
@@ -361,7 +361,7 @@ public class ArcOutlineCommands extends ArcOutlineCommandSupport {
         runAddChapter(context);
     }
 
-    @Command(commandName = ADD_CHAPTER, humanNameText = "Add outline chapter", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = ADD_CHAPTER, linkedCommand = GET, humanNameText = "Add outline chapter", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = ADD_CHAPTER_TEXT, llmDescriptionText = ADD_CHAPTER_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "arc", type = Integer.class, descriptionText = PARAM_ARC),
@@ -375,7 +375,7 @@ public class ArcOutlineCommands extends ArcOutlineCommandSupport {
         runAddChapter(context);
     }
 
-    @Command(commandName = ADD_CHAPTER, humanNameText = "Add outline chapter", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = ADD_CHAPTER, linkedCommand = GET, humanNameText = "Add outline chapter", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = ADD_CHAPTER_TEXT, llmDescriptionText = ADD_CHAPTER_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "arc", type = Integer.class, descriptionText = PARAM_ARC),
@@ -413,7 +413,7 @@ public class ArcOutlineCommands extends ArcOutlineCommandSupport {
 
     // --- update-outline-chapter ---
 
-    @Command(commandName = UPDATE_CHAPTER, humanNameText = "Update outline chapter", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = UPDATE_CHAPTER, linkedCommand = GET, humanNameText = "Update outline chapter", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = UPDATE_CHAPTER_TEXT, llmDescriptionText = UPDATE_CHAPTER_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "arc", type = Integer.class, descriptionText = PARAM_ARC),
@@ -424,7 +424,7 @@ public class ArcOutlineCommands extends ArcOutlineCommandSupport {
         runUpdateChapter(context);
     }
 
-    @Command(commandName = UPDATE_CHAPTER, humanNameText = "Update outline chapter", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = UPDATE_CHAPTER, linkedCommand = GET, humanNameText = "Update outline chapter", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = UPDATE_CHAPTER_TEXT, llmDescriptionText = UPDATE_CHAPTER_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "arc", type = Integer.class, descriptionText = PARAM_ARC),
@@ -436,7 +436,7 @@ public class ArcOutlineCommands extends ArcOutlineCommandSupport {
         runUpdateChapter(context);
     }
 
-    @Command(commandName = UPDATE_CHAPTER, humanNameText = "Update outline chapter", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = UPDATE_CHAPTER, linkedCommand = GET, humanNameText = "Update outline chapter", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = UPDATE_CHAPTER_TEXT, llmDescriptionText = UPDATE_CHAPTER_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "arc", type = Integer.class, descriptionText = PARAM_ARC),
@@ -449,7 +449,7 @@ public class ArcOutlineCommands extends ArcOutlineCommandSupport {
         runUpdateChapter(context);
     }
 
-    @Command(commandName = UPDATE_CHAPTER, humanNameText = "Update outline chapter", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = UPDATE_CHAPTER, linkedCommand = GET, humanNameText = "Update outline chapter", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = UPDATE_CHAPTER_TEXT, llmDescriptionText = UPDATE_CHAPTER_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "arc", type = Integer.class, descriptionText = PARAM_ARC),
@@ -477,7 +477,7 @@ public class ArcOutlineCommands extends ArcOutlineCommandSupport {
 
     // --- move-outline-chapter ---
 
-    @Command(commandName = MOVE_CHAPTER, humanNameText = "Move outline chapter", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = MOVE_CHAPTER, linkedCommand = GET, humanNameText = "Move outline chapter", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = MOVE_CHAPTER_TEXT, llmDescriptionText = MOVE_CHAPTER_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "arc", type = Integer.class, descriptionText = PARAM_ARC),
@@ -488,7 +488,7 @@ public class ArcOutlineCommands extends ArcOutlineCommandSupport {
         runMoveChapter(context);
     }
 
-    @Command(commandName = MOVE_CHAPTER, humanNameText = "Move outline chapter", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = MOVE_CHAPTER, linkedCommand = GET, humanNameText = "Move outline chapter", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = MOVE_CHAPTER_TEXT, llmDescriptionText = MOVE_CHAPTER_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "arc", type = Integer.class, descriptionText = PARAM_ARC),
@@ -517,7 +517,7 @@ public class ArcOutlineCommands extends ArcOutlineCommandSupport {
 
     // --- delete-outline-chapter ---
 
-    @Command(commandName = DELETE_CHAPTER, humanNameText = "Delete outline chapter", dataSeverity = CommandDataSeverity.DESTRUCTIVE,
+    @Command(commandName = DELETE_CHAPTER, linkedCommand = GET, humanNameText = "Delete outline chapter", dataSeverity = CommandDataSeverity.DESTRUCTIVE,
             descriptionText = DELETE_CHAPTER_TEXT, llmDescriptionText = DELETE_CHAPTER_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "arc", type = Integer.class, descriptionText = PARAM_ARC),

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846176640312">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846177486155">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846176640312" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846177486155" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846176640312" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846177486155" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846176640312" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846176640312" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846177486155" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846177486155" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -341,6 +341,18 @@ is never turned into a function for the model (<code translate="no" v-pre>Comman
 offered in the command box of the console; the user still runs it from the command bar. All forms of one command share the value
 (<code translate="no" v-pre>registerCommands</code> throws when they differ), <code translate="no" v-pre>CommandDefinition.availableForAgent()</code> returns it. It is independent of the
 severity, and such a command needs no <code translate="no" v-pre>llmDescription</code>.</p>
+<h3 id="linked-commands">Linked commands</h3>
+<p><code translate="no" v-pre>@Command(linkedCommand = {&quot;generate-names&quot;, &quot;other&quot;})</code> names the commands that only make sense together with this one, such as a
+<code translate="no" v-pre>list-...</code> command whose result the other command accepts. Any number can be given, as an array or as one text with the names
+separated by commas (<code translate="no" v-pre>linkedCommand = &quot;a, b&quot;</code>). Declare the link on both sides to have the commands always together (the Name
+Generator and the Name Provider do: <code translate="no" v-pre>list-name-categories</code> and <code translate="no" v-pre>generate-names</code>, <code translate="no" v-pre>list-real-name-lists</code> and <code translate="no" v-pre>pick-real-names</code>). An agent
+gets a command only with all its linked commands: <code translate="no" v-pre>CommandLinks.close</code> completes an allowlist with them (the allowlist editor ticks
+and clears them together, and an agent saved before the link existed gets them when its list is read, so nothing has to be migrated),
+and <code translate="no" v-pre>CommandLinks.resolve</code> also drops a command whose linked command is not registered or not available for agents. <code translate="no" v-pre>CommandFunctions</code>,
+the console commands and the commands of a model profile go through <code translate="no" v-pre>resolve</code>. The link is the same for all the forms of a command
+(<code translate="no" v-pre>registerCommands</code> throws when they differ), a command can&#x27;t link itself, and <code translate="no" v-pre>CommandDefinition.linkedCommands()</code> returns the names.
+For the functions of <code translate="no" v-pre>@LLMFunction</code> the same is <code translate="no" v-pre>linkedTool</code> (by function name): a <code translate="no" v-pre>FunctionSet</code> offers a function only while all its linked
+tools are in the set, and they appear when the set with them is added with <code translate="no" v-pre>and</code>.</p>
 <p>The label is shown by the command bar in the list and in the help, with an explanation as its tooltip; the texts are the keys
 <code translate="no" v-pre>LABEL_COMMAND_DESTRUCTIVE</code>, <code translate="no" v-pre>LABEL_COMMAND_NON_DESTRUCTIVE</code>, <code translate="no" v-pre>HELP_COMMAND_DESTRUCTIVE</code> and <code translate="no" v-pre>HELP_COMMAND_NON_DESTRUCTIVE</code>,
 carried by <code translate="no" v-pre>CommandDataSeverity.getLabel()</code>/<code translate="no" v-pre>getDescription()</code>.</p>
@@ -510,7 +522,7 @@ only after the answer. <code translate="no" v-pre>/search-replace-parts</code> a
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (a33754a0).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (0bb6377d4).</p></div>
             </footer>
         </div>
     </div>

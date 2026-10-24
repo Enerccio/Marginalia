@@ -17,12 +17,12 @@ public interface PlaceProviderFunctions {
     String COUNTRY = "A country by name or code ('Canada', 'CA', 'CAN'); places that touch it count; leave it out for any";
     String PLACE = "A place by name ('Ottawa', 'Paris, France': a comma and the country or province picks one of several) or coordinates ('45.42, -75.69')";
 
-    @LLMFunction(name = "list_place_types",
+    @LLMFunction(name = "list_place_types", linkedTool = {"search_places", "places_near"},
             description = "Lists the types of real-world places that can be searched (city, capital, bay, inlet, river, mountain range, island...) "
                     + "with how many places of each there are.")
     void listTypes(FunctionContinuation<List<TypeCount>> done);
 
-    @LLMFunction(name = "search_places",
+    @LLMFunction(name = "search_places", linkedTool = {"list_place_types", "places_near"},
             description = "Searches real-world places of the Earth (Natural Earth data: cities, capitals, provinces, countries, seas, bays, gulfs, "
                     + "straits, fjords, lakes, rivers, islands, capes, mountains, mountain ranges, deserts, ports, airports, parks) by name, type and "
                     + "country. Give at least one of the three. Returns the best matches first with their coordinates, the countries they touch and "
@@ -34,7 +34,7 @@ public interface PlaceProviderFunctions {
                       @LLMParam(required = false, description = "How many places to return, 1 to " + PlaceIndex.MAX_LIMIT
                               + ". Default " + PlaceIndex.DEFAULT_LIMIT) Integer limit);
 
-    @LLMFunction(name = "places_near",
+    @LLMFunction(name = "places_near", linkedTool = {"list_place_types", "search_places"},
             description = "Lists the real-world places around a place or a point, the closest first, with the distance in kilometers and the compass "
                     + "direction from it. Use it to find what lies around a place.")
     void placesNear(FunctionContinuation<Nearby> done,

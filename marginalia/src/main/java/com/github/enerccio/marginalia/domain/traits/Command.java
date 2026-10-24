@@ -124,4 +124,14 @@ public @interface Command {
      */
     BatchPolicy batch() default BatchPolicy.BATCHABLE;
 
+    /**
+     * Several can be given, as an array or as one text with the names separated by commas.
+     * Names of the commands that only make sense together with this one, such as a command that lists what another one
+     * accepts. An agent gets the command only with all of them: allowing it allows them too (an agent that was set up before
+     * the link existed gets them as well, the allowlist is completed whenever it is read), and a command whose linked command
+     * is not registered or not {@link #availableForAgent() available for an agent} is not offered at all. Declare the link on both
+     * sides to have the commands always together. The same for all the overloads of a command. None by default.
+     */
+    String[] linkedCommand() default {};
+
 }

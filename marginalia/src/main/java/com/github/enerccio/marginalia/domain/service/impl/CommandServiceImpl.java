@@ -195,10 +195,19 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
             // inaccessible module, the call fails with a clear message
         }
         String where = describe(method);
+        // several commands: an array, or a text with the names separated by commas
+        List<String> linked = Arrays.stream(meta.linkedCommand()).flatMap(text -> Arrays.stream(text.split(",")))
+                .map(String::strip).filter(other -> !other.isEmpty()).distinct().toList();
+        for (String other : linked) {
+            if (!VALID_NAME.matcher(other).matches() || other.equals(name)) {
+                throw new IllegalArgumentException("Invalid linked command '" + other + "' of " + where
+                        + ", it must be the name of another command");
+            }
+        }
         return new CommandDefinition(name, CommandText.of(where, "humanName", meta.humanName(), meta.humanNameText(), true),
                 CommandText.of(where, "description", meta.description(), meta.descriptionText(), false),
                 CommandText.of(where, "llmDescription", meta.llmDescription(), meta.llmDescriptionText(), false), meta.async(),
-                meta.dataSeverity(), meta.availableForAgent(), meta.readOnly(), meta.batch(), suite, signature.any(), List.copyOf(parameters),
+                meta.dataSeverity(), meta.availableForAgent(), meta.readOnly(), meta.batch(), linked, suite, signature.any(), List.copyOf(parameters),
                 new CommandReturnDefinition(returns.name(), returns.type(),
                         CommandText.of(where, "description of the return value", returns.description(), returns.descriptionText(), false)));
     }
@@ -224,6 +233,10 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
             if (definition.availableForAgent() != overloads.getFirst().definition().availableForAgent()) {
                 throw new IllegalArgumentException("The overloads of command " + name + " in " + type.getName()
                         + " differ in availableForAgent");
+            }
+            if (!definition.linkedCommands().equals(overloads.getFirst().definition().linkedCommands())) {
+                throw new IllegalArgumentException("The overloads of command " + name + " in " + type.getName()
+                        + " differ in linkedCommand");
             }
             List<Object> key = definition.anyArguments() ? List.of("any")
                     : List.copyOf(definition.parameters().stream().map(CommandParameterDefinition::type).toList());

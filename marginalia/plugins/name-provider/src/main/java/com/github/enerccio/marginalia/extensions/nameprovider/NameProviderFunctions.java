@@ -12,13 +12,13 @@ import java.util.List;
  */
 public interface NameProviderFunctions {
 
-    @LLMFunction(name = "list_real_name_lists",
+    @LLMFunction(name = "list_real_name_lists", linkedTool = "pick_real_names",
             description = "Lists the lists of real names (forenames and surnames of countries), all of them or those whose name contains the words of the filter. Call it first: pick_real_names accepts only these.")
     void listLists(FunctionContinuation<List<String>> done,
                    @LLMParam(required = false, description = "Words the name of the list has to contain, in any order and case, "
                            + "e.g. \"czech female\". Default: all lists") String filter);
 
-    @LLMFunction(name = "pick_real_names",
+    @LLMFunction(name = "pick_real_names", linkedTool = "list_real_name_lists",
             description = "Picks real, existing names at random from a list. Each name is a pair: the romanized name (Latin script) "
                     + "and the original one (as written in its own language, the same when it is written in Latin script).")
     void pickNames(FunctionContinuation<List<NameEntry>> done,

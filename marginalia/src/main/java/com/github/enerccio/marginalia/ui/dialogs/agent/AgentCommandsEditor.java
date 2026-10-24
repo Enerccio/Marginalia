@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.service.CommandService;
 import com.github.enerccio.marginalia.domain.service.TokenizerService;
 import com.github.enerccio.marginalia.domain.service.agent.CommandFunctions;
 import com.github.enerccio.marginalia.domain.service.command.CommandDefinition;
+import com.github.enerccio.marginalia.domain.service.command.CommandLinks;
 import com.github.enerccio.marginalia.domain.service.function.FunctionDefinition;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
@@ -130,15 +131,37 @@ public class AgentCommandsEditor extends VerticalLayout {
     private Checkbox checkbox(Row row, String label) {
         Checkbox checkbox = label == null ? new Checkbox(selected.contains(row.name())) : new Checkbox(label, selected.contains(row.name()));
         checkbox.addValueChangeListener(event -> {
-            if (event.getValue()) {
-                selected.add(row.name());
-            } else {
-                selected.remove(row.name());
+            if (toggle(row.name(), event.getValue())) {
+                grid.getDataProvider().refreshAll();
             }
             presetCombo.setValue(currentPreset());
             changed();
         });
         return checkbox;
+    }
+
+    /**
+     * Ticks or clears the command with the commands that go with it: ticking adds the commands linked to it, clearing
+     * clears those that are linked to it.
+     *
+     * @return whether another command than this one changed
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "commandName", type = String.class),
+                    @APIParameter(name = "value", type = boolean.class)},
+            locals = {@APILocals(name = "others", type = Set.class)})
+    private boolean toggle(String commandName, boolean value) {
+        Set<String> others = new LinkedHashSet<>(value ? CommandLinks.close(commandService.getCommands(), List.of(commandName))
+                : CommandLinks.dependents(commandService.getCommands(), commandName));
+        others.remove(commandName);
+        if (value) {
+            selected.add(commandName);
+            others.retainAll(rows.stream().map(Row::name).collect(Collectors.toSet()));
+            return selected.addAll(others);
+        }
+        selected.remove(commandName);
+        return selected.removeAll(others);
     }
 
     // package visible for the tests
@@ -220,6 +243,10 @@ public class AgentCommandsEditor extends VerticalLayout {
             long tokens = 0;
             for (FunctionDefinition function : CommandFunctions.create(commandService, List.of(commandName), DestructiveCommandMode.AUTO,
                     l -> loc.getValue(l), null).getDefinitions()) {
+                if (!function.getName().equals(CommandFunctions.functionName(commandName))) {
+                    // the commands linked to it come along, but they have a row (and tokens) of their own
+                    continue;
+                }
                 tokens += tokenizerService.countTokensApprox(function.getName() + " " + StringUtils.defaultString(function.getDescription())
                         + " " + function.getParametersSchema());
             }
@@ -252,7 +279,8 @@ public class AgentCommandsEditor extends VerticalLayout {
             Set<String> known = rows.stream().map(Row::name).collect(Collectors.toSet());
             selected.clear();
             unknown.clear();
-            for (String name : names) {
+            // the linked commands go with a command, also for an agent that was saved before they were linked
+            for (String name : CommandLinks.close(commandService.getCommands(), names)) {
                 (known.contains(name) ? selected : unknown).add(name);
             }
             presetCombo.setValue(currentPreset());
@@ -289,6 +317,8 @@ public class AgentCommandsEditor extends VerticalLayout {
                 selected.add(row.name());
             }
         }
+        selected.addAll(CommandLinks.close(commandService.getCommands(), selected).stream()
+                .filter(name -> rows.stream().anyMatch(row -> row.name().equals(name))).toList());
         loading = true;
         try {
             presetCombo.setValue(currentPreset());
@@ -326,11 +356,7 @@ public class AgentCommandsEditor extends VerticalLayout {
         if (rows.stream().noneMatch(row -> row.name().equals(commandName))) {
             throw new IllegalArgumentException("No such command: " + commandName);
         }
-        if (value) {
-            selected.add(commandName);
-        } else {
-            selected.remove(commandName);
-        }
+        toggle(commandName, value);
         presetCombo.setValue(currentPreset());
         grid.getDataProvider().refreshAll();
         changed();

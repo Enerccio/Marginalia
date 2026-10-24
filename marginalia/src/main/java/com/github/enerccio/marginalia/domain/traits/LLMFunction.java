@@ -35,4 +35,13 @@ public @interface LLMFunction {
      */
     BatchPolicy batch() default BatchPolicy.BATCHABLE;
 
+    /**
+     * Several can be given, as an array or as one text with the names separated by commas.
+     * Names of the functions (their {@link #name()}) that only make sense together with this one, such as a function that lists
+     * what another one accepts. A {@link com.github.enerccio.marginalia.domain.service.function.FunctionSet} offers the function
+     * only while all of them are in the set too, so the model never gets one of the pair alone. Declare the link on both sides to have
+     * the functions always together. None by default.
+     */
+    String[] linkedTool() default {};
+
 }

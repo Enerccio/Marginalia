@@ -121,6 +121,20 @@ offered in the command box of the console; the user still runs it from the comma
 (`registerCommands` throws when they differ), `CommandDefinition.availableForAgent()` returns it. It is independent of the
 severity, and such a command needs no `llmDescription`.
 
+### Linked commands
+
+`@Command(linkedCommand = {"generate-names", "other"})` names the commands that only make sense together with this one, such as a
+`list-...` command whose result the other command accepts. Any number can be given, as an array or as one text with the names
+separated by commas (`linkedCommand = "a, b"`). Declare the link on both sides to have the commands always together (the Name
+Generator and the Name Provider do: `list-name-categories` and `generate-names`, `list-real-name-lists` and `pick-real-names`). An agent
+gets a command only with all its linked commands: `CommandLinks.close` completes an allowlist with them (the allowlist editor ticks
+and clears them together, and an agent saved before the link existed gets them when its list is read, so nothing has to be migrated),
+and `CommandLinks.resolve` also drops a command whose linked command is not registered or not available for agents. `CommandFunctions`,
+the console commands and the commands of a model profile go through `resolve`. The link is the same for all the forms of a command
+(`registerCommands` throws when they differ), a command can't link itself, and `CommandDefinition.linkedCommands()` returns the names.
+For the functions of `@LLMFunction` the same is `linkedTool` (by function name): a `FunctionSet` offers a function only while all its linked
+tools are in the set, and they appear when the set with them is added with `and`.
+
 The label is shown by the command bar in the list and in the help, with an explanation as its tooltip; the texts are the keys
 `LABEL_COMMAND_DESTRUCTIVE`, `LABEL_COMMAND_NON_DESTRUCTIVE`, `HELP_COMMAND_DESTRUCTIVE` and `HELP_COMMAND_NON_DESTRUCTIVE`,
 carried by `CommandDataSeverity.getLabel()`/`getDescription()`.
