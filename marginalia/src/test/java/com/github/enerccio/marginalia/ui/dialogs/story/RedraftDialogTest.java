@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.AnnotationService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
+import com.github.enerccio.marginalia.domain.service.RedraftService;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
@@ -146,5 +147,59 @@ class RedraftDialogTest extends MarginaliaTestBase {
         applyButton(components).click();
 
         assertThat(annotationService.find(open.getId()).getStatus()).isEqualTo(AnnotationStatus.RESOLVED);
+    }
+
+    @Test
+    void thePassageReplacesOnlyItselfAndKeepsTheWhitespaceAroundIt() {
+        RedraftService.Passage passage = new RedraftService.Passage(3, 12);
+
+        assertThat(RedraftDialog.replacePassage("A.  Old one. B.", passage, "New text.")).isEqualTo("A.  New text. B.");
+        assertThat(RedraftDialog.replacePassage("A.  Old one. B.", new RedraftService.Passage(4, 12), "\n New text.\n")).isEqualTo("A.  New text. B.");
+        assertThat(RedraftDialog.replacePassage("Old one", new RedraftService.Passage(0, 7), "New")).isEqualTo("New");
+    }
+
+    @Test
+    void applyForAPassageReplacesJustThePassage() throws Exception {
+        // "He drew his sword." - the passage is "drew his sword"
+        AtomicReference<ChatMessage> applied = new AtomicReference<>();
+        RedraftDialog dialog = RedraftDialog.create(book, part, new RedraftService.Passage(3, 17), applied::set);
+        List<Component> components = components(dialog);
+        dialog.open();
+
+        // the selected text, the instructions, the redrafted text
+        TextArea redraftedText = (TextArea) components.stream().filter(TextArea.class::isInstance).skip(2).findFirst().orElseThrow();
+        redraftedText.setValue("slowly lifted the blade");
+        applyButton(components).click();
+
+        assertThat(chatMessageService.find(part.getId()).getResponse()).isEqualTo("He slowly lifted the blade.");
+        assertThat(applied.get().getResponse()).isEqualTo("He slowly lifted the blade.");
+        assertThat(dialog.isOpened()).isFalse();
+    }
+
+    @Test
+    void applyForAPassageIsRefusedWhenThePartChangedMeanwhile() throws Exception {
+        RedraftDialog dialog = RedraftDialog.create(book, part, new RedraftService.Passage(3, 17), saved -> {
+        });
+        List<Component> components = components(dialog);
+        dialog.open();
+        chatMessageService.updateResponse(book, part, "He sheathed his sword.");
+
+        ((TextArea) components.stream().filter(TextArea.class::isInstance).skip(2).findFirst().orElseThrow()).setValue("slowly lifted the blade");
+        applyButton(components).click();
+
+        assertThat(chatMessageService.find(part.getId()).getResponse()).isEqualTo("He sheathed his sword.");
+    }
+
+    @Test
+    void onlyTheAnnotationsInThePassageOfferTheCheckbox() throws Exception {
+        annotationService.create(book, part, 0, 2, "Who?", AnnotationSource.AUTHOR, null, null);
+        Checkbox outside = components(RedraftDialog.create(book, part, new RedraftService.Passage(3, 17), saved -> {
+        })).stream().filter(Checkbox.class::isInstance).map(Checkbox.class::cast).findFirst().orElseThrow();
+        assertThat(outside.isVisible()).isFalse();
+
+        annotationService.create(book, part, 8, 12, "Cliche", AnnotationSource.AUTHOR, null, null);
+        Checkbox inside = components(RedraftDialog.create(book, part, new RedraftService.Passage(3, 17), saved -> {
+        })).stream().filter(Checkbox.class::isInstance).map(Checkbox.class::cast).findFirst().orElseThrow();
+        assertThat(inside.isVisible()).isTrue();
     }
 }

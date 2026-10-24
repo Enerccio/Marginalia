@@ -1238,7 +1238,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
             // a click on a mark of an annotation opens its note at the mark
             cardAnnotations = new CardAnnotations(loc, annotations, () -> this.message, responseMarkdown,
-                    () -> responseTextArea, this::autosaveAndSwapToMarkdown);
+                    () -> responseTextArea, this::autosaveAndSwapToMarkdown, this::redraftSelection);
             actions.addComponentAsFirst(cardAnnotations.getBadge());
             refreshAnnotationBadge();
 
@@ -1441,6 +1441,28 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             try {
                 currentManuscript = parent.refreshManuscript();
                 RedraftDialog.open(currentManuscript, message, saved -> {
+                    message = saved;
+                    annotationsChanged();
+                    renderResponse();
+                    updateMetrics(message);
+                });
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        }
+
+        /**
+         * Opens the redraft for the passage of the part the author selected (the item of the menu of the text), see
+         * {@link RedraftDialog}. Only the passage is replaced when the author applies the result.
+         */
+        @PublicAPI(from = "1.5.0",
+                parameters = {@APIParameter(name = "passage", type = RedraftService.Passage.class)},
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "e", type = Exception.class)})
+        private void redraftSelection(RedraftService.Passage passage) {
+            try {
+                currentManuscript = parent.refreshManuscript();
+                RedraftDialog.open(currentManuscript, message, passage, saved -> {
                     message = saved;
                     annotationsChanged();
                     renderResponse();

@@ -710,6 +710,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_SELECT_ANNOTATIONS, "注釈のみ");
         setValue(L.LABEL_ANNOTATIONS_IN_MARGIN, "注釈を余白に表示");
         setValue(L.LABEL_ST_MERGE_TURNS, "ユーザーとアシスタントのメッセージを 1 つのパートにまとめる");
+        setValue(L.LABEL_REDRAFT_SELECTION, "選択範囲を書き直す");
+        setValue(L.LABEL_REDRAFT_SELECTED_TEXT, "選択したテキスト");
+        setValue(L.LABEL_REDRAFT_WITH_ANNOTATIONS_SELECTION, "選択範囲内の未対応の注釈に対処する（再執筆を適用すると解決済みになります）");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1204,6 +1207,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_ST_CHATS_READY, "インポートの準備ができたチャット: %d 件。");
         setValue(L.MSG_ST_IMPORT_STOPPED, "停止しました: %d / %d パートをインポートし、残りはインポートされませんでした。");
         setValue(L.MSG_IMPORTING_SILLYTAVERN, "SillyTavern からインポート中");
+        setValue(L.MSG_REDRAFT_SELECTION_INFO, "モデルは指示に従って、選択した文章を書き直します。選択範囲を示したパート全体、その前後の物語、パート作成時のロアが渡され、置き換わるのは選択した文章だけです。結果を適用するまで、本は変更されません。");
+        setValue(L.MSG_REDRAFT_SELECTION_CHANGED, "選択した後にパートの文章が変わりました。もう一度文章を選択してください。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1640,6 +1645,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_TEMPLATE_ANNOTATE_INSTRUCTIONS, "パートで確認してほしい点（指示がなければ空）。");
         setValue(L.DESC_TEMPLATE_OUTPUT_FORMAT, "モデルに指示する回答の書式。注釈の取得方法によって変わります。");
         setValue(L.DESC_TEMPLATE_STORY_ANNOTATIONS, "プロンプトに含まれるストーリーの箇所についての著者のメモのうち、モデルに渡す設定のもの（1件1行、なければ空）。");
+        setValue(L.DESC_TEMPLATE_SELECTION, "作者が書き直しのために選択したパートの文章（パート全体を書き直す場合は空）。選択範囲の書き直しとパート全体の書き直しを区別するのに使います。");
+        setValue(L.DESC_TEMPLATE_SELECTION_BEFORE, "選択範囲より前のパートの文章（範囲を書き直す場合のみ）。");
+        setValue(L.DESC_TEMPLATE_SELECTION_AFTER, "選択範囲より後のパートの文章（範囲を書き直す場合のみ）。");
     }
 
     @Override

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846134447263">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846162426200">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846134447263" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846162426200" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846134447263" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846162426200" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846134447263" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846134447263" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846162426200" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846162426200" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -272,7 +272,7 @@ point for your own version. The template fields also list the <strong>Available 
 | User Prompt | `{{sceneSetting}}`, `{{povCharacter}}`, `{{presentCharacters}}`, `{{instructions}}` |
 | Summary Prompt | `{{backgroundLore}}`, `{{text}}` (the parts to summarize) |
 | Meta Summary Prompt | `{{backgroundLore}}`, `{{summaryBlocks}}` (the summaries to merge) |
-| Redraft Prompt | `{{text}}` (the part), `{{redraftInstructions}}` (what you want changed), `{{previousStory}}`, `{{summaries}}`, `{{followingStory}}`, `{{backgroundLore}}`, `{{narrativePov}}`, `{{narrativeTense}}`, `{{style}}`, and the turn the part was written from: `{{sceneSetting}}`, `{{povCharacter}}`, `{{presentCharacters}}`, `{{instructions}}`, and `{{annotations}}` (your open notes on the part, empty unless you ask for them in the redraft window) |
+| Redraft Prompt | `{{text}}` (the part), `{{redraftInstructions}}` (what you want changed), `{{previousStory}}`, `{{summaries}}`, `{{followingStory}}`, `{{backgroundLore}}`, `{{narrativePov}}`, `{{narrativeTense}}`, `{{style}}`, and the turn the part was written from: `{{sceneSetting}}`, `{{povCharacter}}`, `{{presentCharacters}}`, `{{instructions}}`, and `{{annotations}}` (your open notes on the part, empty unless you ask for them in the redraft window), and for the [redraft of a selection](story-editor.md#redrafting-only-a-passage) `{{selection}}` (the selected text; empty when the whole part is redrafted), `{{selectionBefore}}` and `{{selectionAfter}}` (the text of the part around it) |
 | Annotate Prompt | The variables of the redraft prompt, with `{{annotateInstructions}}` (what you want looked at) instead of `{{redraftInstructions}}`, `{{annotations}}` (the notes the part already has) and `{{outputFormat}}` (how the model is told to answer) |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -301,7 +301,7 @@ point for your own version. The template fields also list the <strong>Available 
 </tr>
 <tr>
 <td>Redraft Prompt</td>
-<td><code translate="no" v-pre>{{text}}</code> (the part), <code translate="no" v-pre>{{redraftInstructions}}</code> (what you want changed), <code translate="no" v-pre>{{previousStory}}</code>, <code translate="no" v-pre>{{summaries}}</code>, <code translate="no" v-pre>{{followingStory}}</code>, <code translate="no" v-pre>{{backgroundLore}}</code>, <code translate="no" v-pre>{{narrativePov}}</code>, <code translate="no" v-pre>{{narrativeTense}}</code>, <code translate="no" v-pre>{{style}}</code>, and the turn the part was written from: <code translate="no" v-pre>{{sceneSetting}}</code>, <code translate="no" v-pre>{{povCharacter}}</code>, <code translate="no" v-pre>{{presentCharacters}}</code>, <code translate="no" v-pre>{{instructions}}</code>, and <code translate="no" v-pre>{{annotations}}</code> (your open notes on the part, empty unless you ask for them in the redraft window)</td>
+<td><code translate="no" v-pre>{{text}}</code> (the part), <code translate="no" v-pre>{{redraftInstructions}}</code> (what you want changed), <code translate="no" v-pre>{{previousStory}}</code>, <code translate="no" v-pre>{{summaries}}</code>, <code translate="no" v-pre>{{followingStory}}</code>, <code translate="no" v-pre>{{backgroundLore}}</code>, <code translate="no" v-pre>{{narrativePov}}</code>, <code translate="no" v-pre>{{narrativeTense}}</code>, <code translate="no" v-pre>{{style}}</code>, and the turn the part was written from: <code translate="no" v-pre>{{sceneSetting}}</code>, <code translate="no" v-pre>{{povCharacter}}</code>, <code translate="no" v-pre>{{presentCharacters}}</code>, <code translate="no" v-pre>{{instructions}}</code>, and <code translate="no" v-pre>{{annotations}}</code> (your open notes on the part, empty unless you ask for them in the redraft window), and for the <a href="../story-editor/#redrafting-only-a-passage">redraft of a selection</a> <code translate="no" v-pre>{{selection}}</code> (the selected text; empty when the whole part is redrafted), <code translate="no" v-pre>{{selectionBefore}}</code> and <code translate="no" v-pre>{{selectionAfter}}</code> (the text of the part around it)</td>
 </tr>
 <tr>
 <td>Annotate Prompt</td>
@@ -346,6 +346,11 @@ what you did not ask to change, stay consistent with the story before and after 
 the redrafted part only. Your own version should keep the variables it needs: without <code translate="no" v-pre>{{text}}</code> the model does not see
 the part. The redraft prompt follows the rule of all prompts: the book&#x27;s field, else the <em>Redraft Prompt</em> in <em>Settings →
 Templates</em>, else the built-in one.</p>
+<p>When you redraft only a <a href="../story-editor/#redrafting-only-a-passage">selected passage</a>, the same prompt is used with
+<code translate="no" v-pre>{{selection}}</code> filled: the built-in default then shows the part with the passage between <code translate="no" v-pre>[[PASSAGE TO REDRAFT]]</code> and
+<code translate="no" v-pre>[[/PASSAGE TO REDRAFT]]</code> and tells the model to answer with the text that replaces the passage only. A prompt of your own
+that does not know <code translate="no" v-pre>{{selection}}</code> makes the model answer with the whole part, and the whole answer then replaces the
+selection; add a <code translate="no" v-pre>{#selection}...{{/selection}}</code> block (and <code translate="no" v-pre>{{^selection}}</code> for the other case) to handle it.</p>
 <h2 id="annotate-prompt">Annotate prompt</h2>
 <p>When a model <a href="../annotations/#letting-a-model-annotate">annotates a part</a> it gets one request, sent as the only message like the
 redraft. The built-in default makes the model an editor: it finds the passages that have a problem in the sense of your
@@ -422,7 +427,7 @@ text off.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (6ff2e363).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (fc8a49c4).</p></div>
             </footer>
         </div>
     </div>

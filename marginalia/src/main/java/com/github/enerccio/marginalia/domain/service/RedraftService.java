@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service;
 
+import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
@@ -9,6 +10,8 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationO
  * the model is told what the author wants changed: it gets the part itself, the story before it (the older story as
  * summaries, the way a generation sees it), as much of the story after it as fits, and the data the part was written
  * with, in the redraft prompt of the book ({@link ManuscriptService#getRedraftPrompt}).
+ * <p>
+ * The redraft can be limited to a {@link Passage} of the part (the author selected it); the rest of the part is then not written again.
  * <p>
  * Nothing is stored by the redraft: the text goes to the {@link Callback} and the author decides whether it replaces
  * the part (see {@link ChatMessageService#updateResponse}).
@@ -47,8 +50,38 @@ public interface RedraftService {
      *
      * @param withAnnotations whether the open annotations of the part are given to the model
      */
+    default CancellationToken redraft(Manuscript manuscript, ChatMessage part, String instructions, String prompt, GenerationOptions options,
+                                      boolean withAnnotations, Callback callback) throws Exception {
+        return redraft(manuscript, part, instructions, prompt, options, withAnnotations, null, callback);
+    }
+
+    /**
+     * As {@link #redraft(Manuscript, ChatMessage, String, String, GenerationOptions, boolean, Callback)} for one passage of the part only: the
+     * model gets the whole part, with the passage marked, and writes just the text that replaces the passage ({@code onFinished} gets that
+     * text, not the part). The author joins it with the rest of the part. With {@code withAnnotations} only the open annotations whose passage
+     * overlaps the redrafted one are given.
+     *
+     * @param passage the passage of the part to write again, {@code null} for the whole part
+     * @throws IllegalArgumentException when the passage is not inside the text of the part or has no text
+     */
     CancellationToken redraft(Manuscript manuscript, ChatMessage part, String instructions, String prompt, GenerationOptions options,
-                              boolean withAnnotations, Callback callback) throws Exception;
+                              boolean withAnnotations, Passage passage, Callback callback) throws Exception;
+
+    /**
+     * A passage of the text of a part, as offsets in it.
+     *
+     * @param start the first character of the passage
+     * @param end   the character after the last one
+     */
+    record Passage(int start, int end) {
+
+        /**
+         * Whether the passage of the annotation overlaps this one; a note about the whole part, or one that lost its passage, does not.
+         */
+        public boolean overlaps(Annotation annotation) {
+            return annotation.hasRange() && annotation.getStart() < end && annotation.getEnd() > start;
+        }
+    }
 
     /**
      * What the redraft ends in; each call is made on the thread of the inference.

@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.AnnotationService;
+import com.github.enerccio.marginalia.domain.service.RedraftService;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
@@ -44,6 +45,7 @@ public class CardAnnotations {
     private final Markdown response;
     private final Supplier<TextArea> editor;
     private final Runnable saveEdit;
+    private final Consumer<RedraftService.Passage> redraftSelection;
 
     private final Button badge = new Button(Solid.COMMENT_ALT.create());
     private final Div anchor = new Div();
@@ -67,15 +69,17 @@ public class CardAnnotations {
      * @param response the markdown the text of the part is drawn in
      * @param editor   the text area the part is edited in; null while it is not edited
      * @param saveEdit saves the edit of the part and leaves the editor: the offsets of a selection in the editor are the ones of the saved text
+     * @param redraftSelection redrafts the passage of the part the author selected (the menu of the text has an item for it)
      */
     public CardAnnotations(Localization loc, StoryAnnotations annotations, Supplier<ChatMessage> message, Markdown response,
-                           Supplier<TextArea> editor, Runnable saveEdit) {
+                           Supplier<TextArea> editor, Runnable saveEdit, Consumer<RedraftService.Passage> redraftSelection) {
         this.loc = loc;
         this.annotations = annotations;
         this.message = message;
         this.response = response;
         this.editor = editor;
         this.saveEdit = saveEdit;
+        this.redraftSelection = redraftSelection;
 
         badge.setThemeName("tertiary small");
         badge.addClassName(CssStyles.ANNOTATION_BADGE);
@@ -96,6 +100,7 @@ public class CardAnnotations {
         JavascriptLibrary.rememberSelectionOnContextMenu(response.getElement(), AnnotationService.CONTEXT_LENGTH / 2);
         ContextMenu textMenu = new ContextMenu(response);
         textMenu.addItem(loc.getValue(L.LABEL_ANNOTATE_SELECTION), event -> annotateSelection());
+        textMenu.addItem(loc.getValue(L.LABEL_REDRAFT_SELECTION), event -> redraftSelection());
         textMenu.addItem(loc.getValue(L.LABEL_COPY), event -> JavascriptLibrary.copySelection(response.getElement()));
         response.getElement().addEventListener("annotation-click",
                 event -> show(event.getEventData().get("event.detail.ids").asString())).addEventData("event.detail.ids");
@@ -219,6 +224,13 @@ public class CardAnnotations {
     public void annotateSelection() {
         withSelection(range -> AnnotationDialog.open(message.get().getResponse().substring(range[0], range[1]),
                 (text, type, send) -> annotations.create(message.get(), range[0], range[1], text, type, send)));
+    }
+
+    /**
+     * Has the model write the text the author selected again.
+     */
+    public void redraftSelection() {
+        withSelection(range -> redraftSelection.accept(new RedraftService.Passage(range[0], range[1])));
     }
 
     /**

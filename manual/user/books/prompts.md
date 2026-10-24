@@ -53,7 +53,7 @@ Templates are text with placeholders in double curly braces. Each template gets 
 | User Prompt | `{%{{{sceneSetting}}}%}`, `{%{{{povCharacter}}}%}`, `{%{{{presentCharacters}}}%}`, `{%{{{instructions}}}%}` |
 | Summary Prompt | `{%{{{backgroundLore}}}%}`, `{%{{{text}}}%}` (the parts to summarize) |
 | Meta Summary Prompt | `{%{{{backgroundLore}}}%}`, `{%{{{summaryBlocks}}}%}` (the summaries to merge) |
-| Redraft Prompt | `{%{{{text}}}%}` (the part), `{%{{{redraftInstructions}}}%}` (what you want changed), `{%{{{previousStory}}}%}`, `{%{{{summaries}}}%}`, `{%{{{followingStory}}}%}`, `{%{{{backgroundLore}}}%}`, `{%{{{narrativePov}}}%}`, `{%{{{narrativeTense}}}%}`, `{%{{{style}}}%}`, and the turn the part was written from: `{%{{{sceneSetting}}}%}`, `{%{{{povCharacter}}}%}`, `{%{{{presentCharacters}}}%}`, `{%{{{instructions}}}%}`, and `{%{{{annotations}}}%}` (your open notes on the part, empty unless you ask for them in the redraft window) |
+| Redraft Prompt | `{%{{{text}}}%}` (the part), `{%{{{redraftInstructions}}}%}` (what you want changed), `{%{{{previousStory}}}%}`, `{%{{{summaries}}}%}`, `{%{{{followingStory}}}%}`, `{%{{{backgroundLore}}}%}`, `{%{{{narrativePov}}}%}`, `{%{{{narrativeTense}}}%}`, `{%{{{style}}}%}`, and the turn the part was written from: `{%{{{sceneSetting}}}%}`, `{%{{{povCharacter}}}%}`, `{%{{{presentCharacters}}}%}`, `{%{{{instructions}}}%}`, and `{%{{{annotations}}}%}` (your open notes on the part, empty unless you ask for them in the redraft window), and for the [redraft of a selection](story-editor.md#redrafting-only-a-passage) `{%{{{selection}}}%}` (the selected text; empty when the whole part is redrafted), `{%{{{selectionBefore}}}%}` and `{%{{{selectionAfter}}}%}` (the text of the part around it) |
 | Annotate Prompt | The variables of the redraft prompt, with `{%{{{annotateInstructions}}}%}` (what you want looked at) instead of `{%{{{redraftInstructions}}}%}`, `{%{{{annotations}}}%}` (the notes the part already has) and `{%{{{outputFormat}}}%}` (how the model is told to answer) |
 
 A section prints its content only when the variable is not empty, so the prompt has no empty headings:
@@ -103,6 +103,12 @@ what you did not ask to change, stay consistent with the story before and after 
 the redrafted part only. Your own version should keep the variables it needs: without `{%{{{text}}}%}` the model does not see
 the part. The redraft prompt follows the rule of all prompts: the book's field, else the *Redraft Prompt* in *Settings →
 Templates*, else the built-in one.
+
+When you redraft only a [selected passage](story-editor.md#redrafting-only-a-passage), the same prompt is used with
+`{%{{{selection}}}%}` filled: the built-in default then shows the part with the passage between `[[PASSAGE TO REDRAFT]]` and
+`[[/PASSAGE TO REDRAFT]]` and tells the model to answer with the text that replaces the passage only. A prompt of your own
+that does not know `{%{{{selection}}}%}` makes the model answer with the whole part, and the whole answer then replaces the
+selection; add a `{%{{#selection}}%}...{%{{{/selection}}}%}` block (and `{%{{{^selection}}}%}` for the other case) to handle it.
 
 ## Annotate prompt
 

@@ -37,6 +37,12 @@ public class RedraftTemplateData extends TemplateData {
     private String redraftInstructions;
     @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_ANNOTATIONS)
     private String annotations;
+    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_SELECTION)
+    private String selection;
+    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_SELECTION_BEFORE)
+    private String selectionBefore;
+    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_SELECTION_AFTER)
+    private String selectionAfter;
 
     public String getBackgroundLore() {
         return backgroundLore;
@@ -148,6 +154,30 @@ public class RedraftTemplateData extends TemplateData {
 
     public void setAnnotations(String annotations) {
         this.annotations = annotations;
+    }
+
+    public String getSelection() {
+        return selection;
+    }
+
+    public void setSelection(String selection) {
+        this.selection = selection;
+    }
+
+    public String getSelectionBefore() {
+        return selectionBefore;
+    }
+
+    public void setSelectionBefore(String selectionBefore) {
+        this.selectionBefore = selectionBefore;
+    }
+
+    public String getSelectionAfter() {
+        return selectionAfter;
+    }
+
+    public void setSelectionAfter(String selectionAfter) {
+        this.selectionAfter = selectionAfter;
     }
 
 }

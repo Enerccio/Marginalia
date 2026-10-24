@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846134447263">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846162426200">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846134447263" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846162426200" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846134447263" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846162426200" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846134447263" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846162426200" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -216,7 +216,7 @@ it. Notes can also come from a model or from an <a href="../../extensions/">exte
 <p><strong>On a passage.</strong> Select the words in the text of the part (they can have formatting, the selection does not have to be
 exact), then choose <strong>Annotate selection</strong> in the menu (☰) of the part. The window shows the passage; write the note, an
 optional type, and whether the model gets the note, and <strong>Save</strong>. Selecting and then opening the menu (☰) of the part can lose the selection in some browsers; the
-<strong>right click</strong> (a long press on a phone) on the selected text opens a menu with <strong>Annotate selection</strong> and <strong>Copy</strong> that keeps it. The menu replaces
+<strong>right click</strong> (a long press on a phone) on the selected text opens a menu with <strong>Annotate selection</strong>, <a href="../story-editor/#redrafting-only-a-passage"><strong>Redraft selection</strong></a> and <strong>Copy</strong> that keeps it. The menu replaces
 the one of the browser on the text of a part, so it has <strong>Copy</strong> too. While the part is being edited, the selection in the
 editor is used: the edit is saved first.</p>
 <p><strong>On the whole part.</strong> Choose <strong>Annotate part</strong> in the menu of the part.</p>
@@ -357,7 +357,9 @@ the letter</em>), not for editing remarks.</p>
 <h2 id="redrafting-to-address-the-notes">Redrafting to address the notes</h2>
 <p>When a part has open notes, the <a href="../story-editor/#redrafting-a-part">redraft</a> window has a check box <strong>Deal with the open
 annotations of the part</strong>. Checked, the model gets the notes (the passage and the note) together with your instructions and
-rewrites the part to deal with them; when you <strong>Apply</strong> the redraft, those notes are marked resolved.</p>
+rewrites the part to deal with them; when you <strong>Apply</strong> the redraft, those notes are marked resolved. In the
+<a href="../story-editor/#redrafting-only-a-passage">redraft of a selection</a> only the notes whose passage overlaps the selection are
+given.</p>
 <h2 id="commands">Commands</h2>
 <p><a href="../../commands/#annotations"><code translate="no" v-pre>/list-annotations</code></a>, <code translate="no" v-pre>/get-annotation</code>, <code translate="no" v-pre>/create-annotation</code>, <code translate="no" v-pre>/update-annotation</code>,
 <code translate="no" v-pre>/resolve-annotation</code>, <code translate="no" v-pre>/reattach-annotation</code> and <code translate="no" v-pre>/delete-annotation</code> work with the notes from the command line.
@@ -420,7 +422,7 @@ both changed is a conflict like any other.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (6ff2e363).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (fc8a49c4).</p></div>
             </footer>
         </div>
     </div>

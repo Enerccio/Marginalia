@@ -2,10 +2,7 @@ package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.domain.components.AnnotationTexts;
 import com.github.enerccio.marginalia.domain.components.TokenLimits;
-import com.github.enerccio.marginalia.domain.model.impl.AI;
-import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.model.impl.Protocol;
+import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.InferenceService.ChunkType;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncCallback;
@@ -72,7 +69,7 @@ public class RedraftServiceImpl implements RedraftService {
     @Override
     @CommonTxReadOnly
     public CancellationToken redraft(Manuscript manuscript, ChatMessage part, String instructions, String prompt,
-                                     GenerationOptions options, boolean withAnnotations, Callback callback) throws Exception {
+                                     GenerationOptions options, boolean withAnnotations, Passage passage, Callback callback) throws Exception {
         if (manuscript == null || part == null || callback == null) {
             throw new IllegalArgumentException("The part does not exist");
         }
@@ -89,6 +86,10 @@ public class RedraftServiceImpl implements RedraftService {
         if (StringUtils.isBlank(stored.getResponse())) {
             throw new IllegalArgumentException("The part has no text");
         }
+        if (passage != null && (passage.start() < 0 || passage.end() > stored.getResponse().length()
+                || StringUtils.isBlank(stored.getResponse().substring(passage.start(), Math.max(passage.start(), passage.end()))))) {
+            throw new IllegalArgumentException("The passage is not in the text of the part");
+        }
         GenerationOptions chosen = options == null ? GenerationOptions.defaults() : options;
         // the model of the options, else the one of the book
         AI wanted = chosen.ai() != null ? chosen.ai() : book.getAi();
@@ -104,7 +105,7 @@ public class RedraftServiceImpl implements RedraftService {
         }
         InferenceService inferenceService = inferenceServices.forAIOrThrow(ai);
 
-        List<LLMChatMessage> payload = createPayload(book, stored, StringUtils.trimToEmpty(instructions), prompt, withAnnotations, ai, protocol, inferenceService);
+        List<LLMChatMessage> payload = createPayload(book, stored, StringUtils.trimToEmpty(instructions), prompt, withAnnotations, passage, ai, protocol, inferenceService);
 
         CancellationToken cancellationToken = new CancellationToken();
         InferenceAsyncCallback inferenceCallback = new InferenceAsyncCallback() {
@@ -163,10 +164,20 @@ public class RedraftServiceImpl implements RedraftService {
     }
 
     /**
+     * The annotations a redraft of the passage deals with: the ones whose passage overlaps it. All of them for the redraft of the whole part.
+     */
+    private static List<Annotation> annotationsIn(List<Annotation> annotations, Passage passage) {
+        if (passage == null) {
+            return annotations;
+        }
+        return annotations.stream().filter(passage::overlaps).toList();
+    }
+
+    /**
      * The prompt of the redraft: the redraft template of the book with the part in it and as much story around the part
      * as the context takes.
      */
-    private List<LLMChatMessage> createPayload(Manuscript book, ChatMessage part, String instructions, String prompt, boolean withAnnotations, AI ai, Protocol protocol,
+    private List<LLMChatMessage> createPayload(Manuscript book, ChatMessage part, String instructions, String prompt, boolean withAnnotations, Passage passage, AI ai, Protocol protocol,
                                                InferenceService inferenceService) throws Exception {
         List<ChatMessage> upToPart = new ArrayList<>(chatMessageService.getBranchFromLeaf(part));
         List<ChatMessage> before = upToPart.isEmpty() ? new ArrayList<>() : new ArrayList<>(upToPart.subList(0, upToPart.size() - 1));
@@ -185,8 +196,13 @@ public class RedraftServiceImpl implements RedraftService {
         data.setPresentCharacters(StringUtils.defaultString(part.getPresentCharacters()));
         data.setInstructions(StringUtils.defaultString(part.getInstructions()));
         data.setText(part.getResponse());
+        if (passage != null) {
+            data.setSelection(part.getResponse().substring(passage.start(), passage.end()));
+            data.setSelectionBefore(part.getResponse().substring(0, passage.start()));
+            data.setSelectionAfter(part.getResponse().substring(passage.end()));
+        }
         data.setRedraftInstructions(instructions);
-        data.setAnnotations(withAnnotations ? AnnotationTexts.openAnnotations(annotationService.listForPart(book, part)) : "");
+        data.setAnnotations(withAnnotations ? AnnotationTexts.openAnnotations(annotationsIn(annotationService.listForPart(book, part), passage)) : "");
         data.setSummaries("");
         data.setPreviousStory("");
         data.setFollowingStory("");

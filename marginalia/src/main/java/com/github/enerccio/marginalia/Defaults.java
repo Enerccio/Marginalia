@@ -122,18 +122,22 @@ Execute Level-2 Context Consolidation Protocol. Aggregate sequential event ledge
     public static final String DEFAULT_REDRAFT_PROMPT = """
 ### OBJECTIVE
 Redraft one part of the ongoing narrative "MANUSCRIPT CHRONICLE". Rewrite the PART TO REDRAFT the way the AUTHOR'S INSTRUCTIONS ask, so that it stays a seamless piece of the story: it must still fit what comes before it and lead into what follows it.
-
+{{#selection}}The author selected only one PASSAGE of the part, marked in it by [[PASSAGE TO REDRAFT]] and [[/PASSAGE TO REDRAFT]]: rewrite just that passage and leave the rest of the part as it is.
+{{/selection}}
 ### CORE DIRECTIVES
 1. **Follow the Author**: Apply the AUTHOR'S INSTRUCTIONS to the part (add more of something, change something, expand, tighten, fix). Whatever the author does not ask to change stays as it is, in substance and as far as possible in wording.
 2. **Continuity**: The story before the part is established fact. The redrafted part begins where that story ends and must not contradict the text that follows it: events, names, injuries, possessions and promises that the following text relies on still have to happen.
 3. **Voice**: Keep the narrative voice, tense and style given below, and match the voice of the part and of the story before it.
 4. **Lore**: Use the BACKGROUND LORE strictly as a factual reference. Do not repeat it.
 5. **Annotations**: When the author's notes on passages of the part are given, they are problems the author found: deal with each of them (they are part of the AUTHOR'S INSTRUCTIONS).
-
+{{#selection}}6. **Seamless Join**: The text you write replaces the passage exactly where it stands, so it must join the text right before the passage and right after it without a seam: no repeated words, no missing punctuation, no new paragraph break where the sentence goes on.
+{{/selection}}
 ### STRICT NEGATIVE CONSTRAINTS
-* **Output Only the Part**: Begin immediately with the redrafted text. No intro, no notes about what was changed, no headings, no quotation of the instructions.
+{{^selection}}* **Output Only the Part**: Begin immediately with the redrafted text. No intro, no notes about what was changed, no headings, no quotation of the instructions.
 * **Stay Inside the Part**: Do NOT continue the story past the end of the part and do NOT repeat the text before or after it.
-* **No Unrequested Inventions**: Do NOT add new named characters or major plot points the author did not ask for.
+{{/selection}}{{#selection}}* **Output Only the Passage**: Begin immediately with the text that replaces the passage. No intro, no notes about what was changed, no headings, no quotation of the instructions, and not the markers of the passage.
+* **Stay Inside the Passage**: Do NOT write the text of the part before or after the passage, and do NOT continue the story past the end of the passage.
+{{/selection}}* **No Unrequested Inventions**: Do NOT add new named characters or major plot points the author did not ask for.
 
 ### NARRATION
 {{#narrativePov}}Narrative Voice: {{.}}{{/narrativePov}}
@@ -164,11 +168,11 @@ Redraft one part of the ongoing narrative "MANUSCRIPT CHRONICLE". Rewrite the PA
 {{.}}
 {{/instructions}}
 === PART TO REDRAFT START ===
-{{text}}
+{{^selection}}{{text}}{{/selection}}{{#selection}}{{selectionBefore}}[[PASSAGE TO REDRAFT]]{{selection}}[[/PASSAGE TO REDRAFT]]{{selectionAfter}}{{/selection}}
 === PART TO REDRAFT END ===
 
 === AUTHOR'S INSTRUCTIONS START ===
-{{#redraftInstructions}}{{.}}{{/redraftInstructions}}{{^redraftInstructions}}{{^annotations}}Write the part again, better, keeping its events.{{/annotations}}{{/redraftInstructions}}
+{{#redraftInstructions}}{{.}}{{/redraftInstructions}}{{^redraftInstructions}}{{^annotations}}{{#selection}}Write the passage again, better, keeping its events.{{/selection}}{{^selection}}Write the part again, better, keeping its events.{{/selection}}{{/annotations}}{{/redraftInstructions}}
 === AUTHOR'S INSTRUCTIONS END ===
 {{#annotations}}
 === AUTHOR'S NOTES ON PASSAGES OF THE PART START ===

@@ -24,7 +24,7 @@ A part can have any number of annotations, also on overlapping passages.
 **On a passage.** Select the words in the text of the part (they can have formatting, the selection does not have to be
 exact), then choose **Annotate selection** in the menu (☰) of the part. The window shows the passage; write the note, an
 optional type, and whether the model gets the note, and **Save**. Selecting and then opening the menu (☰) of the part can lose the selection in some browsers; the
-**right click** (a long press on a phone) on the selected text opens a menu with **Annotate selection** and **Copy** that keeps it. The menu replaces
+**right click** (a long press on a phone) on the selected text opens a menu with **Annotate selection**, [**Redraft selection**](story-editor.md#redrafting-only-a-passage) and **Copy** that keeps it. The menu replaces
 the one of the browser on the text of a part, so it has **Copy** too. While the part is being edited, the selection in the
 editor is used: the edit is saved first.
 
@@ -114,7 +114,9 @@ the letter*), not for editing remarks.
 
 When a part has open notes, the [redraft](story-editor.md#redrafting-a-part) window has a check box **Deal with the open
 annotations of the part**. Checked, the model gets the notes (the passage and the note) together with your instructions and
-rewrites the part to deal with them; when you **Apply** the redraft, those notes are marked resolved.
+rewrites the part to deal with them; when you **Apply** the redraft, those notes are marked resolved. In the
+[redraft of a selection](story-editor.md#redrafting-only-a-passage) only the notes whose passage overlaps the selection are
+given.
 
 ## Commands
 
