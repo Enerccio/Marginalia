@@ -87,7 +87,7 @@ public class CharacterTrackerCommands extends ManuscriptReadSupport {
 
     // --- list-characters / get-character ---
 
-    @Command(commandName = LIST, humanNameText = "List characters", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
+    @Command(commandName = LIST, linkedCommand = GET, humanNameText = "List characters", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             descriptionText = LIST_TEXT, llmDescriptionText = LIST_LLM,
             signature = @CommandParameterSignature,
             returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: the characters"))
@@ -114,7 +114,7 @@ public class CharacterTrackerCommands extends ManuscriptReadSupport {
         answer(context, result);
     }
 
-    @Command(commandName = GET, humanNameText = "Get character", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
+    @Command(commandName = GET, linkedCommand = LIST, humanNameText = "Get character", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             descriptionText = GET_TEXT, llmDescriptionText = GET_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "character", type = String.class, descriptionText = PARAM_CHARACTER)}),
@@ -188,7 +188,7 @@ public class CharacterTrackerCommands extends ManuscriptReadSupport {
 
     // --- update-character ---
 
-    @Command(commandName = UPDATE, humanNameText = "Update character", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = UPDATE, linkedCommand = LIST, humanNameText = "Update character", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = UPDATE_TEXT, llmDescriptionText = UPDATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "character", type = String.class, descriptionText = PARAM_CHARACTER),
@@ -198,7 +198,7 @@ public class CharacterTrackerCommands extends ManuscriptReadSupport {
         runUpdate(context);
     }
 
-    @Command(commandName = UPDATE, humanNameText = "Update character", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = UPDATE, linkedCommand = LIST, humanNameText = "Update character", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = UPDATE_TEXT, llmDescriptionText = UPDATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "character", type = String.class, descriptionText = PARAM_CHARACTER),
@@ -209,7 +209,7 @@ public class CharacterTrackerCommands extends ManuscriptReadSupport {
         runUpdate(context);
     }
 
-    @Command(commandName = UPDATE, humanNameText = "Update character", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = UPDATE, linkedCommand = LIST, humanNameText = "Update character", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = UPDATE_TEXT, llmDescriptionText = UPDATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "character", type = String.class, descriptionText = PARAM_CHARACTER),
@@ -221,7 +221,7 @@ public class CharacterTrackerCommands extends ManuscriptReadSupport {
         runUpdate(context);
     }
 
-    @Command(commandName = UPDATE, humanNameText = "Update character", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = UPDATE, linkedCommand = LIST, humanNameText = "Update character", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = UPDATE_TEXT, llmDescriptionText = UPDATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "character", type = String.class, descriptionText = PARAM_CHARACTER),
@@ -264,7 +264,7 @@ public class CharacterTrackerCommands extends ManuscriptReadSupport {
 
     // --- delete-character ---
 
-    @Command(commandName = DELETE, humanNameText = "Delete character", dataSeverity = CommandDataSeverity.DESTRUCTIVE,
+    @Command(commandName = DELETE, linkedCommand = LIST, humanNameText = "Delete character", dataSeverity = CommandDataSeverity.DESTRUCTIVE,
             descriptionText = DELETE_TEXT, llmDescriptionText = DELETE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "character", type = String.class, descriptionText = PARAM_CHARACTER)}),
@@ -288,7 +288,7 @@ public class CharacterTrackerCommands extends ManuscriptReadSupport {
 
     // --- relationships ---
 
-    @Command(commandName = LIST_RELATIONS, humanNameText = "List character relationships", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
+    @Command(commandName = LIST_RELATIONS, linkedCommand = LIST, humanNameText = "List character relationships", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             descriptionText = LIST_RELATIONS_TEXT, llmDescriptionText = LIST_RELATIONS_LLM,
             signature = @CommandParameterSignature,
             returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: the relationships"))
@@ -296,7 +296,7 @@ public class CharacterTrackerCommands extends ManuscriptReadSupport {
         runListRelations(context);
     }
 
-    @Command(commandName = LIST_RELATIONS, humanNameText = "List character relationships", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
+    @Command(commandName = LIST_RELATIONS, linkedCommand = LIST, humanNameText = "List character relationships", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             descriptionText = LIST_RELATIONS_TEXT, llmDescriptionText = LIST_RELATIONS_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "character", type = String.class, optional = true,
@@ -324,7 +324,7 @@ public class CharacterTrackerCommands extends ManuscriptReadSupport {
         answer(context, result);
     }
 
-    @Command(commandName = ADD_RELATION, humanNameText = "Add character relationship", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = ADD_RELATION, linkedCommand = LIST, humanNameText = "Add character relationship", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = ADD_RELATION_TEXT, llmDescriptionText = ADD_RELATION_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "source", type = String.class, descriptionText = "The character the relationship starts at (name or number)"),
@@ -335,7 +335,7 @@ public class CharacterTrackerCommands extends ManuscriptReadSupport {
         runAddRelation(context);
     }
 
-    @Command(commandName = ADD_RELATION, humanNameText = "Add character relationship", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = ADD_RELATION, linkedCommand = LIST, humanNameText = "Add character relationship", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = ADD_RELATION_TEXT, llmDescriptionText = ADD_RELATION_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "source", type = String.class, descriptionText = "The character the relationship starts at (name or number)"),
@@ -347,7 +347,7 @@ public class CharacterTrackerCommands extends ManuscriptReadSupport {
         runAddRelation(context);
     }
 
-    @Command(commandName = ADD_RELATION, humanNameText = "Add character relationship", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = ADD_RELATION, linkedCommand = LIST, humanNameText = "Add character relationship", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = ADD_RELATION_TEXT, llmDescriptionText = ADD_RELATION_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "source", type = String.class, descriptionText = "The character the relationship starts at (name or number)"),
@@ -385,7 +385,7 @@ public class CharacterTrackerCommands extends ManuscriptReadSupport {
         answer(context, relationRow(characters, characters.allRelations().indexOf(relation) + 1, relation));
     }
 
-    @Command(commandName = UPDATE_RELATION, humanNameText = "Update character relationship", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = UPDATE_RELATION, linkedCommand = LIST_RELATIONS, humanNameText = "Update character relationship", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = UPDATE_RELATION_TEXT, llmDescriptionText = UPDATE_RELATION_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "relationship", type = Integer.class, descriptionText = PARAM_RELATION),
@@ -395,7 +395,7 @@ public class CharacterTrackerCommands extends ManuscriptReadSupport {
         runUpdateRelation(context);
     }
 
-    @Command(commandName = UPDATE_RELATION, humanNameText = "Update character relationship", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = UPDATE_RELATION, linkedCommand = LIST_RELATIONS, humanNameText = "Update character relationship", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = UPDATE_RELATION_TEXT, llmDescriptionText = UPDATE_RELATION_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "relationship", type = Integer.class, descriptionText = PARAM_RELATION),
@@ -429,7 +429,7 @@ public class CharacterTrackerCommands extends ManuscriptReadSupport {
         answer(context, relationRow(characters, number, relation));
     }
 
-    @Command(commandName = DELETE_RELATION, humanNameText = "Delete character relationship", dataSeverity = CommandDataSeverity.DESTRUCTIVE,
+    @Command(commandName = DELETE_RELATION, linkedCommand = LIST_RELATIONS, humanNameText = "Delete character relationship", dataSeverity = CommandDataSeverity.DESTRUCTIVE,
             descriptionText = DELETE_RELATION_TEXT, llmDescriptionText = DELETE_RELATION_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "relationship", type = Integer.class, descriptionText = PARAM_RELATION)}),

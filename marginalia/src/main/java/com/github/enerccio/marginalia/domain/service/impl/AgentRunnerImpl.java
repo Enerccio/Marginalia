@@ -18,6 +18,7 @@ import com.github.enerccio.marginalia.domain.service.agent.RunTools.PlanItem;
 import com.github.enerccio.marginalia.domain.service.agent.SubAgents.State;
 import com.github.enerccio.marginalia.domain.service.agent.SubAgents.Sub;
 import com.github.enerccio.marginalia.domain.service.command.CommandDefinition;
+import com.github.enerccio.marginalia.domain.service.command.CommandLinks;
 import com.github.enerccio.marginalia.domain.service.command.CommandRun;
 import com.github.enerccio.marginalia.domain.service.command.CommandScope;
 import com.github.enerccio.marginalia.domain.service.function.FunctionCallException;
@@ -361,7 +362,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         List<String> names = new ArrayList<>();
         names.add(COMPACT);
         names.add(CLEAR_WORKSPACE);
-        Set<String> allowed = agent == null ? Set.of() : new HashSet<>(agent.getAllowedCommands());
+        Set<String> allowed = agent == null ? Set.of() : CommandLinks.resolve(commandService.getCommands(), agent.getAllowedCommands());
         commandService.getCommands().stream()
                 .filter(definition -> allowed.contains(definition.commandName()) && definition.availableForAgent()
                         && !definition.dataSeverity().isDestructive())
@@ -3342,11 +3343,11 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             if (resolved == null) {
                 throw new SubStopped(State.FAILED, "The model " + (role == null ? "of the agent" : role) + " is not available.");
             }
-            Collection<String> commands = agent.getAllowedCommands();
+            Collection<String> commands = CommandLinks.resolve(commandService.getCommands(), agent.getAllowedCommands());
             if (definition.getCommands() != null) {
                 Set<String> narrowed = new HashSet<>(commands);
-                narrowed.retainAll(definition.getCommands());
-                commands = narrowed;
+                narrowed.retainAll(CommandLinks.close(commandService.getCommands(), definition.getCommands()));
+                commands = CommandLinks.resolve(commandService.getCommands(), narrowed);
             }
             SubModel model = new SubModel(role, resolved, inferenceServices.forAIOrThrow(resolved.ai()), commands, role != null && !definition.isTools(),
                     AgentService.contextCap(agent, resolved), TokenLimits.responseTokens(resolved.ai(), resolved.protocol()));
@@ -3410,7 +3411,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         }
 
         private String describeCommands(List<String> commands) {
-            List<String> allowed = commands.stream().filter(agent.getAllowedCommands()::contains).sorted().toList();
+            Set<String> yours = CommandLinks.resolve(commandService.getCommands(), agent.getAllowedCommands());
+            List<String> allowed = commands.stream().filter(yours::contains).sorted().toList();
             if (allowed.isEmpty()) {
                 return "none of yours";
             }

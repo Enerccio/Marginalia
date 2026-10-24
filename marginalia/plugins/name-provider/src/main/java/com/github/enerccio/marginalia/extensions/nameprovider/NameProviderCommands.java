@@ -31,7 +31,7 @@ public class NameProviderCommands {
             + "Some entries are groups of lists (\"Nordic - Surnames\"): every name of a group comes from one of its lists picked at random. "
             + "Returns a JSON array. Reads only.";
 
-    @Command(commandName = LIST, humanNameText = "List real name lists", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = LIST, linkedCommand = PICK, humanNameText = "List real name lists", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = LIST_TEXT, llmDescriptionText = LIST_LLM,
             signature = @CommandParameterSignature,
             returns = @CommandReturn(name = "lists", type = String.class, descriptionText = "JSON array of the lists"))
@@ -39,7 +39,7 @@ public class NameProviderCommands {
         context.setReturn(GSON.toJson(lists.categories()));
     }
 
-    @Command(commandName = LIST, humanNameText = "List real name lists", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = LIST, linkedCommand = PICK, humanNameText = "List real name lists", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = LIST_TEXT, llmDescriptionText = LIST_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "filter", type = String.class,
@@ -49,7 +49,7 @@ public class NameProviderCommands {
         context.setReturn(GSON.toJson(lists.categories(context.get("filter", String.class))));
     }
 
-    @Command(commandName = PICK, humanNameText = "Pick real names", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = PICK, linkedCommand = LIST, humanNameText = "Pick real names", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = "Picks real names at random from a list (at most " + NameProviderFunctionsImpl.MAX_COUNT + " at a time). Reads only.",
             llmDescriptionText = "Picks real, existing names at random from one list (see list-real-name-lists), different each time. Each "
                     + "name is a pair: the romanized name (Latin script) and the original one (as written in its own language, the same when "

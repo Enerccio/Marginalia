@@ -48,7 +48,7 @@ public class NameGeneratorCommands {
         this.tables = tables;
     }
 
-    @Command(commandName = LIST, humanNameText = "List name categories", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = LIST, linkedCommand = GENERATE, humanNameText = "List name categories", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = LIST_TEXT, llmDescriptionText = LIST_LLM,
             signature = @CommandParameterSignature,
             returns = @CommandReturn(name = "categories", type = String.class, descriptionText = LIST_RESULT))
@@ -56,7 +56,7 @@ public class NameGeneratorCommands {
         context.setReturn(json(tables.categories()));
     }
 
-    @Command(commandName = LIST, humanNameText = "List name categories", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = LIST, linkedCommand = GENERATE, humanNameText = "List name categories", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = LIST_TEXT, llmDescriptionText = LIST_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "filter", type = String.class, descriptionText = PARAM_FILTER)}),
@@ -70,7 +70,7 @@ public class NameGeneratorCommands {
         return categories.isEmpty() ? "[]" : "[\n" + categories.stream().map(GSON::toJson).collect(Collectors.joining(",\n")) + "\n]";
     }
 
-    @Command(commandName = GENERATE, humanNameText = "Generate names", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = GENERATE, linkedCommand = LIST, humanNameText = "Generate names", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "category", type = String.class, descriptionText = PARAM_CATEGORY),
@@ -80,7 +80,7 @@ public class NameGeneratorCommands {
         generateNames(context, null, null);
     }
 
-    @Command(commandName = GENERATE, humanNameText = "Generate names", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = GENERATE, linkedCommand = LIST, humanNameText = "Generate names", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "category", type = String.class, descriptionText = PARAM_CATEGORY),
@@ -91,7 +91,7 @@ public class NameGeneratorCommands {
         generateNames(context, context.get("min_length", Integer.class), null);
     }
 
-    @Command(commandName = GENERATE, humanNameText = "Generate names", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = GENERATE, linkedCommand = LIST, humanNameText = "Generate names", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "category", type = String.class, descriptionText = PARAM_CATEGORY),

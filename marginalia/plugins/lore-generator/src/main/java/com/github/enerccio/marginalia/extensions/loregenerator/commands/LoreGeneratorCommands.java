@@ -97,7 +97,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
 
     // --- list-lore-templates ---
 
-    @Command(commandName = LIST, humanNameText = "List lore templates", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
+    @Command(commandName = LIST, linkedCommand = {GENERATE, COMPACT}, humanNameText = "List lore templates", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             descriptionText = LIST_TEXT, llmDescriptionText = LIST_LLM,
             signature = @CommandParameterSignature,
             returns = @CommandReturn(name = "result", type = String.class, descriptionText = RESULT_LIST))
@@ -105,7 +105,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         list(context, null);
     }
 
-    @Command(commandName = LIST, humanNameText = "List lore templates", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
+    @Command(commandName = LIST, linkedCommand = {GENERATE, COMPACT}, humanNameText = "List lore templates", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             descriptionText = LIST_TEXT, llmDescriptionText = LIST_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "template", type = String.class, descriptionText = PARAM_TEMPLATE_LIST)}),
@@ -140,7 +140,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
 
     // --- generate-lore-entry ---
 
-    @Command(commandName = GENERATE, batch = BatchPolicy.SINGLE, humanNameText = "Generate lore entry", async = true,
+    @Command(commandName = GENERATE, linkedCommand = {LIST, COMPACT}, batch = BatchPolicy.SINGLE, humanNameText = "Generate lore entry", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT)}),
@@ -149,7 +149,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         runGenerate(context);
     }
 
-    @Command(commandName = GENERATE, batch = BatchPolicy.SINGLE, humanNameText = "Generate lore entry", async = true,
+    @Command(commandName = GENERATE, linkedCommand = {LIST, COMPACT}, batch = BatchPolicy.SINGLE, humanNameText = "Generate lore entry", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
@@ -159,7 +159,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         runGenerate(context);
     }
 
-    @Command(commandName = GENERATE, batch = BatchPolicy.SINGLE, humanNameText = "Generate lore entry", async = true,
+    @Command(commandName = GENERATE, linkedCommand = {LIST, COMPACT}, batch = BatchPolicy.SINGLE, humanNameText = "Generate lore entry", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
@@ -170,7 +170,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         runGenerate(context);
     }
 
-    @Command(commandName = GENERATE, batch = BatchPolicy.SINGLE, humanNameText = "Generate lore entry", async = true,
+    @Command(commandName = GENERATE, linkedCommand = {LIST, COMPACT}, batch = BatchPolicy.SINGLE, humanNameText = "Generate lore entry", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
@@ -182,7 +182,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         runGenerate(context);
     }
 
-    @Command(commandName = GENERATE, batch = BatchPolicy.SINGLE, humanNameText = "Generate lore entry", async = true,
+    @Command(commandName = GENERATE, linkedCommand = {LIST, COMPACT}, batch = BatchPolicy.SINGLE, humanNameText = "Generate lore entry", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
@@ -195,7 +195,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         runGenerate(context);
     }
 
-    @Command(commandName = GENERATE, batch = BatchPolicy.SINGLE, humanNameText = "Generate lore entry", async = true,
+    @Command(commandName = GENERATE, linkedCommand = {LIST, COMPACT}, batch = BatchPolicy.SINGLE, humanNameText = "Generate lore entry", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
@@ -210,7 +210,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         runGenerate(context);
     }
 
-    @Command(commandName = GENERATE, batch = BatchPolicy.SINGLE, humanNameText = "Generate lore entry", async = true,
+    @Command(commandName = GENERATE, linkedCommand = {LIST, COMPACT}, batch = BatchPolicy.SINGLE, humanNameText = "Generate lore entry", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
@@ -227,7 +227,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         runGenerate(context);
     }
 
-    @Command(commandName = GENERATE, batch = BatchPolicy.SINGLE, humanNameText = "Generate lore entry", async = true,
+    @Command(commandName = GENERATE, linkedCommand = {LIST, COMPACT}, batch = BatchPolicy.SINGLE, humanNameText = "Generate lore entry", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
@@ -283,7 +283,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
 
     // --- compact-lore-entry ---
 
-    @Command(commandName = COMPACT, humanNameText = "Compact lore entry", async = true,
+    @Command(commandName = COMPACT, linkedCommand = {LIST, GENERATE}, humanNameText = "Compact lore entry", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = COMPACT_TEXT, llmDescriptionText = COMPACT_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "text", type = String.class, descriptionText = PARAM_TEXT)}),
@@ -292,7 +292,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         runCompact(context);
     }
 
-    @Command(commandName = COMPACT, humanNameText = "Compact lore entry", async = true,
+    @Command(commandName = COMPACT, linkedCommand = {LIST, GENERATE}, humanNameText = "Compact lore entry", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = COMPACT_TEXT, llmDescriptionText = COMPACT_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "text", type = String.class, descriptionText = PARAM_TEXT),
@@ -302,7 +302,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         runCompact(context);
     }
 
-    @Command(commandName = COMPACT, humanNameText = "Compact lore entry", async = true,
+    @Command(commandName = COMPACT, linkedCommand = {LIST, GENERATE}, humanNameText = "Compact lore entry", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = COMPACT_TEXT, llmDescriptionText = COMPACT_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "text", type = String.class, descriptionText = PARAM_TEXT),
@@ -313,7 +313,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         runCompact(context);
     }
 
-    @Command(commandName = COMPACT, humanNameText = "Compact lore entry", async = true,
+    @Command(commandName = COMPACT, linkedCommand = {LIST, GENERATE}, humanNameText = "Compact lore entry", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = COMPACT_TEXT, llmDescriptionText = COMPACT_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "text", type = String.class, descriptionText = PARAM_TEXT),
@@ -325,7 +325,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         runCompact(context);
     }
 
-    @Command(commandName = COMPACT, humanNameText = "Compact lore entry", async = true,
+    @Command(commandName = COMPACT, linkedCommand = {LIST, GENERATE}, humanNameText = "Compact lore entry", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = COMPACT_TEXT, llmDescriptionText = COMPACT_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "text", type = String.class, descriptionText = PARAM_TEXT),
@@ -339,7 +339,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         runCompact(context);
     }
 
-    @Command(commandName = COMPACT, humanNameText = "Compact lore entry", async = true,
+    @Command(commandName = COMPACT, linkedCommand = {LIST, GENERATE}, humanNameText = "Compact lore entry", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = COMPACT_TEXT, llmDescriptionText = COMPACT_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "text", type = String.class, descriptionText = PARAM_TEXT),

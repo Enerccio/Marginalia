@@ -50,7 +50,7 @@ public class PlaceProviderCommands {
         this.index = index;
     }
 
-    @Command(commandName = TYPES, humanNameText = "List place types", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = TYPES, linkedCommand = {SEARCH, NEAR}, humanNameText = "List place types", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = "Lists the types of places that search-places accepts, with how many there are of each. Reads only.",
             llmDescriptionText = "Lists the types of real-world places that search-places and places-near accept (city, capital, bay, inlet, "
                     + "river, mountain range, island...) with how many places of each there are. Returns a JSON array of {type, count}. Reads only.",
@@ -60,7 +60,7 @@ public class PlaceProviderCommands {
         context.setReturn(lines(index.types()));
     }
 
-    @Command(commandName = SEARCH, humanNameText = "Search places", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = SEARCH, linkedCommand = {TYPES, NEAR}, humanNameText = "Search places", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = SEARCH_TEXT, llmDescriptionText = SEARCH_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "query", type = String.class, descriptionText = PARAM_QUERY)}),
@@ -69,7 +69,7 @@ public class PlaceProviderCommands {
         search(context, null, null, null);
     }
 
-    @Command(commandName = SEARCH, humanNameText = "Search places", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = SEARCH, linkedCommand = {TYPES, NEAR}, humanNameText = "Search places", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = SEARCH_TEXT, llmDescriptionText = SEARCH_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "query", type = String.class, descriptionText = PARAM_QUERY),
@@ -79,7 +79,7 @@ public class PlaceProviderCommands {
         search(context, context.get("type", String.class), null, null);
     }
 
-    @Command(commandName = SEARCH, humanNameText = "Search places", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = SEARCH, linkedCommand = {TYPES, NEAR}, humanNameText = "Search places", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = SEARCH_TEXT, llmDescriptionText = SEARCH_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "query", type = String.class, descriptionText = PARAM_QUERY),
@@ -90,7 +90,7 @@ public class PlaceProviderCommands {
         search(context, context.get("type", String.class), context.get("country", String.class), null);
     }
 
-    @Command(commandName = SEARCH, humanNameText = "Search places", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = SEARCH, linkedCommand = {TYPES, NEAR}, humanNameText = "Search places", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = SEARCH_TEXT, llmDescriptionText = SEARCH_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "query", type = String.class, descriptionText = PARAM_QUERY),
@@ -108,7 +108,7 @@ public class PlaceProviderCommands {
         context.setReturn("{\"total\":" + result.total() + ",\"places\":" + lines(result.places()) + "}");
     }
 
-    @Command(commandName = NEAR, humanNameText = "Places near", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = NEAR, linkedCommand = {TYPES, SEARCH}, humanNameText = "Places near", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = NEAR_TEXT, llmDescriptionText = NEAR_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "place", type = String.class, descriptionText = PARAM_PLACE),
@@ -118,7 +118,7 @@ public class PlaceProviderCommands {
         near(context, null, null);
     }
 
-    @Command(commandName = NEAR, humanNameText = "Places near", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = NEAR, linkedCommand = {TYPES, SEARCH}, humanNameText = "Places near", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = NEAR_TEXT, llmDescriptionText = NEAR_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "place", type = String.class, descriptionText = PARAM_PLACE),
@@ -129,7 +129,7 @@ public class PlaceProviderCommands {
         near(context, context.get("type", String.class), null);
     }
 
-    @Command(commandName = NEAR, humanNameText = "Places near", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = NEAR, linkedCommand = {TYPES, SEARCH}, humanNameText = "Places near", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = NEAR_TEXT, llmDescriptionText = NEAR_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "place", type = String.class, descriptionText = PARAM_PLACE),
