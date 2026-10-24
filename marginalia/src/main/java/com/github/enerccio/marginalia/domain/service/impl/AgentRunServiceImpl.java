@@ -95,6 +95,9 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
     @Lazy
     private AgentAttentionService attentionService;
 
+    @Autowired
+    private AgentActivityService activityService;
+
     @Override
     @CommonTx
     public AgentRun start(Agent agent) throws Exception {
@@ -459,10 +462,21 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
                 @Override
                 public void afterCommit() {
                     attentionService.publish(run);
+                    announce(run);
                 }
             });
         } else {
             attentionService.publish(run);
+            announce(run);
+        }
+    }
+
+    /**
+     * The consoles of the agent read the run again.
+     */
+    private void announce(AgentRun run) {
+        if (run.getAgent() != null) {
+            activityService.changed(run.getAgent().getId());
         }
     }
 

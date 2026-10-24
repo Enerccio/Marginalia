@@ -17,6 +17,8 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.components.CommandBar;
+import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
+import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -44,6 +46,7 @@ import com.vaadin.flow.shared.Registration;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+import org.springframework.web.context.request.RequestAttributes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,9 +68,10 @@ import java.util.concurrent.Callable;
 public class AgentConsoleDialog extends Dialog implements LLMInteract {
 
     /**
-     * How often the open console looks at the run.
+     * How often the open console looks at the run when nothing told it to: the changes are pushed (see
+     * {@link AgentActivityService}), this only catches one that was missed (a lost connection, an event of another server).
      */
-    static final int POLL_MILLIS = 2000;
+    static final int SAFETY_POLL_MILLIS = 20_000;
     // the position of the checkpoints among the tabs, which are read again only while they are shown
     static final int CHECKPOINTS_TAB = 3;
     // the context is made when its tab is picked, not while the run works
@@ -76,11 +80,6 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     // the conversations of the sub-agents are read again while their tab is shown, the run may be working
     static final int SUBAGENTS_TAB = 6;
     static final int DIAGNOSTICS_TAB = 7;
-    // after a command: the answer of a run that waits comes in a moment, looked for faster for a while
-    static final int COMMAND_POLL_MILLIS = 500;
-    static final long COMMAND_POLL_FOR_MILLIS = 15_000;
-    // how long the quick poll goes on after the answer of the model was last seen being written (every poll that sees it renews this)
-    static final long LIVE_POLL_FOR_MILLIS = 5_000;
 
     /**
      * Where the images attached to a message are kept in the workspace, for the agent to look at.
@@ -120,6 +119,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
 
     @Autowired
     private AgentRunner agentRunner;
+
+    @Autowired
+    private AgentActivityService activityService;
 
     @Autowired
     private CommandService commandService;
@@ -211,7 +213,8 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     private AgentApprovalDialog approvalDialog;
     private Registration pollRegistration;
     private int previousPollInterval = -1;
-    private long fastPollUntil;
+    // cancels the subscription to the changes of the runs of the agent, null while the console is not attached
+    private Runnable unsubscribe;
 
     public AgentConsoleDialog(Agent agent) {
         this(agent, UIUtils.isPhone());
@@ -517,14 +520,29 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     @PublicAPI(from = "1.4.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "attachEvent", type = AttachEvent.class)},
-            locals = {@APILocals(name = "ui", type = UI.class)})
+            locals = {@APILocals(name = "ui", type = UI.class),
+                    @APILocals(name = "attributes", type = RequestAttributes.class)})
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
         UI ui = attachEvent.getUI();
+        // the poll is a net under the push, never faster than what another part of the page asked for
         previousPollInterval = ui.getPollInterval();
-        ui.setPollInterval(POLL_MILLIS);
+        ui.setPollInterval(previousPollInterval > 0 ? Math.min(previousPollInterval, SAFETY_POLL_MILLIS) : SAFETY_POLL_MILLIS);
         pollRegistration = ui.addPollListener(event -> refreshRun());
+        // the push comes from another thread, which needs the session of this UI to resolve the user
+        RequestAttributes attributes = ThreadCopyRequestAttributes.create();
+        unsubscribe = activityService.subscribe(agent.getId(), () -> {
+            try {
+                ui.access(() -> {
+                    try (InRequestScope _ = new InRequestScope(attributes)) {
+                        refreshRun();
+                    }
+                });
+            } catch (UIDetachedException e) {
+                // the console is gone
+            }
+        });
     }
 
     @PublicAPI(from = "1.4.0",
@@ -535,6 +553,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         if (approvalDialog != null) {
             approvalDialog.close();
             approvalDialog = null;
+        }
+        if (unsubscribe != null) {
+            unsubscribe.run();
+            unsubscribe = null;
         }
         if (pollRegistration != null) {
             pollRegistration.remove();
@@ -644,10 +666,6 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     void refreshRun() {
         if (statusLabel == null) {
             return;
-        }
-        if (fastPollUntil != 0 && System.currentTimeMillis() > fastPollUntil) {
-            fastPollUntil = 0;
-            getUI().ifPresent(ui -> ui.setPollInterval(POLL_MILLIS));
         }
         try {
             List<AgentRun> runs = agentRunService.findForAgent(agent);
@@ -905,11 +923,6 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         if (liveChanged || regroup && (!queued.isEmpty() || liveNew)) {
             JavascriptLibrary.scrollToBottomIfAtBottom(transcriptBox.getElement());
         }
-        if (live != null) {
-            // quicker than the ordinary poll while the answer is written, so it can be followed
-            fastPollUntil = Math.max(fastPollUntil, System.currentTimeMillis() + LIVE_POLL_FOR_MILLIS);
-            getUI().ifPresent(ui -> ui.setPollInterval(COMMAND_POLL_MILLIS));
-        }
     }
 
     @PublicAPI(from = "1.4.0",
@@ -1040,8 +1053,6 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             parameters = {@APIParameter(name = "line", type = String.class)})
     private void runCommandNow(String line) {
         perform(() -> agentRunner.command(run, line));
-        fastPollUntil = System.currentTimeMillis() + COMMAND_POLL_FOR_MILLIS;
-        getUI().ifPresent(ui -> ui.setPollInterval(COMMAND_POLL_MILLIS));
     }
 
     /**
