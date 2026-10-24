@@ -273,7 +273,41 @@ public class ConverterService {
         templateData.setChat(chatText(data.getChat(), from, to));
         templateData.setFirstMessage(from);
         templateData.setLastMessage(to);
+        templateData.setPreviousTurn(describePreviousTurn(previousTurn(data.getTurns(), from)));
         return templateService.processTemplate(template, "stConverter", templateData);
+    }
+
+    /**
+     * The last turn that ends before the message {@code from} (from 1), what the turns of the range continue from; null when
+     * there is none. The turns are in the order of the chat.
+     */
+    public static TurnItem previousTurn(List<TurnItem> turns, int from) {
+        TurnItem previous = null;
+        for (TurnItem turn : turns) {
+            if (turn.getLastMessage() < from && (previous == null || turn.getLastMessage() >= previous.getLastMessage())) {
+                previous = turn;
+            }
+        }
+        return previous;
+    }
+
+    /** The turn as the prompt shows it, empty for none. */
+    public static String describePreviousTurn(TurnItem turn) {
+        if (turn == null) {
+            return "";
+        }
+        StringBuilder text = new StringBuilder("Messages ").append(turn.messages()).append('\n');
+        appendField(text, "Scene setting", turn.getSceneSetting());
+        appendField(text, "POV character", turn.getPovCharacter());
+        appendField(text, "Present characters", turn.getPresentCharacters());
+        appendField(text, "Instructions", turn.getInstructions());
+        return text.toString().stripTrailing();
+    }
+
+    private static void appendField(StringBuilder text, String label, String value) {
+        if (StringUtils.isNotBlank(value)) {
+            text.append(label).append(": ").append(value.strip()).append('\n');
+        }
     }
 
     /** The prompt as the system message, with a short user turn some providers require. */

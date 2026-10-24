@@ -952,7 +952,7 @@ public class ConverterView extends VerticalLayout {
         area.setMinHeight("360px");
         area.setMaxHeight("70vh");
         area.setValue(service.promptTemplate(data));
-        area.setHelperText("Variables: {{backgroundLore}}, {{chat}}, {{firstMessage}}, {{lastMessage}}");
+        area.setHelperText("Variables: {{backgroundLore}}, {{chat}}, {{firstMessage}}, {{lastMessage}}, {{previousTurn}}");
         dialog.add(area);
         Button defaults = new Button("Default", e -> area.setValue(Defaults.PROMPT));
         Button cancel = new Button("Cancel", e -> dialog.close());
