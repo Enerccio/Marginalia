@@ -6,7 +6,8 @@ import com.github.enerccio.marginalia.domain.service.InferenceService.ChunkType;
 /**
  * What the model of a run has written so far in the request that is going on, for the console to show while it is written. In
  * memory only: the transcript stays the record, the answer is stored whole when the round is over, and a request that is
- * cancelled or fails leaves nothing. The worker's thread writes, the poll of a console reads; both are short.
+ * cancelled or fails leaves nothing. The worker's thread writes, the console reads; both are short. The listener, if any, is told
+ * of every change so the console reads it (it coalesces, see {@code AgentActivityService}).
  */
 public final class LiveAnswerBuffer {
 
@@ -15,13 +16,29 @@ public final class LiveAnswerBuffer {
 
     private final StringBuilder reasoning = new StringBuilder();
     private final StringBuilder text = new StringBuilder();
+    private final Runnable onChange;
     private boolean active;
+
+    public LiveAnswerBuffer() {
+        this(null);
+    }
+
+    public LiveAnswerBuffer(Runnable onChange) {
+        this.onChange = onChange;
+    }
+
+    private void changed() {
+        if (onChange != null) {
+            onChange.run();
+        }
+    }
 
     /** A request starts: what was left is forgotten. */
     public synchronized void begin() {
         reasoning.setLength(0);
         text.setLength(0);
         active = true;
+        changed();
     }
 
     public synchronized void append(ChunkType type, String chunk) {
@@ -33,6 +50,7 @@ public final class LiveAnswerBuffer {
         if (part.length() > MAX_CHARS) {
             part.delete(0, part.length() - MAX_CHARS);
         }
+        changed();
     }
 
     /** The answer is stored or the request is over without one: nothing is shown any more. */
@@ -40,6 +58,7 @@ public final class LiveAnswerBuffer {
         active = false;
         reasoning.setLength(0);
         text.setLength(0);
+        changed();
     }
 
     /**

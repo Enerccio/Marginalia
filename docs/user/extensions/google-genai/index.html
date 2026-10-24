@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846179526705">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846185484920">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846179526705" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846185484920" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846179526705" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846185484920" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846179526705" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846185484920" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -298,8 +298,10 @@ or lower the effort.</p>
 <a href="../name-generator/">Name generator</a> offers some), and images and files attached to a message. The tokens a user uses are counted in the
 <strong>Tokens sent</strong> and <strong>Tokens generated</strong> columns from the numbers Google reports, and the
 <a href="../../inference-providers/#limits-of-shared-providers">limits</a> of a shared provider apply.</p>
-<p>The token counts shown in the story (the size of a part, the prompt) are an estimate made by Marginalia, not Google&#x27;s own
-count, so they differ a little from what Google bills.</p>
+<p>The token counts shown in the story (the size of a part, the prompt) are counted by Google (the <code translate="no" v-pre>countTokens</code> request of the
+model), once for each text: the answers are remembered. When Google cannot be asked (no key, no network, an error), Marginalia
+estimates the count itself for a minute and then tries Google again; a text that is saved or edited while another save is
+going on is estimated too. The estimate differs a little from what Google bills.</p>
 <h2 id="when-the-extension-is-not-loaded">When the extension is not loaded</h2>
 <p>The providers you created stay in the list when the extension is unloaded, with the type <em>Extension: google-genai</em>, and
 work again when the extension is loaded. While it is not loaded, a book that uses such a provider can&#x27;t generate: the error
@@ -347,7 +349,7 @@ changed; the Gemini settings are only shown when the extension is loaded, and th
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (3884faf3c).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (f37548dd5).</p></div>
             </footer>
         </div>
     </div>

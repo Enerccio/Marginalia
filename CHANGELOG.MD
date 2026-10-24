@@ -44,6 +44,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- **The agent console is pushed instead of polled.** It polled the server every 2 s (every 0.5 s while an answer was written), and each poll that took long kept the loading bar at the top of the page up, so the page could look stuck. Now the runner, the transcript and the run's status tell the open console when something changed (new `AgentActivityService`, `AgentActivityServiceImpl`; the events are coalesced to one per 150 ms) and the console refreshes through the existing push; only a safety poll every 20 s remains. `AgentConsoleDialog.onAttach` has a new local `attributes` (`@PublicAPI`), the constants `POLL_MILLIS`, `COMMAND_POLL_MILLIS`, `COMMAND_POLL_FOR_MILLIS` and `LIVE_POLL_FOR_MILLIS` are gone (`SAFETY_POLL_MILLIS`); `LiveAnswerBuffer` has a constructor with a change listener.
+
 - **Google Gemini plugin counts tokens with Google** (`models.countTokens`) instead of the local estimate, through the new `ExtensionAIFactory.createTokenizerResolver()`. The answers are remembered per text, the estimate is used inside write transactions and for a minute after a failed request.
 
 - **Token counting is cached by what the AI counts against** instead of by the AI: AIs with the same endpoint, model and API key share the tokenizer that was found to work (a new `TokenizerKey` and `TokenizerResolver`; the key holds only an HMAC fingerprint of the API key), and an AI whose endpoint, model or key is edited is probed again. Another model on the same server no longer reuses the tokenizer of the first.

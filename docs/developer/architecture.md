@@ -318,7 +318,7 @@ SillyTavern macros (`{{user}}`, `{{getvar::x}}`, `{{random::a::b}}`...) are tran
 `MacroTranslator` first. Inference goes through `InferenceServices`, which picks the implementation for the provider
 type: `OpenAICompatibleInferenceService` (openai-java), or the service that the factory of an extension creates for an `ExtensionAI` (see [Inference providers from a plugin](plugins/ai-providers.md)). Token counts come from `TokenizerService`, which tries the
 `TokenizerStrategy` implementations in turn (OpenAI SDK, llama.cpp and LiteLLM tokenize endpoints, JTokkit as the local
-fallback) and remembers the first one that works for each provider.
+fallback) and remembers the first one that works for each `TokenizerKey` (the endpoint, the model and the API key of the provider).
 
 See [Generation pipeline](generation-pipeline.md) and [Templating & macros](templating.md).
 

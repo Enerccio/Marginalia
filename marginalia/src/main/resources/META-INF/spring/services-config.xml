@@ -182,6 +182,8 @@
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentAttentionServiceImpl" />
 
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentActivityServiceImpl" />
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AIGateImpl" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentRunnerImpl" />

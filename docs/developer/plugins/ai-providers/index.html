@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846179526705">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846185484920">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846179526705" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846185484920" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846179526705" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846185484920" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846179526705" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846179526705" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846185484920" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846185484920" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -290,7 +290,7 @@ What a service has to take care of itself, because nothing above it does:</p>
 | **Agents** | The runner of an [agent](../agents.md) asks with `InferenceService.round(payload, protocol, functions, callback)`: one request, the text, the reasoning and the calls the model wants made handed to `onRound` (they are **not** called) with a `RoundUsage` (tokens, and a `RoundStats` of what is known: the cache, the reasoning, the time, why it ended; -1 or null for what the provider does not tell). The default throws `UnsupportedOperationException`, so a service that does not implement it can not be given to an agent. |
 | **Callbacks** | `stream` hands chunks one at a time: call `onChunk(controller, type, text)` and wait for `controller.continueInference()` before the next, then `onCompletion()`. `ChunkType.REASONING` is the thinking, shown apart from the answer. Check `callback.isDead()` and the `CancellationToken` between chunks and end with `onCancel()`. Cut a blocked read short by cancelling the HTTP call when the token is cancelled (the Google plugin does it with an OkHttp interceptor). |
 | **Functions** | When a `FunctionSet` is passed, offer its definitions, run the calls the model makes with `FunctionSet.call(...)` (asynchronously, in the request scope), report each with `onFunctionCall`, ask again with the results, up to `MAX_FUNCTION_ROUNDS`. See `callFunctions` in the Google plugin. |
-| **Tokens** | `countTokens` is called very often (every part of the prompt): do not make a request for it. `TokenizerService.countTokensApprox` is local. |">
+| **Tokens** | `countTokens` is called very often (every part of the prompt): do not make a request for it per call. `TokenizerService.countTokensApprox` is local. A provider with real tokenizers (several, or a different one per URL) overrides `ExtensionAIFactory.createTokenizerResolver()` and calls `TokenizerService.countTokens(ai, text)` from `countTokens`. The `TokenizerResolver` gives each of its AIs a `TokenizerKey` (`TokenizerKey.of(id)` or `TokenizerKey.of(id, secret)`, which keeps only an HMAC fingerprint of the secret; AIs with an equal key share the tokenizer that worked) and the `TokenizerStrategy` list to try for it. It is asked for the AIs of the provider only, once per registered factory. `countTokens` is also called inside read-write transactions (they hold the database write lock): `TokenizerService` counts approximately there, a provider that does not use it must not make a slow request in `countTokens`. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -330,12 +330,42 @@ What a service has to take care of itself, because nothing above it does:</p>
 </tr>
 <tr>
 <td><strong>Tokens</strong></td>
-<td><code translate="no" v-pre>countTokens</code> is called very often (every part of the prompt): do not make a request for it. <code translate="no" v-pre>TokenizerService.countTokensApprox</code> is local.</td>
+<td><code translate="no" v-pre>countTokens</code> is called very often (every part of the prompt): do not make a request for it per call. <code translate="no" v-pre>TokenizerService.countTokensApprox</code> is local. A provider with real tokenizers (several, or a different one per URL) overrides <code translate="no" v-pre>ExtensionAIFactory.createTokenizerResolver()</code> and calls <code translate="no" v-pre>TokenizerService.countTokens(ai, text)</code> from <code translate="no" v-pre>countTokens</code>. The <code translate="no" v-pre>TokenizerResolver</code> gives each of its AIs a <code translate="no" v-pre>TokenizerKey</code> (<code translate="no" v-pre>TokenizerKey.of(id)</code> or <code translate="no" v-pre>TokenizerKey.of(id, secret)</code>, which keeps only an HMAC fingerprint of the secret; AIs with an equal key share the tokenizer that worked) and the <code translate="no" v-pre>TokenizerStrategy</code> list to try for it. It is asked for the AIs of the provider only, once per registered factory. <code translate="no" v-pre>countTokens</code> is also called inside read-write transactions (they hold the database write lock): <code translate="no" v-pre>TokenizerService</code> counts approximately there, a provider that does not use it must not make a slow request in <code translate="no" v-pre>countTokens</code>.</td>
 </tr>
 </tbody>
 </table>
 </div>
 </retype-table>
+<h2 id="tokenizers-for-openai-compatible-ais">Tokenizers for OpenAI-compatible AIs</h2>
+<p>A plugin that is not a provider can still bring a tokenizer for the AIs of the type OpenAI-compatible (a custom endpoint, a
+model whose vocabulary tiktoken does not know). Implement <code translate="no" v-pre>ExtensionTokenizer</code> (<code translate="no" v-pre>getId</code>, <code translate="no" v-pre>getName</code>, <code translate="no" v-pre>countTokens(TokenizerKey, String)</code>, optionally <code translate="no" v-pre>accepts(TokenizerKey)</code>) and call <code translate="no" v-pre>TokenizerService.registerTokenizer</code> in <code translate="no" v-pre>onExtensionLoad</code>,
+<code translate="no" v-pre>unregisterTokenizer</code> in <code translate="no" v-pre>onExtensionUnload</code>.</p>
+<ul>
+<li>
+<p>The tokenizer is listed in the <strong>Tokenizer</strong> selector of the AI dialog (<code translate="no" v-pre>TokenizerService.getChoices</code>, id <code translate="no" v-pre>ext:&lt;id&gt;</code>) and
+is used by the AIs whose user chose it (<code translate="no" v-pre>OpenAICompatible.tokenizer</code>, an extended attribute; null is automatic). Nothing
+is ever sent to it for an AI that did not choose it.</p>
+</li>
+<li>
+<p>It sees the <code translate="no" v-pre>TokenizerKey</code> only: <code translate="no" v-pre>key.id()</code> is the normalized endpoint and the model (<code translate="no" v-pre>http://host:8080#model</code>), the API
+key and the other settings of the AI never reach it.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>accepts(key)</code> is only a suggestion: the dialog preselects the first accepting tokenizer when the user creates an AI and
+has not chosen one. Existing AIs are never changed by it.</p>
+</li>
+<li>
+<p>An exception from <code translate="no" v-pre>countTokens</code> makes the application count by the local estimate for that call. It is called often and
+in the middle of the work, so keep it quick. Inside a read-write transaction <code translate="no" v-pre>TokenizerService</code> does not call it at all
+(it counts approximately, the transaction holds the database write lock).</p>
+</li>
+<li>
+<p>When the plugin is unloaded, the AIs that chose it keep the choice (the dialog shows it as <em>not loaded</em>) and count by the
+local estimate until it is loaded again.</p>
+</li>
+</ul>
+<p>A plugin that provides AIs does not use this: it counts in its <code translate="no" v-pre>InferenceService</code>, or gives the application its own
+resolver with <code translate="no" v-pre>ExtensionAIFactory.createTokenizerResolver()</code> (see <em>Tokens</em> above).</p>
 <h2 id="when-the-plugin-is-not-loaded">When the plugin is not loaded</h2>
 <p>AIs are rows in the database: the AI of an unloaded plugin stays in the list (<code translate="no" v-pre>AITypes.label</code> shows its provider name, or
 <code translate="no" v-pre>Extension: &lt;id&gt;</code>) and works again when the plugin is loaded. In between:</p>
@@ -370,7 +400,7 @@ it, the form of the chosen provider and the <strong>Test Connection</strong> but
 <retype-table copy-text="| Class | Role |
 |---|---|
 | `GoogleGenAiActivator`, `GoogleGenAiExtension` | Bundle start; the extension registers `GoogleGenAiFactory` and closes it on unload. |
-| `GoogleGenAiFactory` | `google-genai`, &quot;Google Gemini&quot;; creates the services and keeps them (weakly) to close their clients. |
+| `GoogleGenAiFactory` | `google-genai`, &quot;Google Gemini&quot;; creates the services and keeps them (weakly) to close their clients. Its `createTokenizerResolver()` gives the AIs a `TokenizerKey` (`google-genai#&lt;endpoint&gt;#&lt;model&gt;` + the API key fingerprint) and one strategy that asks the service of the AI for `countTokensOnline`; `GoogleGenAiInferenceService.countTokens` goes through `TokenizerService.countTokens`, so the application's estimate takes over inside write transactions. The service remembers the answers (by the hash of the text) and stops asking Google for a minute after a failure. |
 | `GoogleGenAiSettings` | The settings of an AI (`apiKey` encrypted, `model`, `baseUrl`, `requestTimeoutSeconds`, `maxRetries`, `safetyFiltersOff`) read from `ExtensionAI.getSettings()`. |
 | `GoogleGenAiForm` | The fields, **Refresh** for the model list, validation, `apply`. |
 | `GoogleGenAiInferenceService` | `stream`, `infer`, `round` (one request for an agent: not streamed, the calls are handed back and not made), function calls, JSON schema (`responseJsonSchema`), usage, limits, thinking (`ThinkingConfig`: a level for `gemini-3*`, a token budget for the others), safety settings, cancellation. |
@@ -391,7 +421,7 @@ it, the form of the chosen provider and the <strong>Test Connection</strong> but
 </tr>
 <tr>
 <td><code translate="no" v-pre>GoogleGenAiFactory</code></td>
-<td><code translate="no" v-pre>google-genai</code>, &quot;Google Gemini&quot;; creates the services and keeps them (weakly) to close their clients.</td>
+<td><code translate="no" v-pre>google-genai</code>, &quot;Google Gemini&quot;; creates the services and keeps them (weakly) to close their clients. Its <code translate="no" v-pre>createTokenizerResolver()</code> gives the AIs a <code translate="no" v-pre>TokenizerKey</code> (<code translate="no" v-pre>google-genai#&lt;endpoint&gt;#&lt;model&gt;</code> + the API key fingerprint) and one strategy that asks the service of the AI for <code translate="no" v-pre>countTokensOnline</code>; <code translate="no" v-pre>GoogleGenAiInferenceService.countTokens</code> goes through <code translate="no" v-pre>TokenizerService.countTokens</code>, so the application&#x27;s estimate takes over inside write transactions. The service remembers the answers (by the hash of the text) and stops asking Google for a minute after a failure.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>GoogleGenAiSettings</code></td>
@@ -498,7 +528,7 @@ Google&#x27;s servers, under Google&#x27;s terms, and that sharing such an AI se
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (3884faf3c).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (f37548dd5).</p></div>
             </footer>
         </div>
     </div>

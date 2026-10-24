@@ -94,6 +94,9 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
     @Autowired
     private AIGate aiGate;
 
+    @Autowired
+    private AgentActivityService activityService;
+
     // how long the stop of the server waits for the runs to pause
     private static final long PARK_MILLIS = 5_000;
     // the server is stopping: the workers pause their runs at the next stable point
@@ -709,6 +712,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
     }
 
     private void storeQueue(AgentRun run, List<Queued> items) {
+        // the consoles show the queue
+        activityService.changed(run.getAgent().getId());
         try {
             if (items.isEmpty()) {
                 fileSystemService.writeQueue(run, null);
@@ -1321,7 +1326,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
 
             startCheckpoint(transcript);
 
-            LiveAnswerBuffer liveAnswer = liveAnswers.computeIfAbsent(runId, id -> new LiveAnswerBuffer());
+            LiveAnswerBuffer liveAnswer = liveAnswers.computeIfAbsent(runId, id -> new LiveAnswerBuffer(() -> activityService.changed(run.getAgent().getId())));
             int unreadable = 0;
             // the next request takes the tools away (the agent repeats itself), the turn ends with its answer
             boolean textOnly = false;

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846179526705">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846185484920">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846179526705" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846185484920" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846179526705" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846185484920" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846179526705" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846179526705" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846185484920" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846185484920" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -777,7 +777,7 @@ SillyTavern macros (<code translate="no" v-pre>{{user}}</code>, <code translate=
 <code translate="no" v-pre>MacroTranslator</code> first. Inference goes through <code translate="no" v-pre>InferenceServices</code>, which picks the implementation for the provider
 type: <code translate="no" v-pre>OpenAICompatibleInferenceService</code> (openai-java), or the service that the factory of an extension creates for an <code translate="no" v-pre>ExtensionAI</code> (see <a href="../plugins/ai-providers/">Inference providers from a plugin</a>). Token counts come from <code translate="no" v-pre>TokenizerService</code>, which tries the
 <code translate="no" v-pre>TokenizerStrategy</code> implementations in turn (OpenAI SDK, llama.cpp and LiteLLM tokenize endpoints, JTokkit as the local
-fallback) and remembers the first one that works for each provider.</p>
+fallback) and remembers the first one that works for each <code translate="no" v-pre>TokenizerKey</code> (the endpoint, the model and the API key of the provider).</p>
 <p>See <a href="../generation-pipeline/">Generation pipeline</a> and <a href="../templating/">Templating &amp; macros</a>.</p>
 <h2 id="threads-and-push">Threads and push</h2>
 <p>Vaadin UI state may only be changed while holding the session lock. Code on other threads - generation, backups,
@@ -1074,7 +1074,7 @@ refused, so an extension can&#x27;t replace English.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (3884faf3c).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (f37548dd5).</p></div>
             </footer>
         </div>
     </div>
