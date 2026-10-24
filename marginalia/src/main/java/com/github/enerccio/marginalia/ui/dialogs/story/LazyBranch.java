@@ -49,6 +49,23 @@ public final class LazyBranch {
     }
 
     /**
+     * Starts with the window a view had before the branch was loaded again: the same first part, the same number of
+     * parts, or all the way to the end when the window was at the end (the parts that were added there). Parts the
+     * branch lost since are dropped from it.
+     *
+     * @param offset   index of the first part the window had
+     * @param count    how many parts the window had
+     * @param atTail   whether the window reached the end of the branch
+     */
+    public static LazyBranch restore(List<ChatMessage> branch, Integer limit, int offset, int count, boolean atTail) {
+        LazyBranch lazy = new LazyBranch(branch, limit, true);
+        int total = branch.size();
+        lazy.to = atTail ? total : Math.min(total, offset + count);
+        lazy.from = Math.max(0, Math.min(offset, lazy.to));
+        return lazy;
+    }
+
+    /**
      * The parts that are loaded, in the order of the branch.
      */
     public List<ChatMessage> loaded() {

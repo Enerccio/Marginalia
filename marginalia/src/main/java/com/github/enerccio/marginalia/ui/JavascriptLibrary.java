@@ -196,6 +196,47 @@ public final class JavascriptLibrary {
     }
 
     /**
+     * Puts the element back where the user had it after its content was replaced: at the bottom when it was stuck
+     * there, otherwise at the same distance from the top, which is set again while the new content settles (its
+     * Markdown is rendered after it is in the page) until the user scrolls on their own.
+     *
+     * @param element the scroll element
+     * @param content the element whose size changes while the content settles
+     */
+    public static void restoreScroll(Element element, Element content) {
+        element.executeJs(INSTALL_STICKY_SCROLL + """
+                const el = $0;
+                const content = $1;
+                installSticky(el);
+                if (el._stick) {
+                  requestAnimationFrame(() => requestAnimationFrame(() => {
+                    el.scrollTop = el.scrollHeight;
+                    el._lastTop = el.scrollTop;
+                  }));
+                  return;
+                }
+                const top = el._lastTop;
+                if (el._restoreStop) el._restoreStop();
+                const apply = () => {
+                  if (Math.abs(el.scrollTop - top) > 1) el.scrollTop = top;
+                };
+                const observer = new ResizeObserver(apply);
+                const events = ['wheel', 'touchstart', 'pointerdown', 'keydown'];
+                const stop = () => {
+                  observer.disconnect();
+                  clearTimeout(el._restoreTimer);
+                  events.forEach(name => el.removeEventListener(name, stop));
+                  el._restoreStop = null;
+                };
+                el._restoreStop = stop;
+                events.forEach(name => el.addEventListener(name, stop, {passive: true}));
+                observer.observe(content);
+                el._restoreTimer = setTimeout(stop, 1500);
+                apply();
+                """, element, content);
+    }
+
+    /**
      * Scrolls to the bottom while the element is stuck to it, i.e. until the user scrolls up; reaching the bottom again
      * sticks it again.
      */
