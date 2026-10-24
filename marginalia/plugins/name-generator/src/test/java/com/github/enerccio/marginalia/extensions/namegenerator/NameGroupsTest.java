@@ -122,7 +122,10 @@ class NameGroupsTest {
         assertEquals(3, seen.size());
     }
 
-    /** A "- Male" group may not pick up a female or surname category and the other way round (the lists of both genders are separate). */
+    /**
+     * A "- Male" group may not pick up a female or surname category and the other way round (the lists of both genders are
+     * separate); a "- Forenames" group is both genders, and no surnames.
+     */
     @Test
     void shippedGroupsKeepTheirGender() {
         NameTables all = NameTables.load();
@@ -132,6 +135,8 @@ class NameGroupsTest {
                     assertFalse(member.matches("(?i).*(female|surnames).*"), group + " has " + member);
                 } else if (group.endsWith(" - Female")) {
                     assertFalse(member.matches("(?i).*((?<!fe)male|surnames).*"), group + " has " + member);
+                } else if (group.endsWith(" - Forenames")) {
+                    assertFalse(member.matches("(?i).*surnames.*"), group + " has " + member);
                 }
             }
         }
@@ -153,5 +158,17 @@ class NameGroupsTest {
                 assertFalse(all.generate(group.getKey(), 20, new Random(5)).isEmpty(), group.getKey());
             }
         }
+    }
+
+    /** The groups of both genders have members of the male and of the female lists of the language. */
+    @Test
+    void shippedForenamesGroupsHaveBothGenders() {
+        NameTables all = NameTables.load();
+        assertTrue(all.isGroup("German - Forenames"));
+        List<String> members = all.members("German - Forenames");
+        assertTrue(members.containsAll(all.members("German - Male")));
+        assertTrue(members.containsAll(all.members("German - Female")));
+        assertTrue(members.contains("German Forenames"), "the unisex list is a member too");
+        assertFalse(all.isGroup("Turkic - Forenames"), "one male member more than female would skew it two to one");
     }
 }
