@@ -675,7 +675,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
 
                         @Override
                         public void renderStory() {
-                            renderStoryContent();
+                            lazyLoader.keepViewportWhile(() -> renderStoryContent());
                         }
                     })
             );

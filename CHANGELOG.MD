@@ -115,6 +115,7 @@ An agent is an LLM that works on one book on its own (or with you in a console) 
 
 ### Fixed
 
+- **The story jumped to the bottom when a generation ended** (desktop and phone): the story is drawn again after a generation and always scrolled to its end, even when the user had scrolled up to read. It now keeps the parts that were loaded and the scroll position (the story still follows the end when it was scrolled there). New `LazyBranch.restore`, `StoryLazyLoader.keepViewportWhile`, `JavascriptLibrary.restoreScroll`.
 - **A regular user got a blank page or an *Application Error* after the login:** the desktop workspace built the admin part (whose panels ask for backups and refuse anybody but an administrator) for every user. It is now created only for administrators (`DesktopWorkspace`; the `user` local of `create()` moved up in the `@PublicAPI`).
 - **Text areas on a phone** (`ResizableTextArea`) are as high as set again: the helper text under a field, long on a narrow screen, took most of the height, so a long prompt showed one or two lines.
 - **A story of hundreds of parts froze the browser when it opened** (see the lazy parts and the lazy popovers above).

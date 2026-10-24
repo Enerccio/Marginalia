@@ -941,7 +941,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
                         @Override
                         public void renderStory() {
-                            renderStoryContent();
+                            lazyLoader.keepViewportWhile(() -> renderStoryContent());
                         }
                     })
             );

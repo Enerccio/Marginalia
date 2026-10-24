@@ -39,6 +39,8 @@ public class StoryLazyLoader<C extends Component & StoryCard> {
     private final LazyLoadIndicator laterIndicator;
 
     private LazyBranch window;
+    // the window of the story before it is drawn again, set only while it is, to show the same part afterwards
+    private KeptWindow kept;
     // the panel was attached again and nothing decided where the story is yet
     private boolean bottomOnReattach;
 
@@ -65,6 +67,23 @@ public class StoryLazyLoader<C extends Component & StoryCard> {
         laterIndicator.setVisible(false);
     }
 
+    private record KeptWindow(int offset, int count, boolean atTail) {
+    }
+
+    /**
+     * Runs the drawing of the story (which calls {@link #clear} and {@link #render}) so that the user keeps reading
+     * where they are: the same parts are loaded and the story scrolls to where it was, or to the bottom when it
+     * was scrolled there. For a story that is drawn again behind the back of the user (a generation ended).
+     */
+    public void keepViewportWhile(Runnable draw) {
+        kept = window == null ? null : new KeptWindow(window.offset(), window.loaded().size(), window.atTail());
+        try {
+            draw.run();
+        } finally {
+            kept = null;
+        }
+    }
+
     /**
      * Creates the cards of the last parts of the branch and scrolls to the bottom, or to the part when the story is
      * shown to find it (the window is moved to it).
@@ -75,11 +94,18 @@ public class StoryLazyLoader<C extends Component & StoryCard> {
      */
     public void render(List<ChatMessage> branch, Integer limit, Long scrollTo, Set<Long> openedReasonings) {
         bottomOnReattach = false;
-        window = LazyBranch.tail(branch, limit);
+        boolean keepViewport = kept != null && scrollTo == null;
+        window = keepViewport
+                ? LazyBranch.restore(branch, limit, kept.offset(), kept.count(), kept.atTail())
+                : LazyBranch.tail(branch, limit);
         if (scrollTo != null) {
             window.centerOn(scrollTo);
         }
         populate(openedReasonings);
+        if (keepViewport) {
+            JavascriptLibrary.restoreScroll(panel.getElement(), panel.getContent().getElement());
+            return;
+        }
 
         C target = scrollTo != null ? cards.get(scrollTo) : null;
         if (target != null) {
