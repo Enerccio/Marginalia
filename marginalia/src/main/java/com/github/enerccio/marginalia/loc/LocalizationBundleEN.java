@@ -710,6 +710,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_SELECT_ANNOTATIONS, "Only annotations");
         setValue(L.LABEL_ANNOTATIONS_IN_MARGIN, "Annotations in the margin");
         setValue(L.LABEL_ST_MERGE_TURNS, "Merge user and assistant messages into one part");
+        setValue(L.LABEL_REDRAFT_SELECTION, "Redraft selection");
+        setValue(L.LABEL_REDRAFT_SELECTED_TEXT, "Selected text");
+        setValue(L.LABEL_REDRAFT_WITH_ANNOTATIONS_SELECTION, "Deal with the open annotations in the selection (they are marked resolved when the redraft is applied)");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1204,6 +1207,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_ST_CHATS_READY, "%d chats ready to import.");
         setValue(L.MSG_ST_IMPORT_STOPPED, "Stopped: %d of %d parts imported, the rest was not.");
         setValue(L.MSG_IMPORTING_SILLYTAVERN, "Importing from SillyTavern");
+        setValue(L.MSG_REDRAFT_SELECTION_INFO, "The model writes the text you selected again from your instructions. It sees the whole part with the selection marked, the story before and after it and the lore the part was written with, and only the selected text is replaced. Nothing in the book changes until you apply the result.");
+        setValue(L.MSG_REDRAFT_SELECTION_CHANGED, "The text of the part changed after the selection was made. Select the text again.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1640,6 +1645,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.DESC_TEMPLATE_ANNOTATE_INSTRUCTIONS, "What the author wants looked at in the part (empty when they gave no instructions).");
         setValue(L.DESC_TEMPLATE_OUTPUT_FORMAT, "How the model is told to write its answer; it depends on the way the notes are asked for.");
         setValue(L.DESC_TEMPLATE_STORY_ANNOTATIONS, "The notes of the author on passages of the story in the prompt that are marked to be given to the model, one line each (empty when there are none).");
+        setValue(L.DESC_TEMPLATE_SELECTION, "The text of the part the author selected to be written again (empty when the whole part is redrafted). It tells the redraft of a passage from the redraft of the whole part.");
+        setValue(L.DESC_TEMPLATE_SELECTION_BEFORE, "The text of the part before the selected passage (only when a passage is redrafted).");
+        setValue(L.DESC_TEMPLATE_SELECTION_AFTER, "The text of the part after the selected passage (only when a passage is redrafted).");
 
     }
 

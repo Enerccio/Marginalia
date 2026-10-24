@@ -318,4 +318,100 @@ class RedraftTest extends GenerationTestBase {
 
         assertThat(prompt()).doesNotContain("AUTHOR'S NOTES").doesNotContain("Too short").contains("Write the part again");
     }
+
+    private Redrafted redraftPassage(int n, String instructions, boolean withAnnotations, RedraftService.Passage passage) throws Exception {
+        CompletableFuture<Redrafted> done = new CompletableFuture<>();
+        redraftService.redraft(manuscriptService.find(manuscript.getId()), part(n), instructions, null,
+                com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions.defaults(), withAnnotations, passage,
+                new RedraftService.Callback() {
+                    public void onProgress(String reasoning, String text) {
+                    }
+
+                    public void onFinished(String reasoning, String text) {
+                        done.complete(new Redrafted(reasoning, text, true));
+                    }
+
+                    public void onTerminated(String reasoning, String text) {
+                        done.complete(new Redrafted(reasoning, text, false));
+                    }
+
+                    public void onError(Throwable throwable) {
+                        done.completeExceptionally(throwable);
+                    }
+                });
+        return done.get(30, TimeUnit.SECONDS);
+    }
+
+    @Test
+    void thePassageIsMarkedInThePartAndTheModelIsToWriteJustIt() throws Exception {
+        ChatMessage third = part(3);
+        third.setResponse("He opened the door. The room was dark and cold. She waited outside.");
+        chatMessageService.save(third);
+        llm.enqueue(MockLLMResponse.text("  The room was black.  "));
+
+        Redrafted result = redraftPassage(3, "Make it shorter", false, new RedraftService.Passage(20, 47));
+
+        assertThat(result.text()).isEqualTo("The room was black.");
+        String prompt = prompt();
+        assertThat(between(prompt, "=== PART TO REDRAFT START ===", "=== PART TO REDRAFT END ==="))
+                .contains("He opened the door. [[PASSAGE TO REDRAFT]]The room was dark and cold.[[/PASSAGE TO REDRAFT]] She waited outside.");
+        assertThat(prompt).contains("Output Only the Passage").contains("Seamless Join").doesNotContain("Output Only the Part");
+        assertThat(between(prompt, "=== AUTHOR'S INSTRUCTIONS START ===", "=== AUTHOR'S INSTRUCTIONS END ===")).contains("Make it shorter");
+        // the story around the part is the same as for the whole part, nothing is stored
+        assertThat(between(prompt, "=== STORY BEFORE THE PART START ===", "=== STORY BEFORE THE PART END ===")).contains("TEXT-1").contains("TEXT-2");
+        assertThat(between(prompt, "=== STORY AFTER THE PART START ===", "=== STORY AFTER THE PART END ===")).contains("TEXT-4");
+        assertThat(part(3).getResponse()).startsWith("He opened the door.");
+    }
+
+    @Test
+    void withoutInstructionsThePassageIsWrittenAgain() throws Exception {
+        redraftPassage(2, "", false, new RedraftService.Passage(0, 4));
+
+        assertThat(between(prompt(), "=== AUTHOR'S INSTRUCTIONS START ===", "=== AUTHOR'S INSTRUCTIONS END ===")).contains("Write the passage again");
+    }
+
+    @Test
+    void theWholePartPromptHasNothingOfThePassage() throws Exception {
+        redraft(2, "x");
+
+        assertThat(prompt()).doesNotContain("PASSAGE").doesNotContain("Seamless Join").contains("Output Only the Part");
+    }
+
+    @Test
+    void aPassageOutsideTheTextOrWithoutTextIsRefused() throws Exception {
+        var book = manuscriptService.find(manuscript.getId());
+        var none = new RedraftService.Callback() {
+            public void onProgress(String reasoning, String text) {
+            }
+
+            public void onFinished(String reasoning, String text) {
+            }
+
+            public void onTerminated(String reasoning, String text) {
+            }
+
+            public void onError(Throwable throwable) {
+            }
+        };
+        for (RedraftService.Passage bad : List.of(new RedraftService.Passage(-1, 3), new RedraftService.Passage(0, 99), new RedraftService.Passage(3, 3))) {
+            assertThatThrownBy(() -> redraftService.redraft(book, part(2), "x", null, null, false, bad, none))
+                    .as(bad.toString()).isInstanceOf(IllegalArgumentException.class);
+        }
+    }
+
+    @Test
+    void onlyTheAnnotationsInThePassageAreGivenForARedraftOfIt() throws Exception {
+        ChatMessage third = part(3);
+        third.setResponse("One sentence. Another sentence. A last one.");
+        chatMessageService.save(third);
+        annotationService.create(manuscript, part(3), 4, 12, "Weak verb", AnnotationSource.AUTHOR, null, null);
+        annotationService.create(manuscript, part(3), 30, 40, "Dull ending", AnnotationSource.AUTHOR, null, null);
+        annotationService.create(manuscript, part(3), null, null, "No weather", AnnotationSource.AUTHOR, null, null);
+        llm.enqueue(MockLLMResponse.text("REDRAFTED"));
+
+        redraftPassage(3, "", true, new RedraftService.Passage(0, 13));
+
+        String notes = between(prompt(), "=== AUTHOR'S NOTES ON PASSAGES OF THE PART START ===", "=== AUTHOR'S NOTES ON PASSAGES OF THE PART END ===");
+        assertThat(notes).contains("Weak verb").doesNotContain("Dull ending").doesNotContain("No weather");
+    }
 }

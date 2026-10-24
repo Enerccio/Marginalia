@@ -718,6 +718,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_SELECT_ANNOTATIONS, "仅批注");
         setValue(L.LABEL_ANNOTATIONS_IN_MARGIN, "在页边显示批注");
         setValue(L.LABEL_ST_MERGE_TURNS, "将用户和助手的消息合并为一个段落");
+        setValue(L.LABEL_REDRAFT_SELECTION, "重写选中文字");
+        setValue(L.LABEL_REDRAFT_SELECTED_TEXT, "选中的文字");
+        setValue(L.LABEL_REDRAFT_WITH_ANNOTATIONS_SELECTION, "处理选中文字内尚未处理的批注（应用重写后会标记为已解决）");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1212,6 +1215,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_ST_CHATS_READY, "已准备好导入 %d 个聊天。");
         setValue(L.MSG_ST_IMPORT_STOPPED, "已停止：已导入 %d / %d 个段落，其余未导入。");
         setValue(L.MSG_IMPORTING_SILLYTAVERN, "正在从 SillyTavern 导入");
+        setValue(L.MSG_REDRAFT_SELECTION_INFO, "模型会根据您的说明重写您选中的文字。它会看到标出选中部分的整段文字、其前后的故事以及写这一段时使用的背景设定，只有选中的文字会被替换。在您应用结果之前，书中的内容不会改变。");
+        setValue(L.MSG_REDRAFT_SELECTION_CHANGED, "选中文字之后，该段的文本已发生变化。请重新选择文字。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1648,6 +1653,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_TEMPLATE_ANNOTATE_INSTRUCTIONS, "作者希望检查该段的哪些方面（没有说明则为空）。");
         setValue(L.DESC_TEMPLATE_OUTPUT_FORMAT, "告诉模型如何书写回答的格式，取决于索取批注的方式。");
         setValue(L.DESC_TEMPLATE_STORY_ANNOTATIONS, "提示词所含故事中、被标记为交给模型的作者批注，每条一行（没有则为空）。");
+        setValue(L.DESC_TEMPLATE_SELECTION, "作者选中并希望重写的该段文字（重写整段时为空）。用来区分重写选中文字与重写整段。");
+        setValue(L.DESC_TEMPLATE_SELECTION_BEFORE, "选中文字之前的该段文本（仅在重写选中文字时）。");
+        setValue(L.DESC_TEMPLATE_SELECTION_AFTER, "选中文字之后的该段文本（仅在重写选中文字时）。");
     }
 
     @Override

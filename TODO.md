@@ -332,9 +332,12 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
 43. 🧩 **Style fingerprint.** Compute simple metrics for the passages the author wrote or edited (sentence length,
     dialogue ratio, adverb density, paragraph length) and compare them with the generated parts; show the drift and
     offer to draft the book's *Style* text from the author's own writing.
-44. 🧩 **Inline rewrite.** Select a passage in a part and give an instruction (shorter, darker, show don't tell);
-    only the selection is sent (with its surrounding paragraph), the answer is a diff to accept or reject. The
-    existing flow regenerates whole parts.
+44. ✅ **Inline rewrite.** Select a passage in a part and give an instruction (shorter, darker, show don't tell);
+    the answer is a diff to accept or reject. Done in 1.5.0 as *Redraft selection* in the right click menu of the text
+    (`RedraftService.Passage`, `RedraftDialog`): the model gets the whole part with the passage marked plus the story and
+    lore around it (not only the paragraph), writes the replacement alone, and the notes whose passage overlaps the
+    selection can be given to it. Not done: the `/redraft-part` command and the agent tools take no passage, and the
+    menu ☰ of the part does not offer it (it loses the selection). The right click menu was not tried in real browsers.
 45. **Authorship provenance.** ✅ Partly (1.2.0): `ChatMessage.originalResponse` keeps what the model wrote and *Highlight
     Generated Text* shows a word diff of a part against it (desktop story tab only). Open: the ratio per book, the
     phone and exports. Goal: track which spans of a part are human (typed or edited) and which are model output; show

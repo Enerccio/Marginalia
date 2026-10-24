@@ -244,6 +244,18 @@ The part keeps its place, its summary, its pictures and how it was generated; th
 and the part counts as edited. Applying the redraft is an edit like **Save** in the editor, so [summaries](summaries.md)
 that describe the old text become outdated, and Marginalia tells how many. A summary on the part itself is one of them.
 
+### Redrafting only a passage
+
+To rewrite a few sentences and leave the rest of the part alone, select them in the text of the part and **right click** (a
+long press on a phone): the menu has **Redraft selection**. (The menu ☰ of the part is not offered for this, opening it can
+lose the selection in some browsers.) The window works as above with two differences: it shows the **Selected text**, and the
+redraft is only the text that replaces it. The model gets the whole part with the selection marked, and the story and lore
+around it, so the new passage joins the sentences before and after it. **Differences** compares the selection with the
+redrafted text; **Apply** puts the redrafted text in the place of the selection and keeps the rest of the part, including the
+space or line break at the edges of the selection. With open [annotations](annotations.md) the check box offers only the ones
+whose passage overlaps the selection. If the part was changed after you selected the text (in another window), **Apply** refuses
+and you select it again. While the part is edited the selection in the editor is used, and the edit is saved first.
+
 ## Merging a part into the previous one
 
 A model that stopped in the middle of a sentence (the response limit, a cut connection) cannot be told to "continue" the
