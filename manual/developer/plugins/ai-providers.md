@@ -119,7 +119,30 @@ What a service has to take care of itself, because nothing above it does:
 | **Agents** | The runner of an [agent](../agents.md) asks with `InferenceService.round(payload, protocol, functions, callback)`: one request, the text, the reasoning and the calls the model wants made handed to `onRound` (they are **not** called) with a `RoundUsage` (tokens, and a `RoundStats` of what is known: the cache, the reasoning, the time, why it ended; -1 or null for what the provider does not tell). The default throws `UnsupportedOperationException`, so a service that does not implement it can not be given to an agent. |
 | **Callbacks** | `stream` hands chunks one at a time: call `onChunk(controller, type, text)` and wait for `controller.continueInference()` before the next, then `onCompletion()`. `ChunkType.REASONING` is the thinking, shown apart from the answer. Check `callback.isDead()` and the `CancellationToken` between chunks and end with `onCancel()`. Cut a blocked read short by cancelling the HTTP call when the token is cancelled (the Google plugin does it with an OkHttp interceptor). |
 | **Functions** | When a `FunctionSet` is passed, offer its definitions, run the calls the model makes with `FunctionSet.call(...)` (asynchronously, in the request scope), report each with `onFunctionCall`, ask again with the results, up to `MAX_FUNCTION_ROUNDS`. See `callFunctions` in the Google plugin. |
-| **Tokens** | `countTokens` is called very often (every part of the prompt): do not make a request for it. `TokenizerService.countTokensApprox` is local. |
+| **Tokens** | `countTokens` is called very often (every part of the prompt): do not make a request for it per call. `TokenizerService.countTokensApprox` is local. A provider with real tokenizers (several, or a different one per URL) overrides `ExtensionAIFactory.createTokenizerResolver()` and calls `TokenizerService.countTokens(ai, text)` from `countTokens`. The `TokenizerResolver` gives each of its AIs a `TokenizerKey` (`TokenizerKey.of(id)` or `TokenizerKey.of(id, secret)`, which keeps only an HMAC fingerprint of the secret; AIs with an equal key share the tokenizer that worked) and the `TokenizerStrategy` list to try for it. It is asked for the AIs of the provider only, once per registered factory. `countTokens` is also called inside read-write transactions (they hold the database write lock): `TokenizerService` counts approximately there, a provider that does not use it must not make a slow request in `countTokens`. |
+
+## Tokenizers for OpenAI-compatible AIs
+
+A plugin that is not a provider can still bring a tokenizer for the AIs of the type OpenAI-compatible (a custom endpoint, a
+model whose vocabulary tiktoken does not know). Implement `ExtensionTokenizer` (`getId`, `getName`, `countTokens(TokenizerKey,
+String)`, optionally `accepts(TokenizerKey)`) and call `TokenizerService.registerTokenizer` in `onExtensionLoad`,
+`unregisterTokenizer` in `onExtensionUnload`.
+
+- The tokenizer is listed in the **Tokenizer** selector of the AI dialog (`TokenizerService.getChoices`, id `ext:<id>`) and
+  is used by the AIs whose user chose it (`OpenAICompatible.tokenizer`, an extended attribute; null is automatic). Nothing
+  is ever sent to it for an AI that did not choose it.
+- It sees the `TokenizerKey` only: `key.id()` is the normalized endpoint and the model (`http://host:8080#model`), the API
+  key and the other settings of the AI never reach it.
+- `accepts(key)` is only a suggestion: the dialog preselects the first accepting tokenizer when the user creates an AI and
+  has not chosen one. Existing AIs are never changed by it.
+- An exception from `countTokens` makes the application count by the local estimate for that call. It is called often and
+  in the middle of the work, so keep it quick. Inside a read-write transaction `TokenizerService` does not call it at all
+  (it counts approximately, the transaction holds the database write lock).
+- When the plugin is unloaded, the AIs that chose it keep the choice (the dialog shows it as *not loaded*) and count by the
+  local estimate until it is loaded again.
+
+A plugin that provides AIs does not use this: it counts in its `InferenceService`, or gives the application its own
+resolver with `ExtensionAIFactory.createTokenizerResolver()` (see *Tokens* above).
 
 ## When the plugin is not loaded
 
@@ -155,7 +178,7 @@ it, the form of the chosen provider and the **Test Connection** button. The meth
 | Class | Role |
 |---|---|
 | `GoogleGenAiActivator`, `GoogleGenAiExtension` | Bundle start; the extension registers `GoogleGenAiFactory` and closes it on unload. |
-| `GoogleGenAiFactory` | `google-genai`, "Google Gemini"; creates the services and keeps them (weakly) to close their clients. |
+| `GoogleGenAiFactory` | `google-genai`, "Google Gemini"; creates the services and keeps them (weakly) to close their clients. Its `createTokenizerResolver()` gives the AIs a `TokenizerKey` (`google-genai#<endpoint>#<model>` + the API key fingerprint) and one strategy that asks the service of the AI for `countTokensOnline`; `GoogleGenAiInferenceService.countTokens` goes through `TokenizerService.countTokens`, so the application's estimate takes over inside write transactions. The service remembers the answers (by the hash of the text) and stops asking Google for a minute after a failure. |
 | `GoogleGenAiSettings` | The settings of an AI (`apiKey` encrypted, `model`, `baseUrl`, `requestTimeoutSeconds`, `maxRetries`, `safetyFiltersOff`) read from `ExtensionAI.getSettings()`. |
 | `GoogleGenAiForm` | The fields, **Refresh** for the model list, validation, `apply`. |
 | `GoogleGenAiInferenceService` | `stream`, `infer`, `round` (one request for an agent: not streamed, the calls are handed back and not made), function calls, JSON schema (`responseJsonSchema`), usage, limits, thinking (`ThinkingConfig`: a level for `gemini-3*`, a token budget for the others), safety settings, cancellation. |

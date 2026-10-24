@@ -714,6 +714,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_REDRAFT_SELECTED_TEXT, "Selected text");
         setValue(L.LABEL_REDRAFT_WITH_ANNOTATIONS_SELECTION, "Deal with the open annotations in the selection (they are marked resolved when the redraft is applied)");
         setValue(L.LABEL_AGENT_WORKING, "Working...");
+        setValue(L.LABEL_TOKENIZER, "Tokenizer");
+        setValue(L.LABEL_AUTOMATIC, "Automatic");
+        setValue(L.LABEL_TEST_TOKENIZER, "Test tokenizer");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1210,6 +1213,10 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_IMPORTING_SILLYTAVERN, "Importing from SillyTavern");
         setValue(L.MSG_REDRAFT_SELECTION_INFO, "The model writes the text you selected again from your instructions. It sees the whole part with the selection marked, the story before and after it and the lore the part was written with, and only the selected text is replaced. Nothing in the book changes until you apply the result.");
         setValue(L.MSG_REDRAFT_SELECTION_CHANGED, "The text of the part changed after the selection was made. Select the text again.");
+        setValue(L.MSG_TOKENIZER_NOT_LOADED, "%s (not loaded)");
+        setValue(L.MSG_TOKENIZER_TEST_OK, "%s: %s tokens");
+        setValue(L.MSG_TOKENIZER_TEST_FAILED, "%s: failed (%s)");
+        setValue(L.MSG_TOKENIZER_TEST_NONE, "No tokenizer answered, the tokens are estimated locally.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1292,6 +1299,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_COMMAND_SEARCH, "Words of the name or the description of a command, in any order. The table shows only the commands that have all of them; the selection above still applies to all commands.");
         setValue(L.HELP_KEYBOARD_SHORTCUTS, "Click Record and press the new key combination. A key without Ctrl, Alt or Meta works only when no text field has the focus. The shortcuts work in the story tab of an open book.");
         setValue(L.HELP_ST_MERGE_TURNS, "The message of the user becomes the instructions of the part made of the answer after it. Without it every message is a part of its own.");
+        setValue(L.HELP_AI_TOKENIZER, "How the tokens of this AI are counted. Automatic tries the tokenizer endpoints of the server (OpenAI, llama.cpp, LiteLLM) and falls back to a local estimate; choose one to use only that. A tokenizer from a plugin gets the endpoint, the model and the text, and only when it is chosen here.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

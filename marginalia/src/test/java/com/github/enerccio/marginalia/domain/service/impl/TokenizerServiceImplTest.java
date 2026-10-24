@@ -1,7 +1,9 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.domain.components.TokenizerKey;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
+import com.github.enerccio.marginalia.domain.service.TokenizerResolver;
 import com.github.enerccio.marginalia.domain.service.impl.inference.tokenizer.TokenizerStrategy;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -23,19 +25,29 @@ class TokenizerServiceImplTest {
 
     private final TokenizerServiceImpl service = new TokenizerServiceImpl() {
         @Override
-        public List<TokenizerStrategy> getCandidates(AI ai) {
-            return List.of(new TokenizerStrategy() {
+        protected TokenizerResolver resolverFor(AI ai) {
+            return new TokenizerResolver() {
                 @Override
-                public long countTokens(AI ai, String text) {
-                    remoteCalls.incrementAndGet();
-                    return 1000;
+                public TokenizerKey keyFor(AI ai) {
+                    return TokenizerKey.of("remote-" + ((OpenAICompatible) ai).getUri());
                 }
 
                 @Override
-                public String getName() {
-                    return "REMOTE";
+                public List<TokenizerStrategy> chain(TokenizerKey key, AI ai) {
+                    return List.of(new TokenizerStrategy() {
+                        @Override
+                        public long countTokens(AI ai, String text) {
+                            remoteCalls.incrementAndGet();
+                            return 1000;
+                        }
+
+                        @Override
+                        public String getName() {
+                            return "REMOTE";
+                        }
+                    });
                 }
-            });
+            };
         }
     };
 
@@ -46,8 +58,13 @@ class TokenizerServiceImplTest {
     }
 
     private static AI ai() {
+        return ai(1L, "a");
+    }
+
+    private static AI ai(long id, String uri) {
         OpenAICompatible ai = new OpenAICompatible();
-        ai.setId(1L);
+        ai.setId(id);
+        ai.setUri(uri);
         return ai;
     }
 
@@ -75,5 +92,31 @@ class TokenizerServiceImplTest {
 
         assertThat(tokens).isEqualTo(service.countTokensApprox(TEXT)).isBetween(5L, 20L);
         assertThat(remoteCalls).hasValue(0);
+    }
+
+    @Test
+    void aisWithTheSameKeyShareTheProbedStrategy() throws Exception {
+        service.countTokens(ai(1L, "a"), TEXT);
+        service.countTokens(ai(2L, "a"), TEXT);
+
+        // the strategy is validated by the first count, the second one runs it once, not probes again
+        assertThat(remoteCalls).hasValue(2);
+        assertThat(service.cachedStrategies()).isEqualTo(1);
+    }
+
+    @Test
+    void aisWithAnotherKeyAreProbedSeparately() throws Exception {
+        service.countTokens(ai(1L, "a"), TEXT);
+        service.countTokens(ai(2L, "b"), TEXT);
+
+        assertThat(service.cachedStrategies()).isEqualTo(2);
+    }
+
+    @Test
+    void invalidatingAnAiForgetsTheStrategyOfItsKey() throws Exception {
+        service.countTokens(ai(1L, "a"), TEXT);
+        service.invalidateCache(1L);
+
+        assertThat(service.cachedStrategies()).isZero();
     }
 }

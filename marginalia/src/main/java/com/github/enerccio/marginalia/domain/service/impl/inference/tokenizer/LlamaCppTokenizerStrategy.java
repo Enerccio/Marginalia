@@ -22,6 +22,10 @@ public class LlamaCppTokenizerStrategy implements TokenizerStrategy {
 
         JsonObject jsonBody = new JsonObject();
         jsonBody.addProperty("content", text);
+        // llama-server ignores it, a proxy in front of several models (llama-swap) can tell which one to ask
+        if (ai.getModel() != null && !ai.getModel().isBlank()) {
+            jsonBody.addProperty("model", ai.getModel());
+        }
 
         HttpRequest.Builder builder = HttpRequest.newBuilder()
                 .uri(tokenizeUri)
