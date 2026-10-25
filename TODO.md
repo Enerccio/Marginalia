@@ -170,14 +170,16 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     (`ChartJs` widget, `TokenUsageDialog`). *Branch Tokens* in the settings menu of the story shows the budget of the whole active
     branch before generating, with and without summaries (`ChatMessageService.getBranchTokens`, `BranchTokensDialog`).
 
-20. **Lorebook improvements.**
+20. ✅ **Lorebook improvements.**
     - ✅ Edit lorebook-level tags in `LorebookView` (generation reads them in `fillEntries`, but there's no UI).
     - Bulk edit: ✅ *Mass edit* (`LorebookMassEditDialog`: all entries of the lorebook and its subbooks in one table, move
-      to another lorebook) and *Tag entries* (`MultiTagDialog`). Still open: entry search/filter and bulk delete in the
-      entry grid.
+      to another lorebook) and *Tag entries* (`MultiTagDialog`). ✅ entry search (name, content, note, filter) and bulk delete (selection column, *Delete selected*; desktop) in the entry grid. Not done: a filter
+      by tag or by status, bulk delete in the mass edit and on the phone.
     - ✅ SillyTavern **export** (`LorebookService.exportToSillytavern`: sub lorebooks merged, filters as keys, tags as the character filter).
-    - Recursive activation / scan depth (entries activating other entries) and activation preview
-      ("which entries would fire for this prompt").
+    - ✅ Recursive activation / scan depth (`Lorebook.scanDepth`, 0-5, the raw content of used entries is searched for the
+      filters of the others; `LorebookEntry.preventRecursion`) and ✅ activation preview (`LorebookActivationPreviewDialog`,
+      `LorebookActivationService.evaluateAll`). Not done: a "only by recursion" entry flag, the flags in the agent commands
+      (`/create-lore-entry`), a scan depth per lorebook of the tree.
     - ✅ A read only *Lorebook* tab in the story editor (desktop) shows the lorebook of the story without leaving it:
       entries with their activation text and Markdown content, optionally with the sub lorebooks (`LorebookPreview`).
       Not done: editing from there, a phone twin, search in it.

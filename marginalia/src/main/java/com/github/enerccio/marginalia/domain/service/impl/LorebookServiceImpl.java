@@ -277,6 +277,7 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
         Lorebook copy = new Lorebook();
         copy.setName(StringUtils.isBlank(name) ? original.getName() : name);
         copy.setEnabled(original.isEnabled());
+        copy.setScanDepth(original.getScanDepth());
         if (original.getAttributes() != null) {
             copy.setAttributes(original.getAttributes().deepCopy());
         }
@@ -554,6 +555,7 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             bookObj.addProperty("uuid", book.getUuid());
             bookObj.addProperty("name", book.getName());
             bookObj.addProperty("enabled", book.isEnabled());
+            bookObj.addProperty("scanDepth", book.getScanDepth());
             addAttributes(bookObj, book);
             bookObj.add("tags", toJsonArray(tagRelationService.getTagsForObject(book)));
             JsonArray subbookRefs = new JsonArray();
@@ -721,6 +723,9 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             Lorebook lorebook = new Lorebook();
             lorebook.setName(StringUtils.defaultIfBlank(getString(bookObj, "name"), "Imported Lorebook"));
             lorebook.setEnabled(getBoolean(bookObj, "enabled", true));
+            if (bookObj.has("scanDepth") && bookObj.get("scanDepth").isJsonPrimitive()) {
+                lorebook.setScanDepth(bookObj.get("scanDepth").getAsInt());
+            }
             lorebook.setAgentic(agentic);
             lorebook.setAttributes(attributesOf(bookObj));
             // keep original uuid when free, so later restores link to this copy; a working copy is always new
@@ -771,6 +776,7 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
         entryObj.addProperty("filtering", entry.getFiltering());
         entryObj.addProperty("filteringMode", entry.getFilteringMode() != null ? entry.getFilteringMode().name() : null);
         entryObj.addProperty("insertionMode", entry.getInsertionMode() != null ? entry.getInsertionMode().name() : null);
+        entryObj.addProperty("preventRecursion", entry.isPreventRecursion());
         addAttributes(entryObj, entry);
         entryObj.add("tags", toJsonArray(tagRelationService.getTagsForObject(entry)));
         entryObj.add("negativeTags", toJsonArray(tagRelationService.getTagsForObject(entry, true)));
@@ -821,6 +827,7 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             entry.setComment(getString(entryObj, "comment"));
             entry.setEnabled(getBoolean(entryObj, "enabled", true));
             entry.setFiltering(getString(entryObj, "filtering"));
+            entry.setPreventRecursion(getBoolean(entryObj, "preventRecursion", false));
             entry.setAttributes(attributesOf(entryObj));
 
             if (entryObj.has("order") && !entryObj.get("order").isJsonNull()) {

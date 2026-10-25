@@ -726,6 +726,13 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_IMPERSONATED_INSTRUCTIONS, "下書きされた指示");
         setValue(L.LABEL_IMPERSONATE_USE, "指示として使う");
         setValue(L.LABEL_IMPERSONATE_OUTLINE, "物語の計画");
+        setValue(L.LABEL_SCAN_DEPTH, "スキャン深度");
+        setValue(L.LABEL_PREVENT_RECURSION, "内容を他のエントリーのフィルターの検索対象にしない");
+        setValue(L.LABEL_PREVIEW_ACTIVATION, "発動をプレビュー");
+        setValue(L.LABEL_ACTIVATION_PREVIEW_TEXT, "ターンのテキスト");
+        setValue(L.LABEL_TAKE_TAGS_OF_BOOK, "ブックのタグを使用");
+        setValue(L.LABEL_ACTIVATION_PASS, "パス");
+        setValue(L.LABEL_REASON, "理由");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -861,6 +868,15 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_ANNOTATE_MODE_STRUCTURED, "構造化（JSON）");
         setValue(L.ENUM_ANNOTATE_MODE_DELIMITED, "テキストブロック");
         setValue(L.ENUM_ANNOTATE_MODE_TWO_STAGE, "自由な批評のあと抽出");
+        setValue(L.ENUM_ACTIVATION_REASON_CONSTANT, "使用: フィルターなし（常時）");
+        setValue(L.ENUM_ACTIVATION_REASON_FILTER_MATCHED, "使用: フィルターがテキストに一致");
+        setValue(L.ENUM_ACTIVATION_REASON_LORE_MATCHED, "使用: 他のエントリーの内容にフィルターが一致");
+        setValue(L.ENUM_ACTIVATION_REASON_EXTENSION_ACTIVATED, "使用: 拡張機能が変更");
+        setValue(L.ENUM_ACTIVATION_REASON_DISABLED, "未使用: オフ");
+        setValue(L.ENUM_ACTIVATION_REASON_NEGATIVE_TAG, "未使用: ブックのネガティブタグ");
+        setValue(L.ENUM_ACTIVATION_REASON_MISSING_TAG, "未使用: ブックに必要なタグがない");
+        setValue(L.ENUM_ACTIVATION_REASON_FILTER_NOT_MATCHED, "未使用: フィルターが一致しない");
+        setValue(L.ENUM_ACTIVATION_REASON_EXTENSION_SKIPPED, "未使用: 拡張機能が変更");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -1232,6 +1248,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_IMPERSONATE_INFO, "モデルがここまでの物語を読み、あなたの代わりに次のターンの指示を書きます。ターンの内容をガイダンスに書くか、空のままにして物語の流れに任せてください。結果を使うまで何も変更されません。");
         setValue(L.MSG_IMPERSONATE_PLACEHOLDER, "例：彼女は手紙のことで彼を問い詰めるが、彼はすべてを否定する");
         setValue(L.MSG_COMMAND_IMPERSONATING, "指示を下書き中…");
+        setValue(L.MSG_ACTIVATION_PREVIEW_SUMMARY, "%s / %s 件のエントリーが使用されます（約 %s トークン）。");
+        setValue(L.MSG_CONFIRM_DELETE_ENTRIES, "選択した %s 件のエントリーを削除しますか？");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1315,6 +1333,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_KEYBOARD_SHORTCUTS, "「記録」をクリックして新しいキーの組み合わせを押します。Ctrl・Alt・Meta のないキーは、テキスト欄にフォーカスがないときだけ動作します。ショートカットは開いている本のストーリータブで有効です。");
         setValue(L.HELP_ST_MERGE_TURNS, "ユーザーのメッセージは、その後の返答から作られるパートの指示になります。オフの場合、すべてのメッセージが個別のパートになります。");
         setValue(L.HELP_AI_TOKENIZER, "このAIのトークン数の数え方。自動ではサーバーのトークナイザーエンドポイント（OpenAI、llama.cpp、LiteLLM）を順に試し、使えない場合はローカルの推定にフォールバックします。1つを選ぶとそれだけを使います。プラグインのトークナイザーは、ここで選択された場合にのみ、エンドポイント、モデル、テキストを受け取ります。");
+        setValue(L.HELP_SCAN_DEPTH, "使用されたエントリーの内容を、他のエントリーのフィルターについて何回検索するか（0 = 検索しない）。ブックが使うロアブックの値のみが有効で、サブブックの値は無視されます。");
+        setValue(L.HELP_PREVENT_RECURSION, "このエントリーの内容の語句で他のエントリーが発動することはありません。");
+        setValue(L.HELP_ACTIVATION_PREVIEW, "このロアブックとサブブックのどのエントリーが、このテキストのターンで使用されるかを、理由とこのロアブックのスキャン深度を含めて表示します。実際の生成では拡張機能が結果を変更することがあります。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

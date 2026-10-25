@@ -734,6 +734,13 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_IMPERSONATED_INSTRUCTIONS, "起草的指令");
         setValue(L.LABEL_IMPERSONATE_USE, "用作指令");
         setValue(L.LABEL_IMPERSONATE_OUTLINE, "故事计划");
+        setValue(L.LABEL_SCAN_DEPTH, "扫描深度");
+        setValue(L.LABEL_PREVENT_RECURSION, "不在其内容中搜索其他条目的过滤词");
+        setValue(L.LABEL_PREVIEW_ACTIVATION, "预览激活");
+        setValue(L.LABEL_ACTIVATION_PREVIEW_TEXT, "回合文本");
+        setValue(L.LABEL_TAKE_TAGS_OF_BOOK, "使用书籍的标签");
+        setValue(L.LABEL_ACTIVATION_PASS, "轮次");
+        setValue(L.LABEL_REASON, "原因");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -869,6 +876,15 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_ANNOTATE_MODE_STRUCTURED, "结构化（JSON）");
         setValue(L.ENUM_ANNOTATE_MODE_DELIMITED, "文本块");
         setValue(L.ENUM_ANNOTATE_MODE_TWO_STAGE, "先自由评述，再提取");
+        setValue(L.ENUM_ACTIVATION_REASON_CONSTANT, "使用：无过滤词（常驻）");
+        setValue(L.ENUM_ACTIVATION_REASON_FILTER_MATCHED, "使用：文本中找到过滤词");
+        setValue(L.ENUM_ACTIVATION_REASON_LORE_MATCHED, "使用：在其他条目的内容中找到过滤词");
+        setValue(L.ENUM_ACTIVATION_REASON_EXTENSION_ACTIVATED, "使用：由扩展更改");
+        setValue(L.ENUM_ACTIVATION_REASON_DISABLED, "未使用：已关闭");
+        setValue(L.ENUM_ACTIVATION_REASON_NEGATIVE_TAG, "未使用：书籍含排除标签");
+        setValue(L.ENUM_ACTIVATION_REASON_MISSING_TAG, "未使用：书籍缺少所需标签");
+        setValue(L.ENUM_ACTIVATION_REASON_FILTER_NOT_MATCHED, "未使用：未找到过滤词");
+        setValue(L.ENUM_ACTIVATION_REASON_EXTENSION_SKIPPED, "未使用：由扩展更改");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -1240,6 +1256,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_IMPERSONATE_INFO, "模型会阅读目前的故事，并像您一样写出下一回合的指令。请在引导中写明该回合的内容，或留空让故事自然发展。在您使用结果之前不会更改任何内容。");
         setValue(L.MSG_IMPERSONATE_PLACEHOLDER, "例如：她就那封信质问他，他全盘否认");
         setValue(L.MSG_COMMAND_IMPERSONATING, "正在起草指令…");
+        setValue(L.MSG_ACTIVATION_PREVIEW_SUMMARY, "将使用 %s / %s 个条目，约 %s 个词元。");
+        setValue(L.MSG_CONFIRM_DELETE_ENTRIES, "删除所选的 %s 个条目？");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1323,6 +1341,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_KEYBOARD_SHORTCUTS, "点击“录制”并按下新的组合键。不带 Ctrl、Alt 或 Meta 的按键仅在没有文本框获得焦点时生效。快捷键在已打开书籍的故事标签页中有效。");
         setValue(L.HELP_ST_MERGE_TURNS, "用户的消息成为其后回答所生成段落的指示。不勾选时，每条消息都是独立的段落。");
         setValue(L.HELP_AI_TOKENIZER, "此 AI 计算词元数的方式。“自动”会依次尝试服务器的分词端点（OpenAI、llama.cpp、LiteLLM），不可用时回退到本地估算；选择其中一项则只使用该项。插件提供的分词器只有在此处被选中时，才会收到端点、模型和文本。");
+        setValue(L.HELP_SCAN_DEPTH, "对已使用条目的内容搜索其他条目过滤词的次数（0 = 不搜索）。仅书籍所用世界书的设置有效，子书的设置会被忽略。");
+        setValue(L.HELP_PREVENT_RECURSION, "此条目内容中的词语不会激活其他条目。");
+        setValue(L.HELP_ACTIVATION_PREVIEW, "显示此世界书及其子书的哪些条目会用于包含此文本的回合及原因（含此世界书的扫描深度）。实际生成时扩展仍可能改变结果。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

@@ -726,6 +726,13 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_IMPERSONATED_INSTRUCTIONS, "Drafted Instructions");
         setValue(L.LABEL_IMPERSONATE_USE, "Use as Instructions");
         setValue(L.LABEL_IMPERSONATE_OUTLINE, "Plan of the Story");
+        setValue(L.LABEL_SCAN_DEPTH, "Scan depth");
+        setValue(L.LABEL_PREVENT_RECURSION, "Do not search its content for other entries");
+        setValue(L.LABEL_PREVIEW_ACTIVATION, "Preview activation");
+        setValue(L.LABEL_ACTIVATION_PREVIEW_TEXT, "Text of the turn");
+        setValue(L.LABEL_TAKE_TAGS_OF_BOOK, "Tags of the book");
+        setValue(L.LABEL_ACTIVATION_PASS, "Pass");
+        setValue(L.LABEL_REASON, "Reason");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -861,6 +868,15 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_ANNOTATE_MODE_STRUCTURED, "Structured (JSON)");
         setValue(L.ENUM_ANNOTATE_MODE_DELIMITED, "Text blocks");
         setValue(L.ENUM_ANNOTATE_MODE_TWO_STAGE, "Free critique, then extraction");
+        setValue(L.ENUM_ACTIVATION_REASON_CONSTANT, "Used: no filter (constant)");
+        setValue(L.ENUM_ACTIVATION_REASON_FILTER_MATCHED, "Used: filter found in the text");
+        setValue(L.ENUM_ACTIVATION_REASON_LORE_MATCHED, "Used: filter found in the content of another entry");
+        setValue(L.ENUM_ACTIVATION_REASON_EXTENSION_ACTIVATED, "Used: changed by an extension");
+        setValue(L.ENUM_ACTIVATION_REASON_DISABLED, "Not used: switched off");
+        setValue(L.ENUM_ACTIVATION_REASON_NEGATIVE_TAG, "Not used: negative tag of the book");
+        setValue(L.ENUM_ACTIVATION_REASON_MISSING_TAG, "Not used: the book lacks its tag");
+        setValue(L.ENUM_ACTIVATION_REASON_FILTER_NOT_MATCHED, "Not used: filter not found");
+        setValue(L.ENUM_ACTIVATION_REASON_EXTENSION_SKIPPED, "Not used: changed by an extension");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -1232,6 +1248,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_IMPERSONATE_INFO, "The model reads the story so far and writes the instructions of the next turn the way you would. Write what the turn should be about, or leave the guidance empty to continue where the story leads. Nothing is changed until you use the result.");
         setValue(L.MSG_IMPERSONATE_PLACEHOLDER, "e.g. She confronts him about the letter, he denies everything");
         setValue(L.MSG_COMMAND_IMPERSONATING, "Drafting the instructions…");
+        setValue(L.MSG_ACTIVATION_PREVIEW_SUMMARY, "%s of %s entries would be used, about %s tokens of lore.");
+        setValue(L.MSG_CONFIRM_DELETE_ENTRIES, "Delete %s selected entries?");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1315,6 +1333,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_KEYBOARD_SHORTCUTS, "Click Record and press the new key combination. A key without Ctrl, Alt or Meta works only when no text field has the focus. The shortcuts work in the story tab of an open book.");
         setValue(L.HELP_ST_MERGE_TURNS, "The message of the user becomes the instructions of the part made of the answer after it. Without it every message is a part of its own.");
         setValue(L.HELP_AI_TOKENIZER, "How the tokens of this AI are counted. Automatic tries the tokenizer endpoints of the server (OpenAI, llama.cpp, LiteLLM) and falls back to a local estimate; choose one to use only that. A tokenizer from a plugin gets the endpoint, the model and the text, and only when it is chosen here.");
+        setValue(L.HELP_SCAN_DEPTH, "How many times the content of the entries that were used is searched for the filters of the other entries (0 = never). Only the lorebook the book uses counts, the value of its subbooks is ignored.");
+        setValue(L.HELP_PREVENT_RECURSION, "Words in the content of this entry do not activate other entries.");
+        setValue(L.HELP_ACTIVATION_PREVIEW, "Shows which entries of this lorebook and its subbooks would be used for a turn with this text, and why, with the scan depth of this lorebook. In a real generation extensions can still change the result.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

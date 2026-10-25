@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.domain.model.impl;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference.Policy;
+import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
 import com.github.enerccio.marginalia.domain.traits.Fulltextable;
 import jakarta.persistence.*;
 
@@ -32,6 +33,12 @@ public class Lorebook extends ExtendableEntity {
     // the working copy of an agent, never listed with the books of the user
     private boolean agentic = false;
 
+    // how many times the content of the entries that were used is searched for the filters of the others, 0 = never; read
+    // from the lorebook the book uses (the root), not from its subbooks
+    @Transient
+    @ExtendedAttribute
+    private int scanDepth = 0;
+
     public String getName() {
         return name;
     }
@@ -46,6 +53,14 @@ public class Lorebook extends ExtendableEntity {
 
     public void setAgentic(boolean agentic) {
         this.agentic = agentic;
+    }
+
+    public int getScanDepth() {
+        return scanDepth;
+    }
+
+    public void setScanDepth(int scanDepth) {
+        this.scanDepth = scanDepth;
     }
 
     public boolean isEnabled() {

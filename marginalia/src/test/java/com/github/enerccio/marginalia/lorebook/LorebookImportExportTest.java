@@ -287,6 +287,26 @@ class LorebookImportExportTest extends MarginaliaTestBase {
     }
 
     @Test
+    void scanDepthAndPreventedRecursionSurviveExportImportAndClone() throws Exception {
+        Lorebook loaded = lorebookService.find(shared.getId());
+        loaded.setScanDepth(3);
+        lorebookService.save(loaded);
+        LorebookEntry harbour = entryNamed(shared, "harbour");
+        harbour.setPreventRecursion(true);
+        lorebookEntryService.save(harbour);
+
+        Lorebook imported = lorebookService.importLorebook(lorebookService.exportLorebook(world), null);
+        Lorebook cloned = lorebookService.cloneLorebook(lorebookService.find(shared.getId()), "copy");
+
+        assertThat(subbook(imported, "Shared").getScanDepth()).isEqualTo(3);
+        assertThat(entryNamed(subbook(imported, "Shared"), "harbour").isPreventRecursion()).isTrue();
+        assertThat(subbook(imported, "Magic").getScanDepth()).isZero();
+        assertThat(entryNamed(subbook(imported, "Magic"), "spells").isPreventRecursion()).isFalse();
+        assertThat(lorebookService.find(cloned.getId()).getScanDepth()).isEqualTo(3);
+        assertThat(entryNamed(cloned, "harbour").isPreventRecursion()).isTrue();
+    }
+
+    @Test
     void disabledLorebookStaysDisabled() throws Exception {
         Lorebook loaded = lorebookService.find(shared.getId());
         loaded.setEnabled(false);

@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.LorebookActivationService.R
 import com.github.enerccio.marginalia.domain.service.LorebookActivationService.Verdict;
 import com.github.enerccio.marginalia.domain.service.TemplateService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LorebookEntryVerdict;
 import com.github.enerccio.marginalia.domain.service.impl.inference.tokenizer.JavaTokkitStrategy;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateContext;
@@ -29,7 +30,9 @@ import java.util.stream.Collectors;
 /**
  * {@code /preview-lore-activation text [limit]}, {@code /preview-lore-activation part [branch [limit]]}: which entries of
  * the lorebooks the generation would use for a text, or for a turn like the one that made a part, and why - the rules of
- * the generation step ({@link LorebookActivationService}) - and the lore text and its tokens that would reach the prompt.
+ * the generation step ({@link LorebookActivationService}), the scan depth of the lorebook included (an entry used by the
+ * content of other entries says so in its reason and has {@code scanDepth}, the pass) - and the lore text and its tokens
+ * that would reach the prompt.
  * Changes nothing; the answer is JSON text, see {@link LorebookReadSupport}.
  * <p>
  * With a part the text the filters are looked for in is the user prompt of the book rendered from the turn input stored
@@ -128,8 +131,9 @@ public class PreviewLoreActivationCommand extends LorebookReadSupport {
         Map<Reason, Integer> byReason = new EnumMap<>(Reason.class);
         StringBuilder loreBlock = new StringBuilder();
         StringBuilder userBlock = new StringBuilder();
-        for (LorebookEntry entry : activationService.orderedEntries(books)) {
-            Verdict verdict = activationService.evaluate(entry, bookTags, matched);
+        for (LorebookEntryVerdict decided : activationService.evaluateAll(root, books, bookTags, matched)) {
+            LorebookEntry entry = decided.entry();
+            Verdict verdict = decided.verdict();
             Lorebook owner = bookOf.get(entry.getId());
             JsonObject row = new JsonObject();
             row.addProperty("lorebook", lore.number(owner));
@@ -147,6 +151,9 @@ public class PreviewLoreActivationCommand extends LorebookReadSupport {
                     block.append(payload).append("\n\n");
                 }
                 row.addProperty("order", entry.getOrder());
+                if (decided.depth() > 0) {
+                    row.addProperty("scanDepth", decided.depth());
+                }
                 row.addProperty("insertion", entry.getInsertionMode().name());
                 if (++activatedCount <= max) {
                     activated.add(row);
