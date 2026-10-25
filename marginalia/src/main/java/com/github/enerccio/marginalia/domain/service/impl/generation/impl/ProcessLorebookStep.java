@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.LorebookActivationService;
 import com.github.enerccio.marginalia.domain.service.LorebookActivationService.Verdict;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LorebookEntryVerdict;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PrePromptData;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import org.apache.commons.lang3.StringUtils;
@@ -46,13 +47,18 @@ public class ProcessLorebookStep extends GenerationStepBase {
                     log.debug("Processing entries: {}", entries);
 
                     List<LorebookEntry> activatedEntries = new java.util.ArrayList<>();
+                    List<LorebookEntryVerdict> verdicts = new java.util.ArrayList<>();
+                    controller.getProperties().put(GenerationProperties.LOREBOOK_VERDICTS, verdicts);
                     forEachAsync(controller, entries, (entry, next) -> {
+                        log.debug("Processing entry: {} ", entry.getName());
+                        // evaluated before the event: listeners see the verdict and can replace it
                         controller.getProperties().put(GenerationProperties.LOREBOOK_ENTRY, entry);
+                        controller.getProperties().put(GenerationProperties.LOREBOOK_VERDICT,
+                                activationService.evaluate(entry, manuscriptTags,
+                                        controller.getPrePromptData().getUserPromptProcessed()));
                         controller.emitEvent(Events.PROCESS_LOREBOOK_ENTRY, () -> {
-                            log.debug("Processing entry: {} ", entry.getName());
-
-                            Verdict verdict = activationService.evaluate(entry, manuscriptTags,
-                                    controller.getPrePromptData().getUserPromptProcessed());
+                            Verdict verdict = (Verdict) controller.getProperties().get(GenerationProperties.LOREBOOK_VERDICT);
+                            verdicts.add(new LorebookEntryVerdict(entry, verdict));
                             if (verdict.activated()) {
                                 log.debug("Entry {} added to activated entries ({}).", entry.getName(), verdict.reason());
                                 activatedEntries.add(entry);

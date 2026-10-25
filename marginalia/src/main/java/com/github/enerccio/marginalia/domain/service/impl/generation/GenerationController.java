@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.GenerationListener;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.GenerationFailure;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PrePromptData;
 import org.springframework.web.context.request.RequestAttributes;
@@ -47,6 +48,10 @@ public interface GenerationController {
     void setPayload(List<LLMChatMessage> payload);
     State getState();
     void setState(State state);
+    /**
+     * The first error reported to the user during the generation, null when there was none.
+     */
+    GenerationFailure getFailure();
 
     void next() throws Exception;
 

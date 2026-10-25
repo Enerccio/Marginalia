@@ -216,15 +216,16 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
       known only after login);
     - dates use one pattern per language (no per-user format), the date format of the book language is separate.
 
-24a. **Generation events for extensions** (groundwork for a 🧩 *Generation Inspector* plugin: per-message timeline,
+24a. ✅ **Generation events for extensions** (groundwork for a 🧩 *Generation Inspector* plugin: per-message timeline,
     lorebook activation with skip reasons, context budget, exact payload).
     - ✅ Done: listeners get the generation context through `GenerationControllerEvent` (`getProperties()`,
       `getProperty(key)`, `getRequest()`, `getInput()`, `get/setPrePromptData()`, `get/setPayload()`). Property keys
       are public in `GenerationProperties`, which documents each key's type and the first event it's available in.
-    - Lorebook entry skip reasons are only logged in `ProcessLorebookStep`; store them as a property.
-    - Terminal events for failed and cancelled generations (currently only success emits `AFTER_INFERENCE`).
-    - Lightweight read-only observers (synchronous, no executor hop) for hot events like `CHUNK_RECEIVED`.
-    - Generation run id on the event to correlate data from concurrent generations.
+    - ✅ Lorebook entry verdicts: `LOREBOOK_VERDICT` (per entry, a listener can replace it and the pipeline reads it back) and
+      `LOREBOOK_VERDICTS` (the final record, `LorebookEntryVerdict`: entry + `Verdict`).
+    - ✅ Terminal event `AFTER_CLEANUP` for every generation (also stopped and failed ones), with `OUTCOME` and `FAILURE`.
+    - ✅ Lightweight read-only observers (synchronous, no executor hop): `StoryGenerationService.addEventObserver`, `GenerationObserver`.
+    - ✅ Generation run id: `GenerationProperties.RUN_ID`.
 
 24. **Extension management polish.** ✅ A JAR is verified before it is installed and again after an update, and an
     extension built for another core version is refused (`ExtensionVerifier`, *Verification* column). Extensions can be stopped and

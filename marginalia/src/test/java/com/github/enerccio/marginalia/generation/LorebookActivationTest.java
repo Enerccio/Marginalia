@@ -8,6 +8,8 @@ import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
+import com.github.enerccio.marginalia.domain.service.LorebookActivationService.Reason;
+import com.github.enerccio.marginalia.domain.service.LorebookActivationService.Verdict;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.service.TagRelationService;
@@ -15,6 +17,7 @@ import com.github.enerccio.marginalia.domain.service.TagService;
 import com.github.enerccio.marginalia.domain.service.impl.LorebookActivationServiceImpl;
 import com.github.enerccio.marginalia.domain.service.impl.generation.Events;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationProperties;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LorebookEntryVerdict;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables.Scope;
 import com.github.enerccio.marginalia.test.ExpectedLog;
@@ -30,6 +33,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 /**
  * Lorebook activation in a real generation ({@code ProcessLorebookStep}): which lorebooks and entries take part, tag
@@ -710,6 +714,44 @@ class LorebookActivationTest extends GenerationTestBase {
     }
 
     @Test
+    void verdictsListEveryEntryWithTheReason() throws Exception {
+        Lorebook book = lorebook("world");
+        entry(book, "always", e -> e.setOrder(1));
+        entry(book, "hit", e -> {
+            e.setOrder(2);
+            e.setFiltering("dragon");
+        });
+        entry(book, "miss", e -> {
+            e.setOrder(3);
+            e.setFiltering("unicorn");
+        });
+        entry(book, "off", e -> {
+            e.setOrder(4);
+            e.setEnabled(false);
+        });
+        Manuscript manuscript = book(book);
+        AtomicReference<List<LorebookEntryVerdict>> captured = new AtomicReference<>();
+        onEvent(Events.PROCESS_ACTIVATED_ENTRIES, manuscript, e -> {
+            List<LorebookEntryVerdict> verdicts = e.getProperty(GenerationProperties.LOREBOOK_VERDICTS);
+            captured.set(new ArrayList<>(verdicts));
+            // a listener changing the activated entries does not rewrite the record of the decisions
+            List<LorebookEntry> entries = e.getProperty(GenerationProperties.ACTIVATED_LOREBOOK_ENTRIES);
+            entries.removeIf(entry -> entry.getName().equals("always"));
+        });
+
+        Lore lore = activate(manuscript, "A dragon appears.");
+
+        assertThat(lore.activated()).containsExactly("hit");
+        assertThat(captured.get()).extracting(v -> v.entry().getName(), v -> v.verdict().reason(),
+                        v -> v.verdict().detail())
+                .containsExactly(
+                        tuple("always", Reason.CONSTANT, null),
+                        tuple("hit", Reason.FILTER_MATCHED, "dragon"),
+                        tuple("miss", Reason.FILTER_NOT_MATCHED, "unicorn"),
+                        tuple("off", Reason.DISABLED, null));
+    }
+
+    @Test
     void everyEntryIsOfferedToExtensions() throws Exception {
         Lorebook book = lorebook("world");
         entry(book, "on");
@@ -722,6 +764,49 @@ class LorebookActivationTest extends GenerationTestBase {
         activate(manuscript);
 
         assertThat(seen).containsExactlyInAnyOrder("on", "off");
+    }
+
+    @Test
+    void extensionCanChangeTheVerdictOfAnEntry() throws Exception {
+        Lorebook book = lorebook("world");
+        entry(book, "plain", e -> e.setOrder(1));
+        entry(book, "forcedOut", e -> e.setOrder(2));
+        entry(book, "forcedIn", e -> {
+            e.setOrder(3);
+            e.setFiltering("unicorn");
+        });
+        entry(book, "off", e -> {
+            e.setOrder(4);
+            e.setEnabled(false);
+        });
+        Manuscript manuscript = book(book);
+        AtomicReference<List<LorebookEntryVerdict>> captured = new AtomicReference<>();
+        onEvent(Events.PROCESS_LOREBOOK_ENTRY, manuscript, e -> {
+            String name = ((LorebookEntry) e.getProperty(GenerationProperties.LOREBOOK_ENTRY)).getName();
+            if (name.equals("forcedOut")) {
+                assertThat(((Verdict) e.getProperty(GenerationProperties.LOREBOOK_VERDICT)).reason())
+                        .isEqualTo(Reason.CONSTANT);
+                e.getProperties().put(GenerationProperties.LOREBOOK_VERDICT,
+                        new Verdict(Reason.EXTENSION_SKIPPED, "spoiler"));
+            } else if (name.equals("forcedIn") || name.equals("off")) {
+                e.getProperties().put(GenerationProperties.LOREBOOK_VERDICT,
+                        new Verdict(Reason.EXTENSION_ACTIVATED, "needed"));
+            }
+        });
+        onEvent(Events.PROCESS_ACTIVATED_ENTRIES, manuscript,
+                e -> captured.set(new ArrayList<>(e.getProperty(GenerationProperties.LOREBOOK_VERDICTS))));
+
+        Lore lore = activate(manuscript);
+
+        assertThat(lore.activated()).containsExactly("plain", "forcedIn", "off");
+        assertThat(lore.lore()).isEqualTo("<plain>\n\n<forcedIn>\n\n<off>");
+        assertThat(captured.get()).extracting(v -> v.entry().getName(), v -> v.verdict().reason(),
+                        v -> v.verdict().detail())
+                .containsExactly(
+                        tuple("plain", Reason.CONSTANT, null),
+                        tuple("forcedOut", Reason.EXTENSION_SKIPPED, "spoiler"),
+                        tuple("forcedIn", Reason.EXTENSION_ACTIVATED, "needed"),
+                        tuple("off", Reason.EXTENSION_ACTIVATED, "needed"));
     }
 
     @Test

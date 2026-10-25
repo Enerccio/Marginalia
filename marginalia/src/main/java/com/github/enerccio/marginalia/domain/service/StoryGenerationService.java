@@ -2,15 +2,19 @@ package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.service.impl.generation.Events;
+import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.Registration;
-import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationEvent;
-import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
-import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
 
 public interface StoryGenerationService {
 
     Registration addEventListener(Events event, GenerationEvent listener);
+
+    /**
+     * Watches an event of every generation without being able to change it: the observer is called synchronously on
+     * the thread that emits the event, before the listeners, and never takes part in the event chain. For the hot
+     * events (a chunk of the answer) this costs no hop to another thread. See {@link GenerationObserver}.
+     */
+    Registration addEventObserver(Events event, GenerationObserver observer);
 
     /**
      * Spawns an asynchronous generation task.

@@ -25,5 +25,17 @@ public enum Events {
     CHUNK_RECEIVED,
     AFTER_INFERENCE,
     BEFORE_CLEANUP,
+    /**
+     * The last event of every generation, completed, stopped or failed: emitted when the cleanup is done. Unlike the
+     * others its listeners run also when the user stopped the generation.
+     */
+    AFTER_CLEANUP;
+
+    /**
+     * Whether the listeners of the event run although the generation was cancelled or interrupted.
+     */
+    public boolean isTerminal() {
+        return this == AFTER_CLEANUP;
+    }
 
 }

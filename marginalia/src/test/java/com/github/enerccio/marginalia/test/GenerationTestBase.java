@@ -12,6 +12,7 @@ import com.github.enerccio.marginalia.domain.service.StoryGenerationService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.Events;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.Registration;
+import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationObservation;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
 import com.github.enerccio.marginalia.test.llm.MockLLMResponse;
 import org.junit.jupiter.api.AfterEach;
@@ -94,6 +95,17 @@ public abstract class GenerationTestBase extends MarginaliaTestBase {
                 }
             } finally {
                 chain.next();
+            }
+        }));
+    }
+
+    /**
+     * Like {@link #onEvent} for a read-only observer ({@code StoryGenerationService.addEventObserver}).
+     */
+    protected void observe(Events event, Manuscript manuscript, Consumer<GenerationObservation> action) {
+        registrations.add(storyGenerationService.addEventObserver(event, o -> {
+            if (o.getManuscript() != null && Objects.equals(o.getManuscript().getId(), manuscript.getId())) {
+                action.accept(o);
             }
         }));
     }

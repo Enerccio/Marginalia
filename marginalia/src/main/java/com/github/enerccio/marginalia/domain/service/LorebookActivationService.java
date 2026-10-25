@@ -31,10 +31,14 @@ public interface LorebookActivationService {
         /** Not used, the entry has tags and the book has none of them. */
         MISSING_TAG,
         /** Not used, its filter is not in the text (or is a regular expression that is not valid). */
-        FILTER_NOT_MATCHED;
+        FILTER_NOT_MATCHED,
+        /** Used, an extension changed the verdict (the detail names why). */
+        EXTENSION_ACTIVATED,
+        /** Not used, an extension changed the verdict (the detail names why). */
+        EXTENSION_SKIPPED;
 
         public boolean isActivated() {
-            return this == CONSTANT || this == FILTER_MATCHED;
+            return this == CONSTANT || this == FILTER_MATCHED || this == EXTENSION_ACTIVATED;
         }
     }
 
@@ -42,7 +46,8 @@ public interface LorebookActivationService {
      * The decision on one entry.
      *
      * @param detail the tag that decided ({@code NEGATIVE_TAG}) or the filter ({@code FILTER_MATCHED},
-     *               {@code FILTER_NOT_MATCHED}), null otherwise
+     *               {@code FILTER_NOT_MATCHED}), the reason an extension gave ({@code EXTENSION_ACTIVATED},
+     *               {@code EXTENSION_SKIPPED}), null otherwise
      */
     record Verdict(Reason reason, String detail) {
 
