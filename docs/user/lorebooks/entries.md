@@ -15,6 +15,17 @@ Each row of the lorebook editor is one entry:
 
 **Add Entry** in the toolbar adds an entry with order `100`. Changes are saved as you type.
 
+### Searching and deleting many entries
+
+The box with the magnifier next to the buttons shows only the entries that have the text in their name, content, note or
+filter (the case does not matter); clear it to see all of them again. It looks only at the entries of the selected
+lorebook, not at the sub lorebooks. The phone layout has the box above the list.
+
+The checkbox column at the left selects entries (the one in the header selects all that are shown, so a search and then
+the header box selects the matches). When something is selected, **Delete selected** appears in the toolbar with the number
+of the entries; it asks once and then moves them to the [trash](../trash.md). The phone layout does not delete many entries
+at once.
+
 ## Search and replace
 
 **Search and replace** (right of **Add Entry**) changes a word, a name or a phrase in the name, the text and the comment of
@@ -42,6 +53,7 @@ The ⌄ button opens the details:
 | **Filtering Text/Pattern** | The filter, see [Filters](#filters). Empty means no filter. |
 | **Insertion Mode** | **In Lore Block** or **Before User Prompt**, see [Order and insertion](#order-and-insertion). |
 | **Negative Tags (Exclusion)** | Tags that switch the entry off, see [Tags](#tags). |
+| **Do not search its content for other entries** | When ticked, the words in this entry's content never bring other entries in, see [Entries brought in by other entries](#entries-brought-in-by-other-entries). The phone layout shows it when it is ticked. |
 | **Note** | Your notes. Not sent to the model. Entries imported from SillyTavern list the settings that couldn't be imported here. |
 
 Write the content as you want the model to read it - a short, factual description works best:
@@ -108,6 +120,46 @@ An invalid regular expression never matches; the entry stays inactive.
 
 Combine tags and a filter when an entry should only be used in some books, and there only when it's relevant.
 
+### Entries brought in by other entries
+
+Normally only the request for the part activates entries. With a **scan depth** (the field of the
+[lorebook](lorebooks.md#the-lorebook-editor); `0`, which is the default, switches this off) the content of the entries that
+were activated is searched for the filters of the entries that were not, as if it were part of the request. An entry whose
+filter is found there is activated too. That is **pass 1**; the content of the entries it activated is searched in pass 2,
+and so on, as many passes as the scan depth says (at most 5).
+
+For example, with a scan depth of `1`, an entry *Captain Varro* (filter `varro`) is activated by the request, and its content
+says "...serves the Duke of Ostra". An entry *Ostra* (filter `ostra`) is then activated too, although the request never
+mentions the city. With a scan depth of `2`, the entry *Ostra* would in turn bring in an entry about the harbor it mentions.
+
+- Only **filters** count: an entry that is already used because it has no filter needs nothing, and an entry that is
+  switched off, or excluded by its tags, is not brought in.
+- The content that is searched is the text of the entry as written, the templates in it are not run.
+- The setting of the lorebook the **book uses** counts; the scan depth of a sub lorebook is ignored.
+- An entry with **Do not search its content for other entries** ticked can be activated, but it brings nobody in.
+- The order in the prompt does not depend on how an entry was found, see [Order and insertion](#order-and-insertion).
+- Extensions that change which entries are used (see [Extensions](../extensions/index.md)) are asked about the entries
+  that are brought in too.
+
+## Preview activation
+
+**Preview activation** (the button with the eye in the toolbar of the lorebook editor, and on the phone next to the search and replace
+button) answers "which entries would be used for this text?" without generating anything. Type the text of the request
+into **Text of the turn** (the scene, the characters and the instructions, as you would enter them) and the table lists every entry
+of the lorebook and of its sub lorebooks, in the order they are used:
+
+- a green check mark for the entries that would be used and a gray mark for the others;
+- the lorebook of the entry, its **Order**, the **Pass** (empty for the entries the text activated, `1`, `2`... for the entries
+  brought in by [other entries](#entries-brought-in-by-other-entries));
+- the **Reason**: no filter, filter found in the text, filter found in the content of another entry (with the filter and the
+  entry), or why not: switched off, a negative tag of the book, the book lacks a tag of the entry, the filter was not found.
+
+The tags decide too, so pick a book in **Tags of the book** to use its tags (without one, no tags count). Below the text, a line says how many entries
+would be used and about how many tokens of lore that is. The scan depth of the lorebook is used.
+
+The preview applies the rules of Marginalia only: the text is the one you type (not the user prompt template around it),
+and what an [extension](../extensions/index.md) changes while a part is generated is not part of it.
+
 ## Order and insertion
 
 Activated entries are put into the prompt sorted by **Order**, lowest first. Entries with the same order keep the
@@ -150,4 +202,6 @@ used as plain text, without processing the template.
 - One entry per character, place or concept, so each can be activated on its own.
 - Use always-active entries for the core of the world, filters for the cast and places, and tags to share a lorebook
   between books.
-- Check what was activated with **Show Prompt** on a generated part.
+- Check what was activated with **Show Prompt** on a generated part, or try a text before you write with
+  [Preview activation](#preview-activation).
+- Use the scan depth sparingly: one pass is enough for most books, and every pass can bring in more lore than you wanted.

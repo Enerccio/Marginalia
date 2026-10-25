@@ -147,15 +147,25 @@ Skipped when the book has no lorebook. Otherwise:
    | tags | the entry has no tags, or one of them is a tag of the book (the entry's tags include the tags of its lorebook) |
    | filter | no filter, or the filter matches the **rendered user prompt**: `KEYWORDS_OR` / `KEYWORDS_AND` - the filter split by commas, trimmed, blanks dropped; any / every keyword is a case-insensitive substring (no keyword never matches); `TEXT` - case-insensitive substring; `REGEX` - case-insensitive `find()` (`DOTALL`); an invalid regex never matches |
 
-4. **Render** the active entries' payloads as templates with one shared `LorebookTemplateData` - so variables set in
+4. **Scan** (only with a scan depth): `Lorebook.scanDepth` of the lorebook the book uses (clamped to
+   `LorebookActivationService.MAX_SCAN_DEPTH`, 5; the value of a sub-lorebook is ignored) is how many passes follow.
+   Pass n takes the entries pass n - 1 activated (pass 0 is step 3), leaves out those with `preventRecursion` or no
+   payload, and evaluates the entries whose verdict is still `FILTER_NOT_MATCHED` against the **raw** payloads of
+   those (joined; templates are not run): `evaluateInContent` gives `LORE_MATCHED`, the detail being
+   `filter <- name of the first entry that has it`. The pass ends the scan when nothing was activated. Each such entry gets
+   `PROCESS_LOREBOOK_ENTRY` again (`LOREBOOK_SCAN_DEPTH` = n) and a verdict a listener replaced counts. The activated
+   entries are in the order of step 2 whatever pass found them. `LorebookActivationService.evaluateAll` runs the same
+   rules without events (the preview in the lorebook editor and `/preview-lore-activation`).
+5. **Render** the active entries' payloads as templates with one shared `LorebookTemplateData` - so variables set in
    one entry are visible in the following ones. A payload that fails to render is used as it is.
-5. **Insert**: payloads with `IN_LORE_BLOCK` are joined into `backgroundLore` (the master template's
+6. **Insert**: payloads with `IN_LORE_BLOCK` are joined into `backgroundLore` (the master template's
    ``); payloads with `BEFORE_USER_PROMPT` are joined into `backgroundUserLore` and put in front of
    the user prompt.
 
 Events: `BEFORE_PROCESS_LOREBOOK`, `PROCESS_LOREBOOKS` (the list in `LOREBOOKS` can be changed),
 `PROCESS_LOREBOOK_ENTRY` (once per entry, `LOREBOOK_ENTRY`; the entry is evaluated first and `LOREBOOK_VERDICT` holds
-the decision, a listener can replace it and the entry is used by the verdict that is left),
+the decision, a listener can replace it and the entry is used by the verdict that is left; `LOREBOOK_SCAN_DEPTH` is 0, and
+again for each entry a pass of the scan depth found, with its pass number),
 `PROCESS_ACTIVATED_ENTRIES` (`ACTIVATED_LOREBOOK_ENTRIES` can be changed; `LOREBOOK_VERDICTS` lists the final decision on
 every evaluated entry, used or not, with its reason), `AFTER_PROCESS_LOREBOOK`.
 
@@ -391,7 +401,7 @@ The bundled Author's Note plugin is a complete example: it reserves tokens in `B
 | `AFTER_PREPARE_CONSTANT_DATA` | 2 | rendered user prompt, `TEMPLATE_CONTEXT` |
 | `BEFORE_PROCESS_LOREBOOK` | 3 | |
 | `PROCESS_LOREBOOKS` | 3 | `LOREBOOKS` (read back) |
-| `PROCESS_LOREBOOK_ENTRY` | 3 | `LOREBOOK_ENTRY`, `LOREBOOK_VERDICT` (read back), once per entry |
+| `PROCESS_LOREBOOK_ENTRY` | 3 | `LOREBOOK_ENTRY`, `LOREBOOK_VERDICT` (read back), `LOREBOOK_SCAN_DEPTH`; once per entry, again for entries found by a scan pass |
 | `PROCESS_ACTIVATED_ENTRIES` | 3 | `ACTIVATED_LOREBOOK_ENTRIES` (read back), `LOREBOOK_VERDICTS` |
 | `AFTER_PROCESS_LOREBOOK` | 3 | `backgroundLore`, `LOREBOOK_TEMPLATE_DATA` |
 | `BEFORE_PREPARE_CONTENT` | 4 | `PrePromptData.reservedTokens` - reserve room for text added later |

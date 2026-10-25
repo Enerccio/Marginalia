@@ -295,7 +295,8 @@ name and tag in Java and keeps the numbers of the whole lorebook; `search-lore` 
 
 `preview-lore-activation` asks `LorebookActivationService` (`domain.service`), the rules the generation step `ProcessLorebookStep` uses too: `collectLorebooks` (the enabled
 tree with the entries filled in), `orderedEntries` (by `order`, the older first), `evaluate(entry, bookTags, text)` (a `Verdict` with a `Reason`: `CONSTANT`,
-`FILTER_MATCHED`, `DISABLED`, `NEGATIVE_TAG`, `MISSING_TAG`, `FILTER_NOT_MATCHED`) and `renderPayload`. The step only adds its events around them, so what the command
+`FILTER_MATCHED`, `LORE_MATCHED`, `DISABLED`, `NEGATIVE_TAG`, `MISSING_TAG`, `FILTER_NOT_MATCHED`), `evaluateAll` (all the entries, with the passes of the scan depth of the root
+lorebook: an entry found by the content of others is `LORE_MATCHED`, its row has `scanDepth`, the pass) and `renderPayload`. The step only adds its events around them, so what the command
 shows is what a generation does. With a part the filters are looked for in the user prompt of the book rendered from the turn input stored with the part, in a
 fresh `TemplateContext` (the book, the narration settings, the variables of the book and of the part; not the story), so a payload that reads the story renders
 without it. The form with `text` and the form with `part` both have one argument, a number on the command line is taken for the text: give a part as a number

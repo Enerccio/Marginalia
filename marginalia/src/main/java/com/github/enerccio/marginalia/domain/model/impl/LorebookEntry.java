@@ -56,6 +56,11 @@ public class LorebookEntry extends ExtendableEntity {
     @ExtendedAttribute
     private InsertionMode insertionMode = InsertionMode.IN_LORE_BLOCK;
 
+    // the content of the entry is not searched for the filters of other entries (see Lorebook#getScanDepth)
+    @Transient
+    @ExtendedAttribute
+    private boolean preventRecursion = false;
+
     public Lorebook getLorebook() {
         return lorebook;
     }
@@ -142,6 +147,14 @@ public class LorebookEntry extends ExtendableEntity {
 
     public void setInsertionMode(InsertionMode insertionMode) {
         this.insertionMode = insertionMode;
+    }
+
+    public boolean isPreventRecursion() {
+        return preventRecursion;
+    }
+
+    public void setPreventRecursion(boolean preventRecursion) {
+        this.preventRecursion = preventRecursion;
     }
 
     @Override

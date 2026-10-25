@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846233183689">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846238411315">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846233183689" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846238411315" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846233183689" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846238411315" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846233183689" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846233183689" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846238411315" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846238411315" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -1019,6 +1019,7 @@ uuids; the overload with a <code translate="no" v-pre>Collection&lt;UuidPair&gt;
 | `name`, `enabled` | Columns. A disabled lorebook contributes nothing. |
 | `agentic` | Column. The working copy of an agent; the lists of the UI use `LorebookService.findAllRegularForUser`, `findAllAgenticForUser` returns only these books, `findAllForUser` both kinds. |
 | `subbooks` | Other lorebooks included in this one (join table `lorebooks_lorebooks`). A lorebook can be a sub-lorebook of several lorebooks. |
+| `scanDepth` | JSON (`@ExtendedAttribute`). How many passes search the content of the entries that were used for the filters of the others, `0` = never (the default). Only the lorebook a book uses counts; `LorebookActivationService.scanDepth` clamps it to `MAX_SCAN_DEPTH`. Copied by clone, export and import. |
 | `cachedEntries` | Transient; filled by `LorebookService.fillEntries` for generation and the editor. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -1042,6 +1043,10 @@ uuids; the overload with a <code translate="no" v-pre>Collection&lt;UuidPair&gt;
 <td>Other lorebooks included in this one (join table <code translate="no" v-pre>lorebooks_lorebooks</code>). A lorebook can be a sub-lorebook of several lorebooks.</td>
 </tr>
 <tr>
+<td><code translate="no" v-pre>scanDepth</code></td>
+<td>JSON (<code translate="no" v-pre>@ExtendedAttribute</code>). How many passes search the content of the entries that were used for the filters of the others, <code translate="no" v-pre>0</code> = never (the default). Only the lorebook a book uses counts; <code translate="no" v-pre>LorebookActivationService.scanDepth</code> clamps it to <code translate="no" v-pre>MAX_SCAN_DEPTH</code>. Copied by clone, export and import.</td>
+</tr>
+<tr>
 <td><code translate="no" v-pre>cachedEntries</code></td>
 <td>Transient; filled by <code translate="no" v-pre>LorebookService.fillEntries</code> for generation and the editor.</td>
 </tr>
@@ -1058,6 +1063,7 @@ uuids; the overload with a <code translate="no" v-pre>Collection&lt;UuidPair&gt;
 | `comment` | JSON | Note for the author, never sent. |
 | `filtering`, `filteringMode` | JSON | Activation filter: keywords separated by commas, a text to find, or a regular expression (`FilteringMode.KEYWORDS_OR` / `KEYWORDS_AND` / `TEXT` / `REGEX`). |
 | `insertionMode` | JSON | `IN_LORE_BLOCK` or `BEFORE_USER_PROMPT`. |
+| `preventRecursion` | JSON | The content of the entry is not searched for the filters of other entries (see `Lorebook.scanDepth`); it can still be used itself. Copied by clone, export and import. |
 | `cachedTags`, `cachedNegativeTags` | transient | Filled by `fillEntries`: the entry's tags plus the tags of its lorebook, and the entry's negative tags. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -1098,6 +1104,11 @@ uuids; the overload with a <code translate="no" v-pre>Collection&lt;UuidPair&gt;
 <td><code translate="no" v-pre>insertionMode</code></td>
 <td>JSON</td>
 <td><code translate="no" v-pre>IN_LORE_BLOCK</code> or <code translate="no" v-pre>BEFORE_USER_PROMPT</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>preventRecursion</code></td>
+<td>JSON</td>
+<td>The content of the entry is not searched for the filters of other entries (see <code translate="no" v-pre>Lorebook.scanDepth</code>); it can still be used itself. Copied by clone, export and import.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>cachedTags</code>, <code translate="no" v-pre>cachedNegativeTags</code></td>
@@ -1862,7 +1873,7 @@ define both beans in <code translate="no" v-pre>services-config.xml</code>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (da7a75cba).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (0ff3556dd).</p></div>
             </footer>
         </div>
     </div>

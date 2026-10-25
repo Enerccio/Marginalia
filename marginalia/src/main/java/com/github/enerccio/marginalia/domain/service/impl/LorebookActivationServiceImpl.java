@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.service.LorebookActivationService;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.service.TemplateService;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LorebookEntryVerdict;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
@@ -95,6 +96,63 @@ public class LorebookActivationServiceImpl implements LorebookActivationService 
         }
         return filterMatches(entry, text) ? new Verdict(Reason.FILTER_MATCHED, entry.getFiltering())
                 : new Verdict(Reason.FILTER_NOT_MATCHED, entry.getFiltering());
+    }
+
+    @Override
+    public int scanDepth(Lorebook root) {
+        return root == null ? 0 : Math.max(0, Math.min(MAX_SCAN_DEPTH, root.getScanDepth()));
+    }
+
+    @Override
+    public List<LorebookEntry> scannable(List<LorebookEntry> used) {
+        return used.stream().filter(entry -> !entry.isPreventRecursion() && StringUtils.isNotBlank(entry.getPayload())).toList();
+    }
+
+    @Override
+    public Verdict evaluateInContent(LorebookEntry entry, List<String> manuscriptTags, List<LorebookEntry> sources) {
+        Verdict all = evaluate(entry, manuscriptTags,
+                sources.stream().map(LorebookEntry::getPayload).collect(java.util.stream.Collectors.joining("\n\n")));
+        if (all.reason() != Reason.FILTER_MATCHED) {
+            return all;
+        }
+        for (LorebookEntry source : sources) {
+            if (evaluate(entry, manuscriptTags, source.getPayload()).activated()) {
+                return new Verdict(Reason.LORE_MATCHED, entry.getFiltering() + " <- " + source.getName());
+            }
+        }
+        return new Verdict(Reason.LORE_MATCHED, entry.getFiltering());
+    }
+
+    @Override
+    public List<LorebookEntryVerdict> evaluateAll(Lorebook root, List<Lorebook> lorebooks, List<String> manuscriptTags, String text) {
+        List<LorebookEntry> entries = orderedEntries(lorebooks);
+        LorebookEntryVerdict[] verdicts = new LorebookEntryVerdict[entries.size()];
+        List<LorebookEntry> pass = new ArrayList<>();
+        for (int i = 0; i < verdicts.length; i++) {
+            verdicts[i] = new LorebookEntryVerdict(entries.get(i), evaluate(entries.get(i), manuscriptTags, text), 0);
+            if (verdicts[i].verdict().activated()) {
+                pass.add(entries.get(i));
+            }
+        }
+        int depth = scanDepth(root);
+        for (int d = 1; d <= depth; d++) {
+            List<LorebookEntry> sources = scannable(pass);
+            if (sources.isEmpty()) {
+                break;
+            }
+            pass = new ArrayList<>();
+            for (int i = 0; i < verdicts.length; i++) {
+                if (verdicts[i].verdict().reason() != Reason.FILTER_NOT_MATCHED) {
+                    continue;
+                }
+                Verdict verdict = evaluateInContent(entries.get(i), manuscriptTags, sources);
+                if (verdict.activated()) {
+                    verdicts[i] = new LorebookEntryVerdict(entries.get(i), verdict, d);
+                    pass.add(entries.get(i));
+                }
+            }
+        }
+        return Arrays.asList(verdicts);
     }
 
     @Override

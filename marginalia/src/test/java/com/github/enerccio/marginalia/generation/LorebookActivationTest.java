@@ -8,12 +8,9 @@ import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.LorebookActivationService.Reason;
 import com.github.enerccio.marginalia.domain.service.LorebookActivationService.Verdict;
-import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
-import com.github.enerccio.marginalia.domain.service.LorebookService;
-import com.github.enerccio.marginalia.domain.service.TagRelationService;
-import com.github.enerccio.marginalia.domain.service.TagService;
 import com.github.enerccio.marginalia.domain.service.impl.LorebookActivationServiceImpl;
 import com.github.enerccio.marginalia.domain.service.impl.generation.Events;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationProperties;
@@ -820,5 +817,221 @@ class LorebookActivationTest extends GenerationTestBase {
         assertThat(reloaded.getPayload()).isEqualTo("{{setvar::x::1}}text");
         assertThat(reloaded.getModification()).hasSameTimeAs(entry.getModification());
         assertThat(lorebookService.find(book.getId()).getSubbooks()).extracting(BaseEntity::getId).isEmpty();
+    }
+
+    // ------------------------------------------------------------------------------------------------------------
+    // scan depth: the content of used entries is searched for the filters of the others
+    // ------------------------------------------------------------------------------------------------------------
+
+    @Autowired
+    private LorebookActivationService activationService;
+
+    private Lorebook scanning(int depth) throws Exception {
+        Lorebook book = lorebook("world");
+        book.setScanDepth(depth);
+        return lorebookService.save(book);
+    }
+
+    /**
+     * A (found in the prompt) mentions the castle, the castle mentions the moat, the moat is dry.
+     */
+    private void chain(Lorebook book) throws Exception {
+        entry(book, "dragon", e -> {
+            e.setOrder(1);
+            e.setFiltering("dragon");
+            e.setPayload("The dragon sleeps in the castle.");
+        });
+        entry(book, "castle", e -> {
+            e.setOrder(2);
+            e.setFiltering("castle");
+            e.setPayload("The castle has a moat.");
+        });
+        entry(book, "moat", e -> {
+            e.setOrder(3);
+            e.setFiltering("moat");
+            e.setPayload("The moat is dry.");
+        });
+    }
+
+    @Test
+    void entriesAreNotUsedByOtherEntriesWithoutScanDepth() throws Exception {
+        Lorebook book = scanning(0);
+        chain(book);
+
+        Lore lore = activate(book(book), "A dragon appears.");
+
+        assertThat(lore.activated()).containsExactly("dragon");
+    }
+
+    @Test
+    void contentOfUsedEntriesIsSearchedOncePerDepth() throws Exception {
+        Lorebook book = scanning(1);
+        chain(book);
+
+        Lore lore = activate(book(book), "A dragon appears.");
+
+        assertThat(lore.activated()).containsExactly("dragon", "castle");
+        assertThat(lore.lore()).isEqualTo("The dragon sleeps in the castle.\n\nThe castle has a moat.");
+    }
+
+    @Test
+    void deeperScanFollowsTheChainAndKeepsTheOrderOfEntries() throws Exception {
+        Lorebook book = scanning(2);
+        // the later entry in the book is used first by the order, whatever pass found it
+        entry(book, "first", e -> {
+            e.setOrder(0);
+            e.setFiltering("moat");
+            e.setPayload("Moats are wet.");
+        });
+        chain(book);
+
+        Lore lore = activate(book(book), "A dragon appears.");
+
+        assertThat(lore.activated()).containsExactly("first", "dragon", "castle", "moat");
+    }
+
+    @Test
+    void scanDepthIsLimited() throws Exception {
+        Lorebook book = scanning(99);
+        for (int i = 0; i <= LorebookActivationService.MAX_SCAN_DEPTH + 2; i++) {
+            int n = i;
+            entry(book, "link" + i, e -> {
+                e.setOrder(n);
+                e.setFiltering(n == 0 ? "start" : "key" + (n - 1));
+                e.setPayload("key" + n);
+            });
+        }
+
+        Lore lore = activate(book(book), "start");
+
+        assertThat(lore.activated()).hasSize(LorebookActivationService.MAX_SCAN_DEPTH + 1);
+    }
+
+    @Test
+    void entryThatPreventsRecursionIsNotSearched() throws Exception {
+        Lorebook book = scanning(2);
+        chain(book);
+        LorebookEntry dragon = lorebookEntryService.findForUser(
+                lorebookEntryService.getEntriesForLorebook(book).stream().filter(e -> e.getName().equals("dragon"))
+                        .findFirst().orElseThrow().getUuid());
+        dragon.setPreventRecursion(true);
+        lorebookEntryService.save(dragon);
+
+        Lore lore = activate(book(book), "A dragon appears.");
+
+        assertThat(lore.activated()).containsExactly("dragon");
+    }
+
+    @Test
+    void contentOfConstantEntriesIsSearchedToo() throws Exception {
+        Lorebook book = scanning(1);
+        entry(book, "always", e -> {
+            e.setOrder(1);
+            e.setPayload("There is a castle.");
+        });
+        entry(book, "castle", e -> {
+            e.setOrder(2);
+            e.setFiltering("castle");
+        });
+
+        Lore lore = activate(book(book), "Nothing to see.");
+
+        assertThat(lore.activated()).containsExactly("always", "castle");
+    }
+
+    @Test
+    void entriesThatAreOffOrNotForTheBookAreNotFoundByContent() throws Exception {
+        Lorebook book = scanning(1);
+        entry(book, "always", e -> e.setPayload("castle castle"));
+        entry(book, "off", e -> {
+            e.setFiltering("castle");
+            e.setEnabled(false);
+        });
+        entry(book, "wrongBook", e -> e.setFiltering("castle"));
+        LorebookEntry negative = entry(book, "negative", e -> e.setFiltering("castle"));
+        tagRelationService.createRelation(tag("spoilers"), negative, true);
+
+        Lore lore = activate(book(book, "spoilers"), "Nothing to see.");
+
+        assertThat(lore.activated()).containsExactly("always", "wrongBook");
+    }
+
+    @Test
+    void verdictsSayWhichEntryFoundAnEntryAndInWhichPass() throws Exception {
+        Lorebook book = scanning(2);
+        chain(book);
+        Manuscript manuscript = book(book);
+        AtomicReference<List<LorebookEntryVerdict>> captured = new AtomicReference<>();
+        onEvent(Events.PROCESS_ACTIVATED_ENTRIES, manuscript,
+                e -> captured.set(new ArrayList<>(e.getProperty(GenerationProperties.LOREBOOK_VERDICTS))));
+
+        activate(manuscript, "A dragon appears.");
+
+        assertThat(captured.get()).extracting(v -> v.entry().getName(), v -> v.verdict().reason(),
+                        v -> v.verdict().detail(), LorebookEntryVerdict::depth)
+                .containsExactly(
+                        tuple("dragon", Reason.FILTER_MATCHED, "dragon", 0),
+                        tuple("castle", Reason.LORE_MATCHED, "castle <- dragon", 1),
+                        tuple("moat", Reason.LORE_MATCHED, "moat <- castle", 2));
+    }
+
+    @Test
+    void extensionCanRefuseAnEntryFoundByContent() throws Exception {
+        Lorebook book = scanning(2);
+        chain(book);
+        Manuscript manuscript = book(book);
+        List<String> events = new java.util.concurrent.CopyOnWriteArrayList<>();
+        onEvent(Events.PROCESS_LOREBOOK_ENTRY, manuscript, e -> {
+            String name = ((LorebookEntry) e.getProperty(GenerationProperties.LOREBOOK_ENTRY)).getName();
+            Integer depth = e.getProperty(GenerationProperties.LOREBOOK_SCAN_DEPTH);
+            events.add(name + "@" + depth);
+            if (name.equals("castle") && depth == 1) {
+                e.getProperties().put(GenerationProperties.LOREBOOK_VERDICT, new Verdict(Reason.EXTENSION_SKIPPED, "no"));
+            }
+        });
+        AtomicReference<List<LorebookEntryVerdict>> captured = new AtomicReference<>();
+        onEvent(Events.PROCESS_ACTIVATED_ENTRIES, manuscript,
+                e -> captured.set(new ArrayList<>(e.getProperty(GenerationProperties.LOREBOOK_VERDICTS))));
+
+        Lore lore = activate(manuscript, "A dragon appears.");
+
+        // the refused entry is not used and so is not searched, nothing follows from it
+        assertThat(lore.activated()).containsExactly("dragon");
+        assertThat(events).containsExactly("dragon@0", "castle@0", "moat@0", "castle@1");
+        assertThat(captured.get()).extracting(v -> v.entry().getName(), v -> v.verdict().reason())
+                .containsExactly(tuple("dragon", Reason.FILTER_MATCHED), tuple("castle", Reason.EXTENSION_SKIPPED),
+                        tuple("moat", Reason.FILTER_NOT_MATCHED));
+    }
+
+    @Test
+    void previewWithoutAGenerationAgreesWithTheGeneration() throws Exception {
+        Lorebook book = scanning(2);
+        chain(book);
+        entry(book, "other", e -> {
+            e.setOrder(4);
+            e.setFiltering("unicorn");
+        });
+        Manuscript manuscript = book(book);
+
+        Lore lore = activate(manuscript, "A dragon appears.");
+
+        Lorebook root = lorebookService.find(book.getId());
+        List<LorebookEntryVerdict> preview = activationService.evaluateAll(root,
+                activationService.collectLorebooks(root), List.of(), "A dragon appears.");
+        assertThat(preview.stream().filter(v -> v.verdict().activated()).map(v -> v.entry().getName()).toList())
+                .isEqualTo(lore.activated());
+        assertThat(preview).extracting(v -> v.verdict().reason()).containsExactly(Reason.FILTER_MATCHED,
+                Reason.LORE_MATCHED, Reason.LORE_MATCHED, Reason.FILTER_NOT_MATCHED);
+    }
+
+    @Test
+    void scanDepthOfSubbooksIsNotUsed() throws Exception {
+        Lorebook sub = scanning(3);
+        chain(sub);
+        Lorebook root = lorebook("root", sub);
+
+        Lore lore = activate(book(root), "A dragon appears.");
+
+        assertThat(lore.activated()).containsExactly("dragon");
     }
 }

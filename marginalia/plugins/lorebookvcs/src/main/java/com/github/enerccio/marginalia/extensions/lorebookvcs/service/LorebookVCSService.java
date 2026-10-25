@@ -316,6 +316,7 @@ public class LorebookVCSService {
                 rev.setFilteringMode(fallbackEntry.getFilteringMode());
             }
             rev.setInsertionMode(flat.has("position") ? SillyTavernEntryConverter.insertionMode(flat) : fallbackEntry.getInsertionMode());
+            rev.setPreventRecursion(fallbackEntry.isPreventRecursion());
 
             // character filter restricts the entry to certain characters/tags - the closest concept are tags
             List<String> posTags = new ArrayList<>();

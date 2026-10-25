@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846233183689">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846238411315">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846233183689" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846238411315" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846233183689" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846238411315" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846233183689" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846233183689" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846238411315" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846238411315" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -220,6 +220,14 @@
 </div>
 </retype-table>
 <p><strong>Add Entry</strong> in the toolbar adds an entry with order <code translate="no" v-pre>100</code>. Changes are saved as you type.</p>
+<h3 id="searching-and-deleting-many-entries">Searching and deleting many entries</h3>
+<p>The box with the magnifier next to the buttons shows only the entries that have the text in their name, content, note or
+filter (the case does not matter); clear it to see all of them again. It looks only at the entries of the selected
+lorebook, not at the sub lorebooks. The phone layout has the box above the list.</p>
+<p>The checkbox column at the left selects entries (the one in the header selects all that are shown, so a search and then
+the header box selects the matches). When something is selected, <strong>Delete selected</strong> appears in the toolbar with the number
+of the entries; it asks once and then moves them to the <a href="../../trash/">trash</a>. The phone layout does not delete many entries
+at once.</p>
 <h2 id="search-and-replace">Search and replace</h2>
 <p><strong>Search and replace</strong> (right of <strong>Add Entry</strong>) changes a word, a name or a phrase in the name, the text and the comment of
 all the entries of the lorebook at once. It works like the <a href="../../books/story-editor/#search-and-replace">search and replace of the story</a>,
@@ -246,6 +254,7 @@ can use <code translate="no" v-pre>(?i)</code> to ignore the case). Entries that
 | **Filtering Text/Pattern** | The filter, see [Filters](#filters). Empty means no filter. |
 | **Insertion Mode** | **In Lore Block** or **Before User Prompt**, see [Order and insertion](#order-and-insertion). |
 | **Negative Tags (Exclusion)** | Tags that switch the entry off, see [Tags](#tags). |
+| **Do not search its content for other entries** | When ticked, the words in this entry's content never bring other entries in, see [Entries brought in by other entries](#entries-brought-in-by-other-entries). The phone layout shows it when it is ticked. |
 | **Note** | Your notes. Not sent to the model. Entries imported from SillyTavern list the settings that couldn't be imported here. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -275,6 +284,10 @@ can use <code translate="no" v-pre>(?i)</code> to ignore the case). Entries that
 <tr>
 <td><strong>Negative Tags (Exclusion)</strong></td>
 <td>Tags that switch the entry off, see <doc-anchor-trigger to="#tags">Tags</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td><strong>Do not search its content for other entries</strong></td>
+<td>When ticked, the words in this entry&#x27;s content never bring other entries in, see <doc-anchor-trigger to="#entries-brought-in-by-other-entries">Entries brought in by other entries</doc-anchor-trigger>. The phone layout shows it when it is ticked.</td>
 </tr>
 <tr>
 <td><strong>Note</strong></td>
@@ -415,6 +428,59 @@ into <em>Present Characters</em> when he is in the scene.</p>
 </div>
 <p>An invalid regular expression never matches; the entry stays inactive.</p>
 <p>Combine tags and a filter when an entry should only be used in some books, and there only when it&#x27;s relevant.</p>
+<h3 id="entries-brought-in-by-other-entries">Entries brought in by other entries</h3>
+<p>Normally only the request for the part activates entries. With a <strong>scan depth</strong> (the field of the
+<a href="../lorebooks/#the-lorebook-editor">lorebook</a>; <code translate="no" v-pre>0</code>, which is the default, switches this off) the content of the entries that
+were activated is searched for the filters of the entries that were not, as if it were part of the request. An entry whose
+filter is found there is activated too. That is <strong>pass 1</strong>; the content of the entries it activated is searched in pass 2,
+and so on, as many passes as the scan depth says (at most 5).</p>
+<p>For example, with a scan depth of <code translate="no" v-pre>1</code>, an entry <em>Captain Varro</em> (filter <code translate="no" v-pre>varro</code>) is activated by the request, and its content
+says &quot;...serves the Duke of Ostra&quot;. An entry <em>Ostra</em> (filter <code translate="no" v-pre>ostra</code>) is then activated too, although the request never
+mentions the city. With a scan depth of <code translate="no" v-pre>2</code>, the entry <em>Ostra</em> would in turn bring in an entry about the harbor it mentions.</p>
+<ul>
+<li>
+<p>Only <strong>filters</strong> count: an entry that is already used because it has no filter needs nothing, and an entry that is
+switched off, or excluded by its tags, is not brought in.</p>
+</li>
+<li>
+<p>The content that is searched is the text of the entry as written, the templates in it are not run.</p>
+</li>
+<li>
+<p>The setting of the lorebook the <strong>book uses</strong> counts; the scan depth of a sub lorebook is ignored.</p>
+</li>
+<li>
+<p>An entry with <strong>Do not search its content for other entries</strong> ticked can be activated, but it brings nobody in.</p>
+</li>
+<li>
+<p>The order in the prompt does not depend on how an entry was found, see <doc-anchor-trigger to="#order-and-insertion">Order and insertion</doc-anchor-trigger>.</p>
+</li>
+<li>
+<p>Extensions that change which entries are used (see <a href="../../extensions/">Extensions</a>) are asked about the entries
+that are brought in too.</p>
+</li>
+</ul>
+<h2 id="preview-activation">Preview activation</h2>
+<p><strong>Preview activation</strong> (the button with the eye in the toolbar of the lorebook editor, and on the phone next to the search and replace
+button) answers &quot;which entries would be used for this text?&quot; without generating anything. Type the text of the request
+into <strong>Text of the turn</strong> (the scene, the characters and the instructions, as you would enter them) and the table lists every entry
+of the lorebook and of its sub lorebooks, in the order they are used:</p>
+<ul>
+<li>
+<p>a green check mark for the entries that would be used and a gray mark for the others;</p>
+</li>
+<li>
+<p>the lorebook of the entry, its <strong>Order</strong>, the <strong>Pass</strong> (empty for the entries the text activated, <code translate="no" v-pre>1</code>, <code translate="no" v-pre>2</code>... for the entries
+brought in by <doc-anchor-trigger to="#entries-brought-in-by-other-entries">other entries</doc-anchor-trigger>);</p>
+</li>
+<li>
+<p>the <strong>Reason</strong>: no filter, filter found in the text, filter found in the content of another entry (with the filter and the
+entry), or why not: switched off, a negative tag of the book, the book lacks a tag of the entry, the filter was not found.</p>
+</li>
+</ul>
+<p>The tags decide too, so pick a book in <strong>Tags of the book</strong> to use its tags (without one, no tags count). Below the text, a line says how many entries
+would be used and about how many tokens of lore that is. The scan depth of the lorebook is used.</p>
+<p>The preview applies the rules of Marginalia only: the text is the one you type (not the user prompt template around it),
+and what an <a href="../../extensions/">extension</a> changes while a part is generated is not part of it.</p>
 <h2 id="order-and-insertion">Order and insertion</h2>
 <p>Activated entries are put into the prompt sorted by <strong>Order</strong>, lowest first. Entries with the same order keep the
 order in which they were created. Entries from all included lorebooks are sorted together.</p>
@@ -494,7 +560,11 @@ used as plain text, without processing the template.</p>
 between books.</p>
 </li>
 <li>
-<p>Check what was activated with <strong>Show Prompt</strong> on a generated part.</p>
+<p>Check what was activated with <strong>Show Prompt</strong> on a generated part, or try a text before you write with
+<doc-anchor-trigger to="#preview-activation">Preview activation</doc-anchor-trigger>.</p>
+</li>
+<li>
+<p>Use the scan depth sparingly: one pass is enough for most books, and every pass can bring in more lore than you wanted.</p>
 </li>
 </ul>
 
@@ -534,7 +604,7 @@ between books.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (da7a75cba).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (0ff3556dd).</p></div>
             </footer>
         </div>
     </div>

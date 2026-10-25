@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846233183689">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846238411315">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846233183689" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846238411315" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846233183689" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846238411315" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846233183689" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846233183689" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846238411315" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846238411315" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -433,8 +433,8 @@ to keep the note after it.</p>
 | Add text to the system prompt | `AFTER_PREPARE_CONTENT` | change `PrePromptData.systemPrompt` |
 | Hide or add lore | `PROCESS_ACTIVATED_ENTRIES` | modify the `ACTIVATED_LOREBOOK_ENTRIES` list |
 | Know how a generation ended (notify, count, clean up) | `AFTER_CLEANUP` | read `OUTCOME` (`COMPLETED` / `CANCELLED` / `FAILED`) and `FAILURE`; the event is emitted for every generation and its listeners run also when the user stopped it, `getMessage()` is the part (`null` when it was removed). Tell the data of generations that run at the same time apart by `RUN_ID` |
-| Force a lore entry in or out | `PROCESS_LOREBOOK_ENTRY` | replace the `LOREBOOK_VERDICT` property (the activation's `Verdict` for the `LOREBOOK_ENTRY`) with `new Verdict(Reason.EXTENSION_ACTIVATED or EXTENSION_SKIPPED, why)`; the entry is used by the verdict that is left |
-| See why lore entries were used or left out | `PROCESS_ACTIVATED_ENTRIES` | read the `LOREBOOK_VERDICTS` property (`LorebookEntryVerdict`: the entry and its final `Verdict` with the `Reason` and detail, for every evaluated entry); it is a record, removing entries from `ACTIVATED_LOREBOOK_ENTRIES` does not change it |
+| Force a lore entry in or out | `PROCESS_LOREBOOK_ENTRY` | replace the `LOREBOOK_VERDICT` property (the activation's `Verdict` for the `LOREBOOK_ENTRY`) with `new Verdict(Reason.EXTENSION_ACTIVATED or EXTENSION_SKIPPED, why)`; the entry is used by the verdict that is left. The event comes again, with `LOREBOOK_SCAN_DEPTH` n &gt; 0 and a `LORE_MATCHED` verdict, for an entry the content of the used entries brought in (the scan depth of the lorebook); replacing that verdict with `EXTENSION_SKIPPED` keeps it out, and then its own content is not searched |
+| See why lore entries were used or left out | `PROCESS_ACTIVATED_ENTRIES` | read the `LOREBOOK_VERDICTS` property (`LorebookEntryVerdict`: the entry, its final `Verdict` with the `Reason` and detail, and the `depth` (the scan pass that found it, 0 for the prompt), for every evaluated entry); it is a record, removing entries from `ACTIVATED_LOREBOOK_ENTRIES` does not change it |
 | Reserve room for text added later | `BEFORE_PREPARE_CONTENT` | add to `PrePromptData.reservedTokens` |
 | Shorten the story sent to the model | `AFTER_MANUSCRIPT_CONCATENATION` | replace `MANUSCRIPT_CHRONICLE` |
 | Change the instructions of the turn | `AFTER_PREPARE_CONSTANT_DATA` | change the processed user prompt in `PrePromptData` |
@@ -470,12 +470,12 @@ to keep the note after it.</p>
 <tr>
 <td>Force a lore entry in or out</td>
 <td><code translate="no" v-pre>PROCESS_LOREBOOK_ENTRY</code></td>
-<td>replace the <code translate="no" v-pre>LOREBOOK_VERDICT</code> property (the activation&#x27;s <code translate="no" v-pre>Verdict</code> for the <code translate="no" v-pre>LOREBOOK_ENTRY</code>) with <code translate="no" v-pre>new Verdict(Reason.EXTENSION_ACTIVATED or EXTENSION_SKIPPED, why)</code>; the entry is used by the verdict that is left</td>
+<td>replace the <code translate="no" v-pre>LOREBOOK_VERDICT</code> property (the activation&#x27;s <code translate="no" v-pre>Verdict</code> for the <code translate="no" v-pre>LOREBOOK_ENTRY</code>) with <code translate="no" v-pre>new Verdict(Reason.EXTENSION_ACTIVATED or EXTENSION_SKIPPED, why)</code>; the entry is used by the verdict that is left. The event comes again, with <code translate="no" v-pre>LOREBOOK_SCAN_DEPTH</code> n &gt; 0 and a <code translate="no" v-pre>LORE_MATCHED</code> verdict, for an entry the content of the used entries brought in (the scan depth of the lorebook); replacing that verdict with <code translate="no" v-pre>EXTENSION_SKIPPED</code> keeps it out, and then its own content is not searched</td>
 </tr>
 <tr>
 <td>See why lore entries were used or left out</td>
 <td><code translate="no" v-pre>PROCESS_ACTIVATED_ENTRIES</code></td>
-<td>read the <code translate="no" v-pre>LOREBOOK_VERDICTS</code> property (<code translate="no" v-pre>LorebookEntryVerdict</code>: the entry and its final <code translate="no" v-pre>Verdict</code> with the <code translate="no" v-pre>Reason</code> and detail, for every evaluated entry); it is a record, removing entries from <code translate="no" v-pre>ACTIVATED_LOREBOOK_ENTRIES</code> does not change it</td>
+<td>read the <code translate="no" v-pre>LOREBOOK_VERDICTS</code> property (<code translate="no" v-pre>LorebookEntryVerdict</code>: the entry, its final <code translate="no" v-pre>Verdict</code> with the <code translate="no" v-pre>Reason</code> and detail, and the <code translate="no" v-pre>depth</code> (the scan pass that found it, 0 for the prompt), for every evaluated entry); it is a record, removing entries from <code translate="no" v-pre>ACTIVATED_LOREBOOK_ENTRIES</code> does not change it</td>
 </tr>
 <tr>
 <td>Reserve room for text added later</td>
@@ -554,7 +554,7 @@ to keep the note after it.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (da7a75cba).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (0ff3556dd).</p></div>
             </footer>
         </div>
     </div>

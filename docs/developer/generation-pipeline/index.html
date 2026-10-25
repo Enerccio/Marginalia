@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846233183689">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846238411315">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846233183689" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846238411315" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846233183689" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846238411315" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846233183689" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846233183689" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846238411315" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846238411315" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -433,6 +433,15 @@ is loaded with <code translate="no" v-pre>LorebookService.fillEntries</code> (en
 </div>
 </retype-table>
 </li>
+<li><strong>Scan</strong> (only with a scan depth): <code translate="no" v-pre>Lorebook.scanDepth</code> of the lorebook the book uses (clamped to
+<code translate="no" v-pre>LorebookActivationService.MAX_SCAN_DEPTH</code>, 5; the value of a sub-lorebook is ignored) is how many passes follow.
+Pass n takes the entries pass n - 1 activated (pass 0 is step 3), leaves out those with <code translate="no" v-pre>preventRecursion</code> or no
+payload, and evaluates the entries whose verdict is still <code translate="no" v-pre>FILTER_NOT_MATCHED</code> against the <strong>raw</strong> payloads of
+those (joined; templates are not run): <code translate="no" v-pre>evaluateInContent</code> gives <code translate="no" v-pre>LORE_MATCHED</code>, the detail being
+<code translate="no" v-pre>filter &lt;- name of the first entry that has it</code>. The pass ends the scan when nothing was activated. Each such entry gets
+<code translate="no" v-pre>PROCESS_LOREBOOK_ENTRY</code> again (<code translate="no" v-pre>LOREBOOK_SCAN_DEPTH</code> = n) and a verdict a listener replaced counts. The activated
+entries are in the order of step 2 whatever pass found them. <code translate="no" v-pre>LorebookActivationService.evaluateAll</code> runs the same
+rules without events (the preview in the lorebook editor and <code translate="no" v-pre>/preview-lore-activation</code>).</li>
 <li><strong>Render</strong> the active entries&#x27; payloads as templates with one shared <code translate="no" v-pre>LorebookTemplateData</code> - so variables set in
 one entry are visible in the following ones. A payload that fails to render is used as it is.</li>
 <li><strong>Insert</strong>: payloads with <code translate="no" v-pre>IN_LORE_BLOCK</code> are joined into <code translate="no" v-pre>backgroundLore</code> (the master template&#x27;s
@@ -441,7 +450,8 @@ the user prompt.</li>
 </ol>
 <p>Events: <code translate="no" v-pre>BEFORE_PROCESS_LOREBOOK</code>, <code translate="no" v-pre>PROCESS_LOREBOOKS</code> (the list in <code translate="no" v-pre>LOREBOOKS</code> can be changed),
 <code translate="no" v-pre>PROCESS_LOREBOOK_ENTRY</code> (once per entry, <code translate="no" v-pre>LOREBOOK_ENTRY</code>; the entry is evaluated first and <code translate="no" v-pre>LOREBOOK_VERDICT</code> holds
-the decision, a listener can replace it and the entry is used by the verdict that is left),
+the decision, a listener can replace it and the entry is used by the verdict that is left; <code translate="no" v-pre>LOREBOOK_SCAN_DEPTH</code> is 0, and
+again for each entry a pass of the scan depth found, with its pass number),
 <code translate="no" v-pre>PROCESS_ACTIVATED_ENTRIES</code> (<code translate="no" v-pre>ACTIVATED_LOREBOOK_ENTRIES</code> can be changed; <code translate="no" v-pre>LOREBOOK_VERDICTS</code> lists the final decision on
 every evaluated entry, used or not, with its reason), <code translate="no" v-pre>AFTER_PROCESS_LOREBOOK</code>.</p>
 <h3 id="4-prepare_content---preparecontentstep">4. <code translate="no" v-pre>PREPARE_CONTENT</code> - <code translate="no" v-pre>PrepareContentStep</code></h3>
@@ -760,7 +770,7 @@ waits for it, and must not need a request context. What it throws is logged and 
 | `AFTER_PREPARE_CONSTANT_DATA` | 2 | rendered user prompt, `TEMPLATE_CONTEXT` |
 | `BEFORE_PROCESS_LOREBOOK` | 3 | |
 | `PROCESS_LOREBOOKS` | 3 | `LOREBOOKS` (read back) |
-| `PROCESS_LOREBOOK_ENTRY` | 3 | `LOREBOOK_ENTRY`, `LOREBOOK_VERDICT` (read back), once per entry |
+| `PROCESS_LOREBOOK_ENTRY` | 3 | `LOREBOOK_ENTRY`, `LOREBOOK_VERDICT` (read back), `LOREBOOK_SCAN_DEPTH`; once per entry, again for entries found by a scan pass |
 | `PROCESS_ACTIVATED_ENTRIES` | 3 | `ACTIVATED_LOREBOOK_ENTRIES` (read back), `LOREBOOK_VERDICTS` |
 | `AFTER_PROCESS_LOREBOOK` | 3 | `backgroundLore`, `LOREBOOK_TEMPLATE_DATA` |
 | `BEFORE_PREPARE_CONTENT` | 4 | `PrePromptData.reservedTokens` - reserve room for text added later |
@@ -817,7 +827,7 @@ waits for it, and must not need a request context. What it throws is logged and 
 <tr>
 <td><code translate="no" v-pre>PROCESS_LOREBOOK_ENTRY</code></td>
 <td>3</td>
-<td><code translate="no" v-pre>LOREBOOK_ENTRY</code>, <code translate="no" v-pre>LOREBOOK_VERDICT</code> (read back), once per entry</td>
+<td><code translate="no" v-pre>LOREBOOK_ENTRY</code>, <code translate="no" v-pre>LOREBOOK_VERDICT</code> (read back), <code translate="no" v-pre>LOREBOOK_SCAN_DEPTH</code>; once per entry, again for entries found by a scan pass</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>PROCESS_ACTIVATED_ENTRIES</code></td>
@@ -971,7 +981,7 @@ wait for it to finish. See <a href="../testing/">Testing</a>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (da7a75cba).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (0ff3556dd).</p></div>
             </footer>
         </div>
     </div>

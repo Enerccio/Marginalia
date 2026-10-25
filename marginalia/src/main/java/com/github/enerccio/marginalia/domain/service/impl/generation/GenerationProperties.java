@@ -42,8 +42,17 @@ public final class GenerationProperties {
     public static final String LOREBOOK_VERDICT = "LOREBOOK_VERDICT";
 
     /**
+     * {@code Integer} the pass of the scan depth the entry in {@link #LOREBOOK_ENTRY} is decided in, set for each
+     * {@link Events#PROCESS_LOREBOOK_ENTRY}: 0 when the filter is looked for in the prompt (every entry gets this event
+     * once), n when it was found in the content of the entries that the pass n - 1 used (the event is only for such
+     * entries and comes again for an entry already decided; the verdict is {@code LORE_MATCHED}, and a listener can
+     * replace it as usual). See {@code Lorebook#getScanDepth}.
+     */
+    public static final String LOREBOOK_SCAN_DEPTH = "LOREBOOK_SCAN_DEPTH";
+
+    /**
      * {@code List<LorebookEntryVerdict>} the final decision on every entry that was evaluated (used or not, with the
-     * {@code Reason} and its detail), in evaluation order. Created empty at {@link Events#PROCESS_LOREBOOKS}, an entry is
+     * {@code Reason}, its detail and the pass of the scan depth), in evaluation order. Created empty at {@link Events#PROCESS_LOREBOOKS}, an entry is
      * added after its {@link Events#PROCESS_LOREBOOK_ENTRY} (with the verdict the listeners left in
      * {@link #LOREBOOK_VERDICT}), and it is complete from {@link Events#PROCESS_ACTIVATED_ENTRIES}. A record: to change
      * a decision use {@link #LOREBOOK_VERDICT}, changes made to {@link #ACTIVATED_LOREBOOK_ENTRIES} are not reflected in

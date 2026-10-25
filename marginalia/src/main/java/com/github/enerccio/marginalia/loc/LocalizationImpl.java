@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
+import com.github.enerccio.marginalia.domain.service.LorebookActivationService;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookDecision;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookMatch;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference;
@@ -39,6 +40,7 @@ public class LocalizationImpl implements Localization, InitializingBean {
     private final Map<BackupStrategy, L> backupStrategies = new HashMap<>();
     private final Map<FilteringMode, L> filteringModes = new HashMap<>();
     private final Map<InsertionMode, L> insertionModes = new HashMap<>();
+    private final Map<LorebookActivationService.Reason, L> activationReasons = new HashMap<>();
     private final Map<CleanupReference.Policy, L> cleanupPolicies = new HashMap<>();
     private final Map<LorebookMatch, L> lorebookMatches = new HashMap<>();
     private final Map<LorebookDecision, L> lorebookDecisions = new HashMap<>();
@@ -128,6 +130,10 @@ public class LocalizationImpl implements Localization, InitializingBean {
 
         insertionModes.put(InsertionMode.IN_LORE_BLOCK, L.ENUM_INSERTION_MODE_IN_LORE_BLOCK);
         insertionModes.put(InsertionMode.BEFORE_USER_PROMPT, L.ENUM_INSERTION_MODE_BEFORE_USER_PROMPT);
+
+        for (LorebookActivationService.Reason reason : LorebookActivationService.Reason.values()) {
+            activationReasons.put(reason, L.valueOf("ENUM_ACTIVATION_REASON_" + reason.name()));
+        }
 
         cleanupPolicies.put(CleanupReference.Policy.STRONG, L.ENUM_CLEANUP_POLICY_STRONG);
         cleanupPolicies.put(CleanupReference.Policy.OWNED_BY, L.ENUM_CLEANUP_POLICY_OWNED_BY);
@@ -366,6 +372,11 @@ public class LocalizationImpl implements Localization, InitializingBean {
     @Override
     public L getInsertionMode(InsertionMode type) {
         return insertionModes.get(type);
+    }
+
+    @Override
+    public L getActivationReason(LorebookActivationService.Reason type) {
+        return activationReasons.get(type);
     }
 
     @Override
