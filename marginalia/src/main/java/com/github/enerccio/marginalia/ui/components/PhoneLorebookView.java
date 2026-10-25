@@ -188,6 +188,8 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
     private void setupGrid() {
         grid = new Grid<>(LorebookEntry.class, false);
         grid.setSizeFull();
+        // the buttons of the rows are the only way to open details, so that openEntries knows about all of them
+        grid.setDetailsVisibleOnClick(false);
         // rows grow with their content, so a long name breaks into lines instead of running under the button
         grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
         grid.addComponentColumn(this::createEntryRow).setFlexGrow(1);
@@ -504,6 +506,8 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         } else {
             lorebookEnabledCheckbox.setValue(false);
             lorebookInfoSpan.setText("");
+            // the grid keeps its own record of the opened details over setItems: close them, openEntries decides what opens again
+            currentEntries.forEach(old -> grid.setDetailsVisible(old, false));
             grid.setItems(new ArrayList<>());
             currentEntries = new ArrayList<>();
             entryTokens.clear();
@@ -544,6 +548,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
                     @APILocals(name = "e", type = Exception.class)})
     public void refreshEntries() {
         if (currentLorebook == null || currentLorebook.getId() == null) {
+            currentEntries.forEach(old -> grid.setDetailsVisible(old, false));
             grid.setItems(new ArrayList<>());
             currentEntries = new ArrayList<>();
             entryTokens.clear();
@@ -552,6 +557,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         }
         try {
             List<LorebookEntry> entries = lorebookEntryService.getEntriesForLorebook(currentLorebook.getId());
+            currentEntries.forEach(old -> grid.setDetailsVisible(old, false));
             grid.setItems(entries);
             showOpenEntries(entries);
             currentEntries = entries;
@@ -592,7 +598,8 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
     }
 
     /**
-     * Opens the details of the entries that were opened and still exist, forgets the others.
+     * Shows the details of the entries that were opened and still exist and hides those of the others, forgets the
+     * entries that are gone.
      */
     @PublicAPI(from = "1.3.0",
             returns = @APIReturn(type = void.class),
@@ -601,9 +608,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
     private void showOpenEntries(List<LorebookEntry> entries) {
         openEntries.retainAll(entries.stream().map(LorebookEntry::getUuid).collect(Collectors.toSet()));
         for (LorebookEntry entry : entries) {
-            if (openEntries.contains(entry.getUuid())) {
-                grid.setDetailsVisible(entry, true);
-            }
+            grid.setDetailsVisible(entry, openEntries.contains(entry.getUuid()));
         }
     }
 
