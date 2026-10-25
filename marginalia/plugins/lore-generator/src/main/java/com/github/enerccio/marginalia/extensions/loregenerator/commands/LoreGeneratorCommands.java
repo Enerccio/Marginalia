@@ -25,7 +25,9 @@ import java.util.concurrent.CancellationException;
  * The commands of the Lore Generator for the command bar and for agents: {@code list-lore-templates},
  * {@code generate-lore-entry} and {@code compact-lore-entry}. They do what the generator dialog does, in the same two
  * steps, and like the dialog they store nothing: the generated and the compacted text are only returned, putting them
- * into an entry (the dialog's <i>Copy to Lore Entry</i>) is up to the caller. All three only read.
+ * into an entry (the dialog's <i>Copy to Lore Entry</i>) is up to the caller. {@code generate-lore-entry} runs the
+ * compaction itself right after the generation unless {@code compact} is false, as agents often do not follow up with
+ * {@code compact-lore-entry}. All three only read.
  * <p>
  * The lorebook and the entry are addressed by number like in the commands of the application ({@code list-lorebooks},
  * {@code list-lore-entries}), and the model is the default model of the user. The entry is optional: it is the entry
@@ -47,10 +49,11 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
             + "the text, and the one used last. Pass a template name to get the whole text of it, for example to copy it, fill in its "
             + "placeholders and pass the result as the prompt of generate-lore-entry. Reads only.";
     private static final String GENERATE_TEXT = "Generates the text of a lore entry with the default model of the user, written against the lore "
-            + "of the lorebook, and returns it. Stores nothing. Compact it afterwards.";
+            + "of the lorebook, compacts it and returns it (compact=false returns the generated text). Stores nothing.";
     private static final String GENERATE_LLM = "Generates a long, atmospheric text for a lore entry, written against the existing lore of the "
-            + "lorebook, and returns it as plain text. Stores nothing: put the result into an entry yourself when you are happy with it. Run "
-            + "compact-lore-entry on the result next to make the dense text the stories use. The quality comes from the user's generation "
+            + "lorebook, and returns it as plain text. By default the generated text is compacted in the same call (the same step as "
+            + "compact-lore-entry), so the result is the dense text the stories use and you need no second command; pass compact=false to get the "
+            + "long generated text instead. Stores nothing: put the result into an entry yourself when you are happy with it. The quality comes from the user's generation "
             + "prompt (template), which is added in front of your prompt by default (the one used last, or name another from "
             + "list-lore-templates, which also returns the text of one). The template asks for a subject, the core details to weave "
             + "in, the target length and the structure, so your prompt must give exactly that: say who or what the entry is about, list every "
@@ -88,6 +91,8 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
     private static final String PARAM_IMAGES = "Images the model looks at while it writes, for example a reference picture or a map; the prompt "
             + "should say what to take from them";
     private static final String PARAM_TEXT = "The text to compact";
+    private static final String PARAM_COMPACT = "Compact the generated text right away, as compact-lore-entry does, and return the compacted text "
+            + "(true, default); false returns the generated text as it is, to be compacted by compact-lore-entry";
 
     private final LoreGeneratorService service;
 
@@ -245,6 +250,25 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         runGenerate(context);
     }
 
+    @Command(commandName = GENERATE, linkedCommand = {LIST, COMPACT}, batch = BatchPolicy.SINGLE, humanNameText = "Generate lore entry", async = true,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
+                    @CommandParameter(name = "template", type = String.class, optional = true, descriptionText = PARAM_TEMPLATE),
+                    @CommandParameter(name = "lorebook", type = String.class, optional = true, descriptionText = PARAM_LOREBOOK),
+                    @CommandParameter(name = "entry", type = String.class, optional = true, descriptionText = PARAM_ENTRY),
+                    @CommandParameter(name = "order", type = Integer.class, optional = true, descriptionText = PARAM_ORDER),
+                    @CommandParameter(name = "scope", type = String.class, optional = true, defaultValue = "CURRENT_LOREBOOK",
+                            allowed = {"CURRENT_LOREBOOK", "ALL_LORE"}, descriptionText = PARAM_SCOPE),
+                    @CommandParameter(name = "limit", type = String.class, optional = true, defaultValue = "UP_TO_POSITION",
+                            allowed = {"UP_TO_POSITION", "ALL_ENTRIES"}, descriptionText = PARAM_LIMIT),
+                    @CommandParameter(name = "images", type = LLMAttachment[].class, optional = true, descriptionText = PARAM_IMAGES),
+                    @CommandParameter(name = "compact", type = Boolean.class, optional = true, defaultValue = "true", descriptionText = PARAM_COMPACT)}),
+            returns = @CommandReturn(name = "text", type = String.class, descriptionText = RESULT_GENERATE))
+    public void generateCompact(CommandContext context) throws Exception {
+        runGenerate(context);
+    }
+
     private void runGenerate(CommandContext context) throws Exception {
         Lore lore = new Lore(new Book(context));
         Target target = target(lore, ref(context, "lorebook"), ref(context, "entry"), context.get("order", Integer.class));
@@ -277,6 +301,14 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         }
         if (StringUtils.isBlank(generated)) {
             throw new IllegalStateException("The model returned no text");
+        }
+        if (!Boolean.FALSE.equals(context.get("compact", Boolean.class))) {
+            String compacted = compactText(context, model, book, entry, scope, limit, generated);
+            if (compacted == null) {
+                return;
+            }
+            context.setReturn(compacted);
+            return;
         }
         context.setReturn(generated);
     }
@@ -369,21 +401,30 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         }
         ModelSelection model = requireModel(context);
 
+        String compacted = compactText(context, model, book, entry, scope, limit, source);
+        if (compacted != null) {
+            context.setReturn(compacted);
+        }
+    }
+
+    /** The compaction step shared by both commands; null when the command was cancelled or terminated. */
+    private String compactText(CommandContext context, ModelSelection model, Lorebook book, LorebookEntry entry, LoreScope scope,
+                               EntryLimit limit, String source) throws Exception {
         context.setStatus("Compacting the text of a lore entry");
         String compacted;
         try {
             compacted = service.complete(model, service.toPayload(
                     service.buildCompactionPrompt(book, entry, scope, limit, source)));
         } catch (CancellationException e) {
-            return;
+            return null;
         }
         if (context.isTerminated()) {
-            return;
+            return null;
         }
         if (StringUtils.isBlank(compacted)) {
             throw new IllegalStateException("The model returned no text");
         }
-        context.setReturn(LoreGeneratorService.unfence(compacted));
+        return LoreGeneratorService.unfence(compacted);
     }
 
     // --- helpers ---
