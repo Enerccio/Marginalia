@@ -203,11 +203,15 @@ Points worth copying:
 |---|---|---|
 | Add text to the system prompt | `AFTER_PREPARE_CONTENT` | change `PrePromptData.systemPrompt` |
 | Hide or add lore | `PROCESS_ACTIVATED_ENTRIES` | modify the `ACTIVATED_LOREBOOK_ENTRIES` list |
+| Know how a generation ended (notify, count, clean up) | `AFTER_CLEANUP` | read `OUTCOME` (`COMPLETED` / `CANCELLED` / `FAILED`) and `FAILURE`; the event is emitted for every generation and its listeners run also when the user stopped it, `getMessage()` is the part (`null` when it was removed). Tell the data of generations that run at the same time apart by `RUN_ID` |
+| Force a lore entry in or out | `PROCESS_LOREBOOK_ENTRY` | replace the `LOREBOOK_VERDICT` property (the activation's `Verdict` for the `LOREBOOK_ENTRY`) with `new Verdict(Reason.EXTENSION_ACTIVATED or EXTENSION_SKIPPED, why)`; the entry is used by the verdict that is left |
+| See why lore entries were used or left out | `PROCESS_ACTIVATED_ENTRIES` | read the `LOREBOOK_VERDICTS` property (`LorebookEntryVerdict`: the entry and its final `Verdict` with the `Reason` and detail, for every evaluated entry); it is a record, removing entries from `ACTIVATED_LOREBOOK_ENTRIES` does not change it |
 | Reserve room for text added later | `BEFORE_PREPARE_CONTENT` | add to `PrePromptData.reservedTokens` |
 | Shorten the story sent to the model | `AFTER_MANUSCRIPT_CONCATENATION` | replace `MANUSCRIPT_CHRONICLE` |
 | Change the instructions of the turn | `AFTER_PREPARE_CONSTANT_DATA` | change the processed user prompt in `PrePromptData` |
 | Read how the context was spent | `AFTER_PREPARE_CONTENT` | read the `TOKEN_BREAKDOWN` property (`PromptTokenBreakdown`: tokens of each section and of what was cut); the tokens of the payload messages are added when the part is created, so changes made in `AFTER_PREPARE_PAYLOAD` are counted |
 | Post-process the answer as it streams | `CHUNK_RECEIVED` | replace the `CHUNK` property |
+| Only watch the answer as it streams (live counter, mirror, log) | `CHUNK_RECEIVED`, `REASONING_CHUNK_RECEIVED` | an observer: `storyGenerationService.addEventObserver(event, observation -> ...)` runs synchronously on the stream's thread with no hop and no `chain.next()`, gets a read-only `GenerationObservation` and cannot change anything; keep it fast and hand slow work to another thread |
 | Act on the finished part | `AFTER_INFERENCE` | read `event.getMessage()` |
 
 `GenerationProperties` documents each property and when it is available.

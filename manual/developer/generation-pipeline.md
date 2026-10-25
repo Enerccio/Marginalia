@@ -165,8 +165,10 @@ Skipped when the book has no lorebook. Otherwise:
    the user prompt.
 
 Events: `BEFORE_PROCESS_LOREBOOK`, `PROCESS_LOREBOOKS` (the list in `LOREBOOKS` can be changed),
-`PROCESS_LOREBOOK_ENTRY` (once per entry, `LOREBOOK_ENTRY`), `PROCESS_ACTIVATED_ENTRIES` (`ACTIVATED_LOREBOOK_ENTRIES`
-can be changed), `AFTER_PROCESS_LOREBOOK`.
+`PROCESS_LOREBOOK_ENTRY` (once per entry, `LOREBOOK_ENTRY`; the entry is evaluated first and `LOREBOOK_VERDICT` holds
+the decision, a listener can replace it and the entry is used by the verdict that is left),
+`PROCESS_ACTIVATED_ENTRIES` (`ACTIVATED_LOREBOOK_ENTRIES` can be changed; `LOREBOOK_VERDICTS` lists the final decision on
+every evaluated entry, used or not, with its reason), `AFTER_PROCESS_LOREBOOK`.
 
 ### 4. `PREPARE_CONTENT` - `PrepareContentStep`
 
@@ -310,7 +312,15 @@ Always the last step. Depending on the state:
 | `NOT_SUCCESSFUL`, no part yet | `onCancelled(null)`. |
 | `NOT_SUCCESSFUL`, part exists (no text arrived) | New part: the book's active leaf goes back to its parent, the part is deleted (children moved to its parent), `onCancelled(null)`. Swipe: the swiped version becomes active again, the new sibling is deleted, `onCancelled(previous)`. Regenerate: every value of the part is restored from `ORIGINAL_MESSAGE` (`loadFrom`, attributes included), `onCancelled(part)`. |
 
-Event: `BEFORE_CLEANUP`.
+Events: `BEFORE_CLEANUP` (its listeners do not run when the user stopped the generation, like those of every event) and
+`AFTER_CLEANUP`, the last event of **every** generation: it is emitted when the cleanup is done, also when the cleanup
+itself failed, and its listeners run also when the generation was stopped or interrupted (`Events.isTerminal()`). Before
+the cleanup starts the step sets `OUTCOME` (`GenerationOutcome`: `COMPLETED`; `CANCELLED` when the user stopped it - that
+wins over an error the stop caused; otherwise `FAILED`) and, when an error was reported to the user (`onError`,
+`onSimpleError`, `onInferenceError` of the `GenerationListener`; the engine wraps the listener in a
+`FailureTrackingListener`, so it does not matter which step reported it), `FAILURE` (`GenerationFailure`: the first
+message and the exception). `getMessage()` of the event is the part with the text that arrived, `null` when it was
+removed. The listener of the caller (`onComplete`, `onCancelled`) has been told by then.
 
 ## Prompt data
 
@@ -369,6 +379,15 @@ Rules:
   `ui.access(...)`.
 - Unregister on unload - registrations are not removed automatically.
 
+To only **watch** an event, most of all a hot one such as `CHUNK_RECEIVED`, register an observer instead:
+`storyGenerationService.addEventObserver(Events.CHUNK_RECEIVED, observation -> ...)` (`GenerationObserver`, returns a
+`Registration` too). It is called synchronously on the thread that emits the event - for a chunk the thread of the
+inference stream - before the listeners of the event, so it costs no hop to another thread and takes no part in the chain
+(no `chain.next()`). It gets a read-only `GenerationObservation` (event, `getRunId()`, manuscript, AI, protocol, message,
+request, input and an unmodifiable view of the properties), sees the values as the step produced them (a chunk before the
+listeners changed it) and is also called for a generation that was stopped. It must return quickly, because the generation
+waits for it, and must not need a request context. What it throws is logged and ignored.
+
 The bundled Author's Note plugin is a complete example: it reserves tokens in `BEFORE_PREPARE_CONTENT`
 (`PrePromptData.reservedTokens`) and inserts a message into the payload in `AFTER_PREPARE_PAYLOAD`, see
 [Generation events](plugins/generation-events.md).
@@ -383,8 +402,8 @@ The bundled Author's Note plugin is a complete example: it reserves tokens in `B
 | `AFTER_PREPARE_CONSTANT_DATA` | 2 | rendered user prompt, `TEMPLATE_CONTEXT` |
 | `BEFORE_PROCESS_LOREBOOK` | 3 | |
 | `PROCESS_LOREBOOKS` | 3 | `LOREBOOKS` (read back) |
-| `PROCESS_LOREBOOK_ENTRY` | 3 | `LOREBOOK_ENTRY`, once per entry |
-| `PROCESS_ACTIVATED_ENTRIES` | 3 | `ACTIVATED_LOREBOOK_ENTRIES` (read back) |
+| `PROCESS_LOREBOOK_ENTRY` | 3 | `LOREBOOK_ENTRY`, `LOREBOOK_VERDICT` (read back), once per entry |
+| `PROCESS_ACTIVATED_ENTRIES` | 3 | `ACTIVATED_LOREBOOK_ENTRIES` (read back), `LOREBOOK_VERDICTS` |
 | `AFTER_PROCESS_LOREBOOK` | 3 | `backgroundLore`, `LOREBOOK_TEMPLATE_DATA` |
 | `BEFORE_PREPARE_CONTENT` | 4 | `PrePromptData.reservedTokens` - reserve room for text added later |
 | `BEFORE_SUMMARIES` | 4 | `SUMMARIES` (read back) |
@@ -395,7 +414,11 @@ The bundled Author's Note plugin is a complete example: it reserves tokens in `B
 | `BEFORE_INFERENCE` | 7 | |
 | `REASONING_CHUNK_RECEIVED`, `CHUNK_RECEIVED` | 7 | `REASONING_CHUNK` / `CHUNK` (read back), per chunk |
 | `AFTER_INFERENCE` | 7 | complete part |
-| `BEFORE_CLEANUP` | 8 | state |
+| `BEFORE_CLEANUP` | 8 | state, `OUTCOME`, `FAILURE` |
+| `AFTER_CLEANUP` | 8 | `OUTCOME`, `FAILURE`; also after a stopped or failed generation |
+
+`RUN_ID` (a random UUID, set before the first event) is in every event of a generation: extensions that keep data per
+generation key it by this, generations run at the same time.
 
 "Read back" means the step reads the property again after the event, so listeners can replace or modify the value.
 `GenerationProperties` documents each key.

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846227443609">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846233183689">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846227443609" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846233183689" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846227443609" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846233183689" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846227443609" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846227443609" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846233183689" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846233183689" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -440,8 +440,10 @@ one entry are visible in the following ones. A payload that fails to render is u
 the user prompt.</li>
 </ol>
 <p>Events: <code translate="no" v-pre>BEFORE_PROCESS_LOREBOOK</code>, <code translate="no" v-pre>PROCESS_LOREBOOKS</code> (the list in <code translate="no" v-pre>LOREBOOKS</code> can be changed),
-<code translate="no" v-pre>PROCESS_LOREBOOK_ENTRY</code> (once per entry, <code translate="no" v-pre>LOREBOOK_ENTRY</code>), <code translate="no" v-pre>PROCESS_ACTIVATED_ENTRIES</code> (<code translate="no" v-pre>ACTIVATED_LOREBOOK_ENTRIES</code>
-can be changed), <code translate="no" v-pre>AFTER_PROCESS_LOREBOOK</code>.</p>
+<code translate="no" v-pre>PROCESS_LOREBOOK_ENTRY</code> (once per entry, <code translate="no" v-pre>LOREBOOK_ENTRY</code>; the entry is evaluated first and <code translate="no" v-pre>LOREBOOK_VERDICT</code> holds
+the decision, a listener can replace it and the entry is used by the verdict that is left),
+<code translate="no" v-pre>PROCESS_ACTIVATED_ENTRIES</code> (<code translate="no" v-pre>ACTIVATED_LOREBOOK_ENTRIES</code> can be changed; <code translate="no" v-pre>LOREBOOK_VERDICTS</code> lists the final decision on
+every evaluated entry, used or not, with its reason), <code translate="no" v-pre>AFTER_PROCESS_LOREBOOK</code>.</p>
 <h3 id="4-prepare_content---preparecontentstep">4. <code translate="no" v-pre>PREPARE_CONTENT</code> - <code translate="no" v-pre>PrepareContentStep</code></h3>
 <p>Decides which part of the story goes into the prompt and renders the system prompt.</p>
 <p><strong>Summaries.</strong> The branch from the root to the active leaf is read, and the summaries on it are collected (oldest
@@ -619,7 +621,15 @@ extensions handle it like any provider failure. The limits are described in the 
 </table>
 </div>
 </retype-table>
-<p>Event: <code translate="no" v-pre>BEFORE_CLEANUP</code>.</p>
+<p>Events: <code translate="no" v-pre>BEFORE_CLEANUP</code> (its listeners do not run when the user stopped the generation, like those of every event) and
+<code translate="no" v-pre>AFTER_CLEANUP</code>, the last event of <strong>every</strong> generation: it is emitted when the cleanup is done, also when the cleanup
+itself failed, and its listeners run also when the generation was stopped or interrupted (<code translate="no" v-pre>Events.isTerminal()</code>). Before
+the cleanup starts the step sets <code translate="no" v-pre>OUTCOME</code> (<code translate="no" v-pre>GenerationOutcome</code>: <code translate="no" v-pre>COMPLETED</code>; <code translate="no" v-pre>CANCELLED</code> when the user stopped it - that
+wins over an error the stop caused; otherwise <code translate="no" v-pre>FAILED</code>) and, when an error was reported to the user (<code translate="no" v-pre>onError</code>,
+<code translate="no" v-pre>onSimpleError</code>, <code translate="no" v-pre>onInferenceError</code> of the <code translate="no" v-pre>GenerationListener</code>; the engine wraps the listener in a
+<code translate="no" v-pre>FailureTrackingListener</code>, so it does not matter which step reported it), <code translate="no" v-pre>FAILURE</code> (<code translate="no" v-pre>GenerationFailure</code>: the first
+message and the exception). <code translate="no" v-pre>getMessage()</code> of the event is the part with the text that arrived, <code translate="no" v-pre>null</code> when it was
+removed. The listener of the caller (<code translate="no" v-pre>onComplete</code>, <code translate="no" v-pre>onCancelled</code>) has been told by then.</p>
 <h2 id="prompt-data">Prompt data</h2>
 <p><code translate="no" v-pre>PrePromptData</code> (<code translate="no" v-pre>generation/dto/</code>) collects the prompt as the steps build it:</p>
 <retype-table copy-text="| Field | Set in | |
@@ -730,6 +740,14 @@ prefixed with the extension&#x27;s package.</p>
 <p>Unregister on unload - registrations are not removed automatically.</p>
 </li>
 </ul>
+<p>To only <strong>watch</strong> an event, most of all a hot one such as <code translate="no" v-pre>CHUNK_RECEIVED</code>, register an observer instead:
+<code translate="no" v-pre>storyGenerationService.addEventObserver(Events.CHUNK_RECEIVED, observation -&gt; ...)</code> (<code translate="no" v-pre>GenerationObserver</code>, returns a
+<code translate="no" v-pre>Registration</code> too). It is called synchronously on the thread that emits the event - for a chunk the thread of the
+inference stream - before the listeners of the event, so it costs no hop to another thread and takes no part in the chain
+(no <code translate="no" v-pre>chain.next()</code>). It gets a read-only <code translate="no" v-pre>GenerationObservation</code> (event, <code translate="no" v-pre>getRunId()</code>, manuscript, AI, protocol, message,
+request, input and an unmodifiable view of the properties), sees the values as the step produced them (a chunk before the
+listeners changed it) and is also called for a generation that was stopped. It must return quickly, because the generation
+waits for it, and must not need a request context. What it throws is logged and ignored.</p>
 <p>The bundled Author&#x27;s Note plugin is a complete example: it reserves tokens in <code translate="no" v-pre>BEFORE_PREPARE_CONTENT</code>
 (<code translate="no" v-pre>PrePromptData.reservedTokens</code>) and inserts a message into the payload in <code translate="no" v-pre>AFTER_PREPARE_PAYLOAD</code>, see
 <a href="../plugins/generation-events/">Generation events</a>.</p>
@@ -742,8 +760,8 @@ prefixed with the extension&#x27;s package.</p>
 | `AFTER_PREPARE_CONSTANT_DATA` | 2 | rendered user prompt, `TEMPLATE_CONTEXT` |
 | `BEFORE_PROCESS_LOREBOOK` | 3 | |
 | `PROCESS_LOREBOOKS` | 3 | `LOREBOOKS` (read back) |
-| `PROCESS_LOREBOOK_ENTRY` | 3 | `LOREBOOK_ENTRY`, once per entry |
-| `PROCESS_ACTIVATED_ENTRIES` | 3 | `ACTIVATED_LOREBOOK_ENTRIES` (read back) |
+| `PROCESS_LOREBOOK_ENTRY` | 3 | `LOREBOOK_ENTRY`, `LOREBOOK_VERDICT` (read back), once per entry |
+| `PROCESS_ACTIVATED_ENTRIES` | 3 | `ACTIVATED_LOREBOOK_ENTRIES` (read back), `LOREBOOK_VERDICTS` |
 | `AFTER_PROCESS_LOREBOOK` | 3 | `backgroundLore`, `LOREBOOK_TEMPLATE_DATA` |
 | `BEFORE_PREPARE_CONTENT` | 4 | `PrePromptData.reservedTokens` - reserve room for text added later |
 | `BEFORE_SUMMARIES` | 4 | `SUMMARIES` (read back) |
@@ -754,7 +772,8 @@ prefixed with the extension&#x27;s package.</p>
 | `BEFORE_INFERENCE` | 7 | |
 | `REASONING_CHUNK_RECEIVED`, `CHUNK_RECEIVED` | 7 | `REASONING_CHUNK` / `CHUNK` (read back), per chunk |
 | `AFTER_INFERENCE` | 7 | complete part |
-| `BEFORE_CLEANUP` | 8 | state |">
+| `BEFORE_CLEANUP` | 8 | state, `OUTCOME`, `FAILURE` |
+| `AFTER_CLEANUP` | 8 | `OUTCOME`, `FAILURE`; also after a stopped or failed generation |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -798,12 +817,12 @@ prefixed with the extension&#x27;s package.</p>
 <tr>
 <td><code translate="no" v-pre>PROCESS_LOREBOOK_ENTRY</code></td>
 <td>3</td>
-<td><code translate="no" v-pre>LOREBOOK_ENTRY</code>, once per entry</td>
+<td><code translate="no" v-pre>LOREBOOK_ENTRY</code>, <code translate="no" v-pre>LOREBOOK_VERDICT</code> (read back), once per entry</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>PROCESS_ACTIVATED_ENTRIES</code></td>
 <td>3</td>
-<td><code translate="no" v-pre>ACTIVATED_LOREBOOK_ENTRIES</code> (read back)</td>
+<td><code translate="no" v-pre>ACTIVATED_LOREBOOK_ENTRIES</code> (read back), <code translate="no" v-pre>LOREBOOK_VERDICTS</code></td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>AFTER_PROCESS_LOREBOOK</code></td>
@@ -858,12 +877,19 @@ prefixed with the extension&#x27;s package.</p>
 <tr>
 <td><code translate="no" v-pre>BEFORE_CLEANUP</code></td>
 <td>8</td>
-<td>state</td>
+<td>state, <code translate="no" v-pre>OUTCOME</code>, <code translate="no" v-pre>FAILURE</code></td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AFTER_CLEANUP</code></td>
+<td>8</td>
+<td><code translate="no" v-pre>OUTCOME</code>, <code translate="no" v-pre>FAILURE</code>; also after a stopped or failed generation</td>
 </tr>
 </tbody>
 </table>
 </div>
 </retype-table>
+<p><code translate="no" v-pre>RUN_ID</code> (a random UUID, set before the first event) is in every event of a generation: extensions that keep data per
+generation key it by this, generations run at the same time.</p>
 <p>&quot;Read back&quot; means the step reads the property again after the event, so listeners can replace or modify the value.
 <code translate="no" v-pre>GenerationProperties</code> documents each key.</p>
 <h2 id="cancellation-and-errors">Cancellation and errors</h2>
@@ -945,7 +971,7 @@ wait for it to finish. See <a href="../testing/">Testing</a>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (68748bd20).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (da7a75cba).</p></div>
             </footer>
         </div>
     </div>
