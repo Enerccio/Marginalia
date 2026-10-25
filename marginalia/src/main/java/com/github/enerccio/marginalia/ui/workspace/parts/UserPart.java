@@ -124,6 +124,7 @@ public class UserPart implements WorkspaceComponent {
     private TextAreaPopoverComponent defaultMetaSummaryPromptField;
     private TextAreaPopoverComponent defaultRedraftPromptField;
     private TextAreaPopoverComponent defaultAnnotatePromptField;
+    private TextAreaPopoverComponent defaultImpersonatePromptField;
     private TextAreaPopoverComponent defaultAgentPromptField;
     private TextArea defaultAgentInstructionsField;
     private TextAreaPopoverComponent defaultAgentCompactionPromptField;
@@ -210,6 +211,8 @@ public class UserPart implements WorkspaceComponent {
         templatesFormLayout.setColspan(defaultRedraftPromptField, 2);
         templatesFormLayout.add(defaultAnnotatePromptField);
         templatesFormLayout.setColspan(defaultAnnotatePromptField, 2);
+        templatesFormLayout.add(defaultImpersonatePromptField);
+        templatesFormLayout.setColspan(defaultImpersonatePromptField, 2);
 
         templatesFormLayout.add(defaultAgentPromptField);
         templatesFormLayout.setColspan(defaultAgentPromptField, 2);
@@ -439,6 +442,13 @@ public class UserPart implements WorkspaceComponent {
         defaultAnnotatePromptField.setPopoverContent(createTemplateHintPopoverContent(
                 defaultAnnotatePromptField, defaultAnnotatePromptField.getPopover(), AnnotateTemplateData.class, Defaults.DEFAULT_ANNOTATE_PROMPT));
 
+        defaultImpersonatePromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_IMPERSONATE_PROMPT));
+        defaultImpersonatePromptField.setWidthFull();
+        ResizableTextArea.install(loc, defaultImpersonatePromptField, "160px");
+        defaultImpersonatePromptField.setPlaceholder(Defaults.DEFAULT_IMPERSONATE_PROMPT);
+        defaultImpersonatePromptField.setPopoverContent(createTemplateHintPopoverContent(
+                defaultImpersonatePromptField, defaultImpersonatePromptField.getPopover(), ImpersonateTemplateData.class, Defaults.DEFAULT_IMPERSONATE_PROMPT));
+
         defaultRedraftPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_REDRAFT_PROMPT));
         defaultRedraftPromptField.setWidthFull();
         ResizableTextArea.install(loc, defaultRedraftPromptField, "160px");
@@ -632,6 +642,7 @@ public class UserPart implements WorkspaceComponent {
             defaultMetaSummaryPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultMetaSummaryPrompt()));
             defaultRedraftPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultRedraftPrompt()));
             defaultAnnotatePromptField.setValue(StringUtils.defaultString(userSetting.getDefaultAnnotatePrompt()));
+            defaultImpersonatePromptField.setValue(StringUtils.defaultString(userSetting.getDefaultImpersonatePrompt()));
             defaultAgentPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultAgentPrompt()));
             defaultAgentInstructionsField.setValue(StringUtils.defaultString(userSetting.getDefaultAgentInstructions()));
             agentWebhookUrlField.setValue(StringUtils.defaultString(userSetting.getAgentWebhookUrl()));
@@ -645,6 +656,7 @@ public class UserPart implements WorkspaceComponent {
             validateTemplate(defaultMetaSummaryPromptField, "defaultMetaSummaryPrompt", MetaSummaryTemplateData.class);
             validateTemplate(defaultRedraftPromptField, "defaultRedraftPrompt", RedraftTemplateData.class);
             validateTemplate(defaultAnnotatePromptField, "defaultAnnotatePrompt", AnnotateTemplateData.class);
+            validateTemplate(defaultImpersonatePromptField, "defaultImpersonatePrompt", ImpersonateTemplateData.class);
             tagsView.refresh();
             keyBindingsEditor.setValue(KeyBindings.of(userSetting).asMap());
 
@@ -726,6 +738,7 @@ public class UserPart implements WorkspaceComponent {
                     @APILocals(name = "metaSummaryPrompt", type = String.class),
                     @APILocals(name = "redraftPrompt", type = String.class),
                     @APILocals(name = "annotatePrompt", type = String.class),
+                    @APILocals(name = "impersonatePrompt", type = String.class),
                     @APILocals(name = "defaultPov", type = String.class),
                     @APILocals(name = "defaultTense", type = String.class),
                     @APILocals(name = "defaultStyle", type = String.class),
@@ -749,7 +762,8 @@ public class UserPart implements WorkspaceComponent {
                 || !validateTemplate(defaultSummaryPromptField, "defaultSummaryPrompt", SummaryTemplateData.class)
                 || !validateTemplate(defaultMetaSummaryPromptField, "defaultMetaSummaryPrompt", MetaSummaryTemplateData.class)
                 || !validateTemplate(defaultRedraftPromptField, "defaultRedraftPrompt", RedraftTemplateData.class)
-                || !validateTemplate(defaultAnnotatePromptField, "defaultAnnotatePrompt", AnnotateTemplateData.class)) {
+                || !validateTemplate(defaultAnnotatePromptField, "defaultAnnotatePrompt", AnnotateTemplateData.class)
+                || !validateTemplate(defaultImpersonatePromptField, "defaultImpersonatePrompt", ImpersonateTemplateData.class)) {
             return;
         }
 
@@ -759,6 +773,7 @@ public class UserPart implements WorkspaceComponent {
         String metaSummaryPrompt = defaultMetaSummaryPromptField.getValue();
         String redraftPrompt = defaultRedraftPromptField.getValue();
         String annotatePrompt = defaultAnnotatePromptField.getValue();
+        String impersonatePrompt = defaultImpersonatePromptField.getValue();
 
         String defaultPov = defaultPovField.getValue();
         String defaultTense = defaultTenseField.getValue();
@@ -791,6 +806,7 @@ public class UserPart implements WorkspaceComponent {
             userSetting.setDefaultMetaSummaryPrompt(metaSummaryPrompt);
             userSetting.setDefaultRedraftPrompt(redraftPrompt);
             userSetting.setDefaultAnnotatePrompt(annotatePrompt);
+            userSetting.setDefaultImpersonatePrompt(impersonatePrompt);
             saveWebhook(userSetting);
             if (defaultAgentPromptField.isVisible()) {
                 // hidden for a user who may not use agents: what they once set stays

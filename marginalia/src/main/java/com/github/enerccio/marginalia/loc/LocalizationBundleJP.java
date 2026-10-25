@@ -717,6 +717,15 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_TOKENIZER, "トークナイザー");
         setValue(L.LABEL_AUTOMATIC, "自動");
         setValue(L.LABEL_TEST_TOKENIZER, "トークナイザーをテスト");
+        setValue(L.LABEL_COMMAND_IMPERSONATE, "指示の下書き");
+        setValue(L.LABEL_IMPERSONATE, "指示を下書き");
+        setValue(L.LABEL_IMPERSONATE_PROMPT, "代筆プロンプト");
+        setValue(L.LABEL_IMPERSONATE_GUIDANCE, "ガイダンス");
+        setValue(L.LABEL_IMPERSONATE_AGAIN, "もう一度下書き");
+        setValue(L.LABEL_IMPERSONATING, "指示を下書き中");
+        setValue(L.LABEL_IMPERSONATED_INSTRUCTIONS, "下書きされた指示");
+        setValue(L.LABEL_IMPERSONATE_USE, "指示として使う");
+        setValue(L.LABEL_IMPERSONATE_OUTLINE, "物語の計画");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -941,6 +950,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_ANNOTATION_STATUS, "不明な状態 %s です。次のいずれかを使ってください: %s。");
         setValue(L.ERROR_COMMAND_QUOTE_NOT_FOUND, "引用はこのパートにありません。パートの本文から該当箇所の言葉をそのままコピーしてください。");
         setValue(L.ERROR_ANNOTATE_FAILED, "パートに注釈を付けられません: 本にモデルとプロトコルが必要です（またはここで選択してください）。");
+        setValue(L.ERROR_IMPERSONATE_FAILED, "指示を下書きできませんでした。書籍にモデルまたはプロトコルがありません。");
+        setValue(L.ERROR_COMMAND_IMPERSONATE_NOT_POSSIBLE, "指示を下書きできません。書籍にモデルがないか、モデルが何も書きませんでした。");
+        setValue(L.ERROR_COMMAND_IMPERSONATE_CONTEXT, "代筆プロンプトがモデルのコンテキストに収まりません（必要 %d トークン、利用可能 %d トークン）。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "フォームを保存できません。");
@@ -1217,6 +1229,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_TOKENIZER_TEST_OK, "%s：%sトークン");
         setValue(L.MSG_TOKENIZER_TEST_FAILED, "%s：失敗（%s）");
         setValue(L.MSG_TOKENIZER_TEST_NONE, "どのトークナイザーも応答しませんでした。トークン数はローカルで推定されます。");
+        setValue(L.MSG_IMPERSONATE_INFO, "モデルがここまでの物語を読み、あなたの代わりに次のターンの指示を書きます。ターンの内容をガイダンスに書くか、空のままにして物語の流れに任せてください。結果を使うまで何も変更されません。");
+        setValue(L.MSG_IMPERSONATE_PLACEHOLDER, "例：彼女は手紙のことで彼を問い詰めるが、彼はすべてを否定する");
+        setValue(L.MSG_COMMAND_IMPERSONATING, "指示を下書き中…");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1657,6 +1672,14 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_TEMPLATE_SELECTION, "作者が書き直しのために選択したパートの文章（パート全体を書き直す場合は空）。選択範囲の書き直しとパート全体の書き直しを区別するのに使います。");
         setValue(L.DESC_TEMPLATE_SELECTION_BEFORE, "選択範囲より前のパートの文章（範囲を書き直す場合のみ）。");
         setValue(L.DESC_TEMPLATE_SELECTION_AFTER, "選択範囲より後のパートの文章（範囲を書き直す場合のみ）。");
+        setValue(L.DESC_TEMPLATE_INSTRUCTION_EXAMPLES, "物語の直近のパートに著者が与えた指示（古い順）。ない場合は空です。");
+        setValue(L.DESC_TEMPLATE_IMPERSONATE_OUTLINE, "呼び出し側が与える物語の計画（例：現在の章のデータ）。ない場合は空です。");
+        setValue(L.DESC_TEMPLATE_IMPERSONATE_INSTRUCTIONS, "指示で扱ってほしい内容（ガイダンスがない場合は空）。");
+        setValue(L.DESC_COMMAND_IMPERSONATE, "モデルにあなたの代わりに次のターンの指示を下書きさせ、そのテキストを返します。トークンを消費しますが、何も変更しません。");
+        setValue(L.DESC_COMMAND_IMPERSONATE_RETURN, "下書きされた次のターンの指示");
+        setValue(L.DESC_COMMAND_IMPERSONATE_INSTRUCTIONS_PARAM, "指示で扱う内容。空の場合は物語の流れに任せます");
+        setValue(L.DESC_COMMAND_IMPERSONATE_OUTLINE_PARAM, "モデルに渡す物語の計画（例：現在の章のデータ）。空の場合はなし");
+        setValue(L.DESC_COMMAND_IMPERSONATE_PROMPT_PARAM, "書籍のものの代わりに使う代筆プロンプト（テンプレート）。空の場合は書籍のもの");
     }
 
     @Override

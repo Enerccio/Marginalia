@@ -89,6 +89,7 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
         registerCommands(new StoryGenerationCommands());
         registerCommands(new SummaryGenerationCommands());
         registerCommands(new RedraftCommands());
+        registerCommands(new ImpersonateCommands());
         registerCommands(new LoreEntryWriteCommands());
         registerCommands(new LorebookWriteCommands());
     }

@@ -5,13 +5,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
-import com.github.enerccio.marginalia.domain.service.tool.ToolRequest;
-import com.github.enerccio.marginalia.domain.service.tool.ToolSelection;
-import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.service.structured.SchemaCheck;
 import com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs;
+import com.github.enerccio.marginalia.domain.service.tool.ToolRequest;
+import com.github.enerccio.marginalia.domain.service.tool.ToolSelection;
+import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.*;
 import com.google.gson.Gson;
@@ -133,6 +133,36 @@ public class ArcOutlineService {
     public String outlineText(Manuscript manuscript, boolean withNotes) throws Exception {
         ArcOutline outline = load(manuscript);
         return outline.arcs().isEmpty() ? null : describe(outline, null, ChapterContext.EVERYTHING, withNotes);
+    }
+
+    /**
+     * The data of the chapter the story is at (see {@link ArcOutline#current()}), for the model that drafts the instructions of the next
+     * turn: its arc and the chapter with their descriptions and notes, and the title and description of the chapter after it so that
+     * the turn does not run ahead.
+     *
+     * @return null when the book has no current chapter
+     */
+    public String currentChapterText(Manuscript manuscript) throws Exception {
+        return currentChapterText(load(manuscript));
+    }
+
+    public static String currentChapterText(ArcOutline outline) {
+        ArcOutline.Current current = outline.current();
+        if (current == null) {
+            return null;
+        }
+        StringBuilder text = new StringBuilder();
+        text.append("Arc: ").append(heading(current.arc())).append('\n');
+        appendDescription(text, current.arc(), "   ", true);
+        if (current.chapter() != null) {
+            text.append("\nCurrent chapter: ").append(heading(current.chapter())).append('\n');
+            appendDescription(text, current.chapter(), "   ", true);
+        }
+        if (current.next() != null) {
+            text.append("\nNext chapter (the story must not get there yet): ").append(heading(current.next())).append('\n');
+            appendDescription(text, current.next(), "   ", false);
+        }
+        return text.toString().stripTrailing();
     }
 
     public void save(Manuscript manuscript, ArcOutline outline) throws Exception {

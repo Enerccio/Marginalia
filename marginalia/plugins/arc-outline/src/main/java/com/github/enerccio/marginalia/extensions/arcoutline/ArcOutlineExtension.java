@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.extensions.arcoutline;
 
+import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.CommandService;
@@ -17,6 +18,7 @@ import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineSe
 import com.github.enerccio.marginalia.extensions.arcoutline.ui.ArcOutlineSettingsForm;
 import com.github.enerccio.marginalia.extensions.arcoutline.ui.ArcOutlineStyles;
 import com.github.enerccio.marginalia.extensions.arcoutline.ui.ArcOutlineView;
+import com.github.enerccio.marginalia.ui.dialogs.story.NewTurnForm;
 import com.github.enerccio.marginalia.ui.main.ApplicationEntryPoint;
 import com.github.enerccio.marginalia.ui.main.Main;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
@@ -24,6 +26,7 @@ import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.accordion.AccordionPanel;
+import com.vaadin.flow.component.popover.Popover;
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +52,7 @@ public class ArcOutlineExtension implements MarginaliaExtension, ExtensionHasCss
     /** The keys of the outline among the sources of data about a book other extensions can ask for. */
     private static final String OUTLINE_SOURCE = "outline";
     private static final String FULL_OUTLINE_SOURCE = "outline-with-notes";
+    private static final String CURRENT_CHAPTER_SOURCE = "current-chapter";
 
     @Autowired
     private IPCService ipcService;
@@ -80,6 +84,9 @@ public class ArcOutlineExtension implements MarginaliaExtension, ExtensionHasCss
                 (manuscript, caller, callerIdentifier) -> service.outlineText(manuscript, false));
         ipcService.registerManuscriptProvider(bundle.getSymbolicName(), FULL_OUTLINE_SOURCE, "Arc outline (with notes)",
                 (manuscript, caller, callerIdentifier) -> service.outlineText(manuscript, true));
+        // the chapter the story is at, to point a question or the drafting of the next instructions at
+        ipcService.registerManuscriptProvider(bundle.getSymbolicName(), CURRENT_CHAPTER_SOURCE, "Arc outline: current chapter",
+                (manuscript, caller, callerIdentifier) -> service.currentChapterText(manuscript));
         try {
             // the Arcs tab in the left sidebar of the story view (the drawer on a phone), next to the outline
             storyPartDecorator = new ExtensionDecorator() {
@@ -96,7 +103,27 @@ public class ArcOutlineExtension implements MarginaliaExtension, ExtensionHasCss
                             return;
                         }
 
-                        ArcOutlineView view = new ArcOutlineView(currentManuscript, service);
+                        // the story part loads other books into the same instance, the instructions go into the form of the part as it is then
+                        ArcOutlineView.InstructionsTarget target = new ArcOutlineView.InstructionsTarget() {
+                            @Override
+                            public TurnInput turn() {
+                                NewTurnForm form = context.getReflectiveFieldValue(instrumented, "newTurnForm", NewTurnForm.class);
+                                return form == null ? null : form.toTurnInput();
+                            }
+
+                            @Override
+                            public boolean put(String instructions) {
+                                NewTurnForm form = context.getReflectiveFieldValue(instrumented, "newTurnForm", NewTurnForm.class);
+                                Popover popover = context.getReflectiveFieldValue(instrumented, "newTurnPopover", Popover.class);
+                                if (form == null || popover == null) {
+                                    return false;
+                                }
+                                form.setInstructions(instructions);
+                                popover.setOpened(true);
+                                return true;
+                            }
+                        };
+                        ArcOutlineView view = new ArcOutlineView(currentManuscript, service, target);
                         leftBar.add("arc-outline", "Arcs", view);
 
                         ComponentUtil.setData(leftBar, VIEW_KEY, view);

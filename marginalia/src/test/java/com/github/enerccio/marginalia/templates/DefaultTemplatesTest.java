@@ -243,4 +243,43 @@ class DefaultTemplatesTest extends TemplateTestBase {
         assertThat(output).doesNotContain("=== EXISTING NOTES START").doesNotContain("BACKGROUND LORE START").doesNotContain("STORY AFTER THE PART")
                 .contains("Alice walked to the harbour.").contains("continuity errors");
     }
+    @Test
+    void impersonatePromptWithAllSections() throws Exception {
+        ImpersonateTemplateData impersonate = withContext(new ImpersonateTemplateData(), true);
+        impersonate.setBackgroundLore("Dragons exist.");
+        impersonate.setSummaries("Chapter one happened.");
+        impersonate.setPreviousStory("Alice sailed.");
+        impersonate.setSceneSetting("the harbour");
+        impersonate.setPovCharacter("Alice");
+        impersonate.setPresentCharacters("Alice, Bob");
+        impersonate.setInstructionExamples("Alice finds the map.");
+        impersonate.setOutline("Chapter 2: the siege");
+        impersonate.setImpersonateInstructions("She confronts him.");
+
+        String output = render(Defaults.DEFAULT_IMPERSONATE_PROMPT, impersonate);
+
+        assertClean(output);
+        assertThat(output).contains("=== BACKGROUND LORE START ===\nDragons exist.")
+                .contains("=== SUMMARY OF THE STORY START ===\nChapter one happened.")
+                .contains("=== STORY SO FAR START ===\nAlice sailed.")
+                .contains("Location & Time of the next part: the harbour").contains("Point of View Character of the next part: Alice")
+                .contains("Characters present in the next part: Alice, Bob")
+                .contains("=== EXAMPLES OF THE AUTHOR'S INSTRUCTIONS START ===\nAlice finds the map.")
+                .contains("=== PLAN OF THE STORY START ===\nChapter 2: the siege")
+                .contains("=== AUTHOR'S GUIDANCE START ===\nShe confronts him.\n=== AUTHOR'S GUIDANCE END ===");
+    }
+
+    @Test
+    void impersonatePromptOmitsEmptySectionsAndContinuesWithoutGuidance() throws Exception {
+        ImpersonateTemplateData impersonate = withContext(new ImpersonateTemplateData(), false);
+        impersonate.setPreviousStory("Alice sailed.");
+
+        String output = render(Defaults.DEFAULT_IMPERSONATE_PROMPT, impersonate);
+
+        assertClean(output);
+        assertThat(output).doesNotContain("BACKGROUND LORE START").doesNotContain("SUMMARY OF THE STORY START")
+                .doesNotContain("EXAMPLES OF THE AUTHOR'S INSTRUCTIONS").doesNotContain("PLAN OF THE STORY")
+                .doesNotContain("Location & Time").doesNotContain("Characters present")
+                .contains("Alice sailed.").contains("continue the story where it leads");
+    }
 }

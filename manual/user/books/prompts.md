@@ -38,6 +38,7 @@ point for your own version. The template fields also list the **Available Templa
 | **Default Meta Summary Prompt** | meta summaries | The request for a [meta summary](summaries.md#meta-summaries), which merges summaries. A template. |
 | **Redraft Prompt** | redrafts | The request for a [redraft](story-editor.md#redrafting-a-part) of a part. A template. |
 | **Annotate Prompt** | annotating | The request for a model to [annotate](annotations.md#letting-a-model-annotate) a part. A template. |
+| **Impersonate Prompt** | drafting instructions | The request for a model to [draft the instructions](story-editor.md#drafting-the-instructions) of the next turn in your place. A template. |
 
 *Point of View*, *Tense* and *Style* are inserted into the master template as they are; macros don't work in them.
 
@@ -54,6 +55,7 @@ Templates are text with placeholders in double curly braces. Each template gets 
 | Summary Prompt | `{%{{{backgroundLore}}}%}`, `{%{{{text}}}%}` (the parts to summarize) |
 | Meta Summary Prompt | `{%{{{backgroundLore}}}%}`, `{%{{{summaryBlocks}}}%}` (the summaries to merge) |
 | Redraft Prompt | `{%{{{text}}}%}` (the part), `{%{{{redraftInstructions}}}%}` (what you want changed), `{%{{{previousStory}}}%}`, `{%{{{summaries}}}%}`, `{%{{{followingStory}}}%}`, `{%{{{backgroundLore}}}%}`, `{%{{{narrativePov}}}%}`, `{%{{{narrativeTense}}}%}`, `{%{{{style}}}%}`, and the turn the part was written from: `{%{{{sceneSetting}}}%}`, `{%{{{povCharacter}}}%}`, `{%{{{presentCharacters}}}%}`, `{%{{{instructions}}}%}`, and `{%{{{annotations}}}%}` (your open notes on the part, empty unless you ask for them in the redraft window), and for the [redraft of a selection](story-editor.md#redrafting-only-a-passage) `{%{{{selection}}}%}` (the selected text; empty when the whole part is redrafted), `{%{{{selectionBefore}}}%}` and `{%{{{selectionAfter}}}%}` (the text of the part around it) |
+| Impersonate Prompt | `{%{{{impersonateInstructions}}}%}` (your guidance), `{%{{{outline}}}%}` (the plan of the story a caller gives, e.g. the current chapter of the Arc Outline), `{%{{{previousStory}}}%}`, `{%{{{summaries}}}%}`, `{%{{{backgroundLore}}}%}` (the lore of the last part), `{%{{{instructionExamples}}}%}` (your instructions of the last three parts, oldest first), `{%{{{narrativePov}}}%}`, `{%{{{narrativeTense}}}%}`, `{%{{{style}}}%}`, and the turn the instructions are for: `{%{{{sceneSetting}}}%}`, `{%{{{povCharacter}}}%}`, `{%{{{presentCharacters}}}%}` |
 | Annotate Prompt | The variables of the redraft prompt, with `{%{{{annotateInstructions}}}%}` (what you want looked at) instead of `{%{{{redraftInstructions}}}%}`, `{%{{{annotations}}}%}` (the notes the part already has) and `{%{{{outputFormat}}}%}` (how the model is told to answer) |
 
 A section prints its content only when the variable is not empty, so the prompt has no empty headings:
@@ -119,6 +121,16 @@ repeating the notes the part already has. The prompt has the variable `{%{{{outp
 described (JSON, text blocks or a free review, it depends on the answer format you choose); keep it in a prompt of your own, or the
 model is not told how to answer. The annotate prompt follows the rule of all prompts: the book's field, else the *Annotate Prompt* in
 *Settings → Templates*, else the built-in one.
+
+## Impersonate prompt
+
+When a model [drafts the instructions](story-editor.md#drafting-the-instructions) of the next turn it gets one request, sent as the only
+message like the redraft. The built-in default asks the model to write what you would type into *Instructions*: a plot
+specification of the next part (what happens, who does what, where the part stops) that develops your guidance and follows the plan,
+continues the story from where it ended, is written like your own earlier instructions, and is not the prose itself. Without guidance
+it continues the story where it leads. Your guidance is where the prompt puts `{%{{{impersonateInstructions}}}%}`; keep it in a prompt of
+your own. The impersonate prompt follows the rule of all prompts: the book's field, else the *Impersonate Prompt* in *Settings →
+Templates*, else the built-in one.
 
 ## How the prompt is put together
 

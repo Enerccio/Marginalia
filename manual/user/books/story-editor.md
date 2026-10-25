@@ -139,6 +139,29 @@ The text is written in Markdown: `*italics*`, `**bold**`, `# Heading` and so on 
 `#` heading is a chapter for the [Chapter Marker](../extensions/chapter-marker.md) extension.
 !!!
 
+### Drafting the instructions
+
+Do not know what should happen next? **Draft Instructions** under the *Instructions* field of the panel lets the model write
+the instructions in your place, the way you would. A window opens with:
+
+| | |
+|---|---|
+| **Guidance** | What the part should be about: a rough idea, a direction ("she confronts him about the letter"), or nothing at all, and the model continues the story where it leads. It starts as what you already typed into *Instructions*. |
+| **Plan of the Story** | Only when something gives one. The [Arc Outline](../extensions/arc-outline.md#drafting-the-instructions-for-the-current-chapter) does, with the data of the current chapter. Read only; the model follows it. |
+
+**Draft Instructions** starts the model and streams the answer into **Drafted Instructions**, which you can change or empty
+before you go on; **Draft Again** tries once more, **Stop** keeps what has arrived. Nothing is changed until you click
+**Use as Instructions**: the text then replaces the *Instructions* of the panel (the other fields are not touched) and the panel opens
+again, ready for **Generate**.
+
+The model gets the story so far (the older story as [summaries](summaries.md), as in a generation), the scene setting, POV and
+present characters that are in the panel, the lore of the last part, your latest instructions as examples of how you write them, your
+guidance and the plan. It does not see your lorebook entries that a new turn would activate. The request is the
+[impersonate prompt](prompts.md#impersonate-prompt). The model is the one of the book; drafting costs tokens like any request.
+
+The same is the command [`/impersonate`](../commands/index.md), which returns the text. [Agents](../agents.md) do not get it, they write
+the story with instructions of their own.
+
 ## The part menu
 
 Every part has a menu (☰) in its top right corner:

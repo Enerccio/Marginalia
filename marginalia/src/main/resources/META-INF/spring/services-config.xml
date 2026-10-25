@@ -140,6 +140,7 @@
     </bean>
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.RedraftServiceImpl" />
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ImpersonateServiceImpl" />
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AnnotateServiceImpl" />
 
     <bean id="agentRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaAgentRepository">

@@ -419,6 +419,10 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                 parent.stateChanged();
             }
         });
+        newTurnForm.setOnImpersonate(() -> ImpersonateDialog.open(currentManuscript, newTurnForm.toTurnInput(), null, text -> {
+            newTurnForm.setInstructions(text);
+            popover.setOpened(true);
+        }));
         VerticalLayout content = newTurnForm.createContent(() -> {
             popover.close();
             if (parent != null) {

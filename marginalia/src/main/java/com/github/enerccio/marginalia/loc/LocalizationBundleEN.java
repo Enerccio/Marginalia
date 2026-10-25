@@ -717,6 +717,15 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_TOKENIZER, "Tokenizer");
         setValue(L.LABEL_AUTOMATIC, "Automatic");
         setValue(L.LABEL_TEST_TOKENIZER, "Test tokenizer");
+        setValue(L.LABEL_COMMAND_IMPERSONATE, "Draft instructions");
+        setValue(L.LABEL_IMPERSONATE, "Draft Instructions");
+        setValue(L.LABEL_IMPERSONATE_PROMPT, "Impersonate Prompt");
+        setValue(L.LABEL_IMPERSONATE_GUIDANCE, "Guidance");
+        setValue(L.LABEL_IMPERSONATE_AGAIN, "Draft Again");
+        setValue(L.LABEL_IMPERSONATING, "Drafting Instructions");
+        setValue(L.LABEL_IMPERSONATED_INSTRUCTIONS, "Drafted Instructions");
+        setValue(L.LABEL_IMPERSONATE_USE, "Use as Instructions");
+        setValue(L.LABEL_IMPERSONATE_OUTLINE, "Plan of the Story");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -941,6 +950,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_ANNOTATION_STATUS, "Unknown status %s. Use one of: %s.");
         setValue(L.ERROR_COMMAND_QUOTE_NOT_FOUND, "The quote is not in the part. Copy the words of the passage from the text of the part.");
         setValue(L.ERROR_ANNOTATE_FAILED, "The part cannot be annotated: the book needs a model and a protocol (or choose them here).");
+        setValue(L.ERROR_IMPERSONATE_FAILED, "The instructions could not be drafted: the book has no model or protocol.");
+        setValue(L.ERROR_COMMAND_IMPERSONATE_NOT_POSSIBLE, "The instructions cannot be drafted: the book has no model, or the model wrote nothing.");
+        setValue(L.ERROR_COMMAND_IMPERSONATE_CONTEXT, "The impersonate prompt does not fit the context of the model (%d tokens needed, %d available).");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -1217,6 +1229,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_TOKENIZER_TEST_OK, "%s: %s tokens");
         setValue(L.MSG_TOKENIZER_TEST_FAILED, "%s: failed (%s)");
         setValue(L.MSG_TOKENIZER_TEST_NONE, "No tokenizer answered, the tokens are estimated locally.");
+        setValue(L.MSG_IMPERSONATE_INFO, "The model reads the story so far and writes the instructions of the next turn the way you would. Write what the turn should be about, or leave the guidance empty to continue where the story leads. Nothing is changed until you use the result.");
+        setValue(L.MSG_IMPERSONATE_PLACEHOLDER, "e.g. She confronts him about the letter, he denies everything");
+        setValue(L.MSG_COMMAND_IMPERSONATING, "Drafting the instructions…");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1657,6 +1672,14 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.DESC_TEMPLATE_SELECTION, "The text of the part the author selected to be written again (empty when the whole part is redrafted). It tells the redraft of a passage from the redraft of the whole part.");
         setValue(L.DESC_TEMPLATE_SELECTION_BEFORE, "The text of the part before the selected passage (only when a passage is redrafted).");
         setValue(L.DESC_TEMPLATE_SELECTION_AFTER, "The text of the part after the selected passage (only when a passage is redrafted).");
+        setValue(L.DESC_TEMPLATE_INSTRUCTION_EXAMPLES, "The instructions the author gave to the last parts of the story, oldest first (empty when there are none).");
+        setValue(L.DESC_TEMPLATE_IMPERSONATE_OUTLINE, "The plan of the story the caller gives, for example the data of the current chapter (empty when none).");
+        setValue(L.DESC_TEMPLATE_IMPERSONATE_INSTRUCTIONS, "What the author wants the instructions to be about (empty when they gave no guidance).");
+        setValue(L.DESC_COMMAND_IMPERSONATE, "Has the model draft the instructions of the next turn in your place and returns the text. Costs tokens; changes nothing.");
+        setValue(L.DESC_COMMAND_IMPERSONATE_RETURN, "The drafted instructions of the next turn");
+        setValue(L.DESC_COMMAND_IMPERSONATE_INSTRUCTIONS_PARAM, "What the instructions should be about; empty continues the story where it leads");
+        setValue(L.DESC_COMMAND_IMPERSONATE_OUTLINE_PARAM, "A plan of the story for the model (for example the data of the current chapter); empty for none");
+        setValue(L.DESC_COMMAND_IMPERSONATE_PROMPT_PARAM, "An impersonate prompt to use instead of the one of the book (a template); empty is the one of the book");
 
     }
 

@@ -267,6 +267,18 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     }
 
     @Override
+    public String getImpersonatePrompt(Manuscript manuscript) throws Exception {
+        if (StringUtils.isNotBlank(manuscript.getImpersonatePrompt())) {
+            return manuscript.getImpersonatePrompt();
+        }
+        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+        if (StringUtils.isNotBlank(userSetting.getDefaultImpersonatePrompt())) {
+            return userSetting.getDefaultImpersonatePrompt();
+        }
+        return Defaults.DEFAULT_IMPERSONATE_PROMPT;
+    }
+
+    @Override
     public String getMetaSummaryPrompt(Manuscript manuscript) throws Exception {
         if (StringUtils.isNotBlank(manuscript.getMetaSummaryPrompt())) {
             return manuscript.getMetaSummaryPrompt();

@@ -725,6 +725,15 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_TOKENIZER, "分词器");
         setValue(L.LABEL_AUTOMATIC, "自动");
         setValue(L.LABEL_TEST_TOKENIZER, "测试分词器");
+        setValue(L.LABEL_COMMAND_IMPERSONATE, "起草指令");
+        setValue(L.LABEL_IMPERSONATE, "起草指令");
+        setValue(L.LABEL_IMPERSONATE_PROMPT, "代笔提示词");
+        setValue(L.LABEL_IMPERSONATE_GUIDANCE, "引导");
+        setValue(L.LABEL_IMPERSONATE_AGAIN, "重新起草");
+        setValue(L.LABEL_IMPERSONATING, "正在起草指令");
+        setValue(L.LABEL_IMPERSONATED_INSTRUCTIONS, "起草的指令");
+        setValue(L.LABEL_IMPERSONATE_USE, "用作指令");
+        setValue(L.LABEL_IMPERSONATE_OUTLINE, "故事计划");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -949,6 +958,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_ANNOTATION_STATUS, "未知的状态 %s。请使用：%s。");
         setValue(L.ERROR_COMMAND_QUOTE_NOT_FOUND, "引文不在这一段里。请从这一段的正文中原样复制该处的文字。");
         setValue(L.ERROR_ANNOTATE_FAILED, "无法为该段添加批注：本书需要设置模型和协议（或在此选择）。");
+        setValue(L.ERROR_IMPERSONATE_FAILED, "无法起草指令：书籍没有模型或协议。");
+        setValue(L.ERROR_COMMAND_IMPERSONATE_NOT_POSSIBLE, "无法起草指令：书籍没有模型，或模型没有写出任何内容。");
+        setValue(L.ERROR_COMMAND_IMPERSONATE_CONTEXT, "代笔提示词超出模型上下文（需要 %d 个词元，可用 %d 个）。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "无法保存表单。");
@@ -1225,6 +1237,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_TOKENIZER_TEST_OK, "%s：%s 个词元");
         setValue(L.MSG_TOKENIZER_TEST_FAILED, "%s：失败（%s）");
         setValue(L.MSG_TOKENIZER_TEST_NONE, "没有分词器响应，词元数将在本地估算。");
+        setValue(L.MSG_IMPERSONATE_INFO, "模型会阅读目前的故事，并像您一样写出下一回合的指令。请在引导中写明该回合的内容，或留空让故事自然发展。在您使用结果之前不会更改任何内容。");
+        setValue(L.MSG_IMPERSONATE_PLACEHOLDER, "例如：她就那封信质问他，他全盘否认");
+        setValue(L.MSG_COMMAND_IMPERSONATING, "正在起草指令…");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1665,6 +1680,14 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_TEMPLATE_SELECTION, "作者选中并希望重写的该段文字（重写整段时为空）。用来区分重写选中文字与重写整段。");
         setValue(L.DESC_TEMPLATE_SELECTION_BEFORE, "选中文字之前的该段文本（仅在重写选中文字时）。");
         setValue(L.DESC_TEMPLATE_SELECTION_AFTER, "选中文字之后的该段文本（仅在重写选中文字时）。");
+        setValue(L.DESC_TEMPLATE_INSTRUCTION_EXAMPLES, "作者为故事最近几部分写的指令，最早的在前（没有时为空）。");
+        setValue(L.DESC_TEMPLATE_IMPERSONATE_OUTLINE, "调用方提供的故事计划，例如当前章节的数据（没有时为空）。");
+        setValue(L.DESC_TEMPLATE_IMPERSONATE_INSTRUCTIONS, "作者希望指令涉及的内容（没有给出引导时为空）。");
+        setValue(L.DESC_COMMAND_IMPERSONATE, "让模型代您起草下一回合的指令并返回文本。消耗词元，不更改任何内容。");
+        setValue(L.DESC_COMMAND_IMPERSONATE_RETURN, "起草的下一回合指令");
+        setValue(L.DESC_COMMAND_IMPERSONATE_INSTRUCTIONS_PARAM, "指令应涉及的内容；留空则让故事自然发展");
+        setValue(L.DESC_COMMAND_IMPERSONATE_OUTLINE_PARAM, "提供给模型的故事计划（例如当前章节的数据）；留空表示没有");
+        setValue(L.DESC_COMMAND_IMPERSONATE_PROMPT_PARAM, "用于替代书籍提示词的代笔提示词（模板）；留空则使用书籍的");
     }
 
     @Override

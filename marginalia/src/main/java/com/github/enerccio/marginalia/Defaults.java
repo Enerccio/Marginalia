@@ -235,6 +235,62 @@ Review one part of the ongoing narrative "MANUSCRIPT CHRONICLE" as its editor an
 """;
 
     /**
+     * What the model is asked when the author wants it to draft the instructions of the next turn (impersonate), rendered as
+     * Handlebars template with {@link com.github.enerccio.marginalia.domain.templates.ImpersonateTemplateData}.
+     */
+    public static final String DEFAULT_IMPERSONATE_PROMPT = """
+### OBJECTIVE
+Write the instructions for the next turn of the ongoing narrative "MANUSCRIPT CHRONICLE" in the place of its author. The instructions are what the author types into the "instructions" box before the model writes the next part of the story: a short plot specification of what happens in that part. Read the story so far and the AUTHOR'S GUIDANCE and write the instructions the author would give.
+
+### CORE DIRECTIVES
+1. **Follow the Guidance**: The AUTHOR'S GUIDANCE (rough ideas, a direction, the plan for the chapter) decides what the next part is about. Develop it into concrete instructions and add nothing that contradicts it. Without guidance, continue the story where it leads on its own.
+2. **Continue the Story**: The next part begins where the story ends. Build on the established facts, the open threads and the state of the characters; do not repeat what already happened and do not ignore it.
+3. **Plot, Not Prose**: Say what happens, who does what, what changes, what the part has to reach and where it stops. Do not write the part itself, no dialogue lines unless the guidance has them, no description of the scenery.
+4. **Size**: Cover the events of one part of the story. Do not plan a whole chapter at once and do not jump over events the story has not reached.
+5. **The Author's Way**: Write the way the author writes their instructions (see the EXAMPLES) in length, person and tone.
+6. **Lore**: Use the BACKGROUND LORE strictly as a factual reference for names and terminology. Do not repeat it.
+
+### STRICT NEGATIVE CONSTRAINTS
+* **Output Only the Instructions**: Begin immediately with the instructions. No intro, no title, no explanation of your choices, no quotation of the guidance, no markers.
+* **No Unrequested Inventions**: Do NOT add new named characters or major plot points that neither the guidance nor the story leads to.
+* **No Spoiling**: Do NOT resolve the open threads of the story faster than the guidance asks.
+
+### NARRATION
+{{#narrativePov}}Narrative Voice: {{.}}{{/narrativePov}}
+{{#narrativeTense}}Tense: {{.}}{{/narrativeTense}}
+{{#style}}Style & Tone Guidelines:
+{{.}}{{/style}}
+
+{{#backgroundLore}}=== BACKGROUND LORE START ===
+{{.}}
+=== BACKGROUND LORE END ===
+
+{{/backgroundLore}}{{#summaries}}=== SUMMARY OF THE STORY START ===
+{{.}}
+=== SUMMARY OF THE STORY END ===
+
+{{/summaries}}{{#previousStory}}=== STORY SO FAR START ===
+{{.}}
+=== STORY SO FAR END ===
+
+{{/previousStory}}{{#povCharacter}}Point of View Character of the next part: {{.}}
+{{/povCharacter}}{{#sceneSetting}}Location & Time of the next part: {{.}}
+{{/sceneSetting}}{{#presentCharacters}}Characters present in the next part: {{.}}
+{{/presentCharacters}}{{#instructionExamples}}
+=== EXAMPLES OF THE AUTHOR'S INSTRUCTIONS START ===
+{{.}}
+=== EXAMPLES OF THE AUTHOR'S INSTRUCTIONS END ===
+{{/instructionExamples}}{{#outline}}
+=== PLAN OF THE STORY START ===
+{{.}}
+=== PLAN OF THE STORY END ===
+{{/outline}}
+=== AUTHOR'S GUIDANCE START ===
+{{#impersonateInstructions}}{{.}}{{/impersonateInstructions}}{{^impersonateInstructions}}No guidance: continue the story where it leads.{{/impersonateInstructions}}
+=== AUTHOR'S GUIDANCE END ===
+""";
+
+    /**
      * Markdown of the first (title) page of an exported book, rendered as Handlebars template with
      * {@link com.github.enerccio.marginalia.domain.templates.ExportHeaderTemplateData}.
      */

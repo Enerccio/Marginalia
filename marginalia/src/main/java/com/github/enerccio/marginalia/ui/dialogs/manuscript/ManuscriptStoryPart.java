@@ -662,6 +662,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 parent.stateChanged();
             }
         });
+        newTurnForm.setOnImpersonate(() -> ImpersonateDialog.open(currentManuscript, newTurnForm.toTurnInput(), null, text -> {
+            newTurnForm.setInstructions(text);
+            popover.setOpened(true);
+        }));
         VerticalLayout content = newTurnForm.createContent(this::generateFromNewTurnForm);
         content.setWidth("540px");
         popover.add(content);

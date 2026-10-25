@@ -48,6 +48,7 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
     private TextAreaPopoverComponent metaSummaryField;
     private TextAreaPopoverComponent redraftField;
     private TextAreaPopoverComponent annotateField;
+    private TextAreaPopoverComponent impersonateField;
 
     private boolean loading = false;
 
@@ -95,6 +96,9 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
 
         formLayout.add(annotateField);
         formLayout.setColspan(annotateField, 2);
+
+        formLayout.add(impersonateField);
+        formLayout.setColspan(impersonateField, 2);
 
         mainLayout.add(formLayout);
 
@@ -159,6 +163,15 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
             }
         });
 
+        impersonateField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_IMPERSONATE_PROMPT));
+        impersonateField.setWidthFull();
+        ResizableTextArea.install(loc, impersonateField, "240px");
+        impersonateField.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                autosave();
+            }
+        });
+
         styleField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_STYLE));
         styleField.setWidthFull();
         ResizableTextArea.install(loc, styleField, "160px");
@@ -209,6 +222,7 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
                     @APILocals(name = "metaSummaryPrompt", type = String.class),
                     @APILocals(name = "redraftPrompt", type = String.class),
                     @APILocals(name = "annotatePrompt", type = String.class),
+                    @APILocals(name = "impersonatePrompt", type = String.class),
                     @APILocals(name = "manuscript", type = Manuscript.class),
                     @APILocals(name = "e", type = Exception.class)})
     private void autosave() {
@@ -221,7 +235,8 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
                 || !validateTemplate(summaryField, "summaryPrompt", SummaryTemplateData.class)
                 || !validateTemplate(metaSummaryField, "metaSummaryPrompt", MetaSummaryTemplateData.class)
                 || !validateTemplate(redraftField, "redraftPrompt", RedraftTemplateData.class)
-                || !validateTemplate(annotateField, "annotatePrompt", AnnotateTemplateData.class)) {
+                || !validateTemplate(annotateField, "annotatePrompt", AnnotateTemplateData.class)
+                || !validateTemplate(impersonateField, "impersonatePrompt", ImpersonateTemplateData.class)) {
             return;
         }
 
@@ -231,6 +246,7 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
         String metaSummaryPrompt = metaSummaryField.getValue();
         String redraftPrompt = redraftField.getValue();
         String annotatePrompt = annotateField.getValue();
+        String impersonatePrompt = impersonateField.getValue();
 
         try {
             Manuscript manuscript = refreshModel();
@@ -247,6 +263,7 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
             manuscript.setMetaSummaryPrompt(metaSummaryPrompt);
             manuscript.setRedraftPrompt(redraftPrompt);
             manuscript.setAnnotatePrompt(annotatePrompt);
+            manuscript.setImpersonatePrompt(impersonatePrompt);
 
             parent.save();
         } catch (Exception e) {
@@ -306,6 +323,7 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
                     @APILocals(name = "defaultMetaSummaryPrompt", type = String.class),
                     @APILocals(name = "defaultRedraftPrompt", type = String.class),
                     @APILocals(name = "defaultAnnotatePrompt", type = String.class),
+                    @APILocals(name = "defaultImpersonatePrompt", type = String.class),
                     @APILocals(name = "e", type = Exception.class)})
     @Override
     public void load(Manuscript manuscript) {
@@ -334,6 +352,8 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
                     ? userSetting.getDefaultRedraftPrompt() : Defaults.DEFAULT_REDRAFT_PROMPT;
             String defaultAnnotatePrompt = StringUtils.isNotBlank(userSetting.getDefaultAnnotatePrompt())
                     ? userSetting.getDefaultAnnotatePrompt() : Defaults.DEFAULT_ANNOTATE_PROMPT;
+            String defaultImpersonatePrompt = StringUtils.isNotBlank(userSetting.getDefaultImpersonatePrompt())
+                    ? userSetting.getDefaultImpersonatePrompt() : Defaults.DEFAULT_IMPERSONATE_PROMPT;
 
             masterTemplateField.setPlaceholder(defaultMasterTemplate);
             povField.setPlaceholder(defaultPov);
@@ -344,6 +364,7 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
             metaSummaryField.setPlaceholder(defaultMetaSummaryPrompt);
             redraftField.setPlaceholder(defaultRedraftPrompt);
             annotateField.setPlaceholder(defaultAnnotatePrompt);
+            impersonateField.setPlaceholder(defaultImpersonatePrompt);
 
             masterTemplateField.setValue(StringUtils.defaultString(manuscript.getTemplate()));
             povField.setValue(StringUtils.defaultString(manuscript.getPov()));
@@ -354,6 +375,7 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
             metaSummaryField.setValue(StringUtils.defaultString(manuscript.getMetaSummaryPrompt()));
             redraftField.setValue(StringUtils.defaultString(manuscript.getRedraftPrompt()));
             annotateField.setValue(StringUtils.defaultString(manuscript.getAnnotatePrompt()));
+            impersonateField.setValue(StringUtils.defaultString(manuscript.getImpersonatePrompt()));
 
             validateTemplate(masterTemplateField, "masterTemplate", MasterTemplateData.class);
             validateTemplate(userPromptField, "userPrompt", UserPromptData.class);
@@ -361,6 +383,7 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
             validateTemplate(metaSummaryField, "metaSummaryPrompt", MetaSummaryTemplateData.class);
             validateTemplate(redraftField, "redraftPrompt", RedraftTemplateData.class);
             validateTemplate(annotateField, "annotatePrompt", AnnotateTemplateData.class);
+            validateTemplate(impersonateField, "impersonatePrompt", ImpersonateTemplateData.class);
 
             masterTemplateField.setPopoverContent(createTemplateHintPopoverContent(
                     masterTemplateField, masterTemplateField.getPopover(), MasterTemplateData.class, defaultMasterTemplate));
@@ -380,6 +403,8 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
                     redraftField, redraftField.getPopover(), RedraftTemplateData.class, defaultRedraftPrompt));
             annotateField.setPopoverContent(createTemplateHintPopoverContent(
                     annotateField, annotateField.getPopover(), AnnotateTemplateData.class, defaultAnnotatePrompt));
+            impersonateField.setPopoverContent(createTemplateHintPopoverContent(
+                    impersonateField, impersonateField.getPopover(), ImpersonateTemplateData.class, defaultImpersonatePrompt));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         } finally {
