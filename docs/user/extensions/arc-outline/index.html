@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846185484920">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846227443609">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846185484920" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846227443609" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846185484920" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846227443609" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846185484920" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846227443609" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -275,6 +275,8 @@ buttons of a card:</p>
 </table>
 </div>
 </retype-table>
+<p>Next to the wand at the top is a pen with a feather: it drafts the instructions of the next turn from the current chapter, see
+<doc-anchor-trigger to="#drafting-the-instructions-for-the-current-chapter">below</doc-anchor-trigger>.</p>
 <figure class="content-center">
     <img src="../../../images/plugin-arcoutline-tab.png" alt="The Arcs tab: a finished, a current and a planned arc" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
     <figcaption class="caption">The Arcs tab: a finished, a current and a planned arc</figcaption>
@@ -290,6 +292,15 @@ hide the note. Which notes are open is not saved.</p>
 <h3 id="moving-chapters-between-arcs">Moving chapters between arcs</h3>
 <p>A chapter moved up from the first place of its arc goes to the end of the previous arc; one moved down from the last
 place goes to the start of the next arc. Keep pressing the arrow to take a chapter as far as you need.</p>
+<h3 id="drafting-the-instructions-for-the-current-chapter">Drafting the instructions for the current chapter</h3>
+<p>The pen with a feather next to <em>Add new arc</em> opens the window that lets the model
+<a href="../../books/story-editor/#drafting-the-instructions">draft the instructions</a> of the next turn, with the data of the chapter the
+story is at as its <strong>Plan of the Story</strong>. The current chapter is the first chapter marked <strong>Current</strong>; when none is, the first one
+that is not <strong>Finished</strong>; an arc marked current that has no chapters yet stands alone. The model gets that arc and chapter with their
+descriptions and notes, and the title and description (not the note) of the chapter after it, with the warning that the story must
+not get there yet. The window starts with what you typed into <em>Instructions</em> of the new turn panel as the guidance; <strong>Use as
+Instructions</strong> puts the draft into that panel and opens it. Without a current chapter the button says so.</p>
+<p>The same data is a source for the <a href="../side-query/">Side Query</a>, see <doc-anchor-trigger to="#the-outline-as-a-source-for-other-extensions">below</doc-anchor-trigger>.</p>
 <h3 id="finishing-an-arc">Finishing an arc</h3>
 <p>Marking an arc <strong>Finished</strong> marks all its chapters <strong>Finished</strong> too. Changing an arc to another state leaves its
 chapters as they are.</p>
@@ -299,7 +310,8 @@ chapters as they are.</p>
 <strong>Arc outline</strong> in the plug popover to send the arcs, their states, descriptions and chapters with your questions. There
 are two versions: <strong>Arc outline</strong> is the terse one (descriptions only), <strong>Arc outline (with notes)</strong> adds the note of every
 arc and chapter under its description, which is where the details of generated arcs and chapters are. Your private notes
-are sent only when you check the second one.</p>
+are sent only when you check the second one. A third source, <strong>Arc outline: current chapter</strong>, sends only the arc and the chapter
+the story is at (see <doc-anchor-trigger to="#drafting-the-instructions-for-the-current-chapter">Drafting the instructions for the current chapter</doc-anchor-trigger>).</p>
 <h2 id="generating-an-arc">Generating an arc</h2>
 <p>The wand button next to <strong>Add new arc</strong> opens a menu with two items: <strong>Generate an arc</strong> asks the model to write a new arc, <strong>Import from story</strong> summarizes what you have already written, see <doc-anchor-trigger to="#importing-an-arc-from-the-story">below</doc-anchor-trigger>.</p>
 <figure class="content-center">
@@ -591,7 +603,7 @@ chapters at the end of the arc) and the answer has their numbers. A story that i
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (f37548dd5).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (68748bd20).</p></div>
             </footer>
         </div>
     </div>

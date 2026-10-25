@@ -1,11 +1,13 @@
 package com.github.enerccio.marginalia.extensions.arcoutline.ui;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.*;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
+import com.github.enerccio.marginalia.ui.dialogs.story.ImpersonateDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.*;
@@ -38,8 +40,27 @@ public class ArcOutlineView extends VerticalLayout {
     @Autowired
     private Localization loc;
 
+    /**
+     * The new turn form of the story the tab is in, where the drafted instructions go.
+     */
+    public interface InstructionsTarget {
+
+        /**
+         * @return what the author typed into the new turn form, {@code null} when it is not there
+         */
+        TurnInput turn();
+
+        /**
+         * Puts the instructions into the new turn form and shows it.
+         *
+         * @return false when the story has no such form
+         */
+        boolean put(String instructions);
+    }
+
     private final ArcOutlineService service;
     private final Manuscript manuscript;
+    private final InstructionsTarget instructionsTarget;
     private ArcOutline outline;
     /** Removes the listener that reads the outline again when a command changes it, set while the view is attached. */
     private Runnable changeRegistration;
@@ -55,8 +76,16 @@ public class ArcOutlineView extends VerticalLayout {
     private final Div list = new Div();
 
     public ArcOutlineView(Manuscript manuscript, ArcOutlineService service) {
+        this(manuscript, service, null);
+    }
+
+    /**
+     * @param instructionsTarget where the instructions drafted from the current chapter go; {@code null} hides that button
+     */
+    public ArcOutlineView(Manuscript manuscript, ArcOutlineService service, InstructionsTarget instructionsTarget) {
         this.manuscript = manuscript;
         this.service = service;
+        this.instructionsTarget = instructionsTarget;
         this.outline = loadOutline();
 
         setSizeFull();
@@ -117,12 +146,44 @@ public class ArcOutlineView extends VerticalLayout {
         generateMenu.addItem(UIUtils.menuItemWithIcon(Solid.FILE_IMPORT.create(), "Import from story"), _ -> importFromStory());
 
         HorizontalLayout buttons = new HorizontalLayout(addArc, generate);
+        if (instructionsTarget != null) {
+            // the model drafts the instructions of the next turn from the chapter the story is at
+            Button draft = new Button(Solid.PEN_FANCY.create());
+            draft.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+            draft.setAriaLabel("Draft the instructions for the current chapter");
+            draft.setTooltipText("Draft the instructions for the current chapter");
+            draft.addClickListener(_ -> draftInstructions());
+            buttons.add(draft);
+        }
         buttons.setAlignItems(Alignment.CENTER);
         buttons.setPadding(true);
 
         list.addClassName(ArcOutlineStyles.LIST);
         add(buttons, list);
         setFlexGrow(1, list);
+    }
+
+    /**
+     * Opens the dialog that drafts the instructions of the next turn from the data of the current chapter.
+     */
+    private void draftInstructions() {
+        String chapter;
+        try {
+            // the outline as it is now, a command may have changed it
+            chapter = service.currentChapterText(manuscript);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+            return;
+        }
+        if (chapter == null) {
+            Notification.warning("There is no current chapter: mark one as current, or leave one planned");
+            return;
+        }
+        ImpersonateDialog.open(manuscript, instructionsTarget.turn(), chapter, text -> {
+            if (!instructionsTarget.put(text)) {
+                Notification.warning("The story has no place for the instructions");
+            }
+        });
     }
 
     private void addGenerated(Arc arc) {

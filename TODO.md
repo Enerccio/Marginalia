@@ -142,8 +142,11 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     part ended on a length cutoff. Separately: "impersonate/draft instructions for me".
     Done: *Merge into previous part* in the part menu (`ChatMessageService.mergeIntoPrevious`, review in `PartMergeDialog`: join of the
     texts, prompt fields combined without their shared start, `attributes` value by value with the choice which wins; refused for a
-    first part and for a part with swipes). Still open: the pre-filled "continue" instruction after a length cutoff, "impersonate/draft
-    instructions for me".
+    first part and for a part with swipes). A pre-filled "continue" instruction after a length cutoff is deliberately not planned:
+    the author cuts the last unfinished sentence and writes a new turn that follows from the unfinished event.
+    "Impersonate/draft instructions for me" is done in 1.5.0: **Draft Instructions** in the new turn panel (`ImpersonateDialog`,
+    `ImpersonateService`, the *Impersonate Prompt* template, the `/impersonate` command that agents do not get) and, in the Arc Outline
+    plugin, the same with the data of the current chapter as its plan. Not done: an `/impersonate-chapter` command in the plugin.
 16. ~~**Search inside a book**~~ ✅ Done — the box above the branch tree searches the messages of all branches (`_fulltext`,
     `FulltextQuery`) and jumps to a found part; the outline of the story tab searches the active branch by occurrence
     (previous/next, progress, highlighted matches; `StoryBranchSearch`); the book list has an advanced search (`ManuscriptSearchDialog`:

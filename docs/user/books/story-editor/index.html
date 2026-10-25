@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846185484920">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846227443609">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846185484920" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846227443609" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846185484920" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846227443609" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846185484920" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846227443609" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -391,6 +391,44 @@ prompt, the model gets them as <em>Current Location &amp; Time</em>, <em>Point o
         </div>
     </div>
 </div>
+<h3 id="drafting-the-instructions">Drafting the instructions</h3>
+<p>Do not know what should happen next? <strong>Draft Instructions</strong> under the <em>Instructions</em> field of the panel lets the model write
+the instructions in your place, the way you would. A window opens with:</p>
+<retype-table copy-text="| | |
+|---|---|
+| **Guidance** | What the part should be about: a rough idea, a direction (&quot;she confronts him about the letter&quot;), or nothing at all, and the model continues the story where it leads. It starts as what you already typed into *Instructions*. |
+| **Plan of the Story** | Only when something gives one. The [Arc Outline](../extensions/arc-outline.md#drafting-the-instructions-for-the-current-chapter) does, with the data of the current chapter. Read only; the model follows it. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th> </th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Guidance</strong></td>
+<td>What the part should be about: a rough idea, a direction (&quot;she confronts him about the letter&quot;), or nothing at all, and the model continues the story where it leads. It starts as what you already typed into <em>Instructions</em>.</td>
+</tr>
+<tr>
+<td><strong>Plan of the Story</strong></td>
+<td>Only when something gives one. The <a href="../../extensions/arc-outline/#drafting-the-instructions-for-the-current-chapter">Arc Outline</a> does, with the data of the current chapter. Read only; the model follows it.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p><strong>Draft Instructions</strong> starts the model and streams the answer into <strong>Drafted Instructions</strong>, which you can change or empty
+before you go on; <strong>Draft Again</strong> tries once more, <strong>Stop</strong> keeps what has arrived. Nothing is changed until you click
+<strong>Use as Instructions</strong>: the text then replaces the <em>Instructions</em> of the panel (the other fields are not touched) and the panel opens
+again, ready for <strong>Generate</strong>.</p>
+<p>The model gets the story so far (the older story as <a href="../summaries/">summaries</a>, as in a generation), the scene setting, POV and
+present characters that are in the panel, the lore of the last part, your latest instructions as examples of how you write them, your
+guidance and the plan. It does not see your lorebook entries that a new turn would activate. The request is the
+<a href="../prompts/#impersonate-prompt">impersonate prompt</a>. The model is the one of the book; drafting costs tokens like any request.</p>
+<p>The same is the command <a href="../../commands/"><code translate="no" v-pre>/impersonate</code></a>, which returns the text. <a href="../../agents/">Agents</a> do not get it, they write
+the story with instructions of their own.</p>
 <h2 id="the-part-menu">The part menu</h2>
 <p>Every part has a menu (☰) in its top right corner:</p>
 <retype-table copy-text="| Item | |
@@ -905,7 +943,7 @@ tense, style and <a href="../summaries/">summaries</a>. The jailbreak prompt of 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (f37548dd5).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (68748bd20).</p></div>
             </footer>
         </div>
     </div>

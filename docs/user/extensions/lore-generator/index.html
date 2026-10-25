@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846185484920">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846227443609">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846185484920" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846227443609" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846185484920" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846227443609" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846185484920" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846227443609" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -319,7 +319,7 @@ model and protocol.</p>
 <retype-table copy-text="| Command | What it does |
 |---|---|
 | `/list-lore-templates [template]` | Lists your saved generation prompts (name, length, start of the text) and the one used last. With a name it returns the whole text of that prompt. |
-| `/generate-lore-entry [prompt [template [lorebook [entry [order [scope [limit [images]]]]]]]]` | Generates a text with the lore of the lorebook and returns it. The text sent is a template followed by the prompt of the caller (see below). With `images` the model also looks at pictures, as with the attachments of the dialog. |
+| `/generate-lore-entry [prompt [template [lorebook [entry [order [scope [limit [images [compact]]]]]]]]]` | Generates a text with the lore of the lorebook, compacts it (like `/compact-lore-entry`) and returns the compacted text; with `compact` `false` it returns the generated text as it is. The text sent is a template followed by the prompt of the caller (see below). With `images` the model also looks at pictures, as with the attachments of the dialog. |
 | `/compact-lore-entry text [lorebook [entry [order [scope [limit]]]]]` | Compacts the text with the same lore and returns the result, without the code block around it. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -335,8 +335,8 @@ model and protocol.</p>
 <td>Lists your saved generation prompts (name, length, start of the text) and the one used last. With a name it returns the whole text of that prompt.</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>/generate-lore-entry [prompt [template [lorebook [entry [order [scope [limit [images]]]]]]]]</code></td>
-<td>Generates a text with the lore of the lorebook and returns it. The text sent is a template followed by the prompt of the caller (see below). With <code translate="no" v-pre>images</code> the model also looks at pictures, as with the attachments of the dialog.</td>
+<td><code translate="no" v-pre>/generate-lore-entry [prompt [template [lorebook [entry [order [scope [limit [images [compact]]]]]]]]]</code></td>
+<td>Generates a text with the lore of the lorebook, compacts it (like <code translate="no" v-pre>/compact-lore-entry</code>) and returns the compacted text; with <code translate="no" v-pre>compact</code> <code translate="no" v-pre>false</code> it returns the generated text as it is. The text sent is a template followed by the prompt of the caller (see below). With <code translate="no" v-pre>images</code> the model also looks at pictures, as with the attachments of the dialog.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>/compact-lore-entry text [lorebook [entry [order [scope [limit]]]]]</code></td>
@@ -360,7 +360,8 @@ that is called with a template and no prompt sends just the template.</p>
 <p>The <code translate="no" v-pre>images</code> of <code translate="no" v-pre>/generate-lore-entry</code> are the images the dialog would attach to the generation. An <a href="../../agents/">agent</a> passes a list of
 paths of image files of its workspace (<code translate="no" v-pre>/refs/map.png</code>; at most 8, PNG, JPEG, GIF or WebP, scaled down when large), which you put there with
 <strong>Upload file</strong> in the Workspace tab. The command bar has no way to name an image, so <code translate="no" v-pre>images</code> is for agents. It is your default model that looks at the
-pictures: if it does not take images the command fails and says so. Only the generation takes images, as in the dialog; <code translate="no" v-pre>/compact-lore-entry</code> works on the text alone.</p>
+pictures: if it does not take images the command fails and says so. Only the generation takes images, as in the dialog; the compaction works on the text alone.</p>
+<p>The <code translate="no" v-pre>compact</code> parameter of <code translate="no" v-pre>/generate-lore-entry</code> is <code translate="no" v-pre>true</code> by default: the command generates and compacts in one call, so an <a href="../../agents/">agent</a> needs a single command and cannot forget the second step. Pass <code translate="no" v-pre>compact</code> <code translate="no" v-pre>false</code> to get the long generated text (for example to review or edit it), and run <code translate="no" v-pre>/compact-lore-entry</code> on it later.</p>
 <p>The model gets no tools here. A caller that wants names asks for them first, with <code translate="no" v-pre>/generate-names</code> of the
 <a href="../name-generator/">Name generator</a> or <code translate="no" v-pre>/pick-real-names</code> of the <a href="../name-provider/">Name provider</a>, and writes the ones it
 likes into the prompt. An agent can also take the text of a template from <code translate="no" v-pre>/list-lore-templates</code>, change it and pass the
@@ -405,7 +406,7 @@ include them. Nothing is stored with the lorebook; the generated text exists in 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (f37548dd5).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (68748bd20).</p></div>
             </footer>
         </div>
     </div>

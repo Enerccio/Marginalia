@@ -247,4 +247,33 @@ class GenerationCommandsTest extends GenerationTestBase {
         assertThatThrownBy(() -> run("/redraft-part " + first.getUuid() + " \"\" \"\" Prose")).isInstanceOf(ExecutionException.class)
                 .hasMessageContaining("agents");
     }
+
+    @Test
+    void impersonateReturnsTheDraftedInstructionsAndChangesNothing() throws Exception {
+        llm.fallback(com.github.enerccio.marginalia.test.llm.MockLLMResponse.text("Anna asks John about the letter."));
+
+        Object result = run("/impersonate \"She asks about the letter\"");
+
+        assertThat(result).isEqualTo("Anna asks John about the letter.");
+        String prompt = llm.lastCompletionRequest().getPromptText();
+        assertThat(prompt).contains("She asks about the letter").contains("Anna met John.").contains("John went home.");
+        assertThat(chatMessageService.getAllMessages(book())).hasSize(2);
+        assertThat(book().getActiveLeaf().getId()).isEqualTo(second.getId());
+    }
+
+    @Test
+    void impersonateTakesThePlanOfTheStoryAndAnotherPrompt() throws Exception {
+        llm.fallback(com.github.enerccio.marginalia.test.llm.MockLLMResponse.text("Drafted."));
+
+        run("/impersonate \"x\" \"Chapter 2\" \"DRAFT {{impersonateInstructions}} FOR {{outline}}\"");
+
+        assertThat(llm.lastCompletionRequest().getPromptText()).contains("DRAFT x FOR Chapter 2");
+        assertThatThrownBy(() -> run("/impersonate \"x\" \"\" \"{{#unclosed}}\"")).isInstanceOf(ExecutionException.class);
+    }
+
+    @Test
+    void impersonateIsNotForAgents() {
+        assertThat(commands.getCommands()).filteredOn(definition -> definition.commandName().equals("impersonate"))
+                .isNotEmpty().noneMatch(definition -> definition.availableForAgent());
+    }
 }

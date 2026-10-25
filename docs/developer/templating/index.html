@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846185484920">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846227443609">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846185484920" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846227443609" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846185484920" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846227443609" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846185484920" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846185484920" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846227443609" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846227443609" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -219,6 +219,7 @@ parameters (<code translate="no" v-pre>{{#if name}}</code>) are not checked.</p>
 | Summary prompt | `SummaryServiceImpl.createSummaryPayload` | `SummaryTemplateData` | `backgroundLore`, `text` (the parts to summarize) |
 | Meta summary prompt | `SummaryServiceImpl.createMetaSummaryPayload` | `MetaSummaryTemplateData` | `backgroundLore`, `summaryBlocks` (the summaries to merge, oldest first) |
 | Redraft prompt | `RedraftServiceImpl.createPayload` (an estimation render on a fork, then for real) | `RedraftTemplateData` | `text` (the part), `redraftInstructions`, `previousStory`, `summaries`, `followingStory`, `backgroundLore` (stored on the part), `narrativePov`, `narrativeTense`, `style`, and the turn of the part: `povCharacter`, `sceneSetting`, `presentCharacters`, `instructions`, `annotations` (the open annotations of the part when the redraft is asked to deal with them), and for the redraft of a passage `selection`, `selectionBefore`, `selectionAfter` (all `null` for the whole part, so `{{#selection}}` tells the cases apart) |
+| Impersonate prompt | `ImpersonateServiceImpl.createPayload` (an estimation render on a fork, then for real) | `ImpersonateTemplateData` | `impersonateInstructions` (the guidance of the author), `outline` (the plan a caller gives), `previousStory`, `summaries`, `backgroundLore` (stored on the last part), `instructionExamples` (the instructions of the last three parts that have some, oldest first), `narrativePov`, `narrativeTense`, `style`, `sceneSetting`, `povCharacter`, `presentCharacters` (of the request, else of the last part) |
 | Annotate prompt | `AnnotateServiceImpl.createPayload` (an estimation render on a fork, then for real) | `AnnotateTemplateData` | the variables of the redraft prompt with `annotateInstructions` instead of `redraftInstructions`, `annotations` (the open ones the part has) and `outputFormat` (the description of the answer of the mode; the service writes it, a prompt of the author has to print it) |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -266,6 +267,12 @@ parameters (<code translate="no" v-pre>{{#if name}}</code>) are not checked.</p>
 <td><code translate="no" v-pre>RedraftServiceImpl.createPayload</code> (an estimation render on a fork, then for real)</td>
 <td><code translate="no" v-pre>RedraftTemplateData</code></td>
 <td><code translate="no" v-pre>text</code> (the part), <code translate="no" v-pre>redraftInstructions</code>, <code translate="no" v-pre>previousStory</code>, <code translate="no" v-pre>summaries</code>, <code translate="no" v-pre>followingStory</code>, <code translate="no" v-pre>backgroundLore</code> (stored on the part), <code translate="no" v-pre>narrativePov</code>, <code translate="no" v-pre>narrativeTense</code>, <code translate="no" v-pre>style</code>, and the turn of the part: <code translate="no" v-pre>povCharacter</code>, <code translate="no" v-pre>sceneSetting</code>, <code translate="no" v-pre>presentCharacters</code>, <code translate="no" v-pre>instructions</code>, <code translate="no" v-pre>annotations</code> (the open annotations of the part when the redraft is asked to deal with them), and for the redraft of a passage <code translate="no" v-pre>selection</code>, <code translate="no" v-pre>selectionBefore</code>, <code translate="no" v-pre>selectionAfter</code> (all <code translate="no" v-pre>null</code> for the whole part, so <code translate="no" v-pre>{{#selection}}</code> tells the cases apart)</td>
+</tr>
+<tr>
+<td>Impersonate prompt</td>
+<td><code translate="no" v-pre>ImpersonateServiceImpl.createPayload</code> (an estimation render on a fork, then for real)</td>
+<td><code translate="no" v-pre>ImpersonateTemplateData</code></td>
+<td><code translate="no" v-pre>impersonateInstructions</code> (the guidance of the author), <code translate="no" v-pre>outline</code> (the plan a caller gives), <code translate="no" v-pre>previousStory</code>, <code translate="no" v-pre>summaries</code>, <code translate="no" v-pre>backgroundLore</code> (stored on the last part), <code translate="no" v-pre>instructionExamples</code> (the instructions of the last three parts that have some, oldest first), <code translate="no" v-pre>narrativePov</code>, <code translate="no" v-pre>narrativeTense</code>, <code translate="no" v-pre>style</code>, <code translate="no" v-pre>sceneSetting</code>, <code translate="no" v-pre>povCharacter</code>, <code translate="no" v-pre>presentCharacters</code> (of the request, else of the last part)</td>
 </tr>
 <tr>
 <td>Annotate prompt</td>
@@ -748,7 +755,7 @@ whose content is the last argument.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (f37548dd5).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (68748bd20).</p></div>
             </footer>
         </div>
     </div>

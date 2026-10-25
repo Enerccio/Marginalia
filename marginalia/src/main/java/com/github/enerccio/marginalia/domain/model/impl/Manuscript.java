@@ -90,6 +90,10 @@ public class Manuscript extends ExtendableEntity {
 
     @ExtendedAttribute
     @Transient
+    private String impersonatePrompt;
+
+    @ExtendedAttribute
+    @Transient
     private BackupStrategy backupStrategy;
 
     @ExtendedAttribute
@@ -242,6 +246,14 @@ public class Manuscript extends ExtendableEntity {
 
     public void setAnnotatePrompt(String annotatePrompt) {
         this.annotatePrompt = annotatePrompt;
+    }
+
+    public String getImpersonatePrompt() {
+        return impersonatePrompt;
+    }
+
+    public void setImpersonatePrompt(String impersonatePrompt) {
+        this.impersonatePrompt = impersonatePrompt;
     }
 
     public String getRedraftPrompt() {

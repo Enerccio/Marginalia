@@ -66,6 +66,10 @@ public class UserSetting extends Setting {
     @Transient
     private String defaultAnnotatePrompt;
 
+    @ExtendedAttribute
+    @Transient
+    private String defaultImpersonatePrompt;
+
     /**
      * The AI that annotates a part when the author does not choose another one for the run; annotating is analysis, which is
      * usually not done by the model that writes the prose. Null is the AI of the book.
@@ -257,6 +261,14 @@ public class UserSetting extends Setting {
 
     public void setDefaultAnnotatePrompt(String defaultAnnotatePrompt) {
         this.defaultAnnotatePrompt = defaultAnnotatePrompt;
+    }
+
+    public String getDefaultImpersonatePrompt() {
+        return defaultImpersonatePrompt;
+    }
+
+    public void setDefaultImpersonatePrompt(String defaultImpersonatePrompt) {
+        this.defaultImpersonatePrompt = defaultImpersonatePrompt;
     }
 
     public Long getDefaultAnnotateModel() {

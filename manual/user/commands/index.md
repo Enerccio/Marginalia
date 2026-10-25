@@ -189,6 +189,7 @@ describes): the answer lists them and says what to do, `/revalidate-summaries` i
 | `/swipe [part] [scene] [pov] [present] [instructions] [profile]` | Has the model write another version of the last part of a branch. What you leave out is taken from the part. |
 | `/regenerate [part] [scene] [pov] [present] [instructions] [profile]` | Has the model write the last part of a branch again, replacing its text. Asks first. |
 | `/redraft-part <part> [instructions] [prompt] [profile] [apply]` | Has the model write any part again from your instructions (see [Redrafting a part](../books/story-editor.md#redrafting-a-part)) and replaces its text. `prompt` is a redraft prompt to use instead of the book's, `profile` a model profile of an agent, `apply` `false` only returns the text. `DESTRUCTIVE`; asks first. Slow, costs tokens. |
+| `/impersonate [instructions] [outline] [prompt]` | Has the model draft the instructions of the next turn in your place (see [Drafting the instructions](../books/story-editor.md#drafting-the-instructions)) and returns the text; nothing is changed. `instructions` is what the part should be about (empty continues the story where it leads), `outline` a plan of the story for the model, `prompt` an impersonate prompt to use instead of the book's. Only for you at the command bar: an [agent](../agents.md) is not offered it. Slow, costs tokens. |
 | `/set-book-info [name] [description] [pov] [tense] [style] [language]` | Changes the descriptive settings of the book; only the values you give. |
 | `/set-book-prompts [template] [userPrompt] [summaryPrompt] [metaSummaryPrompt]` | Replaces the prompt templates of the book. Each is checked first. `DESTRUCTIVE`: a bad template spoils every later generation. |
 | `/set-book-tags [add] [remove]` | Adds and takes off tags of the book (comma separated). |
@@ -225,7 +226,7 @@ You see these in the list as long as the extension is loaded; each is described 
 | Command | Extension | What it does |
 |---|---|---|
 | `/list-lore-templates [<template>]` | [Lore Generator](../extensions/lore-generator.md) | Your saved generation prompts, or the text of one. |
-| `/generate-lore-entry [<prompt> ...]` | [Lore Generator](../extensions/lore-generator.md) | Generates the text of a lore entry with the lore of the lorebook and returns it. Stores nothing. |
+| `/generate-lore-entry [<prompt> ...]` | [Lore Generator](../extensions/lore-generator.md) | Generates the text of a lore entry with the lore of the lorebook, compacts it (unless `compact` is `false`) and returns it. Stores nothing. |
 | `/compact-lore-entry <text> [...]` | [Lore Generator](../extensions/lore-generator.md) | Compacts a generated text into a dense lore entry text and returns it. Stores nothing. |
 | `/list-name-categories [<filter>]`, `/generate-names <category> <count> [...]` | [Name generator](../extensions/name-generator.md) | The categories of made up names, and names of one of them. |
 | `/list-real-name-lists`, `/pick-real-names <list> <count>` | [Name provider](../extensions/name-provider.md) | The lists of real names, and names picked from one of them. |

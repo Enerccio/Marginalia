@@ -4,8 +4,8 @@ Rewrite a [SillyTavern](https://github.com/SillyTavern/SillyTavern) roleplay cha
 chat into a book, let the model split it into *turn details* using the chat and the lore of the book, and put each turn
 into the new turn form of the story with one click.
 
-To make a book out of a chat directly (every message, or every user and assistant pair, a part), see [Importing from
-SillyTavern](../books/managing-books.md#importing-from-sillytavern). The converter is for the other way: you keep the
+To make a book out of a chat directly (every message, or every user and assistant pair, a part), see
+[Importing from SillyTavern](../books/managing-books.md#importing-from-sillytavern). The converter is for the other way: you keep the
 chat next to you and write the story again, with the model, from instructions made of the chat.
 
 !!!

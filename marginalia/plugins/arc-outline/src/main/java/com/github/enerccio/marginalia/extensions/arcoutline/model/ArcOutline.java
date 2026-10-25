@@ -65,6 +65,53 @@ public class ArcOutline {
         }
     }
 
+    /**
+     * Where the story is in the outline: the arc, its chapter and the chapter after it.
+     *
+     * @param arc     the arc of the chapter
+     * @param chapter the current chapter; {@code null} when the arc has no chapter to be at
+     * @param next    the chapter after the current one (it can be in the next arc), {@code null} when there is none
+     */
+    public record Current(Arc arc, Chapter chapter, Chapter next) {
+    }
+
+    /**
+     * The place the story is at: the first chapter marked {@link OutlineState#CURRENT}, else the first chapter that is not
+     * {@link OutlineState#FINISHED}. When no chapter qualifies the first arc marked current stands alone (an arc with no chapters
+     * yet), and an outline that is finished or empty has no current place.
+     *
+     * @return {@code null} when there is none
+     */
+    public Current current() {
+        for (OutlineState wanted : List.of(OutlineState.CURRENT, OutlineState.PLANNED)) {
+            for (Arc arc : arcs) {
+                for (Chapter chapter : arc.getChapters()) {
+                    if (chapter.getState() == wanted) {
+                        return new Current(arc, chapter, chapterAfter(chapter));
+                    }
+                }
+            }
+        }
+        return arcs.stream().filter(arc -> arc.getState() == OutlineState.CURRENT).findFirst()
+                .map(arc -> new Current(arc, null, null)).orElse(null);
+    }
+
+    /**
+     * The chapter after the given one in the order of the outline, across the arcs.
+     */
+    private Chapter chapterAfter(Chapter chapter) {
+        boolean found = false;
+        for (Arc arc : arcs) {
+            for (Chapter candidate : arc.getChapters()) {
+                if (found) {
+                    return candidate;
+                }
+                found = candidate == chapter;
+            }
+        }
+        return null;
+    }
+
     public ArcOutlineData toData() {
         ArcOutlineData data = new ArcOutlineData();
         data.setArcs(new ArrayList<>(arcs));
