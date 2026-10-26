@@ -263,9 +263,10 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     visible story tab with no dialog above it, the round button and the generate button show the key in their tooltip. The
     user changes the keys in *Settings → Keyboard shortcuts* (`KeyBindingsEditor`: table, record, reset, clear, warnings for
     duplicates, browser keys and Alt+letter; `UserSetting.keyBindings`), plugins register their actions with
-    `ShortcutRegistry` (`ui.shortcuts`). Not done: the defaults were chosen without trying them in real browsers (Chrome,
-    Firefox, Safari; check `Ctrl+.`, `Ctrl+S` and the Esc of the popover); the command bar (`/`), search and replace and
-    next/previous tab are not bound yet; the hamburger menu items do not show their key; the phone layout needs none.
+    `ShortcutRegistry` (`ui.shortcuts`). The first defaults were tried in real browsers; also bound: the command bar (`/`), the search of the branch
+    (`Ctrl+Shift+F`), the search and replace window (`Ctrl+Shift+H`), *Annotate selection* (`a`) and the next / previous tab (`Alt+PageDown` / `Alt+PageUp`), and the menu of a part shows
+    the keys. Not done: trying those six keys in Chrome, Firefox and Safari (`Ctrl+Shift+F`, `Ctrl+Shift+H`, `Alt+PageDown`, and the `a` over a text
+    selection are the ones to check); the phone layout needs none.
 28. ✅ **Mobile layout** — below 768 px (decided once, at page load) the app uses `PhoneWorkspace`: a drawer instead of
     the tab bar and phone twins of the parts (`workspace/phone/parts`) and of the book window
     (`PhoneManuscriptDialog`, tabs in `dialogs/phone/manuscript`), documented in `manual/user/phone.md`. Not done: the
@@ -347,7 +348,7 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
     (`RedraftService.Passage`, `RedraftDialog`): the model gets the whole part with the passage marked plus the story and
     lore around it (not only the paragraph), writes the replacement alone, and the notes whose passage overlaps the
     selection can be given to it. Not done: the `/redraft-part` command and the agent tools take no passage, and the
-    menu ☰ of the part does not offer it (it loses the selection). The right click menu was not tried in real browsers.
+    menu ☰ of the part does not offer it (it loses the selection). The right click menu was verified in real browsers.
 45. **Authorship provenance.** ✅ Partly (1.2.0): `ChatMessage.originalResponse` keeps what the model wrote and *Highlight
     Generated Text* shows a word diff of a part against it (desktop story tab only). Open: the ratio per book, the
     phone and exports. Goal: track which spans of a part are human (typed or edited) and which are model output; show
@@ -369,8 +370,8 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
     clean; the result is reviewed and kept or pruned. Needs terminal events for failed/cancelled generations (24a).
 68. ✅ **Annotations (notes anchored to a passage of a part).** Done in 1.5.0 (see the CHANGELOG), also the *margin notes* mode and the annotations
     of agents (review, sync, handles); open: aligning each margin note with the line of its passage (client-side layout, now the notes are stacked in text
-    order), a keyboard shortcut for *Annotate selection*, and a look at the marks, the popover, the right click menu, the margin and the selection in a real
-    browser (the scripts of `JavascriptLibrary` are not unit tested). Notes for the author ("weak scene", "timeline wrong",
+    order), (*Annotate selection* has a shortcut, `a`). The marks, the popover, the right click menu, the margin and the selection were verified in
+    real browsers (the scripts of `JavascriptLibrary` are not unit tested). Notes for the author ("weak scene", "timeline wrong",
     "revisit"), like comments in Word, plus findings of AI and agents. Core feature (anchoring, backups and the editor
     need hooks); checkers stay plugins (37 posts its findings as annotations, 44 can read them). Decided design:
     - **Entity** `Annotation` (a real table + Flyway migration, the sidebar queries by book / status / part): part,

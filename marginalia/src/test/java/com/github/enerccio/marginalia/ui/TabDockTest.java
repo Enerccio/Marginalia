@@ -178,6 +178,44 @@ class TabDockTest extends MarginaliaTestBase {
     }
 
     @Test
+    void selectRelativeGoesThroughTheSheetsInTheOrderOfTheLayoutAndRoundAgain() throws Exception {
+        login();
+        TabDock dock = dock("a", "b", "c", "d");
+        dock.setLayout(columns("\"a\",\"b\"", null, "\"c\"", "\"d\""));
+        List<TabSheet> shown = sheets(dock);
+
+        // nothing shown yet by a call: the first tab, then on
+        assertThat(dock.selectRelative(1)).isTrue();
+        assertThat(shown.get(0).getSelectedTab().getLabel()).isEqualTo("A");
+        dock.selectRelative(1);
+        assertThat(shown.get(0).getSelectedTab().getLabel()).isEqualTo("B");
+        dock.selectRelative(1);
+        assertThat(shown.get(1).getSelectedTab().getLabel()).isEqualTo("C");
+        dock.selectRelative(1);
+        assertThat(shown.get(2).getSelectedTab().getLabel()).isEqualTo("D");
+        dock.selectRelative(1);
+        assertThat(shown.get(0).getSelectedTab().getLabel()).isEqualTo("A");
+        dock.selectRelative(-1);
+        assertThat(shown.get(2).getSelectedTab().getLabel()).isEqualTo("D");
+        dock.selectRelative(-1);
+        assertThat(shown.get(1).getSelectedTab().getLabel()).isEqualTo("C");
+    }
+
+    @Test
+    void selectRelativeContinuesFromTheTabTheUserClickedAndSkipsDisabledOnes() throws Exception {
+        login();
+        TabDock dock = dock("a", "b", "c");
+        TabSheet sheet = sheets(dock).get(0);
+
+        sheet.setSelectedTab(sheet.getTabAt(1));
+        dock.setTabsEnabled(false, "c");
+        dock.selectRelative(1);
+        assertThat(sheet.getSelectedTab().getLabel()).isEqualTo("C");
+        dock.selectRelative(1);
+        assertThat(sheet.getSelectedTab().getLabel()).isEqualTo("C");
+    }
+
+    @Test
     void layoutSplitsTheTabsAndKeepsTheOnesItDoesNotKnow() throws Exception {
         login();
         TabDock dock = dock("a", "b", "c");

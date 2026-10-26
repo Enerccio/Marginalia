@@ -42,6 +42,21 @@ class KeyBindingsTest extends MarginaliaTestBase {
     }
 
     @Test
+    void navigationActionsHaveDefaultsThatTheBrowserDoesNotKeep() {
+        KeyBindings bindings = KeyBindings.of(null);
+        assertThat(bindings.get(ShortcutActions.STORY_COMMAND_BAR)).isEqualTo("/");
+        assertThat(bindings.get(ShortcutActions.STORY_SEARCH)).isEqualTo("Ctrl+Shift+f");
+        assertThat(bindings.get(ShortcutActions.STORY_SEARCH_REPLACE)).isEqualTo("Ctrl+Shift+h");
+        assertThat(bindings.get(ShortcutActions.STORY_ANNOTATE_SELECTION)).isEqualTo("a");
+        assertThat(bindings.get(ShortcutActions.DOCK_NEXT_TAB)).isEqualTo("Alt+PageDown");
+        assertThat(bindings.get(ShortcutActions.DOCK_PREVIOUS_TAB)).isEqualTo("Alt+PageUp");
+        assertThat(bindings.asMap().values().stream().filter(java.util.Objects::nonNull).toList())
+                .doesNotHaveDuplicates()
+                .noneMatch(KeyCombo::isBrowserReserved)
+                .noneMatch(KeyCombo::isAltCharacter);
+    }
+
+    @Test
     void storedKeyOverridesTheDefaultAndEmptyIsNoKey() {
         UserSetting setting = new UserSetting();
         setting.setKeyBindings(json("{\"story.swipe\":\"Ctrl+Shift+S\",\"story.regenerate\":\"\",\"story.edit\":\"nonsense\"}"));

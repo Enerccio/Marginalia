@@ -27,6 +27,7 @@ import com.github.enerccio.marginalia.ui.shortcuts.ShortcutAction;
 import com.github.enerccio.marginalia.ui.shortcuts.ShortcutActions;
 import com.github.enerccio.marginalia.ui.shortcuts.ShortcutRegistry;
 import com.github.enerccio.marginalia.ui.widgets.LazyContextMenu;
+import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
 import com.github.enerccio.marginalia.utils.GeneratedTextHighlighter;
@@ -50,6 +51,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.popover.Popover;
 import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.dom.Element;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -299,6 +301,18 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             }
             case ShortcutActions.STORY_SAVE_EDIT -> cards.values().stream().filter(ChatMessageCard::isEditing)
                     .forEach(ChatMessageCard::autosaveAndSwapToMarkdown);
+            case ShortcutActions.STORY_COMMAND_BAR -> {
+                leftBar.select(STORY_TAB);
+                commandBar.focusInput();
+            }
+            case ShortcutActions.STORY_SEARCH -> {
+                leftBar.select(CHAPTERS_TAB);
+                branchSearch.focusField();
+            }
+            case ShortcutActions.STORY_SEARCH_REPLACE -> openSearchReplaceDialog();
+            case ShortcutActions.STORY_ANNOTATE_SELECTION -> annotateSelectedText();
+            case ShortcutActions.DOCK_NEXT_TAB -> leftBar.selectRelative(1);
+            case ShortcutActions.DOCK_PREVIOUS_TAB -> leftBar.selectRelative(-1);
             default -> {
                 ShortcutAction action = ShortcutRegistry.get(actionId);
                 if (action != null && action.getHandler() != null) {
@@ -310,6 +324,44 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 }
             }
         }
+    }
+
+    /**
+     * Makes a note about the text the author has selected: in the part that is edited, else in the part that holds the
+     * selection in the browser.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "editing", type = ChatMessageCard.class),
+                    @APILocals(name = "candidates", type = List.class)})
+    private void annotateSelectedText() {
+        ChatMessageCard editing = cards.values().stream().filter(ChatMessageCard::isEditing).findFirst().orElse(null);
+        if (editing != null) {
+            editing.annotateSelection();
+            return;
+        }
+        List<ChatMessageCard> candidates = new ArrayList<>(cards.values());
+        JavascriptLibrary.selectionOwner(leftBar.getElement(),
+                candidates.stream().map(ChatMessageCard::getResponseElement).toList()).then(Integer.class, index -> {
+            if (index != null && index >= 0 && index < candidates.size()) {
+                candidates.get(index).annotateSelection();
+            } else {
+                Notification.warning(loc.getValue(L.MSG_ANNOTATION_SELECT_TEXT));
+            }
+        });
+    }
+
+    /**
+     * The text of a menu item with the key of its action after it, as the tooltip of the round button has it.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "label", type = String.class),
+                    @APIParameter(name = "actionId", type = String.class)},
+            locals = {@APILocals(name = "key", type = String.class)})
+    private String withKey(String label, String actionId) {
+        String key = keyBindings == null || actionId == null ? null : keyBindings.get(actionId);
+        return key == null ? label : label + " (" + key + ")";
     }
 
     @PublicAPI(from = "1.1.0",
@@ -1334,6 +1386,12 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             annotateSelectionItem.setVisible(message.getId() != null && StringUtils.isNotBlank(message.getResponse()));
             annotatePartItem.setVisible(message.getId() != null);
             annotateAiItem.setVisible(!editing && message.getId() != null && StringUtils.isNotBlank(message.getResponse()));
+            // the keys of the shortcuts, which act on the last part (and on the part that is edited)
+            editItem.setText(withKey(loc.getValue(editing ? L.LABEL_SAVE : L.LABEL_EDIT),
+                    editing ? ShortcutActions.STORY_SAVE_EDIT : isLast ? ShortcutActions.STORY_EDIT : null));
+            regenerateItem.setText(withKey(loc.getValue(L.LABEL_REGENERATE), ShortcutActions.STORY_REGENERATE));
+            swipeItem.setText(withKey(loc.getValue(L.LABEL_SWIPE), ShortcutActions.STORY_SWIPE));
+            annotateSelectionItem.setText(withKey(loc.getValue(L.LABEL_ANNOTATE_SELECTION), ShortcutActions.STORY_ANNOTATE_SELECTION));
         }
 
         /**
@@ -1582,6 +1640,21 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 returns = @APIReturn(type = boolean.class))
         public boolean isEditing() {
             return editing;
+        }
+
+        /**
+         * Makes a note about the text selected in the part, see {@link CardAnnotations#annotateSelection}.
+         */
+        @PublicAPI(from = "1.5.0",
+                returns = @APIReturn(type = void.class))
+        public void annotateSelection() {
+            cardAnnotations.annotateSelection();
+        }
+
+        @PublicAPI(from = "1.5.0",
+                returns = @APIReturn(type = Element.class))
+        public Element getResponseElement() {
+            return responseMarkdown.getElement();
         }
 
         @PublicAPI(from = "1.1.0",
