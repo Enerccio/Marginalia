@@ -744,6 +744,10 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_FOCUS_COMMAND_BAR, "转到命令栏");
         setValue(L.LABEL_NEXT_TAB, "下一个标签页");
         setValue(L.LABEL_PREVIOUS_TAB, "上一个标签页");
+        setValue(L.LABEL_RESOURCE_FILES, "资源文件");
+        setValue(L.LABEL_SCAN_FILES, "扫描文件");
+        setValue(L.LABEL_DOWNLOAD_AS_ZIP, "下载为 ZIP");
+        setValue(L.LABEL_FILE, "文件");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1261,6 +1265,13 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_COMMAND_IMPERSONATING, "正在起草指令…");
         setValue(L.MSG_ACTIVATION_PREVIEW_SUMMARY, "将使用 %s / %s 个条目，约 %s 个词元。");
         setValue(L.MSG_CONFIRM_DELETE_ENTRIES, "删除所选的 %s 个条目？");
+        setValue(L.MSG_RESOURCE_FILES_DESCRIPTION, "已删除的资源和被替换内容的文件会留在磁盘上。扫描会读取所有用户的资源文件夹，并列出没有任何资源（包括回收站中已删除的资源）指向的文件。如有疑虑，请先把勾选的文件下载为 ZIP，然后再从磁盘删除。");
+        setValue(L.MSG_SCANNING_RESOURCE_FILES, "正在扫描资源文件夹…");
+        setValue(L.MSG_RESOURCE_FILES_FOUND, "%s / %s 个文件未被任何资源使用（%s）。");
+        setValue(L.MSG_RESOURCE_FILES_SELECTED, "已选择 %s 个（%s）");
+        setValue(L.MSG_CONFIRM_DELETE_RESOURCE_FILES, "从磁盘永久删除 %s 个文件（%s）？此操作无法撤销。");
+        setValue(L.MSG_RESOURCE_FILES_DELETED, "已删除 %s 个文件，释放 %s。");
+        setValue(L.MSG_RESOURCE_FILES_SKIPPED, "%s 个文件被保留：它们正在使用、已不存在或无法删除。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

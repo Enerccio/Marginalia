@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846327488942">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846328134700">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846327488942" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846328134700" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846327488942" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846328134700" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846327488942" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846327488942" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846328134700" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846328134700" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -667,7 +667,8 @@ functions rejects a non-empty <code translate="no" v-pre>FunctionSet</code> with
 | `PermissionService` | What users were allowed to do (`PermissionType`), see [Permissions](#permissions). |
 | `AgentService`, `AgentRunService`, `AgentMessageService`, `AgentRunner` | Agents, their runs, the transcript of a run and the loop that works a run, see [Agents](agents.md). |
 | `SettingService` | `getOrCreate(UserSetting.class)` for the current user, `getOrCreate(cls, user)`, `getOrCreateApp(AppSettings.class)` for the installation. |
-| `ResourceService` | Files stored by hash in the user's `resources` (or `images`) folder. `uploadImage` stores an attachment (format detected from the content, WebP converted to PNG, 10 MB and 50 megapixel limits), `findImage(uuid)` finds the current user's image. `link` / `unlink` / `describeLink` keep the loose `clazz` + `objectId` note (class name and id of the object using the resource, like `TagRelation`; not a cleanup reference, `describeLink` only checks that the entity exists and is not deleted). `findPageForUser` / `countForUser` serve the lazy table of the Resources tab, `replace` writes a new file and points the resource at it, `softDelete(uuids)` marks resources of the current user deleted (cleanup purges them; files are never deleted). |">
+| `ResourceService` | Files stored by hash in the user's `resources` (or `images`) folder. `uploadImage` stores an attachment (format detected from the content, WebP converted to PNG, 10 MB and 50 megapixel limits), `findImage(uuid)` finds the current user's image. `link` / `unlink` / `describeLink` keep the loose `clazz` + `objectId` note (class name and id of the object using the resource, like `TagRelation`; not a cleanup reference, `describeLink` only checks that the entity exists and is not deleted). `findPageForUser` / `countForUser` serve the lazy table of the Resources tab, `replace` writes a new file and points the resource at it, `softDelete(uuids)` marks resources of the current user deleted (cleanup purges them; files are never deleted). |
+| `ResourceGarbageService` | Garbage collection of the files of resources, administrators only (`AdminGuard`). The files are in `&lt;data&gt;/&lt;user folder&gt;/images` and `resources` (`Configuration.getImagesFolder` / `getResourcesFolder`) and are never deleted with their `Resource`, so the files of deleted resources and of replaced content pile up. `userFolders()` lists the folders of the data folder (also the `&lt;login&gt;-deleted` ones), `listFiles(folder)` the regular files of its two resource folders (`StoredFile`: folder, kind, name, size, modified; links and subfolders are ignored), `findUnused(files)` the ones whose name no `Resource.path` has - one query for the paths of all resources, soft deleted ones included (`ResourceRepository.findAllPaths`), matched by name only because the names are random UUIDs and a deleted user's folder is renamed while his resources stay in the database. `getFile`, `writeZip` (entries named by `StoredFile.path()`) and `delete` check every `StoredFile` again (plain names, `images` or `resources`, nothing leaves the data folder: `IllegalArgumentException` otherwise); `delete` reads the paths of the resources again and keeps the files in use now, returns a `DeleteResult` (deleted, skipped, bytes). Used by `ResourceGarbagePanel` (Admin → Resource Files), which reads the folders in a `ProgressBarDialog`. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -696,6 +697,10 @@ functions rejects a non-empty <code translate="no" v-pre>FunctionSet</code> with
 <tr>
 <td><code translate="no" v-pre>ResourceService</code></td>
 <td>Files stored by hash in the user&#x27;s <code translate="no" v-pre>resources</code> (or <code translate="no" v-pre>images</code>) folder. <code translate="no" v-pre>uploadImage</code> stores an attachment (format detected from the content, WebP converted to PNG, 10 MB and 50 megapixel limits), <code translate="no" v-pre>findImage(uuid)</code> finds the current user&#x27;s image. <code translate="no" v-pre>link</code> / <code translate="no" v-pre>unlink</code> / <code translate="no" v-pre>describeLink</code> keep the loose <code translate="no" v-pre>clazz</code> + <code translate="no" v-pre>objectId</code> note (class name and id of the object using the resource, like <code translate="no" v-pre>TagRelation</code>; not a cleanup reference, <code translate="no" v-pre>describeLink</code> only checks that the entity exists and is not deleted). <code translate="no" v-pre>findPageForUser</code> / <code translate="no" v-pre>countForUser</code> serve the lazy table of the Resources tab, <code translate="no" v-pre>replace</code> writes a new file and points the resource at it, <code translate="no" v-pre>softDelete(uuids)</code> marks resources of the current user deleted (cleanup purges them; files are never deleted).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ResourceGarbageService</code></td>
+<td>Garbage collection of the files of resources, administrators only (<code translate="no" v-pre>AdminGuard</code>). The files are in <code translate="no" v-pre>&lt;data&gt;/&lt;user folder&gt;/images</code> and <code translate="no" v-pre>resources</code> (<code translate="no" v-pre>Configuration.getImagesFolder</code> / <code translate="no" v-pre>getResourcesFolder</code>) and are never deleted with their <code translate="no" v-pre>Resource</code>, so the files of deleted resources and of replaced content pile up. <code translate="no" v-pre>userFolders()</code> lists the folders of the data folder (also the <code translate="no" v-pre>&lt;login&gt;-deleted</code> ones), <code translate="no" v-pre>listFiles(folder)</code> the regular files of its two resource folders (<code translate="no" v-pre>StoredFile</code>: folder, kind, name, size, modified; links and subfolders are ignored), <code translate="no" v-pre>findUnused(files)</code> the ones whose name no <code translate="no" v-pre>Resource.path</code> has - one query for the paths of all resources, soft deleted ones included (<code translate="no" v-pre>ResourceRepository.findAllPaths</code>), matched by name only because the names are random UUIDs and a deleted user&#x27;s folder is renamed while his resources stay in the database. <code translate="no" v-pre>getFile</code>, <code translate="no" v-pre>writeZip</code> (entries named by <code translate="no" v-pre>StoredFile.path()</code>) and <code translate="no" v-pre>delete</code> check every <code translate="no" v-pre>StoredFile</code> again (plain names, <code translate="no" v-pre>images</code> or <code translate="no" v-pre>resources</code>, nothing leaves the data folder: <code translate="no" v-pre>IllegalArgumentException</code> otherwise); <code translate="no" v-pre>delete</code> reads the paths of the resources again and keeps the files in use now, returns a <code translate="no" v-pre>DeleteResult</code> (deleted, skipped, bytes). Used by <code translate="no" v-pre>ResourceGarbagePanel</code> (Admin → Resource Files), which reads the folders in a <code translate="no" v-pre>ProgressBarDialog</code>.</td>
 </tr>
 </tbody>
 </table>
@@ -795,7 +800,7 @@ safe if something other than that screen (an API, an extension) ever reaches the
 <code translate="no" v-pre>AdminGuard.requireAdmin()</code> (bean in <code translate="no" v-pre>services-config.xml</code>), which loads the current user from the database - the
 session copy of <code translate="no" v-pre>admin</code> is not trusted, a user demoted or deleted mid-session loses access at once - and throws
 <code translate="no" v-pre>SecurityException</code> for nobody, a deleted user or a non-administrator. Guarded: every <code translate="no" v-pre>DatabaseBackupService</code> method
-except <code translate="no" v-pre>createScheduledBackup</code> and <code translate="no" v-pre>getNextScheduledBackup</code>, <code translate="no" v-pre>CleanupService.getReferenceModel/analyze/purge</code>,
+except <code translate="no" v-pre>createScheduledBackup</code> and <code translate="no" v-pre>getNextScheduledBackup</code>, <code translate="no" v-pre>CleanupService.getReferenceModel/analyze/purge</code>, every <code translate="no" v-pre>ResourceGarbageService</code> method,
 <code translate="no" v-pre>OsgiService.installPackage/uninstallPackage</code>, and <code translate="no" v-pre>UserService.deleteUser/clearPassword/unlock</code>. Code that runs
 without a request (the backup schedule, loading extensions on start, <code translate="no" v-pre>registerContributor</code>) is not guarded, and
 inside these services it calls private unguarded variants (<code translate="no" v-pre>listBackups</code>, <code translate="no" v-pre>removeBackup</code>). A new administrator-only
@@ -1032,7 +1037,7 @@ call. See
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (00fb916b3).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (b7945db8d).</p></div>
             </footer>
         </div>
     </div>
