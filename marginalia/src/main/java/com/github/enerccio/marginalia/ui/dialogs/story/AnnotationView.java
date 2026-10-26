@@ -126,6 +126,8 @@ public class AnnotationView extends VerticalLayout {
         header.setSpacing(true);
         header.setPadding(false);
         header.setWidthFull();
+        // the narrow column of the margin: the buttons go to a line of their own instead of over the text
+        header.setWrap(true);
 
         HorizontalLayout buttons = new HorizontalLayout();
         buttons.setSpacing(false);
@@ -243,6 +245,8 @@ public class AnnotationView extends VerticalLayout {
         footer.setAlignItems(FlexComponent.Alignment.CENTER);
         footer.setPadding(false);
         footer.setWidthFull();
+        // in the narrow sidebar and margin the buttons go under the check box instead of squeezing its text
+        footer.setWrap(true);
 
         Checkbox send = new Checkbox(loc.getValue(L.LABEL_ANNOTATION_SEND_TO_PROMPT));
         send.setValue(annotation.isSendToPrompt());

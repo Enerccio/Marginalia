@@ -9,7 +9,7 @@ public class UIConstants {
     /** Four icon buttons, e.g. the actions of a shared AI. */
     public static final String TOOL_COLUMN_SIZE_GIANT = "190px";
     /** Five icon buttons, e.g. the actions of an AI that is shared by its owner. */
-    public static final String TOOL_COLUMN_SIZE_FIVE = "230px";
+    public static final String TOOL_COLUMN_SIZE_FIVE = "300px";
     /** A token count with its header. */
     public static final String NUMBER_COLUMN_SIZE = "150px";
     /** A medium date with the time. */
