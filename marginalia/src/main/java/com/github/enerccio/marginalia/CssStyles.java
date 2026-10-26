@@ -179,6 +179,9 @@ public final class CssStyles {
 
     // --- Commands (ui.components.CommandBar, CommandResultView) ---
     public static final String COMMAND_BOX = "command-box";
+    public static final String MENU_ITEM_CONTENT = "menu-item-content";
+    public static final String MENU_ITEM_TEXT = "menu-item-text";
+    public static final String MENU_ITEM_KEY = "menu-item-key";
     public static final String COMMAND_BAR = "command-bar";
     public static final String COMMAND_HELP = "command-help";
     public static final String COMMAND_HELP_USAGE = "command-help-usage";

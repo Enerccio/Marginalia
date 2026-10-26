@@ -24,6 +24,9 @@ import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialogPart
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneSummariesDialog;
 import com.github.enerccio.marginalia.ui.dialogs.search.ManuscriptSearchReplaceDialog;
 import com.github.enerccio.marginalia.ui.dialogs.story.*;
+import com.github.enerccio.marginalia.ui.menu.BuiltMenu;
+import com.github.enerccio.marginalia.ui.menu.MenuKind;
+import com.github.enerccio.marginalia.ui.menu.StoryMenuRegistry;
 import com.github.enerccio.marginalia.ui.widgets.LazyContextMenu;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
@@ -66,7 +69,7 @@ import java.util.*;
  */
 @Configurable
 @Extendable
-public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
+public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, StoryEditor {
 
     @Autowired
     private Localization loc;
@@ -82,6 +85,9 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
 
     @Autowired
     private SummaryService summaryService;
+
+    @Autowired
+    private StoryMenuRegistry menuRegistry;
 
     private final PhoneManuscriptDialog parent;
     private CancellationToken activeGenerationToken;
@@ -99,7 +105,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
     private MenuBar menuBar;
     private MenuItem summariesMenuItem;
     private MenuItem cogsMenuItem;
-    private MenuItem changeStyles;
+    private BuiltMenu toolsMenu;
     private Button actionButton;
 
     private Popover newTurnPopover;
@@ -227,8 +233,16 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         return item;
     }
 
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = Manuscript.class))
+    @Override
+    public Manuscript getCurrentManuscript() {
+        return currentManuscript;
+    }
+
     /**
-     * The story settings menu, extensions add their items to its sub menu ({@code cogsMenuItem.getSubMenu()}).
+     * The story settings menu, filled from the {@link StoryMenuRegistry} (kind {@link MenuKind#TOOLS}, the items the phone shows);
+     * extensions that decorate this method add their items to its sub menu ({@code cogs.getSubMenu()}).
      */
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = MenuItem.class),
@@ -236,36 +250,43 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
             locals = {@APILocals(name = "cogs", type = MenuItem.class)})
     private MenuItem createCogsMenuItem(MenuBar bar) {
         MenuItem cogs = bar.addItem(Solid.COGS.create());
-        changeStyles = createChangeStylesMenuItem(cogs);
-        createSearchReplaceMenuItem(cogs);
-        createImportArchiveMenuItem(cogs);
-        createBranchTokensMenuItem(cogs);
-        createExportMenuItem(cogs);
+        // the phone has no keyboard: no keys in the menus
+        toolsMenu = menuRegistry.definition(MenuKind.TOOLS, true, null).build(cogs.getSubMenu(), loc, this, () -> null);
         return cogs;
     }
 
-    @PublicAPI(from = "1.1.0",
-            returns = @APIReturn(type = MenuItem.class),
-            parameters = {@APIParameter(name = "cogs", type = MenuItem.class)})
-    private MenuItem createChangeStylesMenuItem(MenuItem cogs) {
-        return cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.PEN_FANCY.create(), loc.getValue(L.LABEL_CHANGE_STYLES)), event -> {
-            try {
-                Manuscript manuscript = parent.refreshManuscript();
-                manuscript.setShowBookStyles(!manuscript.getShowBookStyles());
-                manuscriptService.save(manuscript);
-                applyBookStyles();
-            } catch (Exception e) {
-                UIUtils.internalServerError(loc, e);
-            }
-        });
+    /**
+     * Turns the styles of the book on or off for the story.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "manuscript", type = Manuscript.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    @Override
+    public void toggleBookStyles() {
+        try {
+            Manuscript manuscript = parent.refreshManuscript();
+            manuscript.setShowBookStyles(!manuscript.getShowBookStyles());
+            manuscriptService.save(manuscript);
+            applyBookStyles();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
-    @PublicAPI(from = "1.4.0",
-            returns = @APIReturn(type = MenuItem.class),
-            parameters = {@APIParameter(name = "cogs", type = MenuItem.class)})
-    private MenuItem createSearchReplaceMenuItem(MenuItem cogs) {
-        return cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.EXCHANGE_ALT.create(), loc.getValue(L.LABEL_SEARCH_AND_REPLACE)),
-                event -> openSearchReplaceDialog());
+    /**
+     * Opens the export of the story.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    @Override
+    public void openExportDialog() {
+        try {
+            new ExportDialog(parent.refreshManuscript()).open();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     /**
@@ -275,7 +296,8 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "dialog", type = ManuscriptSearchReplaceDialog.class),
                     @APILocals(name = "e", type = Exception.class)})
-    private void openSearchReplaceDialog() {
+    @Override
+    public void openSearchReplaceDialog() {
         try {
             ManuscriptSearchReplaceDialog dialog = new ManuscriptSearchReplaceDialog(parent.refreshManuscript(), true);
             dialog.onReplaced(() -> {
@@ -291,32 +313,17 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         }
     }
 
-    @PublicAPI(from = "1.4.0",
-            returns = @APIReturn(type = MenuItem.class),
-            parameters = {@APIParameter(name = "cogs", type = MenuItem.class)})
-    private MenuItem createImportArchiveMenuItem(MenuItem cogs) {
-        return cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.FILE_IMPORT.create(), loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE)),
-                event -> openArchiveImportDialog());
-    }
-
     /**
      * Asks for a zip archive of {@code .md} files and adds a part for each file to the end of the story, see
      * {@link ArchiveImportService#appendParts}; the story is shown again.
      */
     @PublicAPI(from = "1.4.0",
             returns = @APIReturn(type = void.class))
-    private void openArchiveImportDialog() {
+    @Override
+    public void openArchiveImportDialog() {
         ArchiveUploadDialog.show(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE), loc.getValue(L.MSG_IMPORT_ARCHIVE_TO_BOOK),
                 (archive, fileName) -> new ArchiveImportRunner().appendParts(parent.refreshManuscript(), MarkdownArchive.read(archive),
                         imported -> load(parent.refreshManuscript())));
-    }
-
-    @PublicAPI(from = "1.5.0",
-            returns = @APIReturn(type = MenuItem.class),
-            parameters = {@APIParameter(name = "cogs", type = MenuItem.class)})
-    private MenuItem createBranchTokensMenuItem(MenuItem cogs) {
-        return cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.CHART_BAR.create(), loc.getValue(L.LABEL_BRANCH_TOKENS)),
-                event -> openBranchTokensDialog());
     }
 
     /**
@@ -326,7 +333,8 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "dialog", type = BranchTokensDialog.class),
                     @APILocals(name = "e", type = Exception.class)})
-    private void openBranchTokensDialog() {
+    @Override
+    public void openBranchTokensDialog() {
         try {
             BranchTokensDialog dialog = new BranchTokensDialog(parent.refreshManuscript());
             dialog.create();
@@ -334,19 +342,6 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
-    }
-
-    @PublicAPI(from = "1.1.0",
-            returns = @APIReturn(type = MenuItem.class),
-            parameters = {@APIParameter(name = "cogs", type = MenuItem.class)})
-    private MenuItem createExportMenuItem(MenuItem cogs) {
-        return cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.FILE_EXPORT.create(), loc.getValue(L.LABEL_EXPORT_STORY)), event -> {
-            try {
-                new ExportDialog(parent.refreshManuscript()).open();
-            } catch (Exception e) {
-                UIUtils.internalServerError(loc, e);
-            }
-        });
     }
 
     @PublicAPI(from = "1.1.0",
@@ -783,23 +778,9 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         private final Button menuBtn;
         private final Button infoBtn;
         private ContextMenu hamburgerMenu;
+        private BuiltMenu cardMenu;
+        private BuiltMenu textMenu;
         private boolean menuItemsCreated;
-        private MenuItem editItem;
-        private MenuItem discardItem;
-        private MenuItem regenerateItem;
-        private MenuItem swipeItem;
-        private MenuItem redraftItem;
-        private MenuItem annotateSelectionItem;
-        private MenuItem annotatePartItem;
-        private MenuItem annotateAiItem;
-        private MenuItem branchItem;
-        private MenuItem mergeItem;
-        private MenuItem summaryItem;
-        private MenuItem deleteSummaryItem;
-        private MenuItem deleteItem;
-        private MenuItem showPromptItem;
-        private MenuItem tokenUsageItem;
-        private MenuItem imagesItem;
         private Details reasoningDetails;
         private Markdown reasoningMarkdown;
         private Markdown responseMarkdown;
@@ -866,7 +847,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
 
             // a tap on a mark of an annotation opens its note at the mark
             cardAnnotations = new CardAnnotations(loc, annotations, () -> this.message, responseMarkdown,
-                    () -> responseTextArea, this::autosaveAndSwapToMarkdown, this::redraftSelection);
+                    () -> responseTextArea, this::autosaveAndSwapToMarkdown, this::redraftSelection, this::prepareTextMenu);
             headerBar.add(cardAnnotations.getBadge());
             refreshAnnotationBadge();
 
@@ -933,8 +914,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         }
 
         /**
-         * Runs each time the menu is about to open: creates the items the first time, then refreshes the ones that
-         * depend on the part.
+         * Runs each time the menu is about to open: creates the items the first time, then refreshes their text and visibility.
          */
         @PublicAPI(from = "1.4.0",
                 returns = @APIReturn(type = void.class))
@@ -944,71 +924,37 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                 createMenuItems();
             }
             refreshSummaryMenuItems();
-            // there is something to discard only while the text is edited
-            discardItem.setVisible(editing);
-            // the text that is redrafted is the saved one
-            redraftItem.setVisible(!editing && StringUtils.isNotBlank(message.getResponse()));
-            // a part that is being generated has nothing to annotate yet
-            annotateSelectionItem.setVisible(message.getId() != null && StringUtils.isNotBlank(message.getResponse()));
-            annotatePartItem.setVisible(message.getId() != null);
-            annotateAiItem.setVisible(!editing && message.getId() != null && StringUtils.isNotBlank(message.getResponse()));
+            cardMenu.refresh();
         }
 
         /**
-         * Adds the items to {@code hamburgerMenu}. Called when the menu is opened for the first time, not when the
-         * card is created, so the cards of a long story stay cheap.
+         * Adds the items of the registry (kind {@link MenuKind#CARD}, the items the phone shows) to {@code hamburgerMenu}. Called when the
+         * menu is opened for the first time, not when the card is created, so the cards of a long story stay cheap; extensions that
+         * decorate it add their items after these.
          */
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class))
         private void createMenuItems() {
-            editItem = hamburgerMenu.addItem(loc.getValue(editing ? L.LABEL_SAVE : L.LABEL_EDIT), event -> toggleEdit());
+            cardMenu = menuRegistry.definition(MenuKind.CARD, true, null).build(hamburgerMenu, loc, PhoneManuscriptStoryPart.this, () -> this);
+        }
 
-            discardItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_DISCARD_CHANGES), event -> discardEdit());
-            discardItem.setVisible(editing);
-
-            regenerateItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_REGENERATE), event -> regenerate());
-            regenerateItem.setVisible(this.isLast);
-
-            swipeItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_SWIPE), event -> swipe());
-            swipeItem.setVisible(this.isLast);
-
-            redraftItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_REDRAFT), event -> redraft());
-
-            annotateSelectionItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_ANNOTATE_SELECTION), event -> cardAnnotations.annotateSelection());
-            annotatePartItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_ANNOTATE_PART), event -> cardAnnotations.annotatePart());
-            annotateAiItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_ANNOTATE_WITH_AI), event -> annotateWithAi());
-
-            branchItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_BRANCH_STORY), event -> branch());
-
-            mergeItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_MERGE_INTO_PREVIOUS), event -> mergeIntoPrevious());
-            mergeItem.setVisible(message.getParent() != null);
-
-            showPromptItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_SHOW_PROMPT), event -> showPrompt());
-
-            tokenUsageItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_TOKEN_USAGE), event -> showTokenUsage());
-
-            imagesItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_IMAGES), event -> openImagesDialog());
-
-            summaryItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_GENERATE_SUMMARY), event -> openSummaryDialog());
-            deleteSummaryItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_DELETE_SUMMARY), event -> confirmDeleteSummary());
-
-            deleteItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_DELETE), event -> {
-                ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
-                    try {
-                        chatMessageService.deleteNodeAndMigrateChildren(message, currentManuscript, false);
-
-                        parent.refreshManuscript();
-                        load(parent.getManuscript());
-                    } catch (Exception e) {
-                        UIUtils.internalServerError(loc, e);
-                    }
-                });
-            });
+        /**
+         * Runs each time the menu of the text is about to open: creates its items from the registry the first time, then refreshes them.
+         */
+        @PublicAPI(from = "1.5.0",
+                returns = @APIReturn(type = void.class),
+                parameters = {@APIParameter(name = "menu", type = ContextMenu.class)})
+        private void prepareTextMenu(ContextMenu menu) {
+            if (textMenu == null) {
+                textMenu = menuRegistry.definition(MenuKind.TEXT, true, null).build(menu, loc, PhoneManuscriptStoryPart.this, () -> this);
+            }
+            textMenu.refresh();
         }
 
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class))
-        private void openImagesDialog() {
+        @Override
+        public void openImagesDialog() {
             new ImagesDialog(message, updated -> {
                 message = updated;
                 messageImages.setImages(updated.getImages());
@@ -1027,24 +973,12 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                     }
                 }
             } catch (Exception ignored) {}
-
-            if (summaryItem == null) {
-                return;
-            }
-
-            boolean hasSummary = (message != null && message.getSummary() != null);
-            if (hasSummary) {
-                summaryItem.setText(loc.getValue(L.LABEL_SHOW_SUMMARY));
-                deleteSummaryItem.setEnabled(true);
-            } else {
-                summaryItem.setText(loc.getValue(L.LABEL_GENERATE_SUMMARY));
-                deleteSummaryItem.setEnabled(false);
-            }
         }
 
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class))
-        private void confirmDeleteSummary() {
+        @Override
+        public void confirmDeleteSummary() {
             SummaryRemoval.confirmAndRemove(loc, summaryService, message, updated -> {
                 message = updated;
                 refreshSummaryMenuItems();
@@ -1059,7 +993,8 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         @PublicAPI(from = "1.5.0",
                 returns = @APIReturn(type = void.class),
                 locals = {@APILocals(name = "e", type = Exception.class)})
-        private void redraft() {
+        @Override
+        public void redraft() {
             try {
                 currentManuscript = parent.refreshManuscript();
                 RedraftDialog.open(currentManuscript, message, saved -> {
@@ -1101,7 +1036,8 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         @PublicAPI(from = "1.5.0",
                 returns = @APIReturn(type = void.class),
                 locals = {@APILocals(name = "e", type = Exception.class)})
-        private void mergeIntoPrevious() {
+        @Override
+        public void mergeIntoPrevious() {
             try {
                 currentManuscript = parent.refreshManuscript();
                 PartMergeDialog.open(currentManuscript, message, merged -> {
@@ -1119,7 +1055,8 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class),
                 locals = {@APILocals(name = "e", type = Exception.class)})
-        private void branch() {
+        @Override
+        public void branch() {
             try {
                 currentManuscript = parent.refreshManuscript();
                 currentManuscript.setActiveLeaf(chatMessageService.branch(currentManuscript, message));
@@ -1132,7 +1069,8 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class),
                 locals = {@APILocals(name = "summaryDialog", type = SummaryDialog.class)})
-        private void openSummaryDialog() {
+        @Override
+        public void openSummaryDialog() {
             refreshSummaryMenuItems();
             boolean hasSummary = (message != null && message.getSummary() != null);
             SummaryDialog summaryDialog = new SummaryDialog(currentManuscript, message, !hasSummary);
@@ -1145,14 +1083,16 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
 
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class))
-        private void regenerate() {
+        @Override
+        public void regenerate() {
             createDetails();
             startGeneration(GenerationRequest.regenerate(message), detailsForm.toTurnInput());
         }
 
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class))
-        private void swipe() {
+        @Override
+        public void swipe() {
             createDetails();
             startGeneration(GenerationRequest.newSwipe(message), detailsForm.toTurnInput());
         }
@@ -1173,12 +1113,6 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                 parameters = {@APIParameter(name = "isLast", type = boolean.class)})
         public void setLastMessage(boolean isLast) {
             this.isLast = isLast;
-            if (regenerateItem != null) {
-                regenerateItem.setVisible(isLast);
-            }
-            if (swipeItem != null) {
-                swipeItem.setVisible(isLast);
-            }
             if (detailsForm != null) {
                 detailsForm.setLastMessage(isLast);
             }
@@ -1196,6 +1130,69 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
             }
         }
 
+        @PublicAPI(from = "1.5.0",
+                returns = @APIReturn(type = boolean.class))
+        @Override
+        public boolean isLast() {
+            return isLast;
+        }
+
+        /**
+         * Makes a note about the text selected in the part.
+         */
+        @PublicAPI(from = "1.5.0",
+                returns = @APIReturn(type = void.class))
+        @Override
+        public void annotateSelection() {
+            cardAnnotations.annotateSelection();
+        }
+
+        /**
+         * Makes a note about the whole part.
+         */
+        @PublicAPI(from = "1.5.0",
+                returns = @APIReturn(type = void.class))
+        @Override
+        public void annotatePart() {
+            cardAnnotations.annotatePart();
+        }
+
+        /**
+         * Has the model write the passage the author selected again.
+         */
+        @PublicAPI(from = "1.5.0",
+                returns = @APIReturn(type = void.class))
+        @Override
+        public void redraftSelection() {
+            cardAnnotations.redraftSelection();
+        }
+
+        @PublicAPI(from = "1.5.0",
+                returns = @APIReturn(type = void.class))
+        @Override
+        public void copySelection() {
+            cardAnnotations.copySelection();
+        }
+
+        /**
+         * Asks, then deletes the part: what followed it continues from its parent.
+         */
+        @PublicAPI(from = "1.5.0",
+                returns = @APIReturn(type = void.class))
+        @Override
+        public void confirmDelete() {
+            ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
+                try {
+                    chatMessageService.deleteNodeAndMigrateChildren(message, currentManuscript, false);
+
+                    parent.refreshManuscript();
+                    load(parent.getManuscript());
+                } catch (Exception e) {
+                    UIUtils.internalServerError(loc, e);
+                }
+            });
+        }
+
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = boolean.class))
         public boolean isEditing() {
@@ -1204,6 +1201,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
 
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class))
+        @Override
         public void toggleEdit() {
             if (editing) {
                 autosaveAndSwapToMarkdown();
@@ -1217,9 +1215,6 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                 responseTextArea.setValue(StringUtils.defaultString(message.getResponse()));
                 addComponentAtIndex(indexOf(responseMarkdown) + 1, responseTextArea);
                 responseMarkdown.setVisible(false);
-                if (editItem != null) {
-                    editItem.setText(loc.getValue(L.LABEL_SAVE));
-                }
             }
         }
 
@@ -1229,6 +1224,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
          */
         @PublicAPI(from = "1.5.0",
                 returns = @APIReturn(type = void.class))
+        @Override
         public void discardEdit() {
             if (!editing) {
                 return;
@@ -1250,9 +1246,6 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
             responseTextArea = null;
             responseMarkdown.setVisible(true);
             editing = false;
-            if (editItem != null) {
-                editItem.setText(loc.getValue(L.LABEL_EDIT));
-            }
         }
 
         @PublicAPI(from = "1.1.0",
@@ -1271,9 +1264,6 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                     responseTextArea = null;
                     responseMarkdown.setVisible(true);
                     editing = false;
-                    if (editItem != null) {
-                        editItem.setText(loc.getValue(L.LABEL_EDIT));
-                    }
                     updateMetrics(message);
                 } catch (Exception e) {
                     UIUtils.internalServerError(loc, e);
@@ -1343,7 +1333,8 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         @PublicAPI(from = "1.5.0",
                 returns = @APIReturn(type = void.class),
                 locals = {@APILocals(name = "e", type = Exception.class)})
-        private void annotateWithAi() {
+        @Override
+        public void annotateWithAi() {
             try {
                 currentManuscript = parent.refreshManuscript();
                 AnnotateDialog.open(currentManuscript, message, () -> {
@@ -1395,7 +1386,8 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class),
                 locals = {@APILocals(name = "dialog", type = TokenUsageDialog.class)})
-        private void showTokenUsage() {
+        @Override
+        public void showTokenUsage() {
             // null for parts generated before the breakdown was recorded, the dialog says so
             TokenUsageDialog dialog = new TokenUsageDialog(message.getTokenBreakdown());
             dialog.create();
@@ -1405,7 +1397,8 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class),
                 locals = {@APILocals(name = "dialog", type = PromptDialog.class)})
-        private void showPrompt() {
+        @Override
+        public void showPrompt() {
             PromptDialog dialog = new PromptDialog(message.getBuiltPrompt());
             dialog.create();
             dialog.open();

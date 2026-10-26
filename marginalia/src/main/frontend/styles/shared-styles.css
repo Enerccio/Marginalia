@@ -1392,3 +1392,23 @@ vaadin-dialog-overlay.agent-console-phone .help-message-user {
     color: var(--lumo-primary-contrast-color);
     font-weight: 600;
 }
+
+/* the items of the menus of the story editor: icon, text and the key of the action at the end */
+.menu-item-content {
+    display: flex;
+    align-items: center;
+    gap: var(--lumo-space-s);
+    width: 100%;
+}
+
+.menu-item-text {
+    flex: 1 1 auto;
+}
+
+.menu-item-key {
+    flex: none;
+    margin-left: var(--lumo-space-l);
+    color: var(--lumo-secondary-text-color);
+    font-family: var(--lumo-font-family-monospace, monospace);
+    font-size: var(--lumo-font-size-xs);
+}

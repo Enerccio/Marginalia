@@ -38,21 +38,16 @@ public void onMethodLeave(Object instrumented, ExtendableMethodContext context, 
 
 ### Menu items on a story part
 
-Decorate `ManuscriptStoryPart$ChatMessageCard.createMenuItems` (called when the menu of the card is opened for the first
-time, not when the card is created) and add to the `hamburgerMenu` field. The card's `message` field is the part. Reviewer adds a sub-menu:
+Use the [menu registry](#menu-items-of-the-story-editor) below: an item of the menu of a part (☰ on a card) is a `StoryMenuItem.card(..)`, with its
+sub menus, its state worked out each time the menu opens and a row in the key bindings. It works on the desktop and the phone story tab alike.
+Reviewer registers its *Review* sub menu this way (`ReviewerExtension`).
 
-```java
-MenuItem reviewMenuItem = hamburgerMenu.addItem("Review");
-reviewMenuItem.addComponentAsFirst(VaadinIcon.STAR.create());
-reviewMenuItem.getSubMenu().addItem("View / Generate Review", e -> openReviewDialog(message));
-```
-
-To update items each time the menu opens, decorate `refreshSummaryMenuItems`, which the card runs each time the menu is about to open (after
-`createMenuItems` the first time). It can also run before the menu was ever opened: the items are not created then, so
-check what you read from the menu for `null`.
-
-The card replaces its `message` with the saved copy whenever the part is edited, so read the field again in the click
-listener (`context.getReflectiveFieldValue(card, "message", ...)`) rather than capturing it when the menu is built.
+The older way still works: decorate `ManuscriptStoryPart$ChatMessageCard.createMenuItems` (called when the menu of the card is opened for the first
+time, not when the card is created, after the registry items were added) and add to the `hamburgerMenu` field; the card's `message` field is the part.
+Such an item has no shortcut row, no key hint and you have to remove it yourself on unload. To update items each time the menu opens, decorate
+`refreshSummaryMenuItems`, which the card runs each time the menu is about to open. It can also run before the menu was ever opened: the items are
+not created then, so check what you read from the menu for `null`. The card replaces its `message` with the saved copy whenever the part is
+edited, so read the field again in the click listener rather than capturing it when the menu is built.
 
 ### The story menu bar
 
@@ -62,7 +57,7 @@ by small methods of `ManuscriptStoryPart` that get the bar as an argument (`bar`
 | Method | Add to |
 |---|---|
 | `populateMenuBar(bar)` | The bar itself - a new item next to the summaries and the settings item. The method is empty and runs after the application's items were added. |
-| `createCogsMenuItem(bar)` | The settings menu: the local variable `cogs` is its `MenuItem`, add to `cogs.getSubMenu()`. |
+| `createCogsMenuItem(bar)` | The settings menu: the local variable `cogs` is its `MenuItem`, add to `cogs.getSubMenu()` (an item of the [registry](#menu-items-of-the-story-editor) is better: it gets a key and no cleanup). |
 
 ```java
 MenuBar bar = context.getMethodArgument("bar", MenuBar.class);
@@ -181,6 +176,106 @@ ShortcutRegistry.register(new ShortcutAction("myplugin.summarize",
 Prefix the id with the plugin name. A key without Ctrl/Alt/Meta fires only when no text field has the focus; avoid keys
 the browser keeps (`Ctrl+N/T/W`) and `Alt` with a letter (types a character on a Mac). Unregister in `onExtensionUnload`
 (`ShortcutRegistry.unregister(id)`); the stored key of the user stays for when the plugin is back.
+
+### Menu items of the story editor
+
+Three menus of the story editor are filled from the `StoryMenuRegistry` (`ui.menu`): the **settings menu** (⚙ at the bottom, `StoryMenuItem.tools`), the
+**menu of a part** (☰ on a card, `StoryMenuItem.card`) and the **right click menu of the text of a part** (long press on a phone,
+`StoryMenuItem.text`). Registering an item instead of decorating a method gives you:
+
+- the item on the **desktop and the phone** story tab with one definition (`.phone(false)` for desktop only),
+- a row in *Settings → Keyboard shortcuts* (a default key, or none) and the key of the user shown next to the item,
+- text, visibility and enabled / ticked state that are **worked out each time the menu opens**, so an item can depend on the part,
+- **sub menus** whose items come and go,
+- no cleanup: the items are removed with `unregisterAll(owner)` (and a bundle that is unloaded loses the rest by itself).
+
+**1. Get the registry.** The extension class is `@Configurable`, so inject it like any service:
+
+```java
+@Configurable
+public class MyExtension implements MarginaliaExtension {
+    @Autowired
+    private StoryMenuRegistry menuRegistry;
+
+    @Override
+    public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
+        menuRegistry.register(bundle.getSymbolicName(),
+                StoryMenuItem.tools("myplugin.export", loc -> "Export my format",
+                                story -> exportBook(story.getCurrentManuscript()))
+                        .icon(Solid.FILE_EXPORT::create));
+    }
+
+    @Override
+    public void onExtensionUnload(Bundle bundle, OsgiService osgiService, ExtensionService extensionService) {
+        menuRegistry.unregisterAll(bundle.getSymbolicName());
+    }
+}
+```
+
+The first argument is the **owner** (use the bundle's symbolic name); the key of an item (`"myplugin.export"`) identifies it, so prefix it with your plugin's name.
+Registering a key again replaces the item. Instruction Exporter is the whole of this example.
+
+**2. Choose the menu and the callback.** What the callback gets depends on the menu:
+
+| Factory | Menu | Callback |
+|---|---|---|
+| `StoryMenuItem.tools(key, label, action)` | settings menu | `Consumer<StoryEditor>`: `story -> ...` |
+| `StoryMenuItem.card(key, label, action)` | menu of a part | `BiConsumer<StoryEditor, StoryCard>`: `(story, card) -> ...` |
+| `StoryMenuItem.text(key, label, action)` | right click menu of the text | `BiConsumer<StoryEditor, StoryCard>` |
+
+`label` is a `Function<Localization, String>` (`loc -> "My item"`, or `loc -> loc.getValue(L.X)` for text of the application; a plugin cannot add keys to `L`, use
+`Localization.getCurrentLanguage()` for your own table), and the overloads with an `L` key are for the application's own items. The label is also the
+name of the action in the key bindings table, so make it say what the action does.
+
+`StoryEditor` is the story tab (the desktop or the phone one): `getCurrentManuscript()` (the book it shows **now**, read it when the action runs, the tab loads other
+books into the same instance), `openSearchReplaceDialog()`, `openExportDialog()`, `toggleBookStyles()`... `StoryCard` is the card of the part the menu is of:
+`getMessage()` (the `ChatMessage`, the card replaces it with the saved copy, so read it each time), `isEditing()`, `isLast()`, and the actions of the part
+(`toggleEdit()`, `swipe()`, `branch()`, `annotatePart()`...). The callback runs on the UI thread of the user, in a request, as any click listener.
+
+**3. Describe when it shows.** All of these are optional and are asked again each time the menu opens (and after an item of the settings menu ran):
+
+```java
+StoryMenuItem.card("myplugin.summarize", loc -> "Summarize with notes",
+                (story, card) -> summarize(card.getMessage()))
+        .icon(VaadinIcon.NOTEBOOK::create)                       // a new Icon per menu
+        .defaultKey("Ctrl+Shift+y")                              // KeyCombo text, null (the default) for no key
+        .visibleWhen((story, card) -> card.getMessage().getId() != null)
+        .enabledWhen((story, card) -> !card.isEditing())
+        .contextLabel((loc, story, card) -> card.isLast() ? "Summarize (last part)" : "Summarize")   // the text in the menu
+        .phone(false)                                            // not on the phone
+```
+
+A tools item can be a check box: `.checkedWhen(story -> story.isShowGeneratedDiff())` (the action switches whatever the predicate reads; a ticked item is
+refreshed after the action ran). `.actionId("myplugin.summarize")` gives the item the id of its key binding when it is not `menu.<key>` (keep it when you
+rename the item and the user has a key stored), and `.hintAction((story, card) -> id)` shows the key of another action (the *Edit* item shows the key of saving while the text is edited).
+
+**4. Sub menus.** An item that only holds other items has no callback; its items name it with `parent(key)` (any depth). Reviewer:
+
+```java
+menuRegistry.register(owner, StoryMenuItem.card("reviewer.review", l -> "Review", null).icon(VaadinIcon.STAR::create));
+menuRegistry.register(owner, StoryMenuItem.card("reviewer.review.view", l -> "View / Generate Review", (story, card) -> openReview(card))
+        .parent("reviewer.review"));
+menuRegistry.register(owner, StoryMenuItem.card("reviewer.review.delete", l -> "Delete Review", (story, card) -> deleteReview(card))
+        .enabledWhen((story, card) -> card != null && hasReview(card.getMessage()))      // the state follows the part
+        .parent("reviewer.review"));
+```
+
+A parent must be registered before its items; an item whose parent is missing (or not shown on the phone) is left out. Items appear in the order of registration, after the
+application's.
+
+**5. Keys.** Every item with a callback is an action of *Settings → Keyboard shortcuts* (the id is `menu.<key>` or the `actionId` you gave) from the moment it is registered, with
+`defaultKey` or without. A key of a `card` or `text` item acts on the part that is being edited, else the part that holds the text selection, else the last part, and on the last
+part when the item is not visible or enabled for the chosen one (the same predicates decide). A `tools` item needs no part. Shortcuts work on the desktop only.
+Pick a default that the browser does not keep (`Ctrl+N/T/W`, `Alt` with a letter on a Mac) or none.
+
+**6. What happens on unload and reload.** `unregisterAll(owner)` removes the items from the registry and from the key bindings table. Menus that are open keep the Vaadin items they were
+built with, but an unregistered item is retired: it is hidden the next time its menu is refreshed (a part menu when it opens, the settings menu after any of its items ran or the
+story tab is entered) and it runs nothing. Registering the same key again (a reloaded extension) replaces the item. New menus, and part menus that are opened for the first
+time, have the items registered at that moment; a menu that was built before your extension loaded does not get them until the story is opened again.
+
+The hooks `createCogsMenuItem` and `createMenuItems` stay for plugins that add other things than items (a decorated method can do anything), and what a decorator adds directly is not
+managed by the registry. Test your items without a browser as the application does (`StoryMenuRegistryTest`): `registry.definition(kind, phone, bindings).build(new ContextMenu(), loc, story, () -> card)`
+returns a `BuiltMenu` whose items (`get(key)`) can be inspected and clicked with stub implementations of `StoryEditor` and `StoryCard`.
 
 ### Settings panels
 

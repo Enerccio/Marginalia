@@ -240,6 +240,8 @@ public class BookmarksExtension implements MarginaliaExtension {
 }
 ```
 
+> This example decorates `createMenuItems` to show the technique; for a menu item of the story editor prefer the `StoryMenuRegistry` (see [UI extensions](ui-extensions.md#menu-items-of-the-story-editor)), which also gives the item a keyboard shortcut and needs no cleanup.
+
 How it works:
 
 - **Two decorators.** `menuDecorator` runs after `ChatMessageCard.createMenuItems()` - the card runs it when its menu

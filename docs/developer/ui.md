@@ -368,7 +368,7 @@ to it (see [Extending the UI](plugins/ui-extensions.md#the-story-menu-bar)):
 |---|---|
 | `createMenuBar()` | The bar: calls the three methods below. Stored in the field `menuBar`. |
 | `createSummariesMenuItem(bar)` | The **Summaries** item (field `summariesMenuItem`), which opens `SummariesDialog`. Its tooltip shows the tokens of the summaries in use (`refreshSummariesMenuItem()`, run when the story is loaded, after a summary is deleted and when a summary dialog is closed). |
-| `createCogsMenuItem(bar)` | The settings item (field `cogsMenuItem`, local `cogs`) and its sub menu: `createChangeStylesMenuItem(cogs)`, `createHighlightGeneratedMenuItem(cogs)`, `createSearchReplaceMenuItem(cogs)` (opens `ManuscriptSearchReplaceDialog`), `createImportArchiveMenuItem(cogs)` (an `ArchiveUploadDialog`, then `ArchiveImportRunner.appendParts`) and `createExportMenuItem(cogs)`. The phone tab has the same, without the highlight. |
+| `createCogsMenuItem(bar)` | The settings item (field `cogsMenuItem`, local `cogs`); its sub menu is built from the registry (`MenuKind.TOOLS`), the actions are the public methods of `StoryEditor` (`openSearchReplaceDialog`, `openArchiveImportDialog` (an `ArchiveUploadDialog`, then `ArchiveImportRunner.appendParts`), `openBranchTokensDialog`, `openExportDialog`, `toggleBookStyles`, `setShowGeneratedDiff`, `setAnnotationsInMargin`, `confirmRestoreDefaultLayout`). The phone tab has the same items without the desktop only ones (highlight, margin, restore layout) |
 | `populateMenuBar(bar)` | Empty, runs last: the hook for new items of the bar. |
 
 The checkable **Highlight Generated Text** item is the diff view: `setShowGeneratedDiff(show)` stores the flag (a field
@@ -575,6 +575,35 @@ visible (not the open tab), when a dialog is open above the one that holds the s
 itself), and for a key without Ctrl/Alt/Meta when an input, textarea or editable element has the focus (the focused
 element is found through shadow roots). Before it fires the event the script sends the change of a focused text field to the server (a Vaadin field syncs its value on `change`, i.e. on blur), so the action sees what was just typed. On a Mac a combination with `Meta` that no action has is tried again with `Ctrl` in its place. `recordKeyCombo` records the next combination for the table.
 
+### Menus of the story editor
+
+The three menus that act on the story are not written item by item in the story tabs, they are built from the `StoryMenuRegistry`
+(`ui.menu`, a Spring bean that fills itself in `afterPropertiesSet`): the settings menu (`MenuKind.TOOLS`, the cogs of the story), the
+menu of a part (`CARD`, the hamburger button of a card) and the right click menu of its text (`TEXT`).
+
+- `StoryMenuItem` defines an item: its key (`StoryMenuKeys` has the ones of the application, a plugin prefixes its own), the label, an optional
+  icon, the **callback** (`Consumer<StoryEditor>` for the tools menu, `BiConsumer<StoryEditor, StoryCard>` for the other two), an optional
+  default key (null = none), the `phone` flag (default true, `false` for the items only the desktop shows), `visibleWhen` / `enabledWhen` /
+  `checkedWhen` predicates and `contextLabel` (text that depends on the part: *Edit* / *Save*) that are asked each time the menu opens, and a
+  `parent` key that makes the item an item of the sub menu of another one (the parent has no callback, so a sub menu can have items that
+  come and go). `StoryEditor` and `StoryCard` are the interfaces both the desktop (`ManuscriptStoryPart`) and the phone
+  (`PhoneManuscriptStoryPart`) tab and their cards implement, so one definition serves both.
+- Every item with a callback is also a `ShortcutAction` of the key bindings (id `menu.<key>`, or `actionId(..)` for the ones the user already has
+  a key stored for, such as `story.swipe`; *Annotate selection* is only an item of the text menu, `story.annotateSelection`: opening the menu of a part takes the selection away), registered with its default key,
+  also none. So a new item is listed in *Settings → Keyboard shortcuts* the moment it is registered.
+- `StoryMenuRegistry.definition(kind, phone, bindings)` returns a `MenuDefinition`: the items of the kind in the order they were registered, and
+  the keys (the ones the user changed, else the defaults; `null` bindings = the phone, which shows no keys). `MenuDefinition.build(menu, loc,
+  editor, card)` adds the items to a `ContextMenu` or the sub menu of a menu bar item and wires them; the `BuiltMenu` it returns finds an item by
+  key (`get(key)`) and `refresh(definition)` works out text, visibility, enabled and ticked state and the key hint of every item again. The story
+  tab refreshes a menu when it opens (the part menus are `LazyContextMenu`s, filled the first time) and the tools menu after an item ran
+  and when the story tab is entered (the user may have changed the keys).
+- A key of a `CARD` or `TEXT` item acts on the part that is edited, else the part that holds the text selection (`JavascriptLibrary.selectionOwner`),
+  else the last part, and on the last part when the item does not apply to the chosen one (`ManuscriptStoryPart.runMenuItem`).
+- The hooks stay for extensions that decorate them (how to register an item and the details: [UI extensions](plugins/ui-extensions.md#menu-items-of-the-story-editor)): `createCogsMenuItem` (local `cogs`) and the card's `createMenuItems` (field `hamburgerMenu`)
+  run after the registry has filled the menu, and what they add directly is no registry item (no shortcut row, no key hint). Registering the
+  item is the way to go for new code. An extension unregisters its items in `onExtensionUnload`; a bundle that is unloaded loses the rest by its
+  symbolic name (`OsgiServiceImpl`).
+
 ### Annotations in the story
 
 The marks, the notes and the list share a few classes in `ui.dialogs.story`; the desktop and the phone card use them the same way.
@@ -665,10 +694,10 @@ The bundled plugins hook into these methods:
 |---|---|---|
 | Author's Note | `ManuscriptStoryPart` | `renderStoryContent` |
 | Chapter Marker | `ManuscriptStoryPart`, `ManuscriptStoryPart$ChatMessageCard` | `createSidebarButton`; `autosaveAndSwapToMarkdown` |
-| Instruction Exporter | `ManuscriptStoryPart`, `PhoneManuscriptStoryPart` | `createCogsMenuItem` |
+| Instruction Exporter | none | registers an item in the `StoryMenuRegistry` (settings menu) |
 | Lore Generator | `LorebookView`, `LorebookPart`, `UserPart` | `create` (adds a column to the `grid` field); `refresh` (the same for a workspace tab that was built before the extension was loaded); `refresh`, `save` |
 | Lorebook VCS | `LorebookView` | `create`, `createEntryDetailLayout` |
-| Reviewer | `ManuscriptStoryPart$ChatMessageCard`, `UserPart` | `createMenuItems`, `refreshSummaryMenuItems`; `refresh`, `save` |
+| Reviewer | `UserPart`, `ManuscriptInfoPart`, `PhoneManuscriptInfoPart` | `refresh`, `save`; `create`, `load` (the *Review* sub menu of a part is registered in the `StoryMenuRegistry`) |
 | Side Query | `ManuscriptStoryPart`, `UserPart` | `renderStoryContent`; `refresh`, `save` |
 
 Because plugins depend on method names and local variable names, **renaming or restructuring these methods breaks

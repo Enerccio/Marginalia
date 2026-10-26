@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846315070578">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846319153878">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846315070578" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846319153878" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846315070578" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846319153878" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846315070578" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846319153878" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -438,7 +438,7 @@ the story with instructions of their own.</p>
 | **Regenerate** | Writes the last part again, replacing its text. Only on the last part. |
 | **Swipe** | Writes another version of the last part and keeps the old one as a separate branch. Only on the last part. See [Branches &amp; story tree](branches-and-story-tree.md#trying-another-version-of-the-last-part). |
 | **Redraft** | Lets the model write this part again from your instructions, on any part, see [below](#redrafting-a-part). Not while the text is edited. |
-| **Annotate selection** / **Annotate part** | Makes a [note](annotations.md#making-an-annotation) about the words you selected in the part, or about the whole part. |
+| **Annotate part** | Makes a [note](annotations.md#making-an-annotation) about the whole part. To annotate words, select them and right click (**Annotate selection**). |
 | **Annotate with AI** | Lets a model [review the part](annotations.md#letting-a-model-annotate) and propose notes. Not while the text is edited. |
 | **Branch Story** | Starts a new branch from this part, see [Branches &amp; story tree](branches-and-story-tree.md#branching-from-an-earlier-part). |
 | **Merge into previous part** | Adds the text of this part to the part before it, see [below](#merging-a-part-into-the-previous-one). Not on the first part. |
@@ -478,8 +478,8 @@ the story with instructions of their own.</p>
 <td>Lets the model write this part again from your instructions, on any part, see <doc-anchor-trigger to="#redrafting-a-part">below</doc-anchor-trigger>. Not while the text is edited.</td>
 </tr>
 <tr>
-<td><strong>Annotate selection</strong> / <strong>Annotate part</strong></td>
-<td>Makes a <a href="../annotations/#making-an-annotation">note</a> about the words you selected in the part, or about the whole part.</td>
+<td><strong>Annotate part</strong></td>
+<td>Makes a <a href="../annotations/#making-an-annotation">note</a> about the whole part. To annotate words, select them and right click (<strong>Annotate selection</strong>).</td>
 </tr>
 <tr>
 <td><strong>Annotate with AI</strong></td>
@@ -656,7 +656,7 @@ generation and drops the summary.</p>
 </retype-table>
 <p>A key without <code translate="no" v-pre>Ctrl</code>, <code translate="no" v-pre>Alt</code> or <code translate="no" v-pre>Meta</code> (such as <code translate="no" v-pre>+</code>, <code translate="no" v-pre>s</code>, <code translate="no" v-pre>r</code>, <code translate="no" v-pre>e</code>, <code translate="no" v-pre>a</code>, <code translate="no" v-pre>/</code>) works only when no text field has the focus, so it
 never gets in the way of typing. The shortcuts work in the story tab of the open book and not while another window is
-open above it. The buttons show their key in the tooltip, and the menu of the last part shows it after <em>Edit</em>, <em>Regenerate</em>, <em>Swipe</em> and <em>Annotate selection</em>. On a Mac <code translate="no" v-pre>Cmd</code> works where a key says <code translate="no" v-pre>Ctrl</code> (unless you gave that <code translate="no" v-pre>Cmd</code> key to another action). You can change every key in
+open above it. The buttons show their key in the tooltip, and the menu of the last part shows it after <em>Edit</em>, <em>Regenerate</em> and <em>Swipe</em>. On a Mac <code translate="no" v-pre>Cmd</code> works where a key says <code translate="no" v-pre>Ctrl</code> (unless you gave that <code translate="no" v-pre>Cmd</code> key to another action). You can change every key in
 <a href="../../account/#keyboard-shortcuts">Settings → Keyboard shortcuts</a>.</p>
 <h2 id="deleting-a-part">Deleting a part</h2>
 <p><strong>Delete</strong> removes the part from the story. The parts that followed it stay and continue from the part before it, so
@@ -968,7 +968,7 @@ tense, style and <a href="../summaries/">summaries</a>. The jailbreak prompt of 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (7ee405ff4).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (d9769004d).</p></div>
             </footer>
         </div>
     </div>

@@ -91,7 +91,7 @@ The story tab is one column of parts. The differences from the [story editor](bo
   at the bottom.
 - The **+** button for a new part is at the bottom.
 - [Annotations](books/annotations.md): the **Annotations** tab is in the drawer next to the outline; a tap on an underlined passage
-  opens its note; **Annotate selection**, **Annotate part** and **Annotate with AI** are in the menu of the part.
+  opens its note; **Annotate part** and **Annotate with AI** are in the menu of the part, **Annotate selection** in the menu of a long press on the selected text.
 - **Search and replace** opens the same window as on the desktop, with the fields and buttons below each other:
 
   ![Search and replace of the story on a phone](../images/phone-search-replace.png)

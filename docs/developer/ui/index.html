@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846315070578">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846319153878">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846315070578" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846319153878" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846315070578" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846319153878" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846315070578" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846315070578" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846319153878" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846319153878" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -735,7 +735,7 @@ to it (see <a href="../plugins/ui-extensions/#the-story-menu-bar">Extending the 
 |---|---|
 | `createMenuBar()` | The bar: calls the three methods below. Stored in the field `menuBar`. |
 | `createSummariesMenuItem(bar)` | The **Summaries** item (field `summariesMenuItem`), which opens `SummariesDialog`. Its tooltip shows the tokens of the summaries in use (`refreshSummariesMenuItem()`, run when the story is loaded, after a summary is deleted and when a summary dialog is closed). |
-| `createCogsMenuItem(bar)` | The settings item (field `cogsMenuItem`, local `cogs`) and its sub menu: `createChangeStylesMenuItem(cogs)`, `createHighlightGeneratedMenuItem(cogs)`, `createSearchReplaceMenuItem(cogs)` (opens `ManuscriptSearchReplaceDialog`), `createImportArchiveMenuItem(cogs)` (an `ArchiveUploadDialog`, then `ArchiveImportRunner.appendParts`) and `createExportMenuItem(cogs)`. The phone tab has the same, without the highlight. |
+| `createCogsMenuItem(bar)` | The settings item (field `cogsMenuItem`, local `cogs`); its sub menu is built from the registry (`MenuKind.TOOLS`), the actions are the public methods of `StoryEditor` (`openSearchReplaceDialog`, `openArchiveImportDialog` (an `ArchiveUploadDialog`, then `ArchiveImportRunner.appendParts`), `openBranchTokensDialog`, `openExportDialog`, `toggleBookStyles`, `setShowGeneratedDiff`, `setAnnotationsInMargin`, `confirmRestoreDefaultLayout`). The phone tab has the same items without the desktop only ones (highlight, margin, restore layout) |
 | `populateMenuBar(bar)` | Empty, runs last: the hook for new items of the bar. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -756,7 +756,7 @@ to it (see <a href="../plugins/ui-extensions/#the-story-menu-bar">Extending the 
 </tr>
 <tr>
 <td><code translate="no" v-pre>createCogsMenuItem(bar)</code></td>
-<td>The settings item (field <code translate="no" v-pre>cogsMenuItem</code>, local <code translate="no" v-pre>cogs</code>) and its sub menu: <code translate="no" v-pre>createChangeStylesMenuItem(cogs)</code>, <code translate="no" v-pre>createHighlightGeneratedMenuItem(cogs)</code>, <code translate="no" v-pre>createSearchReplaceMenuItem(cogs)</code> (opens <code translate="no" v-pre>ManuscriptSearchReplaceDialog</code>), <code translate="no" v-pre>createImportArchiveMenuItem(cogs)</code> (an <code translate="no" v-pre>ArchiveUploadDialog</code>, then <code translate="no" v-pre>ArchiveImportRunner.appendParts</code>) and <code translate="no" v-pre>createExportMenuItem(cogs)</code>. The phone tab has the same, without the highlight.</td>
+<td>The settings item (field <code translate="no" v-pre>cogsMenuItem</code>, local <code translate="no" v-pre>cogs</code>); its sub menu is built from the registry (<code translate="no" v-pre>MenuKind.TOOLS</code>), the actions are the public methods of <code translate="no" v-pre>StoryEditor</code> (<code translate="no" v-pre>openSearchReplaceDialog</code>, <code translate="no" v-pre>openArchiveImportDialog</code> (an <code translate="no" v-pre>ArchiveUploadDialog</code>, then <code translate="no" v-pre>ArchiveImportRunner.appendParts</code>), <code translate="no" v-pre>openBranchTokensDialog</code>, <code translate="no" v-pre>openExportDialog</code>, <code translate="no" v-pre>toggleBookStyles</code>, <code translate="no" v-pre>setShowGeneratedDiff</code>, <code translate="no" v-pre>setAnnotationsInMargin</code>, <code translate="no" v-pre>confirmRestoreDefaultLayout</code>). The phone tab has the same items without the desktop only ones (highlight, margin, restore layout)</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>populateMenuBar(bar)</code></td>
@@ -1091,6 +1091,43 @@ keys are the page-wide <code translate="no" v-pre>window.marginaliaKeys</code> (
 visible (not the open tab), when a dialog is open above the one that holds the story (the book window is a modal dialog
 itself), and for a key without Ctrl/Alt/Meta when an input, textarea or editable element has the focus (the focused
 element is found through shadow roots). Before it fires the event the script sends the change of a focused text field to the server (a Vaadin field syncs its value on <code translate="no" v-pre>change</code>, i.e. on blur), so the action sees what was just typed. On a Mac a combination with <code translate="no" v-pre>Meta</code> that no action has is tried again with <code translate="no" v-pre>Ctrl</code> in its place. <code translate="no" v-pre>recordKeyCombo</code> records the next combination for the table.</p>
+<h3 id="menus-of-the-story-editor">Menus of the story editor</h3>
+<p>The three menus that act on the story are not written item by item in the story tabs, they are built from the <code translate="no" v-pre>StoryMenuRegistry</code>
+(<code translate="no" v-pre>ui.menu</code>, a Spring bean that fills itself in <code translate="no" v-pre>afterPropertiesSet</code>): the settings menu (<code translate="no" v-pre>MenuKind.TOOLS</code>, the cogs of the story), the
+menu of a part (<code translate="no" v-pre>CARD</code>, the hamburger button of a card) and the right click menu of its text (<code translate="no" v-pre>TEXT</code>).</p>
+<ul>
+<li>
+<p><code translate="no" v-pre>StoryMenuItem</code> defines an item: its key (<code translate="no" v-pre>StoryMenuKeys</code> has the ones of the application, a plugin prefixes its own), the label, an optional
+icon, the <strong>callback</strong> (<code translate="no" v-pre>Consumer&lt;StoryEditor&gt;</code> for the tools menu, <code translate="no" v-pre>BiConsumer&lt;StoryEditor, StoryCard&gt;</code> for the other two), an optional
+default key (null = none), the <code translate="no" v-pre>phone</code> flag (default true, <code translate="no" v-pre>false</code> for the items only the desktop shows), <code translate="no" v-pre>visibleWhen</code> / <code translate="no" v-pre>enabledWhen</code> /
+<code translate="no" v-pre>checkedWhen</code> predicates and <code translate="no" v-pre>contextLabel</code> (text that depends on the part: <em>Edit</em> / <em>Save</em>) that are asked each time the menu opens, and a
+<code translate="no" v-pre>parent</code> key that makes the item an item of the sub menu of another one (the parent has no callback, so a sub menu can have items that
+come and go). <code translate="no" v-pre>StoryEditor</code> and <code translate="no" v-pre>StoryCard</code> are the interfaces both the desktop (<code translate="no" v-pre>ManuscriptStoryPart</code>) and the phone
+(<code translate="no" v-pre>PhoneManuscriptStoryPart</code>) tab and their cards implement, so one definition serves both.</p>
+</li>
+<li>
+<p>Every item with a callback is also a <code translate="no" v-pre>ShortcutAction</code> of the key bindings (id <code translate="no" v-pre>menu.&lt;key&gt;</code>, or <code translate="no" v-pre>actionId(..)</code> for the ones the user already has
+a key stored for, such as <code translate="no" v-pre>story.swipe</code>; <em>Annotate selection</em> is only an item of the text menu, <code translate="no" v-pre>story.annotateSelection</code>: opening the menu of a part takes the selection away), registered with its default key,
+also none. So a new item is listed in <em>Settings → Keyboard shortcuts</em> the moment it is registered.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>StoryMenuRegistry.definition(kind, phone, bindings)</code> returns a <code translate="no" v-pre>MenuDefinition</code>: the items of the kind in the order they were registered, and
+the keys (the ones the user changed, else the defaults; <code translate="no" v-pre>null</code> bindings = the phone, which shows no keys). <code translate="no" v-pre>MenuDefinition.build(menu, loc, editor, card)</code> adds the items to a <code translate="no" v-pre>ContextMenu</code> or the sub menu of a menu bar item and wires them; the <code translate="no" v-pre>BuiltMenu</code> it returns finds an item by
+key (<code translate="no" v-pre>get(key)</code>) and <code translate="no" v-pre>refresh(definition)</code> works out text, visibility, enabled and ticked state and the key hint of every item again. The story
+tab refreshes a menu when it opens (the part menus are <code translate="no" v-pre>LazyContextMenu</code>s, filled the first time) and the tools menu after an item ran
+and when the story tab is entered (the user may have changed the keys).</p>
+</li>
+<li>
+<p>A key of a <code translate="no" v-pre>CARD</code> or <code translate="no" v-pre>TEXT</code> item acts on the part that is edited, else the part that holds the text selection (<code translate="no" v-pre>JavascriptLibrary.selectionOwner</code>),
+else the last part, and on the last part when the item does not apply to the chosen one (<code translate="no" v-pre>ManuscriptStoryPart.runMenuItem</code>).</p>
+</li>
+<li>
+<p>The hooks stay for extensions that decorate them (how to register an item and the details: <a href="../plugins/ui-extensions/#menu-items-of-the-story-editor">UI extensions</a>): <code translate="no" v-pre>createCogsMenuItem</code> (local <code translate="no" v-pre>cogs</code>) and the card&#x27;s <code translate="no" v-pre>createMenuItems</code> (field <code translate="no" v-pre>hamburgerMenu</code>)
+run after the registry has filled the menu, and what they add directly is no registry item (no shortcut row, no key hint). Registering the
+item is the way to go for new code. An extension unregisters its items in <code translate="no" v-pre>onExtensionUnload</code>; a bundle that is unloaded loses the rest by its
+symbolic name (<code translate="no" v-pre>OsgiServiceImpl</code>).</p>
+</li>
+</ul>
 <h3 id="annotations-in-the-story">Annotations in the story</h3>
 <p>The marks, the notes and the list share a few classes in <code translate="no" v-pre>ui.dialogs.story</code>; the desktop and the phone card use them the same way.</p>
 <ul>
@@ -1222,10 +1259,10 @@ initializer, <code translate="no" v-pre>ThreadCopyRequestAttributes</code>) and 
 |---|---|---|
 | Author's Note | `ManuscriptStoryPart` | `renderStoryContent` |
 | Chapter Marker | `ManuscriptStoryPart`, `ManuscriptStoryPart$ChatMessageCard` | `createSidebarButton`; `autosaveAndSwapToMarkdown` |
-| Instruction Exporter | `ManuscriptStoryPart`, `PhoneManuscriptStoryPart` | `createCogsMenuItem` |
+| Instruction Exporter | none | registers an item in the `StoryMenuRegistry` (settings menu) |
 | Lore Generator | `LorebookView`, `LorebookPart`, `UserPart` | `create` (adds a column to the `grid` field); `refresh` (the same for a workspace tab that was built before the extension was loaded); `refresh`, `save` |
 | Lorebook VCS | `LorebookView` | `create`, `createEntryDetailLayout` |
-| Reviewer | `ManuscriptStoryPart$ChatMessageCard`, `UserPart` | `createMenuItems`, `refreshSummaryMenuItems`; `refresh`, `save` |
+| Reviewer | `UserPart`, `ManuscriptInfoPart`, `PhoneManuscriptInfoPart` | `refresh`, `save`; `create`, `load` (the *Review* sub menu of a part is registered in the `StoryMenuRegistry`) |
 | Side Query | `ManuscriptStoryPart`, `UserPart` | `renderStoryContent`; `refresh`, `save` |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -1249,8 +1286,8 @@ initializer, <code translate="no" v-pre>ThreadCopyRequestAttributes</code>) and 
 </tr>
 <tr>
 <td>Instruction Exporter</td>
-<td><code translate="no" v-pre>ManuscriptStoryPart</code>, <code translate="no" v-pre>PhoneManuscriptStoryPart</code></td>
-<td><code translate="no" v-pre>createCogsMenuItem</code></td>
+<td>none</td>
+<td>registers an item in the <code translate="no" v-pre>StoryMenuRegistry</code> (settings menu)</td>
 </tr>
 <tr>
 <td>Lore Generator</td>
@@ -1264,8 +1301,8 @@ initializer, <code translate="no" v-pre>ThreadCopyRequestAttributes</code>) and 
 </tr>
 <tr>
 <td>Reviewer</td>
-<td><code translate="no" v-pre>ManuscriptStoryPart$ChatMessageCard</code>, <code translate="no" v-pre>UserPart</code></td>
-<td><code translate="no" v-pre>createMenuItems</code>, <code translate="no" v-pre>refreshSummaryMenuItems</code>; <code translate="no" v-pre>refresh</code>, <code translate="no" v-pre>save</code></td>
+<td><code translate="no" v-pre>UserPart</code>, <code translate="no" v-pre>ManuscriptInfoPart</code>, <code translate="no" v-pre>PhoneManuscriptInfoPart</code></td>
+<td><code translate="no" v-pre>refresh</code>, <code translate="no" v-pre>save</code>; <code translate="no" v-pre>create</code>, <code translate="no" v-pre>load</code> (the <em>Review</em> sub menu of a part is registered in the <code translate="no" v-pre>StoryMenuRegistry</code>)</td>
 </tr>
 <tr>
 <td>Side Query</td>
@@ -1478,7 +1515,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (7ee405ff4).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (d9769004d).</p></div>
             </footer>
         </div>
     </div>

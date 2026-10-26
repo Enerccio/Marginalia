@@ -22,12 +22,12 @@ import com.github.enerccio.marginalia.ui.components.MessageImages;
 import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.dialogs.search.ManuscriptSearchReplaceDialog;
 import com.github.enerccio.marginalia.ui.dialogs.story.*;
+import com.github.enerccio.marginalia.ui.menu.*;
 import com.github.enerccio.marginalia.ui.shortcuts.KeyBindings;
 import com.github.enerccio.marginalia.ui.shortcuts.ShortcutAction;
 import com.github.enerccio.marginalia.ui.shortcuts.ShortcutActions;
 import com.github.enerccio.marginalia.ui.shortcuts.ShortcutRegistry;
 import com.github.enerccio.marginalia.ui.widgets.LazyContextMenu;
-import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
 import com.github.enerccio.marginalia.utils.GeneratedTextHighlighter;
@@ -61,7 +61,7 @@ import java.util.*;
 
 @Configurable
 @Extendable
-public class ManuscriptStoryPart implements ManuscriptDialogPart {
+public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
 
     /**
      * Key of the {@link Manuscript#getAttributes() attributes} of the manuscript that holds the layout of the tabs of the
@@ -115,6 +115,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     @Autowired
     private SettingService settingService;
 
+    @Autowired
+    private StoryMenuRegistry menuRegistry;
+
     private final ManuscriptDialog parent;
     private CancellationToken activeGenerationToken;
 
@@ -131,9 +134,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     private CommandResultView commandResultView;
     private MenuItem summariesMenuItem;
     private MenuItem cogsMenuItem;
-    private MenuItem changeStyles;
-    private MenuItem highlightGenerated;
-    private MenuItem marginItem;
+    private BuiltMenu toolsMenu;
     private Button actionButton;
 
     private Popover newTurnPopover;
@@ -166,6 +167,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             parameters = {@APIParameter(name = "container", type = VTabSheet.class)})
     @Override
     public Component create(VTabSheet container) throws Exception {
+        // the menus show the keys of the user
+        loadKeyBindings();
         // created once: a redraw of the story only refills the outline, so the selected tab (and the tabs extensions add) survive it
         leftBar = new TabDock();
         leftBar.setSizeFull();
@@ -216,7 +219,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     @PublicAPI(from = "1.5.0",
             returns = @APIReturn(type = void.class))
     private void installShortcuts() {
-        loadKeyBindings();
         JavascriptLibrary.fireShortcutEvents(leftBar.getElement(), keyBindings.toJson());
         leftBar.getElement().addEventListener("marginalia-shortcut",
                 event -> handleShortcut(event.getEventData().get("event.detail").asString())).addEventData("event.detail");
@@ -255,14 +257,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         actionButton.setTooltipText(key == null ? label : label + " (" + key + ")");
     }
 
-    /**
-     * Does what the key the user pressed stands for. Nothing happens while the story is frozen (a generation runs) except
-     * the stop.
-     */
     @PublicAPI(from = "1.5.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "actionId", type = String.class)},
-            locals = {@APILocals(name = "last", type = ChatMessageCard.class),
+            locals = {@APILocals(name = "item", type = StoryMenuItem.class),
                     @APILocals(name = "action", type = ShortcutAction.class),
                     @APILocals(name = "e", type = Exception.class)})
     private void handleShortcut(String actionId) {
@@ -272,7 +270,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             }
             return;
         }
-        ChatMessageCard last = cards.size() == 0 ? null : cards.last();
         switch (actionId) {
             case ShortcutActions.STORY_NEW_TURN -> {
                 if (currentManuscript != null) {
@@ -282,21 +279,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             case ShortcutActions.STORY_GENERATE -> {
                 if (newTurnPopover.isOpened()) {
                     generateFromNewTurnForm();
-                }
-            }
-            case ShortcutActions.STORY_SWIPE -> {
-                if (last != null) {
-                    last.swipe();
-                }
-            }
-            case ShortcutActions.STORY_REGENERATE -> {
-                if (last != null) {
-                    last.regenerate();
-                }
-            }
-            case ShortcutActions.STORY_EDIT -> {
-                if (last != null && !last.isEditing()) {
-                    last.toggleEdit();
                 }
             }
             case ShortcutActions.STORY_SAVE_EDIT -> cards.values().stream().filter(ChatMessageCard::isEditing)
@@ -309,11 +291,14 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 leftBar.select(CHAPTERS_TAB);
                 branchSearch.focusField();
             }
-            case ShortcutActions.STORY_SEARCH_REPLACE -> openSearchReplaceDialog();
-            case ShortcutActions.STORY_ANNOTATE_SELECTION -> annotateSelectedText();
             case ShortcutActions.DOCK_NEXT_TAB -> leftBar.selectRelative(1);
             case ShortcutActions.DOCK_PREVIOUS_TAB -> leftBar.selectRelative(-1);
             default -> {
+                StoryMenuItem item = menuRegistry.findByAction(actionId);
+                if (item != null) {
+                    runMenuItem(item);
+                    return;
+                }
                 ShortcutAction action = ShortcutRegistry.get(actionId);
                 if (action != null && action.getHandler() != null) {
                     try {
@@ -326,44 +311,47 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         }
     }
 
-    /**
-     * Makes a note about the text the author has selected: in the part that is edited, else in the part that holds the
-     * selection in the browser.
-     */
     @PublicAPI(from = "1.5.0",
             returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "item", type = StoryMenuItem.class)},
             locals = {@APILocals(name = "editing", type = ChatMessageCard.class),
                     @APILocals(name = "candidates", type = List.class)})
-    private void annotateSelectedText() {
+    private void runMenuItem(StoryMenuItem item) {
+        if (item.getKind() == MenuKind.TOOLS) {
+            if (item.isVisible(this, null) && item.isEnabled(this, null)) {
+                item.run(this, null);
+                toolsMenu.refresh();
+            }
+            return;
+        }
+        // the part that is edited, else the part that holds the selection, else the last part
         ChatMessageCard editing = cards.values().stream().filter(ChatMessageCard::isEditing).findFirst().orElse(null);
         if (editing != null) {
-            editing.annotateSelection();
+            runOnCard(item, editing);
             return;
         }
         List<ChatMessageCard> candidates = new ArrayList<>(cards.values());
         JavascriptLibrary.selectionOwner(leftBar.getElement(),
-                candidates.stream().map(ChatMessageCard::getResponseElement).toList()).then(Integer.class, index -> {
-            if (index != null && index >= 0 && index < candidates.size()) {
-                candidates.get(index).annotateSelection();
-            } else {
-                Notification.warning(loc.getValue(L.MSG_ANNOTATION_SELECT_TEXT));
-            }
-        });
+                candidates.stream().map(ChatMessageCard::getResponseElement).toList()).then(Integer.class, index ->
+                runOnCard(item, index != null && index >= 0 && index < candidates.size() ? candidates.get(index) : null));
     }
 
     /**
-     * The text of a menu item with the key of its action after it, as the tooltip of the round button has it.
+     * Runs the item on the part, or on the last part when the item does not apply to it (a swipe of a part that is not the last).
      */
     @PublicAPI(from = "1.5.0",
-            returns = @APIReturn(type = String.class),
-            parameters = {@APIParameter(name = "label", type = String.class),
-                    @APIParameter(name = "actionId", type = String.class)},
-            locals = {@APILocals(name = "key", type = String.class)})
-    private String withKey(String label, String actionId) {
-        String key = keyBindings == null || actionId == null ? null : keyBindings.get(actionId);
-        return key == null ? label : label + " (" + key + ")";
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "item", type = StoryMenuItem.class),
+                    @APIParameter(name = "target", type = ChatMessageCard.class)},
+            locals = {@APILocals(name = "last", type = ChatMessageCard.class),
+                    @APILocals(name = "card", type = ChatMessageCard.class)})
+    private void runOnCard(StoryMenuItem item, ChatMessageCard target) {
+        ChatMessageCard last = cards.size() == 0 ? null : cards.last();
+        ChatMessageCard card = target != null && item.isVisible(this, target) && item.isEnabled(this, target) ? target : last;
+        if (card != null && item.isVisible(this, card) && item.isEnabled(this, card)) {
+            item.run(this, card);
+        }
     }
-
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = HorizontalLayout.class),
             locals = {@APILocals(name = "layout", type = HorizontalLayout.class)})
@@ -453,69 +441,98 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     }
 
     /**
-     * The story settings menu, extensions add their items to its sub menu ({@code cogsMenuItem.getSubMenu()}).
+     * The story settings menu, filled from the {@link StoryMenuRegistry} (kind {@link MenuKind#TOOLS}); extensions that decorate this
+     * method add their items to its sub menu ({@code cogs.getSubMenu()}).
      */
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = MenuItem.class),
             parameters = {@APIParameter(name = "bar", type = MenuBar.class)},
-            locals = {@APILocals(name = "cogs", type = MenuItem.class)})
+            locals = {@APILocals(name = "cogs", type = MenuItem.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private MenuItem createCogsMenuItem(MenuBar bar) {
         MenuItem cogs = bar.addItem(Solid.COGS.create());
-        changeStyles = createChangeStylesMenuItem(cogs);
-        highlightGenerated = createHighlightGeneratedMenuItem(cogs);
-        marginItem = createAnnotationsInMarginMenuItem(cogs);
-        createSearchReplaceMenuItem(cogs);
-        createImportArchiveMenuItem(cogs);
-        createBranchTokensMenuItem(cogs);
-        createExportMenuItem(cogs);
-        createRestoreLayoutMenuItem(cogs);
-        return cogs;
-    }
-
-    @PublicAPI(from = "1.1.0",
-            returns = @APIReturn(type = MenuItem.class),
-            parameters = {@APIParameter(name = "cogs", type = MenuItem.class)})
-    private MenuItem createChangeStylesMenuItem(MenuItem cogs) {
-        return cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.PEN_FANCY.create(), loc.getValue(L.LABEL_CHANGE_STYLES)), event -> {
-            try {
-                Manuscript manuscript = parent.refreshManuscript();
-                manuscript.setShowBookStyles(!manuscript.getShowBookStyles());
-                manuscriptService.save(manuscript);
-                applyBookStyles();
-            } catch (Exception e) {
-                UIUtils.internalServerError(loc, e);
-            }
-        });
-    }
-
-    @PublicAPI(from = "1.2.0",
-            returns = @APIReturn(type = MenuItem.class),
-            parameters = {@APIParameter(name = "cogs", type = MenuItem.class)},
-            locals = {@APILocals(name = "item", type = MenuItem.class)})
-    private MenuItem createHighlightGeneratedMenuItem(MenuItem cogs) {
-        MenuItem item = cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.HIGHLIGHTER.create(), loc.getValue(L.LABEL_HIGHLIGHT_GENERATED_TEXT)),
-                event -> setShowGeneratedDiff(event.getSource().isChecked()));
-        item.setCheckable(true);
-        item.setChecked(showGeneratedDiff);
-        return item;
-    }
-
-    @PublicAPI(from = "1.5.0",
-            returns = @APIReturn(type = MenuItem.class),
-            parameters = {@APIParameter(name = "cogs", type = MenuItem.class)},
-            locals = {@APILocals(name = "e", type = Exception.class),
-                    @APILocals(name = "item", type = MenuItem.class)})
-    private MenuItem createAnnotationsInMarginMenuItem(MenuItem cogs) {
         try {
             annotationsInMargin = settingService.getOrCreate(UserSetting.class).isAnnotationsInMargin();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
-        MenuItem item = cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.COMMENT_ALT.create(), loc.getValue(L.LABEL_ANNOTATIONS_IN_MARGIN)),
-                event -> setAnnotationsInMargin(event.getSource().isChecked()));
-        item.setCheckable(true);
-        item.setChecked(annotationsInMargin);
-        return item;
+        toolsMenu = menuDefinition(MenuKind.TOOLS).build(cogs.getSubMenu(), loc, this, () -> null);
+        return cogs;
+    }
+
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = Manuscript.class))
+    @Override
+    public Manuscript getCurrentManuscript() {
+        return currentManuscript;
+    }
+
+    /**
+     * The menu of the kind with the keys the user has.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = MenuDefinition.class),
+            parameters = {@APIParameter(name = "kind", type = MenuKind.class)})
+    private MenuDefinition menuDefinition(MenuKind kind) {
+        return menuRegistry.definition(kind, false, keyBindings);
+    }
+
+    /**
+     * Turns the styles of the book on or off for the story.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "manuscript", type = Manuscript.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    @Override
+    public void toggleBookStyles() {
+        try {
+            Manuscript manuscript = parent.refreshManuscript();
+            manuscript.setShowBookStyles(!manuscript.getShowBookStyles());
+            manuscriptService.save(manuscript);
+            applyBookStyles();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = boolean.class))
+    @Override
+    public boolean isShowGeneratedDiff() {
+        return showGeneratedDiff;
+    }
+
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = boolean.class))
+    @Override
+    public boolean isAnnotationsInMargin() {
+        return annotationsInMargin;
+    }
+
+    /**
+     * Opens the export of the story.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    @Override
+    public void openExportDialog() {
+        try {
+            new ExportDialog(parent.refreshManuscript()).open();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * Asks, then puts the tabs back the way a new book has them, see {@link #restoreDefaultLayout}.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class))
+    @Override
+    public void confirmRestoreDefaultLayout() {
+        ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_RESTORE_DEFAULT_LAYOUT), this::restoreDefaultLayout);
     }
 
     /**
@@ -527,7 +544,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             locals = {@APILocals(name = "setting", type = UserSetting.class),
                     @APILocals(name = "e", type = Exception.class),
                     @APILocals(name = "card", type = ManuscriptStoryPart.ChatMessageCard.class)})
-    private void setAnnotationsInMargin(boolean inMargin) {
+    @Override
+    public void setAnnotationsInMargin(boolean inMargin) {
         annotationsInMargin = inMargin;
         try {
             UserSetting setting = settingService.getOrCreate(UserSetting.class);
@@ -549,19 +567,12 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "show", type = boolean.class)},
             locals = {@APILocals(name = "card", type = ManuscriptStoryPart.ChatMessageCard.class)})
-    private void setShowGeneratedDiff(boolean show) {
+    @Override
+    public void setShowGeneratedDiff(boolean show) {
         showGeneratedDiff = show;
         for (ChatMessageCard card : cards.values()) {
             card.renderResponse();
         }
-    }
-
-    @PublicAPI(from = "1.4.0",
-            returns = @APIReturn(type = MenuItem.class),
-            parameters = {@APIParameter(name = "cogs", type = MenuItem.class)})
-    private MenuItem createSearchReplaceMenuItem(MenuItem cogs) {
-        return cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.EXCHANGE_ALT.create(), loc.getValue(L.LABEL_SEARCH_AND_REPLACE)),
-                event -> openSearchReplaceDialog());
     }
 
     /**
@@ -571,7 +582,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "dialog", type = ManuscriptSearchReplaceDialog.class),
                     @APILocals(name = "e", type = Exception.class)})
-    private void openSearchReplaceDialog() {
+    @Override
+    public void openSearchReplaceDialog() {
         try {
             ManuscriptSearchReplaceDialog dialog = new ManuscriptSearchReplaceDialog(parent.refreshManuscript(), false);
             dialog.onReplaced(() -> {
@@ -587,32 +599,17 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         }
     }
 
-    @PublicAPI(from = "1.4.0",
-            returns = @APIReturn(type = MenuItem.class),
-            parameters = {@APIParameter(name = "cogs", type = MenuItem.class)})
-    private MenuItem createImportArchiveMenuItem(MenuItem cogs) {
-        return cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.FILE_IMPORT.create(), loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE)),
-                event -> openArchiveImportDialog());
-    }
-
     /**
      * Asks for a zip archive of {@code .md} files and adds a part for each file to the end of the story, see
      * {@link ArchiveImportService#appendParts}; the story is shown again.
      */
     @PublicAPI(from = "1.4.0",
             returns = @APIReturn(type = void.class))
-    private void openArchiveImportDialog() {
+    @Override
+    public void openArchiveImportDialog() {
         ArchiveUploadDialog.show(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE), loc.getValue(L.MSG_IMPORT_ARCHIVE_TO_BOOK),
                 (archive, fileName) -> new ArchiveImportRunner().appendParts(parent.refreshManuscript(), MarkdownArchive.read(archive),
                         imported -> load(parent.refreshManuscript())));
-    }
-
-    @PublicAPI(from = "1.5.0",
-            returns = @APIReturn(type = MenuItem.class),
-            parameters = {@APIParameter(name = "cogs", type = MenuItem.class)})
-    private MenuItem createBranchTokensMenuItem(MenuItem cogs) {
-        return cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.CHART_BAR.create(), loc.getValue(L.LABEL_BRANCH_TOKENS)),
-                event -> openBranchTokensDialog());
     }
 
     /**
@@ -622,7 +619,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "dialog", type = BranchTokensDialog.class),
                     @APILocals(name = "e", type = Exception.class)})
-    private void openBranchTokensDialog() {
+    @Override
+    public void openBranchTokensDialog() {
         try {
             BranchTokensDialog dialog = new BranchTokensDialog(parent.refreshManuscript());
             dialog.create();
@@ -630,19 +628,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
-    }
-
-    @PublicAPI(from = "1.1.0",
-            returns = @APIReturn(type = MenuItem.class),
-            parameters = {@APIParameter(name = "cogs", type = MenuItem.class)})
-    private MenuItem createExportMenuItem(MenuItem cogs) {
-        return cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.FILE_EXPORT.create(), loc.getValue(L.LABEL_EXPORT_STORY)), event -> {
-            try {
-                new ExportDialog(parent.refreshManuscript()).open();
-            } catch (Exception e) {
-                UIUtils.internalServerError(loc, e);
-            }
-        });
     }
 
     @PublicAPI(from = "1.1.0",
@@ -1105,14 +1090,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         }
     }
 
-    @PublicAPI(from = "1.5.0",
-            returns = @APIReturn(type = MenuItem.class),
-            parameters = {@APIParameter(name = "cogs", type = MenuItem.class)})
-    private MenuItem createRestoreLayoutMenuItem(MenuItem cogs) {
-        return cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.TABLE_COLUMNS.create(), loc.getValue(L.LABEL_RESTORE_DEFAULT_LAYOUT)),
-                event -> ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_RESTORE_DEFAULT_LAYOUT), this::restoreDefaultLayout));
-    }
-
     /**
      * Puts the tabs back the way a new book has them: forgets the layout saved with the manuscript. The contents of the tabs and
      * the tabs of extensions stay, the latter go to the first sheet.
@@ -1187,6 +1164,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         if (keyBindings != null) {
             // the user may have changed the keys in the settings
             loadKeyBindings();
+            toolsMenu.refresh(menuDefinition(MenuKind.TOOLS));
             JavascriptLibrary.setShortcutKeys(UI.getCurrent().getPage(), keyBindings.toJson());
             newTurnForm.setGenerateShortcut(keyBindings.get(ShortcutActions.STORY_GENERATE));
             refreshActionTooltip();
@@ -1202,23 +1180,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         private final VerticalLayout contentLayout;
         private Button menuBtn;
         private ContextMenu hamburgerMenu;
+        private BuiltMenu cardMenu;
+        private BuiltMenu textMenu;
         private boolean menuItemsCreated;
-        private MenuItem editItem;
-        private MenuItem discardItem;
-        private MenuItem regenerateItem;
-        private MenuItem swipeItem;
-        private MenuItem redraftItem;
-        private MenuItem annotateSelectionItem;
-        private MenuItem annotatePartItem;
-        private MenuItem annotateAiItem;
-        private MenuItem branchItem;
-        private MenuItem mergeItem;
-        private MenuItem summaryItem;
-        private MenuItem deleteSummaryItem;
-        private MenuItem deleteItem;
-        private MenuItem showPromptItem;
-        private MenuItem tokenUsageItem;
-        private MenuItem imagesItem;
         private Details reasoningDetails;
         private Markdown reasoningMarkdown;
         private Markdown responseMarkdown;
@@ -1294,7 +1258,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
             // a click on a mark of an annotation opens its note at the mark
             cardAnnotations = new CardAnnotations(loc, annotations, () -> this.message, responseMarkdown,
-                    () -> responseTextArea, this::autosaveAndSwapToMarkdown, this::redraftSelection);
+                    () -> responseTextArea, this::autosaveAndSwapToMarkdown, this::redraftSelection, this::prepareTextMenu);
             actions.addComponentAsFirst(cardAnnotations.getBadge());
             refreshAnnotationBadge();
 
@@ -1367,8 +1331,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         }
 
         /**
-         * Runs each time the menu is about to open: creates the items the first time, then refreshes the ones that
-         * depend on the part.
+         * Runs each time the menu is about to open: creates the items the first time, then refreshes their text, visibility and keys.
          */
         @PublicAPI(from = "1.4.0",
                 returns = @APIReturn(type = void.class))
@@ -1378,77 +1341,37 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 createMenuItems();
             }
             refreshSummaryMenuItems();
-            // there is something to discard only while the text is edited
-            discardItem.setVisible(editing);
-            // the text that is redrafted is the saved one
-            redraftItem.setVisible(!editing && StringUtils.isNotBlank(message.getResponse()));
-            // a part that is being generated has nothing to annotate yet
-            annotateSelectionItem.setVisible(message.getId() != null && StringUtils.isNotBlank(message.getResponse()));
-            annotatePartItem.setVisible(message.getId() != null);
-            annotateAiItem.setVisible(!editing && message.getId() != null && StringUtils.isNotBlank(message.getResponse()));
-            // the keys of the shortcuts, which act on the last part (and on the part that is edited)
-            editItem.setText(withKey(loc.getValue(editing ? L.LABEL_SAVE : L.LABEL_EDIT),
-                    editing ? ShortcutActions.STORY_SAVE_EDIT : isLast ? ShortcutActions.STORY_EDIT : null));
-            regenerateItem.setText(withKey(loc.getValue(L.LABEL_REGENERATE), ShortcutActions.STORY_REGENERATE));
-            swipeItem.setText(withKey(loc.getValue(L.LABEL_SWIPE), ShortcutActions.STORY_SWIPE));
-            annotateSelectionItem.setText(withKey(loc.getValue(L.LABEL_ANNOTATE_SELECTION), ShortcutActions.STORY_ANNOTATE_SELECTION));
+            cardMenu.refresh(menuDefinition(MenuKind.CARD));
         }
 
         /**
-         * Adds the items to {@code hamburgerMenu}. Called when the menu is opened for the first time, not when the
-         * card is created, so the cards of a long story stay cheap.
+         * Runs each time the menu of the text is about to open: creates its items from the registry the first time, then refreshes them.
+         */
+        @PublicAPI(from = "1.5.0",
+                returns = @APIReturn(type = void.class),
+                parameters = {@APIParameter(name = "menu", type = ContextMenu.class)})
+        private void prepareTextMenu(ContextMenu menu) {
+            if (textMenu == null) {
+                textMenu = menuDefinition(MenuKind.TEXT).build(menu, loc, ManuscriptStoryPart.this, () -> this);
+            }
+            textMenu.refresh(menuDefinition(MenuKind.TEXT));
+        }
+
+        /**
+         * Adds the items of the registry (kind {@link MenuKind#CARD}) to {@code hamburgerMenu}. Called when the menu is opened for the
+         * first time, not when the card is created, so the cards of a long story stay cheap; extensions that decorate it add their items
+         * after these.
          */
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class))
         private void createMenuItems() {
-            editItem = hamburgerMenu.addItem(loc.getValue(editing ? L.LABEL_SAVE : L.LABEL_EDIT), event -> toggleEdit());
-
-            discardItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_DISCARD_CHANGES), event -> discardEdit());
-            discardItem.setVisible(editing);
-
-            regenerateItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_REGENERATE), event -> regenerate());
-            regenerateItem.setVisible(this.isLast);
-
-            swipeItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_SWIPE), event -> swipe());
-            swipeItem.setVisible(this.isLast);
-
-            redraftItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_REDRAFT), event -> redraft());
-
-            annotateSelectionItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_ANNOTATE_SELECTION), event -> cardAnnotations.annotateSelection());
-            annotatePartItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_ANNOTATE_PART), event -> cardAnnotations.annotatePart());
-            annotateAiItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_ANNOTATE_WITH_AI), event -> annotateWithAi());
-
-            branchItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_BRANCH_STORY), event -> branch());
-
-            mergeItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_MERGE_INTO_PREVIOUS), event -> mergeIntoPrevious());
-            mergeItem.setVisible(message.getParent() != null);
-
-            showPromptItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_SHOW_PROMPT), event -> showPrompt());
-
-            tokenUsageItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_TOKEN_USAGE), event -> showTokenUsage());
-
-            imagesItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_IMAGES), event -> openImagesDialog());
-
-            summaryItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_GENERATE_SUMMARY), event -> openSummaryDialog());
-            deleteSummaryItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_DELETE_SUMMARY), event -> confirmDeleteSummary());
-
-            deleteItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_DELETE), event -> {
-                ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
-                    try {
-                        chatMessageService.deleteNodeAndMigrateChildren(message, currentManuscript, false);
-
-                        parent.refreshManuscript();
-                        load(parent.getManuscript());
-                    } catch (Exception e) {
-                        UIUtils.internalServerError(loc, e);
-                    }
-                });
-            });
+            cardMenu = menuDefinition(MenuKind.CARD).build(hamburgerMenu, loc, ManuscriptStoryPart.this, () -> this);
         }
 
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class))
-        private void openImagesDialog() {
+        @Override
+        public void openImagesDialog() {
             new ImagesDialog(message, updated -> {
                 message = updated;
                 messageImages.setImages(updated.getImages());
@@ -1467,24 +1390,12 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     }
                 }
             } catch (Exception ignored) {}
-
-            if (summaryItem == null) {
-                return;
-            }
-
-            boolean hasSummary = (message != null && message.getSummary() != null);
-            if (hasSummary) {
-                summaryItem.setText(loc.getValue(L.LABEL_SHOW_SUMMARY));
-                deleteSummaryItem.setEnabled(true);
-            } else {
-                summaryItem.setText(loc.getValue(L.LABEL_GENERATE_SUMMARY));
-                deleteSummaryItem.setEnabled(false);
-            }
         }
 
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class))
-        private void confirmDeleteSummary() {
+        @Override
+        public void confirmDeleteSummary() {
             SummaryRemoval.confirmAndRemove(loc, summaryService, message, updated -> {
                 message = updated;
                 refreshSummaryMenuItems();
@@ -1499,7 +1410,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         @PublicAPI(from = "1.5.0",
                 returns = @APIReturn(type = void.class),
                 locals = {@APILocals(name = "e", type = Exception.class)})
-        private void redraft() {
+        @Override
+        public void redraft() {
             try {
                 currentManuscript = parent.refreshManuscript();
                 RedraftDialog.open(currentManuscript, message, saved -> {
@@ -1541,7 +1453,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         @PublicAPI(from = "1.5.0",
                 returns = @APIReturn(type = void.class),
                 locals = {@APILocals(name = "e", type = Exception.class)})
-        private void mergeIntoPrevious() {
+        @Override
+        public void mergeIntoPrevious() {
             try {
                 currentManuscript = parent.refreshManuscript();
                 PartMergeDialog.open(currentManuscript, message, merged -> {
@@ -1559,7 +1472,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class),
                 locals = {@APILocals(name = "e", type = Exception.class)})
-        private void branch() {
+        @Override
+        public void branch() {
             try {
                 currentManuscript = parent.refreshManuscript();
                 currentManuscript.setActiveLeaf(chatMessageService.branch(currentManuscript, message));
@@ -1572,7 +1486,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class),
                 locals = {@APILocals(name = "summaryDialog", type = SummaryDialog.class)})
-        private void openSummaryDialog() {
+        @Override
+        public void openSummaryDialog() {
             refreshSummaryMenuItems();
             boolean hasSummary = (message != null && message.getSummary() != null);
             SummaryDialog summaryDialog = new SummaryDialog(currentManuscript, message, !hasSummary);
@@ -1585,14 +1500,16 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class))
-        private void regenerate() {
+        @Override
+        public void regenerate() {
             createDetails();
             startGeneration(GenerationRequest.regenerate(message), detailsForm.toTurnInput());
         }
 
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class))
-        private void swipe() {
+        @Override
+        public void swipe() {
             createDetails();
             startGeneration(GenerationRequest.newSwipe(message), detailsForm.toTurnInput());
         }
@@ -1613,12 +1530,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 parameters = {@APIParameter(name = "isLast", type = boolean.class)})
         public void setLastMessage(boolean isLast) {
             this.isLast = isLast;
-            if (regenerateItem != null) {
-                regenerateItem.setVisible(isLast);
-            }
-            if (swipeItem != null) {
-                swipeItem.setVisible(isLast);
-            }
             if (detailsForm != null) {
                 detailsForm.setLastMessage(isLast);
             }
@@ -1636,6 +1547,13 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             }
         }
 
+        @PublicAPI(from = "1.5.0",
+                returns = @APIReturn(type = boolean.class))
+        @Override
+        public boolean isLast() {
+            return isLast;
+        }
+
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = boolean.class))
         public boolean isEditing() {
@@ -1647,8 +1565,55 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
          */
         @PublicAPI(from = "1.5.0",
                 returns = @APIReturn(type = void.class))
+        @Override
         public void annotateSelection() {
             cardAnnotations.annotateSelection();
+        }
+
+        /**
+         * Makes a note about the whole part.
+         */
+        @PublicAPI(from = "1.5.0",
+                returns = @APIReturn(type = void.class))
+        @Override
+        public void annotatePart() {
+            cardAnnotations.annotatePart();
+        }
+
+        /**
+         * Has the model write the passage the author selected again.
+         */
+        @PublicAPI(from = "1.5.0",
+                returns = @APIReturn(type = void.class))
+        @Override
+        public void redraftSelection() {
+            cardAnnotations.redraftSelection();
+        }
+
+        @PublicAPI(from = "1.5.0",
+                returns = @APIReturn(type = void.class))
+        @Override
+        public void copySelection() {
+            cardAnnotations.copySelection();
+        }
+
+        /**
+         * Asks, then deletes the part: what followed it continues from its parent.
+         */
+        @PublicAPI(from = "1.5.0",
+                returns = @APIReturn(type = void.class))
+        @Override
+        public void confirmDelete() {
+            ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
+                try {
+                    chatMessageService.deleteNodeAndMigrateChildren(message, currentManuscript, false);
+
+                    parent.refreshManuscript();
+                    load(parent.getManuscript());
+                } catch (Exception e) {
+                    UIUtils.internalServerError(loc, e);
+                }
+            });
         }
 
         @PublicAPI(from = "1.5.0",
@@ -1659,6 +1624,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class))
+        @Override
         public void toggleEdit() {
             if (editing) {
                 autosaveAndSwapToMarkdown();
@@ -1673,9 +1639,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 contentLayout.addComponentAtIndex(contentLayout.indexOf(responseMarkdown) + 1, responseTextArea);
                 responseMarkdown.setVisible(false);
                 JavascriptLibrary.focusAfterRender(responseTextArea.getElement());
-                if (editItem != null) {
-                    editItem.setText(loc.getValue(L.LABEL_SAVE));
-                }
             }
         }
 
@@ -1685,6 +1648,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
          */
         @PublicAPI(from = "1.5.0",
                 returns = @APIReturn(type = void.class))
+        @Override
         public void discardEdit() {
             if (!editing) {
                 return;
@@ -1706,9 +1670,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             responseTextArea = null;
             responseMarkdown.setVisible(true);
             editing = false;
-            if (editItem != null) {
-                editItem.setText(loc.getValue(L.LABEL_EDIT));
-            }
         }
 
         @PublicAPI(from = "1.1.0",
@@ -1727,9 +1688,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     responseTextArea = null;
                     responseMarkdown.setVisible(true);
                     editing = false;
-                    if (editItem != null) {
-                        editItem.setText(loc.getValue(L.LABEL_EDIT));
-                    }
                     updateMetrics(message);
                 } catch (Exception e) {
                     UIUtils.internalServerError(loc, e);
@@ -1797,7 +1755,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         @PublicAPI(from = "1.5.0",
                 returns = @APIReturn(type = void.class),
                 locals = {@APILocals(name = "e", type = Exception.class)})
-        private void annotateWithAi() {
+        @Override
+        public void annotateWithAi() {
             try {
                 currentManuscript = parent.refreshManuscript();
                 AnnotateDialog.open(currentManuscript, message, () -> {
@@ -1887,7 +1846,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class),
                 locals = {@APILocals(name = "dialog", type = TokenUsageDialog.class)})
-        private void showTokenUsage() {
+        @Override
+        public void showTokenUsage() {
             // null for parts generated before the breakdown was recorded, the dialog says so
             TokenUsageDialog dialog = new TokenUsageDialog(message.getTokenBreakdown());
             dialog.create();
@@ -1897,7 +1857,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class),
                 locals = {@APILocals(name = "dialog", type = PromptDialog.class)})
-        private void showPrompt() {
+        @Override
+        public void showPrompt() {
             PromptDialog dialog = new PromptDialog(message.getBuiltPrompt());
             dialog.create();
             dialog.open();
