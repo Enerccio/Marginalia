@@ -295,12 +295,14 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     published book in the Viewer are not; the Viewer deliberately shows them to the owner only). Files of deleted
     resources and of replaced content stay in the data folder: a garbage collection for them is still to be done. 🧩
 32. **Text-to-speech read-aloud** in the Viewer. 🧩
-33. **Health and metrics endpoint.** ✅ The Dockerfile has a `HEALTHCHECK` (bash opens a socket to port 8080, a 2xx/3xx
-    answer is healthy). ✅ Tokens per provider and user are counted since 1.2.0 (`Usage`, Inference Providers tab and
-    *Usage per user* in the administration). Missing: a dedicated health endpoint and other metrics (tokens per
-    book, requests per time).
-34. **Configuration via environment variables** — today it's `configuration.properties` plus
-    `-Duser.home`. Document the keys and allow env overrides (data dir, default language, cookie TTL).
+33. **Health and metrics endpoint.** ✅ `GET /health` (`HealthServlet`, no login): 200 when the context runs and the database
+    answers, else 503; the Dockerfile `HEALTHCHECK` uses it. ✅ Tokens per provider and user are counted since 1.2.0 (`Usage`,
+    Inference Providers tab and *Usage per user* in the administration). Missing: other metrics (tokens per book,
+    requests per time, a Prometheus endpoint).
+34. ✅ **Configuration via environment variables** — `MARGINALIA_DATA`, `MARGINALIA_DEFAULT_LANGUAGE`,
+    `MARGINALIA_ALLOW_PERSISTENT_LOGIN`, `MARGINALIA_PERSISTENT_LOGIN_TTL`, `MARGINALIA_TRUSTED_PROXIES` (or the same as
+    `-Dmarginalia.*`), over `configuration.properties`; documented in the Docker server page and `architecture.md`. Not done:
+    the other `-D` options and the extensions folder (`MARGINALIA_EXTENSIONS` only exists in `install-plugins.sh`).
 
 ---
 

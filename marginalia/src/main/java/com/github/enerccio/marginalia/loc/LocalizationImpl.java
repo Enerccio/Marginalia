@@ -63,11 +63,23 @@ public class LocalizationImpl implements Localization, InitializingBean {
         this.defaultLanguage = defaultLanguage;
     }
 
+    /**
+     * The default language by its code, from the setting {@code marginalia.default-language}
+     * ({@code MARGINALIA_DEFAULT_LANGUAGE}); empty keeps English. It has to be one of the bundles of the application,
+     * the languages of extensions are not loaded yet at the start.
+     */
+    public void setDefaultLanguageCode(String code) {
+        if (code != null && !code.isBlank()) {
+            this.defaultLanguage = Language.of(code);
+        }
+    }
+
     @Override
     public void afterPropertiesSet() {
         LocalizationBundle bundle = bundles.get(defaultLanguage);
         if (bundle == null) {
-            throw new IllegalStateException("No localization bundle for the default language " + defaultLanguage);
+            throw new IllegalStateException("No localization bundle for the default language " + defaultLanguage
+                    + ", the application has " + bundles.keySet() + " (the default language can't be one of an extension)");
         }
         // the other bundles fall back to this one, so it has to be complete
         String missing = missingKeys(bundle);

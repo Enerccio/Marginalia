@@ -62,7 +62,10 @@ public class Configuration implements InitializingBean {
     }
 
     public void setPersistentLoginInfoTTL(Long persistentLoginInfoTTL) {
-        this.persistentLoginInfoTTL = persistentLoginInfoTTL;
+        // an empty setting (an environment variable set to nothing) keeps the default
+        if (persistentLoginInfoTTL != null) {
+            this.persistentLoginInfoTTL = persistentLoginInfoTTL;
+        }
     }
 
     public boolean isAllowPersistentLogin() {
@@ -90,7 +93,9 @@ public class Configuration implements InitializingBean {
     }
 
     /**
-     * Overrides the application folder (default {@code ~/.marginalia}). Used by tests to keep data in a temp folder.
+     * Overrides the application folder (default {@code ~/.marginalia}): the setting {@code marginalia.data}
+     * ({@code MARGINALIA_DATA}), and tests keep data in a temp folder with it. {@code null} (an empty setting) keeps
+     * the default.
      */
     public void setFolder(File folder) {
         this.folder = folder;

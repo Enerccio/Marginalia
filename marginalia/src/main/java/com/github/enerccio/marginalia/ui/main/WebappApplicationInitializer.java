@@ -15,6 +15,7 @@ public class WebappApplicationInitializer implements WebApplicationInitializer {
     public void onStartup(@NonNull ServletContext servletContext) throws ServletException {
         System.setProperty("vaadin.copilot.enable", "false");
         initRootApplicationContext(servletContext);
+        servletContext.addServlet("HealthServlet", new HealthServlet()).addMapping(HealthServlet.PATH);
     }
 
     @SuppressWarnings("UnusedReturnValue")
