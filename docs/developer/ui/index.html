@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846324746497">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846327488942">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846324746497" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846327488942" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846324746497" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846327488942" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846324746497" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846324746497" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846327488942" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846327488942" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -669,7 +669,7 @@ their layout and the methods extensions decorate (<code translate="no" v-pre>ren
 | `ManuscriptSearchDialog` | The advanced search of the book list (the *Search* button of `ManuscriptPart` and the magnifier of `PhoneManuscriptPart`, which pass the callback that opens a found book after the `AgentLockCheck`). It builds a `ManuscriptSearchCriteria` from the fields (a *to* date becomes the start of the next day, the end is exclusive) and lists the result of `ManuscriptService.searchAdvanced`: `ManuscriptRepository.searchManuscripts(criteria, …)` does name, tags (one `EXISTS` per tag; include all/any, exclude any/all), dates and the number of parts in one JPQL query, then `ChatMessageService.findManuscriptsWithText` keeps the books that have a part with all the words (`_fulltext` `LIKE`s, as in `searchFulltext`), restricted to the active branch (`ChatMessageRepository.findActiveBranchIds`) unless *all branches* is on. |
 | `CloneNameDialog` (`ui.dialogs`) | Static helper, not `@Extendable`: a `TextInputDialog` that asks for the name of a copy (the original's name and *(Copy)*, required) and calls back with it. Used by the clone buttons of `LorebookView`, `ProtocolPart` / `PhoneProtocolPart` and `AIPart` / `PhoneAIPart`, which call `LorebookService.cloneLorebook`, `ProtocolService.cloneProtocol` and `AIService.cloneAI` (the `PhoneLorebookView` has no clone). |
 | `StoryGenerationListener` | The `GenerationListener` of a story tab: creates and fills the cards while a generation streams, redraws the story at its end. The tab reacts through `Callbacks`. |
-| `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics` | The fields of the *New Turn Instructions* popover, the turn details of a part, the metadata lines of a part. `NewTurnForm.setOnImpersonate` shows the *Draft Instructions* button (the story parts set it to open the `ImpersonateDialog`), `setInstructions` puts a text into the instructions as if typed. |
+| `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics` | The fields of the *New Turn Instructions* popover, the turn details of a part, the metadata lines of a part. `NewTurnForm.setOnImpersonate` shows the *Draft Instructions* button (the story parts set it to open the `ImpersonateDialog`), `setInstructions`, `setPovCharacter` and `setPresentCharacters` put a text into the field as if typed (the Character Tracker plugin gives the two character fields a picker button). |
 | `ImpersonateDialog` (`ui.dialogs.story`) | The window of the *Draft Instructions* button of the new turn form (desktop and phone) and of extensions that know the plan of the story: `ImpersonateDialog.open(book, turn, outline, onUse)`. The guidance (starts as the typed instructions), the read only `outline`, `ImpersonateService.impersonate` streamed into a text field the author may change; `onUse` gets the text. Nothing is stored. |
 | `StoryBackup`, `StorySupport` | The automatic backup after N parts / minutes, the limit of parts to load (`partsLimit`) and the saving of an edited part. The story does not remember a scroll position: it always opens at the bottom. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -711,7 +711,7 @@ their layout and the methods extensions decorate (<code translate="no" v-pre>ren
 </tr>
 <tr>
 <td><code translate="no" v-pre>NewTurnForm</code>, <code translate="no" v-pre>TurnDetailsForm</code>, <code translate="no" v-pre>MessageMetrics</code></td>
-<td>The fields of the <em>New Turn Instructions</em> popover, the turn details of a part, the metadata lines of a part. <code translate="no" v-pre>NewTurnForm.setOnImpersonate</code> shows the <em>Draft Instructions</em> button (the story parts set it to open the <code translate="no" v-pre>ImpersonateDialog</code>), <code translate="no" v-pre>setInstructions</code> puts a text into the instructions as if typed.</td>
+<td>The fields of the <em>New Turn Instructions</em> popover, the turn details of a part, the metadata lines of a part. <code translate="no" v-pre>NewTurnForm.setOnImpersonate</code> shows the <em>Draft Instructions</em> button (the story parts set it to open the <code translate="no" v-pre>ImpersonateDialog</code>), <code translate="no" v-pre>setInstructions</code>, <code translate="no" v-pre>setPovCharacter</code> and <code translate="no" v-pre>setPresentCharacters</code> put a text into the field as if typed (the Character Tracker plugin gives the two character fields a picker button).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ImpersonateDialog</code> (<code translate="no" v-pre>ui.dialogs.story</code>)</td>
@@ -1518,7 +1518,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (cf417eea2).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (00fb916b3).</p></div>
             </footer>
         </div>
     </div>

@@ -32,6 +32,15 @@ Characters are saved with the book as soon as you change them, so they are inclu
 
 ![The Characters tab](../../images/plugin-charactertracker-tab.png)
 
+## Picking characters for a turn
+
+The [new turn](../books/story-editor.md) form has the fields **POV character** and **Present characters**. They stay
+free text, but each has a button with a person icon at its end that lists the characters of the book, ordered by name.
+A name chosen in the list of the **POV character** replaces what is in the field; a name chosen in the list of
+**Present characters** is added at the end, after a comma, unless it is there already. The list is read when you open it,
+so a character you added a moment ago is in it. You can still type any name, and a name in the field does not have to be
+a character of the book.
+
 ## The character dialog
 
 **Add new character** and the pen open the same dialog:
@@ -115,4 +124,5 @@ Adding and changing is not destructive; only the `delete` commands are, which an
 
 ## Phone
 
-The tab is in the drawer of the story, next to the outline, like the [Author's Note](authors-note.md).
+The tab is in the drawer of the story, next to the outline, like the [Author's Note](authors-note.md). The buttons for the
+POV and present characters are in the new turn form of the phone too.

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846324746497">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846327488942">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846324746497" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846327488942" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846324746497" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846327488942" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846324746497" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846327488942" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -222,6 +222,13 @@ smaller letters (two lines at most). The buttons of a character:</p>
     <img src="../../../images/plugin-charactertracker-tab.png" alt="The Characters tab" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
     <figcaption class="caption">The Characters tab</figcaption>
 </figure>
+<h2 id="picking-characters-for-a-turn">Picking characters for a turn</h2>
+<p>The <a href="../../books/story-editor/">new turn</a> form has the fields <strong>POV character</strong> and <strong>Present characters</strong>. They stay
+free text, but each has a button with a person icon at its end that lists the characters of the book, ordered by name.
+A name chosen in the list of the <strong>POV character</strong> replaces what is in the field; a name chosen in the list of
+<strong>Present characters</strong> is added at the end, after a comma, unless it is there already. The list is read when you open it,
+so a character you added a moment ago is in it. You can still type any name, and a name in the field does not have to be
+a character of the book.</p>
 <h2 id="the-character-dialog">The character dialog</h2>
 <p><strong>Add new character</strong> and the pen open the same dialog:</p>
 <retype-table copy-text="| Field | |
@@ -376,7 +383,8 @@ dialog.</p>
 </retype-table>
 <p>Adding and changing is not destructive; only the <code translate="no" v-pre>delete</code> commands are, which an agent may be set to ask you about.</p>
 <h2 id="phone">Phone</h2>
-<p>The tab is in the drawer of the story, next to the outline, like the <a href="../authors-note/">Author&#x27;s Note</a>.</p>
+<p>The tab is in the drawer of the story, next to the outline, like the <a href="../authors-note/">Author&#x27;s Note</a>. The buttons for the
+POV and present characters are in the new turn form of the phone too.</p>
 
                 
                 <!-- Required only on API pages -->
@@ -414,7 +422,7 @@ dialog.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (cf417eea2).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (00fb916b3).</p></div>
             </footer>
         </div>
     </div>

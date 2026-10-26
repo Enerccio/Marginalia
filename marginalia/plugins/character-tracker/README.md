@@ -24,6 +24,12 @@ The story view gets a *Characters* tab in its left sidebar (next to the outline)
   tagline, on the color of the character. The chevron expands the character to show its icon and note, the pen edits
   it, the trash deletes it with all its relationships.
 
+### Characters in the new turn form
+
+The *POV character* and *Present characters* fields of the new turn form get a button with a person icon that lists the
+characters of the book by name: a click on a name puts it into *POV character* (replacing the text) or adds it to
+*Present characters* (after a comma, not twice). The list is read when it opens. The fields stay free text.
+
 ### Relationships
 
 The dialog of an existing character lists the relationships it is part of: those it points to (`→`), those that point
@@ -68,7 +74,9 @@ into the payload (`CharacterTrackerService.promptInsertion` / `insert`). The tex
 counted, even if the characters change during the generation.
 
 The plugin decorates `renderStoryContent` of `ManuscriptStoryPart` and `PhoneManuscriptStoryPart` and adds the tab to
-their `leftBar`. The characters are loaded into memory (`CharacterBook`) when the tab is created and the whole book of
+their `leftBar`; in the same place it reads their `newTurnForm` and gives its POV and present characters fields a suffix
+button (`TurnCharacterPicker`, a `ContextMenu` filled when it opens) that calls `NewTurnForm.setPovCharacter` /
+`setPresentCharacters`. The characters are loaded into memory (`CharacterBook`) when the tab is created and the whole book of
 characters is stored after every change.
 
 ## Storage

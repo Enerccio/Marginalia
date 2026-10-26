@@ -18,24 +18,29 @@ import com.github.enerccio.marginalia.extensions.charactertracker.model.Characte
 import com.github.enerccio.marginalia.extensions.charactertracker.service.CharacterTrackerService;
 import com.github.enerccio.marginalia.extensions.charactertracker.ui.CharacterTrackerStyles;
 import com.github.enerccio.marginalia.extensions.charactertracker.ui.CharacterTrackerView;
+import com.github.enerccio.marginalia.extensions.charactertracker.ui.TurnCharacterPicker;
+import com.github.enerccio.marginalia.ui.dialogs.story.NewTurnForm;
 import com.github.enerccio.marginalia.ui.main.ApplicationEntryPoint;
 import com.github.enerccio.marginalia.ui.main.Main;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ComponentUtil;
+import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.component.textfield.TextField;
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
 import static com.github.enerccio.marginalia.extensions.charactertracker.CharacterTrackerLocalization.T;
 
 /**
- * Adds the Characters tab to the left sidebar of the story view.
+ * Adds the Characters tab to the left sidebar of the story view and the lists of the characters to the new turn form.
  */
 @Configurable
 public class CharacterTrackerExtension implements MarginaliaExtension, ExtensionHasCss {
@@ -61,6 +66,8 @@ public class CharacterTrackerExtension implements MarginaliaExtension, Extension
     private Registration payloadRegistration;
 
     private final Set<TabDock> activeTabSheets = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+    /** The POV field of every new turn form with a picker, with its present characters field. */
+    private final Map<TextField, TextArea> activePickers = Collections.synchronizedMap(new WeakHashMap<>());
 
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
@@ -86,6 +93,17 @@ public class CharacterTrackerExtension implements MarginaliaExtension, Extension
 
                         ComponentUtil.setData(leftBar, VIEW_KEY, view);
                         activeTabSheets.add(leftBar);
+
+                        // the lists of the characters at the POV and present characters of the new turn
+                        NewTurnForm newTurnForm = context.getReflectiveFieldValue(instrumented, "newTurnForm", NewTurnForm.class);
+                        if (newTurnForm != null) {
+                            TextField pov = context.getReflectiveFieldValue(newTurnForm, "povCharacterField", TextField.class);
+                            TextArea present = context.getReflectiveFieldValue(newTurnForm, "presentCharactersField", TextArea.class);
+                            if (pov != null && present != null) {
+                                TurnCharacterPicker.attach(newTurnForm, pov, present, currentManuscript, service);
+                                activePickers.put(pov, present);
+                            }
+                        }
                     }
                 }
             };
@@ -192,6 +210,10 @@ public class CharacterTrackerExtension implements MarginaliaExtension, Extension
                 });
             }
             activeTabSheets.clear();
+        }
+        synchronized (activePickers) {
+            activePickers.forEach((pov, present) -> UIUtils.accessComponent(pov, () -> TurnCharacterPicker.detach(pov, present)));
+            activePickers.clear();
         }
     }
 }

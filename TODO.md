@@ -196,7 +196,8 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
       Tracker** plugin (`marginalia/plugins/character-tracker`) keeps them in the book's attributes, not in an entity.
     - ✅ The Character Tracker can insert the characters and their relationships into the prompt (*In prompt*, depth and role, like the Author's Note).
     - Link characters to lorebook entries (the import only copies the names).
-    - Pick-lists of the characters for the POV and present characters of a turn.
+    - ✅ Pick-lists of the characters for the POV and present characters of a turn: the Character Tracker puts a button
+      at the end of both fields (`TurnCharacterPicker`) that copies a name into the field; the fields stay free text.
     - SillyTavern character card import.
 
 22. **Sharing between users.** Everything is private except inference providers: ✅ since 1.2.0 an administrator can
@@ -243,13 +244,13 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     extension that turns invalid while the page is open, and it does not link to *Admin → Extensions* yet. Still missing:
     show bundle errors and dependencies. The plugin API is not frozen in 1.0.
 
-24b. **Summaries overview tools** 🧩 — the *Summaries* dialog (`SummariesDialog`, `@Extendable`) has an empty menu bar
-    for these:
-    - Export and import of the summaries of a branch (e.g. to edit them in an external editor or move them to another
-      book).
-    - Search and replace in the summaries (names that changed, fixing a term in all of them at once).
-    Editing a summary a meta summary stands in for would invalidate the meta summary (its text is part of the hash);
-    a replace tool must update the hashes of the meta summaries it touches (or edit only the summaries in use).
+24b. **Summaries overview tools** — the *Summaries* dialog (`SummariesDialog`, `@Extendable`) has a menu bar:
+    - ✅ Search and replace in the summaries (*Search and Replace*, `ManuscriptSearchReplaceDialog` with `summariesOnly`,
+      `ManuscriptReplaceService.Options.summariesOnly`): the summaries only, also the ones inside a meta summary, the hashes
+      of the meta summaries are worked out again (and, with *Revalidate all summaries*, those of every summary of the book).
+    - Not done 🧩: export and import of the summaries of a branch (e.g. to edit them in an external editor or move them to
+      another book). Editing a summary a meta summary stands in for would invalidate the meta summary (its text is part of
+      the hash); an import must update the hashes of the meta summaries it touches (as the replace does).
 
 ---
 
