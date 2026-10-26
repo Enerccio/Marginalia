@@ -14,6 +14,7 @@ Extensions add features to Marginalia without changing the application itself. F
 | [Instruction Exporter](instruction-exporter.md) | Copies the instructions, scene settings and characters of the story to the clipboard. |
 | [Lore Generator](lore-generator.md) | Writes the content of a lorebook entry with the model, from the lore you already have. |
 | [Lorebook VCS](lorebook-vcs.md) | Revision history for lorebook entries. |
+| [Manga Generator](manga-generator.md) | Turns parts of the story into a manga script of pages and panels, and into image generation tags. |
 | [Tools for the model](tools.md) | The **Tools** button of the generators: which tool suites (names, places) the model may use, and which of their categories. |
 | [Name generator](name-generator.md) | Names for the model to use instead of inventing them: about 1270 lists of names, as Markov chains. |
 | [Name provider](name-provider.md) | Real names for the model to pick from: forenames and surnames of about 100 countries, with the original spelling. |

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846328134700">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846351319701">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846328134700" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846351319701" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846328134700" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846351319701" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846328134700" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846351319701" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -291,6 +291,7 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 | [Instruction Exporter](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/instructionexporter) | Copies the instructions, scene settings and characters of the active branch to the clipboard, from the story settings menu. | Add an item to the settings menu of the story editor, read the story through a service, write to the clipboard. |
 | [Lore Generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lore-generator) | Writes a lorebook entry with the model from the existing lore: a generation, then a compaction, optional attachments. | Add a column to a grid, open a dialog that streams from the model (with `LLMAttachment`s), keep prompts in the user settings, give the model the functions of another extension ([a direct call](ipc.md#calling-another-extension-directly)), let the user choose the model with `ModelProtocolPicker`. |
 | [Lorebook VCS](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lorebookvcs) | Revision history of lorebook entries, export and import of the history. | Insert panels into a view, store data in a lorebook's attributes, replace a field of the view. |
+| [Manga Generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/manga-generator) | Adapts parts of the story into a manga script and image tags, in one large window opened from the story settings menu. | Add an item to the settings menu of the story editor that opens a dialog, activate lore for arbitrary text with `LorebookActivationService.evaluateAll`, fit it to the context with `TokenLimits`, stream several answers side by side, keep data in a book's attributes. |
 | [Name generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/name-generator) | `list_name_categories` and `generate_names`: names from Markov chains trained at build time on lists of names. | Write functions for the model (`@LLMFunction`), train data at build time with Java programs run by `exec-maven-plugin`, ship it as a resource. |
 | [Name provider](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/name-provider) | `list_real_name_lists` and `pick_real_names`: real forenames and surnames of countries picked at random, as pairs of the romanized and the original name. | Write functions for the model whose answer is a list of records, ship data imported at build time (a CSV of a repository, cloned and converted by a Java program) as a resource. |
 | [Place provider](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/place-provider) | `list_place_types`, `search_places`, `places_near` and `distance_between` (also as commands): real places from Natural Earth by name, type and country, around a point, and the distance of two. | Ship a dataset reduced at build time by a Maven profile (`-Pimport-places`, committed result), write functions and commands over an in-memory index. |
@@ -357,6 +358,11 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 <td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lorebookvcs">Lorebook VCS</a></td>
 <td>Revision history of lorebook entries, export and import of the history.</td>
 <td>Insert panels into a view, store data in a lorebook&#x27;s attributes, replace a field of the view.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/manga-generator">Manga Generator</a></td>
+<td>Adapts parts of the story into a manga script and image tags, in one large window opened from the story settings menu.</td>
+<td>Add an item to the settings menu of the story editor that opens a dialog, activate lore for arbitrary text with <code translate="no" v-pre>LorebookActivationService.evaluateAll</code>, fit it to the context with <code translate="no" v-pre>TokenLimits</code>, stream several answers side by side, keep data in a book&#x27;s attributes.</td>
 </tr>
 <tr>
 <td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/name-generator">Name generator</a></td>
@@ -446,7 +452,7 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (b7945db8d).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (5abb46efd).</p></div>
             </footer>
         </div>
     </div>

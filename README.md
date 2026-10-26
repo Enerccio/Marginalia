@@ -152,6 +152,7 @@ built separately with Maven, or in Docker (see the plugins README):
 - [Instruction Exporter](marginalia/plugins/instructionexporter/README.md) - copy the instructions, scene settings and characters of the story to the clipboard,
 - [Lore Generator](marginalia/plugins/lore-generator/README.md) - write a lorebook entry with the model from the existing lore,
 - [Lorebook VCS](marginalia/plugins/lorebookvcs/README.md) - revision history for lorebook entries,
+- [Manga Generator](marginalia/plugins/manga-generator/README.md) - turn parts of the story into a manga script and image generation tags,
 - [Name generator](marginalia/plugins/name-generator/README.md) - functions for the model to get names (about 1200 categories) instead of inventing them,
 - [Name provider](marginalia/plugins/name-provider/README.md) - functions for the model to pick real names (forenames and surnames of about 100 countries) from lists,
 - [Place provider](marginalia/plugins/place-provider/README.md) - functions and commands to look up real places (about 18 000 notable ones), what is near a place and the distance of two,

@@ -15,6 +15,7 @@ a restart.
 | [Instruction Exporter](instructionexporter/README.md) | "Export instructions" in the story settings menu: copies the instructions, scene settings and characters of the active branch to the clipboard. |
 | [Lore Generator](lore-generator/README.md) | Writes the content of a lorebook entry with the model from the existing lore (generation, compaction, attachments), from a button in the lorebook editor. |
 | [Lorebook VCS](lorebookvcs/README.md) | Revision history for lorebook entries: snapshots, browsing and restoring old versions, export/import. |
+| [Manga Generator](manga-generator/README.md) | Turns parts of the story into a manga script of pages and panels and into image generation tags, from the story settings menu. |
 | [Name generator](name-generator/README.md) | Functions for the model to list name categories (about 1270: names of the world, places, deities, drugs...) and generate names from Markov chains; used by the Lore Generator and Arc Outline. |
 | [Name provider](name-provider/README.md) | Functions for the model to list lists of real names (forenames and surnames of about 100 countries) and pick names from them, each as a pair of the romanized and the original name; used by the Lore Generator and Arc Outline. |
 | [Place provider](place-provider/README.md) | Functions and commands to look up real places (Natural Earth, about 18 000 notable ones): a search by name, type and country, the places around a point and the distance of two places. |
@@ -45,7 +46,7 @@ mvn -N install                   # in the repository root: installs the parent P
 cd marginalia
 mvn install -DskipTests          # installs the application (and its classes JAR used by plugins)
 
-cd plugins/chaptermarker          # or anthropic, arc-outline, authorsnote, character-tracker, gemma4toolsfix, google-genai, instructionexporter, lore-generator, lorebookvcs, name-generator, name-provider, place-provider, reviewer, sidequery, sillytavern-converter, chineselocalization
+cd plugins/chaptermarker          # or anthropic, arc-outline, authorsnote, character-tracker, gemma4toolsfix, google-genai, instructionexporter, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, reviewer, sidequery, sillytavern-converter, chineselocalization
 mvn package                       # target/chaptermarker-1.4.0.jar
 ```
 

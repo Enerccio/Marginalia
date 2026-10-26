@@ -25,6 +25,7 @@
     <module>marginalia/plugins/google-genai</module>
     <module>marginalia/plugins/lore-generator</module>
     <module>marginalia/plugins/lorebookvcs</module>
+    <module>marginalia/plugins/manga-generator</module>
     <module>marginalia/plugins/name-generator</module>
     <module>marginalia/plugins/name-provider</module>
     <module>marginalia/plugins/place-provider</module>
