@@ -38,10 +38,16 @@ editor is used: the edit is saved first.
 
 **From the command line** (and for extensions): [`/create-annotation`](../commands/index.md#annotations).
 
+![The right click menu of the text of a part](../../images/story-text-menu.png)
+
+![The window of a new annotation](../../images/annotation-dialog.png)
+
 ## Reading the annotations
 
 A passage with an open note is underlined with a **wavy line**, coloured by who wrote the note (blue you, orange a
 model, green an agent, red an extension). A note inside another one is underlined lower, so both can be seen.
+
+![The note of an underlined passage, opened at the mark](../../images/annotation-popover.png)
 
 - **Click the underlined text** to see the notes that cover that point (all of them where passages overlap). They open
   next to the text; on a phone tap the passage.
@@ -52,6 +58,10 @@ model, green an agent, red an extension). A note inside another one is underline
   a passage brings its note into view. The notes are the same ones (resolve, edit...); resolved and dismissed notes are not shown there, as they are not underlined.
 - The **Annotations** tab lists the notes of the whole book, grouped by part in the order of the story, with a filter
   (*Need a look*, *Closed*, *All*). **Show in story** (or the number of the part) takes you to the part.
+
+![The notes in the margin of a part](../../images/annotations-margin.png)
+
+![The Annotations tab](../../images/annotations-tab.png)
 
 Each note shows who wrote it, its type, its status, the passage, the note and these actions:
 
@@ -102,6 +112,8 @@ checked); uncheck the ones you do not want and choose **Add the selected annotat
 |---|---|
 | **Model** | The model that reviews. Empty is the **Default model for annotating** from your [settings](../account.md#general-settings), else the model of the book. Reviewing is analysis, so this is often not the model that writes the prose. |
 | **Answer format** | *Automatic* (structured, when the model can answer in JSON), *Structured (JSON)*, *Text blocks* (for models that do not keep to a format) or *Free critique, then extraction* (the model writes a free review, a second model, usually a cheaper one, turns it into notes: choose it under **Model that extracts the notes**). |
+
+![The notes a model proposes for a part](../../images/annotate-ai-proposals.png)
 
 If an answer can't be read, Marginalia asks once more; if it still can't be read, the model's answer is shown so the work
 is not lost. The prompt is the [annotate prompt](prompts.md#annotate-prompt).

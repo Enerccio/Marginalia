@@ -26,6 +26,8 @@ and fall back to the local estimate. Not sent: temperature, top p and the penalt
 refuses (the response size is used). Not supported: Amazon Bedrock, Google Vertex AI and Microsoft Foundry (only API keys of the
 Claude API), prompt caching, the server-side tools of Anthropic (web search...).
 
+![The Per Type Settings of the Anthropic Claude provider](../../../manual/images/plugin-anthropic.png)
+
 The AIs of the provider stay in the database when the plugin is unloaded and work again when it is loaded; while it is not
 loaded, generating with them says to load the extension.
 

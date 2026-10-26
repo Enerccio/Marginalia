@@ -22,6 +22,11 @@ const TAGS = `**Page 1, Panel 1:** masterpiece, best quality, no humans, village
 **Page 1, Panel 2:** 1boy, black hair, round glasses, scarf, winter coat, collar up, looking back, glass window, laughing friends in background, medium shot
 **Page 1, Panel 3:** 1girl, platinum blonde hair, grey eyes, long green coat, hands in pockets, street lamp, fog, half face in light, close-up, smirk`;
 
+/** Scrolls the list of the sections back to its top (it follows the text that is written). */
+const toTop = d => d.locator('.manga-card').first().evaluate(card => {
+  for (let el = card.parentElement; el; el = el.parentElement || el.getRootNode().host) if (el.scrollTop > 0) el.scrollTop = 0;
+});
+
 await main(async ({ page }) => {
   await login(page);
   await openBook(page);
@@ -39,6 +44,7 @@ await main(async ({ page }) => {
   await d.locator('vaadin-button:has(vaadin-icon[icon$=":wand-magic-sparkles"])').first().click();
   await d.getByText('Panel 3', { exact: false }).first().waitFor({ timeout: 30000 });
   await sleep(2000);
+  await toTop(d);
   await snapDialog(page, 'plugin-manga');
 
   await d.getByRole('tab', { name: 'Tags', exact: true }).first().click();
@@ -47,5 +53,6 @@ await main(async ({ page }) => {
   await d.locator('vaadin-button:has(vaadin-icon[icon$=":wand-magic-sparkles"])').first().click();
   await d.getByText('masterpiece', { exact: false }).first().waitFor({ timeout: 30000 });
   await sleep(2000);
+  await toTop(d);
   await snapDialog(page, 'plugin-manga-tags');
 });

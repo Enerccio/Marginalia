@@ -46,7 +46,7 @@ export async function launch({ phone = false, locale = 'en-US', scale = 1 } = {}
     const add = () => { const st = document.createElement('style'); st.id = 'shot-hide-toasts'; st.textContent = css; (document.head || document.documentElement).appendChild(st); };
     if (document.head) add(); else document.addEventListener('DOMContentLoaded', add);
   });
-  page.on('pageerror', e => console.log('  [pageerror]', String(e).slice(0, 200)));
+  page.on('pageerror', e => console.log('  [pageerror]', process.env.SHOT_STACK ? String(e.stack).split('\n').slice(0, 5).join(' | ') : String(e).slice(0, 200)));
   return { browser, context, page };
 }
 
@@ -276,7 +276,9 @@ export async function section(page, name, fn) {
     for (let i = 0; i < 3; i++) {
       const open = await page.locator('vaadin-dialog[opened], vaadin-confirm-dialog[opened]').count();
       if (!open) break;
-      const b = page.locator('vaadin-dialog[opened], vaadin-confirm-dialog[opened]').last().getByRole('button', { name: /^(Cancel|Close|Exit|No)$/ }).first();
+      const top = page.locator('vaadin-dialog[opened], vaadin-confirm-dialog[opened]').last();
+      if (await top.getByRole('tab', { name: 'Branch view', exact: true }).count()) break;     // the book window itself stays open
+      const b = top.getByRole('button', { name: /^(Cancel|Close|Exit|No)$/ }).first();
       if (await b.count()) await b.click().catch(() => {}); else break;
       await idle(page, 300);
     }
@@ -351,4 +353,30 @@ export async function openPermissions(page, loginName) {
 export async function addPermission(d, label) {
   await pick(d, 'Permission', label);
   await press(d, 'Add permission');
+}
+
+/**
+ * A menu item by its label. The menus of the story editor show the key of an item after the label ("Swipe s",
+ * "Search and replace Ctrl+Shift+H"), so the label is matched as a start followed by at most a short key hint.
+ */
+export function menuItem(page, label) {
+  const esc = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return page.getByRole('menuitem', { name: new RegExp('^\\s*' + esc + '(\\s+\\S{1,14})?\\s*$') }).first();
+}
+
+/**
+ * The button with this icon (`pencil`, `clone`, `trash`, `info-circle`, `user-lock`...) in the row of a grid whose cell says `text`.
+ * The buttons of a row move when one is added, so the flows do not click on coordinates.
+ */
+export async function rowIconButton(page, text, icon) {
+  const cell = page.locator('vaadin-grid-cell-content').filter({ hasText: new RegExp('^\\s*' + text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*$') }).first();
+  const y = (await cell.boundingBox()).y;
+  const buttons = page.locator(`vaadin-grid vaadin-button:has(vaadin-icon[icon$=":${icon}"])`);
+  let best = null;
+  for (let i = 0; i < await buttons.count(); i++) {
+    const box = await buttons.nth(i).boundingBox();
+    if (box && Math.abs(box.y - y) < 20 && (best === null || Math.abs(box.y - y) < best.distance)) best = { index: i, distance: Math.abs(box.y - y) };
+  }
+  if (!best) throw new Error(`no ${icon} button in the row of ${text}`);
+  return buttons.nth(best.index);
 }

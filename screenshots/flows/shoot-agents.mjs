@@ -330,7 +330,7 @@ await main(async ({ page }) => {
       await sleep(1000);
       await pp.mouse.click(28, 27);                       // the burger of the top bar: the drawer
       await sleep(700);
-      await pp.getByRole('tab', { name: 'Agents', exact: true }).click();
+      await pp.getByRole('tab', { name: /^Agents( \d+)?$/  }).click();
       await idle(pp, 1500);
       await pp.mouse.click(390, 500);                     // outside the drawer: it closes
       await sleep(700);
@@ -389,7 +389,7 @@ await main(async ({ page }) => {
   await section(page, 'admin-agents', async () => {
     await page.getByRole('button', { name: 'Admin', exact: true }).first().click();
     await idle(page, 900);
-    await page.getByRole('tab', { name: 'Agents', exact: true }).last().click();
+    await page.getByRole('tab', { name: /^Agents( \d+)?$/  }).last().click();
     await idle(page, 900);
     await snap(page, 'admin-agents');
     await page.getByRole('button', { name: 'Exit', exact: true }).first().click().catch(() => {});

@@ -1,6 +1,6 @@
 // Step 08-images -> 09-edit: the user edits a generated part (so that "Highlight Generated Text" has something to show).
-import {bookTab, idle, login, main, openBook, snap} from '../lib/shot.mjs';
-import {partAction, parts} from '../lib/story.mjs';
+import {bookTab, idle, login, main, openBook, snap, menuItem} from '../lib/shot.mjs';
+import {partAction, parts, clickCogs} from '../lib/story.mjs';
 import {edit} from '../dataset/story.mjs';
 
 await main(async ({ page }) => {
@@ -19,11 +19,11 @@ await main(async ({ page }) => {
   await snap(page, '_edited');
 
   // highlight on, menu open to show the checked item
-  await page.mouse.click(534, 822);
+  await clickCogs(page);
   await idle(page, 400);
-  await page.getByText('Highlight Generated Text', { exact: true }).click();
+  await menuItem(page, 'Highlight Generated Text').click();
   await idle(page, 800);
-  await page.mouse.click(534, 822);
+  await clickCogs(page);
   await idle(page, 400);
   await snap(page, '_highlight');
 });
