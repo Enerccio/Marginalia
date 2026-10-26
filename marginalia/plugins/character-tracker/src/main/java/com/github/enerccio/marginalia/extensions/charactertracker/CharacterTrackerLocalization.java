@@ -178,5 +178,14 @@ public class CharacterTrackerLocalization extends PluginLocalizationBundle {
 
         ja("Delete the relationship %s?", "関係「%s」を削除しますか？");
         zh("Delete the relationship %s?", "要删除关系“%s”吗？");
+
+        ja("Pick the POV character", "視点キャラクターを選択");
+        zh("Pick the POV character", "选择视角角色");
+
+        ja("Add a present character", "登場キャラクターを追加");
+        zh("Add a present character", "添加在场角色");
+
+        ja("There are no characters yet", "キャラクターはまだいません");
+        zh("There are no characters yet", "还没有角色");
     }
 }

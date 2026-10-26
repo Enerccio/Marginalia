@@ -148,6 +148,36 @@ public class NewTurnForm implements Restorable {
     }
 
     /**
+     * Puts the name into the POV character, as if the user typed it.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "povCharacter", type = String.class)})
+    public void setPovCharacter(String povCharacter) {
+        pendingPovCharacter = StringUtils.defaultString(povCharacter);
+        editedByUser = true;
+        if (povCharacterField != null) {
+            povCharacterField.setValue(pendingPovCharacter);
+        }
+        fireChanged(true);
+    }
+
+    /**
+     * Puts the text into the present characters, as if the user typed it.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "presentCharacters", type = String.class)})
+    public void setPresentCharacters(String presentCharacters) {
+        pendingPresentCharacters = StringUtils.defaultString(presentCharacters);
+        editedByUser = true;
+        if (presentCharactersField != null) {
+            presentCharactersField.setValue(pendingPresentCharacters);
+        }
+        fireChanged(true);
+    }
+
+    /**
      * Shows the key that generates in the tooltip of the generate button.
      *
      * @param key the key combination, null for none
