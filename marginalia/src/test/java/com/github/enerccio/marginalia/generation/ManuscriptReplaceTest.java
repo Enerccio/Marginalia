@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.generation;
 
+import com.github.enerccio.marginalia.domain.collections.SummaryType;
+import com.github.enerccio.marginalia.domain.components.SummaryNode;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Summary;
@@ -289,6 +291,149 @@ class ManuscriptReplaceTest extends GenerationTestBase {
         assertThat(result.skipped()).isEqualTo(1);
         assertThat(result.changed()).isEqualTo(3);
         assertThat(response(story.get(1))).isEqualTo("Edited meanwhile");
+    }
+
+    /**
+     * A meta summary on m6 that stands in for S3 and replaced S6, which it keeps inside.
+     */
+    private void metaSummary(String text) throws Exception {
+        Summary meta = new Summary();
+        meta.setSummary(text);
+        meta.setSummaryType(SummaryType.META_SUMMARY);
+        meta = summaryService.save(meta);
+        summaryService.attachMetaSummary(meta, chatMessageService.find(story.get(5).getId()));
+
+        SummaryBlock block = summaryService.collectFirstBlock(branch(story.get(5)).iterator(), BlockTexts.CURRENT);
+        meta = summaryService.find(block.summary().getId());
+        meta.setSummaryMessageHash(block.hash());
+        summaryService.save(meta);
+    }
+
+    private Plan summariesPlan(String search, String replacement, boolean allBranches, boolean revalidate) throws Exception {
+        return replaceService.plan(book(), ManuscriptReplaceService.Options.summariesOnly(search, replacement, false, true,
+                allBranches, revalidate), TaskProgress.NONE);
+    }
+
+    /**
+     * The texts of the summaries of the overview: the ones in use and, under a meta summary, those it stands in for.
+     */
+    private List<String> overviewTexts() throws Exception {
+        List<String> texts = new ArrayList<>();
+        List<SummaryNode> level = summaryService.collectTree(book());
+        while (!level.isEmpty()) {
+            level.forEach(node -> texts.add(node.getSummary().getSummary()));
+            level = level.stream().flatMap(node -> node.getChildren().stream()).toList();
+        }
+        return texts;
+    }
+
+    @Test
+    void summariesOnlyLeavesTheStoryAlone() throws Exception {
+        Plan plan = summariesPlan("John", "Jon", false, false);
+
+        assertThat(plan.items()).hasSize(2).allMatch(item -> item.kind() == Kind.SUMMARY);
+        // the story is not searched, so the summaries that are not searched stay valid by themselves
+        ManuscriptReplaceService.Result result = replaceService.apply(book(), plan, TaskProgress.NONE);
+
+        assertThat(result.changed()).isEqualTo(2);
+        assertThat(response(story.get(0))).isEqualTo("Anna met John");
+        assertThat(response(story.get(3))).isEqualTo("John smiled");
+        assertThat(summaryText(story.get(2))).isEqualTo("Jon and Anna");
+        assertThat(summaryText(story.get(5))).isEqualTo("Jon smiled and left");
+        assertThat(chatMessageService.find(story.get(0).getId()).isEdited()).isFalse();
+        assertThat(blocks(story.getLast())).hasSize(2).allMatch(SummaryBlock::isValid);
+    }
+
+    @Test
+    void summariesOnlyFindsNothingThatIsOnlyInTheStory() throws Exception {
+        assertThat(summariesPlan("Anna met", "Anna saw", false, false).items()).isEmpty();
+    }
+
+    @Test
+    void summariesOnlyKeepsTheMetaSummaryValid() throws Exception {
+        metaSummary("John does it all");
+        assertThat(blocks(story.getLast())).hasSize(1).allMatch(SummaryBlock::isValid);
+
+        // S3 is part of the hash of the meta summary
+        Plan plan = summariesPlan("John", "Jon", false, false);
+        assertThat(plan.outdatedSummaries()).isZero();
+        assertThat(plan.hitCount()).isEqualTo(3);
+        replaceService.apply(book(), plan, TaskProgress.NONE);
+
+        assertThat(overviewTexts()).containsExactlyInAnyOrder("Jon does it all", "Jon and Anna", "Jon smiled and left");
+        assertThat(blocks(story.getLast())).hasSize(1).allMatch(SummaryBlock::isValid);
+    }
+
+    @Test
+    void summariesOnlyChangesTheSummaryAMetaSummaryReplaced() throws Exception {
+        metaSummary("The whole story");
+
+        // only the copy inside the meta summary has this text
+        Plan plan = summariesPlan("smiled and left", "stayed", false, false);
+        assertThat(plan.items()).hasSize(1);
+        replaceService.apply(book(), plan, TaskProgress.NONE);
+
+        assertThat(overviewTexts()).containsExactlyInAnyOrder("The whole story", "John and Anna", "John stayed");
+        assertThat(blocks(story.getLast())).allMatch(SummaryBlock::isValid);
+
+        // unwinding brings it back with the new text
+        summaryService.removeSummary(chatMessageService.find(story.get(5).getId()), true);
+        assertThat(summaryText(story.get(5))).isEqualTo("John stayed");
+    }
+
+    @Test
+    void summariesOnlyWarnsAboutAMetaSummaryOutsideTheSearch() throws Exception {
+        // a meta summary on the other branch stands in for S3, which the search of the active branch changes
+        Summary meta = new Summary();
+        meta.setSummary("Other branch");
+        meta.setSummaryType(SummaryType.META_SUMMARY);
+        meta = summaryService.save(meta);
+        summaryService.attachMetaSummary(meta, chatMessageService.find(m6b.getId()));
+        SummaryBlock block = summaryService.collectFirstBlock(branch(m6b).iterator(), BlockTexts.CURRENT);
+        meta = summaryService.find(block.summary().getId());
+        meta.setSummaryMessageHash(block.hash());
+        summaryService.save(meta);
+        assertThat(blocks(m6b)).allMatch(SummaryBlock::isValid);
+
+        Plan plan = summariesPlan("Anna", "Mary", false, false);
+        assertThat(plan.outdatedSummaries()).isEqualTo(1);
+        replaceService.apply(book(), plan, TaskProgress.NONE);
+        assertThat(blocks(m6b)).extracting(SummaryBlock::isValid).containsExactly(false);
+
+        // the plan with all the branches reaches it
+        Plan all = summariesPlan("Mary", "Anna", true, false);
+        assertThat(all.outdatedSummaries()).isZero();
+        replaceService.apply(book(), all, TaskProgress.NONE);
+        assertThat(blocks(m6b)).allMatch(SummaryBlock::isValid);
+    }
+
+    @Test
+    void summariesOnlyRevalidatesWhatItDidNotTouch() throws Exception {
+        // S3 is outdated before the replace, which changes S6 only
+        ChatMessage m2 = chatMessageService.find(story.get(1).getId());
+        m2.setResponse("John went somewhere else");
+        chatMessageService.save(m2);
+        assertThat(blocks(story.getLast())).extracting(SummaryBlock::isValid).containsExactly(true, false);
+
+        replaceService.apply(book(), summariesPlan("smiled and left", "stayed", false, true), TaskProgress.NONE);
+
+        assertThat(summaryText(story.get(5))).isEqualTo("John stayed");
+        assertThat(blocks(story.getLast())).hasSize(2).allMatch(SummaryBlock::isValid);
+        assertThat(blocks(m6b)).hasSize(2).allMatch(SummaryBlock::isValid);
+    }
+
+    @Test
+    void summaryEditedAfterThePlanIsNotReplaced() throws Exception {
+        metaSummary("John does it all");
+        Plan plan = summariesPlan("John", "Jon", false, false);
+        Summary meta = summaryService.find(chatMessageService.find(story.get(5).getId()).getSummary());
+        meta.setSummary("Edited meanwhile");
+        summaryService.save(meta);
+
+        ManuscriptReplaceService.Result result = replaceService.apply(book(), plan, TaskProgress.NONE);
+
+        assertThat(result.skipped()).isEqualTo(1);
+        assertThat(overviewTexts()).contains("Edited meanwhile", "Jon and Anna");
     }
 
     @Test

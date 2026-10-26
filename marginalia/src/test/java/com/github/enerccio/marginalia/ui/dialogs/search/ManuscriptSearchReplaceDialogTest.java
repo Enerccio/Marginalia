@@ -114,7 +114,11 @@ class ManuscriptSearchReplaceDialogTest extends MarginaliaTestBase {
     }
 
     private ManuscriptSearchReplaceDialog dialog(boolean phone) {
-        ManuscriptSearchReplaceDialog dialog = new ManuscriptSearchReplaceDialog(manuscript, phone) {
+        return dialog(phone, false);
+    }
+
+    private ManuscriptSearchReplaceDialog dialog(boolean phone, boolean summariesOnly) {
+        ManuscriptSearchReplaceDialog dialog = new ManuscriptSearchReplaceDialog(manuscript, phone, summariesOnly) {
             // no session to lock: the worker thread changes the components itself
             @Override
             protected void confirm(String warning, Runnable yes) {
@@ -349,6 +353,29 @@ class ManuscriptSearchReplaceDialogTest extends MarginaliaTestBase {
         assertThat(roots(dialog)).isZero();
         assertThat(button(dialog, "Replace").isEnabled()).isFalse();
         assertThat(field(dialog, "Search for").isEnabled()).isTrue();
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void summariesOnlyReplacesTheSummariesAndNotTheStory(boolean phone) throws Exception {
+        ManuscriptSearchReplaceDialog dialog = dialog(phone, true);
+        assertThat(all(dialog).filter(Checkbox.class::isInstance).map(Checkbox.class::cast).map(Checkbox::getLabel))
+                .doesNotContain("Search in summaries")
+                .contains("Search in all branches", "Revalidate all summaries");
+
+        field(dialog, "Search for").setValue("John");
+        field(dialog, "Replace with").setValue("Jon");
+        button(dialog, "Search").click();
+        await(() -> dialog.getState() == State.PREPARED);
+        // only the summary of m3
+        assertThat(roots(dialog)).isEqualTo(1);
+
+        button(dialog, "Replace").click();
+        await(() -> replaced.get() == 1);
+
+        assertThat(response(m1)).isEqualTo("Anna met John");
+        assertThat(response(m2)).isEqualTo("John went home");
+        assertThat(summaryService.find(chatMessageService.find(m3.getId()).getSummary()).getSummary()).isEqualTo("Jon and Anna");
     }
 
     @ParameterizedTest

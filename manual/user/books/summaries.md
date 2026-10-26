@@ -74,7 +74,7 @@ The dialog lists the summaries the next generation will send, oldest first, and 
 Summaries that are merged into a meta summary are shown under it, see [below](#meta-summaries). They have no
 **Select** box, no trash icon and no pencil: only the summaries that are in use can be changed.
 
-The empty menu bar above the grid is for [extensions](../extensions/index.md) that add tools to the overview.
+The menu bar above the grid has **Search and Replace** (see [below](#search-and-replace-in-the-summaries)); [extensions](../extensions/index.md) can add tools to it.
 
 ### Editing a summary
 
@@ -86,6 +86,23 @@ saving.
 
 Editing a summary changes what the model gets, nothing else: the summary stays valid. Only the text can be edited,
 not the reasoning.
+
+### Search and replace in the summaries
+
+**Search and Replace** in the menu bar of the overview changes a name or a phrase in the summaries only, for instance
+when a character was renamed, and leaves the story as it is. It is the [search and replace of the story](story-editor.md#search-and-replace)
+with the same fields and options, except that there is no **Search in summaries** (the summaries are all it looks into).
+The table lists every summary with a match, and the matches in it.
+
+It also looks into the summaries a meta summary stands in for and into the summary a meta summary replaced (they are shown
+under the meta summary and come back when it is [unwound](#unwinding-a-meta-summary)): a match in them is listed with the
+meta summary that holds them.
+
+The text of the merged summaries is part of what makes a meta summary valid, so the replace works out the check value of
+those meta summaries again and they stay valid. **Revalidate all summaries** (on by default) does that for every summary of
+the book, also for those the replace did not touch and for those that were outdated before, see
+[the story search](story-editor.md#search-and-replace). With it off, a meta summary on a branch that is not searched
+(**Search in all branches** off) would become outdated, and the window tells you how many and asks whether to go on.
 
 ### Deleting a summary
 
@@ -171,10 +188,12 @@ generate without them, or **No** to stop and generate new summaries first. Eithe
 the parts they covered are sent in full again (as far as they fit) until you summarize them again.
 
 A [search and replace](story-editor.md#search-and-replace) in the story keeps the summaries it covers valid and warns about
-the ones that become outdated.
+the ones that become outdated. The [search and replace of the summaries](#search-and-replace-in-the-summaries) keeps the meta
+summaries valid.
 
 A meta summary is outdated when a part it covers is edited or deleted, but also when a summary it merged is deleted.
-(That is why the merged summaries can't be edited: the change would make the meta summary outdated.) Removing an
+(That is why the merged summaries can't be edited one by one: the change would make the meta summary outdated. The
+[search and replace](#search-and-replace-in-the-summaries) works out the check value of the meta summary again.) Removing an
 outdated meta summary is the same as unwinding it: the summary it replaced comes back, and is checked as well. If it
 is outdated too, it is removed in the same way.
 

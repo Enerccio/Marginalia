@@ -18,6 +18,12 @@ import java.util.List;
  * all of them when it does not search summaries) can't be brought up to date, they become outdated, and the plan counts
  * them ({@link Plan#outdatedSummaries()}) so the user can be warned. A summary that was outdated before stays so.
  * <p>
+ * The summaries are searched where they are shown in the summaries overview: the summary of a part and, inside a meta
+ * summary, the summaries it replaced (the one that was on its part and the ones further down that it stands in for are
+ * not in the story, the meta summary keeps the first and the hash of the meta summary is made of the others). The
+ * replaced ones come back when the meta summary is unwound, so they get the new text as well, a match in them is a hit
+ * of the meta summary that holds them.
+ * <p>
  * With {@link Options#revalidateSummaries()} the hash of every summary of the book is worked out again instead, those
  * outside of the search and those that were outdated included: all the summaries are valid after the replace, so
  * nothing becomes outdated.
@@ -27,12 +33,31 @@ public interface ManuscriptReplaceService {
     /**
      * @param caseSensitive a literal search has to match in the case of the letters (a regex is not affected)
      * @param summaries   look into the summaries too
+     * @param story       look into the parts of the story; without it only the summaries are searched (the search and
+     *                    replace of the summaries overview), the story and the hashes of the summaries that cover it
+     *                    stay as they are
      * @param allBranches look into all the branches, otherwise only into the active one
      * @param revalidateSummaries work out the hash of every summary of the book again, whether the replace touched it
      *                            or not and whether it was valid before, so all of them are valid after it
      */
     record Options(String search, String replacement, boolean regex, boolean caseSensitive, boolean summaries,
-                   boolean allBranches, boolean revalidateSummaries) {
+                   boolean story, boolean allBranches, boolean revalidateSummaries) {
+
+        /**
+         * Search in the story and, if {@code summaries} is set, in the summaries.
+         */
+        public Options(String search, String replacement, boolean regex, boolean caseSensitive, boolean summaries,
+                       boolean allBranches, boolean revalidateSummaries) {
+            this(search, replacement, regex, caseSensitive, summaries, true, allBranches, revalidateSummaries);
+        }
+
+        /**
+         * Search in the summaries only.
+         */
+        public static Options summariesOnly(String search, String replacement, boolean regex, boolean caseSensitive,
+                                            boolean allBranches, boolean revalidateSummaries) {
+            return new Options(search, replacement, regex, caseSensitive, true, false, allBranches, revalidateSummaries);
+        }
     }
 
     enum Kind {

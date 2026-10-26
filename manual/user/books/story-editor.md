@@ -433,6 +433,8 @@ summary that was outdated already stays so.
 In the [phone layout](../phone.md) the same window has the fields and buttons below each other, and the table has one
 column that shows the type and id, and below them the match and the replacement.
 
+The [Summaries overview](summaries.md#search-and-replace-in-the-summaries) has the same window for the summaries only.
+
 The same search and replace can be run from the [command line](../commands/index.md#commands-that-come-with-marginalia)
 with `/search-replace-parts`; it asks before it replaces.
 
