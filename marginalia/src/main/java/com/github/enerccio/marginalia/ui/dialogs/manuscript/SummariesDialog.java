@@ -1,6 +1,5 @@
 package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.SummaryType;
@@ -11,6 +10,8 @@ import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.dialogs.search.ManuscriptSearchReplaceDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
@@ -106,13 +107,27 @@ public class SummariesDialog extends Dialog implements LLMInteract {
     }
 
     /**
-     * The menu bar above the grid is empty, this is where extensions add their tools (decorate this method, the
-     * argument {@code bar} is the menu bar).
+     * The menu bar above the grid has the search and replace of the summaries, this is also where extensions add their
+     * tools (decorate this method, the argument {@code bar} is the menu bar).
      */
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "bar", type = MenuBar.class)})
     private void populateMenuBar(MenuBar bar) {
+        bar.addItem(loc.getValue(L.LABEL_SEARCH_AND_REPLACE), _ -> openSearchReplaceDialog());
+    }
+
+    /**
+     * Opens the search and replace that looks into the summaries only, the overview is loaded again when something was
+     * replaced.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = ManuscriptSearchReplaceDialog.class)})
+    private void openSearchReplaceDialog() {
+        ManuscriptSearchReplaceDialog dialog = new ManuscriptSearchReplaceDialog(manuscript, false, true);
+        dialog.onReplaced(this::refresh);
+        dialog.open();
     }
 
     @PublicAPI(from = "1.1.0",

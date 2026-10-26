@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846321223290">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846324746497">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846321223290" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846324746497" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846321223290" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846324746497" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846321223290" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846321223290" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846324746497" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846324746497" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -252,8 +252,8 @@ not when it is built - the story editor loads other books into the same instance
 <p>Instruction Exporter is the small example of the settings menu: it adds <strong>Export instructions</strong> to <code translate="no" v-pre>cogs.getSubMenu()</code> and
 copies the text with <code translate="no" v-pre>navigator.clipboard.writeText</code> (plugins keep their own scripts).</p>
 <h3 id="tools-in-the-summaries-overview">Tools in the summaries overview</h3>
-<p><code translate="no" v-pre>SummariesDialog</code> (the overview of the summaries, opened from the <strong>Summaries</strong> item) has an empty menu bar above its
-grid. Decorate <code translate="no" v-pre>populateMenuBar(bar)</code> on leave and add items to the argument <code translate="no" v-pre>bar</code>. A new dialog (and menu bar) is
+<p><code translate="no" v-pre>SummariesDialog</code> (the overview of the summaries, opened from the <strong>Summaries</strong> item) has a menu bar above its
+grid, with the item <em>Search and Replace</em> of the application in it. Decorate <code translate="no" v-pre>populateMenuBar(bar)</code> on leave and add items to the argument <code translate="no" v-pre>bar</code>. A new dialog (and menu bar) is
 created every time the overview opens, so the decorator runs for each of them. The dialog&#x27;s fields (<code translate="no" v-pre>manuscript</code>,
 <code translate="no" v-pre>treeGrid</code>) are reachable by reflection; to reload the grid after your tool changed the summaries, close and reopen
 the dialog, or call its private <code translate="no" v-pre>refresh()</code> with <code translate="no" v-pre>callReflectiveMethod</code>.</p>
@@ -487,13 +487,68 @@ Charts are the exception: the application&#x27;s <code translate="no" v-pre>Char
 JSON, so a plugin can show a chart without a frontend module of its own.</p>
 </li>
 <li>
-<p><strong>Add localization keys.</strong> <code translate="no" v-pre>Localization</code> knows only the application&#x27;s <code translate="no" v-pre>L</code> keys. The bundled plugins use English
-strings; a plugin that wants translations of its own texts has to bring its own (a <code translate="no" v-pre>ResourceBundle</code> in the bundle,
-chosen by <code translate="no" v-pre>Localization.getCurrentLanguage()</code>). A plugin can add a <em>language</em> for the application&#x27;s texts,
-see <a href="../example/#walkthrough-chinese-localization">Example plugin → Chinese localization</a>.</p>
+<p><strong>Add localization keys.</strong> <code translate="no" v-pre>Localization</code> knows only the application&#x27;s <code translate="no" v-pre>L</code> keys. A plugin translates the texts of
+its own UI with a <code translate="no" v-pre>PluginLocalizationBundle</code> (<doc-anchor-trigger to="#texts-in-several-languages">Texts in several languages</doc-anchor-trigger>). A plugin
+can also add a <em>language</em> for the application&#x27;s texts, see
+<a href="../example/#walkthrough-chinese-localization">Example plugin → Chinese localization</a>.</p>
 </li>
 <li>
 <p><strong>Add routes.</strong> Routes are registered when the servlet starts. Use dialogs and tabs instead.</p>
+</li>
+</ul>
+<h3 id="texts-in-several-languages">Texts in several languages</h3>
+<p>A plugin can&#x27;t add keys to the <code translate="no" v-pre>L</code> enum, so the texts of its UI are the English sentences themselves.
+<code translate="no" v-pre>PluginLocalizationBundle</code> (package <code translate="no" v-pre>extensions</code>) turns one into the text of the language of the current session
+(<code translate="no" v-pre>Localization.getCurrentLanguage()</code>): <code translate="no" v-pre>localized(message)</code> returns the translation, and the English <code translate="no" v-pre>message</code> when the
+language has none, so a language or a text that is missing shows English. The bundled plugins have one subclass each and
+call it through a static field:</p>
+<div id="texts-in-several-languages-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">public class InstructionExporterLocalization extends PluginLocalizationBundle {
+
+    public static final InstructionExporterLocalization T = new InstructionExporterLocalization();
+
+    @Override
+    protected void loadKeys() {
+        ja(&quot;Export instructions&quot;, &quot;指示をエクスポート&quot;);
+        zh(&quot;Export instructions&quot;, &quot;导出指令&quot;);
+        ja(&quot;Failed to export: %s&quot;, &quot;エクスポートに失敗しました: %s&quot;);
+        zh(&quot;Failed to export: %s&quot;, &quot;导出失败：%s&quot;);
+    }
+}</code></pre>
+</doc-codeblock></div>
+<div id="texts-in-several-languages-code-2" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">import static ...InstructionExporterLocalization.T;
+
+Notification.show(T.localized(&quot;Copied to clipboard&quot;));
+Notification.show(T.localized(&quot;Failed to export: %s&quot;).formatted(e.getMessage()));</code></pre>
+</doc-codeblock></div>
+<ul>
+<li>
+<p><code translate="no" v-pre>ja</code> and <code translate="no" v-pre>zh</code> are shortcuts for <code translate="no" v-pre>add(Language, message, translation)</code>; add other languages the same way (the language
+needs a bundle in <code translate="no" v-pre>Localization</code>, see the <a href="../example/#walkthrough-chinese-localization">Chinese localization</a>).</p>
+</li>
+<li>
+<p>A text with values has the <code translate="no" v-pre>String.format</code> placeholders in the key (<code translate="no" v-pre>%s</code>, <code translate="no" v-pre>%d</code>) and the values are put in with
+<code translate="no" v-pre>formatted(...)</code>. When a language needs another order, number the placeholders in the key and in the translation
+(<code translate="no" v-pre>%1$d turns for the messages %2$d-%3$d</code>). Don&#x27;t build a sentence from pieces: a language puts the words in another
+order, write one key for each whole sentence (and one for the singular and the plural).</p>
+</li>
+<li>
+<p>Look the text up when it is shown, not in a field or a constant: the bundle answers for the language of the session
+that asks, and a text kept in a field stays in the language of whoever created it. A lambda that is called when a
+menu is opened (<code translate="no" v-pre>l -&gt; T.localized(&quot;Export instructions&quot;)</code>) is fine.</p>
+</li>
+<li>
+<p>Without a session (startup, a worker thread that got no request attributes) the default language is used, so the
+title that a plugin registers in <code translate="no" v-pre>onExtensionLoad</code> (<code translate="no" v-pre>ToolService.registerProvider(..., &quot;Name provider&quot;, ...)</code>) stays in
+English; the same holds for annotation values (<code translate="no" v-pre>@CommandParameter(descriptionText = ...)</code>), which must be constants.</p>
+</li>
+<li>
+<p>Texts for the model (prompts, the descriptions of functions and commands, the error messages of commands) stay in
+English; only what the user reads is translated.</p>
+</li>
+<li>
+<p>For words the application has a key for (<code translate="no" v-pre>L.LABEL_CANCEL</code>) the plugin can use <code translate="no" v-pre>loc.getValue(...)</code> instead.</p>
 </li>
 </ul>
 <h3 id="telling-the-help-assistant-about-your-ui">Telling the help assistant about your UI</h3>
@@ -774,7 +829,7 @@ uninstalled for good, its data stays in the database (and in backups) - harmless
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (8642aa378).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (cf417eea2).</p></div>
             </footer>
         </div>
     </div>

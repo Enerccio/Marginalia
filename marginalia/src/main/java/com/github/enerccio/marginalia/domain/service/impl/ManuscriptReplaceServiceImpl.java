@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.domain.listener.ExtendableEntityListener;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -11,19 +12,27 @@ import com.github.enerccio.marginalia.domain.service.impl.inference.tokenizer.Ja
 import com.github.enerccio.marginalia.domain.service.search.replace.EntityTextSearch;
 import com.github.enerccio.marginalia.domain.service.search.replace.EntityTextSearch.FieldChange;
 import com.github.enerccio.marginalia.domain.service.search.replace.TaskProgress;
+import com.github.enerccio.marginalia.domain.service.search.replace.TextHit;
 import com.github.enerccio.marginalia.domain.service.search.replace.TextSearch;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import com.github.enerccio.marginalia.utils.ReflectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.function.ToLongFunction;
 
 public class ManuscriptReplaceServiceImpl implements ManuscriptReplaceService {
 
     private static final String RESPONSE_FIELD = "response";
     private static final String SUMMARY_FIELD = "summary";
+    private static final String REPLACED_SUMMARY_FIELD = "replacedSummary";
+
+    private final ExtendableEntityListener extendableListener = new ExtendableEntityListener();
 
     @Autowired
     private ManuscriptService manuscriptService;
@@ -54,7 +63,7 @@ public class ManuscriptReplaceServiceImpl implements ManuscriptReplaceService {
         }
     }
 
-    private record PlanImpl(Long manuscriptId, List<Item> items, List<EntityChange> changes,
+    private record PlanImpl(Long manuscriptId, TextSearch search, List<Item> items, List<EntityChange> changes,
                             Map<Long, String> summaryHashes, int outdatedSummaries) implements Plan {
 
         @Override
@@ -79,16 +88,16 @@ public class ManuscriptReplaceServiceImpl implements ManuscriptReplaceService {
         Set<Long> scope = options.allBranches() ? null : branchOrder.keySet();
 
         // the database narrows the parts down by _fulltext, the fields of those are then searched
-        List<ChatMessageService.MessageFulltext> messageRows = chatMessageService
-                .findFulltextsContaining(owned, search.literal()).stream()
+        List<ChatMessageService.MessageFulltext> messageRows = !options.story() ? List.<ChatMessageService.MessageFulltext>of()
+                : chatMessageService.findFulltextsContaining(owned, search.literal()).stream()
                 .filter(row -> scope == null || scope.contains(row.messageId()))
                 .filter(row -> search.matches(row.fulltext()))
                 .toList();
         progress.checkCancelled();
+        // the summaries a meta summary stands in for are inside of it, the database can't tell which ones hold the text
         List<ChatMessageService.SummaryFulltext> summaryRows = !options.summaries() ? List.<ChatMessageService.SummaryFulltext>of()
-                : chatMessageService.findSummaryFulltextsContaining(owned, search.literal()).stream()
+                : chatMessageService.findSummaryFulltextsContaining(owned, null).stream()
                 .filter(row -> scope == null || scope.contains(row.messageId()))
-                .filter(row -> search.matches(row.fulltext()))
                 .toList();
         progress.checkCancelled();
 
@@ -112,7 +121,12 @@ public class ManuscriptReplaceServiceImpl implements ManuscriptReplaceService {
         for (ChatMessageService.SummaryFulltext row : summaryRows) {
             progress.checkCancelled();
             Summary summary = summaryService.find(row.summaryId());
-            List<FieldChange> fields = EntityTextSearch.search(summary, search);
+            List<FieldChange> fields = new ArrayList<>(search.matches(row.fulltext()) ? EntityTextSearch.search(summary, search) : List.of());
+            Nested replaced = searchReplaced(summary.getReplacedSummary(), search, null);
+            if (replaced != null) {
+                fields.add(new FieldChange(ReflectUtils.getField(Summary.class, REPLACED_SUMMARY_FIELD),
+                        summary.getReplacedSummary(), replaced.text(), replaced.hits()));
+            }
             if (!fields.isEmpty()) {
                 found.add(new Sorted(chatMessageService.find(row.messageId()), 1, new EntityChange(Kind.SUMMARY, summary.getId(), fields)));
                 fields.stream().filter(f -> f.field().getName().equals(SUMMARY_FIELD))
@@ -136,7 +150,52 @@ public class ManuscriptReplaceServiceImpl implements ManuscriptReplaceService {
         if (!changes.isEmpty()) {
             outdated = planHashes(owned, scope, options, responseOverlay, summaryOverlay, hashes, progress);
         }
-        return new PlanImpl(owned.getId(), items, changes, hashes, outdated);
+        return new PlanImpl(owned.getId(), search, items, changes, hashes, outdated);
+    }
+
+    /**
+     * The text of a summary a meta summary stands in for, with the matches replaced.
+     *
+     * @param text serialized summary, with the summaries it replaced inside
+     * @param hits the matches in all of them
+     */
+    private record Nested(String text, List<TextHit> hits) {
+    }
+
+    /**
+     * Searches the summaries inside a meta summary: the one it replaced on its part, and the one that one replaced
+     * before and so on. They are not parts of the story, so the hash of no summary is made of them.
+     *
+     * @param serialized {@link Summary#getReplacedSummary()}
+     * @param tokens     counts the tokens of the new text of a summary, null to leave the count as it is
+     * @return null when there is no match in them
+     */
+    private Nested searchReplaced(String serialized, TextSearch search, ToLongFunction<String> tokens) throws Exception {
+        if (StringUtils.isBlank(serialized)) {
+            return null;
+        }
+        Summary replaced = new Summary();
+        replaced.setExtendedContent(serialized.getBytes(StandardCharsets.UTF_8));
+        extendableListener.deserialize(replaced);
+
+        List<FieldChange> fields = EntityTextSearch.search(replaced, search);
+        Nested deeper = searchReplaced(replaced.getReplacedSummary(), search, tokens);
+        if (fields.isEmpty() && deeper == null) {
+            return null;
+        }
+        List<TextHit> hits = new ArrayList<>(fields.stream().flatMap(f -> f.hits().stream()).toList());
+        if (!fields.isEmpty()) {
+            EntityTextSearch.apply(replaced, fields);
+            if (tokens != null) {
+                replaced.setSummaryTokens(tokens.applyAsLong(replaced.getSummary()));
+            }
+        }
+        if (deeper != null) {
+            replaced.setReplacedSummary(deeper.text());
+            hits.addAll(deeper.hits());
+        }
+        extendableListener.serialize(replaced);
+        return new Nested(new String(replaced.getExtendedContent(), StandardCharsets.UTF_8), hits);
     }
 
     private record Sorted(ChatMessage message, int rank, EntityChange change) {
@@ -273,8 +332,18 @@ public class ManuscriptReplaceServiceImpl implements ManuscriptReplaceService {
                     hashes.remove(change.id());
                     continue;
                 }
-                EntityTextSearch.apply(summary, change.fields());
-                summary.setSummaryTokens(countTokens(owned, summary.getSummary()));
+                List<FieldChange> own = change.fields().stream().filter(f -> !f.field().getName().equals(REPLACED_SUMMARY_FIELD)).toList();
+                if (!own.isEmpty()) {
+                    EntityTextSearch.apply(summary, own);
+                    summary.setSummaryTokens(countTokens(owned, summary.getSummary()));
+                }
+                if (own.size() < change.fields().size()) {
+                    // the tokens of the summaries inside are counted with the model of the book as well
+                    Nested replaced = searchReplaced(summary.getReplacedSummary(), planned.search(), text -> countTokensUnchecked(owned, text));
+                    if (replaced != null) {
+                        summary.setReplacedSummary(replaced.text());
+                    }
+                }
                 String hash = hashes.remove(change.id());
                 if (hash != null) {
                     summary.setSummaryMessageHash(hash);
@@ -315,6 +384,16 @@ public class ManuscriptReplaceServiceImpl implements ManuscriptReplaceService {
             return new JavaTokkitStrategy().countTokens(null, text);
         }
         return inferenceService.countTokens(text);
+    }
+
+    private long countTokensUnchecked(Manuscript manuscript, String text) {
+        try {
+            return countTokens(manuscript, text);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private Manuscript owned(Manuscript manuscript) throws Exception {

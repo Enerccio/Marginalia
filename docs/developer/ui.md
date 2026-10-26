@@ -386,7 +386,7 @@ the summaries generation uses are the top level, the summaries a meta summary st
 (including the summary it replaced, read from `replacedSummary`, which has no id). Columns: database id (the
 hierarchy column), message id, order in the branch, content, tokens, a checkbox and a delete button. Checkboxes,
 delete buttons and the edit pencil exist only on the top level - the text of the merged summaries is part of the hash
-of their meta summary, so editing them would invalidate it.
+of their meta summary, so editing them one by one would invalidate it (the search and replace works them out again).
 
 - **Content** (`SummaryContent`): reasoning (a `Details` with `Markdown`, reasoning is mostly markdown), badges (*Meta summary*, *Replaced*) and the text as
   plain text (`white-space: pre-wrap`, summaries are not markdown and the model's single line breaks must show), in a scrolling `Div` of a fixed height, so all rows have the same height. The pencil is in a gutter next
@@ -397,7 +397,8 @@ of their meta summary, so editing them would invalidate it.
   button labels).
 - **Create meta summary** takes the ticked summaries, uses the newest as `from` and the oldest as `to` and opens
   `SummaryDialog` with a meta request (`createMetaSummary`); it needs at least two.
-- The grid is reloaded after every change (`refresh()`): editing, deleting, and closing the dialog of a meta summary.
+- **Search and Replace** (menu bar, `openSearchReplaceDialog()`): the search and replace of the summaries only, see `SearchReplaceDialog` below for the dialog; it also changes the summaries a meta summary stands in for and the summary a meta summary replaced, and keeps the hash of the meta summaries valid (`ManuscriptReplaceService`).
+- The grid is reloaded after every change (`refresh()`): editing, deleting, replacing, and closing the dialog of a meta summary.
 
 `SummaryDialog` is the dialog of one summary: it generates it (`startGeneration`, streaming into a read-only text area,
 with a *Stop* button), or shows the existing one. It is created with the part, and with the oldest part of the range
@@ -478,7 +479,7 @@ the result, and Replace works; a warning goes through `confirm`) → `REPLACING`
 runs on a `ThreadAccessDialog` thread and reports to the progress bar through `TaskProgress`. The constructor flag `phone`
 selects the layout (the fields and buttons below each other, one column in the table), so one class serves both
 layouts. `ManuscriptSearchReplaceDialog` adds the summaries and all branches options and calls `ManuscriptReplaceService`;
-the story parts of both layouts open it from the settings menu and show the story again when `onReplaced` fires. `LorebookSearchReplaceDialog` is the second subclass, for the entries of a lorebook (no extra options, `getIdColumnHeader()` makes the table show entry names); `LorebookView` has a button for it after *Add Entry* and `PhoneLorebookView` an icon button.
+the story parts of both layouts open it from the settings menu and show the story again when `onReplaced` fires. The third constructor argument `summariesOnly` is for the summaries overview (`SummariesDialog` and `PhoneSummariesDialog` open it from their menu bar item *Search and Replace*, `openSearchReplaceDialog()`, and load the overview again on `onReplaced`): it has no *Search in summaries* box and calls the service with `Options.summariesOnly`, so the story is not searched. `LorebookSearchReplaceDialog` is the second subclass, for the entries of a lorebook (no extra options, `getIdColumnHeader()` makes the table show entry names); `LorebookView` has a button for it after *Add Entry* and `PhoneLorebookView` an icon button.
 
 ![The ManuscriptSearchReplaceDialog with a part opened](../images/search-replace-found.png)
 

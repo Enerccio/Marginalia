@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846321223290">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846324746497">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846321223290" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846324746497" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846321223290" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846324746497" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846321223290" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846321223290" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846324746497" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846324746497" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -778,7 +778,7 @@ the summaries generation uses are the top level, the summaries a meta summary st
 (including the summary it replaced, read from <code translate="no" v-pre>replacedSummary</code>, which has no id). Columns: database id (the
 hierarchy column), message id, order in the branch, content, tokens, a checkbox and a delete button. Checkboxes,
 delete buttons and the edit pencil exist only on the top level - the text of the merged summaries is part of the hash
-of their meta summary, so editing them would invalidate it.</p>
+of their meta summary, so editing them one by one would invalidate it (the search and replace works them out again).</p>
 <ul>
 <li>
 <p><strong>Content</strong> (<code translate="no" v-pre>SummaryContent</code>): reasoning (a <code translate="no" v-pre>Details</code> with <code translate="no" v-pre>Markdown</code>, reasoning is mostly markdown), badges (<em>Meta summary</em>, <em>Replaced</em>) and the text as
@@ -796,7 +796,10 @@ button labels).</p>
 <code translate="no" v-pre>SummaryDialog</code> with a meta request (<code translate="no" v-pre>createMetaSummary</code>); it needs at least two.</p>
 </li>
 <li>
-<p>The grid is reloaded after every change (<code translate="no" v-pre>refresh()</code>): editing, deleting, and closing the dialog of a meta summary.</p>
+<p><strong>Search and Replace</strong> (menu bar, <code translate="no" v-pre>openSearchReplaceDialog()</code>): the search and replace of the summaries only, see <code translate="no" v-pre>SearchReplaceDialog</code> below for the dialog; it also changes the summaries a meta summary stands in for and the summary a meta summary replaced, and keeps the hash of the meta summaries valid (<code translate="no" v-pre>ManuscriptReplaceService</code>).</p>
+</li>
+<li>
+<p>The grid is reloaded after every change (<code translate="no" v-pre>refresh()</code>): editing, deleting, replacing, and closing the dialog of a meta summary.</p>
 </li>
 </ul>
 <p><code translate="no" v-pre>SummaryDialog</code> is the dialog of one summary: it generates it (<code translate="no" v-pre>startGeneration</code>, streaming into a read-only text area,
@@ -990,7 +993,7 @@ the result, and Replace works; a warning goes through <code translate="no" v-pre
 runs on a <code translate="no" v-pre>ThreadAccessDialog</code> thread and reports to the progress bar through <code translate="no" v-pre>TaskProgress</code>. The constructor flag <code translate="no" v-pre>phone</code>
 selects the layout (the fields and buttons below each other, one column in the table), so one class serves both
 layouts. <code translate="no" v-pre>ManuscriptSearchReplaceDialog</code> adds the summaries and all branches options and calls <code translate="no" v-pre>ManuscriptReplaceService</code>;
-the story parts of both layouts open it from the settings menu and show the story again when <code translate="no" v-pre>onReplaced</code> fires. <code translate="no" v-pre>LorebookSearchReplaceDialog</code> is the second subclass, for the entries of a lorebook (no extra options, <code translate="no" v-pre>getIdColumnHeader()</code> makes the table show entry names); <code translate="no" v-pre>LorebookView</code> has a button for it after <em>Add Entry</em> and <code translate="no" v-pre>PhoneLorebookView</code> an icon button.</p>
+the story parts of both layouts open it from the settings menu and show the story again when <code translate="no" v-pre>onReplaced</code> fires. The third constructor argument <code translate="no" v-pre>summariesOnly</code> is for the summaries overview (<code translate="no" v-pre>SummariesDialog</code> and <code translate="no" v-pre>PhoneSummariesDialog</code> open it from their menu bar item <em>Search and Replace</em>, <code translate="no" v-pre>openSearchReplaceDialog()</code>, and load the overview again on <code translate="no" v-pre>onReplaced</code>): it has no <em>Search in summaries</em> box and calls the service with <code translate="no" v-pre>Options.summariesOnly</code>, so the story is not searched. <code translate="no" v-pre>LorebookSearchReplaceDialog</code> is the second subclass, for the entries of a lorebook (no extra options, <code translate="no" v-pre>getIdColumnHeader()</code> makes the table show entry names); <code translate="no" v-pre>LorebookView</code> has a button for it after <em>Add Entry</em> and <code translate="no" v-pre>PhoneLorebookView</code> an icon button.</p>
 <figure class="content-center">
     <img src="../../images/search-replace-found.png" alt="The ManuscriptSearchReplaceDialog with a part opened" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1200" height="792" />
     <figcaption class="caption">The ManuscriptSearchReplaceDialog with a part opened</figcaption>
@@ -1515,7 +1518,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (8642aa378).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (cf417eea2).</p></div>
             </footer>
         </div>
     </div>

@@ -73,8 +73,8 @@ copies the text with `navigator.clipboard.writeText` (plugins keep their own scr
 
 ### Tools in the summaries overview
 
-`SummariesDialog` (the overview of the summaries, opened from the **Summaries** item) has an empty menu bar above its
-grid. Decorate `populateMenuBar(bar)` on leave and add items to the argument `bar`. A new dialog (and menu bar) is
+`SummariesDialog` (the overview of the summaries, opened from the **Summaries** item) has a menu bar above its
+grid, with the item *Search and Replace* of the application in it. Decorate `populateMenuBar(bar)` on leave and add items to the argument `bar`. A new dialog (and menu bar) is
 created every time the overview opens, so the decorator runs for each of them. The dialog's fields (`manuscript`,
 `treeGrid`) are reachable by reflection; to reload the grid after your tool changed the summaries, close and reopen
 the dialog, or call its private `refresh()` with `callReflectiveMethod`.
@@ -323,11 +323,57 @@ What plugins can't do:
   you ([Styles of a plugin](#styles-of-a-plugin)), with its class names as constants in the plugin. Use `getStyle()` only for a value known at runtime.
   Charts are the exception: the application's `ChartJs` widget (`ui.widgets`) draws any Chart.js configuration given as
   JSON, so a plugin can show a chart without a frontend module of its own.
-- **Add localization keys.** `Localization` knows only the application's `L` keys. The bundled plugins use English
-  strings; a plugin that wants translations of its own texts has to bring its own (a `ResourceBundle` in the bundle,
-  chosen by `Localization.getCurrentLanguage()`). A plugin can add a *language* for the application's texts,
-  see [Example plugin → Chinese localization](example.md#walkthrough-chinese-localization).
+- **Add localization keys.** `Localization` knows only the application's `L` keys. A plugin translates the texts of
+  its own UI with a `PluginLocalizationBundle` ([Texts in several languages](#texts-in-several-languages)). A plugin
+  can also add a *language* for the application's texts, see
+  [Example plugin → Chinese localization](example.md#walkthrough-chinese-localization).
 - **Add routes.** Routes are registered when the servlet starts. Use dialogs and tabs instead.
+
+### Texts in several languages
+
+A plugin can't add keys to the `L` enum, so the texts of its UI are the English sentences themselves.
+`PluginLocalizationBundle` (package `extensions`) turns one into the text of the language of the current session
+(`Localization.getCurrentLanguage()`): `localized(message)` returns the translation, and the English `message` when the
+language has none, so a language or a text that is missing shows English. The bundled plugins have one subclass each and
+call it through a static field:
+
+```java
+public class InstructionExporterLocalization extends PluginLocalizationBundle {
+
+    public static final InstructionExporterLocalization T = new InstructionExporterLocalization();
+
+    @Override
+    protected void loadKeys() {
+        ja("Export instructions", "指示をエクスポート");
+        zh("Export instructions", "导出指令");
+        ja("Failed to export: %s", "エクスポートに失敗しました: %s");
+        zh("Failed to export: %s", "导出失败：%s");
+    }
+}
+```
+
+```java
+import static ...InstructionExporterLocalization.T;
+
+Notification.show(T.localized("Copied to clipboard"));
+Notification.show(T.localized("Failed to export: %s").formatted(e.getMessage()));
+```
+
+- `ja` and `zh` are shortcuts for `add(Language, message, translation)`; add other languages the same way (the language
+  needs a bundle in `Localization`, see the [Chinese localization](example.md#walkthrough-chinese-localization)).
+- A text with values has the `String.format` placeholders in the key (`%s`, `%d`) and the values are put in with
+  `formatted(...)`. When a language needs another order, number the placeholders in the key and in the translation
+  (`%1$d turns for the messages %2$d-%3$d`). Don't build a sentence from pieces: a language puts the words in another
+  order, write one key for each whole sentence (and one for the singular and the plural).
+- Look the text up when it is shown, not in a field or a constant: the bundle answers for the language of the session
+  that asks, and a text kept in a field stays in the language of whoever created it. A lambda that is called when a
+  menu is opened (`l -> T.localized("Export instructions")`) is fine.
+- Without a session (startup, a worker thread that got no request attributes) the default language is used, so the
+  title that a plugin registers in `onExtensionLoad` (`ToolService.registerProvider(..., "Name provider", ...)`) stays in
+  English; the same holds for annotation values (`@CommandParameter(descriptionText = ...)`), which must be constants.
+- Texts for the model (prompts, the descriptions of functions and commands, the error messages of commands) stay in
+  English; only what the user reads is translated.
+- For words the application has a key for (`L.LABEL_CANCEL`) the plugin can use `loc.getValue(...)` instead.
 
 ### Telling the help assistant about your UI
 
