@@ -568,7 +568,7 @@ Only the desktop layout has them (`ManuscriptStoryPart`; its phone twin has none
 - `ShortcutRegistry` (static) lists the `ShortcutAction`s (id, label from the `Localization`, default key, handler); the
   application registers its story actions (`ShortcutActions`) in its static initializer, an extension registers its own
   and unregisters them in `onExtensionUnload`. The application's actions have no handler: `ManuscriptStoryPart.handleShortcut`
-  does them, for other ids it calls the handler with the component of the story tab.
+  does them, for other ids it calls the handler with the component of the story tab. Besides the writing loop they are the command bar (`/`), the search of the branch, annotate selection and the next / previous tab (`TabDock.selectRelative`).
 - `KeyBindings` resolves the key of every action from `UserSetting.keyBindings` (an injected `JsonObject`, id to key,
   only what differs from the default, empty text = no key) and builds what is stored (`toStored` keeps the bindings
   of actions that are not registered now, e.g. of an extension that is not loaded).

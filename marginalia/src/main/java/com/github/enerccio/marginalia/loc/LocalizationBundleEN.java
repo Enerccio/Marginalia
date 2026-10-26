@@ -733,6 +733,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_TAKE_TAGS_OF_BOOK, "Tags of the book");
         setValue(L.LABEL_ACTIVATION_PASS, "Pass");
         setValue(L.LABEL_REASON, "Reason");
+        setValue(L.LABEL_FOCUS_COMMAND_BAR, "Go to the command bar");
+        setValue(L.LABEL_NEXT_TAB, "Next tab");
+        setValue(L.LABEL_PREVIOUS_TAB, "Previous tab");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");

@@ -224,10 +224,15 @@ On a computer (the [phone layout](../phone.md) has none) the writing loop works 
 | `s` / `r` | **Swipe** / **Regenerate** the last part. |
 | `e` | Opens the editor of the last part. |
 | `Ctrl+S` | Saves the part that is being edited (also while the cursor is in its text). |
+| `/` | Puts the cursor into the command bar (the story tab is shown first). |
+| `Ctrl+Shift+F` | Opens the *Outline* tab and puts the cursor into the search of the branch (`Enter` / `Shift+Enter` go to the next / previous match). |
+| `Ctrl+Shift+H` | Opens the *Search and replace* window of the book. |
+| `a` | **Annotate selection**: makes a note about the text selected in a part. |
+| `Alt+PageDown` / `Alt+PageUp` | Shows the next / previous tab, going through the tabs of all sheets in the order of the layout and round again. |
 
-A key without `Ctrl`, `Alt` or `Meta` (such as `+`, `s`, `r`, `e`) works only when no text field has the focus, so it
+A key without `Ctrl`, `Alt` or `Meta` (such as `+`, `s`, `r`, `e`, `a`, `/`) works only when no text field has the focus, so it
 never gets in the way of typing. The shortcuts work in the story tab of the open book and not while another window is
-open above it. The buttons show their key in the tooltip. On a Mac `Cmd` works where a key says `Ctrl` (unless you gave that `Cmd` key to another action). You can change every key in
+open above it. The buttons show their key in the tooltip, and the menu of the last part shows it after *Edit*, *Regenerate*, *Swipe* and *Annotate selection*. On a Mac `Cmd` works where a key says `Ctrl` (unless you gave that `Cmd` key to another action). You can change every key in
 [Settings → Keyboard shortcuts](../account.md#keyboard-shortcuts).
 
 ## Deleting a part

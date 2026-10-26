@@ -108,6 +108,8 @@ public class TabDock extends Div implements Restorable {
     // the tab that stays enabled while the others are not
     private String enabledId;
     private Entry dragged;
+    // the tab the user (or select) showed last, where selectRelative goes on from
+    private String currentId;
     // the sheets change by themselves while the dock arranges them, that is not a selection of the user
     private boolean arranging;
     private Runnable onLayoutChange;
@@ -199,6 +201,7 @@ public class TabDock extends Div implements Restorable {
         if (group == null) {
             return false;
         }
+        currentId = id;
         if (id.equals(group.selectedId) && group.sheet != null && group.sheet.getSelectedTab() == entry.tab) {
             return true;
         }
@@ -206,6 +209,38 @@ public class TabDock extends Div implements Restorable {
         arrange();
         stateChanged();
         return true;
+    }
+
+    /**
+     * Shows the tab after (or before) the one shown last, going through the tabs of all sheets in the order of the layout
+     * (the columns from the left, the sheets of a column from the top) and round from the last to the first. Tabs that are
+     * disabled are skipped. Starts at the first tab when none was shown yet.
+     *
+     * @param step 1 for the next tab, -1 for the previous one
+     * @return false when there is no tab to show
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "step", type = int.class)},
+            locals = {@APILocals(name = "order", type = List.class),
+                    @APILocals(name = "group", type = TabDock.Group.class),
+                    @APILocals(name = "id", type = String.class),
+                    @APILocals(name = "entry", type = TabDock.Entry.class)})
+    public boolean selectRelative(int step) {
+        List<String> order = new ArrayList<>();
+        for (Group group : allGroups()) {
+            for (String id : group.ids) {
+                Entry entry = entries.get(id);
+                if (entry != null && entry.tab.isEnabled()) {
+                    order.add(id);
+                }
+            }
+        }
+        if (order.isEmpty()) {
+            return false;
+        }
+        int at = order.indexOf(currentId);
+        return select(order.get(at < 0 ? 0 : Math.floorMod(at + step, order.size())));
     }
 
     /**
@@ -658,6 +693,7 @@ public class TabDock extends Div implements Restorable {
             Entry entry = arranging || event.getSelectedTab() == null ? null : entryOf(event.getSelectedTab());
             if (entry != null) {
                 group.selectedId = entry.id;
+                currentId = entry.id;
                 stateChanged();
             }
         });

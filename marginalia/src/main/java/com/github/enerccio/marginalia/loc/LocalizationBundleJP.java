@@ -733,6 +733,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_TAKE_TAGS_OF_BOOK, "ブックのタグを使用");
         setValue(L.LABEL_ACTIVATION_PASS, "パス");
         setValue(L.LABEL_REASON, "理由");
+        setValue(L.LABEL_FOCUS_COMMAND_BAR, "コマンドバーに移動");
+        setValue(L.LABEL_NEXT_TAB, "次のタブ");
+        setValue(L.LABEL_PREVIOUS_TAB, "前のタブ");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");

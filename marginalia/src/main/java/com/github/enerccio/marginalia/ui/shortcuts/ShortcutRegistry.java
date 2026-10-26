@@ -20,6 +20,12 @@ public final class ShortcutRegistry {
         register(new ShortcutAction(ShortcutActions.STORY_REGENERATE, loc -> loc.getValue(L.LABEL_REGENERATE), "r", null));
         register(new ShortcutAction(ShortcutActions.STORY_EDIT, loc -> loc.getValue(L.LABEL_EDIT_LAST_PART), "e", null));
         register(new ShortcutAction(ShortcutActions.STORY_SAVE_EDIT, loc -> loc.getValue(L.LABEL_SAVE_EDITED_PART), "Ctrl+s", null));
+        register(new ShortcutAction(ShortcutActions.STORY_COMMAND_BAR, loc -> loc.getValue(L.LABEL_FOCUS_COMMAND_BAR), "/", null));
+        register(new ShortcutAction(ShortcutActions.STORY_SEARCH, loc -> loc.getValue(L.LABEL_SEARCH_THIS_BRANCH), "Ctrl+Shift+f", null));
+        register(new ShortcutAction(ShortcutActions.STORY_SEARCH_REPLACE, loc -> loc.getValue(L.LABEL_SEARCH_AND_REPLACE), "Ctrl+Shift+h", null));
+        register(new ShortcutAction(ShortcutActions.STORY_ANNOTATE_SELECTION, loc -> loc.getValue(L.LABEL_ANNOTATE_SELECTION), "a", null));
+        register(new ShortcutAction(ShortcutActions.DOCK_NEXT_TAB, loc -> loc.getValue(L.LABEL_NEXT_TAB), "Alt+PageDown", null));
+        register(new ShortcutAction(ShortcutActions.DOCK_PREVIOUS_TAB, loc -> loc.getValue(L.LABEL_PREVIOUS_TAB), "Alt+PageUp", null));
     }
 
     private ShortcutRegistry() {

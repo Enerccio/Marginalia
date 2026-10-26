@@ -4,6 +4,9 @@ import com.vaadin.flow.component.page.Page;
 import com.vaadin.flow.component.page.PendingJavaScriptResult;
 import com.vaadin.flow.dom.Element;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * All the JavaScript the application runs in the browser from the server side. Every method wraps one script, the
  * element it works on is always passed as {@code $0}.
@@ -823,6 +826,35 @@ public final class JavascriptLibrary {
                 el.__shortcutHandler = handler;
                 document.addEventListener('keydown', handler, true);
                 """, element, keys);
+    }
+
+    /**
+     * Finds out which of the elements holds the text the user has selected.
+     *
+     * @return the index in {@code candidates} of the first element that contains the start of the selection, -1 when the
+     * selection is empty or in none of them
+     */
+    public static PendingJavaScriptResult selectionOwner(Element anchor, List<Element> candidates) {
+        StringBuilder list = new StringBuilder();
+        for (int i = 0; i < candidates.size(); i++) {
+            list.append(i == 0 ? "" : ",").append('$').append(i + 1);
+        }
+        return anchor.executeJs("""
+                const selection = window.getSelection();
+                if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+                  return -1;
+                }
+                const node = selection.getRangeAt(0).startContainer;
+                return [""" + list + """
+                ].findIndex(el => el && el.contains(node));
+                """, concat(anchor, candidates));
+    }
+
+    private static Object[] concat(Element first, List<Element> rest) {
+        List<Object> all = new ArrayList<>();
+        all.add(first);
+        all.addAll(rest);
+        return all.toArray();
     }
 
     /**

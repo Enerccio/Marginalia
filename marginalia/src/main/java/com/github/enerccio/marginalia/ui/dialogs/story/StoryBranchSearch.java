@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.search.FulltextQuery;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.utils.SearchHighlighter;
 import com.github.enerccio.marginalia.utils.TextMarkup;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -115,6 +116,13 @@ public class StoryBranchSearch extends VerticalLayout {
         progress.setWidthFull();
         add(field, buttons, progress);
         showStatus();
+    }
+
+    /**
+     * Puts the cursor into the search field.
+     */
+    public void focusField() {
+        JavascriptLibrary.focusAfterRender(field.getElement());
     }
 
     /**

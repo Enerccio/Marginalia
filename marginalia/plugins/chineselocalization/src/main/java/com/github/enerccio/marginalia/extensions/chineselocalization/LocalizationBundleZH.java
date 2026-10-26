@@ -741,6 +741,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_TAKE_TAGS_OF_BOOK, "使用书籍的标签");
         setValue(L.LABEL_ACTIVATION_PASS, "轮次");
         setValue(L.LABEL_REASON, "原因");
+        setValue(L.LABEL_FOCUS_COMMAND_BAR, "转到命令栏");
+        setValue(L.LABEL_NEXT_TAB, "下一个标签页");
+        setValue(L.LABEL_PREVIOUS_TAB, "上一个标签页");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
