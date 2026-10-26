@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846238411315">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846255924174">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846238411315" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846255924174" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846238411315" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846255924174" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846238411315" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846255924174" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -285,7 +285,7 @@ an administrator, whose key you must not see) and only when you may create provi
 <retype-table copy-text="| Field | |
 |---|---|
 | **Name** | Your name for the provider, shown when you pick a model for a book. Include the model, e.g. `OpenRouter - Claude Sonnet`. |
-| **Type** | The kind of API: **OpenAI Compatible**, or **Extension** for a provider that an [extension](extensions/index.md) brings (it is offered only while such an extension is loaded, e.g. [Google Gemini](extensions/google-genai.md)). The type can't be changed after the provider is created. |
+| **Type** | The kind of API: **OpenAI Compatible**, or **Extension** for a provider that an [extension](extensions/index.md) brings (it is offered only while such an extension is loaded, e.g. [Google Gemini](extensions/google-genai.md) or [Anthropic Claude](extensions/anthropic.md)). The type can't be changed after the provider is created. |
 | **Provider** | Only for the type **Extension**: which extension's provider this is. Its own settings fill the *Per Type Settings* tab. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -302,7 +302,7 @@ an administrator, whose key you must not see) and only when you may create provi
 </tr>
 <tr>
 <td><strong>Type</strong></td>
-<td>The kind of API: <strong>OpenAI Compatible</strong>, or <strong>Extension</strong> for a provider that an <a href="../extensions/">extension</a> brings (it is offered only while such an extension is loaded, e.g. <a href="../extensions/google-genai/">Google Gemini</a>). The type can&#x27;t be changed after the provider is created.</td>
+<td>The kind of API: <strong>OpenAI Compatible</strong>, or <strong>Extension</strong> for a provider that an <a href="../extensions/">extension</a> brings (it is offered only while such an extension is loaded, e.g. <a href="../extensions/google-genai/">Google Gemini</a> or <a href="../extensions/anthropic/">Anthropic Claude</a>). The type can&#x27;t be changed after the provider is created.</td>
 </tr>
 <tr>
 <td><strong>Provider</strong></td>
@@ -539,7 +539,7 @@ and tries these methods in order:</p>
 </ol>
 <p>The first method that works is used from then on. The local estimate is close for most models but not exact, which
 is another reason to keep <strong>Max Context Size</strong> a little below the real limit. Providers of the type <em>Extension</em> count
-as their extension says; the <a href="../extensions/google-genai/">Google Gemini</a> one uses the local estimate.</p>
+as their extension says; the <a href="../extensions/google-genai/">Google Gemini</a> and <a href="../extensions/anthropic/">Anthropic Claude</a> ones ask the provider to count.</p>
 <h2 id="shared-providers">Shared providers</h2>
 <p>On an installation with several users, an administrator can <strong>share</strong> a provider: check <strong>Shared with all users</strong> in
 the provider&#x27;s dialog (the checkbox is only there for administrators). Every user then finds it in the <strong>Model</strong> list
@@ -745,7 +745,7 @@ part; parts written before stay as they are.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (0ff3556dd).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (0bb369e8f).</p></div>
             </footer>
         </div>
     </div>

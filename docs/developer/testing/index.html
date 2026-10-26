@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846238411315">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846255924174">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846238411315" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846255924174" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846238411315" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846255924174" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846238411315" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846238411315" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846255924174" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846255924174" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -459,7 +459,7 @@ fake is the model server.</p>
 </div>
 </retype-table>
 <p>The tests added in 1.4.0 check, besides what the names say: <code translate="no" v-pre>GenerationOptionsTest</code> (a generation with another model and protocol than the book&#x27;s, the book untouched), <code translate="no" v-pre>PermissionServiceTest</code> and <code translate="no" v-pre>PermissionsDialogTest</code> (the permissions and their window), <code translate="no" v-pre>LazyContextMenuTest</code> (a menu filled when it opens) and <code translate="no" v-pre>LazyBranchTest</code> (which parts of a long story the window has loaded while it slides), <code translate="no" v-pre>TextDiffTest</code> and <code translate="no" v-pre>WordDiffTest</code> (the sentence and the word diff of the review), <code translate="no" v-pre>RoundStatsCollectorTest</code> (what a streamed answer says about how it went: finish reason, cache, reasoning, llama.cpp timings), <code translate="no" v-pre>AgentCleanupTest</code> (an agent, its runs and the working copy are deleted, restored and purged together) and <code translate="no" v-pre>ConcurrentTransactionsTest</code> (read-write transactions take the SQLite write lock, read-only ones do not wait for them). <code translate="no" v-pre>test/TestImages</code> makes small pictures and <code translate="no" v-pre>test/AgenticRequestAttributes</code> the request context of a run, for the tests of the agents.</p>
-<p>Not covered by automated tests: the Vaadin UI (apart from <code translate="no" v-pre>LLMSnapshotTest</code>, <code translate="no" v-pre>HelpAssistantWidgetTest</code>, <code translate="no" v-pre>ResourcesPartTest</code>, <code translate="no" v-pre>BranchSearchTest</code>, <code translate="no" v-pre>WorkspaceStateTest</code>, <code translate="no" v-pre>AIDialogExtensionTest</code>, <code translate="no" v-pre>TabDockTest</code>, <code translate="no" v-pre>LorebookPreviewTest</code> and <code translate="no" v-pre>InvalidExtensionsWarningTest</code>), the bundled plugins (apart from the unit tests of <code translate="no" v-pre>google-genai</code>), and the desktop launcher
+<p>Not covered by automated tests: the Vaadin UI (apart from <code translate="no" v-pre>LLMSnapshotTest</code>, <code translate="no" v-pre>HelpAssistantWidgetTest</code>, <code translate="no" v-pre>ResourcesPartTest</code>, <code translate="no" v-pre>BranchSearchTest</code>, <code translate="no" v-pre>WorkspaceStateTest</code>, <code translate="no" v-pre>AIDialogExtensionTest</code>, <code translate="no" v-pre>TabDockTest</code>, <code translate="no" v-pre>LorebookPreviewTest</code> and <code translate="no" v-pre>InvalidExtensionsWarningTest</code>), the bundled plugins (apart from the unit tests of <code translate="no" v-pre>google-genai</code> and <code translate="no" v-pre>anthropic</code>), and the desktop launcher
 (the <a href="../packaging/#continuous-integration">CI smoke test</a> only checks that the packaged app starts).</p>
 <h2 id="test-bases">Test bases</h2>
 <div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">classDiagram
@@ -992,7 +992,7 @@ all migrations and validates the schema against the entities).</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (0ff3556dd).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (0bb369e8f).</p></div>
             </footer>
         </div>
     </div>

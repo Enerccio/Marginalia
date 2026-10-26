@@ -14,6 +14,7 @@
 
   <modules>
     <module>marginalia</module>
+    <module>marginalia/plugins/anthropic</module>
     <module>marginalia/plugins/arc-outline</module>
     <module>marginalia/plugins/authorsnote</module>
     <module>marginalia/plugins/chaptermarker</module>

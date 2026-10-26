@@ -5,6 +5,7 @@ a restart.
 
 | Plugin | What it adds |
 |---|---|
+| [Anthropic Claude](anthropic/README.md) | Anthropic's Claude models as an inference provider (type *Extension*), over the Anthropic Java SDK: thinking summaries as reasoning, adaptive thinking and effort, exact usage. |
 | [Arc Outline](arc-outline/README.md) | The arcs of the book and their chapters, each planned, current or finished, in the story sidebar; the model can write an arc from the lore. |
 | [Author's Note](authorsnote/README.md) | A per-book note inserted into the prompt of every generation, at a chosen depth and role. |
 | [Chapter Marker](chaptermarker/README.md) | Story parts starting a chapter (a Markdown `#` heading) are shown as chapters in the story sidebar. |
@@ -44,7 +45,7 @@ mvn -N install                   # in the repository root: installs the parent P
 cd marginalia
 mvn install -DskipTests          # installs the application (and its classes JAR used by plugins)
 
-cd plugins/chaptermarker          # or arc-outline, authorsnote, character-tracker, gemma4toolsfix, google-genai, instructionexporter, lore-generator, lorebookvcs, name-generator, name-provider, place-provider, reviewer, sidequery, sillytavern-converter, chineselocalization
+cd plugins/chaptermarker          # or anthropic, arc-outline, authorsnote, character-tracker, gemma4toolsfix, google-genai, instructionexporter, lore-generator, lorebookvcs, name-generator, name-provider, place-provider, reviewer, sidequery, sillytavern-converter, chineselocalization
 mvn package                       # target/chaptermarker-1.4.0.jar
 ```
 

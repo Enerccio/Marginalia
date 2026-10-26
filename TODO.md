@@ -158,10 +158,13 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     protocol (`ProtocolService.cloneProtocol`) and provider (`AIService.cloneAI`: API key / extension settings and
     attributes, not shared, only the owner), each with a name dialog (`CloneNameDialog`).
 
-18. **More provider and protocol types.** Only `AIType.OPEN_AI_COMPATIBLE` and `ProtocolType.CHAT_COMPLETION` exist.
-    - Text completion protocol (llama.cpp / KoboldCpp / Ollama raw prompt with instruct templates).
-    - Native Anthropic / Gemini clients (tokenizer strategies for LiteLLM-Anthropic already exist).
-    - 🧩 Each new provider could be a plugin if `InferenceServices` gets a registration API like decorators have.
+18. **More provider types.** `AIType.OPEN_AI_COMPATIBLE` plus the extension AIs (`AIType.EXTENSION`, `ExtensionAIFactory`,
+    see `manual/developer/plugins/ai-providers.md`); the only protocol type is `ProtocolType.CHAT_COMPLETION`.
+    - ✅ Native Gemini client: the `google-genai` plugin (Google Gen AI SDK embedded in the plugin only).
+    - 🧩 Native Anthropic client: the `anthropic` plugin (Anthropic Java SDK embedded in the plugin only, same shape as `google-genai`).
+    - Text completion protocol (llama.cpp / KoboldCpp raw prompt with instruct templates): low priority, base models only.
+      The hosted APIs have dropped raw completion and the prompt pipeline is built around chat messages; extra body
+      parameters (samplers) on the chat protocol would cover most of the need more cheaply.
 
 19. ✅ **Context / token budget view.** `PromptTokenBreakdown` (`domain.components`) records the raw tokens of every
     prompt section (jailbreak, template, lore, summaries, story, user lore, user prompt, reserved), the budget, the

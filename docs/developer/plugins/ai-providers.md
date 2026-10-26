@@ -4,7 +4,7 @@ A plugin can bring a model API of its own. The user then creates an AI of the ty
 provider of the plugin in the AI dialog, and the AI works like an OpenAI-compatible one: books use it, it is shared and
 limited, its usage is counted. The bundled
 [Google Gemini](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/google-genai) plugin is the
-worked example.
+worked example, [Anthropic Claude](#the-anthropic-claude-plugin) a second one.
 
 ```mermaid
 flowchart LR
@@ -207,3 +207,31 @@ Google's servers, under Google's terms, and that sharing such an AI sends the te
 The plugin has unit tests for the pure parts (`GoogleGenAiMessagesTest`, `GoogleGenAiErrorsTest`,
 `GoogleGenAiSettingsTest`); the core has `ExtensionAIFactoryTest`, `ExtensionAICrudTest`, `ExtensionAIGenerationTest` and
 `AIDialogExtensionTest` with a fake factory, which is the way to test your own provider's contract without a plugin.
+
+## The Anthropic Claude plugin
+
+`marginalia/plugins/anthropic` uses the [Anthropic Java SDK](https://github.com/anthropics/anthropic-sdk-java) and has the
+same classes as the Google plugin (`AnthropicActivator`, `AnthropicExtension`, `AnthropicFactory`, `AnthropicSettings`,
+`AnthropicForm`, `AnthropicInferenceService`, `AnthropicMessages`, `AnthropicErrors`). It is packaged the same way: the SDK
+(`anthropic-java`, about 36 MB with the model classes) is embedded, and what the application has (OkHttp, Jackson, Kotlin, the JSON
+schema generator, slf4j) is excluded. Only the OpenTelemetry API and Standard Webhooks, which the SDK needs and the application
+does not, come along. Where it differs from the Google plugin:
+
+- **Cancellation needs no interceptor.** The SDK closes the HTTP call when the `StreamResponse` is closed, also while another
+  thread waits in a read, so the `CancellationToken` closes the stream of the run.
+- **Everything is streamed**, `infer` and `round` too (the SDK refuses a long non-streamed request); the pieces of a `round`
+  are shown through `InferenceRoundCallback.onChunk` while it is written.
+- **Signed thinking.** The next round of a function call has to carry the thinking blocks of the answer with their signatures.
+  Inside one request the service sends the whole `Message` back (`ContentBlock.toParam()`); an agent rebuilds its history from the
+  calls, so the blocks are encoded into the `LLMToolCall` signature of the first call (`AnthropicMessages.encodeThinking`) and put
+  back in front of the text when the history is sent again.
+- **No sampling parameters.** The API version the SDK sends refuses `temperature`, `top_p` and `top_k`; the protocol's values are
+  ignored. Thinking is `adaptive` with a summarized display for Claude 4.6 and later, a token budget for the earlier models
+  (`AnthropicInferenceService.BUDGET_THINKING`), and `output_config.effort` carries the effort. With reasoning off no `thinking`
+  parameter is sent, because some models refuse `disabled`.
+- **Conversation shape.** System messages in the middle become user messages; results of calls come first in their user
+  message; the payload has to start and end with the user, because the models after Claude 4.5 refuse a prefill. Anything else is
+  an `InferenceException` of the type `BAD_REQUEST` thrown before the request is sent, nothing is added to the prompt.
+- **Tests.** `AnthropicServiceTest` runs the real SDK against `FakeAnthropicServer` (a JDK `HttpServer` that streams scripted
+  server-sent events): chunks, usage, the request bodies, the function loop with signed thinking, `infer` with a schema, `round`,
+  the error statuses, and a stalled stream that is cancelled. That is the way to test a provider without an API key.
