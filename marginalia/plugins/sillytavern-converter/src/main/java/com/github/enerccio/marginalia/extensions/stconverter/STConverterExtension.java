@@ -28,6 +28,8 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import static com.github.enerccio.marginalia.extensions.stconverter.STConverterLocalization.T;
+
 /**
  * Adds the <i>ST Converter</i> tab to the sidebar of the story editor (desktop layout): the SillyTavern chat of the book and
  * the turn details the model prepared from it.
@@ -75,7 +77,7 @@ public class STConverterExtension implements MarginaliaExtension, ExtensionHasCs
                         return true;
                     };
                     ConverterView view = new ConverterView(converterService, currentManuscript, opener);
-                    leftBar.add(TAB_ID, "ST Converter", view);
+                    leftBar.add(TAB_ID, T.localized("ST Converter"), view);
                     ComponentUtil.setData(leftBar, VIEW_KEY, view);
                     activeTabDocks.add(leftBar);
                 }

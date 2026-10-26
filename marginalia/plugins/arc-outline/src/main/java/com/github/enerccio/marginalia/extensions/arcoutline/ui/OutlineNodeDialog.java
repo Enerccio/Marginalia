@@ -12,6 +12,8 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import org.apache.commons.lang3.StringUtils;
 
+import static com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineLocalization.T;
+
 /**
  * Creates or edits an arc or a chapter. The fields are applied to the node when it is saved.
  */
@@ -20,9 +22,9 @@ public class OutlineNodeDialog extends Dialog {
     private final OutlineNode node;
     private final Runnable onSaved;
 
-    private final TextField title = new TextField("Title");
-    private final TextArea description = new TextArea("Description");
-    private final TextArea note = new TextArea("Note (private)");
+    private final TextField title = new TextField(T.localized("Title"));
+    private final TextArea description = new TextArea(T.localized("Description"));
+    private final TextArea note = new TextArea(T.localized("Note (private)"));
     private final Select<OutlineState> state = new Select<>();
 
     /**
@@ -54,9 +56,9 @@ public class OutlineNodeDialog extends Dialog {
         note.setMinHeight("100px");
         note.setValue(StringUtils.defaultString(node.getNote()));
 
-        state.setLabel("State");
+        state.setLabel(T.localized("State"));
         state.setItems(OutlineState.values());
-        state.setItemLabelGenerator(OutlineState::getLabel);
+        state.setItemLabelGenerator(s -> T.localized(s.getLabel()));
         state.setValue(node.getState());
         state.setWidthFull();
 
@@ -64,16 +66,16 @@ public class OutlineNodeDialog extends Dialog {
         content.setPadding(false);
         add(content);
 
-        Button save = new Button("Save", _ -> save());
+        Button save = new Button(T.localized("Save"), _ -> save());
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        Button cancel = new Button("Cancel", _ -> close());
+        Button cancel = new Button(T.localized("Cancel"), _ -> close());
         getFooter().add(cancel, save);
     }
 
     private void save() {
         if (StringUtils.isBlank(title.getValue())) {
             title.setInvalid(true);
-            title.setErrorMessage("The title is required");
+            title.setErrorMessage(T.localized("The title is required"));
             return;
         }
         node.setTitle(title.getValue().trim());

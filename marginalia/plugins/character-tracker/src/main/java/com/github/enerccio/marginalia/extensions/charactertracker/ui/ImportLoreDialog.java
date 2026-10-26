@@ -17,6 +17,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.List;
 import java.util.function.Consumer;
 
+import static com.github.enerccio.marginalia.extensions.charactertracker.CharacterTrackerLocalization.T;
+
 /**
  * Lets the user choose lorebook entries to import as characters: a grid of the names of the entries with a checkbox
  * each (the checkbox in the header checks all of them) and an (i) icon that shows the content of the entry.
@@ -34,17 +36,17 @@ public class ImportLoreDialog extends Dialog {
     public ImportLoreDialog(List<LorebookEntry> entries, Consumer<List<String>> onImport) {
         this.entries = entries.stream().filter(entry -> StringUtils.isNotBlank(entry.getName())).toList();
 
-        setHeaderTitle("Import lore entries as characters");
+        setHeaderTitle(T.localized("Import lore entries as characters"));
         setWidth("450px");
         setMaxWidth("95vw");
         setMaxHeight("90vh");
 
         if (this.entries.isEmpty()) {
-            add(new Span("The lorebook of the book has no entries."));
+            add(new Span(T.localized("The lorebook of the book has no entries.")));
         } else {
             grid.setSelectionMode(Grid.SelectionMode.MULTI);
             grid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_COMPACT);
-            grid.addColumn(LorebookEntry::getName).setHeader("Name").setFlexGrow(1);
+            grid.addColumn(LorebookEntry::getName).setHeader(T.localized("Name")).setFlexGrow(1);
             grid.addComponentColumn(this::createInfoIcon).setFlexGrow(0).setWidth("3.5rem");
             grid.setItems(this.entries);
             grid.setWidthFull();
@@ -53,7 +55,7 @@ public class ImportLoreDialog extends Dialog {
             add(grid);
         }
 
-        importButton = new Button("Import", _ -> {
+        importButton = new Button(T.localized("Import"), _ -> {
             // in the order shown, not in the order the selection was made
             onImport.accept(this.entries.stream().filter(grid.getSelectedItems()::contains)
                     .map(LorebookEntry::getName).toList());
@@ -61,7 +63,7 @@ public class ImportLoreDialog extends Dialog {
         });
         importButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         importButton.setEnabled(false);
-        getFooter().add(new Button("Close", _ -> close()), importButton);
+        getFooter().add(new Button(T.localized("Close"), _ -> close()), importButton);
     }
 
     /**
@@ -71,7 +73,7 @@ public class ImportLoreDialog extends Dialog {
         Icon icon = Solid.INFO_CIRCLE.create();
         icon.addClassName(CssStyles.INFO_ICON);
 
-        Div preview = new Div(new Span(StringUtils.isBlank(entry.getPayload()) ? "(empty)" : entry.getPayload()));
+        Div preview = new Div(new Span(StringUtils.isBlank(entry.getPayload()) ? T.localized("(empty)") : entry.getPayload()));
         preview.addClassName(CharacterTrackerStyles.LORE_PREVIEW);
         Popover popover = new Popover(preview);
         popover.setTarget(icon);
@@ -84,6 +86,6 @@ public class ImportLoreDialog extends Dialog {
     private void updateImportButton() {
         int selected = grid.getSelectedItems().size();
         importButton.setEnabled(selected > 0);
-        importButton.setText(selected > 0 ? "Import (" + selected + ")" : "Import");
+        importButton.setText(selected > 0 ? T.localized("Import (%d)").formatted(selected) : T.localized("Import"));
     }
 }

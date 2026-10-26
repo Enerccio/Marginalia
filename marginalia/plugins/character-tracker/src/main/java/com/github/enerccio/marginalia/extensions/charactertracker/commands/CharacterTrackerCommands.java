@@ -14,6 +14,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
+import static com.github.enerccio.marginalia.extensions.charactertracker.CharacterTrackerLocalization.T;
+
 /**
  * The characters of the book as commands, for the command bar and for agents: {@code list-characters},
  * {@code get-character}, {@code create-character}, {@code update-character}, {@code delete-character} and for the
@@ -274,7 +276,7 @@ public class CharacterTrackerCommands extends ManuscriptReadSupport {
         CharacterBook characters = service.read(book.manuscript);
         StoryCharacter character = character(characters, context.get("character", String.class));
         int relations = characters.relationsOf(character).size();
-        if (!context.confirm("Delete the character " + character.getName() + " and all its relationships?")) {
+        if (!context.confirm(T.localized("Delete the character %s and all its relationships?").formatted(character.getName()))) {
             if (!context.isTerminated()) {
                 context.setReturn("Nothing was deleted");
             }
@@ -439,7 +441,7 @@ public class CharacterTrackerCommands extends ManuscriptReadSupport {
         CharacterBook characters = service.read(book.manuscript);
         CharacterRelation relation = relation(characters, context.get("relationship", Integer.class));
         String described = describe(characters, relation);
-        if (!context.confirm("Delete the relationship " + described + "?")) {
+        if (!context.confirm(T.localized("Delete the relationship %s?").formatted(described))) {
             if (!context.isTerminated()) {
                 context.setReturn("Nothing was deleted");
             }

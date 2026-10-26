@@ -13,6 +13,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import static com.github.enerccio.marginalia.extensions.loregenerator.LoreGeneratorLocalization.T;
+
 /**
  * The Lore Generator section of the user settings.
  */
@@ -35,7 +37,7 @@ public class LoreGeneratorSettingsForm extends VerticalLayout {
         setPadding(true);
         setSpacing(true);
 
-        compactionPromptArea = new TextAreaPopoverComponent("Compaction prompt");
+        compactionPromptArea = new TextAreaPopoverComponent(T.localized("Compaction prompt"));
         compactionPromptArea.setWidthFull();
         compactionPromptArea.setPlaceholder(Defaults.COMPACTION_PROMPT);
         ResizableTextArea.install(loc, compactionPromptArea, "160px");

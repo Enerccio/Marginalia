@@ -21,6 +21,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CancellationException;
 
+import static com.github.enerccio.marginalia.extensions.loregenerator.LoreGeneratorLocalization.T;
+
 /**
  * The commands of the Lore Generator for the command bar and for agents: {@code list-lore-templates},
  * {@code generate-lore-entry} and {@code compact-lore-entry}. They do what the generator dialog does, in the same two
@@ -287,7 +289,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         LLMAttachment[] images = context.get("images", LLMAttachment[].class);
         ModelSelection model = requireModel(context);
 
-        context.setStatus("Generating the text of a lore entry");
+        context.setStatus(T.localized("Generating the text of a lore entry"));
         String generated;
         try {
             generated = service.complete(model, service.toPayload(
@@ -410,7 +412,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
     /** The compaction step shared by both commands; null when the command was cancelled or terminated. */
     private String compactText(CommandContext context, ModelSelection model, Lorebook book, LorebookEntry entry, LoreScope scope,
                                EntryLimit limit, String source) throws Exception {
-        context.setStatus("Compacting the text of a lore entry");
+        context.setStatus(T.localized("Compacting the text of a lore entry"));
         String compacted;
         try {
             compacted = service.complete(model, service.toPayload(

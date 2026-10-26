@@ -32,6 +32,8 @@ import org.springframework.beans.factory.annotation.Configurable;
 import java.util.List;
 import java.util.function.Consumer;
 
+import static com.github.enerccio.marginalia.extensions.reviewer.ReviewerLocalization.T;
+
 @Configurable(preConstruction = true)
 public class AdvancedOptionsDialog extends Dialog {
     private static final Gson gson = new GsonBuilder().create();
@@ -65,20 +67,20 @@ public class AdvancedOptionsDialog extends Dialog {
             options.setPrompt(setting.getReviewPrompt());
         }
 
-        setHeaderTitle("Advanced Review Options");
+        setHeaderTitle(T.localized("Advanced Review Options"));
         setWidth("900px");
 
         VerticalLayout layout = new VerticalLayout();
         layout.setSpacing(true);
 
         ReviewerSettings settings = reviewerService.getSettings();
-        ComboBox<ReviewerProfile> promptProfileCombo = new ComboBox<>("Prompt from Profile");
+        ComboBox<ReviewerProfile> promptProfileCombo = new ComboBox<>(T.localized("Prompt from Profile"));
         promptProfileCombo.setWidthFull();
         promptProfileCombo.setAllowCustomValue(false);
         promptProfileCombo.setItemLabelGenerator(ReviewerProfile::name);
         promptProfileCombo.setItems(reviewerService.getProfiles(settings));
 
-        promptArea = new TextArea("Prompt Override");
+        promptArea = new TextArea(T.localized("Prompt Override"));
         promptArea.setWidthFull();
         DialogFocus.onOpen(this, promptArea);
         ResizableTextArea.install(loc, promptArea, "160px");
@@ -100,7 +102,7 @@ public class AdvancedOptionsDialog extends Dialog {
             }
         });
 
-        usePromptInfo = new Checkbox("Use standard prompt info", options.isUsePromptInfo());
+        usePromptInfo = new Checkbox(T.localized("Use standard prompt info"), options.isUsePromptInfo());
         usePromptInfo.addValueChangeListener(e -> toggleFields(!e.getValue()));
         usePromptInfo.addValueChangeListener(event -> {
             if (event.isFromClient()) {
@@ -115,14 +117,14 @@ public class AdvancedOptionsDialog extends Dialog {
         optionsRow.setWidthFull();
         optionsRow.setAlignItems(Alignment.BASELINE);
 
-        lorebookBox = new Checkbox("Include Lorebook", options.isLorebook());
+        lorebookBox = new Checkbox(T.localized("Include Lorebook"), options.isLorebook());
         lorebookBox.addValueChangeListener(event -> {
             if (event.isFromClient()) {
                 refreshCount();
             }
         });
 
-        tokenLimitField = new IntegerField("Token Limit");
+        tokenLimitField = new IntegerField(T.localized("Token Limit"));
         tokenLimitField.setValue(reviewerService.getTokenLimit(setting, manuscript));
         tokenLimitField.addValueChangeListener(event -> {
             if (event.isFromClient()) {
@@ -137,14 +139,14 @@ public class AdvancedOptionsDialog extends Dialog {
 
         toggleFields(!usePromptInfo.getValue());
 
-        Button generateBtn = new Button("Generate", e -> {
+        Button generateBtn = new Button(T.localized("Generate"), e -> {
             saveState();
             close();
             onConfirm.accept(options);
         });
         generateBtn.setThemeName("primary");
 
-        Button cancelBtn = new Button("Cancel", e -> close());
+        Button cancelBtn = new Button(T.localized("Cancel"), e -> close());
 
         getFooter().add(cancelBtn, generateBtn);
     }
@@ -156,7 +158,7 @@ public class AdvancedOptionsDialog extends Dialog {
                 saveState();
                 List<LLMChatMessage> prompt = reviewerService.buildChatCompletePrompts(inferenceService, targetMessage, setting, options);
                 String text = gson.toJson(prompt);
-                counter.setText("Total tokens: " + inferenceService.countTokensApprox(text));
+                counter.setText(T.localized("Total tokens: %s").formatted(inferenceService.countTokensApprox(text)));
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }

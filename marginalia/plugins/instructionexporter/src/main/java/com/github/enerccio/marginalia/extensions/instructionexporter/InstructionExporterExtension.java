@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.github.enerccio.marginalia.extensions.instructionexporter.InstructionExporterLocalization.T;
+
 @Configurable
 public class InstructionExporterExtension implements MarginaliaExtension {
 
@@ -42,14 +44,14 @@ public class InstructionExporterExtension implements MarginaliaExtension {
         // an item of the settings menu of the story, on the desktop and on the phone; the story editor loads other books into the same
         // instance, so the book is read when the item is chosen
         menuRegistry.register(bundle.getSymbolicName(),
-                StoryMenuItem.tools(MENU_ITEM_KEY, l -> "Export instructions", story -> exportInstructions(story.getCurrentManuscript()))
+                StoryMenuItem.tools(MENU_ITEM_KEY, l -> T.localized("Export instructions"), story -> exportInstructions(story.getCurrentManuscript()))
                         .icon(Solid.CLIPBOARD_LIST::create));
     }
 
     private void exportInstructions(Manuscript manuscript) {
         try {
             if (manuscript == null || manuscript.getActiveLeaf() == null) {
-                Notification.show("There is no active branch to export");
+                Notification.show(T.localized("There is no active branch to export"));
                 return;
             }
 
@@ -61,15 +63,15 @@ public class InstructionExporterExtension implements MarginaliaExtension {
                     .collect(Collectors.joining("\n\n"));
 
             if (text.isEmpty()) {
-                Notification.show("There is nothing to export in the active branch");
+                Notification.show(T.localized("There is nothing to export in the active branch"));
                 return;
             }
 
             UI.getCurrent().getPage().executeJs("navigator.clipboard.writeText($0)", text);
-            Notification.show("Copied to clipboard");
+            Notification.show(T.localized("Copied to clipboard"));
         } catch (Exception e) {
             log.error("Failed to export: {}", e.getMessage(), e);
-            Notification.show("Failed to export: " + e.getMessage());
+            Notification.show(T.localized("Failed to export: %s").formatted(e.getMessage()));
         }
     }
 

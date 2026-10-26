@@ -20,6 +20,8 @@ import org.springframework.beans.factory.annotation.Configurable;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import static com.github.enerccio.marginalia.extensions.stconverter.STConverterLocalization.T;
+
 /**
  * Keeps the chat and the turn details with the book and asks the model for the turn details.
  */
@@ -180,7 +182,7 @@ public class ConverterService {
         }
         List<ChatLine> lines = toLines(SillyTavernChats.parse(text, fileName));
         if (lines.isEmpty()) {
-            throw new IllegalArgumentException("The chat has no messages");
+            throw new IllegalArgumentException(T.localized("The chat has no messages"));
         }
         return lines;
     }
@@ -390,11 +392,11 @@ public class ConverterService {
     public List<TurnItem> readAnswer(String answer, int from, int to) throws Exception {
         SchemaCheck check = StructuredOutputs.validate(schema(), answer);
         if (!check.valid()) {
-            throw new IllegalStateException("The model's answer does not match what was asked for: " + String.join("; ", check.errors()));
+            throw new IllegalStateException(T.localized("The model's answer does not match what was asked for: %s").formatted(String.join("; ", check.errors())));
         }
         List<TurnItem> turns = toTurns(StructuredOutputs.parse(answer, GeneratedTurns.class), from, to);
         if (turns.isEmpty()) {
-            throw new IllegalStateException("The model's answer has no turn for the messages " + from + " to " + to);
+            throw new IllegalStateException(T.localized("The model's answer has no turn for the messages %d to %d").formatted(from, to));
         }
         return turns;
     }

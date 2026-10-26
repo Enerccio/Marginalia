@@ -1,6 +1,5 @@
 package com.github.enerccio.marginalia.extensions.arcoutline.ui;
 
-import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
@@ -8,6 +7,7 @@ import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.structured.SchemaCheck;
 import com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs;
+import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.*;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService.StoryMessage;
@@ -25,6 +25,8 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+
+import static com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineLocalization.T;
 
 /**
  * Asks the model to turn a part of the written story into an arc with chapters. The part is a range of the messages of
@@ -59,7 +61,7 @@ public class StoryImportDialog extends GeneratorDialog {
      */
     public StoryImportDialog(ArcOutlineService service, Manuscript manuscript, ArcOutline outline,
                              List<StoryMessage> messages, Consumer<Arc> onSave) {
-        super(service, manuscript, "Import an arc from the story", "Save as arc");
+        super(service, manuscript, T.localized("Import an arc from the story"), T.localized("Save as arc"));
         this.outline = outline;
         this.messages = messages;
         this.onSave = onSave;
@@ -99,8 +101,8 @@ public class StoryImportDialog extends GeneratorDialog {
     protected Component createInputs() {
         int last = messages.size();
 
-        fromField = rangeField("From message", 1, last);
-        toField = rangeField("To message", last, last);
+        fromField = rangeField(T.localized("From message"), 1, last);
+        toField = rangeField(T.localized("To message"), last, last);
         fromField.addValueChangeListener(_ -> rangeChanged());
         toField.addValueChangeListener(_ -> rangeChanged());
         HorizontalLayout range = new HorizontalLayout(fromField, toField);
@@ -108,21 +110,21 @@ public class StoryImportDialog extends GeneratorDialog {
         range.setPadding(false);
         range.getThemeList().add("spacing-xs");
 
-        Span rangeHint = new Span("The messages with text of the active branch, " + last + " in all, are numbered from the first one.");
+        Span rangeHint = new Span(T.localized("The messages with text of the active branch, %d in all, are numbered from the first one.").formatted(last));
         rangeHint.addClassNames(CssStyles.TEXT_XS, CssStyles.TEXT_SECONDARY);
 
-        chaptersField = new IntegerField("Number of chapters (optional)");
+        chaptersField = new IntegerField(T.localized("Number of chapters (optional)"));
         chaptersField.setMin(1);
         chaptersField.setMax(MAX_CHAPTERS);
         chaptersField.setStepButtonsVisible(true);
-        chaptersField.setHelperText("Empty: the model divides the story where it divides naturally");
+        chaptersField.setHelperText(T.localized("Empty: the model divides the story where it divides naturally"));
         chaptersField.setWidthFull();
         chaptersField.addValueChangeListener(_ -> updateTokenInfo());
 
         stateSelect = new Select<>();
-        stateSelect.setLabel("State of the imported arc and its chapters");
+        stateSelect.setLabel(T.localized("State of the imported arc and its chapters"));
         stateSelect.setItems(OutlineState.values());
-        stateSelect.setItemLabelGenerator(OutlineState::getLabel);
+        stateSelect.setItemLabelGenerator(s -> T.localized(s.getLabel()));
         // the story is written already
         stateSelect.setValue(OutlineState.FINISHED);
         stateSelect.setWidthFull();
@@ -152,7 +154,7 @@ public class StoryImportDialog extends GeneratorDialog {
     /** The beginning of the message, in one line. */
     private String preview(Integer number) {
         if (number == null || number < 1 || number > messages.size()) {
-            return "No such message";
+            return T.localized("No such message");
         }
         String text = StringUtils.normalizeSpace(messages.get(number - 1).text());
         return StringUtils.abbreviate(text, PREVIEW_LENGTH);
@@ -181,10 +183,10 @@ public class StoryImportDialog extends GeneratorDialog {
         int from = fromField.getValue() != null ? fromField.getValue() : 1;
         int to = toField.getValue() != null ? toField.getValue() : messages.size();
         if (from < 1 || to > messages.size()) {
-            throw new IllegalArgumentException("The messages are numbered 1 to " + messages.size());
+            throw new IllegalArgumentException(T.localized("The messages are numbered 1 to %d.").formatted(messages.size()));
         }
         if (from > to) {
-            throw new IllegalArgumentException("The first message is after the last one");
+            throw new IllegalArgumentException(T.localized("The first message is after the last one."));
         }
         return messages.subList(from - 1, to);
     }
@@ -210,31 +212,32 @@ public class StoryImportDialog extends GeneratorDialog {
         try {
             range = selected();
         } catch (IllegalArgumentException e) {
-            tokenInfo.setText(e.getMessage() + ".");
+            tokenInfo.setText(e.getMessage());
             tokenInfo.addClassName(CssStyles.NOTICE_WARNING);
             return;
         }
 
         NumberFormat format = NumberFormat.getIntegerInstance();
         long story = range.stream().mapToLong(StoryMessage::tokens).sum();
-        StringBuilder text = new StringBuilder("Story: ").append(range.size())
-                .append(range.size() == 1 ? " message, about " : " messages, about ")
-                .append(format.format(story)).append(" tokens.");
+        StringBuilder text = new StringBuilder((range.size() == 1
+                ? T.localized("Story: %d message, about %s tokens.")
+                : T.localized("Story: %d messages, about %s tokens.")).formatted(range.size(), format.format(story)));
         try {
             long prompt = service.countTokens(buildPrompt(promptValue(), null));
-            text.append(" Prompt sent to the model: about ").append(format.format(prompt)).append(" tokens");
             int available = TokenLimits.promptTokens(selectedAi(), selectedProtocol());
-            if (available > 0) {
-                text.append(" of ").append(format.format(available)).append(" the model takes");
-                if (prompt > available) {
-                    text.append(" - it does not fit, choose fewer messages");
-                    tokenInfo.addClassName(CssStyles.NOTICE_WARNING);
-                }
+            if (available <= 0) {
+                text.append(' ').append(T.localized("Prompt sent to the model: about %s tokens.").formatted(format.format(prompt)));
+            } else if (prompt > available) {
+                text.append(' ').append(T.localized("Prompt sent to the model: about %s tokens of %s the model takes - it does not fit, choose fewer messages.")
+                        .formatted(format.format(prompt), format.format(available)));
+                tokenInfo.addClassName(CssStyles.NOTICE_WARNING);
+            } else {
+                text.append(' ').append(T.localized("Prompt sent to the model: about %s tokens of %s the model takes.")
+                        .formatted(format.format(prompt), format.format(available)));
             }
-            text.append('.');
         } catch (Exception e) {
             // most likely a prompt that is not a valid template
-            text.append(" The prompt can't be built: ").append(StringUtils.defaultIfBlank(e.getMessage(), e.toString()));
+            text.append(' ').append(T.localized("The prompt can't be built: %s").formatted(StringUtils.defaultIfBlank(e.getMessage(), e.toString())));
             tokenInfo.addClassName(CssStyles.NOTICE_WARNING);
         }
         tokenInfo.setText(text.toString());
@@ -279,7 +282,7 @@ public class StoryImportDialog extends GeneratorDialog {
     private void showPreview(String title, String description, String note, List<String[]> chapters) {
         resultHolder().removeAll();
         if (title == null && description == null && note == null && chapters.isEmpty()) {
-            resultHolder().add(emptyHint("The arc the model writes appears here, with its chapters."));
+            resultHolder().add(emptyHint(T.localized("The arc the model writes appears here, with its chapters.")));
             return;
         }
         Arc arc = new Arc();
@@ -301,7 +304,7 @@ public class StoryImportDialog extends GeneratorDialog {
         result = null;
         SchemaCheck check = StructuredOutputs.validate(service.importSchema(exactCount()), output);
         if (!check.valid()) {
-            return "The answer is not a valid arc with chapters: " + String.join("; ", check.errors());
+            return T.localized("The answer is not a valid arc with chapters: %s").formatted(String.join("; ", check.errors()));
         }
         try {
             result = StructuredOutputs.parse(output, GeneratedStoryArc.class);
@@ -309,7 +312,7 @@ public class StoryImportDialog extends GeneratorDialog {
                     result.chapters().stream().map(c -> new String[] {c.name(), c.description(), c.note()}).toList());
             return null;
         } catch (Exception e) {
-            return "The answer can't be read: " + e.getMessage();
+            return T.localized("The answer can't be read: %s").formatted(e.getMessage());
         }
     }
 

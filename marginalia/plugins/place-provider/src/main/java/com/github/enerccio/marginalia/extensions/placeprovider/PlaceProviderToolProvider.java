@@ -7,6 +7,8 @@ import com.github.enerccio.marginalia.domain.service.tool.ToolRequest;
 
 import java.util.Collection;
 
+import static com.github.enerccio.marginalia.extensions.placeprovider.PlaceProviderLocalization.T;
+
 /**
  * The place provider as a tool suite that is on or off (it has no items). The same suite is offered as the commands
  * {@link PlaceProviderCommands}.
@@ -38,8 +40,7 @@ public class PlaceProviderToolProvider implements ToolProvider {
 
     @Override
     public String description() {
-        return "Real places of the Earth (Natural Earth, about 18 000 notable ones): search by name, type and country, "
-                + "what lies around a place, the distance of two places.";
+        return T.localized("Real places of the Earth (Natural Earth, about 18 000 notable ones): search by name, type and country, what lies around a place, the distance of two places.");
     }
 
     @Override
