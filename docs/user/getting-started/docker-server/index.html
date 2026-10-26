@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846319153878">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846321223290">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846319153878" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846321223290" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846319153878" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846321223290" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846319153878" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846319153878" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846321223290" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846321223290" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -240,6 +240,64 @@ the file stays the same.</p>
 </div>
 </retype-table>
 <p>After changing the file, apply it with <code translate="no" v-pre>docker compose up -d</code>.</p>
+<h3 id="environment-variables">Environment variables</h3>
+<p>Marginalia&#x27;s own settings are environment variables of the service, next to <code translate="no" v-pre>JAVA_TOOL_OPTIONS</code>:</p>
+<div id="environment-variables-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-yaml"><code v-pre class="language-yaml">    environment:
+      - JAVA_TOOL_OPTIONS=-Duser.home=/var/marginalia -Xms256m -Xmx1g
+      - MARGINALIA_DEFAULT_LANGUAGE=ja
+      - MARGINALIA_PERSISTENT_LOGIN_TTL=604800
+      - MARGINALIA_TRUSTED_PROXIES=172.16.0.0/12</code></pre>
+</doc-codeblock></div>
+<retype-table copy-text="| Variable | Default | What it does |
+|---|---|---|
+| `MARGINALIA_DATA` | `~/.marginalia` (`/var/marginalia/.marginalia` in the image) | Folder of the database, backups, extensions and the key that encrypts API keys. Change it only with a matching volume (`./data:/your/folder`); the container fixes the owner of this folder on start. |
+| `MARGINALIA_DEFAULT_LANGUAGE` | `en` | Language of the login page and of users who have not chosen one (`en` or `ja`; the language of an extension can't be used here). |
+| `MARGINALIA_ALLOW_PERSISTENT_LOGIN` | `true` | `false` hides *Save login*. |
+| `MARGINALIA_PERSISTENT_LOGIN_TTL` | `2592000` | How long a saved login lasts, in seconds (30 days). |
+| `MARGINALIA_TRUSTED_PROXIES` | empty | Reverse proxies whose `X-Forwarded-For` header is believed, see [below](#https-and-reverse-proxy). Replaces `-DtrustedProxies`. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>MARGINALIA_DATA</code></td>
+<td><code translate="no" v-pre>~/.marginalia</code> (<code translate="no" v-pre>/var/marginalia/.marginalia</code> in the image)</td>
+<td>Folder of the database, backups, extensions and the key that encrypts API keys. Change it only with a matching volume (<code translate="no" v-pre>./data:/your/folder</code>); the container fixes the owner of this folder on start.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>MARGINALIA_DEFAULT_LANGUAGE</code></td>
+<td><code translate="no" v-pre>en</code></td>
+<td>Language of the login page and of users who have not chosen one (<code translate="no" v-pre>en</code> or <code translate="no" v-pre>ja</code>; the language of an extension can&#x27;t be used here).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>MARGINALIA_ALLOW_PERSISTENT_LOGIN</code></td>
+<td><code translate="no" v-pre>true</code></td>
+<td><code translate="no" v-pre>false</code> hides <em>Save login</em>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>MARGINALIA_PERSISTENT_LOGIN_TTL</code></td>
+<td><code translate="no" v-pre>2592000</code></td>
+<td>How long a saved login lasts, in seconds (30 days).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>MARGINALIA_TRUSTED_PROXIES</code></td>
+<td>empty</td>
+<td>Reverse proxies whose <code translate="no" v-pre>X-Forwarded-For</code> header is believed, see <doc-anchor-trigger to="#https-and-reverse-proxy">below</doc-anchor-trigger>. Replaces <code translate="no" v-pre>-DtrustedProxies</code>.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The same settings can be given as Java options, <code translate="no" v-pre>-Dmarginalia.default-language=ja</code>, which take precedence over the
+variables. A value that does not fit (text for the number of seconds, an unknown language) stops Marginalia from
+starting; the reason is in the log.</p>
 <h2 id="https-and-reverse-proxy">HTTPS and reverse proxy</h2>
 <div class="flex mb-6">
     <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-danger"></div>
@@ -302,8 +360,8 @@ for <code translate="no" v-pre>marginalia.example.com</code>:</p>
 <p>Failed logins are throttled per user and per client address (after 30 failures from one address, logins from it are
 refused for a growing time, up to 15 minutes). Marginalia only believes the <code translate="no" v-pre>X-Forwarded-For</code> header of a proxy you
 name: without it, all users appear to come from the proxy&#x27;s address and 30 failures from anyone block everybody for a
-while. Keep the header in the proxy configuration (as above) and add <code translate="no" v-pre>-DtrustedProxies=&lt;address or range of the proxy&gt;</code>
-to <code translate="no" v-pre>JAVA_TOOL_OPTIONS</code> in <code translate="no" v-pre>docker-compose.yml</code>. A proxy on the Docker host reaches the container from the Docker
+while. Keep the header in the proxy configuration (as above) and set <code translate="no" v-pre>MARGINALIA_TRUSTED_PROXIES=&lt;address or range of the proxy&gt;</code>
+in the <code translate="no" v-pre>environment</code> of <code translate="no" v-pre>docker-compose.yml</code>. A proxy on the Docker host reaches the container from the Docker
 network, normally <code translate="no" v-pre>172.16.0.0/12</code>; several entries are separated by commas. The throttling is kept in memory,
 restarting Marginalia clears it.</p>
 <h2 id="models-on-the-same-machine">Models on the same machine</h2>
@@ -346,8 +404,12 @@ docker compose -f marginalia/plugins/docker-compose.yml run --rm plugins</code><
 that uses them the plugins are always updated together with the application.</p>
 <h2 id="health">Health</h2>
 <p>The image has a Docker health check: <code translate="no" v-pre>docker ps</code> shows <code translate="no" v-pre>(health: starting)</code> while Marginalia starts (up to two
-minutes), then <code translate="no" v-pre>(healthy)</code>. It is <code translate="no" v-pre>unhealthy</code> when port 8080 stops answering with a page. Docker does not restart an
-unhealthy container by itself; use the status for your monitoring or an auto-heal tool.</p>
+minutes), then <code translate="no" v-pre>(healthy)</code>. It is <code translate="no" v-pre>unhealthy</code> when <code translate="no" v-pre>http://localhost:8080/health</code> stops answering with <code translate="no" v-pre>200</code>. Docker
+does not restart an unhealthy container by itself; use the status for your monitoring or an auto-heal tool.</p>
+<p><code translate="no" v-pre>/health</code> needs no login, so a monitoring tool or a load balancer can use it too (through the proxy:
+<code translate="no" v-pre>https://marginalia.example.com/health</code>). It answers <code translate="no" v-pre>200</code> and <code translate="no" v-pre>{&quot;status&quot;:&quot;UP&quot;}</code> when Marginalia runs and its database
+answers, and <code translate="no" v-pre>503</code> with <code translate="no" v-pre>{&quot;status&quot;:&quot;DOWN&quot;,...}</code> while it is starting or when something is wrong. It shows nothing else
+(no version, no details); the log has the reason.</p>
 <h2 id="logs">Logs</h2>
 <div id="logs-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">docker compose logs -f marginalia</code></pre>
@@ -389,7 +451,7 @@ unhealthy container by itself; use the status for your monitoring or an auto-hea
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (d9769004d).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (8642aa378).</p></div>
             </footer>
         </div>
     </div>

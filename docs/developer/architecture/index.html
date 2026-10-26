@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846319153878">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846321223290">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846319153878" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846321223290" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846319153878" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846321223290" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846319153878" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846319153878" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846321223290" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846321223290" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -559,41 +559,69 @@ through a bean reference are transactional, not calls of a service to its own me
 logged-in user&#x27;s id, login and name into it; services inject <code translate="no" v-pre>User</code> and use it to set and check ownership
 (<code translate="no" v-pre>OwnedService.findAllForUser()</code>, <code translate="no" v-pre>findForUser(uuid)</code>). Code running outside a request (generation threads) needs the
 request attributes copied over - see <doc-anchor-trigger to="#threads-and-push">Threads and push</doc-anchor-trigger>.</p>
-<p><strong>Configuration</strong> comes from <code translate="no" v-pre>src/main/webapp/config/configuration.properties</code>:</p>
-<retype-table copy-text="| Key | Default | |
-|---|---|---|
-| `allowPersistentLogin` | `true` | Whether *Save login* is offered. |
-| `persistentLoginTTL` | `2592000` | Lifetime of saved logins in seconds (30 days). |
-| `trustedProxies` | empty | Reverse proxies (addresses or CIDR ranges, comma separated) whose `X-Forwarded-For` header is believed when finding the client address for [login throttling](services.md#login-throttling). Empty: the header is ignored. Can also be given as `-DtrustedProxies=...`. |">
+<p><strong>Configuration</strong> is read by the property placeholder of <code translate="no" v-pre>application-config.xml</code> and wired to the <code translate="no" v-pre>configuration</code> and
+<code translate="no" v-pre>localization</code> beans in <code translate="no" v-pre>container-config.xml</code>. Each setting is a property <code translate="no" v-pre>marginalia.&lt;name&gt;</code> that can be given as an
+environment variable (<code translate="no" v-pre>MARGINALIA_&lt;NAME&gt;</code>, dots and dashes become underscores) or a <code translate="no" v-pre>-D</code> system property, both before
+the older keys of <code translate="no" v-pre>src/main/webapp/config/configuration.properties</code>, which stay as the fallback:</p>
+<retype-table copy-text="| Setting (environment variable) | File key | Default | |
+|---|---|---|---|
+| `marginalia.data` (`MARGINALIA_DATA`) | | `~/.marginalia` | The application folder (database, data, backups, extensions, `secret.key`). The Docker entrypoint reads the same variable to fix the owner of the folder. An empty value keeps the default. |
+| `marginalia.default-language` (`MARGINALIA_DEFAULT_LANGUAGE`) | | `en` | Language of the login page and of users who chose none (`LocalizationImpl.setDefaultLanguageCode`). It must be a bundle of the application (`en`, `ja`), not one of an extension: those are loaded after the start and a code without a bundle stops the start. |
+| `marginalia.allow-persistent-login` (`MARGINALIA_ALLOW_PERSISTENT_LOGIN`) | `allowPersistentLogin` | `true` | Whether *Save login* is offered. |
+| `marginalia.persistent-login-ttl` (`MARGINALIA_PERSISTENT_LOGIN_TTL`) | `persistentLoginTTL` | `2592000` | Lifetime of saved logins in seconds (30 days). |
+| `marginalia.trusted-proxies` (`MARGINALIA_TRUSTED_PROXIES`) | `trustedProxies` | empty | Reverse proxies (addresses or CIDR ranges, comma separated) whose `X-Forwarded-For` header is believed when finding the client address for [login throttling](services.md#login-throttling). Empty: the header is ignored. `-DtrustedProxies=...` still works. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
 <tr>
-<th>Key</th>
+<th>Setting (environment variable)</th>
+<th>File key</th>
 <th>Default</th>
 <th> </th>
 </tr>
 </thead>
 <tbody>
 <tr>
+<td><code translate="no" v-pre>marginalia.data</code> (<code translate="no" v-pre>MARGINALIA_DATA</code>)</td>
+<td> </td>
+<td><code translate="no" v-pre>~/.marginalia</code></td>
+<td>The application folder (database, data, backups, extensions, <code translate="no" v-pre>secret.key</code>). The Docker entrypoint reads the same variable to fix the owner of the folder. An empty value keeps the default.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>marginalia.default-language</code> (<code translate="no" v-pre>MARGINALIA_DEFAULT_LANGUAGE</code>)</td>
+<td> </td>
+<td><code translate="no" v-pre>en</code></td>
+<td>Language of the login page and of users who chose none (<code translate="no" v-pre>LocalizationImpl.setDefaultLanguageCode</code>). It must be a bundle of the application (<code translate="no" v-pre>en</code>, <code translate="no" v-pre>ja</code>), not one of an extension: those are loaded after the start and a code without a bundle stops the start.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>marginalia.allow-persistent-login</code> (<code translate="no" v-pre>MARGINALIA_ALLOW_PERSISTENT_LOGIN</code>)</td>
 <td><code translate="no" v-pre>allowPersistentLogin</code></td>
 <td><code translate="no" v-pre>true</code></td>
 <td>Whether <em>Save login</em> is offered.</td>
 </tr>
 <tr>
+<td><code translate="no" v-pre>marginalia.persistent-login-ttl</code> (<code translate="no" v-pre>MARGINALIA_PERSISTENT_LOGIN_TTL</code>)</td>
 <td><code translate="no" v-pre>persistentLoginTTL</code></td>
 <td><code translate="no" v-pre>2592000</code></td>
 <td>Lifetime of saved logins in seconds (30 days).</td>
 </tr>
 <tr>
+<td><code translate="no" v-pre>marginalia.trusted-proxies</code> (<code translate="no" v-pre>MARGINALIA_TRUSTED_PROXIES</code>)</td>
 <td><code translate="no" v-pre>trustedProxies</code></td>
 <td>empty</td>
-<td>Reverse proxies (addresses or CIDR ranges, comma separated) whose <code translate="no" v-pre>X-Forwarded-For</code> header is believed when finding the client address for <a href="../services/#login-throttling">login throttling</a>. Empty: the header is ignored. Can also be given as <code translate="no" v-pre>-DtrustedProxies=...</code>.</td>
+<td>Reverse proxies (addresses or CIDR ranges, comma separated) whose <code translate="no" v-pre>X-Forwarded-For</code> header is believed when finding the client address for <a href="../services/#login-throttling">login throttling</a>. Empty: the header is ignored. <code translate="no" v-pre>-DtrustedProxies=...</code> still works.</td>
 </tr>
 </tbody>
 </table>
 </div>
 </retype-table>
+<p>A new setting needs the placeholder in <code translate="no" v-pre>container-config.xml</code> (<code translate="no" v-pre>${marginalia.some-name:default}</code>) and a row here and in
+the <a href="../../user/getting-started/docker-server/#environment-variables">Docker server</a> page. A value of the wrong type
+(<code translate="no" v-pre>MARGINALIA_PERSISTENT_LOGIN_TTL=abc</code>) stops the start with the Spring error.</p>
+<p><strong>Health endpoint.</strong> <code translate="no" v-pre>GET /health</code> (<code translate="no" v-pre>ui.main.HealthServlet</code>, registered in <code translate="no" v-pre>WebappApplicationInitializer</code> with an exact
+mapping that wins over the <code translate="no" v-pre>/*</code> of the Vaadin servlet) needs no login and answers <code translate="no" v-pre>200 {&quot;status&quot;:&quot;UP&quot;}</code> when the root
+application context is active and <code translate="no" v-pre>SELECT 1</code> runs on the data source, else <code translate="no" v-pre>503</code> with <code translate="no" v-pre>{&quot;status&quot;:&quot;DOWN&quot;,&quot;context&quot;:..., &quot;database&quot;:...}</code>; the context that is still starting counts as down. <code translate="no" v-pre>HEAD</code> is answered without a body. It reveals no
+version or other detail, the cause of a failure is in the log. The Docker <code translate="no" v-pre>HEALTHCHECK</code> uses it.</p>
 <h2 id="user-interface">User interface</h2>
 <div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">flowchart TB
     Main[&quot;Main (route /)&lt;br/&gt;LoginCheckRoute&quot;] --&gt; WS[&quot;DesktopWorkspace&quot;]
@@ -1074,7 +1102,7 @@ refused, so an extension can&#x27;t replace English.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (d9769004d).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (8642aa378).</p></div>
             </footer>
         </div>
     </div>
