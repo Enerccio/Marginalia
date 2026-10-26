@@ -13,10 +13,11 @@
     flex-shrink: 0;
 }
 
-/* The script or the tags of a section: scrolls instead of growing without end */
+/* The script or the tags of a section: a fixed height (smaller in a small window) that scrolls instead of growing with the text */
 .manga-output {
+    height: 22em;
     max-height: 55vh;
-    min-height: 4em;
+    box-sizing: border-box;
     overflow-y: auto;
     padding: var(--lumo-space-s);
     background-color: var(--lumo-contrast-5pct);
