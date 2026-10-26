@@ -38,4 +38,74 @@ public interface StoryCard {
      */
     void restartStreaming(ChatMessage msg);
 
+    /**
+     * Whether the card is the one of the last part of the story.
+     */
+    boolean isLast();
+
+    // --- what the menu items of a part do; the menu shows only what makes sense for the card ---
+
+    /**
+     * Opens the editor of the text, or saves the edit when it is open.
+     */
+    void toggleEdit();
+
+    void discardEdit();
+
+    void regenerate();
+
+    void swipe();
+
+    /**
+     * Has the model write the part again, see the redraft dialog.
+     */
+    void redraft();
+
+    /**
+     * Makes a note about the text selected in the part.
+     */
+    void annotateSelection();
+
+    /**
+     * Makes a note about the whole part.
+     */
+    void annotatePart();
+
+    /**
+     * Has the model propose notes for the part.
+     */
+    void annotateWithAi();
+
+    /**
+     * Has the model write the passage selected in the part again.
+     */
+    void redraftSelection();
+
+    /**
+     * Copies the text selected in the part to the clipboard.
+     */
+    void copySelection();
+
+    void branch();
+
+    void mergeIntoPrevious();
+
+    void showPrompt();
+
+    void showTokenUsage();
+
+    void openImagesDialog();
+
+    /**
+     * Opens the dialog that shows or generates the summary of the part.
+     */
+    void openSummaryDialog();
+
+    void confirmDeleteSummary();
+
+    /**
+     * Asks, then deletes the part (what followed it continues from its parent).
+     */
+    void confirmDelete();
+
 }

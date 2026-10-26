@@ -161,7 +161,7 @@ changes, the tag keeps its old name.
 
 The keys of the [story editor shortcuts](books/story-editor.md#keyboard-shortcuts) (they work in the story
 editor on a computer, the [phone layout](phone.md) has none).
-The table lists every action, also the ones [extensions](extensions/index.md) bring, with its key.
+The table lists every action, also the ones [extensions](extensions/index.md) bring, with its key. Every item of the story's settings menu, of the menu of a part and of the right click menu of its text is an action here (most have no key until you give them one), and the menus show the key next to the item.
 
 | Button | |
 |---|---|

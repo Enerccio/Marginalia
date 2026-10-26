@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.RedraftService;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
+import com.github.enerccio.marginalia.ui.widgets.LazyContextMenu;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -70,9 +71,12 @@ public class CardAnnotations {
      * @param editor   the text area the part is edited in; null while it is not edited
      * @param saveEdit saves the edit of the part and leaves the editor: the offsets of a selection in the editor are the ones of the saved text
      * @param redraftSelection redrafts the passage of the part the author selected (the menu of the text has an item for it)
+     * @param prepareTextMenu  called each time the menu of the text (right click, long press) is about to open: adds its items the first
+     *                         time, updates them after; the menu is made here because it finds the selection before the menu takes it away
      */
     public CardAnnotations(Localization loc, StoryAnnotations annotations, Supplier<ChatMessage> message, Markdown response,
-                           Supplier<TextArea> editor, Runnable saveEdit, Consumer<RedraftService.Passage> redraftSelection) {
+                           Supplier<TextArea> editor, Runnable saveEdit, Consumer<RedraftService.Passage> redraftSelection,
+                           Consumer<ContextMenu> prepareTextMenu) {
         this.loc = loc;
         this.annotations = annotations;
         this.message = message;
@@ -98,10 +102,8 @@ public class CardAnnotations {
         // the menu of the buttons of the card takes the selection away, so the text has a menu of its own (right click, long press) that
         // finds it, and keeps the copy of the browser's menu, which it replaces
         JavascriptLibrary.rememberSelectionOnContextMenu(response.getElement(), AnnotationService.CONTEXT_LENGTH / 2);
-        ContextMenu textMenu = new ContextMenu(response);
-        textMenu.addItem(loc.getValue(L.LABEL_ANNOTATE_SELECTION), event -> annotateSelection());
-        textMenu.addItem(loc.getValue(L.LABEL_REDRAFT_SELECTION), event -> redraftSelection());
-        textMenu.addItem(loc.getValue(L.LABEL_COPY), event -> JavascriptLibrary.copySelection(response.getElement()));
+        ContextMenu[] textMenu = new ContextMenu[1];
+        textMenu[0] = new LazyContextMenu(response, () -> prepareTextMenu.accept(textMenu[0]));
         response.getElement().addEventListener("annotation-click",
                 event -> show(event.getEventData().get("event.detail.ids").asString())).addEventData("event.detail.ids");
     }
@@ -216,6 +218,13 @@ public class CardAnnotations {
      */
     public void annotatePart() {
         AnnotationDialog.open(null, (text, type, send) -> annotations.create(message.get(), null, null, text, type, send));
+    }
+
+    /**
+     * Copies the text the author selected to the clipboard.
+     */
+    public void copySelection() {
+        JavascriptLibrary.copySelection(response.getElement());
     }
 
     /**
