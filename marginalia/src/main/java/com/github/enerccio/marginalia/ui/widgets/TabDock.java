@@ -214,7 +214,7 @@ public class TabDock extends Div implements Restorable {
     /**
      * Shows the tab after (or before) the one shown last, going through the tabs of all sheets in the order of the layout
      * (the columns from the left, the sheets of a column from the top) and round from the last to the first. Tabs that are
-     * disabled are skipped. Starts at the first tab when none was shown yet.
+     * disabled are skipped. Goes on from the tab on the screen (the first sheet's selected one) when none was shown yet.
      *
      * @param step 1 for the next tab, -1 for the previous one
      * @return false when there is no tab to show
@@ -240,6 +240,14 @@ public class TabDock extends Div implements Restorable {
             return false;
         }
         int at = order.indexOf(currentId);
+        for (Group group : allGroups()) {
+            if (at >= 0) {
+                break;
+            }
+            // none shown by a call or a click yet: go on from the tab on the screen, the selected one of the first sheet
+            Entry entry = group.sheet == null ? null : entryOf(group.sheet.getSelectedTab());
+            at = entry == null ? -1 : order.indexOf(entry.id);
+        }
         return select(order.get(at < 0 ? 0 : Math.floorMod(at + step, order.size())));
     }
 

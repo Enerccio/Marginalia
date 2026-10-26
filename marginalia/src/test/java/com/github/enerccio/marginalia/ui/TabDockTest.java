@@ -184,10 +184,8 @@ class TabDockTest extends MarginaliaTestBase {
         dock.setLayout(columns("\"a\",\"b\"", null, "\"c\"", "\"d\""));
         List<TabSheet> shown = sheets(dock);
 
-        // nothing shown yet by a call: the first tab, then on
+        // nothing shown yet by a call: on from the tab on the screen (A)
         assertThat(dock.selectRelative(1)).isTrue();
-        assertThat(shown.get(0).getSelectedTab().getLabel()).isEqualTo("A");
-        dock.selectRelative(1);
         assertThat(shown.get(0).getSelectedTab().getLabel()).isEqualTo("B");
         dock.selectRelative(1);
         assertThat(shown.get(1).getSelectedTab().getLabel()).isEqualTo("C");
