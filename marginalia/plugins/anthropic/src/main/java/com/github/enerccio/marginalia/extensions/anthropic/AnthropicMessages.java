@@ -16,6 +16,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import static com.github.enerccio.marginalia.extensions.anthropic.AnthropicLocalization.T;
+
 /**
  * The payload of the application as the messages of a Claude request.
  * <p>
@@ -167,8 +169,7 @@ final class AnthropicMessages {
             return new Prepared(null, turns);
         }
         if (turns.get(0).assistant || turns.get(turns.size() - 1).assistant) {
-            throw new InferenceException(Type.BAD_REQUEST, null, "The payload has to start and end with a message of the user, "
-                    + "Claude does not continue an answer", null);
+            throw new InferenceException(Type.BAD_REQUEST, null, T.localized("The payload has to start and end with a message of the user, Claude does not continue an answer"), null);
         }
         return new Prepared(system.length() == 0 ? null : system.toString(), turns);
     }

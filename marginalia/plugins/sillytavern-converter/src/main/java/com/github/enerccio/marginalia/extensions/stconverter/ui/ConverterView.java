@@ -52,6 +52,8 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.github.enerccio.marginalia.extensions.stconverter.STConverterLocalization.T;
+
 /**
  * The tab of the converter next to the story: the SillyTavern chat the author loaded and the turn details the model
  * prepared from it, both kept with the book. Above the two lists the model for the wand, the range of the chat the wand works
@@ -195,11 +197,11 @@ public class ConverterView extends VerticalLayout {
         // after the initial choice: it was not made by the user
         picker.addSelectionListener(this::modelChanged);
 
-        fromField = rangeField("From");
-        toField = rangeField("To");
+        fromField = rangeField(T.localized("From"));
+        toField = rangeField(T.localized("To"));
         fromField.addValueChangeListener(e -> rangeTyped());
         toField.addValueChangeListener(e -> rangeTyped());
-        Button allButton = new Button("All", e -> {
+        Button allButton = new Button(T.localized("All"), e -> {
             resetRange();
             rangeChanged();
         });
@@ -208,7 +210,7 @@ public class ConverterView extends VerticalLayout {
         tokenInfo.addClassName(CssStyles.TEXT_SECONDARY);
         tokenInfo.setWidthFull();
 
-        wandButton = new Button("Convert range", Solid.WAND_MAGIC_SPARKLES.create(), e -> {
+        wandButton = new Button(T.localized("Convert range"), Solid.WAND_MAGIC_SPARKLES.create(), e -> {
             if (generating) {
                 stop();
             } else {
@@ -216,10 +218,10 @@ public class ConverterView extends VerticalLayout {
             }
         });
         wandButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
-        wandButton.setTooltipText("Ask the model for the turn details of the messages in the range");
+        wandButton.setTooltipText(T.localized("Ask the model for the turn details of the messages in the range"));
         promptButton = new Button(Solid.PEN.create(), e -> openPromptDialog());
         promptButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
-        promptButton.setTooltipText("Edit the prompt of the wand");
+        promptButton.setTooltipText(T.localized("Edit the prompt of the wand"));
 
         HorizontalLayout fields = new HorizontalLayout(fromField, toField, allButton);
         // the buttons sit on the line of the bottom of the fields, not of their labels
@@ -238,9 +240,8 @@ public class ConverterView extends VerticalLayout {
         rangeBar.setAlignItems(FlexComponent.Alignment.END);
         rangeBar.setPadding(false);
 
-        alignBox = new Checkbox("Align to turns", data.isAlign());
-        alignBox.setTooltipText("The range starts at the beginning of a turn and ends with a message of the character "
-                + "(the end of the range moves back to the last message of the character before it)");
+        alignBox = new Checkbox(T.localized("Align to turns"), data.isAlign());
+        alignBox.setTooltipText(T.localized("The range starts at the beginning of a turn and ends with a message of the character (the end of the range moves back to the last message of the character before it)"));
         alignBox.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 data.setAlign(e.getValue());
@@ -249,15 +250,15 @@ public class ConverterView extends VerticalLayout {
                 rangeChanged();
             }
         });
-        autoButton = new Button("Auto mode", Solid.GEARS.create(), e -> autoBar.setVisible(!autoBar.isVisible()));
+        autoButton = new Button(T.localized("Auto mode"), Solid.GEARS.create(), e -> autoBar.setVisible(!autoBar.isVisible()));
         autoButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
-        autoButton.setTooltipText("Convert the whole range in batches of messages, one request after another");
+        autoButton.setTooltipText(T.localized("Convert the whole range in batches of messages, one request after another"));
         HorizontalLayout options = new HorizontalLayout(alignBox, autoButton);
         options.setAlignItems(FlexComponent.Alignment.CENTER);
         options.setSpacing(false);
         options.setPadding(false);
 
-        batchField = new IntegerField("Messages per batch");
+        batchField = new IntegerField(T.localized("Messages per batch"));
         batchField.setMin(1);
         batchField.setMax(1000);
         batchField.addThemeName("small");
@@ -271,7 +272,7 @@ public class ConverterView extends VerticalLayout {
                 updateTokenInfo();
             }
         });
-        autoStartButton = new Button("Convert in batches", Solid.FORWARD.create(), e -> {
+        autoStartButton = new Button(T.localized("Convert in batches"), Solid.FORWARD.create(), e -> {
             if (generating) {
                 stop();
             } else {
@@ -279,7 +280,7 @@ public class ConverterView extends VerticalLayout {
             }
         });
         autoStartButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
-        autoStartButton.setTooltipText("Ask the model for the turn details of the range, one batch of messages after another");
+        autoStartButton.setTooltipText(T.localized("Ask the model for the turn details of the range, one batch of messages after another"));
         autoInfo = new Span();
         autoInfo.addClassName(CssStyles.TEXT_SECONDARY);
         autoInfo.setWidthFull();
@@ -292,7 +293,7 @@ public class ConverterView extends VerticalLayout {
         autoBar.setAlignItems(FlexComponent.Alignment.END);
         autoBar.setVisible(false);
 
-        hint = new Span("Click a message to start a range, Shift+click to extend it.");
+        hint = new Span(T.localized("Click a message to start a range, Shift+click to extend it."));
         hint.addClassName(STConverterStyles.HINT);
         status = new Span();
         status.addClassName(CssStyles.NOTICE_WARNING);
@@ -304,7 +305,7 @@ public class ConverterView extends VerticalLayout {
         convertContent.setSpacing(false);
         convertContent.setPadding(false);
         convertContent.getThemeList().add("spacing-xs");
-        convertDetails = new Details("Convert to turn details", convertContent);
+        convertDetails = new Details(T.localized("Convert to turn details"), convertContent);
         convertDetails.setOpened(false);
         convertDetails.setWidthFull();
 
@@ -342,8 +343,8 @@ public class ConverterView extends VerticalLayout {
         tabs = new TabSheet();
         tabs.setWidthFull();
         tabs.addClassName(STConverterStyles.TABS);
-        chatTab = new Tab("Chat");
-        turnsTab = new Tab("Turn details");
+        chatTab = new Tab(T.localized("Chat"));
+        turnsTab = new Tab(T.localized("Turn details"));
         tabs.add(chatTab, chatPanel);
         tabs.add(turnsTab, turnsPanel);
 
@@ -379,7 +380,7 @@ public class ConverterView extends VerticalLayout {
             Div text = new Div(new Span(row.line().getText()));
             text.addClassNames(CssStyles.PRE_WRAP, CssStyles.WRAP_ANYWHERE);
             return new Div(name, text);
-        }).setHeader("Message").setFlexGrow(1);
+        }).setHeader(T.localized("Message")).setFlexGrow(1);
         chatGrid.setPartNameGenerator(row -> {
             StringBuilder parts = new StringBuilder(STConverterStyles.PART_CLICKABLE);
             if (row.number() >= from && row.number() <= to) {
@@ -411,8 +412,8 @@ public class ConverterView extends VerticalLayout {
             turnGrid.getDataProvider().refreshItem(turn);
             refreshTurnSummary();
         })).setHeader("✓").setWidth("45px").setFlexGrow(0);
-        turnGrid.addColumn(TurnItem::messages).setHeader("Msgs").setWidth("65px").setFlexGrow(0);
-        turnGrid.addComponentColumn(ConverterView::turnContent).setHeader("Turn").setFlexGrow(1);
+        turnGrid.addColumn(TurnItem::messages).setHeader(T.localized("Msgs")).setWidth("65px").setFlexGrow(0);
+        turnGrid.addComponentColumn(ConverterView::turnContent).setHeader(T.localized("Turn")).setFlexGrow(1);
         turnGrid.addComponentColumn(turn -> {
             Button delete = new Button(Solid.TRASH.create(), e -> {
                 data.getTurns().remove(turn);
@@ -420,7 +421,7 @@ public class ConverterView extends VerticalLayout {
                 refreshTurns();
             });
             delete.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
-            delete.setTooltipText("Delete the turn details");
+            delete.setTooltipText(T.localized("Delete the turn details"));
             return delete;
         }).setWidth("50px").setFlexGrow(0);
         turnGrid.setPartNameGenerator(turn -> STConverterStyles.PART_CLICKABLE
@@ -428,19 +429,19 @@ public class ConverterView extends VerticalLayout {
                 + (data.getTurns().indexOf(turn) + 1 == turnCursor ? " " + STConverterStyles.PART_CURRENT : ""));
         turnGrid.addItemClickListener(e -> {
             if (!opener.open(e.getItem())) {
-                Notification.warning("The new turn form of the story is not available");
+                Notification.warning(T.localized("The new turn form of the story is not available"));
             }
         });
-        turnGrid.setTooltipGenerator(turn -> "Click to put the turn details into the new turn form");
+        turnGrid.setTooltipGenerator(turn -> T.localized("Click to put the turn details into the new turn form"));
     }
 
     /** The four fields of a turn in one element, each under a bold line with its name (the fields without text are left out). */
     private static Div turnContent(TurnItem turn) {
         Div content = new Div();
-        addField(content, "Scene setting", turn.getSceneSetting());
-        addField(content, "POV character", turn.getPovCharacter());
-        addField(content, "Present characters", turn.getPresentCharacters());
-        addField(content, "Instructions", turn.getInstructions());
+        addField(content, T.localized("Scene setting"), turn.getSceneSetting());
+        addField(content, T.localized("POV character"), turn.getPovCharacter());
+        addField(content, T.localized("Present characters"), turn.getPresentCharacters());
+        addField(content, T.localized("Instructions"), turn.getInstructions());
         return content;
     }
 
@@ -478,7 +479,7 @@ public class ConverterView extends VerticalLayout {
             upload.setAcceptedFileTypes(".jsonl", ".json", "application/json", "application/x-ndjson");
             upload.setMaxFiles(1);
             upload.setMaxFileSize(64 * 1024 * 1024);
-            Span explanation = new Span("Upload a SillyTavern chat (.jsonl, without branches). It is kept with the book.");
+            Span explanation = new Span(T.localized("Upload a SillyTavern chat (.jsonl, without branches). It is kept with the book."));
             explanation.addClassName(STConverterStyles.HINT);
             VerticalLayout empty = new VerticalLayout(explanation, upload);
             empty.setPadding(true);
@@ -490,9 +491,9 @@ public class ConverterView extends VerticalLayout {
         chatSummary.addClassNames(CssStyles.TEXT_SECONDARY, STConverterStyles.ELLIPSIS);
         Button next = nextUncheckedButton(this::nextUncheckedMessage);
         Button remove = new Button(Solid.XMARK.create(), e -> ConfirmDialog.show(
-                "Remove the chat and the turn details made of it from the book?", this::removeChat));
+                T.localized("Remove the chat and the turn details made of it from the book?"), this::removeChat));
         remove.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
-        remove.setTooltipText("Remove the chat");
+        remove.setTooltipText(T.localized("Remove the chat"));
         HorizontalLayout buttons = new HorizontalLayout(next, remove);
         buttons.setSpacing(false);
         HorizontalLayout header = new HorizontalLayout(chatSummary, buttons);
@@ -517,9 +518,9 @@ public class ConverterView extends VerticalLayout {
     private void refreshChatSummary() {
         if (chatSummary != null) {
             long reviewed = data.getChat().stream().filter(ChatLine::isReviewed).count();
-            chatSummary.setText(data.getChat().size() + " messages, " + reviewed + " checked");
+            chatSummary.setText(T.localized("%d messages, %d checked").formatted(data.getChat().size(), reviewed));
             // the name of the file can be long
-            chatSummary.getElement().setProperty("title", StringUtils.defaultIfBlank(data.getFileName(), "chat"));
+            chatSummary.getElement().setProperty("title", StringUtils.defaultIfBlank(data.getFileName(), T.localized("chat")));
         }
     }
 
@@ -530,9 +531,9 @@ public class ConverterView extends VerticalLayout {
             lineTokens = null;
             resetRange();
             refreshAll();
-            Notification.success(count + " messages loaded");
+            Notification.success(T.localized("%d messages loaded").formatted(count));
         } catch (IllegalArgumentException e) {
-            Notification.warning(StringUtils.defaultIfBlank(e.getMessage(), "Not a SillyTavern chat") + " (" + fileName + ")");
+            Notification.warning(StringUtils.defaultIfBlank(e.getMessage(), T.localized("Not a SillyTavern chat")) + " (" + fileName + ")");
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -557,7 +558,7 @@ public class ConverterView extends VerticalLayout {
     private static Button nextUncheckedButton(Runnable action) {
         Button button = new Button(Solid.ANGLES_DOWN.create(), e -> action.run());
         button.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
-        button.setTooltipText("Go to the next unchecked row");
+        button.setTooltipText(T.localized("Go to the next unchecked row"));
         return button;
     }
 
@@ -568,7 +569,7 @@ public class ConverterView extends VerticalLayout {
         List<ChatLine> chat = data.getChat();
         int index = ConverterService.nextUnchecked(chat.size(), chatCursor, i -> chat.get(i).isReviewed());
         if (index < 0) {
-            Notification.success("All messages are checked");
+            Notification.success(T.localized("All messages are checked"));
             return;
         }
         chatCursor = index + 1;
@@ -580,7 +581,7 @@ public class ConverterView extends VerticalLayout {
         List<TurnItem> turns = data.getTurns();
         int index = ConverterService.nextUnchecked(turns.size(), turnCursor, i -> turns.get(i).isReviewed());
         if (index < 0) {
-            Notification.success(turns.isEmpty() ? "There are no turn details" : "All turns are checked");
+            Notification.success(turns.isEmpty() ? T.localized("There are no turn details") : T.localized("All turns are checked"));
             return;
         }
         turnCursor = index + 1;
@@ -599,9 +600,9 @@ public class ConverterView extends VerticalLayout {
     private void refreshTurnSummary() {
         long reviewed = data.getTurns().stream().filter(TurnItem::isReviewed).count();
         turnSummary.setText(data.getTurns().isEmpty()
-                ? "No turn details yet: choose a range and use the wand."
-                : data.getTurns().size() + " turns, " + reviewed + " checked. Click one to open it in the new turn form.");
-        turnsTab.setLabel("Turn details (" + data.getTurns().size() + ")");
+                ? T.localized("No turn details yet: choose a range and use the wand.")
+                : T.localized("%d turns, %d checked. Click one to open it in the new turn form.").formatted(data.getTurns().size(), reviewed));
+        turnsTab.setLabel(T.localized("Turn details (%d)").formatted(data.getTurns().size()));
     }
 
     // --- the range ---
@@ -707,13 +708,13 @@ public class ConverterView extends VerticalLayout {
                 baseTokens = 0L;
             }
         }
-        tokenInfo.setText((to - from + 1) + " messages: about " + numbers.format(chatTokens + baseTokens)
-                + " tokens (chat " + numbers.format(chatTokens) + " + prompt " + numbers.format(baseTokens) + ")");
+        tokenInfo.setText(T.localized("%d messages: about %s tokens (chat %s + prompt %s)").formatted(to - from + 1,
+                numbers.format(chatTokens + baseTokens), numbers.format(chatTokens), numbers.format(baseTokens)));
 
         // the auto mode sends the range in batches, each with the prompt
         int requests = ConverterService.splitBlocks(chat, from, to, data.getBatchSize(), data.isAlign()).size();
-        autoInfo.setText(requests + (requests == 1 ? " request" : " requests") + ", about "
-                + numbers.format(chatTokens + baseTokens * requests) + " tokens in all");
+        autoInfo.setText((requests == 1 ? T.localized("%d request, about %s tokens in all") : T.localized("%d requests, about %s tokens in all"))
+                .formatted(requests, numbers.format(chatTokens + baseTokens * requests)));
     }
 
     // --- the wand ---
@@ -733,12 +734,12 @@ public class ConverterView extends VerticalLayout {
             requestScope = fresh;
         }
         if (data.getChat().isEmpty()) {
-            Notification.warning("Load a chat first");
+            Notification.warning(T.localized("Load a chat first"));
             return false;
         }
         AI ai = picker.getAi();
         if (ai == null) {
-            Notification.warning("Choose a model");
+            Notification.warning(T.localized("Choose a model"));
             return false;
         }
         try {
@@ -749,7 +750,7 @@ public class ConverterView extends VerticalLayout {
             InferenceService inference = inferenceServices.forAIOrThrow(ai);
             generating = true;
             updateControls();
-            showStatus(progress("Waiting for the model..."));
+            showStatus(progress(T.localized("Waiting for the model...")));
             try {
                 running = inference.stream(service.toPayload(prompt), picker.getProtocol(), schema, null, callback(runFrom, runTo));
             } catch (Exception e) {
@@ -768,7 +769,7 @@ public class ConverterView extends VerticalLayout {
         } catch (Exception e) {
             // most likely a prompt that is not a valid template
             STConverterLog.get().warn("Can't convert", e);
-            autoProblem = "Can't convert: " + StringUtils.defaultIfBlank(e.getMessage(), e.toString());
+            autoProblem = T.localized("Can't convert: %s").formatted(StringUtils.defaultIfBlank(e.getMessage(), e.toString()));
             Notification.error(autoProblem, Notification.DURATION_LONGER);
             showStatus(autoProblem);
         }
@@ -777,8 +778,12 @@ public class ConverterView extends VerticalLayout {
 
     /** The text with the batch the auto mode is at in front of it. */
     private String progress(String text) {
-        return autoBlocks == null ? text : "Batch " + (autoIndex + 1) + " of " + autoBlocks.size()
-                + (autoAttempt > 0 ? " (try " + (autoAttempt + 1) + " of " + MAX_ATTEMPTS + ")" : "") + ": " + text;
+        if (autoBlocks == null) {
+            return text;
+        }
+        return autoAttempt > 0
+                ? T.localized("Batch %d of %d (try %d of %d): %s").formatted(autoIndex + 1, autoBlocks.size(), autoAttempt + 1, MAX_ATTEMPTS, text)
+                : T.localized("Batch %d of %d: %s").formatted(autoIndex + 1, autoBlocks.size(), text);
     }
 
     private InferenceService.InferenceAsyncCallback callback(int runFrom, int runTo) {
@@ -790,9 +795,9 @@ public class ConverterView extends VerticalLayout {
                         output.append(text);
                         JsonNode partial = PartialJson.parse(output.toString());
                         int turns = partial != null && partial.path("turns").isArray() ? partial.path("turns").size() : 0;
-                        showStatus(progress("Writing the turn details... " + turns + " so far"));
+                        showStatus(progress(T.localized("Writing the turn details... %d so far").formatted(turns)));
                     } else {
-                        showStatus(progress("The model is thinking..."));
+                        showStatus(progress(T.localized("The model is thinking...")));
                     }
                     UIPushGuard.push(ui);
                     controller.continueInference();
@@ -836,7 +841,7 @@ public class ConverterView extends VerticalLayout {
                 } else {
                     updateControls();
                 }
-                Notification.error("Can't go on: " + StringUtils.defaultIfBlank(e.getMessage(), e.toString()));
+                Notification.error(T.localized("Can't go on: %s").formatted(StringUtils.defaultIfBlank(e.getMessage(), e.toString())));
             }
             UIPushGuard.push(ui);
         });
@@ -855,11 +860,11 @@ public class ConverterView extends VerticalLayout {
             usable = false;
         } else if (stopped) {
             if (autoBlocks == null) {
-                Notification.warning("Stopped, nothing was changed");
+                Notification.warning(T.localized("Stopped, nothing was changed"));
             }
             usable = false;
         } else if (output.isEmpty()) {
-            autoProblem = "The model did not answer.";
+            autoProblem = T.localized("The model did not answer.");
             showStatus(autoProblem);
         } else {
             accepted = accept(runFrom, runTo);
@@ -899,8 +904,8 @@ public class ConverterView extends VerticalLayout {
             }
             baseTokens = null;
             tabs.setSelectedTab(turnsTab);
-            Notification.success(added.size() + " turns for the messages " + runFrom + "-" + runTo
-                    + (replaced > 0 ? " (" + replaced + " earlier ones replaced)" : ""));
+            Notification.success(T.localized("%1$d turns for the messages %2$d-%3$d").formatted(added.size(), runFrom, runTo)
+                    + (replaced > 0 ? T.localized(" (%d earlier ones replaced)").formatted(replaced) : ""));
             return true;
         } catch (Exception e) {
             STConverterLog.get().warn("The answer of the model is not usable: {}", e.getMessage());
@@ -929,8 +934,8 @@ public class ConverterView extends VerticalLayout {
         if (blocks.isEmpty()) {
             return;
         }
-        ConfirmDialog.show("Convert the messages " + from + "-" + to + " in " + blocks.size() + " requests to the model, "
-                + "one after another? The earlier turn details of the range that you have not ticked are replaced.", () -> {
+        ConfirmDialog.show(T.localized("Convert the messages %d-%d in %d requests to the model, one after another? The earlier turn details of the range that you have not ticked are replaced.")
+                .formatted(from, to, blocks.size()), () -> {
             autoBlocks = blocks;
             autoIndex = 0;
             autoOriginal = new int[]{from, to, anchor};
@@ -989,11 +994,11 @@ public class ConverterView extends VerticalLayout {
         updateControls();
         if (complete) {
             tabs.setSelectedTab(turnsTab);
-            Notification.success(added + " turns made in " + total + " requests"
-                    + (replaced > 0 ? " (" + replaced + " earlier ones replaced)" : ""));
+            Notification.success(T.localized("%1$d turns made in %2$d requests").formatted(added, total)
+                    + (replaced > 0 ? T.localized(" (%d earlier ones replaced)").formatted(replaced) : ""));
         } else {
-            String message = "Stopped after " + done + " of " + total + " requests (" + added + " turns made)"
-                    + (autoProblem != null ? ": " + autoProblem : "") + ". The range is what is left.";
+            String message = T.localized("Stopped after %d of %d requests (%d turns made)").formatted(done, total, added)
+                    + (autoProblem != null ? ": " + autoProblem : "") + T.localized(". The range is what is left.");
             // the notification goes away, the status line stays until the next request
             Notification.warning(message, Notification.DURATION_LONGER);
             showStatus(message);
@@ -1004,18 +1009,18 @@ public class ConverterView extends VerticalLayout {
 
     private void openPromptDialog() {
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle("Prompt of the wand");
+        dialog.setHeaderTitle(T.localized("Prompt of the wand"));
         dialog.setWidth("800px");
         TextArea area = new TextArea();
         area.setWidthFull();
         area.setMinHeight("360px");
         area.setMaxHeight("70vh");
         area.setValue(service.promptTemplate(data));
-        area.setHelperText("Variables: {{backgroundLore}}, {{chat}}, {{firstMessage}}, {{lastMessage}}, {{previousTurn}}");
+        area.setHelperText(T.localized("Variables: {{backgroundLore}}, {{chat}}, {{firstMessage}}, {{lastMessage}}, {{previousTurn}}"));
         dialog.add(area);
-        Button defaults = new Button("Default", e -> area.setValue(Defaults.PROMPT));
-        Button cancel = new Button("Cancel", e -> dialog.close());
-        Button save = new Button("Save", e -> {
+        Button defaults = new Button(T.localized("Default"), e -> area.setValue(Defaults.PROMPT));
+        Button cancel = new Button(T.localized("Cancel"), e -> dialog.close());
+        Button save = new Button(T.localized("Save"), e -> {
             String value = area.getValue();
             data.setPrompt(StringUtils.isBlank(value) || value.strip().equals(Defaults.PROMPT.strip()) ? null : value);
             persist();
@@ -1057,13 +1062,13 @@ public class ConverterView extends VerticalLayout {
         batchField.setEnabled(!generating);
         autoButton.setEnabled(!generating);
         wandButton.setEnabled(autoBlocks == null);
-        autoStartButton.setText(generating ? "Stop" : "Convert in batches");
+        autoStartButton.setText(generating ? T.localized("Stop") : T.localized("Convert in batches"));
         autoStartButton.setIcon((generating ? Solid.STOP : Solid.FORWARD).create());
         autoStartButton.removeThemeVariants(ButtonVariant.LUMO_ERROR);
         if (generating) {
             autoStartButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
         }
-        wandButton.setText(generating ? "Stop" : "Convert range");
+        wandButton.setText(generating ? T.localized("Stop") : T.localized("Convert range"));
         wandButton.setIcon((generating ? Solid.STOP : Solid.WAND_MAGIC_SPARKLES).create());
         wandButton.removeThemeVariants(ButtonVariant.LUMO_ERROR);
         if (generating) {

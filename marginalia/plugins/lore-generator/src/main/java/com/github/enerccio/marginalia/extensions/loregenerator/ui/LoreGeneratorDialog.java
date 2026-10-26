@@ -8,9 +8,9 @@ import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.domain.service.tool.ToolSelection;
 import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
-import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.extensions.loregenerator.model.LoreEntryGeneration;
 import com.github.enerccio.marginalia.extensions.loregenerator.model.LoreGeneratorData;
 import com.github.enerccio.marginalia.extensions.loregenerator.service.Defaults;
@@ -44,6 +44,8 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.github.enerccio.marginalia.extensions.loregenerator.LoreGeneratorLocalization.T;
 
 /**
  * Generates the content of a lore entry: a generation from the lore and a prompt, then a compaction of the result.
@@ -96,7 +98,7 @@ public class LoreGeneratorDialog extends Dialog {
         this.entry = entry;
         this.onEntryChanged = onEntryChanged;
 
-        setHeaderTitle("Generate lore entry: " + StringUtils.defaultString(entry.getName()));
+        setHeaderTitle(T.localized("Generate lore entry: %s").formatted(StringUtils.defaultString(entry.getName())));
         setWidth("90vw");
         setHeight("90vh");
         // closing while the inference runs would leave it running without anyone to read it
@@ -138,7 +140,7 @@ public class LoreGeneratorDialog extends Dialog {
         main.getThemeList().add("spacing-xs");
 
         if (StringUtils.isNotBlank(entry.getPayload())) {
-            Span warning = new Span("This lore entry already has content. Copying the result to it replaces the content and the note.");
+            Span warning = new Span(T.localized("This lore entry already has content. Copying the result to it replaces the content and the note."));
             warning.addClassName(CssStyles.NOTICE_WARNING);
             warning.setWidthFull();
             main.add(warning);
@@ -146,18 +148,18 @@ public class LoreGeneratorDialog extends Dialog {
 
         scopeGroup = new RadioButtonGroup<>();
         scopeGroup.setItems(LoreScope.CURRENT_LOREBOOK, LoreScope.ALL_LORE);
-        scopeGroup.setItemLabelGenerator(scope -> scope == LoreScope.ALL_LORE ? "All Lore" : "Current Lorebook");
+        scopeGroup.setItemLabelGenerator(scope -> scope == LoreScope.ALL_LORE ? T.localized("All Lore") : T.localized("Current Lorebook"));
         scopeGroup.setValue(LoreScope.CURRENT_LOREBOOK);
 
         limitGroup = new RadioButtonGroup<>();
         limitGroup.setItems(EntryLimit.UP_TO_POSITION, EntryLimit.ALL_ENTRIES);
         limitGroup.setItemLabelGenerator(limit -> limit == EntryLimit.ALL_ENTRIES
-                ? "All entries" : "Only up to position (" + entry.getOrder() + ")");
+                ? T.localized("All entries") : T.localized("Only up to position (%d)").formatted(entry.getOrder()));
         limitGroup.setValue(EntryLimit.UP_TO_POSITION);
 
         promptCombo = new ComboBox<>();
-        promptCombo.setPlaceholder("Generation prompt");
-        promptCombo.setAriaLabel("Generation prompt");
+        promptCombo.setPlaceholder(T.localized("Generation prompt"));
+        promptCombo.setAriaLabel(T.localized("Generation prompt"));
         promptCombo.setAllowCustomValue(false);
         promptCombo.setWidth("320px");
         promptCombo.addValueChangeListener(e -> {
@@ -166,9 +168,9 @@ public class LoreGeneratorDialog extends Dialog {
                 rememberPrompt(e.getValue());
             }
         });
-        saveButton = new Button("Save", e -> savePrompt(promptCombo.getValue()));
-        saveAsButton = new Button("Save as", e -> openSaveAsDialog());
-        deleteButton = new Button("Delete", e -> deletePrompt());
+        saveButton = new Button(T.localized("Save"), e -> savePrompt(promptCombo.getValue()));
+        saveAsButton = new Button(T.localized("Save as"), e -> openSaveAsDialog());
+        deleteButton = new Button(T.localized("Delete"), e -> deletePrompt());
         deleteButton.setThemeName("error");
 
         // only when a tool suite is installed (names, places...)
@@ -183,18 +185,18 @@ public class LoreGeneratorDialog extends Dialog {
         header.setFlexGrow(1, promptCombo);
 
         // the text area keeps its place in the dialog and scrolls its own text, it does not grow with the prompt
-        promptArea = new TextArea("Prompt");
+        promptArea = new TextArea(T.localized("Prompt"));
         promptArea.setWidthFull();
         promptArea.setMinHeight("120px");
 
-        generationPane = new GenerationPane("Run Generation", this::runGeneration, this::stop);
-        compactionPane = new GenerationPane("Run Compaction", this::runCompaction, this::stop);
+        generationPane = new GenerationPane(T.localized("Run Generation"), this::runGeneration, this::stop);
+        compactionPane = new GenerationPane(T.localized("Run Compaction"), this::runCompaction, this::stop);
 
         tabs = new TabSheet();
         tabs.setSizeFull();
         tabs.addClassNames(CssStyles.MIN_HEIGHT_0, CssStyles.OVERFLOW_HIDDEN);
-        generationTab = tabs.add("Generation", generationPane);
-        compactionTab = tabs.add("Compaction", compactionPane);
+        generationTab = tabs.add(T.localized("Generation"), generationPane);
+        compactionTab = tabs.add(T.localized("Compaction"), compactionPane);
 
         attachmentPanel = new AttachmentPanel(promptArea);
 
@@ -230,8 +232,8 @@ public class LoreGeneratorDialog extends Dialog {
         main.addClassNames(CssStyles.MIN_HEIGHT_0, CssStyles.OVERFLOW_HIDDEN);
         add(main);
 
-        exitButton = new Button("Exit", e -> close());
-        copyButton = new Button("Copy to Lore Entry", e -> copyToEntry());
+        exitButton = new Button(T.localized("Exit"), e -> close());
+        copyButton = new Button(T.localized("Copy to Lore Entry"), e -> copyToEntry());
         copyButton.setThemeName("primary");
         getFooter().add(exitButton, copyButton);
     }
@@ -252,7 +254,7 @@ public class LoreGeneratorDialog extends Dialog {
             data.setLastGenerationPrompt(name);
             service.saveData(data);
             selectPromptKeepingText(name);
-            Notification.success("Prompt saved");
+            Notification.success(T.localized("Prompt saved"));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -266,7 +268,7 @@ public class LoreGeneratorDialog extends Dialog {
     private void openSaveAsDialog() {
         new SavePromptAsDialog(newName -> {
             if (data.getGenerationPrompts().containsKey(newName)) {
-                ConfirmDialog.show("Prompt '" + newName + "' already exists, overwrite it?", () -> savePrompt(newName));
+                ConfirmDialog.show(T.localized("Prompt '%s' already exists, overwrite it?").formatted(newName), () -> savePrompt(newName));
             } else {
                 savePrompt(newName);
             }
@@ -278,7 +280,7 @@ public class LoreGeneratorDialog extends Dialog {
         if (name == null) {
             return;
         }
-        ConfirmDialog.show("Delete prompt '" + name + "'?", () -> {
+        ConfirmDialog.show(T.localized("Delete prompt '%s'?").formatted(name), () -> {
             try {
                 data = service.getData();
                 data.getGenerationPrompts().remove(name);
@@ -364,7 +366,7 @@ public class LoreGeneratorDialog extends Dialog {
 
     private void runGeneration() {
         if (StringUtils.isBlank(promptArea.getValue())) {
-            Notification.warning("The prompt is empty");
+            Notification.warning(T.localized("The prompt is empty"));
             return;
         }
         // the compaction of an older generation does not belong to the new one
@@ -396,7 +398,7 @@ public class LoreGeneratorDialog extends Dialog {
 
     private void start(GenerationPane pane, String prompt, List<LLMAttachment> sent, FunctionSet functions) throws Exception {
         if (modelPicker.getAi() == null) {
-            Notification.warning("Choose a model");
+            Notification.warning(T.localized("Choose a model"));
             updateControls();
             return;
         }
@@ -510,7 +512,7 @@ public class LoreGeneratorDialog extends Dialog {
             service.putEntryGeneration(fresh, currentGeneration());
             entry = lorebookEntryService.save(fresh);
             onEntryChanged.run();
-            Notification.success("Copied to the lore entry");
+            Notification.success(T.localized("Copied to the lore entry"));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }

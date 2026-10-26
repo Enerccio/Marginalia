@@ -30,6 +30,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineLocalization.T;
+
 /**
  * The Arcs tab of the story sidebar: the arcs of the book with their chapters, colored by their state. The outline is
  * kept in memory while the tab is open and stored in the book after every change.
@@ -125,9 +127,9 @@ public class ArcOutlineView extends VerticalLayout {
     }
 
     private void buildUI() {
-        Button addArc = new Button("Add new arc", Solid.PLUS.create(), _ -> {
+        Button addArc = new Button(T.localized("Add new arc"), Solid.PLUS.create(), _ -> {
             Arc arc = new Arc();
-            new OutlineNodeDialog("New arc", arc, () -> {
+            new OutlineNodeDialog(T.localized("New arc"), arc, () -> {
                 outline.add(arc);
                 persist();
             }).open();
@@ -137,21 +139,21 @@ public class ArcOutlineView extends VerticalLayout {
         // the wand: a new arc from the specification, or one summarizing the written story
         Button generate = new Button(Solid.WAND_MAGIC_SPARKLES.create());
         generate.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        generate.setAriaLabel("Generate an arc");
-        generate.setTooltipText("Generate an arc");
+        generate.setAriaLabel(T.localized("Generate an arc"));
+        generate.setTooltipText(T.localized("Generate an arc"));
         ContextMenu generateMenu = new ContextMenu(generate);
         generateMenu.setOpenOnClick(true);
-        generateMenu.addItem(UIUtils.menuItemWithIcon(Solid.WAND_MAGIC_SPARKLES.create(), "Generate an arc"), _ ->
+        generateMenu.addItem(UIUtils.menuItemWithIcon(Solid.WAND_MAGIC_SPARKLES.create(), T.localized("Generate an arc")), _ ->
                 new ArcGeneratorDialog(service, manuscript, outline, this::addGenerated).open());
-        generateMenu.addItem(UIUtils.menuItemWithIcon(Solid.FILE_IMPORT.create(), "Import from story"), _ -> importFromStory());
+        generateMenu.addItem(UIUtils.menuItemWithIcon(Solid.FILE_IMPORT.create(), T.localized("Import from story")), _ -> importFromStory());
 
         HorizontalLayout buttons = new HorizontalLayout(addArc, generate);
         if (instructionsTarget != null) {
             // the model drafts the instructions of the next turn from the chapter the story is at
             Button draft = new Button(Solid.PEN_FANCY.create());
             draft.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-            draft.setAriaLabel("Draft the instructions for the current chapter");
-            draft.setTooltipText("Draft the instructions for the current chapter");
+            draft.setAriaLabel(T.localized("Draft the instructions for the current chapter"));
+            draft.setTooltipText(T.localized("Draft the instructions for the current chapter"));
             draft.addClickListener(_ -> draftInstructions());
             buttons.add(draft);
         }
@@ -176,12 +178,12 @@ public class ArcOutlineView extends VerticalLayout {
             return;
         }
         if (chapter == null) {
-            Notification.warning("There is no current chapter: mark one as current, or leave one planned");
+            Notification.warning(T.localized("There is no current chapter: mark one as current, or leave one planned"));
             return;
         }
         ImpersonateDialog.open(manuscript, instructionsTarget.turn(), chapter, text -> {
             if (!instructionsTarget.put(text)) {
-                Notification.warning("The story has no place for the instructions");
+                Notification.warning(T.localized("The story has no place for the instructions"));
             }
         });
     }
@@ -204,7 +206,7 @@ public class ArcOutlineView extends VerticalLayout {
             return;
         }
         if (messages.isEmpty()) {
-            Notification.warning("The active branch has no text to import");
+            Notification.warning(T.localized("The active branch has no text to import"));
             return;
         }
         new StoryImportDialog(service, manuscript, outline, messages, this::addGenerated).open();
@@ -213,7 +215,7 @@ public class ArcOutlineView extends VerticalLayout {
     private void refresh() {
         list.removeAll();
         if (outline.arcs().isEmpty()) {
-            Div empty = new Div(new Span("There are no arcs yet."));
+            Div empty = new Div(new Span(T.localized("There are no arcs yet.")));
             empty.addClassName(ArcOutlineStyles.EMPTY);
             list.add(empty);
             return;
@@ -241,40 +243,40 @@ public class ArcOutlineView extends VerticalLayout {
     private Component createArcCard(Arc arc) {
         boolean isCollapsed = collapsed.contains(arc.getUuid());
         Button toggle = iconButton((isCollapsed ? Solid.CHEVRON_DOWN : Solid.CHEVRON_UP).create(),
-                isCollapsed ? "Show chapters" : "Hide chapters", _ -> {
+                isCollapsed ? T.localized("Show chapters") : T.localized("Hide chapters"), _ -> {
                     if (!collapsed.remove(arc.getUuid())) {
                         collapsed.add(arc.getUuid());
                     }
                     refresh();
                 });
 
-        Button up = iconButton(Solid.ARROW_UP.create(), "Move arc up", _ -> {
+        Button up = iconButton(Solid.ARROW_UP.create(), T.localized("Move arc up"), _ -> {
             outline.moveUp(arc);
             persist();
         });
         up.setEnabled(outline.canMoveUp(arc));
-        Button down = iconButton(Solid.ARROW_DOWN.create(), "Move arc down", _ -> {
+        Button down = iconButton(Solid.ARROW_DOWN.create(), T.localized("Move arc down"), _ -> {
             outline.moveDown(arc);
             persist();
         });
         down.setEnabled(outline.canMoveDown(arc));
-        Button addChapter = iconButton(Solid.PLUS.create(), "Add chapter", _ -> {
+        Button addChapter = iconButton(Solid.PLUS.create(), T.localized("Add chapter"), _ -> {
             Chapter chapter = new Chapter();
-            new OutlineNodeDialog("New chapter in " + arc.getTitle(), chapter, () -> {
+            new OutlineNodeDialog(T.localized("New chapter in %s").formatted(arc.getTitle()), chapter, () -> {
                 outline.add(arc, chapter);
                 collapsed.remove(arc.getUuid());
                 persist();
             }).open();
         });
-        Button generateChapters = iconButton(Solid.WAND_MAGIC_SPARKLES.create(), "Generate chapters", _ ->
+        Button generateChapters = iconButton(Solid.WAND_MAGIC_SPARKLES.create(), T.localized("Generate chapters"), _ ->
                 new ChapterGeneratorDialog(service, manuscript, outline, arc, chapters -> {
                     chapters.forEach(chapter -> outline.add(arc, chapter));
                     collapsed.remove(arc.getUuid());
                     persist();
                 }).open());
-        Button edit = iconButton(Solid.PEN.create(), "Edit arc", _ ->
-                new OutlineNodeDialog("Edit arc", arc, this::persist).open());
-        Button delete = iconButton(Solid.TRASH.create(), "Delete arc", _ -> confirmDelete(arc));
+        Button edit = iconButton(Solid.PEN.create(), T.localized("Edit arc"), _ ->
+                new OutlineNodeDialog(T.localized("Edit arc"), arc, this::persist).open());
+        Button delete = iconButton(Solid.TRASH.create(), T.localized("Delete arc"), _ -> confirmDelete(arc));
 
         List<Component> actions = new ArrayList<>();
         // only an arc the model wrote has something to show
@@ -286,13 +288,13 @@ public class ArcOutlineView extends VerticalLayout {
     }
 
     private Component createChapterCard(Arc arc, Chapter chapter) {
-        Button up = iconButton(Solid.ARROW_UP.create(), "Move chapter up", _ -> moveChapter(chapter, true));
+        Button up = iconButton(Solid.ARROW_UP.create(), T.localized("Move chapter up"), _ -> moveChapter(chapter, true));
         up.setEnabled(outline.canMoveUp(chapter));
-        Button down = iconButton(Solid.ARROW_DOWN.create(), "Move chapter down", _ -> moveChapter(chapter, false));
+        Button down = iconButton(Solid.ARROW_DOWN.create(), T.localized("Move chapter down"), _ -> moveChapter(chapter, false));
         down.setEnabled(outline.canMoveDown(chapter));
-        Button edit = iconButton(Solid.PEN.create(), "Edit chapter", _ ->
-                new OutlineNodeDialog("Edit chapter", chapter, this::persist).open());
-        Button delete = iconButton(Solid.TRASH.create(), "Delete chapter", _ -> confirmDelete(chapter));
+        Button edit = iconButton(Solid.PEN.create(), T.localized("Edit chapter"), _ ->
+                new OutlineNodeDialog(T.localized("Edit chapter"), chapter, this::persist).open());
+        Button delete = iconButton(Solid.TRASH.create(), T.localized("Delete chapter"), _ -> confirmDelete(chapter));
 
         List<Component> actions = new ArrayList<>();
         if (wasGenerated(chapter)) {
@@ -306,7 +308,7 @@ public class ArcOutlineView extends VerticalLayout {
         Button noteToggle = null;
         if (hasNote) {
             noteToggle = iconButton((showNote ? Solid.CHEVRON_UP : Solid.CHEVRON_DOWN).create(),
-                    showNote ? "Hide the note" : "Show the note", _ -> {
+                    showNote ? T.localized("Hide the note") : T.localized("Show the note"), _ -> {
                         if (!notesShown.remove(chapter.getUuid())) {
                             notesShown.add(chapter.getUuid());
                         }
@@ -344,19 +346,19 @@ public class ArcOutlineView extends VerticalLayout {
      * of the way.
      */
     private Button createGenerationInfo(OutlineNode node) {
-        Button button = iconButton(Solid.ROBOT.create(), "Generated by the model - show the reasoning and the answer", null);
+        Button button = iconButton(Solid.ROBOT.create(), T.localized("Generated by the model - show the reasoning and the answer"), null);
 
         Div content = new Div();
         content.addClassName(ArcOutlineStyles.GENERATION);
         if (StringUtils.isNotBlank(node.getGenerationReasoning())) {
-            Span heading = new Span("Reasoning");
+            Span heading = new Span(T.localized("Reasoning"));
             heading.addClassName(ArcOutlineStyles.GENERATION_HEADING);
             Markdown reasoning = new Markdown(node.getGenerationReasoning());
             reasoning.addClassName(ArcOutlineStyles.GENERATION_TEXT);
             content.add(heading, reasoning);
         }
         if (StringUtils.isNotBlank(node.getGenerationResult())) {
-            Span heading = new Span("Answer");
+            Span heading = new Span(T.localized("Answer"));
             heading.addClassName(ArcOutlineStyles.GENERATION_HEADING);
             Div json = new Div(new Span(node.getGenerationResult()));
             json.addClassName(ArcOutlineStyles.GENERATION_JSON);
@@ -376,12 +378,12 @@ public class ArcOutlineView extends VerticalLayout {
             case CURRENT -> Solid.PLAY.create();
             case FINISHED -> Solid.CHECK.create();
         };
-        Button button = iconButton(icon, node.getState().getLabel() + " - change the state", null);
+        Button button = iconButton(icon, T.localized("%s - change the state").formatted(T.localized(node.getState().getLabel())), null);
 
         ContextMenu menu = new ContextMenu(button);
         menu.setOpenOnClick(true);
         for (OutlineState state : OutlineState.values()) {
-            menu.addItem(state.getLabel(), _ -> {
+            menu.addItem(T.localized(state.getLabel()), _ -> {
                 if (state != node.getState()) {
                     node.setState(state);
                     persist();
@@ -404,8 +406,9 @@ public class ArcOutlineView extends VerticalLayout {
 
     private void confirmDelete(Arc arc) {
         int chapters = arc.getChapters().size();
-        String message = "Delete the arc " + arc.getTitle()
-                + (chapters > 0 ? " with its " + chapters + (chapters == 1 ? " chapter?" : " chapters?") : "?");
+        String message = chapters == 0 ? T.localized("Delete the arc %s?").formatted(arc.getTitle())
+                : chapters == 1 ? T.localized("Delete the arc %s with its %d chapter?").formatted(arc.getTitle(), chapters)
+                : T.localized("Delete the arc %s with its %d chapters?").formatted(arc.getTitle(), chapters);
         ConfirmDialog.show(message, () -> {
             outline.delete(arc);
             collapsed.remove(arc.getUuid());
@@ -414,7 +417,7 @@ public class ArcOutlineView extends VerticalLayout {
     }
 
     private void confirmDelete(Chapter chapter) {
-        ConfirmDialog.show("Delete the chapter " + chapter.getTitle() + "?", () -> {
+        ConfirmDialog.show(T.localized("Delete the chapter %s?").formatted(chapter.getTitle()), () -> {
             outline.delete(chapter);
             notesShown.remove(chapter.getUuid());
             persist();

@@ -10,6 +10,8 @@ import java.io.InterruptedIOException;
 import java.net.SocketTimeoutException;
 import java.util.regex.Pattern;
 
+import static com.github.enerccio.marginalia.extensions.googlegenai.GoogleGenAiLocalization.T;
+
 /**
  * Maps what the SDK throws to an {@link InferenceException}, so the user sees what to fix (the application knows its
  * types and shows a text for each).
@@ -47,11 +49,13 @@ final class GoogleGenAiErrors {
      * the tokens went to the thinking.
      */
     static InferenceException noAnswer(String reason, String message) {
-        String text = "The model gave no answer (" + reason + ")";
+        String text;
         if ("MAX_TOKENS".equals(reason)) {
-            text += ": the response size was used up before the first word, raise it or lower the reasoning effort";
+            text = T.localized("The model gave no answer (%s): the response size was used up before the first word, raise it or lower the reasoning effort").formatted(reason);
         } else if (StringUtils.isNotBlank(message)) {
-            text += ": " + message;
+            text = T.localized("The model gave no answer (%s): %s").formatted(reason, message);
+        } else {
+            text = T.localized("The model gave no answer (%s)").formatted(reason);
         }
         return new InferenceException(Type.BAD_REQUEST, null, text, null);
     }

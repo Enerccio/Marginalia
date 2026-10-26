@@ -26,6 +26,8 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import static com.github.enerccio.marginalia.extensions.authorsnote.AuthorsNoteLocalization.T;
+
 @Configurable
 public class AuthorsNoteExtension implements MarginaliaExtension {
 
@@ -65,7 +67,7 @@ public class AuthorsNoteExtension implements MarginaliaExtension {
                         }
 
                         AuthorsNoteView view = new AuthorsNoteView(currentManuscript, authorsNoteService);
-                        leftBar.add("authors-note", "Author's Note", view);
+                        leftBar.add("authors-note", T.localized("Author's Note"), view);
 
                         ComponentUtil.setData(leftBar, AUTHORS_NOTE_VIEW_KEY, view);
                         activeTabSheets.add(leftBar);

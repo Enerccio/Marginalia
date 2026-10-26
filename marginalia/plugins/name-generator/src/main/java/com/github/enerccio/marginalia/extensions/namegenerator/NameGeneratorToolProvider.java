@@ -9,6 +9,8 @@ import com.github.enerccio.marginalia.domain.service.tool.ToolRequest;
 
 import java.util.*;
 
+import static com.github.enerccio.marginalia.extensions.namegenerator.NameGeneratorLocalization.T;
+
 /**
  * The name generator as a tool suite: every category of names is an item, and the functions the model gets know only the
  * categories that are checked. The same suite is offered as the commands {@link NameGeneratorCommands}.
@@ -45,7 +47,7 @@ public class NameGeneratorToolProvider implements ToolProvider {
 
     @Override
     public String description() {
-        return "Names made up by Markov chains trained on lists of names: places, deities, companies, surnames of countries... Groups (like all Native American names) pick a category at random for every name.";
+        return T.localized("Names made up by Markov chains trained on lists of names: places, deities, companies, surnames of countries... Groups (like all Native American names) pick a category at random for every name.");
     }
 
     @Override

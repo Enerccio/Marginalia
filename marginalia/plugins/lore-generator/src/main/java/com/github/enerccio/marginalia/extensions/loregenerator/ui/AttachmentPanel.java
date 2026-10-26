@@ -16,6 +16,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.github.enerccio.marginalia.extensions.loregenerator.LoreGeneratorLocalization.T;
+
 /** The files sent with the generation: the upload (also by pasting into the prompt) and the list of what was added. */
 public class AttachmentPanel extends VerticalLayout {
 
@@ -68,7 +70,7 @@ public class AttachmentPanel extends VerticalLayout {
         list.addClassName(CssStyles.OVERFLOW_AUTO);
         list.setMaxHeight("140px");
         list.setMinHeight("0");
-        Span label = new Span("Attachments (images and files sent with the generation)");
+        Span label = new Span(T.localized("Attachments (images and files sent with the generation)"));
         label.addClassName(CssStyles.HINT_TEXT);
         add(label, upload, list);
     }
@@ -88,15 +90,15 @@ public class AttachmentPanel extends VerticalLayout {
     private void refresh() {
         list.removeAll();
         for (LLMAttachment attachment : attachments) {
-            Span label = new Span(StringUtils.defaultIfBlank(attachment.getName(), "attachment")
-                    + " (" + StringUtils.defaultIfBlank(attachment.getMimeType(), "unknown type")
-                    + ", " + (attachment.getData() != null ? attachment.getData().length / 1024 + " kB" : "link") + ")");
+            Span label = new Span(T.localized("%s (%s, %s)").formatted(StringUtils.defaultIfBlank(attachment.getName(), T.localized("attachment")),
+                    StringUtils.defaultIfBlank(attachment.getMimeType(), T.localized("unknown type")),
+                    attachment.getData() != null ? T.localized("%d kB").formatted(attachment.getData().length / 1024) : T.localized("link")));
             Button delete = new Button(Solid.TRASH.create(), e -> {
                 attachments.remove(attachment);
                 refresh();
             });
             delete.setThemeName("error tertiary");
-            delete.setTooltipText("Delete attachment");
+            delete.setTooltipText(T.localized("Delete attachment"));
             delete.setEnabled(!busy);
             HorizontalLayout row = new HorizontalLayout(label, delete);
             row.setAlignItems(FlexComponent.Alignment.CENTER);

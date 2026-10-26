@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
+import static com.github.enerccio.marginalia.extensions.lorebookvcs.LorebookVCSLocalization.T;
+
 @Configurable
 public class LorebookVCSGlobalPanel extends HorizontalLayout {
 
@@ -57,7 +59,7 @@ public class LorebookVCSGlobalPanel extends HorizontalLayout {
     }
 
     private void buildUI() {
-        Span title = new Span("Lorebook Revisions");
+        Span title = new Span(T.localized("Lorebook Revisions"));
         title.addClassName(CssStyles.TEXT_BOLD);
 
         Anchor exportAnchor = new Anchor(new InputStreamDownloadHandler((InputStreamDownloadCallback) downloadEvent -> {
@@ -75,19 +77,19 @@ public class LorebookVCSGlobalPanel extends HorizontalLayout {
 
         Button exportBtn = new Button(Solid.FILE_EXPORT.create());
         exportBtn.setThemeName("tertiary icon small");
-        exportBtn.setTooltipText("Export VCS History JSON");
+        exportBtn.setTooltipText(T.localized("Export VCS History JSON"));
         exportAnchor.add(exportBtn);
 
         Button importBtn = new Button(Solid.FILE_IMPORT.create());
         importBtn.setThemeName("tertiary icon small");
-        importBtn.setTooltipText("Import VCS History JSON");
+        importBtn.setTooltipText(T.localized("Import VCS History JSON"));
 
         ContextMenu importMenu = new ContextMenu();
         importMenu.setTarget(importBtn);
         importMenu.setOpenOnClick(true);
 
-        importMenu.addItem("Import Marginalia VCS JSON", e -> openImportDialog(false));
-        importMenu.addItem("Import SillyTavern VCS Extension JSON", e -> openImportDialog(true));
+        importMenu.addItem(T.localized("Import Marginalia VCS JSON"), e -> openImportDialog(false));
+        importMenu.addItem(T.localized("Import SillyTavern VCS Extension JSON"), e -> openImportDialog(true));
 
         HorizontalLayout rightGroup = new HorizontalLayout(importBtn, exportAnchor);
         rightGroup.setAlignItems(Alignment.CENTER);
@@ -99,13 +101,14 @@ public class LorebookVCSGlobalPanel extends HorizontalLayout {
     private void openImportDialog(boolean isSillyTavernFormat) {
         Lorebook lorebook = lorebookSupplier.get();
         if (lorebook == null) {
-            Notification.warning("No active lorebook selected");
+            Notification.warning(T.localized("No active lorebook selected"));
             return;
         }
 
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle((isSillyTavernFormat ? "Import SillyTavern VCS History" : "Import Lorebook VCS History")
-                + " into " + StringUtils.defaultString(lorebook.getName()));
+        dialog.setHeaderTitle((isSillyTavernFormat
+                ? T.localized("Import SillyTavern VCS History into %s")
+                : T.localized("Import Lorebook VCS History into %s")).formatted(StringUtils.defaultString(lorebook.getName())));
         dialog.setWidth("450px");
 
         InMemoryUploadHandler handler = new InMemoryUploadHandler((metadata, data) -> {
@@ -119,24 +122,23 @@ public class LorebookVCSGlobalPanel extends HorizontalLayout {
                 } else {
                     parsed = vcsService.parseVCSJson(json);
                     if (parsed == null) {
-                        Notification.error("Invalid VCS history format");
+                        Notification.error(T.localized("Invalid VCS history format"));
                         return;
                     }
 
                     String fileUuid = parsed.getLorebookUuid();
                     if (StringUtils.isNotBlank(fileUuid) && !StringUtils.equals(fileUuid, lorebook.getUuid())) {
-                        warnings.add("The import file contains revision history of another lorebook (UUID '" + fileUuid
-                                + "'). Its revisions will be mapped onto the entries of '" + lorebook.getName()
-                                + "' by entry name and order.");
+                        warnings.add(T.localized("The import file contains revision history of another lorebook (UUID '%s'). Its revisions will be mapped onto the entries of '%s' by entry name and order.")
+                                .formatted(fileUuid, lorebook.getName()));
                     }
                     int dropped = vcsService.remapEntries(parsed, lorebook);
                     if (dropped > 0) {
-                        warnings.add(dropped + " entry histories match no entry of this lorebook and will be skipped.");
+                        warnings.add(T.localized("%d entry histories match no entry of this lorebook and will be skipped.").formatted(dropped));
                     }
                 }
 
                 if (vcsService.hasHistory(lorebook)) {
-                    warnings.add("The existing revision history of '" + lorebook.getName() + "' will be replaced.");
+                    warnings.add(T.localized("The existing revision history of '%s' will be replaced.").formatted(lorebook.getName()));
                 }
 
                 Runnable doImport = () -> {
@@ -144,7 +146,7 @@ public class LorebookVCSGlobalPanel extends HorizontalLayout {
                         parsed.setLorebookUuid(lorebook.getUuid());
                         vcsService.saveVCSData(lorebook, parsed);
                         dialog.close();
-                        Notification.show("Imported VCS history successfully");
+                        Notification.show(T.localized("Imported VCS history successfully"));
                         if (onDataImported != null) onDataImported.run();
                     } catch (Exception ex) {
                         UIUtils.internalServerError(loc, ex);
@@ -154,7 +156,7 @@ public class LorebookVCSGlobalPanel extends HorizontalLayout {
                 if (warnings.isEmpty()) {
                     doImport.run();
                 } else {
-                    ConfirmDialog.show(String.join("\n\n", warnings) + "\n\nAre you sure?", doImport);
+                    ConfirmDialog.show(String.join("\n\n", warnings) + "\n\n" + T.localized("Are you sure?"), doImport);
                 }
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
@@ -164,7 +166,7 @@ public class LorebookVCSGlobalPanel extends HorizontalLayout {
         Upload upload = new Upload(handler);
         upload.setAcceptedMimeTypes("application/json");
 
-        Button cancelBtn = new Button("Cancel", e -> dialog.close());
+        Button cancelBtn = new Button(T.localized("Cancel"), e -> dialog.close());
 
         VerticalLayout layout = new VerticalLayout(upload);
         layout.setPadding(true);

@@ -26,6 +26,8 @@ import org.springframework.beans.factory.annotation.Configurable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.github.enerccio.marginalia.extensions.anthropic.AnthropicLocalization.T;
+
 /**
  * The settings of a Claude AI in the tab of the AI dialog: the API key, the model (listed from Anthropic), an optional
  * proxy, the timeout and the retries.
@@ -69,7 +71,7 @@ public class AnthropicForm implements ExtensionAIForm {
 
         apiKeyField = new PasswordField(loc.getValue(L.LABEL_API_KEY));
         apiKeyField.setWidthFull();
-        apiKeyField.setHelperText("The key of the Claude Console (platform.claude.com)");
+        apiKeyField.setHelperText(T.localized("The key of the Claude Console (platform.claude.com)"));
         resetApiKeyButton = new Button(loc.getValue(L.LABEL_RESET), event -> {
             apiKeyEditable = true;
             apiKeyField.setEnabled(true);
@@ -95,10 +97,10 @@ public class AnthropicForm implements ExtensionAIForm {
         modelLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
         modelLayout.setFlexGrow(1, modelCombo);
 
-        baseUrlField = new TextField("URL");
+        baseUrlField = new TextField(T.localized("URL"));
         baseUrlField.setWidthFull();
         baseUrlField.setPlaceholder("https://api.anthropic.com");
-        baseUrlField.setHelperText("Optional. Empty uses Anthropic's API, set it to go through a proxy.");
+        baseUrlField.setHelperText(T.localized("Optional. Empty uses Anthropic's API, set it to go through a proxy."));
 
         timeoutField = new IntegerField(loc.getValue(L.LABEL_REQUEST_TIMEOUT));
         timeoutField.setMin(1);

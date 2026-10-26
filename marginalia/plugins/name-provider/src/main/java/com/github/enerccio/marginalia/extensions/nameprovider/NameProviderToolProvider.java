@@ -9,6 +9,8 @@ import com.github.enerccio.marginalia.domain.service.tool.ToolRequest;
 
 import java.util.*;
 
+import static com.github.enerccio.marginalia.extensions.nameprovider.NameProviderLocalization.T;
+
 /**
  * The name provider as a tool suite: every list of real names is an item, and the functions the model gets know only the
  * lists that are checked. The same suite is offered as the commands {@link NameProviderCommands}.
@@ -45,7 +47,7 @@ public class NameProviderToolProvider implements ToolProvider {
 
     @Override
     public String description() {
-        return "Real names: the most common forenames and surnames of about 100 countries, with the original spelling. Groups (like the Nordic countries) pick a list at random for every name.";
+        return T.localized("Real names: the most common forenames and surnames of about 100 countries, with the original spelling. Groups (like the Nordic countries) pick a list at random for every name.");
     }
 
     @Override

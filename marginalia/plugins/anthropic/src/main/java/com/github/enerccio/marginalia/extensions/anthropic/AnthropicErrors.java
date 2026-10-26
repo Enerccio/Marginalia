@@ -11,6 +11,8 @@ import java.io.InterruptedIOException;
 import java.net.SocketTimeoutException;
 import java.util.regex.Pattern;
 
+import static com.github.enerccio.marginalia.extensions.anthropic.AnthropicLocalization.T;
+
 /**
  * Maps what the SDK throws to an {@link InferenceException}, so the user sees what to fix (the application knows its
  * types and shows a text for each).
@@ -50,13 +52,15 @@ final class AnthropicErrors {
      */
     static InferenceException noAnswer(String reason, String message) {
         if ("model_context_window_exceeded".equals(reason)) {
-            return new InferenceException(Type.CONTEXT_OVERFLOW, null, "The context window of the model was used up", null);
+            return new InferenceException(Type.CONTEXT_OVERFLOW, null, T.localized("The context window of the model was used up"), null);
         }
-        String text = "The model gave no answer (" + reason + ")";
+        String text;
         if ("max_tokens".equals(reason)) {
-            text += ": the response size was used up before the first word, raise it or lower the reasoning effort";
+            text = T.localized("The model gave no answer (%s): the response size was used up before the first word, raise it or lower the reasoning effort").formatted(reason);
         } else if (StringUtils.isNotBlank(message)) {
-            text += ": " + message;
+            text = T.localized("The model gave no answer (%s): %s").formatted(reason, message);
+        } else {
+            text = T.localized("The model gave no answer (%s)").formatted(reason);
         }
         return new InferenceException(Type.BAD_REQUEST, null, text, null);
     }

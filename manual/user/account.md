@@ -46,7 +46,7 @@ too), and it is used again the next time you log in. The login screen itself is 
 
 The list contains only the languages that are installed. English and Japanese come with Marginalia; an administrator
 can add more by loading an [extension](extensions/index.md), for example
-[Chinese localization](extensions/chinese-localization.md). Texts a language doesn't translate are shown in English.
+[Chinese localization](extensions/chinese-localization.md). Texts a language doesn't translate are shown in English. The bundled extensions bring their own texts in Japanese and Chinese (the Chinese ones show when the Chinese localization is loaded).
 Dates are written the way that language does. Your books and their texts are not translated, only the interface.
 
 ![The Language selector](../images/language-selector.png)

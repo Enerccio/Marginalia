@@ -213,8 +213,9 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     keys (the English text is shown). The hard-coded UI strings found in a sweep (tree node cards, bundle states,
     error dialog, prompt format list, login description) are now keys. Not done:
     - the Japanese and Chinese texts are machine translations nobody who speaks the language has reviewed;
-    - plugins still have English-only texts of their own (they can't add keys to the `L` enum; a plugin can use
-      `Localization.getCurrentLanguage()` for its own tables);
+    - ✅ the plugins' own UI texts are translated into Japanese and Chinese with `PluginLocalizationBundle` (the English
+      sentence is the key, a `...Localization` class in each plugin); not translated: the descriptions of commands and
+      functions (annotation constants), the names plugins register on load (tool suites, Side Query sources);
     - hard-coded text outside the UI classes: default names like "Imported Lorebook" and "Entry" in services, the
       "Contents" title and other fixed words of the exported files (`ExporterBase`), exception messages of services
       (developer-facing, except the ones the UI shows);

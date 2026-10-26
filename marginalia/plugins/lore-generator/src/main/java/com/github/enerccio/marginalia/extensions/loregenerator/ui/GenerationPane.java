@@ -10,13 +10,15 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import org.apache.commons.lang3.StringUtils;
 
+import static com.github.enerccio.marginalia.extensions.loregenerator.LoreGeneratorLocalization.T;
+
 /**
  * A tab: the reasoning, the content and the button that runs or stops the inference.
  */
 public class GenerationPane extends VerticalLayout {
 
     private final Markdown reasoningMarkdown = new Markdown();
-    private final Details reasoningDetails = new Details("Thinking Process");
+    private final Details reasoningDetails = new Details(T.localized("Thinking Process"));
     private final Markdown contentMarkdown = new Markdown();
     private final Button runButton;
     private final String runLabel;
@@ -102,7 +104,7 @@ public class GenerationPane extends VerticalLayout {
      * @param busy an inference runs (in this tab or in the other one): only the running tab can be used, to stop it
      */
     public void setBusy(boolean busy) {
-        runButton.setText(running ? "Stop" : runLabel);
+        runButton.setText(running ? T.localized("Stop") : runLabel);
         runButton.setThemeName(running ? "error primary" : "primary");
         runButton.setEnabled(!busy || running);
     }

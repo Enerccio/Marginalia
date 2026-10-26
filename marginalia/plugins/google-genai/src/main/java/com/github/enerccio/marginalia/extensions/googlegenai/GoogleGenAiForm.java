@@ -27,6 +27,8 @@ import org.springframework.beans.factory.annotation.Configurable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.github.enerccio.marginalia.extensions.googlegenai.GoogleGenAiLocalization.T;
+
 /**
  * The settings of a Gemini AI in the tab of the AI dialog: the API key, the model (listed from Google), an optional
  * proxy, the timeout and the retries, and the safety filters.
@@ -71,7 +73,7 @@ public class GoogleGenAiForm implements ExtensionAIForm {
 
         apiKeyField = new PasswordField(loc.getValue(L.LABEL_API_KEY));
         apiKeyField.setWidthFull();
-        apiKeyField.setHelperText("The key of Google AI Studio (aistudio.google.com/apikey)");
+        apiKeyField.setHelperText(T.localized("The key of Google AI Studio (aistudio.google.com/apikey)"));
         resetApiKeyButton = new Button(loc.getValue(L.LABEL_RESET), event -> {
             apiKeyEditable = true;
             apiKeyField.setEnabled(true);
@@ -97,10 +99,10 @@ public class GoogleGenAiForm implements ExtensionAIForm {
         modelLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
         modelLayout.setFlexGrow(1, modelCombo);
 
-        baseUrlField = new TextField("URL");
+        baseUrlField = new TextField(T.localized("URL"));
         baseUrlField.setWidthFull();
         baseUrlField.setPlaceholder("https://generativelanguage.googleapis.com");
-        baseUrlField.setHelperText("Optional. Empty uses Google's API, set it to go through a proxy.");
+        baseUrlField.setHelperText(T.localized("Optional. Empty uses Google's API, set it to go through a proxy."));
 
         timeoutField = new IntegerField(loc.getValue(L.LABEL_REQUEST_TIMEOUT));
         timeoutField.setMin(1);
@@ -114,9 +116,8 @@ public class GoogleGenAiForm implements ExtensionAIForm {
         retriesField.setHelperText(loc.getValue(L.HELP_AI_MAX_RETRIES));
         retriesField.setWidthFull();
 
-        safetyOffCheckbox = new Checkbox("Turn off the safety filters");
-        safetyOffCheckbox.setHelperText("Sends BLOCK_NONE for the adjustable categories (harassment, hate speech, sexually "
-                + "explicit, dangerous content). Google still blocks some content whatever is sent.");
+        safetyOffCheckbox = new Checkbox(T.localized("Turn off the safety filters"));
+        safetyOffCheckbox.setHelperText(T.localized("Sends BLOCK_NONE for the adjustable categories (harassment, hate speech, sexually explicit, dangerous content). Google still blocks some content whatever is sent."));
 
         layout.add(apiKeyLayout, modelLayout, baseUrlField, timeoutField, retriesField, safetyOffCheckbox);
         layout.setColspan(apiKeyLayout, 2);

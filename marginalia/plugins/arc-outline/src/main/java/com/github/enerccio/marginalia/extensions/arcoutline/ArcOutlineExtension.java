@@ -36,6 +36,8 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import static com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineLocalization.T;
+
 /**
  * Adds the Arcs tab to the left sidebar of the story view.
  */
@@ -124,7 +126,7 @@ public class ArcOutlineExtension implements MarginaliaExtension, ExtensionHasCss
                             }
                         };
                         ArcOutlineView view = new ArcOutlineView(currentManuscript, service, target);
-                        leftBar.add("arc-outline", "Arcs", view);
+                        leftBar.add("arc-outline", T.localized("Arcs"), view);
 
                         ComponentUtil.setData(leftBar, VIEW_KEY, view);
                         activeTabSheets.add(leftBar);
@@ -163,7 +165,7 @@ public class ArcOutlineExtension implements MarginaliaExtension, ExtensionHasCss
                             }
                         });
                     } else {
-                        panel = extensionSettings.add("Arc Outline", new ArcOutlineSettingsForm(service));
+                        panel = extensionSettings.add(T.localized("Arc Outline"), new ArcOutlineSettingsForm(service));
                         ComponentUtil.setData(extensionSettings, SETTINGS_PANEL_KEY, panel);
                         activeAccordions.add(extensionSettings);
                     }

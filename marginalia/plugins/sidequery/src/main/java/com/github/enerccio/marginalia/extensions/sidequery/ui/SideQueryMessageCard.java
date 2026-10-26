@@ -15,6 +15,8 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import org.apache.commons.lang3.StringUtils;
 
+import static com.github.enerccio.marginalia.extensions.sidequery.SideQueryLocalization.T;
+
 public class SideQueryMessageCard extends VerticalLayout {
 
     public interface MessageCardListener {
@@ -80,24 +82,24 @@ public class SideQueryMessageCard extends VerticalLayout {
             if (listener != null) listener.onMoveUp(message, index);
         });
         moveUpBtn.setThemeName("tertiary icon small");
-        moveUpBtn.setTooltipText("Move message up");
+        moveUpBtn.setTooltipText(T.localized("Move message up"));
 
         moveDownBtn = new Button(Solid.ARROW_DOWN.create(), e -> {
             if (listener != null) listener.onMoveDown(message, index);
         });
         moveDownBtn.setThemeName("tertiary icon small");
-        moveDownBtn.setTooltipText("Move message down");
+        moveDownBtn.setTooltipText(T.localized("Move message down"));
 
         editBtn = new Button(Solid.PEN.create(), e -> setEditing(true));
         editBtn.setThemeName("tertiary icon small");
-        editBtn.setTooltipText("Edit message");
+        editBtn.setTooltipText(T.localized("Edit message"));
 
         copyBtn = new Button(Solid.COPY.create(), e -> {
             UI.getCurrent().getPage().executeJs("navigator.clipboard.writeText($0)", message.getContents());
-            Notification.show("Copied to clipboard");
+            Notification.show(T.localized("Copied to clipboard"));
         });
         copyBtn.setThemeName("tertiary icon small");
-        copyBtn.setTooltipText("Copy message");
+        copyBtn.setTooltipText(T.localized("Copy message"));
 
         toggleBtn = new Button();
         toggleBtn.setThemeName("tertiary icon small");
@@ -109,7 +111,7 @@ public class SideQueryMessageCard extends VerticalLayout {
 
         // --- View Mode Body ---
         reasoningMarkdown = new Markdown();
-        reasoningDetails = new Details("Thinking Process", reasoningMarkdown);
+        reasoningDetails = new Details(T.localized("Thinking Process"), reasoningMarkdown);
         reasoningDetails.setWidthFull();
         reasoningDetails.addOpenedChangeListener(e -> message.setReasoningOpened(e.isOpened()));
 
@@ -124,7 +126,7 @@ public class SideQueryMessageCard extends VerticalLayout {
         editHeaderLayout.setWidthFull();
         editHeaderLayout.setAlignItems(Alignment.CENTER);
 
-        Span editSenderSpan = new Span((message.isFromUser() ? "User" : "AI") + " (Editing)");
+        Span editSenderSpan = new Span(T.localized("%s (Editing)").formatted(message.isFromUser() ? T.localized("User") : T.localized("AI")));
         editSenderSpan.addClassName(CssStyles.TEXT_BOLD);
         editHeaderLayout.add(editSenderSpan);
 
@@ -132,14 +134,14 @@ public class SideQueryMessageCard extends VerticalLayout {
         editArea.setWidthFull();
         editArea.setMinHeight("100px");
 
-        Button saveEditBtn = new Button("Save", e -> {
+        Button saveEditBtn = new Button(T.localized("Save"), e -> {
             message.setContents(editArea.getValue());
             setEditing(false);
             if (listener != null) listener.onMessageEdited(message);
         });
         saveEditBtn.setThemeName("primary small");
 
-        Button cancelEditBtn = new Button("Cancel", e -> setEditing(false));
+        Button cancelEditBtn = new Button(T.localized("Cancel"), e -> setEditing(false));
         cancelEditBtn.setThemeName("tertiary small");
 
         editBtnRow = new HorizontalLayout(saveEditBtn, cancelEditBtn);
@@ -155,10 +157,10 @@ public class SideQueryMessageCard extends VerticalLayout {
     }
 
     private void updateCardData() {
-        senderSpan.setText(message.isFromUser() ? "User" : "AI");
+        senderSpan.setText(message.isFromUser() ? T.localized("User") : T.localized("AI"));
 
         toggleBtn.setIcon(message.isIncluded() ? Solid.EYE.create() : Solid.EYE_SLASH.create());
-        toggleBtn.setTooltipText(message.isIncluded() ? "Exclude from context" : "Include in context");
+        toggleBtn.setTooltipText(message.isIncluded() ? T.localized("Exclude from context") : T.localized("Include in context"));
 
         if (StringUtils.isNotBlank(message.getReasoning())) {
             reasoningMarkdown.setContent(message.getReasoning());

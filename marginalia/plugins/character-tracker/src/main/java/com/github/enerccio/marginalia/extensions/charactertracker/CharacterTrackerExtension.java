@@ -32,6 +32,8 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import static com.github.enerccio.marginalia.extensions.charactertracker.CharacterTrackerLocalization.T;
+
 /**
  * Adds the Characters tab to the left sidebar of the story view.
  */
@@ -80,7 +82,7 @@ public class CharacterTrackerExtension implements MarginaliaExtension, Extension
                         }
 
                         CharacterTrackerView view = new CharacterTrackerView(currentManuscript, service);
-                        leftBar.add("character-tracker", "Characters", view);
+                        leftBar.add("character-tracker", T.localized("Characters"), view);
 
                         ComponentUtil.setData(leftBar, VIEW_KEY, view);
                         activeTabSheets.add(leftBar);

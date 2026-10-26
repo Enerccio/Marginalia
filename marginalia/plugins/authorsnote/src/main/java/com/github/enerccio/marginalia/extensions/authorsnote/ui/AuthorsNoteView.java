@@ -17,6 +17,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import static com.github.enerccio.marginalia.extensions.authorsnote.AuthorsNoteLocalization.T;
+
 /**
  * Author's note of a book, edited in the story sidebar. Every change is saved to the book right away, the next
  * generation uses it.
@@ -53,15 +55,15 @@ public class AuthorsNoteView extends VerticalLayout {
     }
 
     private void buildUI() {
-        Checkbox enabled = new Checkbox("Insert into prompt", data.isEnabled());
+        Checkbox enabled = new Checkbox(T.localized("Insert into prompt"), data.isEnabled());
         enabled.addValueChangeListener(e -> {
             data.setEnabled(e.getValue());
             saveData();
             updateTokenEstimate();
         });
 
-        IntegerField depth = new IntegerField("Insertion depth");
-        depth.setHelperText("Messages after the note: 0 = after the instructions, 1 = right before them");
+        IntegerField depth = new IntegerField(T.localized("Insertion depth"));
+        depth.setHelperText(T.localized("Messages after the note: 0 = after the instructions, 1 = right before them"));
         depth.setMin(0);
         depth.setStepButtonsVisible(true);
         depth.setValue(data.getDepth());
@@ -73,10 +75,10 @@ public class AuthorsNoteView extends VerticalLayout {
         });
 
         Select<LLMRole> role = new Select<>();
-        role.setLabel("Role");
+        role.setLabel(T.localized("Role"));
         // a note is text the model reads, not the result of a function call
         role.setItems(LLMRole.SYSTEM, LLMRole.ASSISTANT, LLMRole.USER);
-        role.setItemLabelGenerator(r -> StringUtils.capitalize(r.name().toLowerCase()));
+        role.setItemLabelGenerator(r -> T.localized(StringUtils.capitalize(r.name().toLowerCase())));
         role.setValue(data.getRole());
         role.addValueChangeListener(e -> {
             if (e.getValue() != null) {
@@ -89,7 +91,7 @@ public class AuthorsNoteView extends VerticalLayout {
         depth.setWidthFull();
         role.setWidthFull();
 
-        note = new TextArea("Author's Note");
+        note = new TextArea(T.localized("Author's Note"));
         note.setWidthFull();
         ResizableTextArea.install(loc, note, "160px");
         note.setValue(StringUtils.defaultString(data.getNote()));
@@ -102,8 +104,8 @@ public class AuthorsNoteView extends VerticalLayout {
         });
         updateTokenEstimate();
 
-        TextArea privateNote = new TextArea("Author's Note (private)");
-        privateNote.setHelperText("For you only, never sent to the model");
+        TextArea privateNote = new TextArea(T.localized("Author's Note (private)"));
+        privateNote.setHelperText(T.localized("For you only, never sent to the model"));
         privateNote.setWidthFull();
         ResizableTextArea.install(loc, privateNote, "100px");
         privateNote.setValue(StringUtils.defaultString(data.getPrivateNote()));
@@ -123,12 +125,12 @@ public class AuthorsNoteView extends VerticalLayout {
      * that much less room.
      */
     private void updateTokenEstimate() {
-        String text = "Inserted into the prompt of every generation";
+        String text = T.localized("Inserted into the prompt of every generation");
         try {
             long tokens = authorsNoteService.estimateTokens(manuscript, data.getNote());
             text = data.isEnabled()
-                    ? "~" + tokens + " tokens, taken from the room for the story"
-                    : "~" + tokens + " tokens, not inserted";
+                    ? T.localized("~%d tokens, taken from the room for the story").formatted(tokens)
+                    : T.localized("~%d tokens, not inserted").formatted(tokens);
         } catch (Exception ignored) {
             // no estimate (e.g. the book's model is gone) - the note still works
         }
