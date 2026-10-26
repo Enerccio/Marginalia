@@ -708,7 +708,12 @@
                     <condition property="desktop.tar" value="${env.SystemRoot}\System32\tar.exe" else="tar">
                       <os family="windows"/>
                     </condition>
-                    <property name="desktop.archiveBase" value="marginalia-${project.version}-${desktop.os}-${os.arch}"/>
+                    <!-- Java calls x86-64 "amd64" on Windows and Linux and "x86_64" on macOS: one name for all -->
+                    <condition property="desktop.arch" value="x86_64">
+                      <equals arg1="${os.arch}" arg2="amd64"/>
+                    </condition>
+                    <property name="desktop.arch" value="${os.arch}"/>
+                    <property name="desktop.archiveBase" value="marginalia-${project.version}-${desktop.os}-${desktop.arch}"/>
                     <delete>
                       <fileset dir="${desktop.dir}" includes="marginalia-*.tar.gz,marginalia-*.zip"/>
                     </delete>

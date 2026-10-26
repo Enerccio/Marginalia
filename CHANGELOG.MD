@@ -53,6 +53,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- **Desktop archive names say `x86_64`**: the archives for 64-bit Intel and AMD processors are named `marginalia-<version>-<os>-x86_64` on Windows, Linux and macOS alike (Windows and Linux were `amd64` because that is what Java reports, macOS was already `x86_64`). The ARM archives stay `aarch64`.
 - **Lore Generator `generate-lore-entry` compacts by default**: new parameter `compact` (default `true`) runs the compaction (the step of `compact-lore-entry`) right after the generation and returns the compacted text, so an agent needs one command instead of two. `compact` `false` returns the generated text as before.
 
 - **The agent console is pushed instead of polled.** It polled the server every 2 s (every 0.5 s while an answer was written), and each poll that took long kept the loading bar at the top of the page up, so the page could look stuck. Now the runner, the transcript and the run's status tell the open console when something changed (new `AgentActivityService`, `AgentActivityServiceImpl`; the events are coalesced to one per 150 ms) and the console refreshes through the existing push; only a safety poll every 20 s remains. `AgentConsoleDialog.onAttach` has a new local `attributes` (`@PublicAPI`), the constants `POLL_MILLIS`, `COMMAND_POLL_MILLIS`, `COMMAND_POLL_FOR_MILLIS` and `LIVE_POLL_FOR_MILLIS` are gone (`SAFETY_POLL_MILLIS`); `LiveAnswerBuffer` has a constructor with a change listener.

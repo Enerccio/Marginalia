@@ -84,9 +84,10 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
      `ghcr.io` by `.github/workflows/server.yml` (the desktop archives come from `desktop.yml`).
    - ✅ Desktop distribution: `mvn package -Pdesktop` (jlink runtime + jetty-home + launcher with tray icon, jpackage
      app image, archives). Built by `.github/workflows/desktop.yml` on Linux x64/arm64, Windows x64 and macOS
-     arm64/x64 (tests once, smoke test per platform, archives attached to `v*` releases). Still missing: signing /
-     notarization (macOS Gatekeeper, Windows SmartScreen), an app icon, installers (dmg/msi/deb), and the release
-     version is the pom version, not the tag.
+     arm64/x64 (tests once, smoke test per platform, archives attached to `v*` releases). Signing / notarization
+     (macOS Gatekeeper, Windows SmartScreen) is deliberately not planned: it costs money and nobody pays for it, so
+     users get the unsigned archives and the manual explains the warnings. Still missing: an app icon, installers
+     (dmg/msi/deb), and the release version is the pom version, not the tag.
 
 9. **WAR size / dependency hygiene.** The WAR was ~200 MB. `tika-parsers-standard-package` + `tika-async-cli`
    were unused and are removed (the WAR is ~185 MB; the export tests declare PDFBox themselves). `Resource` is now used for the image attachments of parts (story editor, exports) and listed in the Resources tab. Logging moved from `slf4j-log4j12` + `reload4j` to logback (`log4j-to-slf4j` for the `log4j-api` of POI). ✅ Done.
@@ -161,7 +162,7 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 18. **More provider types.** `AIType.OPEN_AI_COMPATIBLE` plus the extension AIs (`AIType.EXTENSION`, `ExtensionAIFactory`,
     see `manual/developer/plugins/ai-providers.md`); the only protocol type is `ProtocolType.CHAT_COMPLETION`.
     - ✅ Native Gemini client: the `google-genai` plugin (Google Gen AI SDK embedded in the plugin only).
-    - 🧩 Native Anthropic client: the `anthropic` plugin (Anthropic Java SDK embedded in the plugin only, same shape as `google-genai`).
+    - ✅ Native Anthropic client: the `anthropic` plugin (Anthropic Java SDK embedded in the plugin only, same shape as `google-genai`).
     - Text completion protocol (llama.cpp / KoboldCpp raw prompt with instruct templates): low priority, base models only.
       The hosted APIs have dropped raw completion and the prompt pipeline is built around chat messages; extra body
       parameters (samplers) on the chat protocol would cover most of the need more cheaply.
