@@ -267,7 +267,7 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     duplicates, browser keys and Alt+letter; `UserSetting.keyBindings`), plugins register their actions with
     `ShortcutRegistry` (`ui.shortcuts`). The first defaults were tried in real browsers; also bound: the command bar (`/`), the search of the branch
     (`Ctrl+Shift+F`), the search and replace window (`Ctrl+Shift+H`), *Annotate selection* (`a`) and the next / previous tab (`Alt+PageDown` / `Alt+PageUp`), and the menus of the story (settings, part, text) show the
-    keys, built from the `StoryMenuRegistry` where every item is a shortcut action. Not done: trying those six keys in Chrome, Firefox and Safari (`Ctrl+Shift+F`, `Ctrl+Shift+H`, `Alt+PageDown`, and the `a` over a text
+    keys, built from the `StoryMenuRegistry` where every item is a shortcut action. Done: trying those six keys in Chrome, Firefox and Safari (`Ctrl+Shift+F`, `Ctrl+Shift+H`, `Alt+PageDown`, and the `a` over a text
     selection are the ones to check); the phone layout needs none.
 28. ✅ **Mobile layout** — below 768 px (decided once, at page load) the app uses `PhoneWorkspace`: a drawer instead of
     the tab bar and phone twins of the parts (`workspace/phone/parts`) and of the book window
