@@ -66,9 +66,69 @@ public class MangaDialog extends Dialog {
     private Button addSectionButton;
     private Button copyAllButton;
     private Span emptyHint;
+    /** The note that stands in the place of the sections while there are none, null otherwise. */
+    private Span noSections;
     private VerticalLayout sectionsList;
     private ScrollPanel sectionsPanel;
     private ModelProtocolPicker modelPicker;
+
+    /**
+     * Remembers where the sections are scrolled: the panel and everything inside a card that scrolls (the box of the script, the
+     * editor), the inner ones by the number of the card and the path of child indexes to them. Put on the panel once.
+     */
+    private static final String REMEMBER_SCROLL = """
+            const root = $0;
+            if (root._scrollMemory) return;
+            const memory = {top: 0, inner: {}};
+            const path = (card, node) => {
+              const steps = [];
+              for (let n = node; n !== card; n = n.parentElement) {
+                steps.unshift(Array.prototype.indexOf.call(n.parentElement.children, n));
+              }
+              return steps.join('.');
+            };
+            root.addEventListener('scroll', e => {
+              const target = e.target;
+              if (target === root) {
+                memory.top = root.scrollTop;
+                return;
+              }
+              const card = target.closest && target.closest('.manga-card');
+              if (!card || !root.contains(card)) return;
+              const cards = Array.from(root.querySelectorAll('.manga-card'));
+              memory.inner[cards.indexOf(card) + ':' + path(card, target)] = target.scrollTop;
+            }, {capture: true, passive: true});
+            root._scrollMemory = memory;
+            """;
+
+    /**
+     * Scrolls the panel and the insides of the cards back to where they were before the sections were built again ($1 is the
+     * number of the card that was removed, -1 when none: the cards after it moved up).
+     */
+    private static final String RESTORE_SCROLL = """
+            const root = $0;
+            const removed = $1;
+            if (!root._scrollMemory) return;
+            const saved = JSON.parse(JSON.stringify(root._scrollMemory));
+            const apply = () => {
+              root.scrollTop = saved.top;
+              const cards = Array.from(root.querySelectorAll('.manga-card'));
+              for (const [key, top] of Object.entries(saved.inner)) {
+                const split = key.indexOf(':');
+                let index = parseInt(key.substring(0, split), 10);
+                if (index === removed) continue;
+                if (removed >= 0 && index > removed) index--;
+                let node = cards[index];
+                for (const step of key.substring(split + 1).split('.').filter(part => part !== '')) {
+                  node = node && node.children[parseInt(step, 10)];
+                }
+                if (node) node.scrollTop = top;
+              }
+            };
+            apply();
+            requestAnimationFrame(() => requestAnimationFrame(apply));
+            setTimeout(apply, 300);
+            """;
 
     private final List<MangaSectionCard> cards = new ArrayList<>();
     /** Set while the widgets are filled in from the data, so that this does not count as the user's change. */
@@ -165,6 +225,7 @@ public class MangaDialog extends Dialog {
         sectionsPanel.setWidthFull();
         sectionsPanel.addClassName(CssStyles.MIN_HEIGHT_0);
         sectionsPanel.add(sectionsList);
+        sectionsPanel.getElement().executeJs(REMEMBER_SCROLL, sectionsPanel.getElement());
 
         VerticalLayout content = new VerticalLayout(tabBar, settingsBar, emptyHint, sectionsPanel);
         content.setSizeFull();
@@ -255,6 +316,16 @@ public class MangaDialog extends Dialog {
     }
 
     private void showManga() {
+        showManga(false, -1);
+    }
+
+    /**
+     * Builds the sections again.
+     *
+     * @param keepScroll scroll the panel and the insides of the cards back to where they were (the sections of the same manga)
+     * @param removed    the number of the card that is not there any more, -1 when none
+     */
+    private void showManga(boolean keepScroll, int removed) {
         Manga manga = current();
         boolean has = manga != null;
         emptyHint.setVisible(!has);
@@ -265,6 +336,7 @@ public class MangaDialog extends Dialog {
         updateStructureControls();
 
         sectionsList.removeAll();
+        noSections = null;
         cards.clear();
         if (!has) {
             return;
@@ -283,9 +355,12 @@ public class MangaDialog extends Dialog {
             addCard(manga, sections, i);
         }
         if (sections.isEmpty()) {
-            Span none = new Span(T.localized("No sections yet. Add one to start with the first parts of the story."));
-            none.addClassName(MangaStyles.EMPTY);
-            sectionsList.add(none);
+            noSections = new Span(T.localized("No sections yet. Add one to start with the first parts of the story."));
+            noSections.addClassName(MangaStyles.EMPTY);
+            sectionsList.add(noSections);
+        }
+        if (keepScroll) {
+            sectionsPanel.getElement().executeJs(RESTORE_SCROLL, sectionsPanel.getElement(), removed);
         }
     }
 
@@ -418,7 +493,12 @@ public class MangaDialog extends Dialog {
             section.setContextEnd(Math.min(parts, end + manga.getContextRight()));
             sections.add(section);
             save();
-            showManga();
+            // only the new card is added: the sections that are there keep what they show and where they are scrolled
+            if (noSections != null) {
+                sectionsList.remove(noSections);
+                noSections = null;
+            }
+            addCard(manga, sections, sections.size() - 1);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -428,9 +508,10 @@ public class MangaDialog extends Dialog {
         if (running > 0) {
             return;
         }
+        int index = current().getSections().indexOf(section);
         current().getSections().remove(section);
         save();
-        showManga();
+        showManga(true, index);
     }
 
     private void copyAll() {
