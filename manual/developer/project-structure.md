@@ -335,6 +335,7 @@ plugins/<name>/
 
 | Plugin | Package | Size |
 |---|---|---|
+| Anthropic Claude | `extensions.anthropic` | Activator and extension, `AnthropicFactory` (the `ExtensionAIFactory`), the settings form, the inference service over the Anthropic Java SDK (embedded in the JAR) and helpers for the messages, the errors and the settings; has unit tests and a test against a fake Messages API. |
 | Arc Outline | `extensions.arcoutline` | Model (arcs, chapters, the in-memory `ArcOutline`, settings, the schema of a generated arc), service (outline, prompt building), a sidebar tab, dialogs (arc, the generators of arcs and chapters on a common `GeneratorDialog`), a settings form, `LegacyNameTools` (reads the name categories saved before the tool dialog) and `arcoutline.css`. |
 | Author's Note | `extensions.authorsnote` | Model, service, a sidebar panel and a generation listener. |
 | Chapter Marker | `extensions.chaptermarking` | Activator and extension only - the smallest example. |

@@ -139,9 +139,10 @@ model. Then create a book, choose the provider and a protocol, and start writing
 ## Extensions
 
 Extensions are OSGi bundles (JAR files). Administrators install them in *Admin → Extensions*; they are stored in
-`~/.marginalia/extensions`. Fifteen plugins are included in [`marginalia/plugins`](marginalia/plugins/README.md) and
+`~/.marginalia/extensions`. Seventeen plugins are included in [`marginalia/plugins`](marginalia/plugins/README.md) and
 built separately with Maven, or in Docker (see the plugins README):
 
+- [Anthropic Claude](marginalia/plugins/anthropic/README.md) - Anthropic's Claude models as an inference provider, over the Anthropic Java SDK,
 - [Arc Outline](marginalia/plugins/arc-outline/README.md) - the arcs of the book and their chapters in the story sidebar, written by the model if you want,
 - [Author's Note](marginalia/plugins/authorsnote/README.md) - a note to the model inserted into every generation,
 - [Chapter Marker](marginalia/plugins/chaptermarker/README.md) - chapters in the story sidebar,

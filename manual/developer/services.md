@@ -385,7 +385,7 @@ AI is never handed to everybody. A request is **metered** (the normal path, `AIL
 `UsageService.record` for the current user) only for a shared AI when the permission has `helperApplyLimits`; any other request runs in an
 `UnmeteredScope`: a thread-local, opened by the caller around the call that starts the request, that an inference
 service reads once when the request starts (before it moves to other threads) and then skips the limit check and
-does not count the usage. `OpenAICompatibleInferenceService` and the `google-genai` plugin do this; an extension AI
+does not count the usage. `OpenAICompatibleInferenceService` and the `google-genai` and `anthropic` plugins do this; an extension AI
 must too, see [AI providers](plugins/ai-providers.md#the-inference-service). The tokens of an unmetered
 request are not counted anywhere: not for the user, not for the owner.
 
