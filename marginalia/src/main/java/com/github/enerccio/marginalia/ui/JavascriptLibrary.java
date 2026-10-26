@@ -629,7 +629,8 @@ public final class JavascriptLibrary {
         markdown.executeJs("""
                 const text = $0;
                 const margin = $1;
-                if (text._marginLinked) {
+                if (!margin || text._marginLinked) {
+                  // the phone layout has no margin: its column is never added to the card
                   return;
                 }
                 text._marginLinked = true;
