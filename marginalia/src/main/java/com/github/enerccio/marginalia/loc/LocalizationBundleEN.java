@@ -736,6 +736,10 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_FOCUS_COMMAND_BAR, "Go to the command bar");
         setValue(L.LABEL_NEXT_TAB, "Next tab");
         setValue(L.LABEL_PREVIOUS_TAB, "Previous tab");
+        setValue(L.LABEL_RESOURCE_FILES, "Resource Files");
+        setValue(L.LABEL_SCAN_FILES, "Scan files");
+        setValue(L.LABEL_DOWNLOAD_AS_ZIP, "Download as ZIP");
+        setValue(L.LABEL_FILE, "File");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1253,6 +1257,13 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_COMMAND_IMPERSONATING, "Drafting the instructions…");
         setValue(L.MSG_ACTIVATION_PREVIEW_SUMMARY, "%s of %s entries would be used, about %s tokens of lore.");
         setValue(L.MSG_CONFIRM_DELETE_ENTRIES, "Delete %s selected entries?");
+        setValue(L.MSG_RESOURCE_FILES_DESCRIPTION, "Files of deleted resources and of replaced content stay on the disk. Scan reads the resource folders of all users and lists the files that no resource (not even a deleted one in the trash) points to. Download the checked files as a ZIP if unsure, then delete them from the disk.");
+        setValue(L.MSG_SCANNING_RESOURCE_FILES, "Scanning the resource folders…");
+        setValue(L.MSG_RESOURCE_FILES_FOUND, "%s of %s files are not used by any resource (%s).");
+        setValue(L.MSG_RESOURCE_FILES_SELECTED, "%s selected (%s)");
+        setValue(L.MSG_CONFIRM_DELETE_RESOURCE_FILES, "Permanently delete %s files (%s) from the disk? This cannot be undone.");
+        setValue(L.MSG_RESOURCE_FILES_DELETED, "%s files deleted, %s freed.");
+        setValue(L.MSG_RESOURCE_FILES_SKIPPED, "%s files were kept: they are in use now, gone already, or could not be deleted.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

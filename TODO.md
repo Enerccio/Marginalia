@@ -295,7 +295,8 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 31. **Image generation / illustrations** for scenes (would use `Resource`; attaching images by hand is done, see
     *Images* in the part menu - generation, sending images to vision models and showing them to the readers of a
     published book in the Viewer are not; the Viewer deliberately shows them to the owner only). Files of deleted
-    resources and of replaced content stay in the data folder: a garbage collection for them is still to be done. 🧩
+    resources and of replaced content stay in the data folder until the administrator removes them in *Admin → Resource Files*
+    (garbage collection: scan, ZIP download, delete; done). 🧩
 32. **Text-to-speech read-aloud** in the Viewer. 🧩
 33. **Health and metrics endpoint.** ✅ `GET /health` (`HealthServlet`, no login): 200 when the context runs and the database
     answers, else 503; the Dockerfile `HEALTHCHECK` uses it. ✅ Tokens per provider and user are counted since 1.2.0 (`Usage`,

@@ -736,6 +736,10 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_FOCUS_COMMAND_BAR, "コマンドバーに移動");
         setValue(L.LABEL_NEXT_TAB, "次のタブ");
         setValue(L.LABEL_PREVIOUS_TAB, "前のタブ");
+        setValue(L.LABEL_RESOURCE_FILES, "リソースファイル");
+        setValue(L.LABEL_SCAN_FILES, "ファイルをスキャン");
+        setValue(L.LABEL_DOWNLOAD_AS_ZIP, "ZIPでダウンロード");
+        setValue(L.LABEL_FILE, "ファイル");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1253,6 +1257,13 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_COMMAND_IMPERSONATING, "指示を下書き中…");
         setValue(L.MSG_ACTIVATION_PREVIEW_SUMMARY, "%s / %s 件のエントリーが使用されます（約 %s トークン）。");
         setValue(L.MSG_CONFIRM_DELETE_ENTRIES, "選択した %s 件のエントリーを削除しますか？");
+        setValue(L.MSG_RESOURCE_FILES_DESCRIPTION, "削除されたリソースや置き換えられた内容のファイルはディスクに残ります。スキャンは全ユーザーのリソースフォルダーを読み取り、どのリソース（ゴミ箱内の削除済みも含む）からも参照されていないファイルを一覧表示します。不安な場合はチェックしたファイルをZIPでダウンロードしてから、ディスクから削除してください。");
+        setValue(L.MSG_SCANNING_RESOURCE_FILES, "リソースフォルダーをスキャンしています…");
+        setValue(L.MSG_RESOURCE_FILES_FOUND, "%s / %s 個のファイルがどのリソースからも使われていません（%s）。");
+        setValue(L.MSG_RESOURCE_FILES_SELECTED, "%s 件選択中（%s）");
+        setValue(L.MSG_CONFIRM_DELETE_RESOURCE_FILES, "%s 個のファイル（%s）をディスクから完全に削除しますか？この操作は元に戻せません。");
+        setValue(L.MSG_RESOURCE_FILES_DELETED, "%s 個のファイルを削除しました（%s を解放）。");
+        setValue(L.MSG_RESOURCE_FILES_SKIPPED, "%s 個のファイルは残されました。使用中、すでに存在しない、または削除できませんでした。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
