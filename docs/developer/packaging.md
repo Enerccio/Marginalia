@@ -136,7 +136,7 @@ Outputs in `target/desktop/`:
 | `marginalia-1.5.0-<os>-<arch>.tar.gz` / `.zip` | Archive of the portable folder (`.zip` on Windows). |
 | `marginalia-1.5.0-<os>-<arch>-app.tar.gz` / `.zip` | Archive of the app image. |
 
-`<os>` is `linux`, `macos` or `windows`, `<arch>` is Java's `os.arch` (`amd64`, `aarch64`...). Archives are made with
+`<os>` is `linux`, `macos` or `windows`, `<arch>` is Java's `os.arch` (`aarch64`...), except that `amd64` is written `x86_64` on every system. Archives are made with
 `tar` so the executable bits of the launchers survive.
 
 ### The launcher
