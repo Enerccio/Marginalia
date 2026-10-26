@@ -200,4 +200,4 @@ window is narrower than 768 pixels. It has no Admin page, a reduced lorebook edi
 best for writing and reading; set-up and administration are easier on a larger screen.
 
 **Is there a light theme or another language?**
-Not yet: the interface is in English, with a dark theme.
+Yes to both: the button with the sun / moon next to the language selector switches the theme (dark by default), and the language selector offers Japanese and the languages that extensions bring (see [Account](account.md#theme)).

@@ -36,6 +36,14 @@ run shoot-permissions.mjs                        # changes the permissions of gi
 on 13-db-backup
 run plugin-googlegenai.mjs                       # installs the Gemini plugin: a copy, discarded
 on 13-db-backup
+run plugin-stconverter.mjs                         # a chat uploaded to the converter and the turns the fake model prepares: a copy, discarded
+on 13-db-backup
+run plugin-manga.mjs                              # a manga with a section (script and tags from the fake model): a copy, discarded
+on 13-db-backup
+run shoot-features.mjs                            # annotations, redraft, merge, shortcuts, the light theme...: a copy, discarded
+on 13-db-backup
+run plugin-anthropic.mjs                          # installs the Anthropic plugin and adds a Claude provider: a copy, discarded
+on 13-db-backup
 run shoot-books-extra.mjs                        # imports a lorebook with subbooks and a book from a zip: a copy, discarded
 on 22-arcoutline
 run shoot-agents.mjs                             # four agents with runs (the fake model answers from its queue), three more books: a copy, discarded
@@ -45,8 +53,8 @@ run shoot-tabs.mjs                               # drags the sidebar tabs apart 
 # application verifies it again at the start
 on 13-db-backup
 "$SHOT_ROOT/bin/stop-app.sh" >/dev/null
-cp out/broken/authorsnote-1.4.0.jar "$SHOT_HOME/.marginalia/extensions/authorsnote-1.4.0.jar"
-rm -f "$SHOT_HOME/.marginalia/extensions/authorsnote-1.4.0.valid"
+cp out/broken/authorsnote-1.5.0.jar "$SHOT_HOME/.marginalia/extensions/authorsnote-1.5.0.jar"
+rm -f "$SHOT_HOME/.marginalia/extensions/authorsnote-1.5.0.valid"
 "$SHOT_ROOT/bin/start-app.sh" >/dev/null
 run shoot-invalid-extensions.mjs                  # a copy, discarded
 # plugin screens

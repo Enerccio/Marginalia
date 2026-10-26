@@ -45,6 +45,10 @@ Sections of one manga can generate side by side. While a model writes, mangas an
 - a new section adapts 3 parts and gets 1 part of context on each side by default (a part of a story is much longer than a chat
   message).
 
+![The Manga Generator window](../../../manual/images/plugin-manga.png)
+
+![The Tags view of a section](../../../manual/images/plugin-manga-tags.png)
+
 ## Storage
 
 The mangas are stored with the book (its attributes), so they are included in book backups and copies. The defaults and the

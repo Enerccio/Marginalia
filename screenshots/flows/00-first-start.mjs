@@ -13,6 +13,19 @@ await page.getByRole('button', { name: 'OK' }).click();
 await idle(page, 1500);
 await page.locator('body').click({ position: { x: 10, y: 10 } });
 await page.evaluate(() => document.activeElement && document.activeElement.blur());
-const card = page.locator('vaadin-login-form-wrapper, vaadin-login-form').first();
-await snap(page, 'login', { clip: { x: 778, y: 203, width: 364, height: 527 } });
+// the version and commit under the button (the build detail that the footer of the other pictures hides) is left out
+await page.evaluate(() => {
+  const walk = root => {
+    for (const el of root.querySelectorAll('*')) {
+      if (el.shadowRoot) walk(el.shadowRoot);
+      if (el.children.length === 0 && /^\s*Marginalia \d+\.\d+/.test(el.textContent)) el.style.display = 'none';
+    }
+  };
+  walk(document);
+});
+await idle(page, 400);
+const card = page.locator('vaadin-login-form-wrapper').first();
+const box = await card.boundingBox();
+const brand = 172;                                    // the blue header (the title and the slogan) above the form
+await snap(page, 'login', { clip: { x: box.x, y: box.y - brand, width: box.width, height: box.height + brand } });
 await browser.close();

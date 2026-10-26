@@ -22,7 +22,7 @@ import {
     snap,
     snapDialog
 } from '../lib/shot.mjs';
-import {parts, readingStyle} from '../lib/story.mjs';
+import {parts, readingStyle, clickCogs} from '../lib/story.mjs';
 
 const tree = async page => { await page.mouse.move(1000, 500); await page.mouse.wheel(0, 700); await sleep(600); };
 
@@ -73,7 +73,7 @@ await main(async ({ page }) => {
 
   await section(page, 'export', async () => {
     await bookTab(page, 'Story');
-    await page.mouse.click(534, 822);
+    await clickCogs(page);
     await idle(page, 400);
     await page.getByText('Export story', { exact: true }).click();
     await idle(page, 800);

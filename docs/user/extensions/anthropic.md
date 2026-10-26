@@ -46,6 +46,10 @@ Without a loaded extension that provides AIs, **Extension** is not offered.
 **Test Connection** lists the models and asks the chosen one for a few tokens, with the values in the dialog (before you
 save them).
 
+![The Per Type Settings of the Anthropic Claude provider](../../images/plugin-anthropic.png)
+
+![The Inference Providers list with a Claude provider](../../images/plugin-anthropic-list.png)
+
 ## Reasoning
 
 The reasoning settings are those of the general settings of the provider, like for any provider:

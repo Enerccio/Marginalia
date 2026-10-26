@@ -38,7 +38,7 @@ await main(async ({ page }) => {
 
   await llm('/_queue', { reply: JSON.stringify(TURNS) });
   await page.getByRole('button', { name: 'Convert range', exact: false }).first().click();
-  await page.getByText('The last lamp before the bridge', { exact: false }).first().waitFor({ timeout: 30000 });
+  await page.getByText('Turn details (3)', { exact: true }).first().waitFor({ timeout: 30000 });
   await sleep(1500);
   await snap(page, 'plugin-stconverter-turns');
 });

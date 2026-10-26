@@ -74,6 +74,8 @@ text (the messages of the user are marked with `»`).
   highlighted and the token count follows.
 - The button with the cross above the table removes the chat and the turn details from the book (after asking).
 
+![The ST Converter tab with a chat and the range chosen](../../images/plugin-stconverter-chat.png)
+
 ## Turn details
 
 Use the wand and the **Turn details** tab opens with what the model prepared, in the order of the chat. A row is a turn:
@@ -85,6 +87,8 @@ The model is told to cover every message of the range exactly once; numbers outs
   want and generate. (A row's checkbox and delete button do not open the form.)
 - Tick the checkbox of a turn you have used; the double arrow goes to the next unchecked turn.
 - Running the wand again for a range **replaces** the earlier turns that touch the range, except the ticked ones.
+
+![The turn details the model prepared](../../images/plugin-stconverter-turns.png)
 
 ## Storage
 

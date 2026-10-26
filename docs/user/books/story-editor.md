@@ -154,6 +154,8 @@ present characters that are in the panel, the lore of the last part, your latest
 guidance and the plan. It does not see your lorebook entries that a new turn would activate. The request is the
 [impersonate prompt](prompts.md#impersonate-prompt). The model is the one of the book; drafting costs tokens like any request.
 
+![Drafting the instructions of the next turn](../../images/impersonate-dialog.png)
+
 The same is the command [`/impersonate`](../commands/index.md), which returns the text. [Agents](../agents.md) do not get it, they write
 the story with instructions of their own.
 
@@ -256,6 +258,8 @@ old one in the middle of the story, and keeps what you do not ask to change. Cho
 3. The redrafted text is a field you can still edit. **Apply** replaces the text of the part with it; **Close** throws it
    away. Nothing in the book changes before **Apply**.
 
+![The redraft window: the instructions, the new text and the differences](../../images/redraft-dialog.png)
+
 The model gets one prompt, the [redraft prompt](prompts.md#redraft-prompt): the part, your instructions, the story before
 the part (the older story as [summaries](summaries.md) where there are valid ones, the rest as text, the newest part first
 when it does not all fit), as much of the story after the part as fits (up to a quarter of the room), the lore the part
@@ -294,6 +298,8 @@ same text reliably. Write the next part instead (*continue from where the last p
   and the data of extensions), with whether the value is the same, different or only on one of the parts. The merged part
   keeps the value of the **later part** (it is where the story stands now) unless you choose the value of the previous
   part for it, or leave the value out. Values that are the same are hidden unless you ask for them.
+
+![The review before a part is merged into the previous one](../../images/part-merge-dialog.png)
 
 The previous part keeps its place, its summary and how it was generated (prompt, model, times); it gets the joined text,
 the joined reasoning and pictures, and its words and tokens are counted again. The part you merged is deleted (it is in
@@ -347,6 +353,8 @@ and the parts after the newest one), and a table with the parts, the tokens and 
 (the context of the book's model minus the room for the response). Only summaries that still describe the story count;
 the ones that no longer match are named, they are dropped when a part is generated. The lore, the system template and the
 instructions of the turn take room from the same budget. Without a model with a context size the table has no shares.
+
+![Branch Tokens](../../images/branch-tokens.png)
 
 ## Book styles
 

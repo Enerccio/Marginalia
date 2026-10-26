@@ -54,6 +54,8 @@ light one. The choice is saved in your account and used again the next time you 
 already open in another tab changes when it is reloaded. Charts and the relationship map take the colors of the theme
 when they are opened.
 
+![The workspace in the light theme](../images/theme-light.png)
+
 ### Logging in
 
 **Save login** on the login screen keeps you logged in on this device for 30 days (it needs HTTPS on a server, see
@@ -167,6 +169,8 @@ A red note names a key two actions share, a key the browser keeps for itself (`C
 the page never gets them) and `Alt` with a letter (types a character on some keyboards, e.g. macOS). A key without
 `Ctrl`, `Alt` or `Meta` works only when no text field has the focus. The keys are saved with **Save** like the other
 settings and apply at once in the open stories.
+
+![Settings, Keyboard shortcuts](../images/settings-shortcuts.png)
 
 ### Extension Settings
 

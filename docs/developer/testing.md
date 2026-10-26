@@ -25,7 +25,7 @@ Surefire is configured in `pom.xml` with:
 | `marginalia.test.home=target/test-home` | Folder for the test databases (see [The application folder](#the-application-folder)). |
 | `forkCount=${test.forks}` (default 3), `reuseForks=true` | The test classes are spread over that many JVMs, one class at a time in each. Every JVM has its own Spring context and so its own database: SQLite lets one writer in at a time, and the `@Configurable` aspect (the `@Autowired` fields of the UI classes) is one for the JVM and bound to one Spring context, so threads of one JVM with a context each do not work. `-Dtest.forks=1` runs the classes one after another (times below). |
 
-How long `mvn test` takes (about 2,560 tests), with the machine, as the time depends on it. Add a row for yours: the
+How long `mvn test` takes (about 3,000 tests), with the machine, as the time depends on it. Add a row for yours: the
 `Total time` line of Maven, once with `-Dtest.forks=1` and once as it is.
 
 | Machine | `-Dtest.forks=1` | 3 JVMs (default) | Memory of the 3 JVMs |

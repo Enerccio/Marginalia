@@ -19,6 +19,8 @@ disk to get the space back.
 4. **Delete selected** removes the ticked files from the disk after you confirm. **Close** empties the table without
    deleting anything.
 
+![The Resource Files tab after a scan](../../images/admin-resource-files.png)
+
 !!!warning
 Deleted files can't be brought back. Download them as a ZIP first when in doubt.
 !!!

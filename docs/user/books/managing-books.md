@@ -45,6 +45,8 @@ A book has to pass every check you filled in. The books found are listed below w
 a click on a column header sorts them. The folder button opens a book (in its window above the search, so closing the
 book brings you back to the results). **Clear** empties the fields.
 
+![The advanced search of the books](../../images/book-search-advanced.png)
+
 ### Cloning a book
 
 The clone button asks for the **Name** of the new book (the name of the original with *(Copy)* by default) and has the
@@ -102,6 +104,8 @@ To continue a roleplay or story you started in [SillyTavern](https://github.com/
    its text. Without it every message is a part of its own, with its text as the text of the part, so the book reads like
    the chat did.
 4. Click **Import**. A progress window with **Stop** shows the parts being stored; stopping keeps what was stored.
+
+![Importing a SillyTavern chat](../../images/sillytavern-import.png)
 
 SillyTavern copies the chat when you create a *branch* or a *checkpoint*, so the chats of one story share their
 beginning. Upload them together and Marginalia finds the common messages and stores them once: the chats become the

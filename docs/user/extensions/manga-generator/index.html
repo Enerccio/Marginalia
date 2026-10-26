@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846351319701">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846357821401">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -24,6 +24,10 @@
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/extensions/manga-generator/">
     <meta property="og:title" content="Manga Generator">
     <meta property="og:description" content="Turn your story into a manga: the model adapts parts of the book into a script of pages and panels, and then writes image generation tags for every panel - ready for Stable Diffusion, Forge, Midjourney and the like.">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/plugin-manga.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Manga Generator">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -32,17 +36,19 @@
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/extensions/manga-generator/">
     <meta name="twitter:title" content="Manga Generator">
     <meta name="twitter:description" content="Turn your story into a manga: the model adapts parts of the book into a script of pages and panels, and then writes image generation tags for every panel - ready for Stable Diffusion, Forge, Midjourney and the like.">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/plugin-manga.png">
+    <meta name="twitter:image:alt" content="Manga Generator">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/user/extensions/manga-generator.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846351319701" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846357821401" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846351319701" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846357821401" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846351319701" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846357821401" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -251,9 +257,17 @@ script already covers.</p>
 <p>Switch to <strong>Tags</strong> and <strong>Generate tags</strong>: for each panel of the script, tags for the characters and the scene.</p>
 </li>
 </ol>
+<figure class="content-center">
+    <img src="../../../images/plugin-manga.png" alt="The Manga Generator window with the script of a section" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1843" height="876" />
+    <figcaption class="caption">The Manga Generator window with the script of a section</figcaption>
+</figure>
 <p>Either text can be <strong>edited</strong> by hand (the pen), <strong>copied</strong>, and a generation can be stopped with <strong>Abort</strong> - what the model
 wrote so far is kept. Sections generate independently, so you can start several; while any model is writing, sections
 cannot be deleted and mangas cannot be changed.</p>
+<figure class="content-center">
+    <img src="../../../images/plugin-manga-tags.png" alt="The same section on the Tags view" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1843" height="876" />
+    <figcaption class="caption">The same section on the Tags view</figcaption>
+</figure>
 <p><strong>Override</strong> gives one section its own script prompt, tags prompt or additional rules, or a <strong>Rules addendum</strong> that is added to
 the rules of the manga instead of replacing them. The eye shows the exact request the model would get, with its size.</p>
 <h2 id="the-lore-and-the-size-of-the-context">The lore and the size of the context</h2>
@@ -321,7 +335,7 @@ Change this in the settings (below).</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (5abb46efd).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (39562d4fb).</p></div>
             </footer>
         </div>
     </div>

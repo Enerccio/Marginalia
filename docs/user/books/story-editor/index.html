@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846351319701">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846357821401">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846351319701" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846357821401" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846351319701" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846357821401" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846351319701" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846357821401" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -359,7 +359,7 @@ what is different. <em>Instructions</em> starts empty each time.</p>
 <li>Click <strong>Generate</strong>.</li>
 </ol>
 <figure class="content-center">
-    <img src="../../../images/new-turn-instructions.png" alt="The New Turn Instructions panel" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="556" height="541" />
+    <img src="../../../images/new-turn-instructions.png" alt="The New Turn Instructions panel" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="556" height="581" />
     <figcaption class="caption">The New Turn Instructions panel</figcaption>
 </figure>
 <p>The new part appears at the end and fills in as the model writes it. For <a href="../../inference-providers/#reasoning-models">reasoning models</a>
@@ -427,6 +427,10 @@ again, ready for <strong>Generate</strong>.</p>
 present characters that are in the panel, the lore of the last part, your latest instructions as examples of how you write them, your
 guidance and the plan. It does not see your lorebook entries that a new turn would activate. The request is the
 <a href="../prompts/#impersonate-prompt">impersonate prompt</a>. The model is the one of the book; drafting costs tokens like any request.</p>
+<figure class="content-center">
+    <img src="../../../images/impersonate-dialog.png" alt="Drafting the instructions of the next turn" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="900" height="792" />
+    <figcaption class="caption">Drafting the instructions of the next turn</figcaption>
+</figure>
 <p>The same is the command <a href="../../commands/"><code translate="no" v-pre>/impersonate</code></a>, which returns the text. <a href="../../agents/">Agents</a> do not get it, they write
 the story with instructions of their own.</p>
 <h2 id="the-part-menu">The part menu</h2>
@@ -682,6 +686,10 @@ gives them to the model as well, and <strong>Apply</strong> marks them resolved.
 away. Nothing in the book changes before <strong>Apply</strong>.</p>
 </li>
 </ol>
+<figure class="content-center">
+    <img src="../../../images/redraft-dialog.png" alt="The redraft window: the instructions, the new text and the differences" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="900" height="792" />
+    <figcaption class="caption">The redraft window: the instructions, the new text and the differences</figcaption>
+</figure>
 <p>The model gets one prompt, the <a href="../prompts/#redraft-prompt">redraft prompt</a>: the part, your instructions, the story before
 the part (the older story as <a href="../summaries/">summaries</a> where there are valid ones, the rest as text, the newest part first
 when it does not all fit), as much of the story after the part as fits (up to a quarter of the room), the lore the part
@@ -722,6 +730,10 @@ keeps the value of the <strong>later part</strong> (it is where the story stands
 part for it, or leave the value out. Values that are the same are hidden unless you ask for them.</p>
 </li>
 </ul>
+<figure class="content-center">
+    <img src="../../../images/part-merge-dialog.png" alt="The review before a part is merged into the previous one" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="900" height="792" />
+    <figcaption class="caption">The review before a part is merged into the previous one</figcaption>
+</figure>
 <p>The previous part keeps its place, its summary and how it was generated (prompt, model, times); it gets the joined text,
 the joined reasoning and pictures, and its words and tokens are counted again. The part you merged is deleted (it is in
 the <a href="../../trash/">Trash</a>) and what followed it continues from the previous part. Summaries that cover the two parts become
@@ -785,6 +797,10 @@ and the parts after the newest one), and a table with the parts, the tokens and 
 (the context of the book&#x27;s model minus the room for the response). Only summaries that still describe the story count;
 the ones that no longer match are named, they are dropped when a part is generated. The lore, the system template and the
 instructions of the turn take room from the same budget. Without a model with a context size the table has no shares.</p>
+<figure class="content-center">
+    <img src="../../../images/branch-tokens.png" alt="Branch Tokens" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="750" height="641" />
+    <figcaption class="caption">Branch Tokens</figcaption>
+</figure>
 <h2 id="book-styles">Book styles</h2>
 <p>The settings menu (⚙) in the bottom bar has <strong>Change Styles For Text</strong>. It switches the text of the parts between the
 normal look of the application and a book-like reading style (the one the <a href="../publishing/">viewer</a> uses). The setting
@@ -813,7 +829,7 @@ while. The command line is only in the story tab of the desktop layout so far.</
 <p>The settings menu (⚙) also has <strong>Search and replace</strong>, which changes a word, a name or a phrase in the whole story at
 once. The window has a <strong>Search for</strong> and a <strong>Replace with</strong> field and these options:</p>
 <figure class="content-center">
-    <img src="../../../images/story-settings-menu.png" alt="The settings menu with Search and replace" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="520" height="330" />
+    <img src="../../../images/story-settings-menu.png" alt="The settings menu with Search and replace" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="455" height="474" />
     <figcaption class="caption">The settings menu with Search and replace</figcaption>
 </figure>
 <figure class="content-center">
@@ -969,7 +985,7 @@ tense, style and <a href="../summaries/">summaries</a>. The jailbreak prompt of 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (5abb46efd).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (39562d4fb).</p></div>
             </footer>
         </div>
     </div>

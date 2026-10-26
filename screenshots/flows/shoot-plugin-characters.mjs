@@ -97,7 +97,7 @@ await main(async ({ page }) => {
 
   await section(page, 'import', async () => {
     await fresh();
-    await page.mouse.click(294, 220);                           // the wand
+    await page.locator('vaadin-menu-bar-button:has(vaadin-icon[icon$=":wand-magic-sparkles"])').first().click();   // the wand
     await sleep(500);
     await page.getByText('Import lore entries as characters', { exact: true }).click();
     await idle(page, 900);

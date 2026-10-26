@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846351319701">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846357821401">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -24,6 +24,10 @@
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/extensions/anthropic/">
     <meta property="og:title" content="Anthropic Claude">
     <meta property="og:description" content="Adds Anthropic's Claude models as an inference provider, over Anthropic's own API instead of an OpenAI-compatible one.">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/plugin-anthropic.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Anthropic Claude">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -32,17 +36,19 @@
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/extensions/anthropic/">
     <meta name="twitter:title" content="Anthropic Claude">
     <meta name="twitter:description" content="Adds Anthropic's Claude models as an inference provider, over Anthropic's own API instead of an OpenAI-compatible one.">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/plugin-anthropic.png">
+    <meta name="twitter:image:alt" content="Anthropic Claude">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/user/extensions/anthropic.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846351319701" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846357821401" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846351319701" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846357821401" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846351319701" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846357821401" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -256,6 +262,14 @@ provider on the <em>Per Type Settings</em> tab, then click <strong>Test Connecti
 </retype-table>
 <p><strong>Test Connection</strong> lists the models and asks the chosen one for a few tokens, with the values in the dialog (before you
 save them).</p>
+<figure class="content-center">
+    <img src="../../../images/plugin-anthropic.png" alt="The Per Type Settings of the Anthropic Claude provider" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="600" height="820" />
+    <figcaption class="caption">The Per Type Settings of the Anthropic Claude provider</figcaption>
+</figure>
+<figure class="content-center">
+    <img src="../../../images/plugin-anthropic-list.png" alt="The Inference Providers list with a Claude provider" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1612" height="900" />
+    <figcaption class="caption">The Inference Providers list with a Claude provider</figcaption>
+</figure>
 <h2 id="reasoning">Reasoning</h2>
 <p>The reasoning settings are those of the general settings of the provider, like for any provider:</p>
 <ul>
@@ -343,7 +357,7 @@ changed; the Claude settings are only shown when the extension is loaded, and th
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (5abb46efd).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (39562d4fb).</p></div>
             </footer>
         </div>
     </div>

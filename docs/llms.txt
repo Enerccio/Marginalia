@@ -53,7 +53,7 @@
 
 ### Extensions
 
-- [Extensions](https://enerccio.github.io/Marginalia/user/extensions/index.md): Extensions add features to Marginalia without changing the application itself. Fifteen extensions come with Marginalia:
+- [Extensions](https://enerccio.github.io/Marginalia/user/extensions/index.md): Extensions add features to Marginalia without changing the application itself. Eighteen extensions come with Marginalia:
 - [Author's Note](https://enerccio.github.io/Marginalia/user/extensions/authors-note.md): A note to the model that is sent with every generation of the book: the tone you want right now, what the current chapter is about, a reminder the model keeps forgetting.
 - [Chinese localization](https://enerccio.github.io/Marginalia/user/extensions/chinese-localization.md): Adds Simplified Chinese (中文（简体）) to the languages of the user interface.
 - [Arc Outline](https://enerccio.github.io/Marginalia/user/extensions/arc-outline.md): The plan of your book in the sidebar: arcs, each split into chapters, with the state of every one of them, and a model that can write arcs and chapters for you.

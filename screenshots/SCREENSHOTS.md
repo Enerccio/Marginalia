@@ -17,7 +17,7 @@ screenshots/
   flows/              the Playwright scripts (NN-name.mjs = a step of the setup, shoot-*.mjs = only pictures)
   lib/                shot.mjs (browser, login, dialogs, snap helpers), story.mjs (story editor helpers)
   llm/                mock-llm.mjs (fake OpenAI compatible server) and rules.mjs (what it answers)
-  dataset/            the content: story.mjs, lorebook.mjs, characters.mjs, plugins.mjs
+  dataset/            the content: story.mjs, lorebook.mjs, characters.mjs, plugins.mjs, stchat.mjs (a SillyTavern chat)
   assets/             Harry_Potter.jpg, downloaded by bin/fetch-assets.sh (Wikimedia Commons, CC BY-SA 4.0, credited in manual/credits.md; not in Git)
   steps/              step backups: <name>.tar.gz of the whole data folder after each step   (not in Git)
   final/              the final state: marginalia.sqlite, the data folder as a tarball          (not in Git)
@@ -29,7 +29,7 @@ screenshots/
 ## Requirements
 
 * the WAR built from the **same commit** as the plugins: `mvn package -DskipTests` in the repository root builds the
-  application and all plugins (`marginalia/target/marginalia-1.4.0.war`, `marginalia/plugins/*/target/*-1.4.0.jar`). Use
+  application and all plugins (`marginalia/target/marginalia-1.5.0.war`, `marginalia/plugins/*/target/*-1.5.0.jar`). Use
   `mvn clean package -DskipTests -pl <plugin folders>` for the plugins when they were built before: an incremental build
   can leave a plugin without the AspectJ weaving (its `@Autowired` fields are then `null` and its dialogs fail with a
   `NullPointerException` in the log);
@@ -108,7 +108,7 @@ A flow may also take pictures on the way (names in the last column).
 |---|---|---|---|
 | `00-empty` | (a fresh installation) | | |
 | `01-admin` | `00-first-start` | creates the administrator | `first-start`, `login` |
-| `02-extensions` | `01-extensions` | installs the 12 plugin JARs (all but Arc Outline and Google Gemini) through *Admin → Extensions* | |
+| `02-extensions` | `01-extensions` | installs the 15 plugin JARs (all but Arc Outline, Google Gemini and Anthropic Claude) through *Admin → Extensions* | |
 | `03-providers` | `02-providers` | the three providers (fill *General Settings* first, see the quirks) | |
 | `04-protocols` | `03-protocols-settings` | two protocols and the default settings | |
 | `05-lorebook` | `04-lorebook` | imports the lorebook file | |
@@ -156,6 +156,10 @@ characters... would show in the outline, the prompt and the token numbers of the
 | `shoot-books-extra` | a **copy** of `13-db-backup`, discarded | a book imported from a zip of `.md` files (`archive-upload`), *Tag books*, a lorebook with two subbooks imported from `dataset/lorebook.mjs` (`companion`): *Count with subbooks*, *Mass edit*, *Tag entries*, and the entries imported from a zip (the zip files are made by the flow in `out/_archive/`): `archive-upload`, `multi-tag-books`, `lorebook-sub-lorebooks`, `lorebook-mass-edit`, `multi-tag-entries`, `archive-lorebook-upload`, `archive-entry-names` |
 | `shoot-agents` | a **copy** of `22-arcoutline`, discarded | the Agents tab and what is behind it. The administrator gets three concurrent runs (*Agents* permission), the book is cloned three times (`book-clone`) and four agents are made: *Continuity editor* (a conversation in the console: it asks what to do, works, reports three findings, edits parts, a lorebook entry and an arc of the outline, asks a *Reader* sub-agent, finishes; the author compacts it, finishes it, and changes the same sentence and the same arc meanwhile, so that the review has conflicts and a JSON merge), *Lore keeper* (asks a question with `ask_user`, then is paused), *Style editor* (calls `delete-part`, **Ask first**: waits for the approval) and *Drafter* (the fake model is slow: it works while `agents-tab` is taken). Every answer of the fake model is queued (`toolCalls` of `/_queue`, see `lib/agents.mjs`) before the step that needs it. The handles the agent names (`h:m5`, `h:e9`) are the numbers the run gives the things in the order it first lists them (`list-parts` and `list-lore-entries` first). The window of the approval only comes up when the console is open while the agent works (opened after, it lies under the console), and it can not be closed without a decision, so the flow reloads the page. Phone pictures with a second browser. Pictures: `agent-dialog`, `agent-dialog-prompts`, `agent-models`, `agent-commands`, `agent-start-menu`, `agent-console-start`, `agent-console-run`, `agent-console-report`, `agent-console-plan`, `agent-console-findings`, `agent-console-command`, `agent-console-question`, `agent-console-workspace`, `agent-checkpoints`, `agent-context`, `agent-book-copy`, `agent-diagnostics`, `agent-runs`, `agent-subagents`, `agent-approval`, `agent-resume`, `agent-stop`, `agents-tab`, `agent-locked-book`, `agent-locked-lorebook`, `agent-clone`, `admin-agents`, `agent-review`, `agent-review-conflict`, `agent-review-differences`, `agent-review-json`, `agent-json-merge`, `phone-agents`, `phone-agent-console`, `book-clone` |
 | `plugin-googlegenai` | a **copy** of `13-db-backup`, discarded | installs the Google Gemini JAR, adds a provider of the type *Extension* (nothing is sent to Google): `plugin-googlegenai-type`, `plugin-googlegenai`, `plugin-googlegenai-list` |
+| `plugin-stconverter` | a **copy** of `13-db-backup`, discarded | uploads the chat of `dataset/stchat.mjs` to the ST Converter tab, chooses the whole range and converts it (the turn details are queued in the fake model): `plugin-stconverter-chat`, `plugin-stconverter-turns` |
+| `plugin-manga` | a **copy** of `13-db-backup`, discarded | the Manga Generator window: a manga, a section, the script and the tags (queued in the fake model): `plugin-manga`, `plugin-manga-tags` |
+| `plugin-anthropic` | a **copy** of `13-db-backup`, discarded | installs the Anthropic Claude JAR (36 MB), adds a provider of the type *Extension* with a placeholder key (nothing is sent to Anthropic): `plugin-anthropic`, `plugin-anthropic-list` |
+| `shoot-features` | a **copy** of `13-db-backup`, discarded | the screens of 1.5.0: annotations (the window, the right click menu of the text, the popover of a mark, the margin, the tab), the model that annotates (answer queued in the fake model), redraft, merge of two parts, branch tokens, drafting the instructions; then the workspace: keyboard shortcuts, advanced search of the books, import from SillyTavern (`dataset/stchat.mjs` makes the chat), preview of the activation of a lorebook, resource files, the light theme |
 | `shoot-invalid-extensions` | a **copy** of `13-db-backup`, discarded | the Author's Note JAR is replaced by the broken one (`bin/make-broken-plugin.py`) and its `.valid` report deleted before the start (the block in `bin/shoot-all.sh`): the red bar, `invalid-extensions-warning` |
 | `shoot-tabs` | a **copy** of `22-arcoutline`, discarded | drags *Side Query* under the other tabs and *Characters* into a column of its own (the arrangement is saved with the book): `story-editor-tabs` |
 | `plugin-instructionexporter`, `plugin-chinese`, `shoot-export` | `21-chaptermarker` | the menu item, the UI in Chinese (the language is reset), `export-result` (PDF page 1 and 2 with `pdftoppm` + `magick`) |

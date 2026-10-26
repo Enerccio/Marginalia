@@ -163,6 +163,8 @@ of the lorebook and of its sub lorebooks, in the order they are used:
 The tags decide too, so pick a book in **Tags of the book** to use its tags (without one, no tags count). Below the text, a line says how many entries
 would be used and about how many tokens of lore that is. The scan depth of the lorebook is used.
 
+![Preview activation of a lorebook](../../images/lorebook-preview-activation.png)
+
 The preview applies the rules of Marginalia only: the text is the one you type (not the user prompt template around it),
 and what an [extension](../extensions/index.md) changes while a part is generated is not part of it.
 

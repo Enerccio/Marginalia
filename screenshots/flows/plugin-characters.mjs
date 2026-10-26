@@ -11,7 +11,7 @@ await main(async ({ page }) => {
   await widenSidebar(page, 700);
   await sideTab(page, 'Characters');
   for (const c of characters) {
-    await page.getByRole('button', { name: 'Add new character' }).click();
+    await page.getByRole('button', { name: 'Add', exact: true }).click();
     await idle(page, 700);
     const d = page.locator('vaadin-dialog[opened]').last();
     await fill(d, 'Name', c.name);

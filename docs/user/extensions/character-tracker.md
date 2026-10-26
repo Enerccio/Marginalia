@@ -43,7 +43,7 @@ a character of the book.
 
 ## The character dialog
 
-**Add new character** and the pen open the same dialog:
+**Add** (the button with the plus; its tooltip reads *Add new character*) and the pen open the same dialog:
 
 | Field | |
 |---|---|

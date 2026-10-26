@@ -56,9 +56,13 @@ Each section has two views, **Script** and **Tags**:
    script already covers.
 2. Switch to **Tags** and **Generate tags**: for each panel of the script, tags for the characters and the scene.
 
+![The Manga Generator window with the script of a section](../../images/plugin-manga.png)
+
 Either text can be **edited** by hand (the pen), **copied**, and a generation can be stopped with **Abort** - what the model
 wrote so far is kept. Sections generate independently, so you can start several; while any model is writing, sections
 cannot be deleted and mangas cannot be changed.
+
+![The same section on the Tags view](../../images/plugin-manga-tags.png)
 
 **Override** gives one section its own script prompt, tags prompt or additional rules, or a **Rules addendum** that is added to
 the rules of the manga instead of replacing them. The eye shows the exact request the model would get, with its size.

@@ -35,6 +35,10 @@ The wand sends the chat of the range together with the lore of the book (all non
 sub lorebooks, rendered like the story would) and asks for a list of turns that cover the range. The turns replace the
 turns of the earlier runs that touch the range, except those you ticked as reviewed.
 
+![The ST Converter tab with a chat and the range chosen](../../../manual/images/plugin-stconverter-chat.png)
+
+![The turn details the model prepared](../../../manual/images/plugin-stconverter-turns.png)
+
 ## Storage
 
 The uploaded file is a resource of the user (`ResourceService.upload`, content type `application/x-ndjson`, linked to the
