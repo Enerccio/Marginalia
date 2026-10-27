@@ -1,9 +1,11 @@
 package com.github.enerccio.marginalia.generation;
 
+import com.github.enerccio.marginalia.domain.collections.ActivationContext;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
+import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -1033,5 +1035,172 @@ class LorebookActivationTest extends GenerationTestBase {
         Lore lore = activate(book(root), "A dragon appears.");
 
         assertThat(lore.activated()).containsExactly("dragon");
+    }
+
+    // ------------------------------------------------------------------------------------------------------------
+    // activation context: the instructions, or the instructions and the newest parts of the story
+    // ------------------------------------------------------------------------------------------------------------
+
+    @Autowired
+    private ChatMessageService chatMessageService;
+
+    /**
+     * The book gets a story of these parts (the first is the oldest) and the last one is where it stands.
+     */
+    private Manuscript withStory(Manuscript manuscript, String... responses) throws Exception {
+        ChatMessage parent = null;
+        for (String response : responses) {
+            ChatMessage part = new ChatMessage();
+            part.setResponse(response);
+            part.setTokenCount(response.length());
+            parent = parent == null ? chatMessageService.createRoot(manuscript, part) : chatMessageService.addChild(parent, part);
+        }
+        Manuscript loaded = manuscriptService.find(manuscript.getId());
+        loaded.setActiveLeaf(parent);
+        return manuscriptService.save(loaded);
+    }
+
+    private LorebookEntry lookingIntoParts(Lorebook book, String name, String filter, int parts) throws Exception {
+        return entry(book, name, e -> {
+            e.setFiltering(filter);
+            e.setActivationContext(ActivationContext.INCLUDE_PARTS);
+            e.setActivationParts(parts);
+        });
+    }
+
+    @Test
+    void entryLooksOnlyIntoTheInstructionsByDefault() throws Exception {
+        Lorebook book = lorebook("world");
+        LorebookEntry dragon = entry(book, "dragon", e -> e.setFiltering("dragon"));
+        Manuscript manuscript = withStory(book(book), "The dragon slept.");
+
+        Lore lore = activate(manuscript, "Anna walks on.");
+
+        assertThat(dragon.getActivationContext()).isEqualTo(ActivationContext.INSTRUCTIONS);
+        assertThat(lore.activated()).isEmpty();
+    }
+
+    @Test
+    void entryWithPartsFindsItsFilterInTheStory() throws Exception {
+        Lorebook book = lorebook("world");
+        lookingIntoParts(book, "dragon", "dragon", 1);
+        Manuscript manuscript = withStory(book(book), "The dragon slept.");
+
+        Lore lore = activate(manuscript, "Anna walks on.");
+
+        assertThat(lore.activated()).containsExactly("dragon");
+    }
+
+    @Test
+    void entryWithPartsStillFindsItsFilterInTheInstructions() throws Exception {
+        Lorebook book = lorebook("world");
+        lookingIntoParts(book, "dragon", "dragon", 1);
+        Manuscript manuscript = withStory(book(book), "Nothing here.");
+
+        Lore lore = activate(manuscript, "A dragon appears.");
+
+        assertThat(lore.activated()).containsExactly("dragon");
+    }
+
+    @Test
+    void entryLooksOnlyIntoTheNewestPartsItAsksFor() throws Exception {
+        Lorebook book = lorebook("world");
+        lookingIntoParts(book, "one", "dragon", 1);
+        lookingIntoParts(book, "two", "dragon", 2);
+        lookingIntoParts(book, "three", "dragon", 3);
+        Manuscript manuscript = withStory(book(book), "The dragon slept.", "Anna woke.", "Anna walked.");
+
+        Lore lore = activate(manuscript, "Anna walks on.");
+
+        assertThat(lore.activated()).containsExactly("three");
+    }
+
+    @Test
+    void entryWithMorePartsThanTheStoryHasUsesAllOfThem() throws Exception {
+        Lorebook book = lorebook("world");
+        lookingIntoParts(book, "dragon", "dragon", 10);
+        Manuscript manuscript = withStory(book(book), "The dragon slept.", "Anna woke.");
+
+        Lore lore = activate(manuscript, "Anna walks on.");
+
+        assertThat(lore.activated()).containsExactly("dragon");
+    }
+
+    @Test
+    void keywordsMayBeSplitBetweenThePartsAndTheInstructions() throws Exception {
+        Lorebook book = lorebook("world");
+        entry(book, "both", e -> {
+            e.setFilteringMode(FilteringMode.KEYWORDS_AND);
+            e.setFiltering("dragon, castle");
+            e.setActivationContext(ActivationContext.INCLUDE_PARTS);
+        });
+        entry(book, "instructionsOnly", e -> {
+            e.setFilteringMode(FilteringMode.KEYWORDS_AND);
+            e.setFiltering("dragon, castle");
+        });
+        Manuscript manuscript = withStory(book(book), "The dragon slept.");
+
+        Lore lore = activate(manuscript, "Anna enters the castle.");
+
+        assertThat(lore.activated()).containsExactly("both");
+    }
+
+    @Test
+    void entryWithPartsInAnEmptyStoryUsesTheInstructions() throws Exception {
+        Lorebook book = lorebook("world");
+        lookingIntoParts(book, "dragon", "dragon", 2);
+
+        assertThat(activate(book(book), "A dragon appears.").activated()).containsExactly("dragon");
+        assertThat(activate(book(book), "Anna walks.").activated()).isEmpty();
+    }
+
+    @Test
+    void partsAreReadAsFarBackAsTheEnabledEntriesNeed() throws Exception {
+        Lorebook book = lorebook("world");
+        entry(book, "plain");
+        LorebookEntry two = lookingIntoParts(book, "two", "dragon", 2);
+        LorebookEntry off = lookingIntoParts(book, "off", "dragon", 7);
+        off.setEnabled(false);
+        off = lorebookEntryService.save(off);
+
+        List<LorebookEntry> entries = lorebookEntryService.getEntriesForLorebook(book);
+        assertThat(activationService.partsNeeded(entries)).isEqualTo(2);
+        assertThat(activationService.partsNeeded(entries.stream().filter(e -> e.getName().equals("plain")).toList())).isZero();
+
+        two.setEnabled(false);
+        lorebookEntryService.save(two);
+        assertThat(activationService.partsNeeded(lorebookEntryService.getEntriesForLorebook(book))).isZero();
+    }
+
+    @Test
+    void recentPartsAreTheNewestOnesOldestFirst() throws Exception {
+        Manuscript manuscript = withStory(book(lorebook("world")), "one", "", "three", "four");
+        ChatMessage leaf = manuscriptService.find(manuscript.getId()).getActiveLeaf();
+
+        assertThat(activationService.recentParts(leaf, 2, false)).containsExactly("three", "four");
+        assertThat(activationService.recentParts(leaf, 2, true)).containsExactly("one", "three");
+        assertThat(activationService.recentParts(leaf, 9, false)).containsExactly("one", "three", "four");
+        assertThat(activationService.recentParts(leaf, 0, false)).isEmpty();
+        assertThat(activationService.recentParts(null, 3, false)).isEmpty();
+    }
+
+    @Test
+    void previewWithPartsAgreesWithTheGeneration() throws Exception {
+        Lorebook book = lorebook("world");
+        lookingIntoParts(book, "dragon", "dragon", 1);
+        entry(book, "castle", e -> e.setFiltering("castle"));
+        Manuscript manuscript = withStory(book(book), "The dragon slept near the castle.");
+        // the generation adds a part, the preview is of the story the turn continues
+        ChatMessage leaf = manuscriptService.find(manuscript.getId()).getActiveLeaf();
+        Lore lore = activate(manuscript, "Anna walks on.");
+
+        Lorebook root = lorebookService.find(book.getId());
+        List<Lorebook> books = activationService.collectLorebooks(root);
+        List<String> parts = activationService.recentParts(leaf,
+                activationService.partsNeeded(activationService.orderedEntries(books)), false);
+        List<LorebookEntryVerdict> preview = activationService.evaluateAll(root, books, List.of(), "Anna walks on.", parts);
+
+        assertThat(preview.stream().filter(v -> v.verdict().activated()).map(v -> v.entry().getName()).toList())
+                .isEqualTo(lore.activated()).containsExactly("dragon");
     }
 }

@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.model.impl;
 
+import com.github.enerccio.marginalia.domain.collections.ActivationContext;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
@@ -60,6 +61,16 @@ public class LorebookEntry extends ExtendableEntity {
     @Transient
     @ExtendedAttribute
     private boolean preventRecursion = false;
+
+    // what the filter is looked for in: the instructions of the turn, or the instructions and the last activationParts parts
+    @Transient
+    @ExtendedAttribute
+    private ActivationContext activationContext = ActivationContext.INSTRUCTIONS;
+
+    // how many of the newest parts of the story count with ActivationContext.INCLUDE_PARTS, at least 1
+    @Transient
+    @ExtendedAttribute
+    private int activationParts = 1;
 
     public Lorebook getLorebook() {
         return lorebook;
@@ -155,6 +166,30 @@ public class LorebookEntry extends ExtendableEntity {
 
     public void setPreventRecursion(boolean preventRecursion) {
         this.preventRecursion = preventRecursion;
+    }
+
+    public ActivationContext getActivationContext() {
+        return activationContext == null ? ActivationContext.INSTRUCTIONS : activationContext;
+    }
+
+    public void setActivationContext(ActivationContext activationContext) {
+        this.activationContext = activationContext;
+    }
+
+    public int getActivationParts() {
+        return Math.max(1, activationParts);
+    }
+
+    public void setActivationParts(int activationParts) {
+        this.activationParts = Math.max(1, activationParts);
+    }
+
+    /**
+     * How many parts of the story the filter is looked for in besides the instructions: 0 for
+     * {@link ActivationContext#INSTRUCTIONS}.
+     */
+    public int partsInContext() {
+        return getActivationContext() == ActivationContext.INCLUDE_PARTS ? getActivationParts() : 0;
     }
 
     @Override

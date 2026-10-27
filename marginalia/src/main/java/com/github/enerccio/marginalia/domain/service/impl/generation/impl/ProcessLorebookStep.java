@@ -49,13 +49,15 @@ public class ProcessLorebookStep extends GenerationStepBase {
                     List<LorebookEntry> entries = activationService.orderedEntries(lorebooks);
                     log.debug("Processing entries: {}", entries);
 
+                    // the story is read only as far back as the deepest entry looks
+                    List<String> parts = storyParts(controller, activationService.partsNeeded(entries));
                     LoreScan scan = new LoreScan(controller, entries, manuscriptTags, activationService.scanDepth(lorebook));
                     controller.getProperties().put(GenerationProperties.LOREBOOK_VERDICTS, scan.verdicts);
                     forEachAsync(controller, entries, (entry, next) -> {
                         log.debug("Processing entry: {} ", entry.getName());
                         // evaluated before the event: listeners see the verdict and can replace it
                         scan.emit(entry, activationService.evaluate(entry, manuscriptTags,
-                                controller.getPrePromptData().getUserPromptProcessed()), 0, verdict -> {
+                                controller.getPrePromptData().getUserPromptProcessed(), parts), 0, verdict -> {
                             scan.record(entry, verdict, 0);
                             next.returnFromEvent();
                         });
@@ -102,6 +104,19 @@ public class ProcessLorebookStep extends GenerationStepBase {
                 controller.emitEvent(Events.AFTER_PROCESS_LOREBOOK, controller::next);
             }
         });
+    }
+
+    /**
+     * The newest {@code count} parts of the story the turn continues. Like the story of the prompt, the part being
+     * replaced by a swipe or a regeneration is not one of them.
+     */
+    private List<String> storyParts(GenerationController controller, int count) throws Exception {
+        if (count <= 0) {
+            return List.of();
+        }
+        GenerationRequestType requestType = controller.getRequest().getRequestType();
+        return activationService.recentParts(chatMessageService.find(controller.getManuscript().getActiveLeaf()), count,
+                requestType == GenerationRequestType.SWIPE || requestType == GenerationRequestType.REGENERATE);
     }
 
     /**

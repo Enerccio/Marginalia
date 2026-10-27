@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.ui.components;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
+import com.github.enerccio.marginalia.domain.collections.ActivationContext;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
@@ -597,6 +598,8 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
                     @APILocals(name = "filteringField", type = TextField.class),
                     @APILocals(name = "insertionModeCombo", type = ComboBox.class),
                     @APILocals(name = "negativeTagCombo", type = TagMultiComboBox.class),
+                    @APILocals(name = "activationPartsField", type = IntegerField.class),
+                    @APILocals(name = "activationContextCombo", type = ComboBox.class),
                     @APILocals(name = "preventRecursionCheckbox", type = Checkbox.class),
                     @APILocals(name = "commentField", type = TextArea.class)})
     public Component createEntryDetailLayout(LorebookEntry entry) {
@@ -670,6 +673,35 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         negativeTagCombo.setWidthFull();
         negativeTagCombo.setForEntity(entry, true);
 
+        IntegerField activationPartsField = new IntegerField(loc.getValue(L.LABEL_PARTS));
+        activationPartsField.setWidthFull();
+        activationPartsField.setMin(1);
+        activationPartsField.setStepButtonsVisible(true);
+        activationPartsField.setValue(entry.getActivationParts());
+        activationPartsField.setVisible(entry.getActivationContext() == ActivationContext.INCLUDE_PARTS);
+        UIUtils.addTooltip(activationPartsField, loc.getValue(L.HELP_ACTIVATION_PARTS));
+        activationPartsField.addValueChangeListener(e -> {
+            if (e.isFromClient() && e.getValue() != null) {
+                entry.setActivationParts(e.getValue());
+                saveEntry(entry);
+            }
+        });
+
+        ComboBox<ActivationContext> activationContextCombo = new ComboBox<>(loc.getValue(L.LABEL_ACTIVATION_CONTEXT));
+        activationContextCombo.setItems(ActivationContext.values());
+        activationContextCombo.setItemLabelGenerator(context -> loc.getValue(loc.getActivationContext(context)));
+        activationContextCombo.setAllowCustomValue(false);
+        activationContextCombo.setValue(entry.getActivationContext());
+        activationContextCombo.setWidthFull();
+        UIUtils.addTooltip(activationContextCombo, loc.getValue(L.HELP_ACTIVATION_CONTEXT));
+        activationContextCombo.addValueChangeListener(e -> {
+            if (e.isFromClient() && e.getValue() != null) {
+                entry.setActivationContext(e.getValue());
+                saveEntry(entry);
+                activationPartsField.setVisible(e.getValue() == ActivationContext.INCLUDE_PARTS);
+            }
+        });
+
         Checkbox preventRecursionCheckbox = new Checkbox(loc.getValue(L.LABEL_PREVENT_RECURSION), entry.isPreventRecursion());
         UIUtils.addTooltip(preventRecursionCheckbox, loc.getValue(L.HELP_PREVENT_RECURSION));
         preventRecursionCheckbox.addValueChangeListener(e -> {
@@ -690,7 +722,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
-        settingsForm.add(filteringModeCombo, filteringField, insertionModeCombo, negativeTagCombo, preventRecursionCheckbox);
+        settingsForm.add(filteringModeCombo, filteringField, insertionModeCombo, negativeTagCombo, activationContextCombo, activationPartsField, preventRecursionCheckbox);
 
         detailsLayout.add(payloadField, payloadTokensSpan, settingsForm, commentField);
         return detailsLayout;

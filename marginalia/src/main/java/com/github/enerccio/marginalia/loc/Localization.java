@@ -47,6 +47,7 @@ public interface Localization {
     L getBackupStrategy(BackupStrategy t);
     L getFilteringMode(FilteringMode t);
     L getInsertionMode(InsertionMode t);
+    L getActivationContext(ActivationContext t);
     L getActivationReason(LorebookActivationService.Reason t);
     L getCleanupPolicy(CleanupReference.Policy t);
     L getLorebookMatch(LorebookMatch t);

@@ -164,8 +164,12 @@ public class LorebookActivationPreviewDialog extends Dialog {
                     bookNames.put(entry.getId(), StringUtils.defaultString(book.getName()));
                 }
             }
+            // the parts of the picked book's story, as far back as an entry looks
+            List<String> parts = bookBox.getValue() == null ? List.of()
+                    : activationService.recentParts(bookBox.getValue().getActiveLeaf(),
+                    activationService.partsNeeded(activationService.orderedEntries(books)), false);
             List<LorebookEntryVerdict> verdicts = activationService.evaluateAll(root, books, tags,
-                    StringUtils.defaultString(textField.getValue()));
+                    StringUtils.defaultString(textField.getValue()), parts);
             grid.setItems(verdicts);
 
             long used = 0;

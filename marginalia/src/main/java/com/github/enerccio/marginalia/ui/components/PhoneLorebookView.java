@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.components;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.domain.collections.ActivationContext;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
@@ -283,6 +284,10 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         detailsLayout.add(infoSpan(L.LABEL_INSERTION_MODE,
                 entry.getInsertionMode() != null ? loc.getValue(loc.getInsertionMode(entry.getInsertionMode())) : null));
         detailsLayout.add(infoSpan(L.LABEL_NEGATIVE_TAGS, tagsOf(entry, true)));
+        if (entry.getActivationContext() == ActivationContext.INCLUDE_PARTS) {
+            detailsLayout.add(infoSpan(L.LABEL_ACTIVATION_CONTEXT,
+                    loc.getValue(loc.getActivationContext(entry.getActivationContext())) + " (" + entry.getActivationParts() + ")"));
+        }
         if (entry.isPreventRecursion()) {
             detailsLayout.add(infoSpan(L.LABEL_PREVENT_RECURSION, "✓"));
         }

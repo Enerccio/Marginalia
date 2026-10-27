@@ -745,6 +745,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_ANNOTATE_TO_PART, "To part");
         setValue(L.LABEL_COMMAND_GENERATE_ANNOTATION, "Generate annotations");
         setValue(L.LABEL_REDRAFT_REVALIDATE_SUMMARIES, "Revalidate the summaries this redraft makes outdated (they still say the right thing)");
+        setValue(L.LABEL_ACTIVATION_CONTEXT, "Activation context");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -889,6 +890,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_ACTIVATION_REASON_MISSING_TAG, "Not used: the book lacks its tag");
         setValue(L.ENUM_ACTIVATION_REASON_FILTER_NOT_MATCHED, "Not used: filter not found");
         setValue(L.ENUM_ACTIVATION_REASON_EXTENSION_SKIPPED, "Not used: changed by an extension");
+        setValue(L.ENUM_ACTIVATION_CONTEXT_INCLUDE_PARTS, "Instructions and parts of the story");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -1361,7 +1363,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_AI_TOKENIZER, "How the tokens of this AI are counted. Automatic tries the tokenizer endpoints of the server (OpenAI, llama.cpp, LiteLLM) and falls back to a local estimate; choose one to use only that. A tokenizer from a plugin gets the endpoint, the model and the text, and only when it is chosen here.");
         setValue(L.HELP_SCAN_DEPTH, "How many times the content of the entries that were used is searched for the filters of the other entries (0 = never). Only the lorebook the book uses counts, the value of its subbooks is ignored.");
         setValue(L.HELP_PREVENT_RECURSION, "Words in the content of this entry do not activate other entries.");
-        setValue(L.HELP_ACTIVATION_PREVIEW, "Shows which entries of this lorebook and its subbooks would be used for a turn with this text, and why, with the scan depth of this lorebook. In a real generation extensions can still change the result.");
+        setValue(L.HELP_ACTIVATION_PREVIEW, "Shows which entries of this lorebook and its subbooks would be used for a turn with this text, and why, with the scan depth of this lorebook. In a real generation extensions can still change the result. Entries that also look into the parts of the story use the newest parts of the picked book.");
+        setValue(L.HELP_ACTIVATION_CONTEXT, "Where the filter is looked for: only in the instructions of the turn, or in the instructions and the newest parts of the story.");
+        setValue(L.HELP_ACTIVATION_PARTS, "How many of the newest parts of the story are searched together with the instructions (at least 1).");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service;
 
+import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LorebookEntryVerdict;
@@ -14,6 +15,11 @@ import java.util.List;
  * An entry is used when it is enabled, no tag of the book is one of its negative tags, it has no tags or the book has one
  * of them, and its filter (a text or a regular expression, case does not matter) is found in the text of the turn - or it
  * has no filter, which is a constant entry. The entries are used in the order of their {@code order}, the older first.
+ * <p>
+ * The filter is looked for in the instructions of the turn, or - when the entry's activation context is
+ * {@code INCLUDE_PARTS} - in the instructions and the newest N parts of the story (N is the entry's
+ * {@code activationParts}). {@link #partsNeeded} says how many parts the enabled entries ask for at most, so only that many
+ * are read; the entry then uses the newest of the ones it is given.
  * <p>
  * Entries can also be used because of other entries (the scan depth of the lorebook the book uses): the content of the
  * entries that were used is searched for the filters of the entries that were not, and the ones it matches are used too,
@@ -89,6 +95,34 @@ public interface LorebookActivationService {
     Verdict evaluate(LorebookEntry entry, List<String> manuscriptTags, String text);
 
     /**
+     * Whether the entry is used for the instructions and the parts of the story. The filter is looked for in the
+     * instructions alone, or, for an entry with {@code INCLUDE_PARTS}, in the newest {@code activationParts} of the parts
+     * and the instructions.
+     *
+     * @param manuscriptTags the values of the tags of the book
+     * @param instructions   the user prompt of the turn
+     * @param parts          the text of the parts of the story the turn continues, the oldest first (at least
+     *                       {@link #partsNeeded} of the newest ones, fewer when the story is shorter)
+     */
+    Verdict evaluate(LorebookEntry entry, List<String> manuscriptTags, String instructions, List<String> parts);
+
+    /**
+     * How many of the newest parts of the story the entries look into: the most {@code activationParts} of an enabled
+     * entry with {@code INCLUDE_PARTS}, 0 when there is none (no part has to be read then). Disabled entries do not count.
+     */
+    int partsNeeded(List<LorebookEntry> entries);
+
+    /**
+     * The text of the newest {@code count} parts of the story that end in the leaf (the leaf included unless
+     * {@code excludeLeaf}), the oldest first; parts without a text are skipped. Empty for a count of 0 (nothing is
+     * read) or without a leaf. Use {@link #partsNeeded} for the count.
+     *
+     * @param excludeLeaf the leaf is the part being replaced (a swipe, a regeneration), or the part whose turn is
+     *                    previewed: it is not the story so far
+     */
+    List<String> recentParts(ChatMessage leaf, int count, boolean excludeLeaf) throws Exception;
+
+    /**
      * How many times the content of used entries is searched for the filters of the others: the scan depth of the lorebook
      * the book uses, from 0 (never) to {@link #MAX_SCAN_DEPTH}.
      */
@@ -120,6 +154,14 @@ public interface LorebookActivationService {
      * @param text           the user prompt of the turn
      */
     List<LorebookEntryVerdict> evaluateAll(Lorebook root, List<Lorebook> lorebooks, List<String> manuscriptTags, String text);
+
+    /**
+     * {@link #evaluateAll(Lorebook, List, List, String)} with the parts of the story for the entries that look into them.
+     *
+     * @param text  the user prompt of the turn
+     * @param parts the text of the parts of the story, the oldest first (at least {@link #partsNeeded} of the newest)
+     */
+    List<LorebookEntryVerdict> evaluateAll(Lorebook root, List<Lorebook> lorebooks, List<String> manuscriptTags, String text, List<String> parts);
 
     /**
      * The text of the entry put into the prompt: its payload as a template. A payload that is not a valid template is
