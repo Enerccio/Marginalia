@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.ui.widgets.WordDiffView;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ModalityMode;
@@ -22,6 +23,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.markdown.Markdown;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -168,11 +170,18 @@ public class RedraftDialog extends Dialog {
 
         result.setLabel(loc.getValue(L.LABEL_REDRAFTED_TEXT));
         result.setWidthFull();
-        result.setMinRows(8);
-        result.setMaxRows(30);
+        ResizableTextArea.install(loc, result, "300px");
+        result.setValueChangeMode(ValueChangeMode.LAZY);
         result.setVisible(false);
-        // the author may change the text, or empty it
-        result.addValueChangeListener(_ -> apply.setEnabled(!generating && StringUtils.isNotBlank(result.getValue())));
+        // the author may change the text, or empty it; the differences follow the text
+        result.addValueChangeListener(_ -> {
+            if (generating) {
+                return;
+            }
+            boolean text = StringUtils.isNotBlank(result.getValue());
+            apply.setEnabled(text);
+            showChanges(text ? result.getValue() : null);
+        });
 
         changes = new WordDiffView(loc.getValue(L.MSG_MERGE_NO_DIFFERENCE));
         changesDetails = new Details(loc.getValue(L.LABEL_MERGE_DIFFERENCES), changes);
@@ -320,11 +329,18 @@ public class RedraftDialog extends Dialog {
     private void finish(String reasoning, String text) {
         show(reasoning, text);
         hasRedraft = StringUtils.isNotBlank(text);
-        if (hasRedraft) {
-            changes.show(selected, text);
-            changesDetails.setVisible(true);
-        }
         showGenerating(false);
+        showChanges(hasRedraft ? text : null);
+    }
+
+    /**
+     * The differences of the text against the part (of the passage), hidden when there is no text.
+     */
+    private void showChanges(String text) {
+        if (text != null) {
+            changes.show(selected, text);
+        }
+        changesDetails.setVisible(text != null);
     }
 
     private void apply() {

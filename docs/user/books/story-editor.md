@@ -255,7 +255,7 @@ old one in the middle of the story, and keeps what you do not ask to change. Cho
    another try, with other instructions if you like. **Differences** shows what changed against the part, word by word.
    When the part has open [annotations](annotations.md), **Deal with the open annotations of the part** (checked at first)
    gives them to the model as well, and **Apply** marks them resolved.
-3. The redrafted text is a field you can still edit. **Apply** replaces the text of the part with it; **Close** throws it
+3. The redrafted text is a field you can still edit (its corner icon makes it grow to fit the whole text), and **Differences** follows your edits. **Apply** replaces the text of the part with it; **Close** throws it
    away. Nothing in the book changes before **Apply**.
 
 ![The redraft window: the instructions, the new text and the differences](../../images/redraft-dialog.png)
