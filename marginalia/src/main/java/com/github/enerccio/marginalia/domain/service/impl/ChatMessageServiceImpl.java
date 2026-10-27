@@ -577,6 +577,28 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     }
 
     @Override
+    public boolean isSummarized(Manuscript manuscript, ChatMessage message) throws Exception {
+        return inTx(true, () -> {
+            Manuscript book = ownBook(manuscript);
+            ChatMessage stored = ownPart(book, message);
+            ChatMessage leaf = findLeafFor(book, stored);
+            if (leaf == null) {
+                return false;
+            }
+            List<ChatMessage> newestFirst = new ArrayList<>(getBranchFromLeaf(leaf).reversed());
+            // a summary goes down from the part that has it, so the part is described by it when it is the part or one below
+            Set<Long> covered = new HashSet<>();
+            for (ChatMessage branchPart : newestFirst) {
+                covered.add(branchPart.getId());
+                if (branchPart.getId().equals(stored.getId())) {
+                    break;
+                }
+            }
+            return summaryService.collectBlocks(newestFirst).stream().anyMatch(block -> covered.contains(block.head().getId()));
+        });
+    }
+
+    @Override
     public ChatMessage storeResponse(Manuscript manuscript, ChatMessage message, String text) throws Exception {
         long tokens = counted(manuscript, text);
         return inTx(false, () -> storeResponse(manuscript, message, text, tokens));

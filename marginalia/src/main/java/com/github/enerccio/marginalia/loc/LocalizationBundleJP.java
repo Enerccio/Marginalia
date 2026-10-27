@@ -744,6 +744,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_ANNOTATE_FROM_PART, "開始パート");
         setValue(L.LABEL_ANNOTATE_TO_PART, "終了パート");
         setValue(L.LABEL_COMMAND_GENERATE_ANNOTATION, "注釈を生成");
+        setValue(L.LABEL_REDRAFT_REVALIDATE_SUMMARIES, "この再執筆で古くなる要約を再検証する（内容は今も正しい）");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");

@@ -271,6 +271,11 @@ The part keeps its place, its summary, its pictures and how it was generated; th
 and the part counts as edited. Applying the redraft is an edit like **Save** in the editor, so [summaries](summaries.md)
 that describe the old text become outdated, and Marginalia tells how many. A summary on the part itself is one of them.
 
+When a summary describes the part (the part has one, or a newer part of the branch does), the window has the checkbox
+**Revalidate the summaries this redraft makes outdated**, unchecked at first. Check it when the summaries still say the
+right thing (the redraft changed the wording, not what happens): **Apply** then works out their hash again and they stay
+valid. Leave it unchecked when the events changed, and make the summaries again.
+
 ### Redrafting only a passage
 
 To rewrite a few sentences and leave the rest of the part alone, select them in the text of the part and **right click** (a

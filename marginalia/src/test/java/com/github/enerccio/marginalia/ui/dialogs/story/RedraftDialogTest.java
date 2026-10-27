@@ -6,10 +6,9 @@ import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.service.AnnotationService;
-import com.github.enerccio.marginalia.domain.service.ChatMessageService;
-import com.github.enerccio.marginalia.domain.service.ManuscriptService;
-import com.github.enerccio.marginalia.domain.service.RedraftService;
+import com.github.enerccio.marginalia.domain.model.impl.Summary;
+import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.SummaryService.BlockTexts;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
@@ -41,6 +40,9 @@ class RedraftDialogTest extends MarginaliaTestBase {
 
     @Autowired
     private AnnotationService annotationService;
+
+    @Autowired
+    private SummaryService summaryService;
 
     // UI.setCurrent keeps only a weak reference, see WorkspaceStateTest
     private UI ui;
@@ -147,6 +149,73 @@ class RedraftDialogTest extends MarginaliaTestBase {
         applyButton(components).click();
 
         assertThat(annotationService.find(open.getId()).getStatus()).isEqualTo(AnnotationStatus.RESOLVED);
+    }
+
+    /**
+     * Puts a valid summary on the part.
+     */
+    private void summarize(ChatMessage message) throws Exception {
+        Summary summary = new Summary();
+        summary.setSummary("A duel.");
+        summary = summaryService.save(summary);
+        message = chatMessageService.find(message.getId());
+        message.setSummary(summary);
+        chatMessageService.save(message);
+        summary = summaryService.find(summary.getId());
+        summary.setSummaryMessageHash(summaryService.collectFirstBlock(
+                chatMessageService.getBranchFromLeaf(chatMessageService.find(message.getId())).reversed().iterator(),
+                BlockTexts.CURRENT).hash());
+        summaryService.save(summary);
+    }
+
+    private static Checkbox revalidateBox(List<Component> components) {
+        return components.stream().filter(Checkbox.class::isInstance).map(Checkbox.class::cast).skip(1).findFirst().orElseThrow();
+    }
+
+    @Test
+    void theCheckboxOfTheSummariesIsThereOnlyForAPartThatASummaryDescribes() throws Exception {
+        assertThat(revalidateBox(components(RedraftDialog.create(book, part, saved -> {
+        }))).isVisible()).isFalse();
+
+        summarize(part);
+
+        Checkbox box = revalidateBox(components(RedraftDialog.create(book, part, saved -> {
+        })));
+        assertThat(box.isVisible()).isTrue();
+        assertThat(box.getValue()).isFalse();
+    }
+
+    @Test
+    void applyLeavesTheSummaryOutdatedUnlessTheAuthorRevalidatesIt() throws Exception {
+        summarize(part);
+        RedraftDialog dialog = RedraftDialog.create(book, part, saved -> {
+        });
+        List<Component> components = components(dialog);
+        dialog.open();
+
+        redrafted(components).setValue("He drew his sword slowly.");
+        applyButton(components).click();
+
+        Summary summary = summaryService.find(chatMessageService.find(part.getId()).getSummary().getId());
+        assertThat(summaryService.collectBlocks(List.of(chatMessageService.find(part.getId()))))
+                .allMatch(block -> !block.isValid());
+        assertThat(summary.getSummary()).isEqualTo("A duel.");
+    }
+
+    @Test
+    void applyRevalidatesTheSummariesTheRedraftMadeOutdatedWhenAsked() throws Exception {
+        summarize(part);
+        RedraftDialog dialog = RedraftDialog.create(book, part, saved -> {
+        });
+        List<Component> components = components(dialog);
+        dialog.open();
+
+        revalidateBox(components).setValue(true);
+        redrafted(components).setValue("He drew his sword slowly.");
+        applyButton(components).click();
+
+        assertThat(summaryService.collectBlocks(List.of(chatMessageService.find(part.getId()))))
+                .isNotEmpty().allMatch(SummaryService.SummaryBlock::isValid);
     }
 
     @Test

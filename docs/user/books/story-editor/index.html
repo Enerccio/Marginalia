@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846401861160">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846423569956">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846401861160" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846423569956" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846401861160" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846423569956" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846401861160" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846423569956" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -699,6 +699,10 @@ into it: events the following parts rely on should stay.</p>
 <p>The part keeps its place, its summary, its pictures and how it was generated; the text, its words and tokens are replaced
 and the part counts as edited. Applying the redraft is an edit like <strong>Save</strong> in the editor, so <a href="../summaries/">summaries</a>
 that describe the old text become outdated, and Marginalia tells how many. A summary on the part itself is one of them.</p>
+<p>When a summary describes the part (the part has one, or a newer part of the branch does), the window has the checkbox
+<strong>Revalidate the summaries this redraft makes outdated</strong>, unchecked at first. Check it when the summaries still say the
+right thing (the redraft changed the wording, not what happens): <strong>Apply</strong> then works out their hash again and they stay
+valid. Leave it unchecked when the events changed, and make the summaries again.</p>
 <h3 id="redrafting-only-a-passage">Redrafting only a passage</h3>
 <p>To rewrite a few sentences and leave the rest of the part alone, select them in the text of the part and <strong>right click</strong> (a
 long press on a phone): the menu has <strong>Redraft selection</strong>. (The menu ☰ of the part is not offered for this, opening it can
@@ -985,7 +989,7 @@ tense, style and <a href="../summaries/">summaries</a>. The jailbreak prompt of 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (56efa89dc).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (7a939301e).</p></div>
             </footer>
         </div>
     </div>
