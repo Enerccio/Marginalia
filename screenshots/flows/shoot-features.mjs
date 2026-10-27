@@ -141,6 +141,35 @@ await main(async ({ page }) => {
     await closeTop(page);
   });
 
+  // the same window on a range of parts: one answer for every part, the proposals are listed under the number of their part
+  await section(page, 'annotate-ai-batch', async () => {
+    await partAction(page, 1, 'Annotate with AI');
+    const d = dialog(page);
+    await d.getByText('Annotate a range of parts', { exact: true }).click();
+    await idle(page, 400);
+    await d.getByLabel('From part', { exact: true }).first().click();
+    await page.getByRole('option').first().click();
+    await idle(page, 400);
+    await fill(d, 'What to look for', 'Flag anything that contradicts the lorebook, and dialogue that sounds modern.');
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    await llm('/_queue', { reply: JSON.stringify({ findings: [
+      { quote: 'two Aurors by the post office', note: 'The lore puts the Aurors at the school gates after the attack; check where they are on this street.', type: 'lore' },
+    ] }) });
+    await llm('/_queue', { reply: JSON.stringify({ findings: [
+      { quote: 'a hiccup', note: 'Ron is tipsy only in the first part; here the hiccup comes out of nowhere.', type: 'continuity' },
+      { quote: 'good time', note: 'Slightly modern phrasing for Draconia; the lore asks for formal, cutting speech.', type: 'style' },
+    ] }) });
+    await press(d, 'Annotate', { wait: 600 });
+    await d.getByText('comes out of nowhere', { exact: false }).first().waitFor({ timeout: 60000 });
+    // the window is 85% of the height: taller, so that the range and the proposals of both parts are in the picture
+    await page.setViewportSize({ width: 1920, height: 1400 });
+    await idle(page, 1200);
+    await snapDialog(page, 'annotate-ai-batch');
+    await page.setViewportSize({ width: 1920, height: 932 });
+    await idle(page, 600);
+    await closeTop(page);
+  });
+
   // ---------------------------------------------------------------- redraft
   await section(page, 'redraft', async () => {
     await partAction(page, 1, 'Redraft');
