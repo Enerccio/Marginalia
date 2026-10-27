@@ -251,11 +251,14 @@ Tests: `ManuscriptReadCommandsTest` runs them in an agent session (`AgenticReque
 ### Commands for annotations
 
 `ListAnnotationsCommand` (`list-annotations [status [part [offset [limit]]]]`) and `GetAnnotationCommand` (`get-annotation`) read, `AnnotationWriteCommands`
-(`create-annotation`, `update-annotation`, `resolve-annotation`, `reattach-annotation`, `delete-annotation`) change the [annotations](../domain-model.md#annotation). An annotation is given
+(`create-annotation`, `update-annotation`, `resolve-annotation`, `reattach-annotation`, `delete-annotation`, `generate-annotation`) change the [annotations](../domain-model.md#annotation). An annotation is given
 by its uuid (`Book.annotation` checks that it is one of a part of the book of the scope). They change only the notes, never the story, so they are `NON_DESTRUCTIVE`
 except the delete. An agent writes them in its working copy with the source `AGENT` (`CommandScope.isAgent`); the annotations are items of the
 [merge](../agents.md#merge-and-apply) like parts and entries. `CommandScope.resolveAnnotation` finds one of the book of the scope (the handles of the agent, `h:a17`).
-Tests: `AnnotationCommandsTest`, `AgentAnnotationsTest`.
+`generate-annotation part [profile]` is *Annotate with AI* as a command: it calls `AnnotateService` (answer format *Automatic*, the default task of the annotate prompt)
+and stores every note it finds at once with the source `AI`; it is `async`, `BatchPolicy.SINGLE` (it calls a model) and, like the other commands that write with a model,
+takes the model from `CommandScope.getModel` (the model of the agent when the agent's setting says so, else the one of the book; `profile` is a model profile of the agent).
+Tests: `AnnotationCommandsTest`, `AgentAnnotationsTest`, `GenerationCommandsTest`.
 
 ### Commands that read the lorebooks
 
