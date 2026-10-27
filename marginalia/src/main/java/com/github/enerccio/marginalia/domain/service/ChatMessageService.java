@@ -136,6 +136,14 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
     PartEdit updateResponse(Manuscript manuscript, ChatMessage message, String text) throws Exception;
 
     /**
+     * Whether a summary describes the text of the part, so that an edit of the part can make it outdated: the part has a summary
+     * itself, or a newer part of its branch has one that goes down to it.
+     *
+     * @throws IllegalArgumentException when the part is not a part of the manuscript, or the manuscript is not the user's
+     */
+    boolean isSummarized(Manuscript manuscript, ChatMessage message) throws Exception;
+
+    /**
      * As {@link #updateResponse}, without the work of finding the summaries the edit made outdated (it reads the whole branch
      * of the part): for the code that changes many parts at once and does not tell about the summaries.
      *

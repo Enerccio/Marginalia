@@ -752,6 +752,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_ANNOTATE_FROM_PART, "起始段落");
         setValue(L.LABEL_ANNOTATE_TO_PART, "结束段落");
         setValue(L.LABEL_COMMAND_GENERATE_ANNOTATION, "生成批注");
+        setValue(L.LABEL_REDRAFT_REVALIDATE_SUMMARIES, "重新验证因本次重写而过期的摘要（它们的内容仍然正确）");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");

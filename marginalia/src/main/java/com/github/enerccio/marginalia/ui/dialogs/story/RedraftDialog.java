@@ -5,10 +5,7 @@ import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.service.AnnotationService;
-import com.github.enerccio.marginalia.domain.service.CancellationToken;
-import com.github.enerccio.marginalia.domain.service.ChatMessageService;
-import com.github.enerccio.marginalia.domain.service.RedraftService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
@@ -53,6 +50,9 @@ public class RedraftDialog extends Dialog {
     @Autowired
     private AnnotationService annotationService;
 
+    @Autowired
+    private SummaryService summaryService;
+
     private final Manuscript manuscript;
     private final ChatMessage part;
     // the passage of the part that is redrafted, null for the whole part
@@ -64,6 +64,8 @@ public class RedraftDialog extends Dialog {
 
     private final TextArea instructions = new TextArea();
     private final Checkbox withAnnotations = new Checkbox();
+    // shown when a summary describes the part: the summaries the applied redraft makes outdated get their hash again
+    private final Checkbox revalidateSummaries = new Checkbox();
     // the open annotations the redraft was asked to deal with
     private final List<Annotation> addressed = new ArrayList<>();
     private final Button start = new Button();
@@ -148,6 +150,14 @@ public class RedraftDialog extends Dialog {
             UIUtils.internalServerError(loc, e);
         }
 
+        revalidateSummaries.setLabel(loc.getValue(L.LABEL_REDRAFT_REVALIDATE_SUMMARIES));
+        revalidateSummaries.setVisible(false);
+        try {
+            revalidateSummaries.setVisible(chatMessageService.isSummarized(manuscript, part));
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+
         start.addClickListener(_ -> startOrStop());
         showGenerating(false);
 
@@ -169,7 +179,7 @@ public class RedraftDialog extends Dialog {
         changesDetails.setWidthFull();
         changesDetails.setVisible(false);
 
-        VerticalLayout content = new VerticalLayout(info, instructions, withAnnotations, start, reasoningDetails, result, changesDetails);
+        VerticalLayout content = new VerticalLayout(info, instructions, withAnnotations, revalidateSummaries, start, reasoningDetails, result, changesDetails);
         if (passage != null) {
             content.addComponentAtIndex(1, selection);
         }
@@ -220,6 +230,7 @@ public class RedraftDialog extends Dialog {
         }
         instructions.setReadOnly(running);
         withAnnotations.setReadOnly(running);
+        revalidateSummaries.setReadOnly(running);
         result.setReadOnly(running);
         apply.setEnabled(!running && StringUtils.isNotBlank(result.getValue()));
     }
@@ -336,7 +347,11 @@ public class RedraftDialog extends Dialog {
             for (Annotation annotation : addressed) {
                 annotationService.setStatus(manuscript, annotation, AnnotationStatus.RESOLVED);
             }
-            if (edit.outdated().isEmpty()) {
+            if (revalidateSummaries.isVisible() && revalidateSummaries.getValue() && !edit.outdated().isEmpty()) {
+                // the author says the summaries still describe the story
+                summaryService.revalidate(manuscript, edit.outdated());
+                Notification.success(loc.getValue(L.MSG_REDRAFT_APPLIED));
+            } else if (edit.outdated().isEmpty()) {
                 Notification.success(loc.getValue(L.MSG_REDRAFT_APPLIED));
             } else {
                 Notification.warning(loc.getValue(L.MSG_REDRAFT_APPLIED) + " "

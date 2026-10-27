@@ -323,6 +323,17 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         return revalidated;
     }
 
+    @Override
+    @CommonTx
+    public void revalidate(Manuscript manuscript, Collection<SummaryBlock> blocks) throws Exception {
+        agentRunService.checkNotLocked(manuscript);
+        for (SummaryBlock block : blocks) {
+            Summary summary = find(block.summary());
+            summary.setSummaryMessageHash(block.hash());
+            save(summary);
+        }
+    }
+
     private static long inferenceTokensFallback(String text) {
         return StringUtils.length(text) / 4;
     }

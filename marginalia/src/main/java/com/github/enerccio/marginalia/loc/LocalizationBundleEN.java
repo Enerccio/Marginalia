@@ -744,6 +744,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_ANNOTATE_FROM_PART, "From part");
         setValue(L.LABEL_ANNOTATE_TO_PART, "To part");
         setValue(L.LABEL_COMMAND_GENERATE_ANNOTATION, "Generate annotations");
+        setValue(L.LABEL_REDRAFT_REVALIDATE_SUMMARIES, "Revalidate the summaries this redraft makes outdated (they still say the right thing)");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
