@@ -63,6 +63,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- **Redraft window**: the redrafted text is a `ResizableTextArea` (it can grow to fit its content, like the prompt fields of the settings) and the **Differences** are worked out again when the author edits that text (they used to show only what the model wrote). No migration, no API change for plugins.
 - **No *Annotate selection* in the menu of a part** (desktop and phone): it never worked there, opening the menu takes the selection away. It stays in the right click menu of the text (long press on a phone) and has the key `a`.
 - **Desktop archive names say `x86_64`**: the archives for 64-bit Intel and AMD processors are named `marginalia-<version>-<os>-x86_64` on Windows, Linux and macOS alike (Windows and Linux were `amd64` because that is what Java reports, macOS was already `x86_64`). The ARM archives stay `aarch64`.
 - **Lore Generator `generate-lore-entry` compacts by default**: new parameter `compact` (default `true`) runs the compaction (the step of `compact-lore-entry`) right after the generation and returns the compacted text, so an agent needs one command instead of two. `compact` `false` returns the generated text as before.

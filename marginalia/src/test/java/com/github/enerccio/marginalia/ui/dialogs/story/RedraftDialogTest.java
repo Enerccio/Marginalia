@@ -97,6 +97,22 @@ class RedraftDialogTest extends MarginaliaTestBase {
     }
 
     @Test
+    void theDifferencesFollowTheEditedText() {
+        List<Component> components = components(RedraftDialog.create(book, part, saved -> {
+        }));
+        com.vaadin.flow.component.details.Details changes = components.stream().filter(com.vaadin.flow.component.details.Details.class::isInstance)
+                .map(com.vaadin.flow.component.details.Details.class::cast)
+                .filter(d -> d.getContent().anyMatch(com.github.enerccio.marginalia.ui.widgets.WordDiffView.class::isInstance)).findFirst().orElseThrow();
+        assertThat(changes.isVisible()).isFalse();
+
+        redrafted(components).setValue("He drew his sword slowly.");
+        assertThat(changes.isVisible()).isTrue();
+
+        redrafted(components).setValue(" ");
+        assertThat(changes.isVisible()).isFalse();
+    }
+
+    @Test
     void applyReplacesTheTextOfThePart() throws Exception {
         AtomicReference<ChatMessage> applied = new AtomicReference<>();
         RedraftDialog dialog = RedraftDialog.create(book, part, applied::set);
