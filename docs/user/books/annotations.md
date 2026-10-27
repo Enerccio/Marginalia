@@ -144,7 +144,9 @@ given.
 
 [`/list-annotations`](../commands/index.md#annotations), `/get-annotation`, `/create-annotation`, `/update-annotation`,
 `/resolve-annotation`, `/reattach-annotation` and `/delete-annotation` work with the notes from the command line.
-Extensions can use the same commands.
+Extensions can use the same commands. [`/generate-annotation <part>`](../commands/index.md#annotations) is **Annotate with AI** as a command: the model reviews the part with the model of the book
+(an agent uses its own model when *Write the book with the model of the agent* is on; `profile` picks another model profile of the agent), with the instructions, answer format and prompt of the book, and every note it finds is added at once,
+since there is nobody to pick them. It is one request to the model, so it runs alone and costs tokens.
 
 ## Annotations and agents
 

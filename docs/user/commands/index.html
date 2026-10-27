@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846401330092">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846401861160">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846401330092" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846401861160" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846401330092" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846401861160" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846401330092" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846401861160" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -680,7 +680,8 @@ never the story, so only the delete asks first. An agent can use all of them; it
 | `/update-annotation &lt;annotation&gt; &lt;text&gt; [type [sendToPrompt]]` | Changes the note, the type or whether the model gets the note; an empty text or type stays as it is. |
 | `/resolve-annotation &lt;annotation&gt; [status]` | Sets the status: `resolved` (default), `dismissed` or `open`. |
 | `/reattach-annotation &lt;annotation&gt; [quote]` | Moves a note to the passage the quote finds in its part; without a quote the note is about the whole part. |
-| `/delete-annotation &lt;annotation&gt;` | Deletes a note (it can be restored from the trash). Asks first. |">
+| `/delete-annotation &lt;annotation&gt;` | Deletes a note (it can be restored from the trash). Asks first. |
+| `/generate-annotation &lt;part&gt; [profile]` | Has the model review the part like [Annotate with AI](../books/annotations.md#letting-a-model-annotate) and adds everything it finds as notes (source *AI*; a quote that is not in the text makes a note about the whole part). Nothing is asked: the notes are the only change, and they can be resolved, edited or deleted. It reviews with the model of the book; an agent uses its own model when *Write the book with the model of the agent* is on (as the Lore Generator commands do), `profile` is a model profile of an agent. Runs alone, takes time, costs tokens. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -710,11 +711,15 @@ never the story, so only the delete asks first. An agent can use all of them; it
 <td><code translate="no" v-pre>/delete-annotation &lt;annotation&gt;</code></td>
 <td>Deletes a note (it can be restored from the trash). Asks first.</td>
 </tr>
+<tr>
+<td><code translate="no" v-pre>/generate-annotation &lt;part&gt; [profile]</code></td>
+<td>Has the model review the part like <a href="../books/annotations/#letting-a-model-annotate">Annotate with AI</a> and adds everything it finds as notes (source <em>AI</em>; a quote that is not in the text makes a note about the whole part). Nothing is asked: the notes are the only change, and they can be resolved, edited or deleted. It reviews with the model of the book; an agent uses its own model when <em>Write the book with the model of the agent</em> is on (as the Lore Generator commands do), <code translate="no" v-pre>profile</code> is a model profile of an agent. Runs alone, takes time, costs tokens.</td>
+</tr>
 </tbody>
 </table>
 </div>
 </retype-table>
-<p>The commands that have the model write (<code translate="no" v-pre>/next</code>, <code translate="no" v-pre>/swipe</code>, <code translate="no" v-pre>/regenerate</code>, the two summaries) take time and show the <strong>Stop</strong> window.</p>
+<p>The commands that have the model write or review (<code translate="no" v-pre>/next</code>, <code translate="no" v-pre>/swipe</code>, <code translate="no" v-pre>/regenerate</code>, <code translate="no" v-pre>/generate-annotation</code>, the two summaries) take time and show the <strong>Stop</strong> window.</p>
 <h2 id="commands-that-come-with-extensions">Commands that come with extensions</h2>
 <p>You see these in the list as long as the extension is loaded; each is described in the documentation of its extension.</p>
 <retype-table copy-text="| Command | Extension | What it does |
@@ -856,7 +861,7 @@ Character Tracker also change the outline and the characters of the open book; o
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (43d9fd0ac).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (56efa89dc).</p></div>
             </footer>
         </div>
     </div>

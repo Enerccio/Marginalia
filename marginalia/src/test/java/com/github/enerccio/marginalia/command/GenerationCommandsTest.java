@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.command;
 
 import com.github.enerccio.marginalia.domain.model.impl.*;
+import com.github.enerccio.marginalia.domain.service.AnnotationService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.CommandService;
 import com.github.enerccio.marginalia.domain.service.SummaryService;
@@ -35,6 +36,9 @@ class GenerationCommandsTest extends GenerationTestBase {
 
     @Autowired
     private SummaryService summaryService;
+
+    @Autowired
+    private AnnotationService annotationService;
 
     private Manuscript manuscript;
     private ChatMessage first, second;
@@ -240,6 +244,41 @@ class GenerationCommandsTest extends GenerationTestBase {
 
         assertThat(llm.lastCompletionRequest().getPromptText()).contains("REWRITE Anna met John. BECAUSE x");
         assertThatThrownBy(() -> run("/redraft-part " + first.getUuid() + " \"x\" \"{{#unclosed}}\"")).isInstanceOf(ExecutionException.class);
+    }
+
+    @Test
+    void theModelAnnotatesAnOlderPartAndTheNotesAreAdded() throws Exception {
+        llm.fallback(com.github.enerccio.marginalia.test.llm.MockLLMResponse.text(
+                "{\"findings\": [{\"quote\": \"Anna met John.\", \"note\": \"Flat opening\", \"type\": \"style\"},"
+                        + " {\"quote\": \"not in the part\", \"note\": \"Contradicts the lore\"}]}"));
+
+        JsonObject result = json("/generate-annotation " + first.getUuid());
+
+        assertThat(result.get("part").getAsString()).isEqualTo(first.getUuid());
+        assertThat(result.get("created").getAsInt()).isEqualTo(2);
+        assertThat(result.getAsJsonArray("annotations")).hasSize(2);
+        var notes = annotationService.listForPart(book(), chatMessageService.find(first.getId()));
+        assertThat(notes).extracting(Annotation::getText).containsExactlyInAnyOrder("Flat opening", "Contradicts the lore");
+        assertThat(notes).allSatisfy(note -> assertThat(note.getSource()).isEqualTo(com.github.enerccio.marginalia.domain.collections.AnnotationSource.AI));
+        // the story is untouched, the model was told the part and the story after it
+        assertThat(chatMessageService.find(first.getId()).getResponse()).isEqualTo("Anna met John.");
+        assertThat(llm.lastCompletionRequest().getPromptText()).contains("Anna met John.").contains("John went home.");
+    }
+
+    @Test
+    void aPartWithoutFindingsGetsNoNotes() throws Exception {
+        llm.fallback(com.github.enerccio.marginalia.test.llm.MockLLMResponse.text("{\"findings\": []}"));
+
+        JsonObject result = json("/generate-annotation " + first.getUuid());
+
+        assertThat(result.get("created").getAsInt()).isZero();
+        assertThat(annotationService.listForPart(book(), chatMessageService.find(first.getId()))).isEmpty();
+    }
+
+    @Test
+    void anAnnotationProfileBelongsToAnAgent() {
+        assertThatThrownBy(() -> run("/generate-annotation " + first.getUuid() + " Prose")).isInstanceOf(ExecutionException.class)
+                .hasMessageContaining("agents");
     }
 
     @Test

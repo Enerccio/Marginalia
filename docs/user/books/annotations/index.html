@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846401330092">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846401861160">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846401330092" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846401861160" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846401330092" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846401861160" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846401330092" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846401861160" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -404,7 +404,9 @@ given.</p>
 <h2 id="commands">Commands</h2>
 <p><a href="../../commands/#annotations"><code translate="no" v-pre>/list-annotations</code></a>, <code translate="no" v-pre>/get-annotation</code>, <code translate="no" v-pre>/create-annotation</code>, <code translate="no" v-pre>/update-annotation</code>,
 <code translate="no" v-pre>/resolve-annotation</code>, <code translate="no" v-pre>/reattach-annotation</code> and <code translate="no" v-pre>/delete-annotation</code> work with the notes from the command line.
-Extensions can use the same commands.</p>
+Extensions can use the same commands. <a href="../../commands/#annotations"><code translate="no" v-pre>/generate-annotation &lt;part&gt;</code></a> is <strong>Annotate with AI</strong> as a command: the model reviews the part with the model of the book
+(an agent uses its own model when <em>Write the book with the model of the agent</em> is on; <code translate="no" v-pre>profile</code> picks another model profile of the agent), with the instructions, answer format and prompt of the book, and every note it finds is added at once,
+since there is nobody to pick them. It is one request to the model, so it runs alone and costs tokens.</p>
 <h2 id="annotations-and-agents">Annotations and agents</h2>
 <p>An <a href="../../agents/">agent</a> reads and writes annotations with the same commands: it can annotate a whole book (<em>continuity</em>, <em>style</em>...), resolve notes it dealt with, edit
 or delete them. It works on a copy of the book, so nothing reaches your notes until you <a href="../../agents/#reviewing-the-result">review the result</a>:</p>
@@ -463,7 +465,7 @@ both changed is a conflict like any other.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (43d9fd0ac).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (56efa89dc).</p></div>
             </footer>
         </div>
     </div>

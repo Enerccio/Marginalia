@@ -751,6 +751,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_ANNOTATE_BATCH, "为一段范围内的段落添加批注");
         setValue(L.LABEL_ANNOTATE_FROM_PART, "起始段落");
         setValue(L.LABEL_ANNOTATE_TO_PART, "结束段落");
+        setValue(L.LABEL_COMMAND_GENERATE_ANNOTATION, "生成批注");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -987,6 +988,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ERROR_IMPERSONATE_FAILED, "无法起草指令：书籍没有模型或协议。");
         setValue(L.ERROR_COMMAND_IMPERSONATE_NOT_POSSIBLE, "无法起草指令：书籍没有模型，或模型没有写出任何内容。");
         setValue(L.ERROR_COMMAND_IMPERSONATE_CONTEXT, "代笔提示词超出模型上下文（需要 %d 个词元，可用 %d 个）。");
+        setValue(L.ERROR_COMMAND_ANNOTATE_NOT_POSSIBLE, "无法为该段添加批注：它没有文本，或者书没有模型和协议。");
+        setValue(L.ERROR_COMMAND_ANNOTATE_CONTEXT, "批注内容超出模型上下文（需要 %d 个令牌，可用 %d 个）。");
+        setValue(L.ERROR_COMMAND_ANNOTATE_UNREADABLE, "无法把模型的回答读成备注：%s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "无法保存表单。");
@@ -1278,6 +1282,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_ANNOTATE_BATCH_HINT, "范围内的段落将使用相同的指示、模式和模型依次添加批注。建议按段落列出；在您添加所选项之前不会添加任何内容。");
         setValue(L.MSG_ANNOTATE_BATCH_PROGRESS, "正在为第 %d 段添加批注（%d / %d）");
         setValue(L.MSG_ANNOTATE_BATCH_SKIPPED, "已跳过第 %d 段：%s");
+        setValue(L.MSG_COMMAND_ANNOTATING, "正在为该段添加批注…");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1729,6 +1734,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_IMPERSONATE_INSTRUCTIONS_PARAM, "指令应涉及的内容；留空则让故事自然发展");
         setValue(L.DESC_COMMAND_IMPERSONATE_OUTLINE_PARAM, "提供给模型的故事计划（例如当前章节的数据）；留空表示没有");
         setValue(L.DESC_COMMAND_IMPERSONATE_PROMPT_PARAM, "用于替代书籍提示词的代笔提示词（模板）；留空则使用书籍的");
+        setValue(L.DESC_COMMAND_GENERATE_ANNOTATION, "让模型审阅故事的一段，并把发现的问题作为批注添加。会消耗令牌。");
+        setValue(L.DESC_COMMAND_GENERATE_ANNOTATION_LLM, "让模型像“用 AI 批注”对话框那样审阅段落 `part`（其句柄；可以是任意一段，不只是最后一段）：模型会阅读该段、其前后的故事（较早的部分以摘要形式）、设定资料和书的文风，以及该段已有的备注，找出连贯性错误、与设定的矛盾、薄弱的段落和文风上的失误。每一条发现都会作为批注（来源为 AI）立即添加到模型所引用的文字上；若引文不在文本中，则添加到整段上。故事正文不会被修改。`profile` 是用来代替当前运行模型的智能体模型配置。速度慢，会消耗令牌。返回该段的句柄和新批注（对不同意的批注可使用 resolve-annotation、update-annotation 或 delete-annotation）。");
+        setValue(L.DESC_COMMAND_GENERATE_ANNOTATION_RETURN, "JSON 对象：该段的句柄、创建的批注数量以及批注");
     }
 
     @Override
