@@ -184,6 +184,11 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
       filters of the others; `LorebookEntry.preventRecursion`) and ✅ activation preview (`LorebookActivationPreviewDialog`,
       `LorebookActivationService.evaluateAll`). Not done: a "only by recursion" entry flag, the flags in the agent commands
       (`/create-lore-entry`), a scan depth per lorebook of the tree.
+    - ✅ Activation context (`LorebookEntry.activationContext`: `INSTRUCTIONS`, the default, or `INCLUDE_PARTS` with
+      `activationParts` ≥ 1): the filter is also looked for in the newest N parts of the branch; the generation step reads
+      only as many parts as the enabled entries need (`partsNeeded`, `recentParts`). Not done: the context in the agent
+      commands (`/create-lore-entry`, `/update-lore-entry`), searching summaries or the notes of the parts, a context in the
+      mass edit.
     - ✅ A read only *Lorebook* tab in the story editor (desktop) shows the lorebook of the story without leaving it:
       entries with their activation text and Markdown content, optionally with the sub lorebooks (`LorebookPreview`).
       Not done: editing from there, a phone twin, search in it.

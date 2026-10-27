@@ -745,6 +745,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_ANNOTATE_TO_PART, "終了パート");
         setValue(L.LABEL_COMMAND_GENERATE_ANNOTATION, "注釈を生成");
         setValue(L.LABEL_REDRAFT_REVALIDATE_SUMMARIES, "この再執筆で古くなる要約を再検証する（内容は今も正しい）");
+        setValue(L.LABEL_ACTIVATION_CONTEXT, "発動コンテキスト");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -889,6 +890,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_ACTIVATION_REASON_MISSING_TAG, "未使用: ブックに必要なタグがない");
         setValue(L.ENUM_ACTIVATION_REASON_FILTER_NOT_MATCHED, "未使用: フィルターが一致しない");
         setValue(L.ENUM_ACTIVATION_REASON_EXTENSION_SKIPPED, "未使用: 拡張機能が変更");
+        setValue(L.ENUM_ACTIVATION_CONTEXT_INCLUDE_PARTS, "指示とストーリーのパート");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -1361,7 +1363,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_AI_TOKENIZER, "このAIのトークン数の数え方。自動ではサーバーのトークナイザーエンドポイント（OpenAI、llama.cpp、LiteLLM）を順に試し、使えない場合はローカルの推定にフォールバックします。1つを選ぶとそれだけを使います。プラグインのトークナイザーは、ここで選択された場合にのみ、エンドポイント、モデル、テキストを受け取ります。");
         setValue(L.HELP_SCAN_DEPTH, "使用されたエントリーの内容を、他のエントリーのフィルターについて何回検索するか（0 = 検索しない）。ブックが使うロアブックの値のみが有効で、サブブックの値は無視されます。");
         setValue(L.HELP_PREVENT_RECURSION, "このエントリーの内容の語句で他のエントリーが発動することはありません。");
-        setValue(L.HELP_ACTIVATION_PREVIEW, "このロアブックとサブブックのどのエントリーが、このテキストのターンで使用されるかを、理由とこのロアブックのスキャン深度を含めて表示します。実際の生成では拡張機能が結果を変更することがあります。");
+        setValue(L.HELP_ACTIVATION_PREVIEW, "このロアブックとサブブックのどのエントリーが、このテキストのターンで使用されるかを、理由とこのロアブックのスキャン深度を含めて表示します。実際の生成では拡張機能が結果を変更することがあります。ストーリーのパートも検索するエントリーには、選択したブックの最新のパートが使われます。");
+        setValue(L.HELP_ACTIVATION_CONTEXT, "フィルターを探す範囲：ターンの指示のみ、または指示とストーリーの最新のパート。");
+        setValue(L.HELP_ACTIVATION_PARTS, "指示と一緒に検索するストーリーの最新パートの数（1以上）。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

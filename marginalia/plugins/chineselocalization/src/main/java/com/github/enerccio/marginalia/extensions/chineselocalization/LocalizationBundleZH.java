@@ -753,6 +753,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_ANNOTATE_TO_PART, "结束段落");
         setValue(L.LABEL_COMMAND_GENERATE_ANNOTATION, "生成批注");
         setValue(L.LABEL_REDRAFT_REVALIDATE_SUMMARIES, "重新验证因本次重写而过期的摘要（它们的内容仍然正确）");
+        setValue(L.LABEL_ACTIVATION_CONTEXT, "激活上下文");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -897,6 +898,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_ACTIVATION_REASON_MISSING_TAG, "未使用：书籍缺少所需标签");
         setValue(L.ENUM_ACTIVATION_REASON_FILTER_NOT_MATCHED, "未使用：未找到过滤词");
         setValue(L.ENUM_ACTIVATION_REASON_EXTENSION_SKIPPED, "未使用：由扩展更改");
+        setValue(L.ENUM_ACTIVATION_CONTEXT_INCLUDE_PARTS, "指令和故事段落");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -1369,7 +1371,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_AI_TOKENIZER, "此 AI 计算词元数的方式。“自动”会依次尝试服务器的分词端点（OpenAI、llama.cpp、LiteLLM），不可用时回退到本地估算；选择其中一项则只使用该项。插件提供的分词器只有在此处被选中时，才会收到端点、模型和文本。");
         setValue(L.HELP_SCAN_DEPTH, "对已使用条目的内容搜索其他条目过滤词的次数（0 = 不搜索）。仅书籍所用世界书的设置有效，子书的设置会被忽略。");
         setValue(L.HELP_PREVENT_RECURSION, "此条目内容中的词语不会激活其他条目。");
-        setValue(L.HELP_ACTIVATION_PREVIEW, "显示此世界书及其子书的哪些条目会用于包含此文本的回合及原因（含此世界书的扫描深度）。实际生成时扩展仍可能改变结果。");
+        setValue(L.HELP_ACTIVATION_PREVIEW, "显示此世界书及其子书的哪些条目会用于包含此文本的回合及原因（含此世界书的扫描深度）。实际生成时扩展仍可能改变结果。同时搜索故事段落的条目会使用所选书的最新段落。");
+        setValue(L.HELP_ACTIVATION_CONTEXT, "过滤词的搜索范围：仅回合的指令，或指令加上故事最新的段落。");
+        setValue(L.HELP_ACTIVATION_PARTS, "与指令一同搜索的故事最新段落的数量（至少为 1）。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

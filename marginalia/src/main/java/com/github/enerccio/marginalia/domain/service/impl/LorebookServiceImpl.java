@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.domain.collections.ActivationContext;
 import com.github.enerccio.marginalia.domain.collections.AgentRunPairKind;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
@@ -777,6 +778,8 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
         entryObj.addProperty("filteringMode", entry.getFilteringMode() != null ? entry.getFilteringMode().name() : null);
         entryObj.addProperty("insertionMode", entry.getInsertionMode() != null ? entry.getInsertionMode().name() : null);
         entryObj.addProperty("preventRecursion", entry.isPreventRecursion());
+        entryObj.addProperty("activationContext", entry.getActivationContext().name());
+        entryObj.addProperty("activationParts", entry.getActivationParts());
         addAttributes(entryObj, entry);
         entryObj.add("tags", toJsonArray(tagRelationService.getTagsForObject(entry)));
         entryObj.add("negativeTags", toJsonArray(tagRelationService.getTagsForObject(entry, true)));
@@ -840,6 +843,13 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             InsertionMode insertionMode = getEnum(entryObj, "insertionMode", InsertionMode.class);
             if (insertionMode != null) {
                 entry.setInsertionMode(insertionMode);
+            }
+            ActivationContext activationContext = getEnum(entryObj, "activationContext", ActivationContext.class);
+            if (activationContext != null) {
+                entry.setActivationContext(activationContext);
+            }
+            if (entryObj.has("activationParts") && !entryObj.get("activationParts").isJsonNull()) {
+                entry.setActivationParts(entryObj.get("activationParts").getAsInt());
             }
 
             entry = lorebookEntryService.save(entry);

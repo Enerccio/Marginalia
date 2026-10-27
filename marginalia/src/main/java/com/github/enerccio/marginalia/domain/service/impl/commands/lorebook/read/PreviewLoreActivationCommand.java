@@ -131,7 +131,11 @@ public class PreviewLoreActivationCommand extends LorebookReadSupport {
         Map<Reason, Integer> byReason = new EnumMap<>(Reason.class);
         StringBuilder loreBlock = new StringBuilder();
         StringBuilder userBlock = new StringBuilder();
-        for (LorebookEntryVerdict decided : activationService.evaluateAll(root, books, bookTags, matched)) {
+        // the story before the turn, as far back as an entry looks: for a part the ones in front of it
+        ChatMessage storyEnd = part != null ? part : manuscript.getActiveLeaf();
+        List<String> storyParts = activationService.recentParts(storyEnd,
+                activationService.partsNeeded(activationService.orderedEntries(books)), part != null);
+        for (LorebookEntryVerdict decided : activationService.evaluateAll(root, books, bookTags, matched, storyParts)) {
             LorebookEntry entry = decided.entry();
             Verdict verdict = decided.verdict();
             Lorebook owner = bookOf.get(entry.getId());

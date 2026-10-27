@@ -40,6 +40,7 @@ public class LocalizationImpl implements Localization, InitializingBean {
     private final Map<BackupStrategy, L> backupStrategies = new HashMap<>();
     private final Map<FilteringMode, L> filteringModes = new HashMap<>();
     private final Map<InsertionMode, L> insertionModes = new HashMap<>();
+    private final Map<ActivationContext, L> activationContexts = new HashMap<>();
     private final Map<LorebookActivationService.Reason, L> activationReasons = new HashMap<>();
     private final Map<CleanupReference.Policy, L> cleanupPolicies = new HashMap<>();
     private final Map<LorebookMatch, L> lorebookMatches = new HashMap<>();
@@ -142,6 +143,9 @@ public class LocalizationImpl implements Localization, InitializingBean {
 
         insertionModes.put(InsertionMode.IN_LORE_BLOCK, L.ENUM_INSERTION_MODE_IN_LORE_BLOCK);
         insertionModes.put(InsertionMode.BEFORE_USER_PROMPT, L.ENUM_INSERTION_MODE_BEFORE_USER_PROMPT);
+
+        activationContexts.put(ActivationContext.INSTRUCTIONS, L.LABEL_INSTRUCTIONS);
+        activationContexts.put(ActivationContext.INCLUDE_PARTS, L.ENUM_ACTIVATION_CONTEXT_INCLUDE_PARTS);
 
         for (LorebookActivationService.Reason reason : LorebookActivationService.Reason.values()) {
             activationReasons.put(reason, L.valueOf("ENUM_ACTIVATION_REASON_" + reason.name()));
@@ -384,6 +388,11 @@ public class LocalizationImpl implements Localization, InitializingBean {
     @Override
     public L getInsertionMode(InsertionMode type) {
         return insertionModes.get(type);
+    }
+
+    @Override
+    public L getActivationContext(ActivationContext type) {
+        return activationContexts.get(type);
     }
 
     @Override
