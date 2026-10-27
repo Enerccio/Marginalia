@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.extensions.namegenerator;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.stream.JsonReader;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,8 +38,144 @@ public class NameTables {
      * names that are usual in it (null: the defaults), which the build step took from the names the chain was trained on, and
      * the number of those names ({@code size}, null when unknown), which weights the members of a group.
      */
-    record Category(String title, int order, Integer minLength, Integer maxLength, Integer size,
-                    Map<String, Map<Character, Double>> tables) {}
+    record Category(String title, int order, Integer minLength, Integer maxLength, Integer size, Chain chain) {
+
+        /** A category from tables as maps (the context, the next characters with their probabilities, in the order they are tried). */
+        Category(String title, int order, Integer minLength, Integer maxLength, Integer size,
+                 Map<String, Map<Character, Double>> tables) {
+            this(title, order, minLength, maxLength, size, Chain.of(order, tables));
+        }
+    }
+
+    /**
+     * The probability tables of a category, packed: a context (the last {@code order} characters, at most {@link #MAX_ORDER}) is
+     * a {@code long} of 16 bits for each of them, the contexts are sorted and the characters that can follow one, with their
+     * probabilities, are a range of two arrays, in the order of the file. A table of nested maps weighed 10 times as much, and all
+     * the categories of the extension are in memory for as long as it is loaded.
+     */
+    static final class Chain {
+        static final int MAX_ORDER = 4;
+
+        private final int order;
+        private final long[] contexts;
+        private final int[] starts;
+        private final char[] characters;
+        private final double[] probabilities;
+
+        private Chain(int order, long[] contexts, int[] starts, char[] characters, double[] probabilities) {
+            this.order = order;
+            this.contexts = contexts;
+            this.starts = starts;
+            this.characters = characters;
+            this.probabilities = probabilities;
+        }
+
+        static Chain of(int order, Map<String, Map<Character, Double>> tables) {
+            Builder builder = new Builder();
+            tables.forEach((context, next) -> {
+                builder.context(context);
+                next.forEach(builder::next);
+            });
+            return builder.build(order);
+        }
+
+        /** The packed context of the characters, the last of them in the lowest 16 bits. */
+        static long pack(CharSequence context) {
+            if (context.length() > MAX_ORDER) {
+                throw new IllegalStateException("A context of " + context.length() + " characters, " + MAX_ORDER + " is the most: " + context);
+            }
+            long packed = 0;
+            for (int i = 0; i < context.length(); i++) {
+                packed = (packed << 16) | context.charAt(i);
+            }
+            return packed;
+        }
+
+        /** The context a name starts from. */
+        long start() {
+            return pack(String.valueOf(START).repeat(order));
+        }
+
+        /** The context after the character: its last {@code order} characters. */
+        long advance(long context, char c) {
+            long moved = (context << 16) | c;
+            return order >= MAX_ORDER ? moved : moved & ((1L << (16 * order)) - 1);
+        }
+
+        /** The index of the context, negative when the chain has none. */
+        int find(long context) {
+            return Arrays.binarySearch(contexts, context);
+        }
+
+        /** One of the characters that can follow the context, by their probabilities. */
+        char pick(int index, RandomGenerator random) {
+            int from = starts[index];
+            int to = starts[index + 1];
+            double roll = random.nextDouble() * Arrays.stream(probabilities, from, to).sum();
+            char last = END;
+            for (int i = from; i < to; i++) {
+                last = characters[i];
+                roll -= probabilities[i];
+                if (roll < 0) {
+                    return last;
+                }
+            }
+            return last;
+        }
+
+        /** Collects the contexts in the order of the file, {@link #build} sorts them. */
+        static final class Builder {
+            private long[] keys = new long[64];
+            private int[] firsts = new int[64];
+            private int contexts;
+            private char[] characters = new char[256];
+            private double[] probabilities = new double[256];
+            private int pairs;
+
+            void context(String context) {
+                if (contexts == keys.length) {
+                    keys = Arrays.copyOf(keys, contexts * 2);
+                    firsts = Arrays.copyOf(firsts, contexts * 2);
+                }
+                keys[contexts] = pack(context);
+                firsts[contexts++] = pairs;
+            }
+
+            void next(char c, double probability) {
+                if (pairs == characters.length) {
+                    characters = Arrays.copyOf(characters, pairs * 2);
+                    probabilities = Arrays.copyOf(probabilities, pairs * 2);
+                }
+                characters[pairs] = c;
+                probabilities[pairs++] = probability;
+            }
+
+            Chain build(int order) {
+                Integer[] sorted = new Integer[contexts];
+                for (int i = 0; i < contexts; i++) {
+                    sorted[i] = i;
+                }
+                Arrays.sort(sorted, Comparator.comparingLong(i -> keys[i]));
+                long[] sortedKeys = new long[contexts];
+                int[] starts = new int[contexts + 1];
+                char[] chars = new char[pairs];
+                double[] probs = new double[pairs];
+                int at = 0;
+                for (int i = 0; i < contexts; i++) {
+                    int source = sorted[i];
+                    int from = firsts[source];
+                    int to = source + 1 < contexts ? firsts[source + 1] : pairs;
+                    sortedKeys[i] = keys[source];
+                    starts[i] = at;
+                    System.arraycopy(characters, from, chars, at, to - from);
+                    System.arraycopy(probabilities, from, probs, at, to - from);
+                    at += to - from;
+                }
+                starts[contexts] = at;
+                return new Chain(order, sortedKeys, starts, chars, probs);
+            }
+        }
+    }
 
     /**
      * A group as it is in {@code name-groups.json}.
@@ -133,25 +270,63 @@ public class NameTables {
     }
 
     static NameTables parse(Reader reader) {
-        JsonObject root = new Gson().fromJson(reader, JsonObject.class);
         List<Category> categories = new ArrayList<>();
-        root.getAsJsonArray("categories").forEach(element -> {
-            JsonObject category = element.getAsJsonObject();
-            Map<String, Map<Character, Double>> tables = new HashMap<>();
-            category.getAsJsonObject("tables").entrySet().forEach(context -> {
-                Map<Character, Double> next = new LinkedHashMap<>();
-                context.getValue().getAsJsonObject().entrySet()
-                        .forEach(p -> next.put(p.getKey().charAt(0), p.getValue().getAsDouble()));
-                tables.put(context.getKey(), next);
-            });
-            categories.add(new Category(category.get("title").getAsString(), category.get("order").getAsInt(),
-                    optionalInt(category, "minLength"), optionalInt(category, "maxLength"), optionalInt(category, "size"), tables));
-        });
+        try (JsonReader json = new JsonReader(reader)) {
+            json.beginObject();
+            while (json.hasNext()) {
+                if (json.nextName().equals("categories")) {
+                    json.beginArray();
+                    while (json.hasNext()) {
+                        categories.add(readCategory(json));
+                    }
+                    json.endArray();
+                } else {
+                    json.skipValue();
+                }
+            }
+            json.endObject();
+        } catch (IOException e) {
+            throw new IllegalStateException("Cannot read " + RESOURCE, e);
+        }
         return new NameTables(categories);
     }
 
-    private static Integer optionalInt(JsonObject object, String key) {
-        return object.has(key) ? object.get(key).getAsInt() : null;
+    /**
+     * One category, read token by token into the packed tables: the tables of all the categories as a tree of the JSON
+     * elements would need several times the memory of the result while they are read.
+     */
+    private static Category readCategory(JsonReader json) throws IOException {
+        String title = null;
+        int order = 0;
+        Integer minLength = null;
+        Integer maxLength = null;
+        Integer size = null;
+        Chain.Builder builder = new Chain.Builder();
+        json.beginObject();
+        while (json.hasNext()) {
+            switch (json.nextName()) {
+                case "title" -> title = json.nextString();
+                case "order" -> order = json.nextInt();
+                case "minLength" -> minLength = json.nextInt();
+                case "maxLength" -> maxLength = json.nextInt();
+                case "size" -> size = json.nextInt();
+                case "tables" -> {
+                    json.beginObject();
+                    while (json.hasNext()) {
+                        builder.context(json.nextName());
+                        json.beginObject();
+                        while (json.hasNext()) {
+                            builder.next(json.nextName().charAt(0), json.nextDouble());
+                        }
+                        json.endObject();
+                    }
+                    json.endObject();
+                }
+                default -> json.skipValue();
+            }
+        }
+        json.endObject();
+        return new Category(title, order, minLength, maxLength, size, builder.build(order));
     }
 
     /** The titles of the categories and of the groups, sorted. */
@@ -316,38 +491,25 @@ public class NameTables {
 
     private static String name(Category chain, int min, int max, RandomGenerator random) {
         StringBuilder name = new StringBuilder();
-        String context = String.valueOf(START).repeat(chain.order());
+        Chain tables = chain.chain();
+        long context = tables.start();
         while (name.length() <= max) {
-            Map<Character, Double> next = chain.tables().get(context);
-            if (next == null) {
+            int index = tables.find(context);
+            if (index < 0) {
                 return null;
             }
-            char c = pick(next, random);
+            char c = tables.pick(index, random);
             if (c == END) {
                 return name.length() < min ? null : capitalize(name.toString());
             }
             name.append(c);
-            context = (context + c).substring(1);
+            context = tables.advance(context, c);
         }
         return null;
     }
 
     private static int clampLength(Integer requested, int fallback) {
         return requested == null ? fallback : Math.max(FLOOR_LENGTH, Math.min(CEIL_LENGTH, requested));
-    }
-
-    /** Roulette selection; the probabilities are rounded in the file, so the last one takes the remainder. */
-    private static char pick(Map<Character, Double> probabilities, RandomGenerator random) {
-        double roll = random.nextDouble() * probabilities.values().stream().mapToDouble(Double::doubleValue).sum();
-        char last = END;
-        for (Map.Entry<Character, Double> entry : probabilities.entrySet()) {
-            last = entry.getKey();
-            roll -= entry.getValue();
-            if (roll < 0) {
-                return last;
-            }
-        }
-        return last;
     }
 
     /** Upper case for the first letter and the ones after a space, hyphen or apostrophe. */

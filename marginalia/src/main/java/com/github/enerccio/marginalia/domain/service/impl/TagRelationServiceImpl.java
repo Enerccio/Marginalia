@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.repository.TagRelationRepository;
 import com.github.enerccio.marginalia.domain.service.TagRelationService;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import org.hibernate.Hibernate;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -28,7 +29,7 @@ public class TagRelationServiceImpl extends ExtendableServiceImpl<TagRelation, T
         if (tag == null || object == null || object.getId() == null) {
             throw new IllegalArgumentException("Tag and Object with valid ID must not be null");
         }
-        return createRelation(tag, object.getId(), object.getClass(), negative);
+        return createRelation(tag, object.getId(), Hibernate.getClass(object), negative);
     }
 
     @Override
@@ -107,7 +108,7 @@ public class TagRelationServiceImpl extends ExtendableServiceImpl<TagRelation, T
         if (object == null || object.getId() == null) {
             return;
         }
-        for (TagRelation relation : getRepository().findAllByObject(object.getId(), object.getClass().getName())) {
+        for (TagRelation relation : getRepository().findAllByObject(object.getId(), Hibernate.getClass(object).getName())) {
             delete(relation, hard);
         }
     }
@@ -124,7 +125,7 @@ public class TagRelationServiceImpl extends ExtendableServiceImpl<TagRelation, T
         if (object == null || object.getId() == null) {
             return Collections.emptyList();
         }
-        return getTagsForObject(object.getId(), object.getClass(), negative);
+        return getTagsForObject(object.getId(), Hibernate.getClass(object), negative);
     }
 
     @Override
@@ -211,6 +212,6 @@ public class TagRelationServiceImpl extends ExtendableServiceImpl<TagRelation, T
         if (object == null || object.getId() == null) {
             return;
         }
-        removeRelation(tag, object.getId(), object.getClass(), negative);
+        removeRelation(tag, object.getId(), Hibernate.getClass(object), negative);
     }
 }

@@ -55,6 +55,10 @@ public class AgentMergeServiceImpl implements AgentMergeService {
 
     @Autowired
     @Lazy
+    private MessagePromptService messagePromptService;
+
+    @Autowired
+    @Lazy
     private SummaryService summaryService;
 
     @Autowired
@@ -888,6 +892,7 @@ public class AgentMergeServiceImpl implements AgentMergeService {
             ChatMessage parent = source.getParent();
             ChatMessage saved = parent == null ? chatMessageService.createRoot(targetBook, created)
                     : chatMessageService.addChild(messageOf(targetOf(parent.getUuid())), created);
+            messagePromptService.copy(source, saved);
             made(AgentRunPairKind.MESSAGE, item.sourceUuid(), saved.getUuid());
             if (text != null && !text.equals(source.getResponse())) {
                 storeResponse(saved, source, text);

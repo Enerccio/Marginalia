@@ -1,10 +1,12 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
+import com.github.enerccio.marginalia.domain.service.MessagePromptService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonObject;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * {@code /show-prompt part [branch [offset [length]]]}: the prompt a generated part was made from, as it was stored.
@@ -13,6 +15,9 @@ import com.google.gson.JsonObject;
 public class ShowPromptCommand extends ManuscriptReadSupport {
 
     static final String NAME = "show-prompt";
+
+    @Autowired
+    private MessagePromptService messagePromptService;
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SHOW_PROMPT,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
@@ -68,14 +73,15 @@ public class ShowPromptCommand extends ManuscriptReadSupport {
         JsonObject result = new JsonObject();
         result.addProperty("handle", message.getUuid());
         result.addProperty("position", at.position());
-        result.addProperty("available", message.getBuiltPrompt() != null);
-        if (message.getBuiltPrompt() != null) {
+        String builtPrompt = messagePromptService.getBuiltPrompt(message);
+        result.addProperty("available", builtPrompt != null);
+        if (builtPrompt != null) {
             result.addProperty("promptTokens", message.getBuiltPromptTokens());
-            slice(result, message.getBuiltPrompt(), offset, length);
+            slice(result, builtPrompt, offset, length);
             if (message.getTokenBreakdown() != null) {
                 result.add("tokenBreakdown", GSON.toJsonTree(message.getTokenBreakdown()));
             }
-            String lore = message.getBackgroundLore();
+            String lore = messagePromptService.getBackgroundLore(message);
             if (lore != null) {
                 JsonObject backgroundLore = new JsonObject();
                 slice(backgroundLore, lore, 0, DEFAULT_SLICE);

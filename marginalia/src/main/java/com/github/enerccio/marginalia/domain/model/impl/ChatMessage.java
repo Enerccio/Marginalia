@@ -103,17 +103,10 @@ public class ChatMessage extends ExtendableEntity {
     @Transient
     private String protocolUsed;
 
-    @ExtendedAttribute
-    @Transient
-    private String builtPrompt;
-
+    // the prompt itself is MessagePrompt, see MessagePromptService
     @ExtendedAttribute
     @Transient
     private Long builtPromptTokens;
-
-    @ExtendedAttribute
-    @Transient
-    private String backgroundLore;
 
     // JSON of PromptTokenBreakdown, extended attributes are plain strings; null for parts generated before it existed
     @ExtendedAttribute
@@ -125,8 +118,8 @@ public class ChatMessage extends ExtendableEntity {
     @Transient
     private String imageAttachments;
     /**
-     * @return detached copy of all values of given message (extended attributes deep copied, summary not included),
-     * meant to be restored later with {@link #loadFrom(ChatMessage)}, not to be saved itself
+     * @return detached copy of all values of given message (extended attributes deep copied, summary and the built prompt
+     * not included), meant to be restored later with {@link #loadFrom(ChatMessage)}, not to be saved itself
      */
     public static ChatMessage copyOf(ChatMessage source) {
         ChatMessage copy = new ChatMessage();
@@ -139,9 +132,7 @@ public class ChatMessage extends ExtendableEntity {
      * ones, so nothing of the previous content is kept. Extended attributes are deep copied.
      */
     public void loadFrom(ChatMessage source) {
-        this.backgroundLore = source.backgroundLore;
         this.imageAttachments = source.imageAttachments;
-        this.builtPrompt = source.builtPrompt;
         this.builtPromptTokens = source.builtPromptTokens;
         this.tokenBreakdown = source.tokenBreakdown;
         this.instructions = source.instructions;
@@ -326,28 +317,12 @@ public class ChatMessage extends ExtendableEntity {
         this.protocolUsed = protocolUsed;
     }
 
-    public String getBuiltPrompt() {
-        return builtPrompt;
-    }
-
-    public void setBuiltPrompt(String builtPrompt) {
-        this.builtPrompt = builtPrompt;
-    }
-
     public Long getBuiltPromptTokens() {
         return builtPromptTokens;
     }
 
     public void setBuiltPromptTokens(Long builtPromptTokens) {
         this.builtPromptTokens = builtPromptTokens;
-    }
-
-    public String getBackgroundLore() {
-        return backgroundLore;
-    }
-
-    public void setBackgroundLore(String backgroundLore) {
-        this.backgroundLore = backgroundLore;
     }
 
     /**

@@ -36,6 +36,14 @@ import java.util.function.Function;
 public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, ManuscriptRepository> implements ManuscriptService {
     private static final Logger log = LoggerFactory.getLogger(ManuscriptServiceImpl.class);
 
+    /**
+     * Removes the text value of the key from the object and returns it, null when there was none.
+     */
+    private static String takeString(JsonObject object, String key) {
+        JsonElement value = object.remove(key);
+        return value != null && value.isJsonPrimitive() ? value.getAsString() : null;
+    }
+
 
     @Autowired
     private SettingService settingService;
@@ -51,6 +59,9 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
 
     @Autowired
     private AnnotationService annotationService;
+
+    @Autowired
+    private MessagePromptService messagePromptService;
 
     @Autowired
     private TagRelationService tagRelationService;
@@ -389,6 +400,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         JsonArray messagesArray = new JsonArray();
         ExtendableEntityListener listener = new ExtendableEntityListener();
         Map<Long, JsonArray> annotations = annotationService.marshalForManuscript(m);
+        Map<Long, MessagePrompt> prompts = messagePromptService.findAllFor(allMessages);
 
         for (ChatMessage msg : allMessages) {
             JsonObject msgObj = new JsonObject();
@@ -410,6 +422,20 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
                 } catch (Exception e) {
                     msgObj.addProperty("extendedContent", new String(msg.getExtendedContent(), StandardCharsets.UTF_8));
                 }
+            }
+            // the prompt is stored apart from the part, but a backup keeps it in the extended content as it always did, so
+            // backups of every version are the same format (see restoreMessages)
+            MessagePrompt prompt = prompts.get(msg.getId());
+            if (prompt != null) {
+                JsonObject ext = msgObj.has("extendedContent") && msgObj.get("extendedContent").isJsonObject()
+                        ? msgObj.getAsJsonObject("extendedContent") : new JsonObject();
+                if (prompt.getBuiltPrompt() != null) {
+                    ext.addProperty(MessagePrompt.PROMPT_KEY, prompt.getBuiltPrompt());
+                }
+                if (prompt.getBackgroundLore() != null) {
+                    ext.addProperty(MessagePrompt.LORE_KEY, prompt.getBackgroundLore());
+                }
+                msgObj.add("extendedContent", ext);
             }
 
             if (msg.getSummary() != null) {
@@ -510,7 +536,8 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @Override
     @CommonTx
     public AgenticCopy createAgenticCopy(Manuscript original) throws Exception {
-        Manuscript source = original == null ? null : find(original);
+        // the book of an agent comes as a lazy proxy: its class is not the one the tags and relations are stored by
+        Manuscript source = original == null ? null : (Manuscript) Hibernate.unproxy(find(original));
         if (source == null || source.isDeleted()) {
             throw new IllegalArgumentException("The manuscript does not exist");
         }
@@ -876,8 +903,17 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
                 msg.setEdited(msgObj.get("edited").getAsBoolean());
             }
 
+            String restoredPrompt = null;
+            String restoredLore = null;
             if (msgObj.has("extendedContent") && !msgObj.get("extendedContent").isJsonNull()) {
                 JsonElement ext = msgObj.get("extendedContent");
+                if (ext.isJsonObject()) {
+                    // the prompt of the part is a row of its own, not a part of the extended content
+                    JsonObject content = ext.getAsJsonObject().deepCopy();
+                    restoredPrompt = takeString(content, MessagePrompt.PROMPT_KEY);
+                    restoredLore = takeString(content, MessagePrompt.LORE_KEY);
+                    ext = content;
+                }
                 msg.setExtendedContent(ext.toString().getBytes(StandardCharsets.UTF_8));
             }
 
@@ -900,6 +936,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
             }
 
             msg = chatMessageService.saveWithoutEvent(msg);
+            messagePromptService.store(msg, restoredPrompt, restoredLore);
 
             if (msgObj.has("annotations") && msgObj.get("annotations").isJsonArray()) {
                 annotationService.restoreForPart(msg, msgObj.getAsJsonArray("annotations"), pairs);

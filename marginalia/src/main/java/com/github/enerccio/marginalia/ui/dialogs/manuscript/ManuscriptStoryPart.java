@@ -104,6 +104,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     private ChatMessageService chatMessageService;
 
     @Autowired
+    private MessagePromptService messagePromptService;
+
+    @Autowired
     private ManuscriptService manuscriptService;
 
     @Autowired
@@ -1854,14 +1857,19 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             dialog.open();
         }
 
-        @PublicAPI(from = "1.1.0",
+        @PublicAPI(from = "1.5.0",
                 returns = @APIReturn(type = void.class),
-                locals = {@APILocals(name = "dialog", type = PromptDialog.class)})
+                locals = {@APILocals(name = "dialog", type = PromptDialog.class),
+                        @APILocals(name = "e", type = Exception.class)})
         @Override
         public void showPrompt() {
-            PromptDialog dialog = new PromptDialog(message.getBuiltPrompt());
-            dialog.create();
-            dialog.open();
+            try {
+                PromptDialog dialog = new PromptDialog(messagePromptService.getBuiltPrompt(message));
+                dialog.create();
+                dialog.open();
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
         }
     }
 }

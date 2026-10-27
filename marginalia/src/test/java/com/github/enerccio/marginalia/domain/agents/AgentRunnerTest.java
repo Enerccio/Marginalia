@@ -1406,7 +1406,7 @@ class AgentRunnerTest extends AgentTestBase {
     @Test
     void theAgentSavesAndRestoresACheckpointAndIsToldWhatCameBack() throws Exception {
         Agent agent = writingAgent();
-        String original = agentService.findForUser(agent.getUuid()).getManuscript().getName();
+        String original = agentService.findManuscript(agent).getName();
         llm.enqueue(MockLLMResponse.toolCall("write_file", "{\"path\":\"/notes.txt\",\"content\":\"keep\"}"),
                 MockLLMResponse.toolCall("checkpoint", "{\"label\":\"before renaming\"}"),
                 MockLLMResponse.toolCall("set-book-info", "{\"name\":\"Ruined\"}"),

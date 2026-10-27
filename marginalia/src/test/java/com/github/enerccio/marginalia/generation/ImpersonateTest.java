@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ImpersonateService;
 import com.github.enerccio.marginalia.domain.service.ImpersonateService.ContextInsufficient;
+import com.github.enerccio.marginalia.domain.service.MessagePromptService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.test.GenerationTestBase;
 import com.github.enerccio.marginalia.test.llm.MockLLMResponse;
@@ -31,6 +32,9 @@ class ImpersonateTest extends GenerationTestBase {
 
     @Autowired
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private MessagePromptService messagePromptService;
 
     @Autowired
     private ImpersonateService impersonateService;
@@ -113,8 +117,8 @@ class ImpersonateTest extends GenerationTestBase {
         last.setSceneSetting("the harbour");
         last.setPovCharacter("Alice");
         last.setPresentCharacters("Alice, Bob");
-        last.setBackgroundLore("Dragons exist.");
         chatMessageService.save(last);
+        messagePromptService.store(last, null, "Dragons exist.");
         llm.enqueue(MockLLMResponse.text("  DRAFTED  "));
 
         Drafted result = impersonate("She confronts him about the letter");

@@ -9,17 +9,17 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class NameGroupsTest {
 
-    /** A category whose chain can make only the one name: the order is its length, so every context is unique. */
+    /** A category whose chain can make only the one name: the order is its length (4 at most, the longest of the tables), so every context is unique. */
     private static NameTables.Category single(String title, String name) {
         return single(title, name, null);
     }
 
     private static NameTables.Category single(String title, String name, Integer size) {
-        int order = name.length();
+        int order = Math.min(NameTables.Chain.MAX_ORDER, name.length());
         Map<String, Map<Character, Double>> tables = new java.util.HashMap<>();
         String padded = "^".repeat(order) + name + "$";
         for (int i = order; i < padded.length(); i++) {
-            tables.put(padded.substring(i - order, i), Map.of(padded.charAt(i), 1.0));
+            assertNull(tables.put(padded.substring(i - order, i), Map.of(padded.charAt(i), 1.0)), "the contexts of " + name + " are not unique");
         }
         return new NameTables.Category(title, order, null, null, size, tables);
     }

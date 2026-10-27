@@ -45,6 +45,9 @@ public class RedraftServiceImpl implements RedraftService {
     private ChatMessageService chatMessageService;
 
     @Autowired
+    private MessagePromptService messagePromptService;
+
+    @Autowired
     private SummaryService summaryService;
 
     @Autowired
@@ -187,7 +190,7 @@ public class RedraftServiceImpl implements RedraftService {
         int maxTokens = TokenLimits.promptTokens(ai, protocol);
 
         RedraftTemplateData data = new RedraftTemplateData();
-        data.setBackgroundLore(StringUtils.defaultString(part.getBackgroundLore()));
+        data.setBackgroundLore(StringUtils.defaultString(messagePromptService.getBackgroundLore(part)));
         data.setNarrativePov(manuscriptService.getPov(book));
         data.setNarrativeTense(manuscriptService.getTense(book));
         data.setStyle(manuscriptService.getStyle(book));

@@ -42,6 +42,9 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     private AnnotationService annotationService;
 
     @Autowired
+    private MessagePromptService messagePromptService;
+
+    @Autowired
     @Lazy
     private AgentRunService agentRunService;
 
@@ -174,6 +177,7 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         clone.setSummary(summaryService.copySummary(branched.getSummary()));
         ChatMessage saved = save(clone);
         annotationService.copyForBranch(branched, saved);
+        messagePromptService.copy(branched, saved);
         return saved;
     }
 
@@ -453,8 +457,8 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     }
 
     /**
-     * A soft deleted message takes its summary, its annotations and everything below it (its children and their children) with
-     * it. A message deleted for good takes its annotations.
+     * A soft deleted message takes its summary, its annotations, its prompt and everything below it (its children and their children) with
+     * it. A message deleted for good takes its annotations and its prompt.
      */
     @Override
     @CommonTx
@@ -468,8 +472,10 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
             deleted.add(message.getId());
             summaryService.softDeleteForMessages(deleted);
             annotationService.softDeleteForParts(deleted);
+            messagePromptService.softDeleteForParts(deleted);
         } else if (hard && message != null && message.getId() != null) {
             annotationService.hardDeleteForParts(List.of(message.getId()));
+            messagePromptService.hardDeleteForParts(List.of(message.getId()));
         }
         return super.delete(message, hard);
     }
@@ -513,6 +519,7 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     public void softDeleteForManuscript(Manuscript manuscript) throws Exception {
         summaryService.softDeleteForManuscript(manuscript);
         annotationService.softDeleteForManuscript(manuscript);
+        messagePromptService.softDeleteForManuscript(manuscript);
         getRepository().softDeleteByManuscript(manuscript);
     }
 

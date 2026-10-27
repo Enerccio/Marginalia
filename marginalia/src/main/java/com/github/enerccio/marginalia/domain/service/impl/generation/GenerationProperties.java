@@ -108,6 +108,13 @@ public final class GenerationProperties {
     public static final String ORIGINAL_MESSAGE = "ORIGINAL_MESSAGE";
 
     /**
+     * {@code MessagePrompt} the prompt the regenerated part had before it was replaced by the one of this generation, kept
+     * together with {@link #ORIGINAL_MESSAGE} (it is not a part of the message, see {@code MessagePromptService}). Not set
+     * when the part had none. Cleanup puts it back when generation ends before any text arrived.
+     */
+    public static final String ORIGINAL_PROMPT = "ORIGINAL_PROMPT";
+
+    /**
      * {@code GenerationOutcome} how the generation ended: completed, stopped by the user or failed. Set when the cleanup
      * starts, so it is there in {@link Events#BEFORE_CLEANUP} (whose listeners do not run when the user stopped the
      * generation) and in {@link Events#AFTER_CLEANUP}. A stop wins over an error the stop caused.

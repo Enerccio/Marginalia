@@ -45,6 +45,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.value.ValueChangeMode;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.web.context.request.RequestAttributes;
@@ -122,6 +123,8 @@ public class AgentPart implements WorkspaceComponent {
     private Button addAgentButton;
     // the agents of the user, filtered by what the fields above the table say
     private final List<Agent> agents = new ArrayList<>();
+    // the name of the book of each agent by its uuid: the book itself is lazy and heavy, the table needs the name only
+    private final Map<String, String> bookNames = new HashMap<>();
     private final ListDataProvider<Agent> dataProvider = new ListDataProvider<>(agents);
     private TextField nameFilter;
     private TextField bookFilter;
@@ -465,7 +468,7 @@ public class AgentPart implements WorkspaceComponent {
             returns = @APIReturn(type = String.class),
             parameters = {@APIParameter(name = "agent", type = Agent.class)})
     private String bookName(Agent agent) {
-        return agent.getManuscript() == null || agent.getManuscript().getName() == null ? "" : agent.getManuscript().getName();
+        return StringUtils.defaultString(bookNames.get(agent.getUuid()));
     }
 
     /**
@@ -767,6 +770,8 @@ public class AgentPart implements WorkspaceComponent {
             canCreate = agentService.canCreate();
             addAgentButton.setEnabled(canCreate);
             addAgentButton.setTooltipText(canCreate ? null : loc.getValue(L.MSG_AGENT_LIMIT_REACHED));
+            bookNames.clear();
+            bookNames.putAll(agentService.findBookNames(found));
             agents.clear();
             agents.addAll(found);
             dataProvider.refreshAll();

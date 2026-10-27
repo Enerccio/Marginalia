@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.domain.service.impl.generation.impl;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.MessagePrompt;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController.State;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.GenerationFailure;
@@ -80,6 +81,9 @@ public class CleanupStep extends GenerationStepBase {
             // replaces every value (attributes included), so nothing of the failed attempt stays in the part
             message.loadFrom(original);
             message = chatMessageService.save(message);
+            MessagePrompt prompt = (MessagePrompt) controller.getProperties().get(GenerationProperties.ORIGINAL_PROMPT);
+            messagePromptService.store(message, prompt == null ? null : prompt.getBuiltPrompt(),
+                    prompt == null ? null : prompt.getBackgroundLore());
             controller.setMessage(message);
         }
         controller.getUIListener().onCancelled(message);

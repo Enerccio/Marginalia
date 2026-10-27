@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Summary;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.CommandService;
+import com.github.enerccio.marginalia.domain.service.MessagePromptService;
 import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
 import com.github.enerccio.marginalia.test.AgenticRequestAttributes;
@@ -41,6 +42,9 @@ class ManuscriptReadCommandsTest extends GenerationTestBase {
 
     @Autowired
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private MessagePromptService messagePromptService;
 
     @Autowired
     private SummaryService summaryService;
@@ -321,10 +325,9 @@ class ManuscriptReadCommandsTest extends GenerationTestBase {
         ChatMessage loaded = chatMessageService.find(second.getId());
         loaded.setModelUsed("some-model");
         loaded.setPromptTokens(120L);
-        loaded.setBuiltPrompt("the whole prompt");
         loaded.setBuiltPromptTokens(4L);
-        loaded.setBackgroundLore("lore");
         chatMessageService.save(loaded);
+        messagePromptService.store(loaded, "the whole prompt", "lore");
 
         JsonObject metrics = run("/get-part-metrics 2");
         assertThat(metrics.get("generated").getAsBoolean()).isTrue();
