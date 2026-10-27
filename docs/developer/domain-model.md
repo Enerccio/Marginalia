@@ -411,6 +411,7 @@ uuids; the overload with a `Collection<UuidPair>` also reports `ANNOTATION` pair
 | `comment` | JSON | Note for the author, never sent. |
 | `filtering`, `filteringMode` | JSON | Activation filter: keywords separated by commas, a text to find, or a regular expression (`FilteringMode.KEYWORDS_OR` / `KEYWORDS_AND` / `TEXT` / `REGEX`). |
 | `insertionMode` | JSON | `IN_LORE_BLOCK` or `BEFORE_USER_PROMPT`. |
+| `activationContext`, `activationParts` | JSON | What the filter is looked for in: `ActivationContext.INSTRUCTIONS` (default, the rendered user prompt) or `INCLUDE_PARTS` (the user prompt and the newest `activationParts` parts of the story, at least 1; `partsInContext()` is 0 for `INSTRUCTIONS`). Copied by clone, export (`activationContext`, `activationParts`) and import; the Lorebook VCS plugin keeps both in its revisions. |
 | `preventRecursion` | JSON | The content of the entry is not searched for the filters of other entries (see `Lorebook.scanDepth`); it can still be used itself. Copied by clone, export and import. |
 | `cachedTags`, `cachedNegativeTags` | transient | Filled by `fillEntries`: the entry's tags plus the tags of its lorebook, and the entry's negative tags. |
 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846426060074">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846426911806">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846426060074" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846426911806" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846426060074" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846426911806" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846426060074" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846426060074" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846426911806" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846426911806" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -1063,6 +1063,7 @@ uuids; the overload with a <code translate="no" v-pre>Collection&lt;UuidPair&gt;
 | `comment` | JSON | Note for the author, never sent. |
 | `filtering`, `filteringMode` | JSON | Activation filter: keywords separated by commas, a text to find, or a regular expression (`FilteringMode.KEYWORDS_OR` / `KEYWORDS_AND` / `TEXT` / `REGEX`). |
 | `insertionMode` | JSON | `IN_LORE_BLOCK` or `BEFORE_USER_PROMPT`. |
+| `activationContext`, `activationParts` | JSON | What the filter is looked for in: `ActivationContext.INSTRUCTIONS` (default, the rendered user prompt) or `INCLUDE_PARTS` (the user prompt and the newest `activationParts` parts of the story, at least 1; `partsInContext()` is 0 for `INSTRUCTIONS`). Copied by clone, export (`activationContext`, `activationParts`) and import; the Lorebook VCS plugin keeps both in its revisions. |
 | `preventRecursion` | JSON | The content of the entry is not searched for the filters of other entries (see `Lorebook.scanDepth`); it can still be used itself. Copied by clone, export and import. |
 | `cachedTags`, `cachedNegativeTags` | transient | Filled by `fillEntries`: the entry's tags plus the tags of its lorebook, and the entry's negative tags. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -1104,6 +1105,11 @@ uuids; the overload with a <code translate="no" v-pre>Collection&lt;UuidPair&gt;
 <td><code translate="no" v-pre>insertionMode</code></td>
 <td>JSON</td>
 <td><code translate="no" v-pre>IN_LORE_BLOCK</code> or <code translate="no" v-pre>BEFORE_USER_PROMPT</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>activationContext</code>, <code translate="no" v-pre>activationParts</code></td>
+<td>JSON</td>
+<td>What the filter is looked for in: <code translate="no" v-pre>ActivationContext.INSTRUCTIONS</code> (default, the rendered user prompt) or <code translate="no" v-pre>INCLUDE_PARTS</code> (the user prompt and the newest <code translate="no" v-pre>activationParts</code> parts of the story, at least 1; <code translate="no" v-pre>partsInContext()</code> is 0 for <code translate="no" v-pre>INSTRUCTIONS</code>). Copied by clone, export (<code translate="no" v-pre>activationContext</code>, <code translate="no" v-pre>activationParts</code>) and import; the Lorebook VCS plugin keeps both in its revisions.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>preventRecursion</code></td>
@@ -1873,7 +1879,7 @@ define both beans in <code translate="no" v-pre>services-config.xml</code>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (64b292dbd).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (b7de2f130).</p></div>
             </footer>
         </div>
     </div>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846426060074">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846426911806">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846426060074" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846426911806" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846426060074" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846426911806" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846426060074" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846426060074" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846426911806" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846426911806" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -402,7 +402,7 @@ is loaded with <code translate="no" v-pre>LorebookService.fillEntries</code> (en
    | enabled | `entry.enabled` |
    | negative tags | none of the entry's negative tags is a tag of the book |
    | tags | the entry has no tags, or one of them is a tag of the book (the entry's tags include the tags of its lorebook) |
-   | filter | no filter, or the filter matches the **rendered user prompt**: `KEYWORDS_OR` / `KEYWORDS_AND` - the filter split by commas, trimmed, blanks dropped; any / every keyword is a case-insensitive substring (no keyword never matches); `TEXT` - case-insensitive substring; `REGEX` - case-insensitive `find()` (`DOTALL`); an invalid regex never matches |">
+   | filter | no filter, or the filter matches the **rendered user prompt** (for `activationContext = INCLUDE_PARTS`: the text of the newest `activationParts` parts of the branch, oldest first, then the user prompt, all joined by blank lines; see below): `KEYWORDS_OR` / `KEYWORDS_AND` - the filter split by commas, trimmed, blanks dropped; any / every keyword is a case-insensitive substring (no keyword never matches); `TEXT` - case-insensitive substring; `REGEX` - case-insensitive `find()` (`DOTALL`); an invalid regex never matches |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -426,12 +426,16 @@ is loaded with <code translate="no" v-pre>LorebookService.fillEntries</code> (en
 </tr>
 <tr>
 <td>filter</td>
-<td>no filter, or the filter matches the <strong>rendered user prompt</strong>: <code translate="no" v-pre>KEYWORDS_OR</code> / <code translate="no" v-pre>KEYWORDS_AND</code> - the filter split by commas, trimmed, blanks dropped; any / every keyword is a case-insensitive substring (no keyword never matches); <code translate="no" v-pre>TEXT</code> - case-insensitive substring; <code translate="no" v-pre>REGEX</code> - case-insensitive <code translate="no" v-pre>find()</code> (<code translate="no" v-pre>DOTALL</code>); an invalid regex never matches</td>
+<td>no filter, or the filter matches the <strong>rendered user prompt</strong> (for <code translate="no" v-pre>activationContext = INCLUDE_PARTS</code>: the text of the newest <code translate="no" v-pre>activationParts</code> parts of the branch, oldest first, then the user prompt, all joined by blank lines; see below): <code translate="no" v-pre>KEYWORDS_OR</code> / <code translate="no" v-pre>KEYWORDS_AND</code> - the filter split by commas, trimmed, blanks dropped; any / every keyword is a case-insensitive substring (no keyword never matches); <code translate="no" v-pre>TEXT</code> - case-insensitive substring; <code translate="no" v-pre>REGEX</code> - case-insensitive <code translate="no" v-pre>find()</code> (<code translate="no" v-pre>DOTALL</code>); an invalid regex never matches</td>
 </tr>
 </tbody>
 </table>
 </div>
 </retype-table>
+<p>Before the entries are evaluated the step asks <code translate="no" v-pre>LorebookActivationService.partsNeeded</code> (the largest <code translate="no" v-pre>activationParts</code> of the
+enabled <code translate="no" v-pre>INCLUDE_PARTS</code> entries, 0 when there is none) and reads that many parts with <code translate="no" v-pre>recentParts(activeLeaf, n, excludeLeaf)</code>: the non-blank <code translate="no" v-pre>response</code> of the branch from the root to the active leaf, the newest <code translate="no" v-pre>n</code>, oldest first (the leaf is left out
+for a swipe or a regeneration - it is the part being replaced). With 0 the story is not read. Each entry then takes the newest of the
+parts it asks for (<code translate="no" v-pre>evaluate(entry, tags, instructions, parts)</code>); the scan of step 4 does not use the parts.</p>
 </li>
 <li><strong>Scan</strong> (only with a scan depth): <code translate="no" v-pre>Lorebook.scanDepth</code> of the lorebook the book uses (clamped to
 <code translate="no" v-pre>LorebookActivationService.MAX_SCAN_DEPTH</code>, 5; the value of a sub-lorebook is ignored) is how many passes follow.
@@ -441,7 +445,8 @@ those (joined; templates are not run): <code translate="no" v-pre>evaluateInCont
 <code translate="no" v-pre>filter &lt;- name of the first entry that has it</code>. The pass ends the scan when nothing was activated. Each such entry gets
 <code translate="no" v-pre>PROCESS_LOREBOOK_ENTRY</code> again (<code translate="no" v-pre>LOREBOOK_SCAN_DEPTH</code> = n) and a verdict a listener replaced counts. The activated
 entries are in the order of step 2 whatever pass found them. <code translate="no" v-pre>LorebookActivationService.evaluateAll</code> runs the same
-rules without events (the preview in the lorebook editor and <code translate="no" v-pre>/preview-lore-activation</code>).</li>
+rules without events (the preview in the lorebook editor and <code translate="no" v-pre>/preview-lore-activation</code>; they take the parts of the picked book / the part
+given with <code translate="no" v-pre>recentParts</code>).</li>
 <li><strong>Render</strong> the active entries&#x27; payloads as templates with one shared <code translate="no" v-pre>LorebookTemplateData</code> - so variables set in
 one entry are visible in the following ones. A payload that fails to render is used as it is.</li>
 <li><strong>Insert</strong>: payloads with <code translate="no" v-pre>IN_LORE_BLOCK</code> are joined into <code translate="no" v-pre>backgroundLore</code> (the master template&#x27;s
@@ -981,7 +986,7 @@ wait for it to finish. See <a href="../testing/">Testing</a>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (64b292dbd).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (b7de2f130).</p></div>
             </footer>
         </div>
     </div>

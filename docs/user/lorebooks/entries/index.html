@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846426060074">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846426911806">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846426060074" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846426911806" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846426060074" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846426911806" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846426060074" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846426060074" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846426911806" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846426911806" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -253,6 +253,8 @@ can use <code translate="no" v-pre>(?i)</code> to ignore the case). Entries that
 | **Filtering Mode** | **Keywords (any)**, **Keywords (all)**, **Text** or **Regex**, how *Filtering Text/Pattern* is matched. |
 | **Filtering Text/Pattern** | The filter, see [Filters](#filters). Empty means no filter. |
 | **Insertion Mode** | **In Lore Block** or **Before User Prompt**, see [Order and insertion](#order-and-insertion). |
+| **Activation Context** | Where the filter is looked for: **Instructions** (the request for the part, the default) or **Instructions and parts of the story**, see [Looking into the story](#looking-into-the-story). |
+| **Parts** | With *Instructions and parts of the story*: how many of the newest parts of the story are searched together with the request, at least 1. |
 | **Negative Tags (Exclusion)** | Tags that switch the entry off, see [Tags](#tags). |
 | **Do not search its content for other entries** | When ticked, the words in this entry's content never bring other entries in, see [Entries brought in by other entries](#entries-brought-in-by-other-entries). The phone layout shows it when it is ticked. |
 | **Note** | Your notes. Not sent to the model. Entries imported from SillyTavern list the settings that couldn't be imported here. |">
@@ -280,6 +282,14 @@ can use <code translate="no" v-pre>(?i)</code> to ignore the case). Entries that
 <tr>
 <td><strong>Insertion Mode</strong></td>
 <td><strong>In Lore Block</strong> or <strong>Before User Prompt</strong>, see <doc-anchor-trigger to="#order-and-insertion">Order and insertion</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td><strong>Activation Context</strong></td>
+<td>Where the filter is looked for: <strong>Instructions</strong> (the request for the part, the default) or <strong>Instructions and parts of the story</strong>, see <doc-anchor-trigger to="#looking-into-the-story">Looking into the story</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td><strong>Parts</strong></td>
+<td>With <em>Instructions and parts of the story</em>: how many of the newest parts of the story are searched together with the request, at least 1.</td>
 </tr>
 <tr>
 <td><strong>Negative Tags (Exclusion)</strong></td>
@@ -428,6 +438,30 @@ into <em>Present Characters</em> when he is in the scene.</p>
 </div>
 <p>An invalid regular expression never matches; the entry stays inactive.</p>
 <p>Combine tags and a filter when an entry should only be used in some books, and there only when it&#x27;s relevant.</p>
+<h3 id="looking-into-the-story">Looking into the story</h3>
+<p>By default the filter is looked for in the request for the part only, so an entry about the dragon is used when <em>you</em>
+mention the dragon. When the story should keep the entry in play - the dragon was in the last part, your new instruction
+only says &quot;he flies away&quot; - set <strong>Activation Context</strong> of the entry to <strong>Instructions and parts of the story</strong> and <strong>Parts</strong>
+to the number of the newest parts to search with the request (<code translate="no" v-pre>1</code> is the part before the one being written, <code translate="no" v-pre>2</code> the two
+before it...).</p>
+<ul>
+<li>
+<p>The filter is looked for in the text of those parts and the request together, so keywords of <strong>Keywords (all)</strong> may be split
+between them. The request always counts.</p>
+</li>
+<li>
+<p>Only the text of the parts is searched, not their summaries, and only the parts of the branch you are writing (a swipe or
+a regeneration does not search the part it replaces).</p>
+</li>
+<li>
+<p>A story shorter than <strong>Parts</strong> is searched whole. Marginalia reads only as many parts as the entries that are switched on need,
+so a lorebook without such entries does not touch the story at all.</p>
+</li>
+<li>
+<p>Entries brought in by <doc-anchor-trigger to="#entries-brought-in-by-other-entries">other entries</doc-anchor-trigger> are not looked for in the story, only in the
+content of the entries that were used.</p>
+</li>
+</ul>
 <h3 id="entries-brought-in-by-other-entries">Entries brought in by other entries</h3>
 <p>Normally only the request for the part activates entries. With a <strong>scan depth</strong> (the field of the
 <a href="../lorebooks/#the-lorebook-editor">lorebook</a>; <code translate="no" v-pre>0</code>, which is the default, switches this off) the content of the entries that
@@ -477,7 +511,8 @@ brought in by <doc-anchor-trigger to="#entries-brought-in-by-other-entries">othe
 entry), or why not: switched off, a negative tag of the book, the book lacks a tag of the entry, the filter was not found.</p>
 </li>
 </ul>
-<p>The tags decide too, so pick a book in <strong>Tags of the book</strong> to use its tags (without one, no tags count). Below the text, a line says how many entries
+<p>The tags decide too, so pick a book in <strong>Tags of the book</strong> to use its tags (without one, no tags count). That book also
+gives the parts of its story for the entries that <doc-anchor-trigger to="#looking-into-the-story">look into the story</doc-anchor-trigger> (without one, they search the text only). Below the text, a line says how many entries
 would be used and about how many tokens of lore that is. The scan depth of the lorebook is used.</p>
 <figure class="content-center">
     <img src="../../../images/lorebook-preview-activation.png" alt="Preview activation of a lorebook" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1000" height="765" />
@@ -608,7 +643,7 @@ between books.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (64b292dbd).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (b7de2f130).</p></div>
             </footer>
         </div>
     </div>
