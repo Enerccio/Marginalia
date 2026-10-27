@@ -1,7 +1,7 @@
 ---
 label: Project structure
 order: 970
-verified: 88dff3b5d
+verified: 64b292dbd
 covers:
   - pom.xml
   - marginalia/src
