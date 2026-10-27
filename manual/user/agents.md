@@ -304,7 +304,7 @@ as they are at that moment, and the lorebook with its sub-lorebooks. The copy is
 agent does, it does to the copy; your book stays as it was.
 
 When the agent has **Write the book with the model of the agent** on (the default), the copy also gets the **model of the agent** (the AI and the protocol of its main model profile) in place of the AI and the protocol of your book, every time the run starts or
-is resumed. So the commands that write with a model (`/next`, `/swipe`, `/regenerate`, `/redraft-part`, the summaries) and the model commands of extensions (the Lore Generator, the Arc Outline) use the agent's model even when your book is set to another one, or to none;
+is resumed. So the commands that write with a model (`/next`, `/swipe`, `/regenerate`, `/redraft-part`, `/generate-annotation`, the summaries) and the model commands of extensions (the Lore Generator, the Arc Outline) use the agent's model even when your book is set to another one, or to none;
 a `profile` named in the call still wins. With the setting off they use the model of the book. This is not a change of your book: the review does not list it and applying the result leaves the AI and the protocol of your book as they are.
 
 A paused run keeps its copy and works on it again when you resume it. A run that is *Done*, or that you stopped and kept, keeps it until you
@@ -486,7 +486,7 @@ of two thousand parts). You can restore while the agent does not work; the agent
 The agent is offered only the commands you tick. The table lists every command with its effect (*Destructive* changes or removes
 data, *Non-destructive* only reads or adds). The **Selection** box ticks many at once: **All**, **None** or **All non-destructive**
 (the default for a new agent), or a role; ticking a command yourself makes the selection *Custom*. The **Search commands** field above the table shows only the commands that have all the words you type (in any order, in the name or the description); the selection still applies to all commands, also the hidden ones. Commands that an extension brings stay allowed
-when the extension is not loaded, you just don't see them. The **Batch** column says whether the command is used *Together* with other calls in one answer or *Alone* (a command that makes a call to a model, such as `next`, `swipe`, `regenerate`, `redraft-part` or the compaction, is alone; see **Calls in one answer** below). All the columns can be resized. The **Tokens** column is what the definition of the command (its name, description and parameters) adds to every request of the agent, and
+when the extension is not loaded, you just don't see them. The **Batch** column says whether the command is used *Together* with other calls in one answer or *Alone* (a command that makes a call to a model, such as `next`, `swipe`, `regenerate`, `redraft-part`, `generate-annotation` or the compaction, is alone; see **Calls in one answer** below). All the columns can be resized. The **Tokens** column is what the definition of the command (its name, description and parameters) adds to every request of the agent, and
 the line under the instructions adds up the ticked ones: the whole set is about 20 000 tokens, so a smaller selection (a role) leaves more room in the context for the work.
 
 ![The allowed commands, with the roles of the Selection box](../images/agent-commands.png)

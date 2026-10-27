@@ -2,22 +2,38 @@ package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.w
 
 import com.github.enerccio.marginalia.domain.collections.AnnotationSource;
 import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
+import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
+import com.github.enerccio.marginalia.domain.service.AIGate;
+import com.github.enerccio.marginalia.domain.service.AnnotateService;
+import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
+import com.github.enerccio.marginalia.domain.service.command.CommandScope;
+import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.utils.QuoteFinder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * {@code /create-annotation part text [quote [type]]}, {@code /update-annotation annotation text [type [sendToPrompt]]},
- * {@code /resolve-annotation annotation [status]}, {@code /reattach-annotation annotation [quote]} and
- * {@code /delete-annotation annotation}: the notes on the passages of the story. A part and an annotation are given by their
- * handles, see {@link ManuscriptWriteSupport}.
+ * {@code /resolve-annotation annotation [status]}, {@code /reattach-annotation annotation [quote]},
+ * {@code /delete-annotation annotation} and {@code /generate-annotation part [profile]}: the notes on the passages of the story.
+ * A part and an annotation are given by their handles, see {@link ManuscriptWriteSupport}.
+ * <p>
+ * {@code generate-annotation} has the model review the part like the <i>Annotate with AI</i> dialog does (see {@link AnnotateService})
+ * and, as there is nobody to pick the proposals, adds all of them as notes. It reviews with the model of the scope like the Lore Generator
+ * ({@link CommandScope#getModel}: for an agent its own model when {@code Agent.useAgentModel} is on, else the model of the book; the
+ * model of the book at the command bar); {@code profile} picks another model profile of the agent for one call. The command is {@code async}, slow and costs tokens.
  * <p>
  * An annotation is a note for the author and changes nothing of the story, so none of these commands asks (but the delete) and none
  * makes a summary outdated. An agent writes them in its working copy; the review takes them over like the other changes of the run
@@ -30,6 +46,31 @@ public class AnnotationWriteCommands extends ManuscriptWriteSupport {
     static final String RESOLVE = "resolve-annotation";
     static final String REATTACH = "reattach-annotation";
     static final String DELETE = "delete-annotation";
+    static final String GENERATE = "generate-annotation";
+
+    @Autowired
+    private AnnotateService annotateService;
+
+    @Command(commandName = GENERATE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_GENERATE_ANNOTATION, async = true,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            description = L.DESC_COMMAND_GENERATE_ANNOTATION, llmDescription = L.DESC_COMMAND_GENERATE_ANNOTATION_LLM,
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM)}),
+            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GENERATE_ANNOTATION_RETURN))
+    public void generate(CommandContext context) throws Exception {
+        generate(context, ref(context, "part"), null);
+    }
+
+    @Command(commandName = GENERATE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_GENERATE_ANNOTATION, async = true,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            description = L.DESC_COMMAND_GENERATE_ANNOTATION, llmDescription = L.DESC_COMMAND_GENERATE_ANNOTATION_LLM,
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM),
+                    @CommandParameter(name = "profile", type = String.class, description = L.DESC_COMMAND_GEN_PROFILE_PARAM)}),
+            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GENERATE_ANNOTATION_RETURN))
+    public void generateProfile(CommandContext context) throws Exception {
+        generate(context, ref(context, "part"), ref(context, "profile"));
+    }
 
     @Command(commandName = CREATE, humanName = L.LABEL_COMMAND_CREATE_ANNOTATION,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
@@ -179,6 +220,87 @@ public class AnnotationWriteCommands extends ManuscriptWriteSupport {
             result.addProperty("hint", loc.getValue(L.MSG_COMMAND_ANNOTATION_NOT_LOCATED));
         }
         changed();
+        answer(context, result);
+    }
+
+    private void generate(CommandContext context, String handle, String profile) throws Exception {
+        Book book = new Book(context);
+        ChatMessage message = part(book, handle);
+        if (message.getResponse() == null || message.getResponse().isBlank()) {
+            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_ANNOTATE_NOT_POSSIBLE));
+        }
+        GenerationOptions options = options(context, profile);
+        if (options.ai() == null) {
+            // as the Lore Generator does: the model the scope works with (an agent's own model when its definition says so, else the
+            // model of the book), and without a choice of the scope (the command bar) the model of the book
+            CommandScope.ModelChoice scoped = context.getScope().getModel();
+            if (scoped != null && scoped.ai() != null) {
+                options = options.withModel(scoped.ai(), scoped.protocol());
+            }
+        }
+        AI ai = options.ai() != null ? options.ai() : book.manuscript.getAi();
+
+        CompletableFuture<List<AnnotateService.Proposal>> done = new CompletableFuture<>();
+        AnnotateService.Callback callback = new AnnotateService.Callback() {
+            @Override
+            public void onProgress(String reasoning, String text) {
+                context.setSubStatus(text.length() + "");
+            }
+
+            @Override
+            public void onFinished(List<AnnotateService.Proposal> proposals, String raw) {
+                done.complete(proposals);
+            }
+
+            @Override
+            public void onUnreadable(String raw, String reason) {
+                done.completeExceptionally(new IllegalStateException(String.format(loc.getValue(L.ERROR_COMMAND_ANNOTATE_UNREADABLE), reason)));
+            }
+
+            @Override
+            public void onTerminated(String raw) {
+                done.completeExceptionally(new CancellationException(loc.getValue(L.ERROR_COMMAND_GENERATION_CANCELLED)));
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                done.completeExceptionally(throwable);
+            }
+        };
+        context.setStatus(loc.getValue(L.MSG_COMMAND_ANNOTATING));
+        List<AnnotateService.Proposal> proposals;
+        try (AIGate.Permit _ = placeAt(context, ai)) {
+            CancellationToken token;
+            try {
+                token = annotateService.annotate(book.manuscript, message,
+                        new AnnotateService.Request(null, null, options, AnnotateService.Mode.AUTO, null, null), callback);
+            } catch (AnnotateService.ContextInsufficient e) {
+                throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_ANNOTATE_CONTEXT), e.getRequired(), e.getMax()));
+            }
+            if (token == null) {
+                throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_ANNOTATE_NOT_POSSIBLE));
+            }
+            proposals = await(context, done, token);
+        }
+        if (proposals == null) {
+            return;
+        }
+
+        // the book as it is now: the story may have changed while the model reviewed
+        book = new Book(context);
+        ChatMessage current = part(book, handle);
+        List<Annotation> made = annotateService.accept(book.manuscript, current, proposals, ai == null ? null : ai.getName());
+        JsonArray notes = new JsonArray();
+        for (Annotation annotation : made) {
+            notes.add(describe(annotation, book));
+        }
+        JsonObject result = new JsonObject();
+        result.addProperty("part", current.getUuid());
+        result.addProperty("created", made.size());
+        result.add("annotations", notes);
+        if (!made.isEmpty()) {
+            changed();
+        }
         answer(context, result);
     }
 

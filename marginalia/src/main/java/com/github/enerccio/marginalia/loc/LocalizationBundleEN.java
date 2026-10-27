@@ -743,6 +743,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_ANNOTATE_BATCH, "Annotate a range of parts");
         setValue(L.LABEL_ANNOTATE_FROM_PART, "From part");
         setValue(L.LABEL_ANNOTATE_TO_PART, "To part");
+        setValue(L.LABEL_COMMAND_GENERATE_ANNOTATION, "Generate annotations");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -979,6 +980,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_IMPERSONATE_FAILED, "The instructions could not be drafted: the book has no model or protocol.");
         setValue(L.ERROR_COMMAND_IMPERSONATE_NOT_POSSIBLE, "The instructions cannot be drafted: the book has no model, or the model wrote nothing.");
         setValue(L.ERROR_COMMAND_IMPERSONATE_CONTEXT, "The impersonate prompt does not fit the context of the model (%d tokens needed, %d available).");
+        setValue(L.ERROR_COMMAND_ANNOTATE_NOT_POSSIBLE, "The part cannot be annotated: it has no text, or the book has no model and protocol.");
+        setValue(L.ERROR_COMMAND_ANNOTATE_CONTEXT, "The annotation does not fit the context of the model (%d tokens needed, %d available).");
+        setValue(L.ERROR_COMMAND_ANNOTATE_UNREADABLE, "The answer of the model could not be read as notes: %s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -1270,6 +1274,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_ANNOTATE_BATCH_HINT, "The parts of the range are annotated one after another with the same instructions, mode and model. The proposals are listed by part; nothing is added until you add the selected ones.");
         setValue(L.MSG_ANNOTATE_BATCH_PROGRESS, "Annotating part %d (%d of %d)");
         setValue(L.MSG_ANNOTATE_BATCH_SKIPPED, "Part %d skipped: %s");
+        setValue(L.MSG_COMMAND_ANNOTATING, "Annotating the part…");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1721,6 +1726,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_IMPERSONATE_INSTRUCTIONS_PARAM, "What the instructions should be about; empty continues the story where it leads");
         setValue(L.DESC_COMMAND_IMPERSONATE_OUTLINE_PARAM, "A plan of the story for the model (for example the data of the current chapter); empty for none");
         setValue(L.DESC_COMMAND_IMPERSONATE_PROMPT_PARAM, "An impersonate prompt to use instead of the one of the book (a template); empty is the one of the book");
+        setValue(L.DESC_COMMAND_GENERATE_ANNOTATION, "Has the model review a part of the story and adds its findings as annotations. Costs tokens.");
+        setValue(L.DESC_COMMAND_GENERATE_ANNOTATION_LLM, "Has the model review the part `part` (its handle; any part, not only the last one) like the Annotate with AI dialog does: it reads the part, the story before it (older story as summaries) and after it, the lore and the style of the book, and the notes the part already has, and finds continuity errors, contradictions with the lore, weak passages and slips of style. Every finding becomes an annotation (source AI) on the passage the model quoted, or on the whole part when the quote is not in the text, and is added at once. The text of the story is not changed. `profile` is a model profile of the agent to review with instead of the model of the run. Slow, costs tokens. Returns the handle of the part and the new annotations (use resolve-annotation, update-annotation or delete-annotation on the ones you disagree with).");
+        setValue(L.DESC_COMMAND_GENERATE_ANNOTATION_RETURN, "JSON object: the handle of the part, the number of the created annotations and the annotations");
 
     }
 

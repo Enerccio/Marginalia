@@ -216,8 +216,9 @@ never the story, so only the delete asks first. An agent can use all of them; it
 | `/resolve-annotation <annotation> [status]` | Sets the status: `resolved` (default), `dismissed` or `open`. |
 | `/reattach-annotation <annotation> [quote]` | Moves a note to the passage the quote finds in its part; without a quote the note is about the whole part. |
 | `/delete-annotation <annotation>` | Deletes a note (it can be restored from the trash). Asks first. |
+| `/generate-annotation <part> [profile]` | Has the model review the part like [Annotate with AI](../books/annotations.md#letting-a-model-annotate) and adds everything it finds as notes (source *AI*; a quote that is not in the text makes a note about the whole part). Nothing is asked: the notes are the only change, and they can be resolved, edited or deleted. It reviews with the model of the book; an agent uses its own model when *Write the book with the model of the agent* is on (as the Lore Generator commands do), `profile` is a model profile of an agent. Runs alone, takes time, costs tokens. |
 
-The commands that have the model write (`/next`, `/swipe`, `/regenerate`, the two summaries) take time and show the **Stop** window.
+The commands that have the model write or review (`/next`, `/swipe`, `/regenerate`, `/generate-annotation`, the two summaries) take time and show the **Stop** window.
 
 ## Commands that come with extensions
 

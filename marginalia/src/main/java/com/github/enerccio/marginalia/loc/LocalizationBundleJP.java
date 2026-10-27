@@ -743,6 +743,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_ANNOTATE_BATCH, "パートの範囲に注釈を付ける");
         setValue(L.LABEL_ANNOTATE_FROM_PART, "開始パート");
         setValue(L.LABEL_ANNOTATE_TO_PART, "終了パート");
+        setValue(L.LABEL_COMMAND_GENERATE_ANNOTATION, "注釈を生成");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -979,6 +980,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ERROR_IMPERSONATE_FAILED, "指示を下書きできませんでした。書籍にモデルまたはプロトコルがありません。");
         setValue(L.ERROR_COMMAND_IMPERSONATE_NOT_POSSIBLE, "指示を下書きできません。書籍にモデルがないか、モデルが何も書きませんでした。");
         setValue(L.ERROR_COMMAND_IMPERSONATE_CONTEXT, "代筆プロンプトがモデルのコンテキストに収まりません（必要 %d トークン、利用可能 %d トークン）。");
+        setValue(L.ERROR_COMMAND_ANNOTATE_NOT_POSSIBLE, "このパートには注釈を付けられません：本文がないか、ブックにモデルとプロトコルがありません。");
+        setValue(L.ERROR_COMMAND_ANNOTATE_CONTEXT, "注釈がモデルのコンテキストに収まりません（必要 %d トークン、利用可能 %d）。");
+        setValue(L.ERROR_COMMAND_ANNOTATE_UNREADABLE, "モデルの回答をメモとして読み取れませんでした: %s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "フォームを保存できません。");
@@ -1270,6 +1274,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_ANNOTATE_BATCH_HINT, "範囲内のパートに、同じ指示・モード・モデルで順に注釈を付けます。提案はパートごとに表示され、選択したものを追加するまで何も追加されません。");
         setValue(L.MSG_ANNOTATE_BATCH_PROGRESS, "パート %d に注釈を付けています（%d / %d）");
         setValue(L.MSG_ANNOTATE_BATCH_SKIPPED, "パート %d をスキップしました: %s");
+        setValue(L.MSG_COMMAND_ANNOTATING, "パートに注釈を付けています…");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1721,6 +1726,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_IMPERSONATE_INSTRUCTIONS_PARAM, "指示で扱う内容。空の場合は物語の流れに任せます");
         setValue(L.DESC_COMMAND_IMPERSONATE_OUTLINE_PARAM, "モデルに渡す物語の計画（例：現在の章のデータ）。空の場合はなし");
         setValue(L.DESC_COMMAND_IMPERSONATE_PROMPT_PARAM, "書籍のものの代わりに使う代筆プロンプト（テンプレート）。空の場合は書籍のもの");
+        setValue(L.DESC_COMMAND_GENERATE_ANNOTATION, "モデルにストーリーのパートを確認させ、その指摘を注釈として追加します。トークンを消費します。");
+        setValue(L.DESC_COMMAND_GENERATE_ANNOTATION_LLM, "モデルにパート `part`（そのハンドル。最後のパートに限らず任意のパート）を「AIで注釈」ダイアログと同じように確認させます。モデルはパート、その前後のストーリー（古い部分は要約）、設定資料とブックの文体、パートに既にあるメモを読み、矛盾や設定との食い違い、弱い箇所、文体の乱れを探します。指摘はそれぞれ、モデルが引用した箇所（引用が本文にない場合はパート全体）への注釈（ソースは AI）としてすぐに追加されます。ストーリーの本文は変更されません。`profile` は、実行中のモデルの代わりに使うエージェントのモデルプロファイルです。時間がかかり、トークンを消費します。パートのハンドルと新しい注釈を返します（同意できないものには resolve-annotation、update-annotation、delete-annotation を使ってください）。");
+        setValue(L.DESC_COMMAND_GENERATE_ANNOTATION_RETURN, "JSONオブジェクト: パートのハンドル、作成した注釈の数、注釈");
     }
 
     @Override
