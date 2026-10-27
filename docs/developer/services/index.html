@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846426911806">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846431074749">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846426911806" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846431074749" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846426911806" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846431074749" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846426911806" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846426911806" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846431074749" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846431074749" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -493,7 +493,7 @@ with <code translate="no" v-pre>java.util.zip</code>.</p>
 <retype-table copy-text="| Service | Responsible for |
 |---|---|
 | `LorebookService` | `findAllRegularForUser` / `findAllAgenticForUser` (the lorebooks without or only the working copies of agents; `findAllForUser` returns both), `fillEntries` (loads entries with their effective tags for generation and the editor), `getSubbooks`, `delete(book, false)` also soft deletes the entries and tags of the lorebook, export / import in Marginalia's format (`exportLorebook`, `importLorebook`, `marshalLorebooks`, `analyzeImport`, `importLorebooks`), SillyTavern import (`importFromSillytavern`, via `SillyTavernEntryConverter`) and export (`exportToSillytavern`: the entries of the lorebook and its subbooks, root first, in one world info file; `SillyTavernEntryConverter.exportKeys` turns a filter into keys, a regular expression into `/pattern/flags` with the leading Java flags moved after it and `\Q..\E` quotes escaped),  `addSubbook`, `removeSubbook`, `setSubbooks` and `createSubbook` change the subbooks of a lorebook with the cycle check (`LorebookCycleException`, `wouldCycle`); `cloneLorebook(book, name)` saves a new lorebook with the entries and tags of the book (they go through `marshalEntry` and `unmarshalContent`, so the entries get new uuids) and the same subbooks; `marshalLorebooks(root, true)` marshals the entries with their uuids and `copyLorebooks(lorebooks, pairs)` reports which copy is which original. `save` and `delete` refuse a lorebook locked by an agent (`LorebookLockedException`, see [Agents](agents.md#the-working-copy-and-the-lock)). |
-| `LorebookActivationService` | Which entries a generation uses and why (`Reason`: constant, filter matched, filter found in the content of another entry (`LORE_MATCHED`, the scan depth of the lorebook), disabled, negative tag, missing tag, filter not matched, and `EXTENSION_ACTIVATED` / `EXTENSION_SKIPPED` for what a listener decided): the rules of the generation step that puts the lore into the prompt, shared with `/preview-lore-activation` and the *Preview activation* window (`evaluateAll`, the same passes without events) so that they agree. |
+| `LorebookActivationService` | Which entries a generation uses and why (`Reason`: constant, filter matched, filter found in the content of another entry (`LORE_MATCHED`, the scan depth of the lorebook), disabled, negative tag, missing tag, filter not matched, and `EXTENSION_ACTIVATED` / `EXTENSION_SKIPPED` for what a listener decided): the rules of the generation step that puts the lore into the prompt, shared with `/preview-lore-activation` and the *Preview activation* window (`evaluateAll`, the same passes without events) so that they agree. An entry with `ActivationContext.INCLUDE_PARTS` also looks into the newest `activationParts` parts of the story: `partsNeeded` (the largest of the enabled entries, 0 = the story is not read) says how many to read, `recentParts(leaf, count, excludeLeaf)` reads them, `evaluate(entry, tags, instructions, parts)` / `evaluateAll(..., parts)` take them (the overloads without parts search the instructions only). |
 | `LorebookEntryService` | `getEntriesForLorebook`; `delete(entry, false)` also deletes the tags of the entry. `create(lorebook, fields)` and `update(entry)` save an entry and return the problems of its payload template and regular expression as data (`EntrySaved`, `EntryProblem`; a broken entry is saved all the same), `validate(entry)`, `deleteEntry(lorebook, entry)` checks the entry is one of the lorebook; `save` and `delete` refuse an entry of a locked lorebook. |
 | `TagService` | The user's tags: `searchTagsForUser`, `countTagsForUser` (for lazy combo boxes), `getOrCreateForUser(value)`, and for the Tags tab of the settings `findUsageForUser` (every tag with the number of its relations, `TagUsage`), `findRenameConflict`, `rename` (refuses a value another tag already has) and `merge(source, target)` (moves the relations of `source` to `target`, then deletes `source`). The tags are looked up by uuid among the current user's, so a foreign tag is ignored. |
 | `TagRelationService` | Attaching tags to any entity (`createRelation`, `removeRelation`, with `negative` for negative tags) and querying both ways (`getTagsForObject`, `getTagsForObjects` for the tags of many objects in one query, `getObjectIdsForTag`, `getObjectsForTag`); `deleteForTag` and `deleteForObject` delete the relations of a deleted tag or tagged object; `moveRelations(from, to)` re-points the relations of a tag to another one (a relation the object already has with `to` is deleted instead) and `countRelationsByTag` counts the relations of each tag of the user. |">
@@ -512,7 +512,7 @@ with <code translate="no" v-pre>java.util.zip</code>.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>LorebookActivationService</code></td>
-<td>Which entries a generation uses and why (<code translate="no" v-pre>Reason</code>: constant, filter matched, filter found in the content of another entry (<code translate="no" v-pre>LORE_MATCHED</code>, the scan depth of the lorebook), disabled, negative tag, missing tag, filter not matched, and <code translate="no" v-pre>EXTENSION_ACTIVATED</code> / <code translate="no" v-pre>EXTENSION_SKIPPED</code> for what a listener decided): the rules of the generation step that puts the lore into the prompt, shared with <code translate="no" v-pre>/preview-lore-activation</code> and the <em>Preview activation</em> window (<code translate="no" v-pre>evaluateAll</code>, the same passes without events) so that they agree.</td>
+<td>Which entries a generation uses and why (<code translate="no" v-pre>Reason</code>: constant, filter matched, filter found in the content of another entry (<code translate="no" v-pre>LORE_MATCHED</code>, the scan depth of the lorebook), disabled, negative tag, missing tag, filter not matched, and <code translate="no" v-pre>EXTENSION_ACTIVATED</code> / <code translate="no" v-pre>EXTENSION_SKIPPED</code> for what a listener decided): the rules of the generation step that puts the lore into the prompt, shared with <code translate="no" v-pre>/preview-lore-activation</code> and the <em>Preview activation</em> window (<code translate="no" v-pre>evaluateAll</code>, the same passes without events) so that they agree. An entry with <code translate="no" v-pre>ActivationContext.INCLUDE_PARTS</code> also looks into the newest <code translate="no" v-pre>activationParts</code> parts of the story: <code translate="no" v-pre>partsNeeded</code> (the largest of the enabled entries, 0 = the story is not read) says how many to read, <code translate="no" v-pre>recentParts(leaf, count, excludeLeaf)</code> reads them, <code translate="no" v-pre>evaluate(entry, tags, instructions, parts)</code> / <code translate="no" v-pre>evaluateAll(..., parts)</code> take them (the overloads without parts search the instructions only).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>LorebookEntryService</code></td>
@@ -1037,7 +1037,7 @@ call. See
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (b7de2f130).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (7adcce241).</p></div>
             </footer>
         </div>
     </div>
