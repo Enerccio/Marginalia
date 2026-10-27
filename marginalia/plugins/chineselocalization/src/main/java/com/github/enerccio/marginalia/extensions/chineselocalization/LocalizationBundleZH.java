@@ -748,6 +748,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_SCAN_FILES, "扫描文件");
         setValue(L.LABEL_DOWNLOAD_AS_ZIP, "下载为 ZIP");
         setValue(L.LABEL_FILE, "文件");
+        setValue(L.LABEL_ANNOTATE_BATCH, "为一段范围内的段落添加批注");
+        setValue(L.LABEL_ANNOTATE_FROM_PART, "起始段落");
+        setValue(L.LABEL_ANNOTATE_TO_PART, "结束段落");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1272,6 +1275,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_CONFIRM_DELETE_RESOURCE_FILES, "从磁盘永久删除 %s 个文件（%s）？此操作无法撤销。");
         setValue(L.MSG_RESOURCE_FILES_DELETED, "已删除 %s 个文件，释放 %s。");
         setValue(L.MSG_RESOURCE_FILES_SKIPPED, "%s 个文件被保留：它们正在使用、已不存在或无法删除。");
+        setValue(L.MSG_ANNOTATE_BATCH_HINT, "范围内的段落将使用相同的指示、模式和模型依次添加批注。建议按段落列出；在您添加所选项之前不会添加任何内容。");
+        setValue(L.MSG_ANNOTATE_BATCH_PROGRESS, "正在为第 %d 段添加批注（%d / %d）");
+        setValue(L.MSG_ANNOTATE_BATCH_SKIPPED, "已跳过第 %d 段：%s");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

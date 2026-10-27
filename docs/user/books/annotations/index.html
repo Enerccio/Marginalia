@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846357838556">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846400853679">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846357838556" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846400853679" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846357838556" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846400853679" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846357838556" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846400853679" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -375,6 +375,14 @@ checked); uncheck the ones you do not want and choose <strong>Add the selected a
     <img src="../../../images/annotate-ai-proposals.png" alt="The notes a model proposes for a part" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="900" height="792" />
     <figcaption class="caption">The notes a model proposes for a part</figcaption>
 </figure>
+<p><strong>A range of parts (batch).</strong> Tick <strong>Annotate a range of parts</strong> (the box is there when the story has more than one part with
+a text) and choose <strong>From part</strong> and <strong>To part</strong> (both start on the part you opened the window on; it does not matter which
+is the earlier). <strong>Annotate</strong> then reviews the parts of the range one after another, with the same instructions, answer
+format and model, each read with the story around it like a single part. The proposals are listed under the number of
+their part, all checked, and <strong>Add the selected annotations</strong> adds each to its own part. <strong>Stop</strong> stops the part in progress
+and starts no more; what was found until then stays in the list. A part whose answer can&#x27;t be read or that does
+not fit the context of the model is skipped (the window says which) and the run goes on; a failure of the model ends the run.
+Every part is a request to the model, so a long range costs as many requests (and tokens).</p>
 <p>If an answer can&#x27;t be read, Marginalia asks once more; if it still can&#x27;t be read, the model&#x27;s answer is shown so the work
 is not lost. The prompt is the <a href="../prompts/#annotate-prompt">annotate prompt</a>.</p>
 <h2 id="giving-a-note-to-the-model">Giving a note to the model</h2>
@@ -451,7 +459,7 @@ both changed is a conflict like any other.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (156e94f6f).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (fa16e284e).</p></div>
             </footer>
         </div>
     </div>

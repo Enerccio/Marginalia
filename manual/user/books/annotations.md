@@ -115,6 +115,15 @@ checked); uncheck the ones you do not want and choose **Add the selected annotat
 
 ![The notes a model proposes for a part](../../images/annotate-ai-proposals.png)
 
+**A range of parts (batch).** Tick **Annotate a range of parts** (the box is there when the story has more than one part with
+a text) and choose **From part** and **To part** (both start on the part you opened the window on; it does not matter which
+is the earlier). **Annotate** then reviews the parts of the range one after another, with the same instructions, answer
+format and model, each read with the story around it like a single part. The proposals are listed under the number of
+their part, all checked, and **Add the selected annotations** adds each to its own part. **Stop** stops the part in progress
+and starts no more; what was found until then stays in the list. A part whose answer can't be read or that does
+not fit the context of the model is skipped (the window says which) and the run goes on; a failure of the model ends the run.
+Every part is a request to the model, so a long range costs as many requests (and tokens).
+
 If an answer can't be read, Marginalia asks once more; if it still can't be read, the model's answer is shown so the work
 is not lost. The prompt is the [annotate prompt](prompts.md#annotate-prompt).
 
