@@ -119,6 +119,8 @@ and starts no more; what was found until then stays in the list. A part whose an
 not fit the context of the model is skipped (the window says which) and the run goes on; a failure of the model ends the run.
 Every part is a request to the model, so a long range costs as many requests (and tokens).
 
+![Annotating a range of parts: the proposals are listed under the number of their part](../../images/annotate-ai-batch.png)
+
 If an answer can't be read, Marginalia asks once more; if it still can't be read, the model's answer is shown so the work
 is not lost. The prompt is the [annotate prompt](prompts.md#annotate-prompt).
 
