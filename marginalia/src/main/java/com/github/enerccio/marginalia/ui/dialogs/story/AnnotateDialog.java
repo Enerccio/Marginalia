@@ -8,9 +8,12 @@ import com.github.enerccio.marginalia.domain.service.AnnotateService;
 import com.github.enerccio.marginalia.domain.service.AnnotateService.Mode;
 import com.github.enerccio.marginalia.domain.service.AnnotateService.Proposal;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
+import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
+import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.ModelProtocolPicker;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -31,16 +34,17 @@ import com.vaadin.flow.component.textfield.TextArea;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+import org.springframework.web.context.request.RequestAttributes;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Lets a model annotate a part of the story (the desktop and the phone story tab): the author says what to look for and with which
  * model, the notes the model proposes are listed, each with a check box, and only <b>Add the selected annotations</b> makes
  * annotations of them. The model reads the part with the story around it, see {@link AnnotateService}.
+ * <p>
+ * The same can be run on a range of the parts of the story (batch): the parts are annotated one after another with the same
+ * instructions, mode and model, and the proposals are listed by part.
  */
 @Configurable(preConstruction = true)
 public class AnnotateDialog extends Dialog {
@@ -51,10 +55,18 @@ public class AnnotateDialog extends Dialog {
     @Autowired
     private AnnotateService annotateService;
 
+    @Autowired
+    private ChatMessageService chatMessageService;
+
     private final Manuscript manuscript;
     private final ChatMessage part;
     private final Runnable onAdded;
 
+    private final Checkbox batch = new Checkbox();
+    private final ComboBox<Integer> fromPart = new ComboBox<>();
+    private final ComboBox<Integer> toPart = new ComboBox<>();
+    private final VerticalLayout batchRange;
+    private final Span batchProgress = new Span();
     private final TextArea instructions = new TextArea();
     private final ComboBox<Mode> mode = new ComboBox<>();
     private final ModelProtocolPicker model = new ModelProtocolPicker();
@@ -66,11 +78,34 @@ public class AnnotateDialog extends Dialog {
     private final Span message = new Span();
     private final VerticalLayout proposalsLayout = new VerticalLayout();
     private final Button add = new Button();
-    private final Map<Proposal, Checkbox> proposals = new LinkedHashMap<>();
+    private final List<Entry> proposals = new ArrayList<>();
+
+    /**
+     * The parts of the branch of the story that have a text, oldest first, and where each is in the branch (the numbers of the
+     * annotations panel).
+     */
+    private final List<ChatMessage> branch = new ArrayList<>();
+    private final Map<Long, Integer> positions = new LinkedHashMap<>();
+
+    /**
+     * The parts the run still has to annotate; touched on the UI thread only.
+     */
+    private final Deque<ChatMessage> pending = new ArrayDeque<>();
+    private final List<String> notes = new ArrayList<>();
+    private boolean batchRun;
+    private int total;
+    private int finished;
+    private RequestAttributes attributes;
 
     private CancellationToken cancellationToken;
     private boolean running;
     private String modelName;
+
+    /**
+     * A proposal of the model and the part it is about.
+     */
+    private record Entry(ChatMessage part, Proposal proposal, Checkbox chosen) {
+    }
 
     /**
      * @param onAdded called after annotations were added to the part
@@ -100,6 +135,33 @@ public class AnnotateDialog extends Dialog {
 
         Span info = new Span(loc.getValue(L.MSG_ANNOTATE_INFO));
         info.addClassName(CssStyles.HINT_TEXT);
+
+        loadBranch();
+        batch.setLabel(loc.getValue(L.LABEL_ANNOTATE_BATCH));
+        fromPart.setLabel(loc.getValue(L.LABEL_ANNOTATE_FROM_PART));
+        toPart.setLabel(loc.getValue(L.LABEL_ANNOTATE_TO_PART));
+        for (ComboBox<Integer> range : List.of(fromPart, toPart)) {
+            range.setItems(indices());
+            range.setItemLabelGenerator(this::partLabel);
+            range.setAllowCustomValue(false);
+            range.setWidthFull();
+        }
+        int opened = indexOf(part);
+        if (opened >= 0) {
+            fromPart.setValue(opened);
+            toPart.setValue(opened);
+        }
+        Span batchHint = new Span(loc.getValue(L.MSG_ANNOTATE_BATCH_HINT));
+        batchHint.addClassName(CssStyles.HINT_TEXT);
+        batchRange = new VerticalLayout(fromPart, toPart, batchHint);
+        batchRange.setPadding(false);
+        batchRange.setSpacing(false);
+        batchRange.setVisible(false);
+        batch.addValueChangeListener(event -> batchRange.setVisible(event.getValue()));
+        // a range needs at least two parts to choose from
+        batch.setVisible(branch.size() > 1 && opened >= 0);
+        batchProgress.addClassName(CssStyles.HINT_TEXT);
+        batchProgress.setVisible(false);
 
         instructions.setLabel(loc.getValue(L.LABEL_ANNOTATE_INSTRUCTIONS));
         instructions.setPlaceholder(loc.getValue(L.MSG_ANNOTATE_PLACEHOLDER));
@@ -151,8 +213,8 @@ public class AnnotateDialog extends Dialog {
         proposalsLayout.addClassName(CssStyles.GAP_S);
         proposalsLayout.setVisible(false);
 
-        VerticalLayout content = new VerticalLayout(info, instructions, mode, model, modelHint, extract, run, progress, message,
-                answerDetails, proposalsLayout);
+        VerticalLayout content = new VerticalLayout(info, batch, batchRange, instructions, mode, model, modelHint, extract, run, progress,
+                batchProgress, message, answerDetails, proposalsLayout);
         content.setPadding(false);
         content.setWidthFull();
         content.addClassName(CssStyles.GAP_S);
@@ -190,20 +252,103 @@ public class AnnotateDialog extends Dialog {
         mode.setReadOnly(value);
         model.setEnabled(!value);
         extractModel.setEnabled(!value);
+        batch.setEnabled(!value);
+        fromPart.setReadOnly(value);
+        toPart.setReadOnly(value);
         progress.setVisible(value);
+        batchProgress.setVisible(value && batchRun);
         add.setEnabled(!value && !proposals.isEmpty());
     }
 
     private void startOrStop() {
         if (running) {
+            // nothing more is started after the part in progress
+            pending.clear();
             if (cancellationToken != null && !cancellationToken.isCancelled()) {
                 cancellationToken.cancel();
             }
             return;
         }
 
-        UI ui = UI.getCurrent();
-        AnnotateService.Callback callback = new AnnotateService.Callback() {
+        List<ChatMessage> parts = selectedParts();
+        clear();
+        batchRun = parts.size() > 1;
+        total = parts.size();
+        finished = 0;
+        pending.addAll(parts);
+        attributes = ThreadCopyRequestAttributes.create();
+        showRunning(true);
+        annotateNext(UI.getCurrent());
+    }
+
+    /**
+     * Starts the annotation of the next part of the run, the run is over when there is none. Called on the UI thread: when the
+     * part before it is done, from {@code ui.access}.
+     */
+    private void annotateNext(UI ui) {
+        ChatMessage next;
+        boolean aborted = false;
+        while ((next = pending.poll()) != null) {
+            if (batchRun) {
+                batchProgress.setText(String.format(loc.getValue(L.MSG_ANNOTATE_BATCH_PROGRESS), positionOf(next), finished + 1, total));
+            }
+            try (InRequestScope _ = new InRequestScope(attributes)) {
+                GenerationOptions options = GenerationOptions.defaults().withModel(model.getAi(), model.getProtocol());
+                AI used = model.getAi() != null ? model.getAi() : manuscript.getAi();
+                modelName = used == null ? null : used.getName();
+                cancellationToken = annotateService.annotate(manuscript, next, new AnnotateService.Request(instructions.getValue(), null,
+                        options, mode.getValue(), extractModel.getAi(), extractModel.getProtocol()), callback(ui, next));
+                if (cancellationToken != null) {
+                    return;
+                }
+                pending.clear();
+                aborted = true;
+                Notification.error(loc.getValue(L.ERROR_ANNOTATE_FAILED));
+            } catch (AnnotateService.ContextInsufficient e) {
+                if (!batchRun) {
+                    aborted = true;
+                    Notification.error(loc.getValue(L.ERROR_CONTEXT_INSUFFICIENT));
+                } else {
+                    skipped(next, loc.getValue(L.ERROR_CONTEXT_INSUFFICIENT));
+                    finished++;
+                    continue;
+                }
+            } catch (Exception e) {
+                pending.clear();
+                aborted = true;
+                UIUtils.internalServerError(loc, e);
+            }
+            break;
+        }
+        endRun(!aborted);
+    }
+
+    /**
+     * The run is over: what the model found is listed, or the lack of it said.
+     *
+     * @param complete every part was asked, not stopped and not failed
+     */
+    private void endRun(boolean complete) {
+        showRunning(false);
+        if (proposals.isEmpty() && notes.isEmpty()) {
+            if (complete) {
+                showMessage(loc.getValue(L.MSG_ANNOTATE_NO_FINDINGS));
+            }
+        } else if (!notes.isEmpty()) {
+            showMessage(String.join(" ", notes));
+        }
+        add.setEnabled(proposals.stream().anyMatch(entry -> entry.chosen().getValue()));
+    }
+
+    private void skipped(ChatMessage part, String reason) {
+        notes.add(batchRun ? String.format(loc.getValue(L.MSG_ANNOTATE_BATCH_SKIPPED), positionOf(part), reason) : reason);
+    }
+
+    /**
+     * What the annotation of one part ends in; the next part of the run follows, unless the run ended with it.
+     */
+    private AnnotateService.Callback callback(UI ui, ChatMessage current) {
+        return new AnnotateService.Callback() {
             @Override
             public void onProgress(String reasoning, String text) {
                 ui.access(() -> {
@@ -215,11 +360,12 @@ public class AnnotateDialog extends Dialog {
             @Override
             public void onFinished(List<Proposal> found, String raw) {
                 ui.access(() -> {
-                    showRunning(false);
-                    showProposals(found);
+                    addProposals(current, found);
                     if (StringUtils.isNotBlank(raw)) {
                         showAnswer(raw);
                     }
+                    finished++;
+                    annotateNext(ui);
                     UIPushGuard.push(ui);
                 });
             }
@@ -227,10 +373,11 @@ public class AnnotateDialog extends Dialog {
             @Override
             public void onUnreadable(String raw, String reason) {
                 ui.access(() -> {
-                    showRunning(false);
-                    showMessage(String.format(loc.getValue(L.MSG_ANNOTATE_UNREADABLE), reason));
+                    skipped(current, String.format(loc.getValue(L.MSG_ANNOTATE_UNREADABLE), reason));
                     showAnswer(raw);
                     answerDetails.setOpened(true);
+                    finished++;
+                    annotateNext(ui);
                     UIPushGuard.push(ui);
                 });
             }
@@ -238,7 +385,8 @@ public class AnnotateDialog extends Dialog {
             @Override
             public void onTerminated(String raw) {
                 ui.access(() -> {
-                    showRunning(false);
+                    pending.clear();
+                    endRun(false);
                     showAnswer(raw);
                     UIPushGuard.push(ui);
                 });
@@ -247,36 +395,19 @@ public class AnnotateDialog extends Dialog {
             @Override
             public void onError(Throwable throwable) {
                 ui.access(() -> {
-                    showRunning(false);
+                    pending.clear();
+                    endRun(false);
                     UIUtils.inferenceError(loc, throwable);
                     UIPushGuard.push(ui);
                 });
             }
         };
-
-        clear();
-        showRunning(true);
-        try {
-            GenerationOptions options = GenerationOptions.defaults().withModel(model.getAi(), model.getProtocol());
-            AI used = model.getAi() != null ? model.getAi() : manuscript.getAi();
-            modelName = used == null ? null : used.getName();
-            cancellationToken = annotateService.annotate(manuscript, part, new AnnotateService.Request(instructions.getValue(), null, options,
-                    mode.getValue(), extractModel.getAi(), extractModel.getProtocol()), callback);
-            if (cancellationToken == null) {
-                showRunning(false);
-                Notification.error(loc.getValue(L.ERROR_ANNOTATE_FAILED));
-            }
-        } catch (AnnotateService.ContextInsufficient e) {
-            showRunning(false);
-            Notification.error(loc.getValue(L.ERROR_CONTEXT_INSUFFICIENT));
-        } catch (Exception e) {
-            showRunning(false);
-            UIUtils.internalServerError(loc, e);
-        }
     }
 
     private void clear() {
         proposals.clear();
+        pending.clear();
+        notes.clear();
         proposalsLayout.removeAll();
         proposalsLayout.setVisible(false);
         message.setVisible(false);
@@ -295,24 +426,90 @@ public class AnnotateDialog extends Dialog {
         message.setVisible(true);
     }
 
+    // ---- the parts of the story
+
     /**
-     * Lists the notes the model proposed, every one chosen.
+     * Reads the branch the story is at: the parts a range can be chosen from. A part of another branch has only the parts before it.
      */
-    private void showProposals(List<Proposal> found) {
-        proposals.clear();
-        proposalsLayout.removeAll();
+    private void loadBranch() {
+        try {
+            List<ChatMessage> all = manuscript.getActiveLeaf() == null ? List.of()
+                    : chatMessageService.getBranchFromLeaf(manuscript.getActiveLeaf());
+            if (all.stream().noneMatch(message -> Objects.equals(message.getId(), part.getId()))) {
+                all = chatMessageService.getBranchFromLeaf(part);
+            }
+            for (int i = 0; i < all.size(); i++) {
+                ChatMessage candidate = all.get(i);
+                if (StringUtils.isNotBlank(candidate.getResponse())) {
+                    branch.add(candidate);
+                    positions.put(candidate.getId(), i + 1);
+                }
+            }
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    private List<Integer> indices() {
+        List<Integer> indices = new ArrayList<>();
+        for (int i = 0; i < branch.size(); i++) {
+            indices.add(i);
+        }
+        return indices;
+    }
+
+    private int indexOf(ChatMessage message) {
+        for (int i = 0; i < branch.size(); i++) {
+            if (Objects.equals(branch.get(i).getId(), message.getId())) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private int positionOf(ChatMessage message) {
+        return positions.getOrDefault(message.getId(), 0);
+    }
+
+    private String partLabel(Integer index) {
+        ChatMessage message = branch.get(index);
+        return String.format(loc.getValue(L.LABEL_ANNOTATION_PART_NUMBER), positionOf(message)) + ": "
+                + StringUtils.abbreviate(StringUtils.normalizeSpace(message.getResponse()), 60);
+    }
+
+    /**
+     * The parts the run annotates: the range when it is chosen (either way round), else the part the dialog was opened on.
+     */
+    private List<ChatMessage> selectedParts() {
+        if (!batch.getValue() || fromPart.getValue() == null || toPart.getValue() == null) {
+            return List.of(part);
+        }
+        int from = Math.min(fromPart.getValue(), toPart.getValue());
+        int to = Math.max(fromPart.getValue(), toPart.getValue());
+        return new ArrayList<>(branch.subList(from, to + 1));
+    }
+
+    // ---- the proposals
+
+    /**
+     * Lists the notes the model proposed for the part, every one chosen. In a batch run the notes of a part follow its number.
+     */
+    private void addProposals(ChatMessage about, List<Proposal> found) {
         if (found.isEmpty()) {
-            showMessage(loc.getValue(L.MSG_ANNOTATE_NO_FINDINGS));
-            proposalsLayout.setVisible(false);
-            add.setEnabled(false);
             return;
         }
-        message.setVisible(false);
-        proposalsLayout.add(new Span(loc.getValue(L.LABEL_ANNOTATE_PROPOSALS)));
+        if (proposals.isEmpty()) {
+            proposalsLayout.add(new Span(loc.getValue(L.LABEL_ANNOTATE_PROPOSALS)));
+        }
+        if (batchRun) {
+            Span header = new Span(String.format(loc.getValue(L.LABEL_ANNOTATION_PART_NUMBER), positionOf(about)));
+            header.addClassName(CssStyles.ANNOTATION_PART);
+            proposalsLayout.add(header);
+        }
         for (Proposal proposal : found) {
             Checkbox chosen = new Checkbox(StringUtils.defaultString(proposal.note()));
             chosen.setValue(true);
-            chosen.addValueChangeListener(_ -> add.setEnabled(!running && proposals.values().stream().anyMatch(Checkbox::getValue)));
+            chosen.addValueChangeListener(_ -> add.setEnabled(!running && proposals.stream().anyMatch(entry -> entry.chosen().getValue())));
             VerticalLayout row = new VerticalLayout(chosen);
             row.setPadding(false);
             row.setSpacing(false);
@@ -327,25 +524,28 @@ public class AnnotateDialog extends Dialog {
                 lost.addClassName(CssStyles.HINT_TEXT);
                 row.add(lost);
             }
-            proposals.put(proposal, chosen);
+            proposals.add(new Entry(about, proposal, chosen));
             proposalsLayout.add(row);
         }
         proposalsLayout.setVisible(true);
-        add.setEnabled(true);
     }
 
     private void accept() {
-        List<Proposal> chosen = new ArrayList<>();
-        proposals.forEach((proposal, checkbox) -> {
-            if (checkbox.getValue()) {
-                chosen.add(proposal);
+        // by part, in the order of the story
+        Map<ChatMessage, List<Proposal>> chosen = new LinkedHashMap<>();
+        for (Entry entry : proposals) {
+            if (entry.chosen().getValue()) {
+                chosen.computeIfAbsent(entry.part(), _ -> new ArrayList<>()).add(entry.proposal());
             }
-        });
+        }
         if (chosen.isEmpty()) {
             return;
         }
         try {
-            int made = annotateService.accept(manuscript, part, chosen, modelName).size();
+            int made = 0;
+            for (Map.Entry<ChatMessage, List<Proposal>> about : chosen.entrySet()) {
+                made += annotateService.accept(manuscript, about.getKey(), about.getValue(), modelName).size();
+            }
             Notification.success(String.format(loc.getValue(L.MSG_ANNOTATE_ADDED), made));
             close();
             onAdded.run();
@@ -377,11 +577,39 @@ public class AnnotateDialog extends Dialog {
     }
 
     void showProposalsForTest(List<Proposal> found) {
-        showProposals(found);
+        addProposals(part, found);
+        if (proposals.isEmpty()) {
+            showMessage(loc.getValue(L.MSG_ANNOTATE_NO_FINDINGS));
+        }
+        add.setEnabled(!proposals.isEmpty());
     }
 
     Map<Proposal, Checkbox> proposalChecks() {
-        return proposals;
+        Map<Proposal, Checkbox> checks = new LinkedHashMap<>();
+        proposals.forEach(entry -> checks.put(entry.proposal(), entry.chosen()));
+        return checks;
+    }
+
+    Checkbox batchField() {
+        return batch;
+    }
+
+    ComboBox<Integer> fromField() {
+        return fromPart;
+    }
+
+    ComboBox<Integer> toField() {
+        return toPart;
+    }
+
+    List<ChatMessage> selectedPartsForTest() {
+        return selectedParts();
+    }
+
+    void addProposalsForTest(ChatMessage about, List<Proposal> found) {
+        batchRun = true;
+        addProposals(about, found);
+        add.setEnabled(!proposals.isEmpty());
     }
 
     void acceptForTest() {

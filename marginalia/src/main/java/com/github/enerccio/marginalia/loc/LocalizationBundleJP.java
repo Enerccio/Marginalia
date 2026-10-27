@@ -740,6 +740,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_SCAN_FILES, "ファイルをスキャン");
         setValue(L.LABEL_DOWNLOAD_AS_ZIP, "ZIPでダウンロード");
         setValue(L.LABEL_FILE, "ファイル");
+        setValue(L.LABEL_ANNOTATE_BATCH, "パートの範囲に注釈を付ける");
+        setValue(L.LABEL_ANNOTATE_FROM_PART, "開始パート");
+        setValue(L.LABEL_ANNOTATE_TO_PART, "終了パート");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1264,6 +1267,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_CONFIRM_DELETE_RESOURCE_FILES, "%s 個のファイル（%s）をディスクから完全に削除しますか？この操作は元に戻せません。");
         setValue(L.MSG_RESOURCE_FILES_DELETED, "%s 個のファイルを削除しました（%s を解放）。");
         setValue(L.MSG_RESOURCE_FILES_SKIPPED, "%s 個のファイルは残されました。使用中、すでに存在しない、または削除できませんでした。");
+        setValue(L.MSG_ANNOTATE_BATCH_HINT, "範囲内のパートに、同じ指示・モード・モデルで順に注釈を付けます。提案はパートごとに表示され、選択したものを追加するまで何も追加されません。");
+        setValue(L.MSG_ANNOTATE_BATCH_PROGRESS, "パート %d に注釈を付けています（%d / %d）");
+        setValue(L.MSG_ANNOTATE_BATCH_SKIPPED, "パート %d をスキップしました: %s");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

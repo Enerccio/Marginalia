@@ -740,6 +740,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_SCAN_FILES, "Scan files");
         setValue(L.LABEL_DOWNLOAD_AS_ZIP, "Download as ZIP");
         setValue(L.LABEL_FILE, "File");
+        setValue(L.LABEL_ANNOTATE_BATCH, "Annotate a range of parts");
+        setValue(L.LABEL_ANNOTATE_FROM_PART, "From part");
+        setValue(L.LABEL_ANNOTATE_TO_PART, "To part");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1264,6 +1267,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_CONFIRM_DELETE_RESOURCE_FILES, "Permanently delete %s files (%s) from the disk? This cannot be undone.");
         setValue(L.MSG_RESOURCE_FILES_DELETED, "%s files deleted, %s freed.");
         setValue(L.MSG_RESOURCE_FILES_SKIPPED, "%s files were kept: they are in use now, gone already, or could not be deleted.");
+        setValue(L.MSG_ANNOTATE_BATCH_HINT, "The parts of the range are annotated one after another with the same instructions, mode and model. The proposals are listed by part; nothing is added until you add the selected ones.");
+        setValue(L.MSG_ANNOTATE_BATCH_PROGRESS, "Annotating part %d (%d of %d)");
+        setValue(L.MSG_ANNOTATE_BATCH_SKIPPED, "Part %d skipped: %s");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

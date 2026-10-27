@@ -119,4 +119,84 @@ class AnnotateDialogTest extends MarginaliaTestBase {
         assertThat(dialog.proposalChecks()).isEmpty();
         assertThat(dialog.addButton().isEnabled()).isFalse();
     }
+
+    /**
+     * A story of three parts, the book at the last one.
+     */
+    private List<ChatMessage> story() throws Exception {
+        ChatMessage second = new ChatMessage();
+        second.setResponse("The harbour was empty.");
+        second = chatMessageService.addChild(part, second);
+        ChatMessage third = new ChatMessage();
+        third.setResponse("Night fell over the water.");
+        third = chatMessageService.addChild(second, third);
+        Manuscript loaded = manuscriptService.find(book.getId());
+        loaded.setActiveLeaf(third);
+        book = manuscriptService.save(loaded);
+        return List.of(part, second, third);
+    }
+
+    @Test
+    void aSinglePartStoryOffersNoRange() {
+        AnnotateDialog dialog = AnnotateDialog.create(book, part, () -> {
+        });
+
+        assertThat(dialog.batchField().isVisible()).isFalse();
+        assertThat(dialog.selectedPartsForTest()).containsExactly(part);
+    }
+
+    @Test
+    void theRangeStartsOnTheOpenedPartAndIsOnlyUsedWhenChosen() throws Exception {
+        List<ChatMessage> parts = story();
+        AnnotateDialog dialog = AnnotateDialog.create(book, parts.get(1), () -> {
+        });
+
+        assertThat(dialog.batchField().isVisible()).isTrue();
+        assertThat(dialog.batchField().getValue()).isFalse();
+        assertThat(dialog.selectedPartsForTest()).extracting(ChatMessage::getId).containsExactly(parts.get(1).getId());
+
+        dialog.batchField().setValue(true);
+        assertThat(dialog.fromField().getValue()).isEqualTo(1);
+        assertThat(dialog.toField().getValue()).isEqualTo(1);
+        dialog.fromField().setValue(0);
+        dialog.toField().setValue(2);
+
+        assertThat(dialog.selectedPartsForTest()).extracting(ChatMessage::getId)
+                .containsExactly(parts.get(0).getId(), parts.get(1).getId(), parts.get(2).getId());
+    }
+
+    @Test
+    void aRangeChosenBackwardsIsTheSameRange() throws Exception {
+        List<ChatMessage> parts = story();
+        AnnotateDialog dialog = AnnotateDialog.create(book, parts.get(2), () -> {
+        });
+        dialog.batchField().setValue(true);
+        dialog.fromField().setValue(2);
+        dialog.toField().setValue(1);
+
+        assertThat(dialog.selectedPartsForTest()).extracting(ChatMessage::getId).containsExactly(parts.get(1).getId(), parts.get(2).getId());
+    }
+
+    @Test
+    void proposalsOfAllPartsAreAddedToTheirOwnPart() throws Exception {
+        List<ChatMessage> parts = story();
+        AtomicInteger added = new AtomicInteger();
+        AnnotateDialog dialog = AnnotateDialog.create(book, parts.get(0), added::incrementAndGet);
+        // the same note of two parts is two proposals
+        Proposal first = new Proposal("Anna", "Name?", null, 0, 4);
+        Proposal second = new Proposal("The harbour", "Same as before", null, 0, 11);
+        Proposal skipped = new Proposal("Night", "Cliche", "style", 0, 5);
+        dialog.setModelNameForTest("mock-model");
+        dialog.addProposalsForTest(parts.get(0), List.of(first));
+        dialog.addProposalsForTest(parts.get(1), List.of(second));
+        dialog.addProposalsForTest(parts.get(2), List.of(skipped));
+        dialog.proposalChecks().get(skipped).setValue(false);
+
+        dialog.acceptForTest();
+
+        assertThat(annotationService.listForPart(book, parts.get(0))).extracting(Annotation::getText).containsExactly("Name?");
+        assertThat(annotationService.listForPart(book, parts.get(1))).extracting(Annotation::getText).containsExactly("Same as before");
+        assertThat(annotationService.listForPart(book, parts.get(2))).isEmpty();
+        assertThat(added.get()).isEqualTo(1);
+    }
 }
