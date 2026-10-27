@@ -46,6 +46,9 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
     private SummaryService self;
 
     @Autowired
+    private MessagePromptService messagePromptService;
+
+    @Autowired
     private ChatMessageService chatMessageService;
 
     @Autowired
@@ -480,11 +483,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         String jailbreak = Boolean.TRUE.equals(ai.getNeedsJailbreak()) && StringUtils.isNotBlank(ai.getJailbreak())
                 ? ai.getJailbreak() + "\n\n" : "";
 
-        if (StringUtils.isNotBlank(from.getBackgroundLore())) {
-            template.setBackgroundLore(from.getBackgroundLore());
-        } else {
-            template.setBackgroundLore("");
-        }
+        template.setBackgroundLore(StringUtils.defaultString(messagePromptService.getBackgroundLore(from)));
 
         String prompt = jailbreak + templateService.processTemplate(systemPrompt, "summaryPrompt", template);
         long tokens = inferenceService.countTokens(prompt);
@@ -581,7 +580,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         String jailbreak = Boolean.TRUE.equals(ai.getNeedsJailbreak()) && StringUtils.isNotBlank(ai.getJailbreak())
                 ? ai.getJailbreak() + "\n\n" : "";
 
-        template.setBackgroundLore(StringUtils.defaultString(from.getBackgroundLore()));
+        template.setBackgroundLore(StringUtils.defaultString(messagePromptService.getBackgroundLore(from)));
         template.setSummaryBlocks("");
 
         long summaryTokens = 0;

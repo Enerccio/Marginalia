@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846431150884">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846453146986">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846431150884" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846453146986" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846431150884" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846453146986" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846431150884" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846431150884" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846453146986" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846453146986" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -262,8 +262,11 @@ sqlite&gt; .tables
 sqlite&gt; select version, description, success from flyway_schema_history;
 sqlite&gt; select id, name, cast(extendedContent as text) from manuscripts;</code></pre>
 </doc-codeblock></div>
-<p><code translate="no" v-pre>extendedContent</code> columns hold UTF-8 JSON, so <code translate="no" v-pre>cast(... as text)</code> (or <code translate="no" v-pre>json_extract</code>) shows the
-<a href="../domain-model/#extendableentity---extended-attributes">extended attributes</a>. Timestamps (<code translate="no" v-pre>creation</code>,
+<p><code translate="no" v-pre>extendedContent</code> columns hold UTF-8 JSON, gzipped when it is 256 bytes or more (since app version 6, see
+<doc-anchor-trigger to="#startup-migrate-then-validate">Startup</doc-anchor-trigger>). Small ones can be read with <code translate="no" v-pre>cast(... as text)</code>; a big one starts with the bytes
+<code translate="no" v-pre>1f 8b</code>, unpack it outside of SQLite:
+<code translate="no" v-pre>sqlite3 -readonly marginalia.sqlite &quot;select hex(extendedContent) from manuscripts where id = 1&quot; | xxd -r -p | gunzip</code>.
+It holds the <a href="../domain-model/#extendableentity---extended-attributes">extended attributes</a>. Timestamps (<code translate="no" v-pre>creation</code>,
 <code translate="no" v-pre>modification</code>, <code translate="no" v-pre>lastOpened</code>) are stored as milliseconds since the epoch, booleans as <code translate="no" v-pre>0</code> / <code translate="no" v-pre>1</code>.</p>
 <h2 id="startup-migrate-then-validate">Startup: migrate, then validate</h2>
 <ol>
@@ -333,6 +336,7 @@ migration is written for one version step and ignores the others.</p>
 | APP | 1 → 2 | `bound/migration/EncryptApiKeysMigration` | Encrypts the plain text `ais_openaicompat.apiKey` values, see [Encrypted columns](#encrypted-columns). |
 | APP | 2 → 3 | `bound/migration/FulltextMigration` | Fills `_fulltext` (added by V9) of the existing rows of every entity with `@Fulltextable` fields, deleted rows included: walks the table by id in batches of 200, one transaction per batch, and calls `ExtendableEntityListener.updateFulltext` on the loaded entity, so `extendedContent` and `modification` stay as they are. Repeating it is harmless. See [Full-text column](domain-model.md#full-text-column). |
 | APP | 3 → 4 | `bound/migration/OriginalResponseMigration` | Copies `response` of every `ChatMessage` (deleted ones too) into the extended attribute `originalResponse` when it has none: batches of 200 by id, one transaction per batch, the entity is re-serialized with `ExtendableEntityListener.serialize`, `modification` stays as it is. Repeating it is harmless. |
+| APP | 5 → 6 | `bound/migration/ExtendedContentMigration` | Two things, walking the table by id in batches of 25, deleted rows included. First the prompt of the parts (a batch is read in one session and each part is written in a transaction of its own, rows persisted before anything is read: SQLite refuses a write to a transaction that has read when the id generator updates its sequence on another connection, as noted for `PermissionsMigration`; a lock error is retried): `builtPrompt` and `backgroundLore` are taken out of the extended content of every `ChatMessage` that has them and stored as a row of `message_prompts` (V20; the row of a deleted part is deleted, a part that has a row already only loses the keys). Then every row of every `ExtendableEntity` (one transaction per batch) whose extended content is stored plain and has 256 bytes or more is rewritten gzipped (`ExtendableEntity.needsCompression`). When it changed anything it runs `VACUUM` once (the file of the database does not shrink by itself; it needs free disk space for a copy of the database and its failure is only logged). `modification` stays as it is, repeating it is harmless. See [`MessagePrompt`](domain-model.md#messageprompt) and [Compression](domain-model.md#extendableentity---extended-attributes). |
 | APP | 4 → 5 | `bound/migration/PermissionsMigration` | Gives the permissions `CREATE_AI` and `HELPER` to every existing (not deleted) user when the switches they replace (`AppSettings.userAisAllowed`, `helpEnabled`) were on; the permission has no owner. The new `HELPER` permissions also get `helperApplyLimits` and `helperInteractions` from `AppSettings.helpApplyLimits` / `helpInteractions`. Users that already have the permission are skipped (repeatable). Reads in one session and writes in another: the id generator updates its sequence table on a second connection and SQLite locks it out while the first holds a read lock. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -362,6 +366,12 @@ migration is written for one version step and ignores the others.</p>
 <td>3 → 4</td>
 <td><code translate="no" v-pre>bound/migration/OriginalResponseMigration</code></td>
 <td>Copies <code translate="no" v-pre>response</code> of every <code translate="no" v-pre>ChatMessage</code> (deleted ones too) into the extended attribute <code translate="no" v-pre>originalResponse</code> when it has none: batches of 200 by id, one transaction per batch, the entity is re-serialized with <code translate="no" v-pre>ExtendableEntityListener.serialize</code>, <code translate="no" v-pre>modification</code> stays as it is. Repeating it is harmless.</td>
+</tr>
+<tr>
+<td>APP</td>
+<td>5 → 6</td>
+<td><code translate="no" v-pre>bound/migration/ExtendedContentMigration</code></td>
+<td>Two things, walking the table by id in batches of 25, deleted rows included. First the prompt of the parts (a batch is read in one session and each part is written in a transaction of its own, rows persisted before anything is read: SQLite refuses a write to a transaction that has read when the id generator updates its sequence on another connection, as noted for <code translate="no" v-pre>PermissionsMigration</code>; a lock error is retried): <code translate="no" v-pre>builtPrompt</code> and <code translate="no" v-pre>backgroundLore</code> are taken out of the extended content of every <code translate="no" v-pre>ChatMessage</code> that has them and stored as a row of <code translate="no" v-pre>message_prompts</code> (V20; the row of a deleted part is deleted, a part that has a row already only loses the keys). Then every row of every <code translate="no" v-pre>ExtendableEntity</code> (one transaction per batch) whose extended content is stored plain and has 256 bytes or more is rewritten gzipped (<code translate="no" v-pre>ExtendableEntity.needsCompression</code>). When it changed anything it runs <code translate="no" v-pre>VACUUM</code> once (the file of the database does not shrink by itself; it needs free disk space for a copy of the database and its failure is only logged). <code translate="no" v-pre>modification</code> stays as it is, repeating it is harmless. See <a href="../domain-model/#messageprompt"><code translate="no" v-pre>MessagePrompt</code></a> and <a href="../domain-model/#extendableentity---extended-attributes">Compression</a>.</td>
 </tr>
 <tr>
 <td>APP</td>
@@ -396,6 +406,7 @@ migration is written for one version step and ignores the others.</p>
 | V16 | `V16__agents.sql` | New tables `agents` (`name`, `enabled`, `manuscript_id`, owner `userId`, extended content), `agent_runs` (`agent_id`, `status`, `statusReason`, `workingCopy_id`, `prefillTokens`, `generatedTokens`, `rounds`, `startedAt`, `finishedAt`) and `agent_messages` (`run_id`, `ordinal`: the transcript of a run) with their `_SEQ` tables and indexes: the entities `Agent`, `AgentRun` and `AgentMessage`; the column `agentic` of `manuscripts` and `lorebooks` (a working copy of an agent). `manuscript_id`, `agent_id` are nullable (the cleanup nulls an `OWNED_BY` reference before the purge). A partial unique index `ux_agent_runs_unfinished` keeps one run per agent that is not over (the statuses are listed in the index, a new status that is not terminal needs a new migration). See [`Agent`](domain-model.md#agent-and-agentrun-agents). |
 | V17 | `V17__agent_run_pairs.sql` | New table `agent_run_pairs` (`run_id`, `kind`, `copyUuid`, `originalUuid`, `handle`) with its `_SEQ` table: the entity `AgentRunPair`, which item of the working copy of an agent run is which item of the original. Not a `BaseEntity` (no uuid, `is_deleted` or extended content columns). Unique indexes on `(run_id, copyUuid)` and `(run_id, handle)`, an index on `(run_id, originalUuid)`; there is no foreign key to `agent_runs` (the project uses none), the rows are deleted by `AgentRunPairService.deleteForRun`. See [`AgentRunPair`](domain-model.md#agent-and-agentrun-agents). |
 | V19 | `V19__annotations.sql` | New table `annotations` (`part_id` nullable like the other owned references, `status`, `source`, `startOffset`, `endOffset`, the standard columns and extended content: the note, the quote and its context, the type) with its `_SEQ` table and the indexes `(part_id, is_deleted, status)` and `(userId, is_deleted)`: the entity `Annotation`. See [`Annotation`](domain-model.md#annotation). |
+| V20 | `V20__message_prompts.sql` | New table `message_prompts` (`message_id` nullable like the other owned references, `builtPrompt` and `backgroundLore` as deflated `blob`s, the standard columns without extended content) with its `_SEQ` table and the indexes `(message_id, is_deleted)` and `(userId, is_deleted)`: the entity `MessagePrompt`. The rows are made from the extended content of the parts by `ExtendedContentMigration` (app version 6). See [`MessagePrompt`](domain-model.md#messageprompt). |
 | V18 | `V18__agent_message_threads.sql` | The nullable column `thread` (varchar 16) of `agent_messages`, the handle of the sub-agent whose conversation a row belongs to (null: the agent's own), and the index `ix_agent_messages_thread` on `(run_id, thread, is_deleted, ordinal)`. See [`AgentMessage`](domain-model.md#agent-and-agentrun-agents). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -496,6 +507,11 @@ migration is written for one version step and ignores the others.</p>
 <td>V19</td>
 <td><code translate="no" v-pre>V19__annotations.sql</code></td>
 <td>New table <code translate="no" v-pre>annotations</code> (<code translate="no" v-pre>part_id</code> nullable like the other owned references, <code translate="no" v-pre>status</code>, <code translate="no" v-pre>source</code>, <code translate="no" v-pre>startOffset</code>, <code translate="no" v-pre>endOffset</code>, the standard columns and extended content: the note, the quote and its context, the type) with its <code translate="no" v-pre>_SEQ</code> table and the indexes <code translate="no" v-pre>(part_id, is_deleted, status)</code> and <code translate="no" v-pre>(userId, is_deleted)</code>: the entity <code translate="no" v-pre>Annotation</code>. See <a href="../domain-model/#annotation"><code translate="no" v-pre>Annotation</code></a>.</td>
+</tr>
+<tr>
+<td>V20</td>
+<td><code translate="no" v-pre>V20__message_prompts.sql</code></td>
+<td>New table <code translate="no" v-pre>message_prompts</code> (<code translate="no" v-pre>message_id</code> nullable like the other owned references, <code translate="no" v-pre>builtPrompt</code> and <code translate="no" v-pre>backgroundLore</code> as deflated <code translate="no" v-pre>blob</code>s, the standard columns without extended content) with its <code translate="no" v-pre>_SEQ</code> table and the indexes <code translate="no" v-pre>(message_id, is_deleted)</code> and <code translate="no" v-pre>(userId, is_deleted)</code>: the entity <code translate="no" v-pre>MessagePrompt</code>. The rows are made from the extended content of the parts by <code translate="no" v-pre>ExtendedContentMigration</code> (app version 6). See <a href="../domain-model/#messageprompt"><code translate="no" v-pre>MessagePrompt</code></a>.</td>
 </tr>
 <tr>
 <td>V18</td>
@@ -630,7 +646,7 @@ clear or move references itself (see <code translate="no" v-pre>ChatMessageServi
 <code translate="no" v-pre>SaneSQLiteDialect</code> turns off the <code translate="no" v-pre>CHECK</code> constraints that Hibernate would otherwise generate for enum columns, so a
 new enum value doesn&#x27;t need a table rebuild.</p>
 <p><strong>Large values.</strong> Text that can be long (<code translate="no" v-pre>name</code>, <code translate="no" v-pre>uri</code>, <code translate="no" v-pre>apiKey</code>...) is <code translate="no" v-pre>@Lob</code> → <code translate="no" v-pre>clob</code>; <code translate="no" v-pre>extendedContent</code> is a
-<code translate="no" v-pre>blob</code> with JSON. SQLite doesn&#x27;t enforce lengths, so <code translate="no" v-pre>varchar(255)</code> is only documentation.</p>
+<code translate="no" v-pre>blob</code> with JSON (gzipped when big, see <a href="../domain-model/#extendableentity---extended-attributes"><code translate="no" v-pre>ExtendableEntity</code></a>). SQLite doesn&#x27;t enforce lengths, so <code translate="no" v-pre>varchar(255)</code> is only documentation.</p>
 <p><strong>Encrypted columns.</strong> Secrets are stored encrypted, see <doc-anchor-trigger to="#encrypted-columns">Encrypted columns</doc-anchor-trigger>.</p>
 <p><strong>Hibernate&#x27;s temporary tables.</strong> <code translate="no" v-pre>V1__initial.sql</code> contains <code translate="no" v-pre>HT_*</code> and <code translate="no" v-pre>HTE_*</code> tables. Hibernate uses them for bulk
 updates and deletes on entities with joined inheritance (<code translate="no" v-pre>AI</code>, <code translate="no" v-pre>Protocol</code>) and for inserts into such hierarchies.
@@ -873,7 +889,7 @@ A backup restored on another installation loses them unless <code translate="no"
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (6281d934e).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (ac18f6eb1).</p></div>
             </footer>
         </div>
     </div>

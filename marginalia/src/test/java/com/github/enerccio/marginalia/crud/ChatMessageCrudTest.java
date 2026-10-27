@@ -65,9 +65,7 @@ class ChatMessageCrudTest extends ExtendableCrudContract<ChatMessage> {
         message.setTtft(TTFT);
         message.setModelUsed("model-a");
         message.setProtocolUsed("protocol-a");
-        message.setBuiltPrompt("[system] ...");
         message.setBuiltPromptTokens(1100L);
-        message.setBackgroundLore("lore");
         return message;
     }
 
@@ -91,9 +89,7 @@ class ChatMessageCrudTest extends ExtendableCrudContract<ChatMessage> {
         assertThat(loaded.getReasoningEnd()).isNull();
         assertThat(loaded.getModelUsed()).isEqualTo("model-a");
         assertThat(loaded.getProtocolUsed()).isEqualTo("protocol-a");
-        assertThat(loaded.getBuiltPrompt()).isEqualTo("[system] ...");
         assertThat(loaded.getBuiltPromptTokens()).isEqualTo(1100L);
-        assertThat(loaded.getBackgroundLore()).isEqualTo("lore");
         assertThat(loaded.isEdited()).isFalse();
     }
 

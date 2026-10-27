@@ -34,6 +34,9 @@ class RedraftTest extends GenerationTestBase {
     private ChatMessageService chatMessageService;
 
     @Autowired
+    private MessagePromptService messagePromptService;
+
+    @Autowired
     private SummaryService summaryService;
 
     @Autowired
@@ -116,8 +119,8 @@ class RedraftTest extends GenerationTestBase {
         third.setSceneSetting("the harbour");
         third.setPovCharacter("Alice");
         third.setInstructions("Alice finds the map");
-        third.setBackgroundLore("Dragons exist.");
         chatMessageService.save(third);
+        messagePromptService.store(third, null, "Dragons exist.");
         llm.enqueue(MockLLMResponse.text("  REDRAFTED  "));
 
         Redrafted result = redraft(3, "Make the harbour scene longer");

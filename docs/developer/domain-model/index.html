@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846431150884">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846453146986">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846431150884" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846453146986" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846431150884" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846453146986" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846431150884" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846431150884" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846453146986" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846453146986" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -178,6 +178,7 @@ delete, extended attributes and cleanup. Entities are in <code translate="no" v-
 | `ChatMessage` | `messages` | Part (of the story) |
 | `Summary` | `summaries` | Summary |
 | `Annotation` | `annotations` | Annotation (a note on a passage of a part) |
+| `MessagePrompt` | `message_prompts` | Prompt of a part (*Show Prompt*) |
 | `Lorebook`, `LorebookEntry` | `lorebooks`, `entries` | Lorebook, entry |
 | `AI`, `OpenAICompatible`, `ExtensionAI` | `ais`, `ais_openaicompat`, `ais_extension` | Inference provider |
 | `Usage` | `usages` | Tokens sent / generated column of the Inference Providers tab |
@@ -218,6 +219,11 @@ delete, extended attributes and cleanup. Entities are in <code translate="no" v-
 <td><code translate="no" v-pre>Annotation</code></td>
 <td><code translate="no" v-pre>annotations</code></td>
 <td>Annotation (a note on a passage of a part)</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>MessagePrompt</code></td>
+<td><code translate="no" v-pre>message_prompts</code></td>
+<td>Prompt of a part (<em>Show Prompt</em>)</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>Lorebook</code>, <code translate="no" v-pre>LorebookEntry</code></td>
@@ -511,6 +517,13 @@ array of <code translate="no" v-pre>ImageAttachment(resource uuid, caption)</cod
 <p><strong>Save</strong>: <code translate="no" v-pre>JpaExtendableRepository.save</code> serializes the fields into <code translate="no" v-pre>extendedContent</code> before the entity is written.</p>
 </li>
 </ul>
+<p><strong>Compression.</strong> The document is mostly text, and an entity keeps it next to the fields made from it, so
+<code translate="no" v-pre>ExtendableEntity</code> stores it gzipped when it is 256 bytes or more: <code translate="no" v-pre>setExtendedContent</code> compresses and
+<code translate="no" v-pre>getExtendedContent</code> gives the plain JSON, so only the field of the column is compressed and the code that works with
+the bytes doesn&#x27;t change. A row stored plain (before app version 6) still reads - a gzip stream starts with <code translate="no" v-pre>1f 8b</code>,
+which no JSON or text does - and is compressed when it is saved again; <code translate="no" v-pre>ExtendedContentMigration</code> does it for all of them
+once. What reads the column without the entity (<code translate="no" v-pre>SELECT e.extendedContent</code>, the trash viewer) must call
+<code translate="no" v-pre>ExtendableEntity.plain(bytes)</code>.</p>
 <p>Because the fields are <code translate="no" v-pre>@Transient</code>, Hibernate&#x27;s dirty checking doesn&#x27;t see them. <strong>A change to an extended attribute
 is only stored by calling the service&#x27;s <code translate="no" v-pre>save</code>.</strong> Changing it on a managed entity and letting the transaction commit
 does nothing.</p>
@@ -755,7 +768,7 @@ joins on is a real column: relations, <code translate="no" v-pre>name</code>, <c
 | `originalResponse` | JSON | The text as the LLM produced it: filled chunk by chunk by `InferenceStep`, cleared by `GenerateNewMessageStep` (regenerate), never changed by editing; `null` for a part that was not generated. The story's *Highlight Generated Text* diffs `response` against it (`GeneratedTextHighlighter`). Existing parts got a copy of `response` from `OriginalResponseMigration`. |
 | `responseReasoning` | JSON | Reasoning of a reasoning model. |
 | `instructions`, `sceneSetting`, `povCharacter`, `presentCharacters` | JSON | The instruction panel it was generated from (`TurnInput`). |
-| `builtPrompt`, `builtPromptTokens`, `backgroundLore` | JSON | The full prompt sent to the model and the activated lore (*Show Prompt*). |
+| `builtPromptTokens` | JSON | Tokens of the full prompt sent to the model. The prompt itself and the activated lore (*Show Prompt*) are not in the part, see [`MessagePrompt`](#messageprompt). |
 | `tokenBreakdown` | JSON | Token counts of the prompt (`PromptTokenBreakdown`, JSON in an extended attribute); `null` for parts generated before it was recorded. |
 | `modelUsed`, `protocolUsed`, `promptTokens`, `tokenReasoningCount` | JSON | Generation metadata. |
 | `request`, `ttft`, `reasoningEnd` | JSON | Timestamps for the timing metrics. |">
@@ -810,9 +823,9 @@ joins on is a real column: relations, <code translate="no" v-pre>name</code>, <c
 <td>The instruction panel it was generated from (<code translate="no" v-pre>TurnInput</code>).</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>builtPrompt</code>, <code translate="no" v-pre>builtPromptTokens</code>, <code translate="no" v-pre>backgroundLore</code></td>
+<td><code translate="no" v-pre>builtPromptTokens</code></td>
 <td>JSON</td>
-<td>The full prompt sent to the model and the activated lore (<em>Show Prompt</em>).</td>
+<td>Tokens of the full prompt sent to the model. The prompt itself and the activated lore (<em>Show Prompt</em>) are not in the part, see <doc-anchor-trigger to="#messageprompt"><code translate="no" v-pre>MessagePrompt</code></doc-anchor-trigger>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>tokenBreakdown</code></td>
@@ -835,6 +848,54 @@ joins on is a real column: relations, <code translate="no" v-pre>name</code>, <c
 </retype-table>
 <p>Template variables are stored when a part is generated (<code translate="no" v-pre>GenerateNewMessageStep</code>): local ones (<code translate="no" v-pre>setvar</code>), which
 follow the branch, in the new part&#x27;s <code translate="no" v-pre>attributes</code>, global ones (<code translate="no" v-pre>setglobalvar</code>) in the book&#x27;s <code translate="no" v-pre>attributes</code>.</p>
+<h3 id="messageprompt"><code translate="no" v-pre>MessagePrompt</code></h3>
+<p>What a part was written from: the built prompt (the payload sent to the model as JSON, 100-200 KB for a long story)
+and the lore that was in it. It is a row of its own (<code translate="no" v-pre>message_prompts</code>, one per part at most, owned by the user of the
+part) and not a part of <code translate="no" v-pre>ChatMessage</code>, because the parts of a branch are loaded together and a story view holds them as
+long as it is open: with the prompt in the part, a book of 50 parts weighed tens of megabytes per load. The parts have
+only <code translate="no" v-pre>builtPromptTokens</code>; whoever needs the text asks <code translate="no" v-pre>MessagePromptService</code>:</p>
+<retype-table copy-text="| Method | |
+|---|---|
+| `getBuiltPrompt(part)`, `getBackgroundLore(part)` | The texts, `null` when the part has none (it was typed by the author, or made before prompts were kept). One query each; the summary, redraft, annotate and impersonate services read the lore this way, the story editor, `/show-prompt` and the reviewer the prompt. |
+| `store(part, prompt, lore)` | Replaces the prompt of the part; two empty texts remove it. Called by `GenerateNewMessageStep` after the part is saved (a regenerated part gets the new prompt; the old one is kept in the `ORIGINAL_PROMPT` property, which `CleanupStep` puts back with `ORIGINAL_MESSAGE` when no text arrived). |
+| `copy(from, to)` | Branching a part (`ChatMessageService.branch`) and creating a part in the book from a working copy of an agent (`AgentMergeService`) copy the prompt with it. `ChatMessage.copyOf` / `loadFrom` do not. |
+| `findAllFor(parts)` | The prompts of many parts in one query, for the backup. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Method</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>getBuiltPrompt(part)</code>, <code translate="no" v-pre>getBackgroundLore(part)</code></td>
+<td>The texts, <code translate="no" v-pre>null</code> when the part has none (it was typed by the author, or made before prompts were kept). One query each; the summary, redraft, annotate and impersonate services read the lore this way, the story editor, <code translate="no" v-pre>/show-prompt</code> and the reviewer the prompt.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>store(part, prompt, lore)</code></td>
+<td>Replaces the prompt of the part; two empty texts remove it. Called by <code translate="no" v-pre>GenerateNewMessageStep</code> after the part is saved (a regenerated part gets the new prompt; the old one is kept in the <code translate="no" v-pre>ORIGINAL_PROMPT</code> property, which <code translate="no" v-pre>CleanupStep</code> puts back with <code translate="no" v-pre>ORIGINAL_MESSAGE</code> when no text arrived).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>copy(from, to)</code></td>
+<td>Branching a part (<code translate="no" v-pre>ChatMessageService.branch</code>) and creating a part in the book from a working copy of an agent (<code translate="no" v-pre>AgentMergeService</code>) copy the prompt with it. <code translate="no" v-pre>ChatMessage.copyOf</code> / <code translate="no" v-pre>loadFrom</code> do not.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>findAllFor(parts)</code></td>
+<td>The prompts of many parts in one query, for the backup.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The texts are stored deflated (<code translate="no" v-pre>byte[]</code> columns, the accessors of the entity take and give plain text). Deleting a part
+deletes its prompt with it (<code translate="no" v-pre>softDeleteForParts</code>, <code translate="no" v-pre>hardDeleteForParts</code>, <code translate="no" v-pre>softDeleteForManuscript</code>, like the annotations),
+restoring the part from the trash brings it back, and a permanent delete takes it (<code translate="no" v-pre>CleanupServiceImpl.OWNED_ON_DELETE</code>).</p>
+<p><strong>Backups.</strong> A backup of a book still has the prompt in the <code translate="no" v-pre>extendedContent</code> of the message (<code translate="no" v-pre>builtPrompt</code>,
+<code translate="no" v-pre>backgroundLore</code>), as it did before the row existed, so backups of all versions have the same format:
+<code translate="no" v-pre>ManuscriptServiceImpl.createBackup</code> puts the prompt back there and <code translate="no" v-pre>restoreMessages</code> takes it out again and stores the row.
+The data was moved by <code translate="no" v-pre>ExtendedContentMigration</code> (app version 6, see <a href="../database/#startup-migrate-then-validate">Database</a>).</p>
 <h3 id="summary"><code translate="no" v-pre>Summary</code></h3>
 <p>A summary belongs to one part and covers that part and all earlier parts back to the previous part with a summary
 (see <a href="../../user/books/summaries/">Summaries</a>). A <strong>meta summary</strong> (<code translate="no" v-pre>summaryType</code> = <code translate="no" v-pre>META_SUMMARY</code>) stands in for a
@@ -1879,7 +1940,7 @@ define both beans in <code translate="no" v-pre>services-config.xml</code>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (6281d934e).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (ac18f6eb1).</p></div>
             </footer>
         </div>
     </div>

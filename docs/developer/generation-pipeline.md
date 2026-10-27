@@ -241,7 +241,7 @@ assistant message) or be the result of one (`LLMRole.TOOL` with `toolCallId`); t
 are added by `OpenAICompatibleInferenceService` when the model calls a function, see
 [Function calls](services.md#function-calls).
 
-The payload is stored in the part (`builtPrompt`) and can be inspected in the story editor with *View prompt*:
+The payload is stored for the part ([`MessagePrompt`](domain-model.md#messageprompt)) and can be inspected in the story editor with *View prompt*:
 
 ![The prompt of a part in the View prompt dialog](../images/dev-view-prompt.png)
 
@@ -256,10 +256,10 @@ Prepares the part that receives the answer:
 |---|---|
 | `NEW_MESSAGE` | A new part, child of the active leaf (or the first part of the book). |
 | `SWIPE` | A new part, sibling of the swiped one. |
-| `REGENERATE` | The existing part, cleared (`response` and `originalResponse` both). A full copy of it as it was (`ChatMessage.copyOf`, attributes deep copied) is kept in the `ORIGINAL_MESSAGE` property first. |
+| `REGENERATE` | The existing part, cleared (`response` and `originalResponse` both). A full copy of it as it was (`ChatMessage.copyOf`, attributes deep copied) is kept in the `ORIGINAL_MESSAGE` property first, and its prompt row in `ORIGINAL_PROMPT`. |
 
-The part gets the `TurnInput`, the model and protocol names, the payload as JSON (`builtPrompt`, shown by *Show
-Prompt*), the activated lore and the request time. The token breakdown gets the tokens of every message of the final
+The part gets the `TurnInput`, the model and protocol names, the payload as JSON (stored as `MessagePrompt.builtPrompt`, shown by *Show
+Prompt*), the activated lore (`MessagePrompt.backgroundLore`) and the request time. The token breakdown gets the tokens of every message of the final
 payload (as listeners left it, counted with the provider's tokenizer) and is stored as the part's `tokenBreakdown`
 (shown by *Token Usage*, see [UI](ui.md)). Parts generated before it existed have none, `getTokenBreakdown()` is `null`
 for them. The template variables of the generation are stored: local ones in

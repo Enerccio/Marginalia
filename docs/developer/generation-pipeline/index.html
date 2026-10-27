@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846431150884">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846453146986">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846431150884" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846453146986" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846431150884" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846453146986" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846431150884" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846431150884" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846453146986" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846453146986" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -510,7 +510,7 @@ compatible provider sends those of a user message as content parts. This step ad
 assistant message) or be the result of one (<code translate="no" v-pre>LLMRole.TOOL</code> with <code translate="no" v-pre>toolCallId</code>); the pipeline builds none of them, they
 are added by <code translate="no" v-pre>OpenAICompatibleInferenceService</code> when the model calls a function, see
 <a href="../services/#function-calls">Function calls</a>.</p>
-<p>The payload is stored in the part (<code translate="no" v-pre>builtPrompt</code>) and can be inspected in the story editor with <em>View prompt</em>:</p>
+<p>The payload is stored for the part (<a href="../domain-model/#messageprompt"><code translate="no" v-pre>MessagePrompt</code></a>) and can be inspected in the story editor with <em>View prompt</em>:</p>
 <figure class="content-center">
     <img src="../../images/dev-view-prompt.png" alt="The prompt of a part in the View prompt dialog" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="850" height="650" />
     <figcaption class="caption">The prompt of a part in the View prompt dialog</figcaption>
@@ -523,7 +523,7 @@ sent).</p>
 |---|---|
 | `NEW_MESSAGE` | A new part, child of the active leaf (or the first part of the book). |
 | `SWIPE` | A new part, sibling of the swiped one. |
-| `REGENERATE` | The existing part, cleared (`response` and `originalResponse` both). A full copy of it as it was (`ChatMessage.copyOf`, attributes deep copied) is kept in the `ORIGINAL_MESSAGE` property first. |">
+| `REGENERATE` | The existing part, cleared (`response` and `originalResponse` both). A full copy of it as it was (`ChatMessage.copyOf`, attributes deep copied) is kept in the `ORIGINAL_MESSAGE` property first, and its prompt row in `ORIGINAL_PROMPT`. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -543,14 +543,14 @@ sent).</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>REGENERATE</code></td>
-<td>The existing part, cleared (<code translate="no" v-pre>response</code> and <code translate="no" v-pre>originalResponse</code> both). A full copy of it as it was (<code translate="no" v-pre>ChatMessage.copyOf</code>, attributes deep copied) is kept in the <code translate="no" v-pre>ORIGINAL_MESSAGE</code> property first.</td>
+<td>The existing part, cleared (<code translate="no" v-pre>response</code> and <code translate="no" v-pre>originalResponse</code> both). A full copy of it as it was (<code translate="no" v-pre>ChatMessage.copyOf</code>, attributes deep copied) is kept in the <code translate="no" v-pre>ORIGINAL_MESSAGE</code> property first, and its prompt row in <code translate="no" v-pre>ORIGINAL_PROMPT</code>.</td>
 </tr>
 </tbody>
 </table>
 </div>
 </retype-table>
-<p>The part gets the <code translate="no" v-pre>TurnInput</code>, the model and protocol names, the payload as JSON (<code translate="no" v-pre>builtPrompt</code>, shown by <em>Show
-Prompt</em>), the activated lore and the request time. The token breakdown gets the tokens of every message of the final
+<p>The part gets the <code translate="no" v-pre>TurnInput</code>, the model and protocol names, the payload as JSON (stored as <code translate="no" v-pre>MessagePrompt.builtPrompt</code>, shown by <em>Show
+Prompt</em>), the activated lore (<code translate="no" v-pre>MessagePrompt.backgroundLore</code>) and the request time. The token breakdown gets the tokens of every message of the final
 payload (as listeners left it, counted with the provider&#x27;s tokenizer) and is stored as the part&#x27;s <code translate="no" v-pre>tokenBreakdown</code>
 (shown by <em>Token Usage</em>, see <a href="../ui/">UI</a>). Parts generated before it existed have none, <code translate="no" v-pre>getTokenBreakdown()</code> is <code translate="no" v-pre>null</code>
 for them. The template variables of the generation are stored: local ones in
@@ -986,7 +986,7 @@ wait for it to finish. See <a href="../testing/">Testing</a>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (6281d934e).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (ac18f6eb1).</p></div>
             </footer>
         </div>
     </div>

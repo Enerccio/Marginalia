@@ -52,6 +52,9 @@ public class ImpersonateServiceImpl implements ImpersonateService {
     private ChatMessageService chatMessageService;
 
     @Autowired
+    private MessagePromptService messagePromptService;
+
+    @Autowired
     private SummaryService summaryService;
 
     @Autowired
@@ -168,7 +171,7 @@ public class ImpersonateServiceImpl implements ImpersonateService {
         int maxTokens = TokenLimits.promptTokens(ai, protocol);
 
         ImpersonateTemplateData data = new ImpersonateTemplateData();
-        data.setBackgroundLore(last == null ? "" : StringUtils.defaultString(last.getBackgroundLore()));
+        data.setBackgroundLore(last == null ? "" : StringUtils.defaultString(messagePromptService.getBackgroundLore(last)));
         data.setNarrativePov(manuscriptService.getPov(book));
         data.setNarrativeTense(manuscriptService.getTense(book));
         data.setStyle(manuscriptService.getStyle(book));

@@ -18,6 +18,7 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
@@ -352,6 +353,20 @@ public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentReposito
         Agent agent = getRepository().findByManuscript(manuscript);
         return agent != null && agent.getOwner() != null && Objects.equals(agent.getOwner().getId(), currentUser.getId())
                 ? agent : null;
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public Manuscript findManuscript(Agent agent) throws Exception {
+        Agent stored = agent == null || agent.getUuid() == null ? null : findForUser(agent.getUuid());
+        return stored == null || stored.getManuscript() == null ? null : (Manuscript) Hibernate.unproxy(manuscriptService.find(stored.getManuscript().getId()));
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public Map<String, String> findBookNames(Collection<Agent> agents) throws Exception {
+        List<String> uuids = agents == null ? List.of() : agents.stream().map(Agent::getUuid).filter(Objects::nonNull).toList();
+        return getRepository().findBookNames(uuids, currentUser.getId());
     }
 
     @Override

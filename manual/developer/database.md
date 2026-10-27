@@ -76,8 +76,11 @@ sqlite> select version, description, success from flyway_schema_history;
 sqlite> select id, name, cast(extendedContent as text) from manuscripts;
 ```
 
-`extendedContent` columns hold UTF-8 JSON, so `cast(... as text)` (or `json_extract`) shows the
-[extended attributes](domain-model.md#extendableentity---extended-attributes). Timestamps (`creation`,
+`extendedContent` columns hold UTF-8 JSON, gzipped when it is 256 bytes or more (since app version 6, see
+[Startup](#startup-migrate-then-validate)). Small ones can be read with `cast(... as text)`; a big one starts with the bytes
+`1f 8b`, unpack it outside of SQLite:
+`sqlite3 -readonly marginalia.sqlite "select hex(extendedContent) from manuscripts where id = 1" | xxd -r -p | gunzip`.
+It holds the [extended attributes](domain-model.md#extendableentity---extended-attributes). Timestamps (`creation`,
 `modification`, `lastOpened`) are stored as milliseconds since the epoch, booleans as `0` / `1`.
 
 ## Startup: migrate, then validate
@@ -116,6 +119,7 @@ migration is written for one version step and ignores the others.
 | APP | 1 → 2 | `bound/migration/EncryptApiKeysMigration` | Encrypts the plain text `ais_openaicompat.apiKey` values, see [Encrypted columns](#encrypted-columns). |
 | APP | 2 → 3 | `bound/migration/FulltextMigration` | Fills `_fulltext` (added by V9) of the existing rows of every entity with `@Fulltextable` fields, deleted rows included: walks the table by id in batches of 200, one transaction per batch, and calls `ExtendableEntityListener.updateFulltext` on the loaded entity, so `extendedContent` and `modification` stay as they are. Repeating it is harmless. See [Full-text column](domain-model.md#full-text-column). |
 | APP | 3 → 4 | `bound/migration/OriginalResponseMigration` | Copies `response` of every `ChatMessage` (deleted ones too) into the extended attribute `originalResponse` when it has none: batches of 200 by id, one transaction per batch, the entity is re-serialized with `ExtendableEntityListener.serialize`, `modification` stays as it is. Repeating it is harmless. |
+| APP | 5 → 6 | `bound/migration/ExtendedContentMigration` | Two things, walking the table by id in batches of 25, deleted rows included. First the prompt of the parts (a batch is read in one session and each part is written in a transaction of its own, rows persisted before anything is read: SQLite refuses a write to a transaction that has read when the id generator updates its sequence on another connection, as noted for `PermissionsMigration`; a lock error is retried): `builtPrompt` and `backgroundLore` are taken out of the extended content of every `ChatMessage` that has them and stored as a row of `message_prompts` (V20; the row of a deleted part is deleted, a part that has a row already only loses the keys). Then every row of every `ExtendableEntity` (one transaction per batch) whose extended content is stored plain and has 256 bytes or more is rewritten gzipped (`ExtendableEntity.needsCompression`). When it changed anything it runs `VACUUM` once (the file of the database does not shrink by itself; it needs free disk space for a copy of the database and its failure is only logged). `modification` stays as it is, repeating it is harmless. See [`MessagePrompt`](domain-model.md#messageprompt) and [Compression](domain-model.md#extendableentity---extended-attributes). |
 | APP | 4 → 5 | `bound/migration/PermissionsMigration` | Gives the permissions `CREATE_AI` and `HELPER` to every existing (not deleted) user when the switches they replace (`AppSettings.userAisAllowed`, `helpEnabled`) were on; the permission has no owner. The new `HELPER` permissions also get `helperApplyLimits` and `helperInteractions` from `AppSettings.helpApplyLimits` / `helpInteractions`. Users that already have the permission are skipped (repeatable). Reads in one session and writes in another: the id generator updates its sequence table on a second connection and SQLite locks it out while the first holds a read lock. |
 
 To add one: implement `Migration`, register the bean in the `migrations` list of `applicationInitializer` and raise
@@ -143,6 +147,7 @@ To add one: implement `Migration`, register the bean in the `migrations` list of
 | V16 | `V16__agents.sql` | New tables `agents` (`name`, `enabled`, `manuscript_id`, owner `userId`, extended content), `agent_runs` (`agent_id`, `status`, `statusReason`, `workingCopy_id`, `prefillTokens`, `generatedTokens`, `rounds`, `startedAt`, `finishedAt`) and `agent_messages` (`run_id`, `ordinal`: the transcript of a run) with their `_SEQ` tables and indexes: the entities `Agent`, `AgentRun` and `AgentMessage`; the column `agentic` of `manuscripts` and `lorebooks` (a working copy of an agent). `manuscript_id`, `agent_id` are nullable (the cleanup nulls an `OWNED_BY` reference before the purge). A partial unique index `ux_agent_runs_unfinished` keeps one run per agent that is not over (the statuses are listed in the index, a new status that is not terminal needs a new migration). See [`Agent`](domain-model.md#agent-and-agentrun-agents). |
 | V17 | `V17__agent_run_pairs.sql` | New table `agent_run_pairs` (`run_id`, `kind`, `copyUuid`, `originalUuid`, `handle`) with its `_SEQ` table: the entity `AgentRunPair`, which item of the working copy of an agent run is which item of the original. Not a `BaseEntity` (no uuid, `is_deleted` or extended content columns). Unique indexes on `(run_id, copyUuid)` and `(run_id, handle)`, an index on `(run_id, originalUuid)`; there is no foreign key to `agent_runs` (the project uses none), the rows are deleted by `AgentRunPairService.deleteForRun`. See [`AgentRunPair`](domain-model.md#agent-and-agentrun-agents). |
 | V19 | `V19__annotations.sql` | New table `annotations` (`part_id` nullable like the other owned references, `status`, `source`, `startOffset`, `endOffset`, the standard columns and extended content: the note, the quote and its context, the type) with its `_SEQ` table and the indexes `(part_id, is_deleted, status)` and `(userId, is_deleted)`: the entity `Annotation`. See [`Annotation`](domain-model.md#annotation). |
+| V20 | `V20__message_prompts.sql` | New table `message_prompts` (`message_id` nullable like the other owned references, `builtPrompt` and `backgroundLore` as deflated `blob`s, the standard columns without extended content) with its `_SEQ` table and the indexes `(message_id, is_deleted)` and `(userId, is_deleted)`: the entity `MessagePrompt`. The rows are made from the extended content of the parts by `ExtendedContentMigration` (app version 6). See [`MessagePrompt`](domain-model.md#messageprompt). |
 | V18 | `V18__agent_message_threads.sql` | The nullable column `thread` (varchar 16) of `agent_messages`, the handle of the sub-agent whose conversation a row belongs to (null: the agent's own), and the index `ix_agent_messages_thread` on `(run_id, thread, is_deleted, ordinal)`. See [`AgentMessage`](domain-model.md#agent-and-agentrun-agents). |
 
 ### Rules
@@ -276,7 +281,7 @@ clear or move references itself (see `ChatMessageService.deleteNodeAndMigrateChi
 new enum value doesn't need a table rebuild.
 
 **Large values.** Text that can be long (`name`, `uri`, `apiKey`...) is `@Lob` → `clob`; `extendedContent` is a
-`blob` with JSON. SQLite doesn't enforce lengths, so `varchar(255)` is only documentation.
+`blob` with JSON (gzipped when big, see [`ExtendableEntity`](domain-model.md#extendableentity---extended-attributes)). SQLite doesn't enforce lengths, so `varchar(255)` is only documentation.
 
 **Encrypted columns.** Secrets are stored encrypted, see [Encrypted columns](#encrypted-columns).
 

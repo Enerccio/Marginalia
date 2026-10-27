@@ -14,6 +14,7 @@ Some entities kept their early names. The UI and this manual use the names on th
 | `ChatMessage` | `messages` | Part (of the story) |
 | `Summary` | `summaries` | Summary |
 | `Annotation` | `annotations` | Annotation (a note on a passage of a part) |
+| `MessagePrompt` | `message_prompts` | Prompt of a part (*Show Prompt*) |
 | `Lorebook`, `LorebookEntry` | `lorebooks`, `entries` | Lorebook, entry |
 | `AI`, `OpenAICompatible`, `ExtensionAI` | `ais`, `ais_openaicompat`, `ais_extension` | Inference provider |
 | `Usage` | `usages` | Tokens sent / generated column of the Inference Providers tab |
@@ -178,6 +179,14 @@ kinds of fields end up there:
   array of `ImageAttachment(resource uuid, caption)`).
 - **Save**: `JpaExtendableRepository.save` serializes the fields into `extendedContent` before the entity is written.
 
+**Compression.** The document is mostly text, and an entity keeps it next to the fields made from it, so
+`ExtendableEntity` stores it gzipped when it is 256 bytes or more: `setExtendedContent` compresses and
+`getExtendedContent` gives the plain JSON, so only the field of the column is compressed and the code that works with
+the bytes doesn't change. A row stored plain (before app version 6) still reads - a gzip stream starts with `1f 8b`,
+which no JSON or text does - and is compressed when it is saved again; `ExtendedContentMigration` does it for all of them
+once. What reads the column without the entity (`SELECT e.extendedContent`, the trash viewer) must call
+`ExtendableEntity.plain(bytes)`.
+
 Because the fields are `@Transient`, Hibernate's dirty checking doesn't see them. **A change to an extended attribute
 is only stored by calling the service's `save`.** Changing it on a managed entity and letting the transaction commit
 does nothing.
@@ -293,13 +302,37 @@ Siblings are ordered by `creation`. The branch from the root to a leaf is read w
 | `originalResponse` | JSON | The text as the LLM produced it: filled chunk by chunk by `InferenceStep`, cleared by `GenerateNewMessageStep` (regenerate), never changed by editing; `null` for a part that was not generated. The story's *Highlight Generated Text* diffs `response` against it (`GeneratedTextHighlighter`). Existing parts got a copy of `response` from `OriginalResponseMigration`. |
 | `responseReasoning` | JSON | Reasoning of a reasoning model. |
 | `instructions`, `sceneSetting`, `povCharacter`, `presentCharacters` | JSON | The instruction panel it was generated from (`TurnInput`). |
-| `builtPrompt`, `builtPromptTokens`, `backgroundLore` | JSON | The full prompt sent to the model and the activated lore (*Show Prompt*). |
+| `builtPromptTokens` | JSON | Tokens of the full prompt sent to the model. The prompt itself and the activated lore (*Show Prompt*) are not in the part, see [`MessagePrompt`](#messageprompt). |
 | `tokenBreakdown` | JSON | Token counts of the prompt (`PromptTokenBreakdown`, JSON in an extended attribute); `null` for parts generated before it was recorded. |
 | `modelUsed`, `protocolUsed`, `promptTokens`, `tokenReasoningCount` | JSON | Generation metadata. |
 | `request`, `ttft`, `reasoningEnd` | JSON | Timestamps for the timing metrics. |
 
 Template variables are stored when a part is generated (`GenerateNewMessageStep`): local ones (`setvar`), which
 follow the branch, in the new part's `attributes`, global ones (`setglobalvar`) in the book's `attributes`.
+
+### `MessagePrompt`
+
+What a part was written from: the built prompt (the payload sent to the model as JSON, 100-200 KB for a long story)
+and the lore that was in it. It is a row of its own (`message_prompts`, one per part at most, owned by the user of the
+part) and not a part of `ChatMessage`, because the parts of a branch are loaded together and a story view holds them as
+long as it is open: with the prompt in the part, a book of 50 parts weighed tens of megabytes per load. The parts have
+only `builtPromptTokens`; whoever needs the text asks `MessagePromptService`:
+
+| Method | |
+|---|---|
+| `getBuiltPrompt(part)`, `getBackgroundLore(part)` | The texts, `null` when the part has none (it was typed by the author, or made before prompts were kept). One query each; the summary, redraft, annotate and impersonate services read the lore this way, the story editor, `/show-prompt` and the reviewer the prompt. |
+| `store(part, prompt, lore)` | Replaces the prompt of the part; two empty texts remove it. Called by `GenerateNewMessageStep` after the part is saved (a regenerated part gets the new prompt; the old one is kept in the `ORIGINAL_PROMPT` property, which `CleanupStep` puts back with `ORIGINAL_MESSAGE` when no text arrived). |
+| `copy(from, to)` | Branching a part (`ChatMessageService.branch`) and creating a part in the book from a working copy of an agent (`AgentMergeService`) copy the prompt with it. `ChatMessage.copyOf` / `loadFrom` do not. |
+| `findAllFor(parts)` | The prompts of many parts in one query, for the backup. |
+
+The texts are stored deflated (`byte[]` columns, the accessors of the entity take and give plain text). Deleting a part
+deletes its prompt with it (`softDeleteForParts`, `hardDeleteForParts`, `softDeleteForManuscript`, like the annotations),
+restoring the part from the trash brings it back, and a permanent delete takes it (`CleanupServiceImpl.OWNED_ON_DELETE`).
+
+**Backups.** A backup of a book still has the prompt in the `extendedContent` of the message (`builtPrompt`,
+`backgroundLore`), as it did before the row existed, so backups of all versions have the same format:
+`ManuscriptServiceImpl.createBackup` puts the prompt back there and `restoreMessages` takes it out again and stores the row.
+The data was moved by `ExtendedContentMigration` (app version 6, see [Database](database.md#startup-migrate-then-validate)).
 
 ### `Summary`
 
