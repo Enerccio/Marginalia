@@ -759,6 +759,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_AUTO_ANNOTATE_ACCEPT, "无需确认直接添加批注（窗口会关闭）");
         setValue(L.LABEL_AUTO_ANNOTATE_REDRAFT, "随后根据批注重写该段落");
         setValue(L.LABEL_AUTO_ANNOTATE_ACCEPT_REDRAFT, "无需确认直接应用重写（窗口会关闭）");
+        setValue(L.LABEL_ANNOTATE_SYSTEM_PROMPT, "批注系统提示词");
+        setValue(L.LABEL_REDRAFT_SYSTEM_PROMPT, "重写系统提示词");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1382,6 +1384,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_ACTIVATION_PREVIEW, "显示此世界书及其子书的哪些条目会用于包含此文本的回合及原因（含此世界书的扫描深度）。实际生成时扩展仍可能改变结果。同时搜索故事段落的条目会使用所选书的最新段落。");
         setValue(L.HELP_ACTIVATION_CONTEXT, "过滤词的搜索范围：仅回合的指令，或指令加上故事最新的段落。");
         setValue(L.HELP_ACTIVATION_PARTS, "与指令一同搜索的故事最新段落的数量（至少为 1）。");
+        setValue(L.HELP_PART_SYSTEM_PROMPT, "系统消息。该段之前的故事会作为对话中较早的消息发送在它之后，所以请把每次请求都不变的内容放在这里：服务器就可以重用已读过的内容。");
+        setValue(L.HELP_PART_LAST_PROMPT, "用户的最后一条消息：每次请求都会变化的内容（该段之后的故事、该段本身、其批注、任务）。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

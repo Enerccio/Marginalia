@@ -25,6 +25,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -38,6 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class AnnotateServiceTest extends GenerationTestBase {
 
     private static final String TEXT = "Anna met John at the bar. They talked for hours. Then she left.";
+
 
     @Autowired
     private ChatMessageService chatMessageService;
@@ -87,8 +89,12 @@ class AnnotateServiceTest extends GenerationTestBase {
     }
 
     private Outcome run(Request request) throws Exception {
+        return run(manuscript, part, request);
+    }
+
+    private Outcome run(Manuscript book, ChatMessage target, Request request) throws Exception {
         CompletableFuture<Outcome> done = new CompletableFuture<>();
-        var token = annotateService.annotate(manuscriptService.find(manuscript.getId()), chatMessageService.find(part.getId()), request,
+        var token = annotateService.annotate(manuscriptService.find(book.getId()), chatMessageService.find(target.getId()), request,
                 new AnnotateService.Callback() {
                     @Override
                     public void onProgress(String reasoning, String text) {
@@ -119,7 +125,11 @@ class AnnotateServiceTest extends GenerationTestBase {
     }
 
     private Done done(Request request) throws Exception {
-        Outcome outcome = run(request);
+        return done(manuscript, part, request);
+    }
+
+    private Done done(Manuscript book, ChatMessage target, Request request) throws Exception {
+        Outcome outcome = run(book, target, request);
         assertThat(outcome).isInstanceOf(Done.class);
         return (Done) outcome;
     }
@@ -364,6 +374,160 @@ class AnnotateServiceTest extends GenerationTestBase {
         done(new Request("x", "ONE RUN {{annotateInstructions}}", GenerationOptions.defaults(), Mode.STRUCTURED, null, null));
 
         assertThat(llm.lastCompletionRequest().getPromptText()).contains("ONE RUN x");
+    }
+
+    // ------------------------------------------------------------------------------------------------ what a server can reuse
+
+    private List<MockLLMRequest.Message> sent() {
+        return llm.lastCompletionRequest().getMessages();
+    }
+
+    private static List<String> roles(List<MockLLMRequest.Message> messages) {
+        return messages.stream().map(MockLLMRequest.Message::role).toList();
+    }
+
+    @Test
+    void theStoryBeforeThePartIsSentAsTheEarlierMessagesOfTheConversation() throws Exception {
+        llm.enqueue(MockLLMResponse.text("{\"findings\": []}"));
+
+        done(request("flag weak scenes", Mode.STRUCTURED));
+
+        var messages = sent();
+        assertThat(roles(messages)).containsExactly("system", "user", "assistant", "user");
+        assertThat(messages.get(0).content()).contains("follows as the earlier messages of this conversation")
+                .doesNotContain(TEXT).doesNotContain("Anna sailed to the harbour.").doesNotContain("\u0001");
+        assertThat(messages.get(1).content()).isEqualTo("[ The story so far. ]");
+        assertThat(messages.get(2).content()).isEqualTo("Anna sailed to the harbour.");
+        assertThat(messages.get(3).content()).startsWith("=== PART TO REVIEW START ===").contains(TEXT).contains("flag weak scenes")
+                .contains("OUTPUT FORMAT").doesNotContain("Anna sailed to the harbour.").doesNotContain("\u0001");
+    }
+
+    @Test
+    void theBookHasASystemPromptAndAPromptForTheLastMessage() throws Exception {
+        Manuscript loaded = manuscriptService.find(manuscript.getId());
+        loaded.setAnnotateSystemPrompt("SYSTEM OF THE BOOK {{narrativePov}} / {{previousStory}}");
+        loaded.setAnnotatePrompt("LAST OF THE BOOK {{text}}");
+        manuscript = manuscriptService.save(loaded);
+        llm.enqueue(MockLLMResponse.text("{\"findings\": []}"));
+
+        done(request("x", Mode.STRUCTURED));
+
+        var messages = sent();
+        assertThat(roles(messages)).containsExactly("system", "user", "assistant", "user");
+        assertThat(messages.get(0).content()).startsWith("SYSTEM OF THE BOOK Third-Person Limited / The story before the part follows");
+        assertThat(messages.get(2).content()).isEqualTo("Anna sailed to the harbour.");
+        assertThat(messages.get(3).content()).isEqualTo("LAST OF THE BOOK " + TEXT);
+    }
+
+    @Test
+    void thePromptOfOneRunReplacesTheLastMessageOnly() throws Exception {
+        llm.enqueue(MockLLMResponse.text("{\"findings\": []}"));
+
+        done(new Request("x", "ONE RUN {{annotateInstructions}}", GenerationOptions.defaults(), Mode.STRUCTURED, null, null));
+
+        var messages = sent();
+        assertThat(roles(messages)).containsExactly("system", "user", "assistant", "user");
+        assertThat(messages.get(0).content()).contains("OBJECTIVE");
+        assertThat(messages.getLast().content()).isEqualTo("ONE RUN x");
+    }
+
+    @Test
+    void theSystemPromptOfTheUserIsUsedWhenTheBookHasNone() throws Exception {
+        UserSetting setting = settingService.getOrCreate(UserSetting.class);
+        setting.setDefaultAnnotateSystemPrompt("SYSTEM OF THE USER");
+        settingService.save(setting);
+        llm.enqueue(MockLLMResponse.text("{\"findings\": []}"));
+
+        done(request("x", Mode.STRUCTURED));
+
+        assertThat(sent().getFirst().content()).startsWith("SYSTEM OF THE USER");
+    }
+
+    /** A book of twenty parts of 50 tokens, the active leaf is the last one. */
+    private Manuscript longBook(List<ChatMessage> parts) throws Exception {
+        Manuscript book = manuscriptService.save(newManuscript());
+        ChatMessage last = null;
+        for (int i = 1; i <= 20; i++) {
+            ChatMessage message = new ChatMessage();
+            message.setResponse("STORY-PART-" + i + " and some more words of the story");
+            message.setTokenCount(50);
+            last = last == null ? chatMessageService.createRoot(book, message) : chatMessageService.addChild(last, message);
+            parts.add(last);
+        }
+        Manuscript loaded = manuscriptService.find(book.getId());
+        loaded.setActiveLeaf(last);
+        return manuscriptService.save(loaded);
+    }
+
+    private void budget(int tokens) throws Exception {
+        protocol.setMaxTokens(tokens);
+        protocol.setReplyTokens(100);
+        protocolService.save(protocol);
+    }
+
+    private int storyPartsSent(Manuscript book, ChatMessage target, int budget) throws Exception {
+        budget(budget);
+        llm.enqueue(MockLLMResponse.text("{\"findings\": []}"));
+        done(book, target, request("flag weak scenes", Mode.STRUCTURED));
+        return (int) sent().stream().filter(m -> m.role().equals("assistant")).count();
+    }
+
+    @Test
+    void theChainStaysTheSameWhenThePartIsRedrafted() throws Exception {
+        List<ChatMessage> parts = new ArrayList<>();
+        Manuscript book = longBook(parts);
+        ChatMessage target = parts.get(14);
+        // the smallest budget that takes at least eight parts of the story before the part, and the middle of its step
+        int low = 1500;
+        int high = 12_000;
+        while (low < high) {
+            int middle = (low + high) / 2;
+            if (storyPartsSent(book, target, middle) >= 8) {
+                high = middle;
+            } else {
+                low = middle + 1;
+            }
+        }
+        int sentParts = storyPartsSent(book, target, low + 128);
+        assertThat(sentParts).isBetween(8, 13);              // the budget cuts the story, it is not all there
+        List<MockLLMRequest.Message> first = sent();
+
+        // a redraft makes the part much longer, what is left of the budget for the story is smaller by that
+        ChatMessage redrafted = chatMessageService.find(target.getId());
+        redrafted.setResponse(redrafted.getResponse() + " and a redraft that is much longer".repeat(12));
+        chatMessageService.save(redrafted);
+        llm.enqueue(MockLLMResponse.text("{\"findings\": []}"));
+        done(book, target, request("flag weak scenes", Mode.STRUCTURED));
+        List<MockLLMRequest.Message> second = sent();
+
+        // the same story, in the same messages: all but the last message, which holds the part
+        assertThat(second).hasSameSizeAs(first);
+        assertThat(second.subList(0, second.size() - 1)).isEqualTo(first.subList(0, first.size() - 1));
+        assertThat(second.getLast().content()).isNotEqualTo(first.getLast().content()).contains("a redraft that is much longer");
+    }
+
+    @Test
+    void theNextPartAddsMessagesAfterTheOnesOfTheLastRequest() throws Exception {
+        List<ChatMessage> parts = new ArrayList<>();
+        Manuscript book = longBook(parts);
+        budget(32_000);
+
+        llm.enqueue(MockLLMResponse.text("{\"findings\": []}"));
+        done(book, parts.get(9), request("flag weak scenes", Mode.STRUCTURED));
+        List<MockLLMRequest.Message> first = sent();
+        llm.enqueue(MockLLMResponse.text("{\"findings\": []}"));
+        done(book, parts.get(10), request("flag weak scenes", Mode.STRUCTURED));
+        List<MockLLMRequest.Message> second = sent();
+
+        // what a server kept of the first request is all there, in the same order, up to the last message
+        int kept = first.size() - 1;
+        assertThat(second.size()).isEqualTo(first.size() + 2);
+        assertThat(second.subList(0, kept)).isEqualTo(first.subList(0, kept));
+        assertThat(second.get(kept).role()).isEqualTo("user");
+        assertThat(second.get(kept).content()).isEqualTo("[ The story goes on. ]");
+        assertThat(second.get(kept + 1).role()).isEqualTo("assistant");
+        assertThat(second.get(kept + 1).content()).startsWith("STORY-PART-10 ");
+        assertThat(second.getLast().role()).isEqualTo("user");
     }
 
     // ------------------------------------------------------------------------------------------------ nothing is stored
