@@ -43,8 +43,9 @@ import java.util.*;
  * model, the notes the model proposes are listed, each with a check box, and only <b>Add the selected annotations</b> makes
  * annotations of them. The model reads the part with the story around it, see {@link AnnotateService}.
  * <p>
- * The same can be run on a range of the parts of the story (batch): the parts are annotated one after another with the same
- * instructions, mode and model, and the proposals are listed by part.
+ * Opened on a part it annotates that part only. Opened without a part ({@link #openRange}, the tools menu of the story) it asks for a
+ * range of the parts of the story: they are annotated one after another with the same instructions, mode and model, and the proposals
+ * are listed by part.
  */
 @Configurable(preConstruction = true)
 public class AnnotateDialog extends Dialog {
@@ -59,10 +60,12 @@ public class AnnotateDialog extends Dialog {
     private ChatMessageService chatMessageService;
 
     private final Manuscript manuscript;
+    /**
+     * The part the dialog annotates, null for the dialog of a range.
+     */
     private final ChatMessage part;
     private final Runnable onAdded;
 
-    private final Checkbox batch = new Checkbox();
     private final ComboBox<Integer> fromPart = new ComboBox<>();
     private final ComboBox<Integer> toPart = new ComboBox<>();
     private final VerticalLayout batchRange;
@@ -115,10 +118,26 @@ public class AnnotateDialog extends Dialog {
     }
 
     /**
+     * Opens the dialog for a range of the parts of the active branch of the story, both ends of the range have to be chosen.
+     *
+     * @param onAdded called after annotations were added
+     */
+    public static void openRange(Manuscript manuscript, Runnable onAdded) {
+        createRange(manuscript, onAdded).open();
+    }
+
+    /**
      * @return the dialog, not opened
      */
     static AnnotateDialog create(Manuscript manuscript, ChatMessage part, Runnable onAdded) {
-        return new AnnotateDialog(manuscript, part, onAdded);
+        return new AnnotateDialog(manuscript, Objects.requireNonNull(part, "part"), onAdded);
+    }
+
+    /**
+     * @return the dialog of a range, not opened
+     */
+    static AnnotateDialog createRange(Manuscript manuscript, Runnable onAdded) {
+        return new AnnotateDialog(manuscript, null, onAdded);
     }
 
     private AnnotateDialog(Manuscript manuscript, ChatMessage part, Runnable onAdded) {
@@ -126,7 +145,7 @@ public class AnnotateDialog extends Dialog {
         this.part = part;
         this.onAdded = onAdded;
 
-        setHeaderTitle(loc.getValue(L.LABEL_ANNOTATE_WITH_AI));
+        setHeaderTitle(loc.getValue(isRange() ? L.LABEL_ANNOTATE_BATCH : L.LABEL_ANNOTATE_WITH_AI));
         setWidth("min(900px, 95vw)");
         setHeight("85vh");
         setCloseOnEsc(false);
@@ -137,7 +156,6 @@ public class AnnotateDialog extends Dialog {
         info.addClassName(CssStyles.HINT_TEXT);
 
         loadBranch();
-        batch.setLabel(loc.getValue(L.LABEL_ANNOTATE_BATCH));
         fromPart.setLabel(loc.getValue(L.LABEL_ANNOTATE_FROM_PART));
         toPart.setLabel(loc.getValue(L.LABEL_ANNOTATE_TO_PART));
         for (ComboBox<Integer> range : List.of(fromPart, toPart)) {
@@ -146,20 +164,14 @@ public class AnnotateDialog extends Dialog {
             range.setAllowCustomValue(false);
             range.setWidthFull();
         }
-        int opened = indexOf(part);
-        if (opened >= 0) {
-            fromPart.setValue(opened);
-            toPart.setValue(opened);
-        }
+        fromPart.addValueChangeListener(_ -> refreshRunEnabled());
+        toPart.addValueChangeListener(_ -> refreshRunEnabled());
         Span batchHint = new Span(loc.getValue(L.MSG_ANNOTATE_BATCH_HINT));
         batchHint.addClassName(CssStyles.HINT_TEXT);
         batchRange = new VerticalLayout(fromPart, toPart, batchHint);
         batchRange.setPadding(false);
         batchRange.setSpacing(false);
-        batchRange.setVisible(false);
-        batch.addValueChangeListener(event -> batchRange.setVisible(event.getValue()));
-        // a range needs at least two parts to choose from
-        batch.setVisible(branch.size() > 1 && opened >= 0);
+        batchRange.setVisible(isRange());
         batchProgress.addClassName(CssStyles.HINT_TEXT);
         batchProgress.setVisible(false);
 
@@ -213,7 +225,7 @@ public class AnnotateDialog extends Dialog {
         proposalsLayout.addClassName(CssStyles.GAP_S);
         proposalsLayout.setVisible(false);
 
-        VerticalLayout content = new VerticalLayout(info, batch, batchRange, instructions, mode, model, modelHint, extract, run, progress,
+        VerticalLayout content = new VerticalLayout(info, batchRange, instructions, mode, model, modelHint, extract, run, progress,
                 batchProgress, message, answerDetails, proposalsLayout);
         content.setPadding(false);
         content.setWidthFull();
@@ -245,19 +257,30 @@ public class AnnotateDialog extends Dialog {
 
     private void showRunning(boolean value) {
         running = value;
-        setHeaderTitle(loc.getValue(value ? L.LABEL_ANNOTATING : L.LABEL_ANNOTATE_WITH_AI));
+        setHeaderTitle(loc.getValue(value ? L.LABEL_ANNOTATING : isRange() ? L.LABEL_ANNOTATE_BATCH : L.LABEL_ANNOTATE_WITH_AI));
         run.setText(loc.getValue(value ? L.LABEL_STOP : L.LABEL_ANNOTATE_RUN));
         run.setThemeName(value ? "error primary" : "primary");
         instructions.setReadOnly(value);
         mode.setReadOnly(value);
         model.setEnabled(!value);
         extractModel.setEnabled(!value);
-        batch.setEnabled(!value);
         fromPart.setReadOnly(value);
         toPart.setReadOnly(value);
+        refreshRunEnabled();
         progress.setVisible(value);
         batchProgress.setVisible(value && batchRun);
         add.setEnabled(!value && !proposals.isEmpty());
+    }
+
+    /**
+     * The run of a range needs both ends of it; a running one can always be stopped.
+     */
+    private void refreshRunEnabled() {
+        run.setEnabled(running || !isRange() || (fromPart.getValue() != null && toPart.getValue() != null));
+    }
+
+    private boolean isRange() {
+        return part == null;
     }
 
     private void startOrStop() {
@@ -271,6 +294,9 @@ public class AnnotateDialog extends Dialog {
         }
 
         List<ChatMessage> parts = selectedParts();
+        if (parts.isEmpty()) {
+            return;
+        }
         clear();
         batchRun = parts.size() > 1;
         total = parts.size();
@@ -435,7 +461,7 @@ public class AnnotateDialog extends Dialog {
         try {
             List<ChatMessage> all = manuscript.getActiveLeaf() == null ? List.of()
                     : chatMessageService.getBranchFromLeaf(manuscript.getActiveLeaf());
-            if (all.stream().noneMatch(message -> Objects.equals(message.getId(), part.getId()))) {
+            if (part != null && all.stream().noneMatch(message -> Objects.equals(message.getId(), part.getId()))) {
                 all = chatMessageService.getBranchFromLeaf(part);
             }
             for (int i = 0; i < all.size(); i++) {
@@ -478,11 +504,14 @@ public class AnnotateDialog extends Dialog {
     }
 
     /**
-     * The parts the run annotates: the range when it is chosen (either way round), else the part the dialog was opened on.
+     * The parts the run annotates: the range (either way round), or the part the dialog was opened on.
      */
     private List<ChatMessage> selectedParts() {
-        if (!batch.getValue() || fromPart.getValue() == null || toPart.getValue() == null) {
+        if (!isRange()) {
             return List.of(part);
+        }
+        if (fromPart.getValue() == null || toPart.getValue() == null) {
+            return List.of();
         }
         int from = Math.min(fromPart.getValue(), toPart.getValue());
         int to = Math.max(fromPart.getValue(), toPart.getValue());
@@ -588,10 +617,6 @@ public class AnnotateDialog extends Dialog {
         Map<Proposal, Checkbox> checks = new LinkedHashMap<>();
         proposals.forEach(entry -> checks.put(entry.proposal(), entry.chosen()));
         return checks;
-    }
-
-    Checkbox batchField() {
-        return batch;
     }
 
     ComboBox<Integer> fromField() {

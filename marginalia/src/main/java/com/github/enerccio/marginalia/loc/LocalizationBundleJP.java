@@ -740,7 +740,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_SCAN_FILES, "ファイルをスキャン");
         setValue(L.LABEL_DOWNLOAD_AS_ZIP, "ZIPでダウンロード");
         setValue(L.LABEL_FILE, "ファイル");
-        setValue(L.LABEL_ANNOTATE_BATCH, "パートの範囲に注釈を付ける");
+        setValue(L.LABEL_ANNOTATE_BATCH, "AI でパートの範囲に注釈を付ける");
         setValue(L.LABEL_ANNOTATE_FROM_PART, "開始パート");
         setValue(L.LABEL_ANNOTATE_TO_PART, "終了パート");
         setValue(L.LABEL_COMMAND_GENERATE_ANNOTATION, "注釈を生成");

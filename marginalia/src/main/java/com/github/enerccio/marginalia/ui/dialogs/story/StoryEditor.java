@@ -36,6 +36,11 @@ public interface StoryEditor {
     void openBranchTokensDialog();
 
     /**
+     * Opens the dialog that lets a model annotate a range of the parts of the story, the story is shown again when annotations were added.
+     */
+    void openAnnotateRangeDialog();
+
+    /**
      * Opens the export of the story.
      */
     void openExportDialog();

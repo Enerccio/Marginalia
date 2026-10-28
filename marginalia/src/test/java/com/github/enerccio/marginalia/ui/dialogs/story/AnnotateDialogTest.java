@@ -137,30 +137,33 @@ class AnnotateDialogTest extends MarginaliaTestBase {
     }
 
     @Test
-    void aSinglePartStoryOffersNoRange() {
-        AnnotateDialog dialog = AnnotateDialog.create(book, part, () -> {
-        });
-
-        assertThat(dialog.batchField().isVisible()).isFalse();
-        assertThat(dialog.selectedPartsForTest()).containsExactly(part);
-    }
-
-    @Test
-    void theRangeStartsOnTheOpenedPartAndIsOnlyUsedWhenChosen() throws Exception {
+    void theDialogOfAPartAnnotatesThatPartAndOffersNoRange() throws Exception {
         List<ChatMessage> parts = story();
         AnnotateDialog dialog = AnnotateDialog.create(book, parts.get(1), () -> {
         });
 
-        assertThat(dialog.batchField().isVisible()).isTrue();
-        assertThat(dialog.batchField().getValue()).isFalse();
+        assertThat(dialog.fromField().getParent().orElseThrow().isVisible()).isFalse();
+        assertThat(dialog.runButton().isEnabled()).isTrue();
         assertThat(dialog.selectedPartsForTest()).extracting(ChatMessage::getId).containsExactly(parts.get(1).getId());
+    }
 
-        dialog.batchField().setValue(true);
-        assertThat(dialog.fromField().getValue()).isEqualTo(1);
-        assertThat(dialog.toField().getValue()).isEqualTo(1);
+    @Test
+    void theDialogOfARangeNeedsBothEndsOfIt() throws Exception {
+        List<ChatMessage> parts = story();
+        AnnotateDialog dialog = AnnotateDialog.createRange(book, () -> {
+        });
+
+        assertThat(dialog.fromField().getParent().orElseThrow().isVisible()).isTrue();
+        assertThat(dialog.fromField().getValue()).isNull();
+        assertThat(dialog.toField().getValue()).isNull();
+        assertThat(dialog.runButton().isEnabled()).isFalse();
+        assertThat(dialog.selectedPartsForTest()).isEmpty();
+
         dialog.fromField().setValue(0);
+        assertThat(dialog.runButton().isEnabled()).isFalse();
         dialog.toField().setValue(2);
 
+        assertThat(dialog.runButton().isEnabled()).isTrue();
         assertThat(dialog.selectedPartsForTest()).extracting(ChatMessage::getId)
                 .containsExactly(parts.get(0).getId(), parts.get(1).getId(), parts.get(2).getId());
     }
@@ -168,9 +171,8 @@ class AnnotateDialogTest extends MarginaliaTestBase {
     @Test
     void aRangeChosenBackwardsIsTheSameRange() throws Exception {
         List<ChatMessage> parts = story();
-        AnnotateDialog dialog = AnnotateDialog.create(book, parts.get(2), () -> {
+        AnnotateDialog dialog = AnnotateDialog.createRange(book, () -> {
         });
-        dialog.batchField().setValue(true);
         dialog.fromField().setValue(2);
         dialog.toField().setValue(1);
 
