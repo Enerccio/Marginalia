@@ -29,7 +29,7 @@ screenshots/
 ## Requirements
 
 * the WAR built from the **same commit** as the plugins: `mvn package -DskipTests` in the repository root builds the
-  application and all plugins (`marginalia/target/marginalia-1.5.0.war`, `marginalia/plugins/*/target/*-1.5.0.jar`). Use
+  application and all plugins (`marginalia/target/marginalia-1.6.0.war`, `marginalia/plugins/*/target/*-1.6.0.jar`). Use
   `mvn clean package -DskipTests -pl <plugin folders>` for the plugins when they were built before: an incremental build
   can leave a plugin without the AspectJ weaving (its `@Autowired` fields are then `null` and its dialogs fail with a
   `NullPointerException` in the log);
