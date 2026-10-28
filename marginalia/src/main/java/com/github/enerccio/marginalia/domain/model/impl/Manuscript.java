@@ -82,7 +82,15 @@ public class Manuscript extends ExtendableEntity {
 
     @ExtendedAttribute
     @Transient
+    private String redraftSystemPrompt;
+
+    @ExtendedAttribute
+    @Transient
     private String redraftPrompt;
+
+    @ExtendedAttribute
+    @Transient
+    private String annotateSystemPrompt;
 
     @ExtendedAttribute
     @Transient
@@ -269,6 +277,22 @@ public class Manuscript extends ExtendableEntity {
 
     public void setMetaSummaryPrompt(String metaSummaryPrompt) {
         this.metaSummaryPrompt = metaSummaryPrompt;
+    }
+
+    public String getAnnotateSystemPrompt() {
+        return annotateSystemPrompt;
+    }
+
+    public void setAnnotateSystemPrompt(String annotateSystemPrompt) {
+        this.annotateSystemPrompt = annotateSystemPrompt;
+    }
+
+    public String getRedraftSystemPrompt() {
+        return redraftSystemPrompt;
+    }
+
+    public void setRedraftSystemPrompt(String redraftSystemPrompt) {
+        this.redraftSystemPrompt = redraftSystemPrompt;
     }
 
     public String getAnnotatePrompt() {

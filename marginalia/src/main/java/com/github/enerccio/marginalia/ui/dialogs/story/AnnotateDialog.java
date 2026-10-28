@@ -85,6 +85,8 @@ public class AnnotateDialog extends Dialog {
     private final ModelProtocolPicker extractModel = new ModelProtocolPicker();
     private final Button run = new Button();
     private final ProgressBar progress = new ProgressBar();
+    private final Details reasoningDetails;
+    private final TextArea reasoningArea = new TextArea();
     private final Details answerDetails;
     private final TextArea answer = new TextArea();
     private final Span message = new Span();
@@ -253,6 +255,14 @@ public class AnnotateDialog extends Dialog {
         progress.setIndeterminate(true);
         progress.setVisible(false);
 
+        reasoningArea.setWidthFull();
+        reasoningArea.setMinRows(4);
+        reasoningArea.setMaxRows(16);
+        reasoningArea.setReadOnly(true);
+        reasoningDetails = new Details(loc.getValue(L.LABEL_REASONING), reasoningArea);
+        reasoningDetails.setWidthFull();
+        reasoningDetails.setVisible(false);
+
         answer.setWidthFull();
         answer.setMinRows(6);
         answer.setMaxRows(20);
@@ -270,7 +280,7 @@ public class AnnotateDialog extends Dialog {
         proposalsLayout.setVisible(false);
 
         VerticalLayout content = new VerticalLayout(info, batchRange, instructions, mode, model, modelHint, extract, run, progress,
-                batchProgress, message, answerDetails, proposalsLayout);
+                batchProgress, message, reasoningDetails, answerDetails, proposalsLayout);
         content.setPadding(false);
         content.setWidthFull();
         content.addClassName(CssStyles.GAP_S);
@@ -438,6 +448,7 @@ public class AnnotateDialog extends Dialog {
             @Override
             public void onProgress(String reasoning, String text) {
                 ui.access(() -> {
+                    showReasoning(reasoning);
                     showAnswer(text);
                     UIPushGuard.push(ui);
                 });
@@ -500,6 +511,19 @@ public class AnnotateDialog extends Dialog {
         answer.setValue("");
         answerDetails.setVisible(false);
         answerDetails.setOpened(false);
+        reasoningArea.setValue("");
+        reasoningDetails.setVisible(false);
+        reasoningDetails.setOpened(false);
+    }
+
+    /**
+     * What the model thinks while it writes, to look at when the author wants to; kept after the run.
+     */
+    private void showReasoning(String text) {
+        if (StringUtils.isNotBlank(text)) {
+            reasoningArea.setValue(text);
+            reasoningDetails.setVisible(true);
+        }
     }
 
     private void showAnswer(String text) {

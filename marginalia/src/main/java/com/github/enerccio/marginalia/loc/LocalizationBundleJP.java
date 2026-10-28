@@ -751,6 +751,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_AUTO_ANNOTATE_ACCEPT, "確認せずに注釈を追加する（ウィンドウは閉じます）");
         setValue(L.LABEL_AUTO_ANNOTATE_REDRAFT, "続けて注釈に対応するようパートを再執筆する");
         setValue(L.LABEL_AUTO_ANNOTATE_ACCEPT_REDRAFT, "確認せずに再執筆を適用する（ウィンドウは閉じます）");
+        setValue(L.LABEL_ANNOTATE_SYSTEM_PROMPT, "注釈システムプロンプト");
+        setValue(L.LABEL_REDRAFT_SYSTEM_PROMPT, "書き直しシステムプロンプト");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1374,6 +1376,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_ACTIVATION_PREVIEW, "このロアブックとサブブックのどのエントリーが、このテキストのターンで使用されるかを、理由とこのロアブックのスキャン深度を含めて表示します。実際の生成では拡張機能が結果を変更することがあります。ストーリーのパートも検索するエントリーには、選択したブックの最新のパートが使われます。");
         setValue(L.HELP_ACTIVATION_CONTEXT, "フィルターを探す範囲：ターンの指示のみ、または指示とストーリーの最新のパート。");
         setValue(L.HELP_ACTIVATION_PARTS, "指示と一緒に検索するストーリーの最新パートの数（1以上）。");
+        setValue(L.HELP_PART_SYSTEM_PROMPT, "システムメッセージです。パートより前の物語は、この後ろに会話の前のメッセージとして送られます。リクエストごとに変わらない内容をここに置くと、サーバーは既に読んだ内容を再利用できます。");
+        setValue(L.HELP_PART_LAST_PROMPT, "ユーザーからの最後のメッセージです。リクエストごとに変わる内容（パートより後の物語、パート自体、その注釈、依頼）を置きます。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

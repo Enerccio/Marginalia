@@ -166,7 +166,7 @@ class DefaultTemplatesTest extends TemplateTestBase {
         redraft.setText("Alice walked to the harbour.");
         redraft.setRedraftInstructions("Add more dialogue.");
 
-        String output = render(Defaults.DEFAULT_REDRAFT_PROMPT, redraft);
+        String output = render(Defaults.DEFAULT_REDRAFT_SYSTEM_PROMPT, redraft) + render(Defaults.DEFAULT_REDRAFT_PROMPT, redraft);
 
         assertClean(output);
         assertThat(output).contains("Narrative Voice: Third-Person Limited")
@@ -184,7 +184,7 @@ class DefaultTemplatesTest extends TemplateTestBase {
         RedraftTemplateData redraft = withContext(new RedraftTemplateData(), false);
         redraft.setText("Alice walked to the harbour.");
 
-        String output = render(Defaults.DEFAULT_REDRAFT_PROMPT, redraft);
+        String output = render(Defaults.DEFAULT_REDRAFT_SYSTEM_PROMPT, redraft) + render(Defaults.DEFAULT_REDRAFT_PROMPT, redraft);
 
         assertClean(output);
         assertThat(output).doesNotContain("BACKGROUND LORE START").doesNotContain("SUMMARY OF THE STORY")
@@ -199,7 +199,7 @@ class DefaultTemplatesTest extends TemplateTestBase {
         redraft.setText("Alice walked to the harbour.");
         redraft.setAnnotations("- \"walked\": too slow\n- (the whole part): no weather");
 
-        String output = render(Defaults.DEFAULT_REDRAFT_PROMPT, redraft);
+        String output = render(Defaults.DEFAULT_REDRAFT_SYSTEM_PROMPT, redraft) + render(Defaults.DEFAULT_REDRAFT_PROMPT, redraft);
 
         assertClean(output);
         assertThat(output).contains("=== AUTHOR'S NOTES ON PASSAGES OF THE PART START ===\n- \"walked\": too slow")
@@ -220,7 +220,7 @@ class DefaultTemplatesTest extends TemplateTestBase {
         annotate.setAnnotateInstructions("Flag continuity errors.");
         annotate.setOutputFormat("### OUTPUT FORMAT\nJSON please.");
 
-        String output = render(Defaults.DEFAULT_ANNOTATE_PROMPT, annotate);
+        String output = render(Defaults.DEFAULT_ANNOTATE_SYSTEM_PROMPT, annotate) + render(Defaults.DEFAULT_ANNOTATE_PROMPT, annotate);
 
         assertClean(output);
         assertThat(output).contains("=== BACKGROUND LORE START ===\nDragons exist.")
@@ -237,7 +237,7 @@ class DefaultTemplatesTest extends TemplateTestBase {
         AnnotateTemplateData annotate = withContext(new AnnotateTemplateData(), false);
         annotate.setText("Alice walked to the harbour.");
 
-        String output = render(Defaults.DEFAULT_ANNOTATE_PROMPT, annotate);
+        String output = render(Defaults.DEFAULT_ANNOTATE_SYSTEM_PROMPT, annotate) + render(Defaults.DEFAULT_ANNOTATE_PROMPT, annotate);
 
         assertClean(output);
         assertThat(output).doesNotContain("=== EXISTING NOTES START").doesNotContain("BACKGROUND LORE START").doesNotContain("STORY AFTER THE PART")

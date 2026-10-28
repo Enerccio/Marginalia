@@ -60,7 +60,15 @@ public class UserSetting extends Setting {
 
     @ExtendedAttribute
     @Transient
+    private String defaultRedraftSystemPrompt;
+
+    @ExtendedAttribute
+    @Transient
     private String defaultRedraftPrompt;
+
+    @ExtendedAttribute
+    @Transient
+    private String defaultAnnotateSystemPrompt;
 
     @ExtendedAttribute
     @Transient
@@ -253,6 +261,22 @@ public class UserSetting extends Setting {
 
     public void setDefaultMetaSummaryPrompt(String defaultMetaSummaryPrompt) {
         this.defaultMetaSummaryPrompt = defaultMetaSummaryPrompt;
+    }
+
+    public String getDefaultAnnotateSystemPrompt() {
+        return defaultAnnotateSystemPrompt;
+    }
+
+    public void setDefaultAnnotateSystemPrompt(String defaultAnnotateSystemPrompt) {
+        this.defaultAnnotateSystemPrompt = defaultAnnotateSystemPrompt;
+    }
+
+    public String getDefaultRedraftSystemPrompt() {
+        return defaultRedraftSystemPrompt;
+    }
+
+    public void setDefaultRedraftSystemPrompt(String defaultRedraftSystemPrompt) {
+        this.defaultRedraftSystemPrompt = defaultRedraftSystemPrompt;
     }
 
     public String getDefaultAnnotatePrompt() {

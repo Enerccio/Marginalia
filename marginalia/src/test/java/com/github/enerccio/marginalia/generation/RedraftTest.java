@@ -101,6 +101,12 @@ class RedraftTest extends GenerationTestBase {
         return done.get(30, TimeUnit.SECONDS);
     }
 
+    /** The story before the part: the parts the model gets as its own earlier answers. */
+    private String storyBefore() {
+        return llm.lastCompletionRequest().getMessages().stream().filter(m -> m.role().equals("assistant"))
+                .map(m -> m.content()).collect(java.util.stream.Collectors.joining("\n\n"));
+    }
+
     private String prompt() {
         return llm.lastCompletionRequest().getPromptText();
     }
@@ -129,7 +135,7 @@ class RedraftTest extends GenerationTestBase {
         assertThat(result.text()).isEqualTo("REDRAFTED");
         String prompt = prompt();
         assertThat(between(prompt, "=== PART TO REDRAFT START ===", "=== PART TO REDRAFT END ===")).contains("TEXT-3");
-        assertThat(between(prompt, "=== STORY BEFORE THE PART START ===", "=== STORY BEFORE THE PART END ==="))
+        assertThat(storyBefore())
                 .contains("TEXT-1").contains("TEXT-2").doesNotContain("TEXT-3");
         assertThat(between(prompt, "=== STORY AFTER THE PART START ===", "=== STORY AFTER THE PART END ==="))
                 .contains("TEXT-4").contains("TEXT-5").doesNotContain("TEXT-3");
@@ -138,8 +144,18 @@ class RedraftTest extends GenerationTestBase {
         // the data the part was written with
         assertThat(prompt).contains("Location & Time of the part: the harbour").contains("Point of View Character of the part: Alice")
                 .contains("Alice finds the map").contains("Dragons exist.");
-        // one message, nothing is stored
-        assertThat(llm.lastCompletionRequest().getMessages()).hasSize(1);
+        // the story before the part is the earlier messages of the conversation (a server keeps what it read of them), the story
+        // after the part, the part and the instructions are the last message from the user, nothing is stored
+        var messages = llm.lastCompletionRequest().getMessages();
+        assertThat(messages).extracting(m -> m.role()).containsExactly("system", "user", "assistant", "user", "assistant", "user");
+        assertThat(messages.get(0).content()).doesNotContain("TEXT-1").doesNotContain("TEXT-3");
+        assertThat(messages.get(2).content()).isEqualTo("TEXT-1");
+        assertThat(messages.get(4).content()).isEqualTo("TEXT-2");
+        // the lore stored with the part comes first: it differs from part to part, and the system message must not
+        assertThat(messages.get(0).content()).doesNotContain("Dragons exist.");
+        assertThat(messages.get(5).content()).startsWith("=== BACKGROUND LORE START ===\nDragons exist.")
+                .contains("=== STORY AFTER THE PART START ===").contains("TEXT-4").contains("TEXT-3")
+                .contains("Make the harbour scene longer");
         assertThat(part(3).getResponse()).isEqualTo("TEXT-3");
         assertThat(chatMessageService.getAllMessages(manuscriptService.find(manuscript.getId()))).hasSize(5);
     }
@@ -192,7 +208,7 @@ class RedraftTest extends GenerationTestBase {
         String prompt = prompt();
         assertThat(between(prompt, "=== SUMMARY OF THE STORY BEFORE THE PART START ===", "=== SUMMARY OF THE STORY BEFORE THE PART END ==="))
                 .contains("SUMMARY-OF-12");
-        assertThat(between(prompt, "=== STORY BEFORE THE PART START ===", "=== STORY BEFORE THE PART END ==="))
+        assertThat(storyBefore())
                 .contains("TEXT-3").doesNotContain("TEXT-1").doesNotContain("TEXT-2");
 
         // the story the summary describes was changed: the summary is not told to the model, the story is
@@ -201,7 +217,7 @@ class RedraftTest extends GenerationTestBase {
 
         prompt = prompt();
         assertThat(prompt).doesNotContain("SUMMARY-OF-12").doesNotContain("SUMMARY OF THE STORY BEFORE THE PART START");
-        assertThat(between(prompt, "=== STORY BEFORE THE PART START ===", "=== STORY BEFORE THE PART END ==="))
+        assertThat(storyBefore())
                 .contains("TEXT-1 CHANGED").contains("TEXT-2").contains("TEXT-3");
     }
 
@@ -220,7 +236,7 @@ class RedraftTest extends GenerationTestBase {
 
         redraft(5, "x");
 
-        String before = between(prompt(), "=== STORY BEFORE THE PART START ===", "=== STORY BEFORE THE PART END ===");
+        String before = storyBefore();
         assertThat(before).contains("TEXT-4").doesNotContain("TEXT-1");
     }
 
@@ -361,7 +377,7 @@ class RedraftTest extends GenerationTestBase {
         assertThat(prompt).contains("Output Only the Passage").contains("Seamless Join").doesNotContain("Output Only the Part");
         assertThat(between(prompt, "=== AUTHOR'S INSTRUCTIONS START ===", "=== AUTHOR'S INSTRUCTIONS END ===")).contains("Make it shorter");
         // the story around the part is the same as for the whole part, nothing is stored
-        assertThat(between(prompt, "=== STORY BEFORE THE PART START ===", "=== STORY BEFORE THE PART END ===")).contains("TEXT-1").contains("TEXT-2");
+        assertThat(storyBefore()).contains("TEXT-1").contains("TEXT-2");
         assertThat(between(prompt, "=== STORY AFTER THE PART START ===", "=== STORY AFTER THE PART END ===")).contains("TEXT-4");
         assertThat(part(3).getResponse()).startsWith("He opened the door.");
     }
