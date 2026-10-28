@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846513068391">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522689156">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846513068391" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846522689156" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846513068391" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846522689156" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846513068391" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846513068391" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846522689156" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846522689156" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -168,9 +168,9 @@
 <h1 id="prompt-cache-and-session-id">Prompt cache and session id</h1>
 <p>Model servers keep the prompt they have just read (the <em>prompt cache</em>), so that the next request that starts with the
 same text doesn&#x27;t have to read it again. For a long story that is the difference between waiting a few seconds and
-waiting minutes. Marginalia builds its prompts so that this works (the story first, the new part last), and it can also
-tell the server <strong>what kind of work a request is</strong>, so that a server, or a proxy in front of it, can keep a cache for each
-kind.</p>
+waiting minutes. A cache only helps as far as the new prompt starts like the old one (see <doc-anchor-trigger to="#why-a-cache-may-not-help">Why a cache may not
+help</doc-anchor-trigger>). Marginalia can also tell the server <strong>what kind of work a request is</strong>, so that a
+server, or a proxy in front of it, can keep a cache for each kind.</p>
 <h2 id="what-is-sent">What is sent</h2>
 <p>Every request Marginalia makes for a kind of work carries the HTTP header</p>
 <div id="what-is-sent-code-1" class="codeblock-wrapper"><doc-codeblock>
@@ -241,6 +241,49 @@ not one per book, so a server never has to keep more caches than that.</p>
 <p>All providers send it: OpenAI-compatible ones, and the <a href="../extensions/anthropic/">Anthropic Claude</a> and
 <a href="../extensions/google-genai/">Google Gemini</a> providers. A server that doesn&#x27;t use the header ignores it. There is no
 setting to switch it off.</p>
+<h2 id="why-a-cache-may-not-help">Why a cache may not help</h2>
+<p>A server reuses the part of the cache where the new prompt is the same as the old one <strong>from the very first token</strong>; the
+first difference ends it, and everything after it is read again, however much of it is unchanged. Look at the
+<code translate="no" v-pre>llama-server</code> line printed when a request starts:</p>
+<div id="why-a-cache-may-not-help-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-none"><code v-pre class="language-none">selected slot by LCP similarity, sim_best = 0.163, f_keep = 0.151</code></pre>
+</doc-codeblock></div>
+<p><code translate="no" v-pre>f_keep</code> is the share of the cached prompt the new request keeps. Near 1 the cache is used; here only 15 % is, so the
+prompt differs from the cached one early on, whether the cache was restored from disk or never left the slot.</p>
+<p>Models with a <strong>sliding window</strong> (Gemma, for one) and hybrid models can not drop the end of their cache and go on from
+the middle. As far as the <code translate="no" v-pre>llama.cpp</code> source says, <code translate="no" v-pre>llama-server</code> can only continue from a cached prompt when the new
+prompt extends it exactly, or when a <strong>context checkpoint</strong> exists at or before the place where the two differ. It makes
+checkpoints only at the start of user messages (at least 8192 tokens apart) and shortly before the end of the prompt,
+and keeps them in the slot file (INFO lines <code translate="no" v-pre>appended N context checkpoint(s)</code> and <code translate="no" v-pre>restored N context checkpoint(s)</code> tell
+when it does). Without a usable checkpoint it reads the whole prompt again, whatever the <code translate="no" v-pre>f_keep</code> says, and it reports
+that only at trace level (<code translate="no" v-pre>-lv 4</code>: <code translate="no" v-pre>forcing full prompt re-processing due to lack of cache data</code>). That is why the
+story of a generation, of an annotation and of a redraft is sent as a chain of messages, each part as an answer of the
+model after a message of the user: the last message of the user is checkpointed, which is where the next request starts
+to differ, and a new part only adds messages at the end. Reading a cold prefill off the log: the first
+<code translate="no" v-pre>prompt processing, n_tokens = 4096</code> line comes after about 7 s here; if a prefix had been reused it would come after
+a second or two.</p>
+<p>The <a href="../books/prompts/#how-the-prompt-is-put-together">prompt</a> starts with the <strong>system message</strong>, and the story comes
+after it, so what is in the system message must stay the same from one request to the next. In the default master template the system message holds, in this order, the lore block, the summaries and the
+author&#x27;s notes (annotations). When any of them changes between two requests, which is usual (the new text activates other
+lore entries, a summary is added, a note is added or resolved), the cache is valid only up to that point and the whole
+story behind it is read again. The oldest parts leave the prompt first when the story no longer fits, which moves the
+start of the story by one part on every turn. What helps:</p>
+<ul>
+<li>
+<p>Give the entries that change from part to part the insertion mode <strong>Before User Prompt</strong>
+(<a href="../lorebooks/entries/#order-and-insertion">Order and insertion</a>): they go to the end of the prompt, behind the
+story, and do not disturb the cache. Keep what is always true in the lore block.</p>
+</li>
+<li>
+<p>Leave the blocks you do not use out of the master template (the author&#x27;s notes, for example, if you do not give notes
+to the model), so that the system message stays the same.</p>
+</li>
+<li>
+<p>Compare the prompts of two parts in a row with <strong>Show Prompt</strong> and look for the first line that differs: that is where
+the cache ends.</p>
+</li>
+</ul>
+<p>The request kinds below matter for what is kept when you switch between them; the prompt decides how much of it is used.</p>
 <h2 id="using-it-one-slot-on-disk-with-llamacpp">Using it: one slot on disk with llama.cpp</h2>
 <p>The value is for you if the server runs out of memory for caches. A local <code translate="no" v-pre>llama-server</code> with enough memory for several
 slots can keep a cache for each kind of work and needs nothing more. With memory for <strong>one</strong> slot, every other kind of
@@ -440,9 +483,15 @@ class SlotSwitcher:
             if response.status_code in (401, 403):
                 log.warning(&quot;slot_cache: %s %s: the server refused the api key (%d)&quot;, self.base_url, action,
                             response.status_code)
+            detail = &quot;&quot;
+            if response.is_success:
+                try:
+                    detail = describe(response.json())
+                except ValueError:
+                    pass
             log.info(&quot;slot_cache: %s %s %s (%s%s): %s&quot;, self.base_url, action, key or &quot;&quot;, self.model or &quot;-&quot;,
                      &quot;&quot; if self.slot == 0 else f&quot;, slot {self.slot}&quot;,
-                     &quot;ok&quot; if response.is_success else
+                     &quot;ok&quot; + detail if response.is_success else
                      (f&quot;miss ({response.status_code})&quot; if action == &quot;restore&quot; else f&quot;failed ({response.status_code})&quot;))
             return response.is_success
         except httpx.HTTPError as e:
@@ -507,6 +556,56 @@ class SlotSwitcher:
             self.current = None
 
 
+def describe(body):
+    &quot;&quot;&quot;What llama-server says about a slot call that worked: it logs nothing itself, the numbers are in the answer.&quot;&quot;&quot;
+    if not isinstance(body, dict):
+        return &quot;&quot;
+    timings = body.get(&quot;timings&quot;) if isinstance(body.get(&quot;timings&quot;), dict) else {}
+    try:
+        if &quot;n_restored&quot; in body:
+            return f&quot; ({body['n_restored']} tokens, {body.get('n_read', 0) / 1e6:.0f} MB, {timings.get('restore_ms', 0) / 1000:.1f} s)&quot;
+        if &quot;n_saved&quot; in body:
+            return f&quot; ({body['n_saved']} tokens, {body.get('n_written', 0) / 1e6:.0f} MB, {timings.get('save_ms', 0) / 1000:.1f} s)&quot;
+        if &quot;n_erased&quot; in body:
+            return f&quot; ({body['n_erased']} tokens dropped)&quot;
+    except (TypeError, ValueError):
+        pass
+    return &quot;&quot;
+
+
+def text_of(message):
+    &quot;&quot;&quot;The text of a chat message: a string, or the text parts of a list.&quot;&quot;&quot;
+    content = message.get(&quot;content&quot;) if isinstance(message, dict) else None
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        return &quot;&quot;.join(part.get(&quot;text&quot;, &quot;&quot;) for part in content if isinstance(part, dict))
+    return &quot;&quot;
+
+
+def compare(previous, messages):
+    &quot;&quot;&quot;Says where a prompt first differs from the last one of its session: a server can reuse its cache up to there, and not
+    after it, however much of the rest is the same. `previous` and `messages` are lists of (role, text). The last message is
+    compared with the last one of the other prompt as well: it holds what changes, and when a story grew by a message it is not
+    at the same place.&quot;&quot;&quot;
+    shared = 0
+    while shared &lt; min(len(previous), len(messages)) and previous[shared] == messages[shared]:
+        shared += 1
+    if shared == len(previous) == len(messages):
+        return f&quot;the same as the last one ({len(messages)} messages)&quot;
+    if shared == len(previous) or shared == len(messages):
+        said = (f&quot;{len(messages)} messages, the last one had {len(previous)}: the first {shared} are the same, &quot;
+                f&quot;{'new messages follow' if shared == len(previous) else 'the end is cut'}&quot;)
+    else:
+        role, text = messages[shared]
+        same = len(os.path.commonprefix([previous[shared][1], text]))
+        said = (f&quot;{len(messages)} messages, the last one had {len(previous)}: the first {shared} are the same, message {shared + 1} &quot;
+                f&quot;({role}) is the same for its first {same} of {len(text)} characters (the last one: {len(previous[shared][1])})&quot;)
+    last_now, last_before = messages[-1][1], previous[-1][1]
+    return (said + f&quot;; the last message is the same as the last one's last message for its first &quot;
+            f&quot;{len(os.path.commonprefix([last_before, last_now]))} of {len(last_now)} characters (the last one: {len(last_before)})&quot;)
+
+
 def upstream_model(model):
     &quot;&quot;&quot;The name the server knows the model by: LiteLLM's name is `openai/&lt;name&gt;`.&quot;&quot;&quot;
     return model[len(&quot;openai/&quot;):] if model and model.startswith(&quot;openai/&quot;) else model
@@ -524,7 +623,17 @@ class SlotCacheHook(CustomLogger):
         self.switchers = {}
         self.loaded = {}            # per server: the models the router has loaded, the one used longest ago first
         self.skipped = set()        # the routes that were reported as not used
+        self.last = {}              # the messages of the last prompt of each session, to say where the next one differs
         self.client = httpx.AsyncClient(timeout=None)
+
+    def explain(self, key, messages):
+        if not isinstance(messages, list):
+            return
+        current = [(m.get(&quot;role&quot;), text_of(m)) for m in messages if isinstance(m, dict)]
+        previous = self.last.get(key)
+        self.last[key] = current
+        if previous is not None:
+            log.info(&quot;slot_cache: %s prompt: %s&quot;, key, compare(previous, current))
 
     async def make_room(self, root, model, models_max, api_key):
         &quot;&quot;&quot;Follows the models the router has loaded; the ones it unloads for `model` get their slot saved first.&quot;&quot;&quot;
@@ -563,6 +672,7 @@ class SlotCacheHook(CustomLogger):
         slot = int(options.get(&quot;slot&quot;, SLOT))
         model = options.get(&quot;model&quot;) or upstream_model(kwargs.get(&quot;model&quot;))
         where = (server_root(api_base), model, slot)
+        self.explain(f&quot;{tag}_{session}&quot;, kwargs.get(&quot;messages&quot;))
         await self.make_room(where[0], model, int(options.get(&quot;models_max&quot;, MODELS_MAX)), kwargs.get(&quot;api_key&quot;))
         if where not in self.switchers:
             self.switchers[where] = SlotSwitcher(where[0], slot, self.client, model)
@@ -656,11 +766,19 @@ slot, and what the slot held is lost.</li>
 while the hook still thinks the last session is in it. A request for the same session simply reads its prompt again;
 a request for another one saves the empty slot over that session&#x27;s file first, so its cache is lost too. Both only
 cost a prefill.</li>
-<li><strong>The log of the proxy</strong> (with <code translate="no" v-pre>LITELLM_LOG=INFO</code>) has a line for every call the hook makes, for example
-<code translate="no" v-pre>slot_cache: https://… restore &lt;file&gt; (openai/model): ok</code>, <code translate="no" v-pre>… save &lt;file&gt; …: ok</code> or <code translate="no" v-pre>… restore … miss (400)</code>; the miss of
+<li><strong><code translate="no" v-pre>llama-server</code> does not log a plain save or restore</strong> (it logs the context checkpoints it appends or restores, and
+errors). What it did is in its answer, and the log of the proxy (with <code translate="no" v-pre>LITELLM_LOG=INFO</code>) has it, with a line for every
+call the hook makes, for example <code translate="no" v-pre>slot_cache: https://… restore &lt;file&gt; (openai/model): ok (21920 tokens, 2580 MB, 3.1 s)</code>, <code translate="no" v-pre>… save &lt;file&gt; …: ok (…)</code> or <code translate="no" v-pre>… restore … miss (400)</code>; the miss of
 the first request of a session is normal (llama-server logs it as &quot;Unable to restore slot, no available space in KV
 cache or invalid slot save file&quot;). Real problems are warnings: a certificate that does not match the address, a
 refused api key, a server that does not answer.</li>
+<li><strong>Where the prompt differs.</strong> For every request after the first of a session the log has a line that says how far the
+prompt is the same as the last one of that session, for example <code translate="no" v-pre>slot_cache: &lt;route&gt;_&lt;session&gt; prompt: 14 messages, the last one had 12: the first 11 are the same, message 12 (user) is the same for its first 2150 of 9031 characters</code>. A server can
+reuse its cache only up to there (a message is about three or four characters per token), so this is the line to read
+when a second request reads almost everything again: the message it names is the one whose start changed. The line also
+compares the last message of the two prompts, which holds what changes (the lore, the part, the task): when the story grew by
+a part, the old last message is not at the same place any more, and the number of characters the two last messages share is
+how far the lore, for one, is the same in both.</li>
 <li><strong>If nothing happens</strong>, look at the log of the proxy (<code translate="no" v-pre>docker logs litellm-proxy 2&gt;&amp;1 | grep slot_cache</code>): with the
 hook at work there is a line for every call, and a request of Marginalia for a route without <code translate="no" v-pre>slot_cache</code> is reported
 once (<code translate="no" v-pre>not used for &lt;route&gt;: no model_info.slot_cache</code>). No <code translate="no" v-pre>slot_cache</code> line at all means the hook did not run: the
@@ -724,7 +842,7 @@ router; the tests use a stand-in that checks the calls the hook makes.</li>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (0531f8e63).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (f3a839369).</p></div>
             </footer>
         </div>
     </div>

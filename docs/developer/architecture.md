@@ -201,6 +201,8 @@ the older keys of `src/main/webapp/config/configuration.properties`, which stay 
 | `marginalia.persistent-login-ttl` (`MARGINALIA_PERSISTENT_LOGIN_TTL`) | `persistentLoginTTL` | `2592000` | Lifetime of saved logins in seconds (30 days). |
 | `marginalia.trusted-proxies` (`MARGINALIA_TRUSTED_PROXIES`) | `trustedProxies` | empty | Reverse proxies (addresses or CIDR ranges, comma separated) whose `X-Forwarded-For` header is believed when finding the client address for [login throttling](services.md#login-throttling). Empty: the header is ignored. `-DtrustedProxies=...` still works. |
 
+`Configuration.hmac(purpose, data)` is the keyed hash for identifiers that leave the application (`InferenceSession`, the `X-Session-ID`): HMAC-SHA256 with a subkey derived from `secret.key` and the purpose, the first 128 bits as 32 hex characters, so the value is stable in an installation and reveals nothing about the data. The application version in `container-config.xml` is 6 (`ExtendedContentMigration`, see [Database](database.md)).
+
 A new setting needs the placeholder in `container-config.xml` (`${marginalia.some-name:default}`) and a row here and in
 the [Docker server](../user/getting-started/docker-server.md#environment-variables) page. A value of the wrong type
 (`MARGINALIA_PERSISTENT_LOGIN_TTL=abc`) stops the start with the Spring error.

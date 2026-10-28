@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846513068391">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522689156">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846513068391" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846522689156" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846513068391" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846522689156" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846513068391" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846513068391" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846522689156" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846522689156" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -201,8 +201,10 @@ point for your own version. The template fields also list the <strong>Available 
 | **Default User Prompt** | last message | The request for the next part, built from the [turn instructions](story-editor.md#writing-the-next-part). A template. |
 | **Default Summary Prompt** | summaries | The request for a [summary](summaries.md). A template. |
 | **Default Meta Summary Prompt** | meta summaries | The request for a [meta summary](summaries.md#meta-summaries), which merges summaries. A template. |
-| **Redraft Prompt** | redrafts | The request for a [redraft](story-editor.md#redrafting-a-part) of a part. A template. |
-| **Annotate Prompt** | annotating | The request for a model to [annotate](annotations.md#letting-a-model-annotate) a part. A template. |
+| **Redraft System Prompt** | redrafts | The system message of a [redraft](story-editor.md#redrafting-a-part): the directives, the narration and the summaries. A template. |
+| **Redraft Prompt** | redrafts | The last message of a redraft, the request itself: the lore the part was written with, the story after the part, the part and the instructions. A template. |
+| **Annotate System Prompt** | annotating | The system message of a request for a model to [annotate](annotations.md#letting-a-model-annotate) a part. A template. |
+| **Annotate Prompt** | annotating | The last message of the request to annotate. A template. |
 | **Impersonate Prompt** | drafting instructions | The request for a model to [draft the instructions](story-editor.md#drafting-the-instructions) of the next turn in your place. A template. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -250,14 +252,24 @@ point for your own version. The template fields also list the <strong>Available 
 <td>The request for a <a href="../summaries/#meta-summaries">meta summary</a>, which merges summaries. A template.</td>
 </tr>
 <tr>
+<td><strong>Redraft System Prompt</strong></td>
+<td>redrafts</td>
+<td>The system message of a <a href="../story-editor/#redrafting-a-part">redraft</a>: the directives, the narration and the summaries. A template.</td>
+</tr>
+<tr>
 <td><strong>Redraft Prompt</strong></td>
 <td>redrafts</td>
-<td>The request for a <a href="../story-editor/#redrafting-a-part">redraft</a> of a part. A template.</td>
+<td>The last message of a redraft, the request itself: the lore the part was written with, the story after the part, the part and the instructions. A template.</td>
+</tr>
+<tr>
+<td><strong>Annotate System Prompt</strong></td>
+<td>annotating</td>
+<td>The system message of a request for a model to <a href="../annotations/#letting-a-model-annotate">annotate</a> a part. A template.</td>
 </tr>
 <tr>
 <td><strong>Annotate Prompt</strong></td>
 <td>annotating</td>
-<td>The request for a model to <a href="../annotations/#letting-a-model-annotate">annotate</a> a part. A template.</td>
+<td>The last message of the request to annotate. A template.</td>
 </tr>
 <tr>
 <td><strong>Impersonate Prompt</strong></td>
@@ -278,9 +290,9 @@ point for your own version. The template fields also list the <strong>Available 
 | User Prompt | `{{sceneSetting}}`, `{{povCharacter}}`, `{{presentCharacters}}`, `{{instructions}}` |
 | Summary Prompt | `{{backgroundLore}}`, `{{text}}` (the parts to summarize) |
 | Meta Summary Prompt | `{{backgroundLore}}`, `{{summaryBlocks}}` (the summaries to merge) |
-| Redraft Prompt | `{{text}}` (the part), `{{redraftInstructions}}` (what you want changed), `{{previousStory}}`, `{{summaries}}`, `{{followingStory}}`, `{{backgroundLore}}`, `{{narrativePov}}`, `{{narrativeTense}}`, `{{style}}`, and the turn the part was written from: `{{sceneSetting}}`, `{{povCharacter}}`, `{{presentCharacters}}`, `{{instructions}}`, and `{{annotations}}` (your open notes on the part, empty unless you ask for them in the redraft window), and for the [redraft of a selection](story-editor.md#redrafting-only-a-passage) `{{selection}}` (the selected text; empty when the whole part is redrafted), `{{selectionBefore}}` and `{{selectionAfter}}` (the text of the part around it) |
+| Redraft System Prompt, Redraft Prompt | `{{text}}` (the part), `{{redraftInstructions}}` (what you want changed), `{{previousStory}}`, `{{summaries}}`, `{{followingStory}}`, `{{backgroundLore}}`, `{{narrativePov}}`, `{{narrativeTense}}`, `{{style}}`, and the turn the part was written from: `{{sceneSetting}}`, `{{povCharacter}}`, `{{presentCharacters}}`, `{{instructions}}`, and `{{annotations}}` (your open notes on the part, empty unless you ask for them in the redraft window), and for the [redraft of a selection](story-editor.md#redrafting-only-a-passage) `{{selection}}` (the selected text; empty when the whole part is redrafted), `{{selectionBefore}}` and `{{selectionAfter}}` (the text of the part around it) |
 | Impersonate Prompt | `{{impersonateInstructions}}` (your guidance), `{{outline}}` (the plan of the story a caller gives, e.g. the current chapter of the Arc Outline), `{{previousStory}}`, `{{summaries}}`, `{{backgroundLore}}` (the lore of the last part), `{{instructionExamples}}` (your instructions of the last three parts, oldest first), `{{narrativePov}}`, `{{narrativeTense}}`, `{{style}}`, and the turn the instructions are for: `{{sceneSetting}}`, `{{povCharacter}}`, `{{presentCharacters}}` |
-| Annotate Prompt | The variables of the redraft prompt, with `{{annotateInstructions}}` (what you want looked at) instead of `{{redraftInstructions}}`, `{{annotations}}` (the notes the part already has) and `{{outputFormat}}` (how the model is told to answer) |">
+| Annotate System Prompt, Annotate Prompt | The variables of the redraft prompts, with `{{annotateInstructions}}` (what you want looked at) instead of `{{redraftInstructions}}`, `{{annotations}}` (the notes the part already has) and `{{outputFormat}}` (how the model is told to answer) |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -307,7 +319,7 @@ point for your own version. The template fields also list the <strong>Available 
 <td><code translate="no" v-pre>{{backgroundLore}}</code>, <code translate="no" v-pre>{{summaryBlocks}}</code> (the summaries to merge)</td>
 </tr>
 <tr>
-<td>Redraft Prompt</td>
+<td>Redraft System Prompt, Redraft Prompt</td>
 <td><code translate="no" v-pre>{{text}}</code> (the part), <code translate="no" v-pre>{{redraftInstructions}}</code> (what you want changed), <code translate="no" v-pre>{{previousStory}}</code>, <code translate="no" v-pre>{{summaries}}</code>, <code translate="no" v-pre>{{followingStory}}</code>, <code translate="no" v-pre>{{backgroundLore}}</code>, <code translate="no" v-pre>{{narrativePov}}</code>, <code translate="no" v-pre>{{narrativeTense}}</code>, <code translate="no" v-pre>{{style}}</code>, and the turn the part was written from: <code translate="no" v-pre>{{sceneSetting}}</code>, <code translate="no" v-pre>{{povCharacter}}</code>, <code translate="no" v-pre>{{presentCharacters}}</code>, <code translate="no" v-pre>{{instructions}}</code>, and <code translate="no" v-pre>{{annotations}}</code> (your open notes on the part, empty unless you ask for them in the redraft window), and for the <a href="../story-editor/#redrafting-only-a-passage">redraft of a selection</a> <code translate="no" v-pre>{{selection}}</code> (the selected text; empty when the whole part is redrafted), <code translate="no" v-pre>{{selectionBefore}}</code> and <code translate="no" v-pre>{{selectionAfter}}</code> (the text of the part around it)</td>
 </tr>
 <tr>
@@ -315,8 +327,8 @@ point for your own version. The template fields also list the <strong>Available 
 <td><code translate="no" v-pre>{{impersonateInstructions}}</code> (your guidance), <code translate="no" v-pre>{{outline}}</code> (the plan of the story a caller gives, e.g. the current chapter of the Arc Outline), <code translate="no" v-pre>{{previousStory}}</code>, <code translate="no" v-pre>{{summaries}}</code>, <code translate="no" v-pre>{{backgroundLore}}</code> (the lore of the last part), <code translate="no" v-pre>{{instructionExamples}}</code> (your instructions of the last three parts, oldest first), <code translate="no" v-pre>{{narrativePov}}</code>, <code translate="no" v-pre>{{narrativeTense}}</code>, <code translate="no" v-pre>{{style}}</code>, and the turn the instructions are for: <code translate="no" v-pre>{{sceneSetting}}</code>, <code translate="no" v-pre>{{povCharacter}}</code>, <code translate="no" v-pre>{{presentCharacters}}</code></td>
 </tr>
 <tr>
-<td>Annotate Prompt</td>
-<td>The variables of the redraft prompt, with <code translate="no" v-pre>{{annotateInstructions}}</code> (what you want looked at) instead of <code translate="no" v-pre>{{redraftInstructions}}</code>, <code translate="no" v-pre>{{annotations}}</code> (the notes the part already has) and <code translate="no" v-pre>{{outputFormat}}</code> (how the model is told to answer)</td>
+<td>Annotate System Prompt, Annotate Prompt</td>
+<td>The variables of the redraft prompts, with <code translate="no" v-pre>{{annotateInstructions}}</code> (what you want looked at) instead of <code translate="no" v-pre>{{redraftInstructions}}</code>, <code translate="no" v-pre>{{annotations}}</code> (the notes the part already has) and <code translate="no" v-pre>{{outputFormat}}</code> (how the model is told to answer)</td>
 </tr>
 </tbody>
 </table>
@@ -351,24 +363,29 @@ no new characters unless requested, follow the instructions, keep the continuity
 <p>Lorebook entries with the insertion mode <em>Before User Prompt</em> are put right before it; see
 <a href="../../lorebooks/entries/">Entries &amp; activation</a>.</p>
 <h2 id="redraft-prompt">Redraft prompt</h2>
-<p>The <a href="../story-editor/#redrafting-a-part">redraft</a> of a part is one request, sent as the only message (a system message, like
-the summary prompts), not a continuation of the story. The built-in default tells the model to apply your instructions, keep
-what you did not ask to change, stay consistent with the story before and after the part, keep the voice, and answer with
-the redrafted part only. Your own version should keep the variables it needs: without <code translate="no" v-pre>{{text}}</code> the model does not see
-the part. The redraft prompt follows the rule of all prompts: the book&#x27;s field, else the <em>Redraft Prompt</em> in <em>Settings →
-Templates</em>, else the built-in one.</p>
+<p>The <a href="../story-editor/#redrafting-a-part">redraft</a> of a part is one request made of two prompts: the <strong>Redraft System Prompt</strong> is the
+system message, the story before the part follows it as the earlier messages of the conversation (the parts as the answers of the
+model, like a generation sends them), and the <strong>Redraft Prompt</strong> is the last message from the user. The built-in default tells the
+model to apply your instructions, keep what you did not ask to change, stay consistent with the story before and after the part,
+keep the voice, and answer with the redrafted part only. Both prompts have the same variables; <code translate="no" v-pre>{{previousStory}}</code> is only a
+note that the story follows as messages. Keep in the system prompt what stays the same from one redraft to the next and in the
+last prompt what changes (the lore, which is not the same for every part, the story after the part, the part, the instructions): a server that remembers the prompt it read can then
+reuse most of it. Your own version of the last prompt should keep the variables it needs: without <code translate="no" v-pre>{{text}}</code> the model does
+not see the part. Each prompt follows the rule of all prompts: the book&#x27;s field, else the one in <em>Settings → Templates</em>, else the
+built-in one.</p>
 <p>When you redraft only a <a href="../story-editor/#redrafting-only-a-passage">selected passage</a>, the same prompt is used with
 <code translate="no" v-pre>{{selection}}</code> filled: the built-in default then shows the part with the passage between <code translate="no" v-pre>[[PASSAGE TO REDRAFT]]</code> and
 <code translate="no" v-pre>[[/PASSAGE TO REDRAFT]]</code> and tells the model to answer with the text that replaces the passage only. A prompt of your own
 that does not know <code translate="no" v-pre>{{selection}}</code> makes the model answer with the whole part, and the whole answer then replaces the
 selection; add a <code translate="no" v-pre>{#selection}...{{/selection}}</code> block (and <code translate="no" v-pre>{{^selection}}</code> for the other case) to handle it.</p>
 <h2 id="annotate-prompt">Annotate prompt</h2>
-<p>When a model <a href="../annotations/#letting-a-model-annotate">annotates a part</a> it gets one request, sent as the only message like the
-redraft. The built-in default makes the model an editor: it finds the passages that have a problem in the sense of your
+<p>When a model <a href="../annotations/#letting-a-model-annotate">annotates a part</a> it gets the same kind of request as a redraft: the
+<strong>Annotate System Prompt</strong> as the system message, the story before the part as earlier messages and the <strong>Annotate Prompt</strong> as the
+last message. The built-in default makes the model an editor: it finds the passages that have a problem in the sense of your
 instructions, quotes each one letter for letter, and writes a short note for you, without praise or filler and without
 repeating the notes the part already has. The prompt has the variable <code translate="no" v-pre>{{outputFormat}}</code> where the way of answering is
 described (JSON, text blocks or a free review, it depends on the answer format you choose); keep it in a prompt of your own, or the
-model is not told how to answer. The annotate prompt follows the rule of all prompts: the book&#x27;s field, else the <em>Annotate Prompt</em> in
+model is not told how to answer. Both annotate prompts follow the rule of all prompts: the book&#x27;s field, else the one in
 <em>Settings → Templates</em>, else the built-in one.</p>
 <h2 id="impersonate-prompt">Impersonate prompt</h2>
 <p>When a model <a href="../story-editor/#drafting-the-instructions">drafts the instructions</a> of the next turn it gets one request, sent as the only
@@ -446,7 +463,7 @@ text off.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (0531f8e63).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (f3a839369).</p></div>
             </footer>
         </div>
     </div>

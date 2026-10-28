@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846513068391">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522689156">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846513068391" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846522689156" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846513068391" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846522689156" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846513068391" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846513068391" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846522689156" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846522689156" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -416,6 +416,9 @@ The note is edited in the sidebar and saved right away, so <code translate="no" 
 with the plugin&#x27;s package don&#x27;t clash with other plugins.</p>
 </li>
 <li>
+<p><strong>The prompt of a part is not on the part.</strong> The payload and the lore that were built for a part are a <code translate="no" v-pre>MessagePrompt</code> row (<code translate="no" v-pre>MessagePromptService.getBuiltPrompt(message)</code>, <code translate="no" v-pre>getBackgroundLore(message)</code>), not a field of <code translate="no" v-pre>ChatMessage</code> any more. A regeneration keeps the row it replaces in the property <code translate="no" v-pre>GenerationProperties.ORIGINAL_PROMPT</code> next to <code translate="no" v-pre>ORIGINAL_MESSAGE</code>; cleanup puts it back when generation ends before any text arrived.</p>
+</li>
+<li>
 <p><strong>Replace, don&#x27;t mutate.</strong> The listener builds a new list and calls <code translate="no" v-pre>event.setPayload(...)</code>. Another listener may
 have set an immutable list, and the new list makes it obvious what the plugin sends.</p>
 </li>
@@ -554,7 +557,7 @@ to keep the note after it.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (0531f8e63).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (f3a839369).</p></div>
             </footer>
         </div>
     </div>

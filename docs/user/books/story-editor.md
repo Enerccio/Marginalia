@@ -260,7 +260,7 @@ old one in the middle of the story, and keeps what you do not ask to change. Cho
 
 ![The redraft window: the instructions, the new text and the differences](../../images/redraft-dialog.png)
 
-The model gets one prompt, the [redraft prompt](prompts.md#redraft-prompt): the part, your instructions, the story before
+The model gets the [redraft prompts](prompts.md#redraft-prompt): the part, your instructions, the story before
 the part (the older story as [summaries](summaries.md) where there are valid ones, the rest as text, the newest part first
 when it does not all fit), as much of the story after the part as fits (up to a quarter of the room), the lore the part
 was written with, the point of view, tense and style of the book, and the scene setting, point of view character, present

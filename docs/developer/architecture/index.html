@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846513068391">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522689156">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846513068391" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846522689156" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846513068391" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846522689156" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846513068391" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846513068391" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846522689156" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846522689156" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -615,6 +615,7 @@ the older keys of <code translate="no" v-pre>src/main/webapp/config/configuratio
 </table>
 </div>
 </retype-table>
+<p><code translate="no" v-pre>Configuration.hmac(purpose, data)</code> is the keyed hash for identifiers that leave the application (<code translate="no" v-pre>InferenceSession</code>, the <code translate="no" v-pre>X-Session-ID</code>): HMAC-SHA256 with a subkey derived from <code translate="no" v-pre>secret.key</code> and the purpose, the first 128 bits as 32 hex characters, so the value is stable in an installation and reveals nothing about the data. The application version in <code translate="no" v-pre>container-config.xml</code> is 6 (<code translate="no" v-pre>ExtendedContentMigration</code>, see <a href="../database/">Database</a>).</p>
 <p>A new setting needs the placeholder in <code translate="no" v-pre>container-config.xml</code> (<code translate="no" v-pre>${marginalia.some-name:default}</code>) and a row here and in
 the <a href="../../user/getting-started/docker-server/#environment-variables">Docker server</a> page. A value of the wrong type
 (<code translate="no" v-pre>MARGINALIA_PERSISTENT_LOGIN_TTL=abc</code>) stops the start with the Spring error.</p>
@@ -1102,7 +1103,7 @@ refused, so an extension can&#x27;t replace English.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (0531f8e63).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (f3a839369).</p></div>
             </footer>
         </div>
     </div>
