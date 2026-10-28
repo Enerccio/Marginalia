@@ -125,6 +125,8 @@ flowchart LR
   entity under its field name, as a string, and each key of `attributes` with the prefix `attributes_`.
 - **On load** (`@PostLoad`) and after every save it fills the fields and `attributes` back from that JSON.
 
+The column is gzipped when the content is 256 bytes or more (`ExtendableEntity.setExtendedContent`; `getExtendedContent` returns the plain JSON). Rows saved before that are still read and are compressed when the entity is saved again (the application migration `ExtendedContentMigration` does it for all of them). Code that reads the column with SQL gets bytes that are not JSON.
+
 The column of a story part looks like this:
 
 ```json
