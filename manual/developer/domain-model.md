@@ -278,6 +278,7 @@ joins on is a real column: relations, `name`, `enabled`, `ordinal`, `published`,
 | `template`, `pov`, `tense`, `style`, `userPrompt`, `summaryPrompt`, `metaSummaryPrompt`, `redraftPrompt`, `annotatePrompt`, `impersonatePrompt` | JSON | The book's prompt overrides (*Prompts* tab); empty means the user's defaults from `UserSetting`, then `Defaults`. |
 | `language` | JSON | Language of the story (`Language`, English when not set): the `lang` of the story views, which the browser uses for hyphenation and justification, and the language of the exports. |
 | `showBookStyles` | JSON | Story display option. |
+| `autoAnnotate`, `autoAnnotateInstructions`, `autoAnnotateModel`, `autoAnnotateProtocol`, `autoAnnotateAccept`, `autoAnnotateRedraft`, `autoAnnotateAcceptRedraft` | JSON | The automatic annotation of a generated part (Tools menu of the story, `AutoAnnotateDialog`; run by `AutoAnnotate`). The getters of the flags return `false` when unset. The model and the protocol are the **uuids** of an AI and a protocol, not ids (a restored backup can't point at somebody else's model: they are looked up among the ones the user can use, `AutoAnnotate.byUuid`, and an unknown or deleted one means the model of the book). |
 | `backupStrategy`, `backupStrategyValue`, `backupStrategyCurrentValue` | JSON | Per-book backup override and its progress counter. |
 
 Tags of a book are `TagRelation`s (see [Tags](#tags)).

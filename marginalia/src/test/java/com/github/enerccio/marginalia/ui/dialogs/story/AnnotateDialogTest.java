@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.collections.AnnotationSource;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
 import com.github.enerccio.marginalia.domain.service.AnnotateService.Mode;
 import com.github.enerccio.marginalia.domain.service.AnnotateService.Proposal;
 import com.github.enerccio.marginalia.domain.service.AnnotationService;
@@ -118,6 +119,125 @@ class AnnotateDialogTest extends MarginaliaTestBase {
 
         assertThat(dialog.proposalChecks()).isEmpty();
         assertThat(dialog.addButton().isEnabled()).isFalse();
+    }
+
+    // ------------------------------------------------------------------------------------------------ the automatic annotation
+
+    private static final Proposal WEAK = new Proposal("They talked for hours.", "Weak scene", "pacing", 26, 48);
+
+    @Test
+    void theAutomaticDialogStartsFromTheSettingsOfTheBook() throws Exception {
+        OpenAICompatible ai = createAI();
+        AnnotateDialog dialog = AnnotateDialog.createAuto(book, part, new AnnotateDialog.Auto("flag continuity errors", ai, null, false), () -> {
+        });
+
+        assertThat(dialog.instructionsField().getValue()).isEqualTo("flag continuity errors");
+        assertThat(dialog.modelPicker().getAi().getUuid()).isEqualTo(ai.getUuid());
+    }
+
+    @Test
+    void theAutomaticDialogWithoutAModelUsesTheModelOfTheBook() {
+        AnnotateDialog dialog = AnnotateDialog.createAuto(book, part, new AnnotateDialog.Auto(null, null, null, false), () -> {
+        });
+
+        assertThat(dialog.modelPicker().getAi()).isNull();
+        assertThat(dialog.instructionsField().getValue()).isEmpty();
+    }
+
+    @Test
+    void whenTheRunIsOverTheNotesAreAddedAndTheDialogClosesIfSetSo() throws Exception {
+        AtomicInteger added = new AtomicInteger();
+        AnnotateDialog dialog = AnnotateDialog.createAuto(book, part, new AnnotateDialog.Auto(null, null, null, true), added::incrementAndGet);
+        dialog.open();
+        dialog.setModelNameForTest("mock-model");
+        dialog.showProposalsForTest(List.of(WEAK));
+
+        dialog.endRunForTest(true);
+
+        assertThat(annotationService.listForPart(book, part)).extracting(Annotation::getText).containsExactly("Weak scene");
+        assertThat(added.get()).isEqualTo(1);
+        assertThat(dialog.isOpened()).isFalse();
+    }
+
+    @Test
+    void withoutTheAcceptTheDialogWaitsForTheAuthor() throws Exception {
+        AtomicInteger added = new AtomicInteger();
+        AnnotateDialog dialog = AnnotateDialog.createAuto(book, part, new AnnotateDialog.Auto(null, null, null, false), added::incrementAndGet);
+        dialog.open();
+        dialog.showProposalsForTest(List.of(WEAK));
+
+        dialog.endRunForTest(true);
+
+        assertThat(dialog.isOpened()).isTrue();
+        assertThat(dialog.addButton().isEnabled()).isTrue();
+        assertThat(annotationService.listForPart(book, part)).isEmpty();
+        assertThat(added.get()).isZero();
+    }
+
+    @Test
+    void aRunThatWasStoppedAddsNothingAndStaysOpen() throws Exception {
+        AtomicInteger added = new AtomicInteger();
+        AnnotateDialog dialog = AnnotateDialog.createAuto(book, part, new AnnotateDialog.Auto(null, null, null, true), added::incrementAndGet);
+        dialog.open();
+        dialog.showProposalsForTest(List.of(WEAK));
+
+        dialog.endRunForTest(false);
+
+        assertThat(dialog.isOpened()).isTrue();
+        assertThat(annotationService.listForPart(book, part)).isEmpty();
+        assertThat(added.get()).isZero();
+    }
+
+    @Test
+    void aDialogTheAuthorClosedAddsNothingWhenTheModelAnswersLater() throws Exception {
+        AtomicInteger added = new AtomicInteger();
+        AnnotateDialog dialog = AnnotateDialog.createAuto(book, part, new AnnotateDialog.Auto(null, null, null, true), added::incrementAndGet);
+        dialog.open();
+        dialog.showProposalsForTest(List.of(WEAK));
+        dialog.close();
+
+        dialog.endRunForTest(true);
+
+        assertThat(annotationService.listForPart(book, part)).isEmpty();
+        assertThat(added.get()).isZero();
+    }
+
+    @Test
+    void whenTheModelFoundNothingTheDialogClosesAndNothingFollows() {
+        AtomicInteger added = new AtomicInteger();
+        AnnotateDialog dialog = AnnotateDialog.createAuto(book, part, new AnnotateDialog.Auto(null, null, null, true), added::incrementAndGet);
+        dialog.open();
+
+        dialog.endRunForTest(true);
+
+        assertThat(dialog.isOpened()).isFalse();
+        assertThat(added.get()).isZero();
+    }
+
+    @Test
+    void anAnswerThatCouldNotBeReadKeepsTheDialogOpenToSayWhy() {
+        AtomicInteger added = new AtomicInteger();
+        AnnotateDialog dialog = AnnotateDialog.createAuto(book, part, new AnnotateDialog.Auto(null, null, null, true), added::incrementAndGet);
+        dialog.open();
+        dialog.skippedForTest("The answer could not be read");
+
+        dialog.endRunForTest(true);
+
+        assertThat(dialog.isOpened()).isTrue();
+        assertThat(added.get()).isZero();
+    }
+
+    @Test
+    void aDialogTheAuthorOpenedNeverAddsByItself() throws Exception {
+        AnnotateDialog dialog = AnnotateDialog.create(book, part, () -> {
+        });
+        dialog.open();
+        dialog.showProposalsForTest(List.of(WEAK));
+
+        dialog.endRunForTest(true);
+
+        assertThat(dialog.isOpened()).isTrue();
+        assertThat(annotationService.listForPart(book, part)).isEmpty();
     }
 
     /**

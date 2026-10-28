@@ -352,6 +352,34 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     }
 
     /**
+     * Opens the settings of the automatic annotation of the book; the check mark of the menu item follows what was saved.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    @Override
+    public void openAutoAnnotateDialog() {
+        try {
+            AutoAnnotateDialog.open(parent.refreshManuscript(), () -> {
+                try {
+                    currentManuscript = parent.refreshManuscript();
+                } catch (Exception e) {
+                    UIUtils.internalServerError(loc, e);
+                }
+            });
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = boolean.class))
+    @Override
+    public boolean isAutoAnnotate() {
+        return AutoAnnotate.isEnabled(currentManuscript);
+    }
+
+    /**
      * Shows the tokens the story of the active branch takes in the next prompt, with and without the summaries.
      */
     @PublicAPI(from = "1.5.0",
@@ -685,6 +713,21 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
                         @Override
                         public void partGenerated() {
                             checkAndApplyBackupStrategy();
+                        }
+
+                        @Override
+                        public void partCompleted(ChatMessage message) {
+                            try {
+                                new AutoAnnotate(parent.refreshManuscript(), () -> {
+                                    try {
+                                        load(parent.refreshManuscript());
+                                    } catch (Exception e) {
+                                        UIUtils.internalServerError(loc, e);
+                                    }
+                                }).run(message);
+                            } catch (Exception e) {
+                                UIUtils.internalServerError(loc, e);
+                            }
                         }
 
                         @Override

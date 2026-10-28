@@ -134,6 +134,68 @@ class RedraftDialogTest extends MarginaliaTestBase {
     }
 
     @Test
+    void theAutomaticRedraftIsAppliedWhenTheModelIsDoneAndTheDialogCloses() throws Exception {
+        AtomicReference<ChatMessage> applied = new AtomicReference<>();
+        RedraftDialog dialog = RedraftDialog.createAuto(book, part, true, applied::set);
+        dialog.open();
+
+        dialog.completedForTest("He drew his sword slowly.");
+
+        assertThat(chatMessageService.find(part.getId()).getResponse()).isEqualTo("He drew his sword slowly.");
+        assertThat(applied.get().getResponse()).isEqualTo("He drew his sword slowly.");
+        assertThat(dialog.isOpened()).isFalse();
+    }
+
+    @Test
+    void theAutomaticRedraftWaitsForTheAuthorWhenItIsNotToBeAppliedByItself() throws Exception {
+        AtomicReference<ChatMessage> applied = new AtomicReference<>();
+        RedraftDialog dialog = RedraftDialog.createAuto(book, part, false, applied::set);
+        dialog.open();
+
+        dialog.completedForTest("He drew his sword slowly.");
+
+        assertThat(chatMessageService.find(part.getId()).getResponse()).isEqualTo("He drew his sword.");
+        assertThat(applied.get()).isNull();
+        assertThat(dialog.isOpened()).isTrue();
+    }
+
+    @Test
+    void anAutomaticRedraftOfADialogTheAuthorClosedIsNotApplied() throws Exception {
+        AtomicReference<ChatMessage> applied = new AtomicReference<>();
+        RedraftDialog dialog = RedraftDialog.createAuto(book, part, true, applied::set);
+        dialog.open();
+        dialog.close();
+
+        dialog.completedForTest("He drew his sword slowly.");
+
+        assertThat(chatMessageService.find(part.getId()).getResponse()).isEqualTo("He drew his sword.");
+        assertThat(applied.get()).isNull();
+    }
+
+    @Test
+    void anAutomaticRedraftWithoutATextIsNotApplied() throws Exception {
+        RedraftDialog dialog = RedraftDialog.createAuto(book, part, true, saved -> {
+        });
+        dialog.open();
+
+        dialog.completedForTest("  ");
+
+        assertThat(chatMessageService.find(part.getId()).getResponse()).isEqualTo("He drew his sword.");
+        assertThat(dialog.isOpened()).isTrue();
+    }
+
+    @Test
+    void theAutomaticRedraftStartsWithTheOpenAnnotationsGivenToTheModel() throws Exception {
+        annotationService.create(book, part, 0, 2, "Who is he?", AnnotationSource.AUTHOR, null, null);
+        RedraftDialog dialog = RedraftDialog.createAuto(book, part, true, saved -> {
+        });
+
+        Checkbox withAnnotations = components(dialog).stream().filter(Checkbox.class::isInstance).map(Checkbox.class::cast).findFirst().orElseThrow();
+        assertThat(withAnnotations.isVisible()).isTrue();
+        assertThat(withAnnotations.getValue()).isTrue();
+    }
+
+    @Test
     void theCheckboxOfTheAnnotationsIsThereOnlyForAPartThatHasOpenOnes() throws Exception {
         List<Component> without = components(RedraftDialog.create(book, part, saved -> {
         }));
@@ -199,6 +261,18 @@ class RedraftDialogTest extends MarginaliaTestBase {
         })));
         assertThat(box.isVisible()).isTrue();
         assertThat(box.getValue()).isFalse();
+    }
+
+    @Test
+    void theAutomaticRedraftNeverOffersToRevalidateSummaries() throws Exception {
+        summarize(part);
+
+        for (boolean apply : new boolean[]{true, false}) {
+            Checkbox box = revalidateBox(components(RedraftDialog.createAuto(book, part, apply, saved -> {
+            })));
+            assertThat(box.isVisible()).isFalse();
+            assertThat(box.getValue()).isFalse();
+        }
     }
 
     @Test

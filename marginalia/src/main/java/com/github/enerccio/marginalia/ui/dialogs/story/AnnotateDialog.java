@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.AnnotateService;
 import com.github.enerccio.marginalia.domain.service.AnnotateService.Mode;
 import com.github.enerccio.marginalia.domain.service.AnnotateService.Proposal;
@@ -46,6 +47,10 @@ import java.util.*;
  * Opened on a part it annotates that part only. Opened without a part ({@link #openRange}, the tools menu of the story) it asks for a
  * range of the parts of the story: they are annotated one after another with the same instructions, mode and model, and the proposals
  * are listed by part.
+ * <p>
+ * Opened by {@link #openAuto} (the automatic annotation of a generated part) it starts at once with the instructions and the model that
+ * were set for the book; with {@link Auto#accept()} it also adds the notes the model found, without asking, and closes. Closing it
+ * before that ends the run: nothing is added and {@code onAdded} is not called.
  */
 @Configurable(preConstruction = true)
 public class AnnotateDialog extends Dialog {
@@ -65,6 +70,10 @@ public class AnnotateDialog extends Dialog {
      */
     private final ChatMessage part;
     private final Runnable onAdded;
+    /**
+     * The automatic run of a generated part, null when the author opened the dialog.
+     */
+    private final Auto auto;
 
     private final ComboBox<Integer> fromPart = new ComboBox<>();
     private final ComboBox<Integer> toPart = new ComboBox<>();
@@ -105,6 +114,17 @@ public class AnnotateDialog extends Dialog {
     private String modelName;
 
     /**
+     * What the automatic annotation of a part is set to.
+     *
+     * @param instructions what to look for, blank for the default task of the prompt
+     * @param ai           the model to annotate with, the one of the book when null
+     * @param protocol     the protocol to annotate with, the one of the book when null
+     * @param accept       whether the notes the model found are added without asking, and the dialog closes
+     */
+    record Auto(String instructions, AI ai, Protocol protocol, boolean accept) {
+    }
+
+    /**
      * A proposal of the model and the part it is about.
      */
     private record Entry(ChatMessage part, Proposal proposal, Checkbox chosen) {
@@ -127,23 +147,42 @@ public class AnnotateDialog extends Dialog {
     }
 
     /**
+     * Opens the dialog on the part and starts the annotation at once, with the settings of the automatic annotation.
+     *
+     * @param onAdded called after the annotations were added to the part (not when the dialog was closed before, or found nothing)
+     */
+    static void openAuto(Manuscript manuscript, ChatMessage part, Auto auto, Runnable onAdded) {
+        AnnotateDialog dialog = createAuto(manuscript, part, auto, onAdded);
+        dialog.open();
+        dialog.startOrStop();
+    }
+
+    /**
      * @return the dialog, not opened
      */
     static AnnotateDialog create(Manuscript manuscript, ChatMessage part, Runnable onAdded) {
-        return new AnnotateDialog(manuscript, Objects.requireNonNull(part, "part"), onAdded);
+        return new AnnotateDialog(manuscript, Objects.requireNonNull(part, "part"), onAdded, null);
+    }
+
+    /**
+     * @return the dialog of the automatic annotation, not opened and not started
+     */
+    static AnnotateDialog createAuto(Manuscript manuscript, ChatMessage part, Auto auto, Runnable onAdded) {
+        return new AnnotateDialog(manuscript, Objects.requireNonNull(part, "part"), onAdded, Objects.requireNonNull(auto, "auto"));
     }
 
     /**
      * @return the dialog of a range, not opened
      */
     static AnnotateDialog createRange(Manuscript manuscript, Runnable onAdded) {
-        return new AnnotateDialog(manuscript, null, onAdded);
+        return new AnnotateDialog(manuscript, null, onAdded, null);
     }
 
-    private AnnotateDialog(Manuscript manuscript, ChatMessage part, Runnable onAdded) {
+    private AnnotateDialog(Manuscript manuscript, ChatMessage part, Runnable onAdded, Auto auto) {
         this.manuscript = manuscript;
         this.part = part;
         this.onAdded = onAdded;
+        this.auto = auto;
 
         setHeaderTitle(loc.getValue(isRange() ? L.LABEL_ANNOTATE_BATCH : L.LABEL_ANNOTATE_WITH_AI));
         setWidth("min(900px, 95vw)");
@@ -193,6 +232,11 @@ public class AnnotateDialog extends Dialog {
             model.setSelection(defaults.ai(), defaults.protocol());
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
+        }
+        if (auto != null) {
+            // the model of the book is the one that is not chosen
+            model.setSelection(auto.ai(), auto.protocol());
+            instructions.setValue(StringUtils.defaultString(auto.instructions()));
         }
         Span modelHint = new Span(loc.getValue(L.MSG_ANNOTATE_MODEL_HINT));
         modelHint.addClassName(CssStyles.HINT_TEXT);
@@ -364,6 +408,22 @@ public class AnnotateDialog extends Dialog {
             showMessage(String.join(" ", notes));
         }
         add.setEnabled(proposals.stream().anyMatch(entry -> entry.chosen().getValue()));
+        if (auto != null && auto.accept() && complete && isOpened()) {
+            acceptAutomatically();
+        }
+    }
+
+    /**
+     * The run of the automatic annotation is over and was not stopped: the notes are added and the dialog closes. When the model found
+     * nothing the dialog closes too, unless it has something to say (a part it could not read).
+     */
+    private void acceptAutomatically() {
+        if (!proposals.isEmpty()) {
+            accept();
+        } else if (notes.isEmpty()) {
+            Notification.success(loc.getValue(L.MSG_ANNOTATE_NO_FINDINGS));
+            close();
+        }
     }
 
     private void skipped(ChatMessage part, String reason) {
@@ -639,6 +699,17 @@ public class AnnotateDialog extends Dialog {
 
     void acceptForTest() {
         accept();
+    }
+
+    /**
+     * The run is over, as if the model had answered with the proposals shown.
+     */
+    void endRunForTest(boolean complete) {
+        endRun(complete);
+    }
+
+    void skippedForTest(String reason) {
+        notes.add(reason);
     }
 
     void setModelNameForTest(String name) {
