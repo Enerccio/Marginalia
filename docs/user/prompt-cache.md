@@ -87,6 +87,10 @@ This needs a llama.cpp that routes /slots (PR 19854, 2026-02).
 
   slot        the slot to use, default 0 (environment LLAMA_SLOT)
   model       the model the router knows, when it is not the one in the request
+  save_idle_seconds
+              also save the cache of the session in the slot when no request came for this long (default 0: only
+              when the slot is needed for another session or model; environment LLAMA_SAVE_IDLE_SECONDS). A save
+              is sent when the slot is idle, and the server does nothing else while it writes.
   models_max  the --models-max of the router, default 4 (environment LLAMA_MODELS_MAX), 0 for no limit. The router
               unloads the model used longest ago when a request needs more than that; its slot is gone with it. The hook
               follows the same order and saves that slot BEFORE the request that makes the router unload it. Requests
@@ -96,6 +100,10 @@ This needs a llama.cpp that routes /slots (PR 19854, 2026-02).
   max_files   keep at most this many saved caches of the route, default no limit (environment LLAMA_CACHE_MAX_FILES)
   max_gib     keep at most this many GiB of saved caches of the route, default no limit (environment LLAMA_CACHE_MAX_GIB)
 When a limit is passed, the caches that were used the longest ago are deleted first.
+
+A save, restore or erase is only sent when the slot is idle (GET /slots, is_processing): llama-server parks such a call
+while a request runs, and only one parked call is released each time a request ends, so a request of another client that
+arrived behind it could wait there indefinitely. Without /slots the calls are sent at once.
 """
 import asyncio
 import collections
@@ -107,7 +115,11 @@ import re
 import httpx
 from litellm.integrations.custom_logger import CustomLogger
 
-log = logging.getLogger("slot_cache")
+try:
+    # the logger of the proxy: its INFO lines show with LITELLM_LOG=INFO
+    from litellm._logging import verbose_proxy_logger as log
+except ImportError:
+    log = logging.getLogger("slot_cache")
 
 SLOT = int(os.environ.get("LLAMA_SLOT", "0"))
 SAVE_PATH = os.environ.get("LLAMA_SLOT_SAVE_PATH")
@@ -115,6 +127,9 @@ MAX_FILES = int(os.environ.get("LLAMA_CACHE_MAX_FILES", "0"))
 MAX_GIB = float(os.environ.get("LLAMA_CACHE_MAX_GIB", "0"))
 # --models-max of llama-server in router mode (its default is 4, 0 is no limit)
 MODELS_MAX = int(os.environ.get("LLAMA_MODELS_MAX", "4"))
+SAVE_IDLE_SECONDS = float(os.environ.get("LLAMA_SAVE_IDLE_SECONDS", "0"))
+IDLE_POLL_SECONDS = 1.0         # how often a busy slot is looked at ...
+IDLE_WAIT_MAX_SECONDS = 3600    # ... and for how long at most
 # the header is client input and becomes a file name: only what Marginalia sends is accepted
 SESSION_ID = re.compile(r"^[0-9a-f]{32}$")
 
@@ -133,6 +148,9 @@ class CacheFolder:
         self.max_files = max_files
         self.max_bytes = max_bytes
         self.files = re.compile("^" + re.escape(tag) + r"_[0-9a-f]{32}\.bin$")
+
+    def has(self, session):
+        return bool(self.path) and os.path.exists(os.path.join(self.path, session + ".bin"))
 
     def touch(self, session):
         """A cache that was restored was just used: it is the last one to go."""
@@ -190,7 +208,27 @@ class SlotSwitcher:
         self.headers = {}
         self.current = None
         self.folder = None
+        self.version = 0            # counts the requests: what the slot holds changed since the last save
+        self.saved_version = 0
+        self._idle = None
         self._lock = asyncio.Lock()
+
+    async def _busy(self):
+        """Whether the slot is processing a request. False when the server does not tell."""
+        try:
+            response = await self.client.get(f"{self.base_url}/slots", headers=self.headers, timeout=15,
+                                             params={"model": self.model} if self.model else None)
+            slots = response.json() if response.is_success else None
+            return isinstance(slots, list) and any(
+                slot.get("is_processing") for slot in slots
+                if isinstance(slot, dict) and slot.get("id", self.slot) == self.slot)
+        except (httpx.HTTPError, ValueError):
+            return False
+
+    async def _wait_idle(self):
+        deadline = asyncio.get_running_loop().time() + IDLE_WAIT_MAX_SECONDS
+        while await self._busy() and asyncio.get_running_loop().time() < deadline:
+            await asyncio.sleep(IDLE_POLL_SECONDS)
 
     async def _action(self, action, key=None):
         body = {}
@@ -204,25 +242,55 @@ class SlotSwitcher:
             response = await self.client.post(f"{self.base_url}/slots/{self.slot}?{query}", json=body or None,
                                               headers=self.headers)
             if response.status_code in (401, 403):
-                log.warning("%s %s: the server refused the api key (%d)", self.base_url, action, response.status_code)
+                log.warning("slot_cache: %s %s: the server refused the api key (%d)", self.base_url, action,
+                            response.status_code)
+            log.info("slot_cache: %s %s %s (%s%s): %s", self.base_url, action, key or "", self.model or "-",
+                     "" if self.slot == 0 else f", slot {self.slot}",
+                     "ok" if response.is_success else
+                     (f"miss ({response.status_code})" if action == "restore" else f"failed ({response.status_code})"))
             return response.is_success
         except httpx.HTTPError as e:
             # a cache that is not there is only slower, never an error of the request
-            log.warning("%s %s: %s", self.base_url, action, e)
+            log.warning("slot_cache: %s %s: %s", self.base_url, action, e)
             return False
 
-    async def switch(self, key, api_key=None, folder=None):
-        """Puts the cache `key` (the file name without .bin) in the slot; `folder` has the limits of its route."""
+    async def switch(self, key, api_key=None, folder=None, idle=SAVE_IDLE_SECONDS):
+        """Puts the cache `key` (the file name without .bin) in the slot; `folder` has the limits of its route.
+        With `idle` the cache is saved when no request came for that many seconds."""
         folder = folder or CacheFolder(SAVE_PATH, MAX_FILES, int(MAX_GIB * 1024 ** 3))
+        await self._switch(key, api_key, folder)
+        self.version += 1
+        if idle:
+            if self._idle and not self._idle.done():
+                self._idle.cancel()
+            self._idle = asyncio.create_task(self._save_when_idle(idle))
+
+    async def _save_when_idle(self, seconds):
+        await asyncio.sleep(seconds)
+        version = self.version
+        await self._wait_idle()         # a new request cancels this task, also while it waits
+        async with self._lock:
+            if self.current is None or version == self.saved_version:
+                return
+            if await self._action("save", self.current):
+                self.saved_version = version
+                if self.folder:
+                    await asyncio.to_thread(self.folder.evict, {self.current})
+
+    async def _switch(self, key, api_key, folder):
         async with self._lock:
             if key == self.current:
                 return
             # the key of the deployment that asks now (a placeholder is not a key)
             self.headers = {"Authorization": "Bearer " + api_key} if api_key and api_key != "none" else {}
             self.folder = folder
-            if self.current is not None and await self._action("save", self.current):
+            await self._wait_idle()
+            # a cache that was saved after its last request (the idle save) is on disk already
+            unchanged = self.saved_version == self.version and self.current is not None and folder.has(self.current)
+            if self.current is not None and (unchanged or await self._action("save", self.current)):
                 # not the cache that was just saved, and not the one that is about to be restored
                 await asyncio.to_thread(folder.evict, {self.current, key})
+                self.saved_version = self.version
             if await self._action("restore", key):
                 await asyncio.to_thread(folder.touch, key)
             else:
@@ -235,8 +303,11 @@ class SlotSwitcher:
             if self.current is None:
                 return
             self.headers = {"Authorization": "Bearer " + api_key} if api_key and api_key != "none" else {}
+            await self._wait_idle()
             if await self._action("save", self.current) and self.folder:
                 await asyncio.to_thread(self.folder.evict, {self.current})
+            if self._idle and not self._idle.done():
+                self._idle.cancel()
             self.current = None
 
 
@@ -256,6 +327,7 @@ class SlotCacheHook(CustomLogger):
         super().__init__()
         self.switchers = {}
         self.loaded = {}            # per server: the models the router has loaded, the one used longest ago first
+        self.skipped = set()        # the routes that were reported as not used
         self.client = httpx.AsyncClient(timeout=None)
 
     async def make_room(self, root, model, models_max, api_key):
@@ -279,7 +351,14 @@ class SlotCacheHook(CustomLogger):
         api_base = kwargs.get("api_base")
         # the route the client asked for; without one the files of the models could not be told apart
         route = (kwargs.get("metadata") or {}).get("model_group") or kwargs.get("model")
-        if not (session and SESSION_ID.match(session) and options and api_base and route):
+        if not (session and SESSION_ID.match(session)):
+            return None
+        if not (options and api_base and route):
+            # a request of Marginalia that is passed through: say why, once per route
+            why = "no model_info.slot_cache" if not options else "no api_base" if not api_base else "no route"
+            if (route, why) not in self.skipped:
+                self.skipped.add((route, why))
+                log.info("slot_cache: not used for %s: %s", route, why)
             return None
         options = options if isinstance(options, dict) else {}
         tag = route_tag(route)
@@ -291,7 +370,8 @@ class SlotCacheHook(CustomLogger):
         await self.make_room(where[0], model, int(options.get("models_max", MODELS_MAX)), kwargs.get("api_key"))
         if where not in self.switchers:
             self.switchers[where] = SlotSwitcher(where[0], slot, self.client, model)
-        await self.switchers[where].switch(f"{tag}_{session}", kwargs.get("api_key"), folder)
+        await self.switchers[where].switch(f"{tag}_{session}", kwargs.get("api_key"), folder,
+                                           float(options.get("save_idle_seconds", SAVE_IDLE_SECONDS)))
         return None
 
 
@@ -312,7 +392,7 @@ model_list:
     model_info:
       slot_cache: true
       # or, each one optional:
-      # slot_cache: {slot: 0, save_path: /var/cache/llama-slots, max_files: 8, max_gib: 20, models_max: 1}
+      # slot_cache: {slot: 0, save_path: /var/cache/llama-slots, max_files: 8, max_gib: 20, models_max: 1, save_idle_seconds: 120}
 
 litellm_settings:
   callbacks: slot_cache.proxy_handler_instance
@@ -340,7 +420,18 @@ unload the model used longest ago, and the slot of that model, with the cache in
 order (set `models_max` in `slot_cache`, or `LLAMA_MODELS_MAX`, to the same number as `--models-max`; 0 for no limit)
 and saves that slot **before** the request that makes the router unload it. For that the proxy must be the only client
 of the router: a request that reaches it another way is not seen. A save never loads a model the router has unloaded.
-What it does: when a request arrives from another session than the one in the slot, the hook saves the slot under the
+What it does: the cache of a session is written to disk **when the slot is needed for another one** (a request of
+another kind, another model, or the router unloading the model), not after every request: a 3 GB write after each
+generation would only slow the server down. So a file shows up after the first switch, for example generate, annotate,
+generate: the annotation first saves the generation. With `save_idle_seconds` in the `slot_cache` (or
+`LLAMA_SAVE_IDLE_SECONDS`) the cache is also written when no request came for that long, so the folder has it soon after
+you stop working; a request starts the wait over, and a cache that is on disk already is not written again at the next
+switch. The hook sends a save, restore or erase only when the slot is idle (it asks `GET /slots`, `is_processing`; without
+that endpoint it sends at once): `llama-server` parks such a call while a request runs and releases only one parked call
+each time a request ends, so a request of another client that arrived behind it could wait there for good. The server
+does nothing else while a save writes.
+
+The details: when a request arrives from another session than the one in the slot, the hook saves the slot under the
 name of the session that was in it, restores the file of the new one (or empties the slot when there is no file yet),
 and lets the request go on. The files are kept **per route** (the `model_name`): a saved state fits only the model that
 wrote it, so the file is named after the route and the session, and two routes never share one, also when they use the
@@ -376,8 +467,18 @@ Things to know:
   while the hook still thinks the last session is in it. A request for the same session simply reads its prompt again;
   a request for another one saves the empty slot over that session's file first, so its cache is lost too. Both only
   cost a prefill.
-- **Failures show in the log of the proxy** as warnings from `slot_cache` (a certificate that does not match the address,
-  a refused api key, a server that does not answer); a missing file is not one, it is the normal first request.
+- **The log of the proxy** (with `LITELLM_LOG=INFO`) has a line for every call the hook makes, for example
+  `slot_cache: https://… restore <file> (openai/model): ok`, `… save <file> …: ok` or `… restore … miss (400)`; the miss of
+  the first request of a session is normal (llama-server logs it as "Unable to restore slot, no available space in KV
+  cache or invalid slot save file"). Real problems are warnings: a certificate that does not match the address, a
+  refused api key, a server that does not answer.
+- **If nothing happens**, look at the log of the proxy (`docker logs litellm-proxy 2>&1 | grep slot_cache`): with the
+  hook at work there is a line for every call, and a request of Marginalia for a route without `slot_cache` is reported
+  once (`not used for <route>: no model_info.slot_cache`). No `slot_cache` line at all means the hook did not run: the
+  container still has an older file or config. A single file mounted into a container (`./slot_cache.py:/app/slot_cache.py`)
+  keeps showing the version it had when the container was created if an editor replaced the file; `docker compose up -d
+  --force-recreate` picks the new one up (a plain restart does not). `docker exec litellm-proxy grep -c save_idle_seconds
+  /app/slot_cache.py` prints 0 for a file that is too old.
 - **In Docker** the proxy and `llama-server` are two containers, so the folder of `--slot-save-path` is a directory of the
   host that both mount (the proxy needs to write there: it deletes old files and renews the age of the used ones), the
   hook file goes next to the LiteLLM config, and `api_base` is an address the proxy can reach, with the host name of the
