@@ -56,10 +56,10 @@ The shortest path from a fresh clone to a running instance:
 ```sh
 git clone https://github.com/Enerccio/Marginalia.git
 cd Marginalia/marginalia
-mvn package -DskipTests                     # target/marginalia-1.5.0.war
+mvn package -DskipTests                     # target/marginalia-1.6.0.war
 ```
 
-Deploy `target/marginalia-1.5.0.war` (or the exploded `target/marginalia-1.5.0/` folder) to Tomcat 11 or Jetty 12,
+Deploy `target/marginalia-1.6.0.war` (or the exploded `target/marginalia-1.6.0/` folder) to Tomcat 11 or Jetty 12,
 or use `docker compose up --build` from the repository root. [Building from source](building.md#running-locally) has
 the details.
 
