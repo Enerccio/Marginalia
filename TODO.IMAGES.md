@@ -14,7 +14,7 @@ Screenshots that show the photograph from Wikimedia Commons (*Harry Potter.jpg*,
 Every picture of the manual was retaken for 1.5.0 (the footer got the theme button, the story editor is a dock with the story
 as a tab, the menus of the story show the keys of their items, the lists got clone buttons, the lorebook editor got its new
 toolbar). The screens that are new in 1.5.0 are in the manual too: the annotations (`annotation-dialog`, `annotation-popover`,
-`annotations-margin`, `annotations-tab`, `annotate-ai-proposals`), `redraft-dialog`, `part-merge-dialog`, `branch-tokens`,
+`annotations-margin`, `annotations-tab`, `annotate-ai-proposals`, `annotate-ai-batch`, `annotate-auto`), `redraft-dialog`, `part-merge-dialog`, `branch-tokens`,
 `impersonate-dialog`, `story-text-menu`, `settings-shortcuts`, `theme-light`, `book-search-advanced`, `sillytavern-import`,
 `lorebook-preview-activation`, `admin-resource-files`, and the plugins Anthropic Claude (`plugin-anthropic`,
 `plugin-anthropic-list`), SillyTavern Converter (`plugin-stconverter-chat`, `plugin-stconverter-turns`) and Manga Generator

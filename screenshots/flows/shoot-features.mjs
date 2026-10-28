@@ -143,12 +143,15 @@ await main(async ({ page }) => {
 
   // the same window on a range of parts: one answer for every part, the proposals are listed under the number of their part
   await section(page, 'annotate-ai-batch', async () => {
-    await partAction(page, 1, 'Annotate with AI');
+    await clickCogs(page);
+    await menuItem(page, 'Annotate a range of parts with AI').click();
+    await idle(page, 800);
     const d = dialog(page);
-    await d.getByText('Annotate a range of parts', { exact: true }).click();
-    await idle(page, 400);
     await d.getByLabel('From part', { exact: true }).first().click();
     await page.getByRole('option').first().click();
+    await idle(page, 400);
+    await d.getByLabel('To part', { exact: true }).first().click();
+    await page.getByRole('option').nth(1).click();
     await idle(page, 400);
     await fill(d, 'What to look for', 'Flag anything that contradicts the lorebook, and dialogue that sounds modern.');
     await page.evaluate(() => document.activeElement && document.activeElement.blur());
@@ -167,6 +170,23 @@ await main(async ({ page }) => {
     await snapDialog(page, 'annotate-ai-batch');
     await page.setViewportSize({ width: 1920, height: 932 });
     await idle(page, 600);
+    await closeTop(page);
+  });
+
+  // the settings of the automatic annotation (nothing is turned on: the window is opened and closed again)
+  await section(page, 'annotate-auto', async () => {
+    await clickCogs(page);
+    await menuItem(page, 'Automatic annotation').click();
+    await idle(page, 800);
+    const d = dialog(page);
+    await fill(d, 'What to look for', 'Flag anything that contradicts the lorebook, and dialogue that sounds modern.');
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    for (const label of ['Annotate every generated part automatically', 'Add the annotations without asking', 'Then redraft the part to address the annotations']) {
+      await d.getByLabel(label, { exact: false }).first().check();
+      await idle(page, 300);
+    }
+    await idle(page, 600);
+    await snapDialog(page, 'annotate-auto');
     await closeTop(page);
   });
 
