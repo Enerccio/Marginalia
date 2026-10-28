@@ -160,7 +160,7 @@ Interfaces in `domain.service`, implementations in `domain.service.impl`:
 | `AILimitService` | The per-user limits of a shared AI: the owning administrator sets them, `check` refuses a request of a user who is over their limit (called by `OpenAICompatibleInferenceService.stream`), `getStatus` is for the user's own view. |
 | `UsageService` | Tokens a user used with an AI, counted by `OpenAICompatibleInferenceService` (`Usage`, one per AI and user); `findAllUsages()` lists everybody's for administrators. |
 | `StoryGenerationService` | The generation engine (`StoryGenerationServiceImpl.GenerationEngine`). |
-| `InferenceServices`, `InferenceService`, `InferenceException`, `InferenceErrors` | Choosing and calling the model API; classified failures and their localized texts. |
+| `InferenceServices`, `InferenceService`, `InferenceSession`, `InferenceException`, `InferenceErrors` | Choosing and calling the model API; the kind of work a request belongs to (header `X-Session-ID`); classified failures and their localized texts. |
 | `FunctionRegistry` | The Java interfaces the model can call as functions, compiled once (see [Function calls](services.md#function-calls)). |
 | `TokenizerService` | Token counting. |
 | `ManualService` | The user manual packed into the WAR (`classpath:/manual/`), parsed once and searched in memory (BM25) for the help assistant. |

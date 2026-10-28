@@ -3,10 +3,7 @@ package com.github.enerccio.marginalia.extensions.loregenerator.ui;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
-import com.github.enerccio.marginalia.domain.service.CancellationToken;
-import com.github.enerccio.marginalia.domain.service.InferenceService;
-import com.github.enerccio.marginalia.domain.service.InferenceServices;
-import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.domain.service.tool.ToolSelection;
@@ -407,7 +404,7 @@ public class LoreGeneratorDialog extends Dialog {
 
         pane.setRunning(true);
         updateControls();
-        try {
+        try (InferenceSession _ = InferenceSession.open("lore-generator")) {
             running = inference.stream(service.toPayload(prompt, new ArrayList<>(sent)), modelPicker.getProtocol(), functions, callback(ui, pane));
         } catch (Exception e) {
             // nothing runs, do not leave the controls frozen

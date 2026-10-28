@@ -4,9 +4,11 @@ import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.domain.collections.AIType;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.ExtensionAI;
+import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.FunctionRegistry;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
+import com.github.enerccio.marginalia.domain.service.InferenceSession;
 import com.github.enerccio.marginalia.domain.traits.SupportedAI;
 import com.github.enerccio.marginalia.extensions.ExtensionAIFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +31,9 @@ public class InferenceServicesImpl implements InferenceServices, InitializingBea
     @Autowired
     private Configuration configuration;
 
+    @Autowired
+    private User currentUser;
+
     private final Map<String, ExtensionAIFactory> extensionFactories = new ConcurrentHashMap<>();
 
     private List<Class<? extends InferenceService>> inferenceProviders;
@@ -42,6 +47,22 @@ public class InferenceServicesImpl implements InferenceServices, InitializingBea
 
     public void setInferenceProviders(List<Class<? extends InferenceService>> services) {
         this.inferenceProviders = services;
+    }
+
+    @Override
+    public String currentSessionId() {
+        InferenceSession.Scope scope = InferenceSession.current();
+        if (scope == null) {
+            return null;
+        }
+        try {
+            Long userId = currentUser.getId();
+            return userId == null ? null : configuration.hmac("session-id", userId + ":" + scope.key());
+        } catch (Exception e) {
+            // a thread without a session has no user, the request then goes without the header
+            log.debug("No session id: {}", e.getMessage());
+            return null;
+        }
     }
 
     @Override

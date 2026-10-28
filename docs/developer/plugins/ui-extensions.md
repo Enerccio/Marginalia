@@ -519,6 +519,11 @@ CancellationToken token = service.stream(payload, protocol, new InferenceService
 // token.cancel() stops the stream, e.g. when the dialog closes
 ```
 
+- **Name the kind of work.** Open an `InferenceSession` around the call that starts the request, with a kind named like your
+  plugin: `try (InferenceSession _ = InferenceSession.open("my-plugin")) { service.stream(...); }` (a second argument tells
+  apart runs that do not share a prompt). The service then sends the header `X-Session-ID` with a hash of the user and
+  the kind, which a server or proxy with a prompt cache can use to keep a cache per kind of work; see [Prompt cache and
+  session id](../../user/prompt-cache.md). The scope covers only the call itself; a request outside of any scope sends no header.
 - **Call `controller.continueInference()`** after each chunk, or the stream stops after the first one.
   `terminateInference()` ends it early.
 - `protocol` supplies sampling parameters and the response limit; it may be `null`.

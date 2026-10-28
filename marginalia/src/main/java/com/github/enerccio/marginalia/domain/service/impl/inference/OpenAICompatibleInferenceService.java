@@ -740,12 +740,18 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                 .build();
 
         // the client retries 408, 409, 429, 5xx and connection errors with growing waits (and honors Retry-After)
-        return OpenAIOkHttpClient.builder()
+        OpenAIOkHttpClient.Builder builder = OpenAIOkHttpClient.builder()
                 .baseUrl(ai.getUri())
                 .apiKey(apiKeyOrPlaceholder(ai))
                 .timeout(timeouts)
-                .maxRetries(retries)
-                .build();
+                .maxRetries(retries);
+        // the client is made in the thread that starts the request (the scope of the session is that thread's) and
+        // lives for that request only
+        String sessionId = inferenceServices.currentSessionId();
+        if (sessionId != null) {
+            builder.putHeader(InferenceSession.HEADER, sessionId);
+        }
+        return builder.build();
     }
 
     /**

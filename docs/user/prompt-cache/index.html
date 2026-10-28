@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="turbo-root" content="/Marginalia">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846503002128">
+
+    <!-- See retype.com -->
+    <meta name="generator" content="Retype 4.6.0">
+
+    <!-- Primary Meta Tags -->
+    <title>Prompt cache and session id</title>
+    <meta name="title" content="Prompt cache and session id">
+    <meta name="description" content="Model servers keep the prompt they have just read (the prompt cache), so that the next request that starts with the same text doesn't have to read it again. For a long story that is the difference between waiting a few seconds and waiting minutes.">
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://enerccio.github.io/Marginalia/user/prompt-cache/">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="https://enerccio.github.io/Marginalia/sitemap.xml">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/prompt-cache/">
+    <meta property="og:title" content="Prompt cache and session id">
+    <meta property="og:description" content="Model servers keep the prompt they have just read (the prompt cache), so that the next request that starts with the same text doesn't have to read it again. For a long story that is the difference between waiting a few seconds and waiting minutes.">
+    <meta property="og:site_name" content="Marginalia">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/prompt-cache/">
+    <meta name="twitter:title" content="Prompt cache and session id">
+    <meta name="twitter:description" content="Model servers keep the prompt they have just read (the prompt cache), so that the next request that starts with the same text doesn't have to read it again. For a long story that is the difference between waiting a few seconds and waiting minutes.">
+
+    <!-- Alternate Markdown -->
+    <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/user/prompt-cache.md">
+
+    <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
+
+    <link href="../../resources/css/retype.css?v=4.6.0.846503002128" rel="stylesheet">
+
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846503002128" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846503002128" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846503002128" defer></script>
+</head>
+<body>
+    <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
+    <div class="absolute bottom-0 left-0" style="top: 5rem; right: 50%"></div>
+
+    <header id="retype-header" class="sticky top-0 z-30 flex w-full h-16 bg-header-bg border-b border-header-border md:h-20">
+        <div class="container relative flex items-center justify-between pr-6 grow md:justify-start">
+            <!-- Mobile menu button skeleton -->
+            <button v-cloak class="skeleton retype-mobile-menu-button flex items-center justify-center shrink-0 overflow-hidden dark:text-white focus:outline-hidden rounded-full w-10 h-10 ml-3.5 md:hidden"><svg xmlns="http://www.w3.org/2000/svg" class="mb-px shrink-0" width="24" height="24" viewBox="0 0 24 24" role="presentation" style="margin-bottom: 0px;"><g fill="currentColor"><path d="M2 4h20v2H2zM2 11h20v2H2zM2 18h20v2H2z"></path></g></svg></button>
+            <div v-cloak id="retype-sidebar-left-toggle-button"></div>
+    
+            <!-- Logo -->
+            <div class="flex items-center justify-between h-full py-2 md:w-75">
+                <div class="flex items-center px-2 md:px-6">
+                    <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
+                        <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.5.0</span>
+                </div>
+    
+                <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
+            </div>
+    
+            <div class="flex justify-between md:grow">
+                <!-- Top Nav -->
+                <nav id="retype-header-nav" class="hidden md:flex">
+                    <ul class="flex flex-col mb-4 md:pl-16 md:mb-0 md:flex-row md:items-center">
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                    <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                </svg>
+                                <span>GitHub</span>
+                            </a>
+                        </li>
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                        </li>
+    
+                    </ul>
+                </nav>
+    
+                <div v-cloak class="flex justify-end grow">
+                    <div id="retype-mobile-search-button"></div>
+                    <doc-search-desktop></doc-search-desktop>
+    
+                    <doc-theme-switch class="lg:ml-2"></doc-theme-switch>
+                    <doc-history></doc-history>
+                </div>
+            </div>
+        </div>
+    </header>
+
+
+    <div id="retype-container" class="container relative flex bg-white">
+        <!-- Sidebar Skeleton -->
+        <div v-cloak class="fixed flex flex-col shrink-0 duration-300 ease-in-out bg-sidebar-left-bg border-sidebar-left-border sidebar top-20 w-75 border-r h-screen md:sticky transition-transform skeleton">
+        
+            <div class="flex items-center h-16 px-6">
+                <input id="retype-filter-input-mock" class="w-full h-10 pl-8 px-3 py-2 transition-colors duration-200 ease-linear bg-filter-bg border border-filter-border rounded-lg shadow-none md:text-sm hover:border-filter-border-hover focus:outline-hidden focus:border-filter-border-focus placeholder-filter-placeholder" type="text">
+            </div>
+        
+            <div class="pl-6 mt-1 mb-4">
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            </div>
+        
+            <div class="shrink-0 mt-auto bg-transparent dark:border-base-border">
+                <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                    <span class="text-xs whitespace-nowrap">Powered by</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Sidebar component -->
+        <doc-sidebar v-cloak>
+            <template #sidebar-footer>
+                <div class="shrink-0 mt-auto border-t md:bg-transparent md:border-none dark:border-base-border">
+        
+                    <div class="py-3 px-6 md:hidden border-b dark:border-base-border">
+                        <nav>
+                            <ul class="flex flex-wrap justify-center items-center">
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                            <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                        </svg>
+                                        <span>GitHub</span>
+                                    </a>
+                                </li>
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                                </li>
+        
+                            </ul>
+                        </nav>
+                    </div>
+        
+                    <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                        <span class="text-xs whitespace-nowrap">Powered by</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                    </a>
+                </div>
+            </template>
+        </doc-sidebar>
+
+        <div class="grow min-w-0 bg-body-bg">
+            <!-- Render "toolbar" template here on api pages --><!-- Render page content -->
+<div class="flex">
+    <div id="retype-main" class="min-w-0 p-4 grow md:px-16">
+        <main class="relative pb-12 lg:pt-2">
+            <div class="relative retype-markdown" id="retype-content">
+                <!-- Rendered if sidebar right is enabled -->
+                <div id="retype-sidebar-right-toggle"></div>
+                <doc-page-actions></doc-page-actions>
+
+                <!-- Page content  -->
+<h1 id="prompt-cache-and-session-id">Prompt cache and session id</h1>
+<p>Model servers keep the prompt they have just read (the <em>prompt cache</em>), so that the next request that starts with the
+same text doesn&#x27;t have to read it again. For a long story that is the difference between waiting a few seconds and
+waiting minutes. Marginalia builds its prompts so that this works (the story first, the new part last), and it can also
+tell the server <strong>what kind of work a request is</strong>, so that a server, or a proxy in front of it, can keep a cache for each
+kind.</p>
+<h2 id="what-is-sent">What is sent</h2>
+<p>Every request Marginalia makes for a kind of work carries the HTTP header</p>
+<div id="what-is-sent-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-none"><code v-pre class="language-none">X-Session-ID: 3f9a0c1d5b7e4a2c8d6f1e0b9a7c5d3e</code></pre>
+</doc-codeblock></div>
+<p>The value is the same for the same user doing the same kind of work, whatever book it is about, and it differs between
+users and between kinds:</p>
+<retype-table copy-text="| Kind | Requests |
+|---|---|
+| generation | A new part, *Regenerate* and *Swipe*: their prompts share the story, so they share the value. |
+| impersonate | *Impersonate*. |
+| annotate | *Annotate with AI* and automatic annotation; the second model of the two stage mode has a value of its own. |
+| redraft | *Redraft* and the redraft of automatic annotation. |
+| summary | Summaries. |
+| agent | The requests of an [agent](agents.md); every run has a value of its own, as it grows its own conversation. |
+| help | The help assistant. |
+| plugins | Each plugin has its own: *Reviewer*, *Side Query* (its tab titles have another), *Lore Generator*, *Arc Outline*, *SillyTavern Converter* and *Manga Generator*. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Kind</th>
+<th>Requests</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>generation</td>
+<td>A new part, <em>Regenerate</em> and <em>Swipe</em>: their prompts share the story, so they share the value.</td>
+</tr>
+<tr>
+<td>impersonate</td>
+<td><em>Impersonate</em>.</td>
+</tr>
+<tr>
+<td>annotate</td>
+<td><em>Annotate with AI</em> and automatic annotation; the second model of the two stage mode has a value of its own.</td>
+</tr>
+<tr>
+<td>redraft</td>
+<td><em>Redraft</em> and the redraft of automatic annotation.</td>
+</tr>
+<tr>
+<td>summary</td>
+<td>Summaries.</td>
+</tr>
+<tr>
+<td>agent</td>
+<td>The requests of an <a href="../agents/">agent</a>; every run has a value of its own, as it grows its own conversation.</td>
+</tr>
+<tr>
+<td>help</td>
+<td>The help assistant.</td>
+</tr>
+<tr>
+<td>plugins</td>
+<td>Each plugin has its own: <em>Reviewer</em>, <em>Side Query</em> (its tab titles have another), <em>Lore Generator</em>, <em>Arc Outline</em>, <em>SillyTavern Converter</em> and <em>Manga Generator</em>.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Requests that belong to no kind (listing the models, testing the connection, counting tokens) send no header.</p>
+<p>The value is a keyed hash of the user and the kind (the key comes from <code translate="no" v-pre>secret.key</code> in the
+<a href="../administration/#the-data-folder">data folder</a>). It reveals neither the user nor the book, nobody can work out
+who it belongs to, and another installation gives another value for the same user. There is one value per user and kind,
+not one per book, so a server never has to keep more caches than that.</p>
+<p>All providers send it: OpenAI-compatible ones, and the <a href="../extensions/anthropic/">Anthropic Claude</a> and
+<a href="../extensions/google-genai/">Google Gemini</a> providers. A server that doesn&#x27;t use the header ignores it. There is no
+setting to switch it off.</p>
+<h2 id="using-it-one-slot-on-disk-with-llamacpp">Using it: one slot on disk with llama.cpp</h2>
+<p>The value is for you if the server runs out of memory for caches. A local <code translate="no" v-pre>llama-server</code> with enough memory for several
+slots can keep a cache for each kind of work and needs nothing more. With memory for <strong>one</strong> slot, every other kind of
+work throws the cache of the story away: the annotation of a part, the redraft after it and the next generation read
+their prompts again each time.</p>
+<p>The way out is to keep the cache of every kind on disk and swap it into the one slot when a request of that kind
+arrives. <code translate="no" v-pre>llama-server</code> can save a slot to a file and restore it; a proxy in front of it knows which kind a request is
+from the header. The example below is a hook for <a href="https://docs.litellm.ai/">LiteLLM</a>.</p>
+<p>Start <code translate="no" v-pre>llama-server</code> with one slot and a folder for the files:</p>
+<div id="using-it-one-slot-on-disk-with-llamacpp-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">llama-server -m model.gguf -c 65536 -np 1 --slot-save-path /var/cache/llama-slots</code></pre>
+</doc-codeblock></div>
+<p>Save this as <code translate="no" v-pre>slot_cache.py</code> next to the LiteLLM configuration:</p>
+<div id="using-it-one-slot-on-disk-with-llamacpp-code-2" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-python"><code v-pre class="language-python">&quot;&quot;&quot;LiteLLM hook: keeps the prompt cache of llama-server on disk, one file per X-Session-ID.
+
+llama-server runs with ONE slot (-np 1) and --slot-save-path. Marginalia sends the header X-Session-ID, a hash of the
+user and the kind of work (generation, annotate, redraft...). When a request for another session arrives, the hook saves
+the slot under the name of the session that was in it and restores the file of the new one (or empties the slot when
+there is none yet), so every kind of work finds its own cache and only one is in memory.
+
+A saved state fits only the model that wrote it, so the files are kept per route: the name is the route (the model_name
+of the LiteLLM config) and the session, and the limits below count the files of one route. Routes never share a file,
+also when they point at the same server or share a folder. After you change the model behind a route, delete its files.
+
+The server is the one the request is going to (its api_base and api_key in the LiteLLM config); only deployments that
+ask for it are touched, with `model_info` in config.yaml. One wildcard entry covers a llama-server in router mode, no
+model has to be listed (the route is then the model the client asked for):
+
+    model_list:
+      - model_name: &quot;*&quot;
+        litellm_params: {model: &quot;openai/*&quot;, api_base: &quot;http://llama-server:8080/v1&quot;, api_key: none}
+        model_info:
+          slot_cache: true              # or the settings below, each one optional:
+          # slot_cache: {slot: 0, save_path: /var/cache/llama-slots, max_files: 8, max_gib: 20, model: qwen}
+
+In router mode every model is an instance of its own with its own slots: the slot calls name the model (the model of the
+request without the `openai/` of LiteLLM, or `model` of the settings), so the state is kept per server, model and slot.
+This needs a llama.cpp that routes /slots (PR 19854, 2026-02).
+
+  slot        the slot to use, default 0 (environment LLAMA_SLOT)
+  model       the model the router knows, when it is not the one in the request
+  models_max  the --models-max of the router, default 4 (environment LLAMA_MODELS_MAX), 0 for no limit. The router
+              unloads the model used longest ago when a request needs more than that; its slot is gone with it. The hook
+              follows the same order and saves that slot BEFORE the request that makes the router unload it. Requests
+              that reach the router without this proxy are not seen, so it must be the only client of the router.
+  save_path   the folder of --slot-save-path as THIS process sees it; without it the files are never deleted
+              (environment LLAMA_SLOT_SAVE_PATH)
+  max_files   keep at most this many saved caches of the route, default no limit (environment LLAMA_CACHE_MAX_FILES)
+  max_gib     keep at most this many GiB of saved caches of the route, default no limit (environment LLAMA_CACHE_MAX_GIB)
+When a limit is passed, the caches that were used the longest ago are deleted first.
+&quot;&quot;&quot;
+import asyncio
+import collections
+import hashlib
+import logging
+import os
+import re
+
+import httpx
+from litellm.integrations.custom_logger import CustomLogger
+
+log = logging.getLogger(&quot;slot_cache&quot;)
+
+SLOT = int(os.environ.get(&quot;LLAMA_SLOT&quot;, &quot;0&quot;))
+SAVE_PATH = os.environ.get(&quot;LLAMA_SLOT_SAVE_PATH&quot;)
+MAX_FILES = int(os.environ.get(&quot;LLAMA_CACHE_MAX_FILES&quot;, &quot;0&quot;))
+MAX_GIB = float(os.environ.get(&quot;LLAMA_CACHE_MAX_GIB&quot;, &quot;0&quot;))
+# --models-max of llama-server in router mode (its default is 4, 0 is no limit)
+MODELS_MAX = int(os.environ.get(&quot;LLAMA_MODELS_MAX&quot;, &quot;4&quot;))
+# the header is client input and becomes a file name: only what Marginalia sends is accepted
+SESSION_ID = re.compile(r&quot;^[0-9a-f]{32}$&quot;)
+
+
+def route_tag(route):
+    &quot;&quot;&quot;The part of a file name that is the route: readable, safe as a file name, and told apart by a hash of the name.&quot;&quot;&quot;
+    return re.sub(r&quot;[^A-Za-z0-9_-]&quot;, &quot;_&quot;, route)[:40] + &quot;-&quot; + hashlib.sha256(route.encode()).hexdigest()[:8]
+
+
+class CacheFolder:
+    &quot;&quot;&quot;The saved caches of one route in the folder of llama-server; deletes the least recently used ones beyond the
+    limits (0 is no limit). The files of other routes are not touched and not counted.&quot;&quot;&quot;
+
+    def __init__(self, path, max_files=0, max_bytes=0, tag=&quot;&quot;):
+        self.path = path
+        self.max_files = max_files
+        self.max_bytes = max_bytes
+        self.files = re.compile(&quot;^&quot; + re.escape(tag) + r&quot;_[0-9a-f]{32}\.bin$&quot;)
+
+    def touch(self, session):
+        &quot;&quot;&quot;A cache that was restored was just used: it is the last one to go.&quot;&quot;&quot;
+        if self.path:
+            try:
+                os.utime(os.path.join(self.path, session + &quot;.bin&quot;))
+            except OSError:
+                pass
+
+    def evict(self, keep=()):
+        &quot;&quot;&quot;Deletes the oldest caches until the limits hold, never those of the sessions in `keep`.&quot;&quot;&quot;
+        if not self.path or not (self.max_files or self.max_bytes):
+            return []
+        try:
+            entries = []
+            for name in os.listdir(self.path):
+                if self.files.match(name):
+                    stat = os.stat(os.path.join(self.path, name))
+                    entries.append((stat.st_mtime, name, stat.st_size))
+        except OSError as e:
+            log.warning(&quot;Cannot list %s: %s&quot;, self.path, e)
+            return []
+        entries.sort()
+        count = len(entries)
+        size = sum(entry[2] for entry in entries)
+        removed = []
+        for _, name, length in entries:
+            if (not self.max_files or count &lt;= self.max_files) and (not self.max_bytes or size &lt;= self.max_bytes):
+                break
+            if name[:-len(&quot;.bin&quot;)] in keep:
+                continue
+            try:
+                os.remove(os.path.join(self.path, name))
+            except OSError as e:
+                log.warning(&quot;Cannot delete %s: %s&quot;, name, e)
+                continue
+            count -= 1
+            size -= length
+            removed.append(name)
+        if self.max_bytes and size &gt; self.max_bytes:
+            log.warning(&quot;The cache of one session alone is over the limit of %d bytes&quot;, self.max_bytes)
+        return removed
+
+
+class SlotSwitcher:
+    &quot;&quot;&quot;One slot of one llama-server and the cache (route and session) that is in it.&quot;&quot;&quot;
+
+    def __init__(self, base_url, slot=SLOT, client=None, model=None):
+        self.base_url = base_url.rstrip(&quot;/&quot;)
+        self.slot = slot
+        # a router sends the call to the instance of this model (the body is read by the router)
+        self.model = model
+        # a swap waits for the slot to be idle, which can be as long as a generation takes
+        self.client = client or httpx.AsyncClient(timeout=None)
+        self.headers = {}
+        self.current = None
+        self.folder = None
+        self._lock = asyncio.Lock()
+
+    async def _action(self, action, key=None):
+        body = {}
+        if self.model:
+            body[&quot;model&quot;] = self.model
+        if key:
+            body[&quot;filename&quot;] = key + &quot;.bin&quot;
+        # nothing to save in a model the router has unloaded: it must not be loaded for that
+        query = f&quot;action={action}&quot; + (&quot;&amp;autoload=false&quot; if action == &quot;save&quot; else &quot;&quot;)
+        try:
+            response = await self.client.post(f&quot;{self.base_url}/slots/{self.slot}?{query}&quot;, json=body or None,
+                                              headers=self.headers)
+            if response.status_code in (401, 403):
+                log.warning(&quot;%s %s: the server refused the api key (%d)&quot;, self.base_url, action, response.status_code)
+            return response.is_success
+        except httpx.HTTPError as e:
+            # a cache that is not there is only slower, never an error of the request
+            log.warning(&quot;%s %s: %s&quot;, self.base_url, action, e)
+            return False
+
+    async def switch(self, key, api_key=None, folder=None):
+        &quot;&quot;&quot;Puts the cache `key` (the file name without .bin) in the slot; `folder` has the limits of its route.&quot;&quot;&quot;
+        folder = folder or CacheFolder(SAVE_PATH, MAX_FILES, int(MAX_GIB * 1024 ** 3))
+        async with self._lock:
+            if key == self.current:
+                return
+            # the key of the deployment that asks now (a placeholder is not a key)
+            self.headers = {&quot;Authorization&quot;: &quot;Bearer &quot; + api_key} if api_key and api_key != &quot;none&quot; else {}
+            self.folder = folder
+            if self.current is not None and await self._action(&quot;save&quot;, self.current):
+                # not the cache that was just saved, and not the one that is about to be restored
+                await asyncio.to_thread(folder.evict, {self.current, key})
+            if await self._action(&quot;restore&quot;, key):
+                await asyncio.to_thread(folder.touch, key)
+            else:
+                await self._action(&quot;erase&quot;)
+            self.current = key
+
+    async def release(self, api_key=None):
+        &quot;&quot;&quot;The model is about to be unloaded by the router: its slot goes, so the cache in it is saved first.&quot;&quot;&quot;
+        async with self._lock:
+            if self.current is None:
+                return
+            self.headers = {&quot;Authorization&quot;: &quot;Bearer &quot; + api_key} if api_key and api_key != &quot;none&quot; else {}
+            if await self._action(&quot;save&quot;, self.current) and self.folder:
+                await asyncio.to_thread(self.folder.evict, {self.current})
+            self.current = None
+
+
+def upstream_model(model):
+    &quot;&quot;&quot;The name the server knows the model by: LiteLLM's name is `openai/&lt;name&gt;`.&quot;&quot;&quot;
+    return model[len(&quot;openai/&quot;):] if model and model.startswith(&quot;openai/&quot;) else model
+
+
+def server_root(api_base):
+    &quot;&quot;&quot;The slots are at the root of llama-server, the API address of the model ends in /v1.&quot;&quot;&quot;
+    base = api_base.rstrip(&quot;/&quot;)
+    return base[:-len(&quot;/v1&quot;)] if base.endswith(&quot;/v1&quot;) else base
+
+
+class SlotCacheHook(CustomLogger):
+    def __init__(self):
+        super().__init__()
+        self.switchers = {}
+        self.loaded = {}            # per server: the models the router has loaded, the one used longest ago first
+        self.client = httpx.AsyncClient(timeout=None)
+
+    async def make_room(self, root, model, models_max, api_key):
+        &quot;&quot;&quot;Follows the models the router has loaded; the ones it unloads for `model` get their slot saved first.&quot;&quot;&quot;
+        if not models_max or not model:
+            return
+        loaded = self.loaded.setdefault(root, collections.OrderedDict())
+        loaded[model] = None
+        loaded.move_to_end(model)
+        while len(loaded) &gt; models_max:
+            gone, _ = loaded.popitem(last=False)
+            for (r, m, _slot), switcher in list(self.switchers.items()):
+                if r == root and m == gone:
+                    await switcher.release(api_key)
+
+    # runs after the router chose the deployment (so its api_base is known) and before the request is sent
+    async def async_pre_call_deployment_hook(self, kwargs, call_type):
+        headers = (kwargs.get(&quot;proxy_server_request&quot;) or {}).get(&quot;headers&quot;) or {}
+        session = headers.get(&quot;x-session-id&quot;)
+        options = (kwargs.get(&quot;model_info&quot;) or {}).get(&quot;slot_cache&quot;)
+        api_base = kwargs.get(&quot;api_base&quot;)
+        # the route the client asked for; without one the files of the models could not be told apart
+        route = (kwargs.get(&quot;metadata&quot;) or {}).get(&quot;model_group&quot;) or kwargs.get(&quot;model&quot;)
+        if not (session and SESSION_ID.match(session) and options and api_base and route):
+            return None
+        options = options if isinstance(options, dict) else {}
+        tag = route_tag(route)
+        folder = CacheFolder(options.get(&quot;save_path&quot;, SAVE_PATH), int(options.get(&quot;max_files&quot;, MAX_FILES)),
+                             int(float(options.get(&quot;max_gib&quot;, MAX_GIB)) * 1024 ** 3), tag)
+        slot = int(options.get(&quot;slot&quot;, SLOT))
+        model = options.get(&quot;model&quot;) or upstream_model(kwargs.get(&quot;model&quot;))
+        where = (server_root(api_base), model, slot)
+        await self.make_room(where[0], model, int(options.get(&quot;models_max&quot;, MODELS_MAX)), kwargs.get(&quot;api_key&quot;))
+        if where not in self.switchers:
+            self.switchers[where] = SlotSwitcher(where[0], slot, self.client, model)
+        await self.switchers[where].switch(f&quot;{tag}_{session}&quot;, kwargs.get(&quot;api_key&quot;), folder)
+        return None
+
+
+proxy_handler_instance = SlotCacheHook()</code></pre>
+</doc-codeblock></div>
+<p>and switch it on in the LiteLLM <code translate="no" v-pre>config.yaml</code>: the callback, and <code translate="no" v-pre>slot_cache</code> in the <code translate="no" v-pre>model_info</code> of the route that goes
+to the <code translate="no" v-pre>llama-server</code>. One wildcard entry is enough, no model has to be listed in LiteLLM (the server knows them, and
+the client names the one it wants):</p>
+<div id="using-it-one-slot-on-disk-with-llamacpp-code-3" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-yaml"><code v-pre class="language-yaml">model_list:
+  - model_name: &quot;*&quot;
+    litellm_params:
+      model: &quot;openai/*&quot;
+      api_base: http://llama-server:8080/v1
+      api_key: none
+    model_info:
+      slot_cache: true
+      # or, each one optional:
+      # slot_cache: {slot: 0, save_path: /var/cache/llama-slots, max_files: 8, max_gib: 20, models_max: 1}
+
+litellm_settings:
+  callbacks: slot_cache.proxy_handler_instance</code></pre>
+</doc-codeblock></div>
+<p>The hook needs no address of its own: it uses the <code translate="no" v-pre>api_base</code> and <code translate="no" v-pre>api_key</code> of the route the request goes to (the slots
+are at the root of the server, so a trailing <code translate="no" v-pre>/v1</code> is dropped). Only the routes with <code translate="no" v-pre>slot_cache</code> are touched; a request
+for any other model, a cloud one for instance, passes through even though it carries the header. Several servers
+work side by side, each with its own slot. With the wildcard the route is the model the client asked for, so the files are
+kept per model (<code translate="no" v-pre>qwen3-32b</code>), and you can still list some models by name next to it if they need other settings. LiteLLM reads the part of a model
+name before a <code translate="no" v-pre>/</code> as the provider, so for names that contain one (<code translate="no" v-pre>org/model</code>, as in a router preset) use the route
+<code translate="no" v-pre>model_name: &quot;openai/*&quot;</code> and give Marginalia the model as <code translate="no" v-pre>openai/org/model</code>: the hook removes the <code translate="no" v-pre>openai/</code>, and the
+files and the slot calls use the name the server knows. The
+routes and their <code translate="no" v-pre>model_info</code> come from the <code translate="no" v-pre>model_list</code>: a proxy started without one (only <code translate="no" v-pre>litellm --model ...</code>) has
+neither, and the hook does nothing there. The one wildcard entry is the replacement.</p>
+<p><strong><code translate="no" v-pre>llama-server</code> in router mode</strong> (many models behind one address, loaded on demand) works: every model is an instance
+of its own with its own slots, so the hook keeps the state per server, model and slot, and names the model in the body
+of its slot calls (the name the client used, without LiteLLM&#x27;s <code translate="no" v-pre>openai/</code>; the setting <code translate="no" v-pre>model</code> gives another one, for a
+route whose name is not the model). It needs a llama.cpp from February 2026 or later, which forwards <code translate="no" v-pre>/slots</code> to the
+instance (before it answered <code translate="no" v-pre>400 Invalid action</code>).</p>
+<p>When the router may hold only some of its models (<code translate="no" v-pre>--models-max</code>, 4 by default), asking for another one makes it
+unload the model used longest ago, and the slot of that model, with the cache in it, is gone. The hook follows the same
+order (set <code translate="no" v-pre>models_max</code> in <code translate="no" v-pre>slot_cache</code>, or <code translate="no" v-pre>LLAMA_MODELS_MAX</code>, to the same number as <code translate="no" v-pre>--models-max</code>; 0 for no limit)
+and saves that slot <strong>before</strong> the request that makes the router unload it. For that the proxy must be the only client
+of the router: a request that reaches it another way is not seen. A save never loads a model the router has unloaded.
+What it does: when a request arrives from another session than the one in the slot, the hook saves the slot under the
+name of the session that was in it, restores the file of the new one (or empties the slot when there is no file yet),
+and lets the request go on. The files are kept <strong>per route</strong> (the <code translate="no" v-pre>model_name</code>): a saved state fits only the model that
+wrote it, so the file is named after the route and the session, and two routes never share one, also when they use the
+same server and folder. The server then reads only what differs from the restored prompt. A cache that can&#x27;t be
+restored, a file that is gone or a server that doesn&#x27;t answer only means that the prompt is read again; the request
+itself never fails because of the hook.</p>
+<p>Things to know:</p>
+<ul>
+<li><strong>Size.</strong> A file is as big as the memory of the slot holds: for a long story and a large model hundreds of megabytes
+to several gigabytes. There is one file per route, user and kind, and each is overwritten in place, so the folder stays as
+small as that. Check that restoring one is faster than reading the prompt (a fast SSD usually is, by a lot, for a
+long story: a few seconds against a minute of prefill).</li>
+<li><strong>Limits.</strong> Without a limit the folder grows with the number of routes, users and kinds. Set <code translate="no" v-pre>max_files</code> (a number of
+files) and/or <code translate="no" v-pre>max_gib</code> (their total size) in the <code translate="no" v-pre>slot_cache</code> of a route (or <code translate="no" v-pre>LLAMA_CACHE_MAX_FILES</code> and
+<code translate="no" v-pre>LLAMA_CACHE_MAX_GIB</code> in the environment of the proxy for all routes) and the hook deletes the caches <strong>of that route</strong>
+that were <strong>used</strong> the longest ago after each save: restoring a cache counts as using it. It never deletes the cache
+it has just saved or the one it is about to restore (so a route with two sessions in turn keeps at least two files,
+whatever the limit), and it only touches the files of the route, so other routes and other files in the folder are safe. A single cache that is bigger than <code translate="no" v-pre>max_gib</code> stays (with a warning in the log).
+Deleting needs the folder: set <code translate="no" v-pre>save_path</code> (or <code translate="no" v-pre>LLAMA_SLOT_SAVE_PATH</code>) to the <code translate="no" v-pre>--slot-save-path</code> folder as the proxy
+sees it; with <code translate="no" v-pre>llama-server</code> in a container, that is a volume both containers mount. Without it nothing is deleted. A
+deleted cache only means that its session reads its prompt again once. The limits are optional: a cron job on the host
+does as well when you do not need a cap on the size, for example <code translate="no" v-pre>find /srv/ai/slots -name '*.bin' -mtime +2 -delete</code>
+(a cache that is in use is saved again whenever its session is swapped out, so its age keeps starting over). Files
+deleted from outside are harmless to the hook; a missing one is a miss.</li>
+<li><strong>After you change the model of a route</strong>, delete its files in the folder (their names start with the route): a state
+saved by other weights does not fit the new model.</li>
+<li><strong>Every switch costs a save and a restore.</strong> With <a href="../books/annotations/">automatic annotation</a> on, a part is followed by an
+annotation and a redraft, so one turn can swap three or four times. Measure a turn before you rely on it.</li>
+<li><strong>A restart of the proxy</strong> forgets which session is in the slot; the first request after it restores its file over the
+slot, and what the slot held is lost.</li>
+<li><strong>A model the router unloaded without the hook knowing</strong> (a wrong <code translate="no" v-pre>models_max</code>, another client) has an empty slot
+while the hook still thinks the last session is in it. A request for the same session simply reads its prompt again;
+a request for another one saves the empty slot over that session&#x27;s file first, so its cache is lost too. Both only
+cost a prefill.</li>
+<li><strong>Failures show in the log of the proxy</strong> as warnings from <code translate="no" v-pre>slot_cache</code> (a certificate that does not match the address,
+a refused api key, a server that does not answer); a missing file is not one, it is the normal first request.</li>
+<li>
+<p><strong>In Docker</strong> the proxy and <code translate="no" v-pre>llama-server</code> are two containers, so the folder of <code translate="no" v-pre>--slot-save-path</code> is a directory of the
+host that both mount (the proxy needs to write there: it deletes old files and renews the age of the used ones), the
+hook file goes next to the LiteLLM config, and <code translate="no" v-pre>api_base</code> is an address the proxy can reach, with the host name of the
+certificate when the server uses TLS:</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-yaml"><code v-pre class="language-yaml"># llama-server                              # litellm
+volumes:                                    volumes:
+  - /srv/ai/slots:/slots                      - ./litellm_config.yml:/app/config.yml:ro
+command: &gt;                                    - ./slot_cache.py:/app/slot_cache.py:ro
+  ... -np 1 --models-max 1                    - /srv/ai/slots:/slots
+  --slot-save-path /slots</code></pre>
+</doc-codeblock></div>
+<p>with <code translate="no" v-pre>save_path: /slots</code> and <code translate="no" v-pre>models_max: 1</code> in the <code translate="no" v-pre>slot_cache</code> of the route.</p>
+</li>
+<li>The hook uses <code translate="no" v-pre>CustomLogger.async_pre_call_deployment_hook</code>, which LiteLLM calls after it chose the deployment and
+before it sends the request (version 1.106.5 was checked with a real router and a stand-in server); check it against
+the version you run. A proxy that swaps models behind one address by restarting a single server (llama-swap) is not
+supported: the slot calls would reach whichever model is loaded. None of this was run against a real <code translate="no" v-pre>llama-server</code>
+router; the tests use a stand-in that checks the calls the hook makes.</li>
+</ul>
+
+                
+                <!-- Required only on API pages -->
+                <doc-toolbar-member-filter-no-results></doc-toolbar-member-filter-no-results>
+            </div>
+            <footer id="retype-content-footer" class="clear-both">
+            
+                <nav id="retype-nextprev" class="print:hidden flex mt-14">
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../user/inference-providers/">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                            <span>
+                                <span class="block text-xs font-normal text-base-text-muted">Previous</span>
+                                <span class="block mt-1">Inference providers</span>
+                            </span>
+                        </a>
+                    </div>
+            
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../user/protocols/">
+                            <span>
+                                <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
+                                <span class="block mt-1">Protocols</span>
+                            </span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                        </a>
+                    </div>
+                </nav>
+            </footer>
+        </main>
+
+        <div id="retype-page-footer" class="print:border-none border-t border-base-border pt-6 mb-8">
+            <footer class="flex flex-wrap items-center justify-between print:justify-center">
+                <div id="retype-footer-links" class="print:hidden">
+                    <ul class="flex flex-wrap items-center text-sm">
+                    </ul>
+                </div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (ee3bba774).</p></div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Rendered if sidebar right is enabled -->
+    <!-- Sidebar right skeleton-->
+    <div v-cloak class="fixed top-0 bottom-0 right-0 translate-x-full bg-sidebar-right-bg border-sidebar-right-border lg:sticky lg:border-l lg:shrink-0 lg:pt-6 lg:translate-x-0 sm:w-1/2 lg:w-64 lg:z-0 md:w-104 sidebar-right skeleton">
+        <div class="pl-5">
+            <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+        </div>
+    </div>
+
+    <!-- User should be able to hide sidebar right -->
+    <doc-sidebar-right v-cloak></doc-sidebar-right>
+</div>
+
+        </div>
+    </div>
+
+    <doc-search-mobile></doc-search-mobile>
+    <doc-back-to-top></doc-back-to-top>
+</div>
+
+
+    <div id="retype-overlay-target"></div>
+
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Prompt cache and session id", level: 2, icon: "file", hasPrism: true, hasInstagram: false, hasMermaid: false, hasMath: false, tocDepth: 23, "md": "/user/prompt-cache.md" }</script>
+</body>
+</html>

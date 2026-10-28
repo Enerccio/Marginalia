@@ -157,7 +157,7 @@ public class RedraftServiceImpl implements RedraftService {
             }
         };
 
-        try {
+        try (InferenceSession _ = InferenceSession.open(InferenceSession.REDRAFT)) {
             inferenceService.stream(payload, protocol, inferenceCallback);
         } catch (Exception e) {
             log.error("Failed to start the redraft inference", e);

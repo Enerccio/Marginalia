@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846492092507">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846503002128">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846492092507" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846503002128" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846492092507" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846503002128" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846492092507" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846492092507" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846503002128" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846503002128" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -285,6 +285,7 @@ What a service has to take care of itself, because nothing above it does:</p>
 |---|---|
 | **Limits** | Call `AILimitService.check(ai, promptTokens, responseTokens)` at the start of `stream` and `infer`, in the caller's thread: it throws `InferenceException` (`NOT_AVAILABLE`, `LIMIT_REACHED`) when an administrator's limit for the user forbids the request. |
 | **Unmetered requests** | Read `UnmeteredScope.isActive()` once, in the caller's thread, when the request starts. When it is true the application asks on its own account (the help assistant with an AI that is not shared or has no *Apply limits*): skip `AILimitService.check` and do not call `UsageService.record` for that request, however many rounds and threads it takes. |
+| **Session id** | Call `InferenceServices.currentSessionId()` once, in the caller's thread, when the request starts (the [`InferenceSession`](../services.md#models) the caller opened is that thread's) and send a non-null answer in the header `InferenceSession.HEADER` (`X-Session-ID`) with every round of the request; the Anthropic plugin puts it on the request params, the Google plugin in the `HttpOptions` of the call. It is a hash of the user and the kind of work that a server or proxy with a prompt cache can use, and ignored by one that does not. The factory hands `inferenceServices::currentSessionId` to the service. |
 | **Usage** | Call `UsageService.record(ai, prefill, generated)` once per request, whichever way it ends, with the numbers the API reported (otherwise your own estimate - `TokenizerService.countTokensApprox`). It needs the user: capture `ThreadCopyRequestAttributes.create()` in the thread that calls `stream`/`infer` and run the recording in `InRequestScope`. |
 | **Errors** | Fail with `InferenceException` and the right `Type` (authentication, rate limit, context overflow...): the application has a localized text for each and `InferenceErrors.describe` adds the provider's message. Anything else is shown as an internal error. |
 | **Agents** | The runner of an [agent](../agents.md) asks with `InferenceService.round(payload, protocol, functions, callback)`: one request, the text, the reasoning and the calls the model wants made handed to `onRound` (they are **not** called) with a `RoundUsage` (tokens, and a `RoundStats` of what is known: the cache, the reasoning, the time, why it ended; -1 or null for what the provider does not tell). The default throws `UnsupportedOperationException`, so a service that does not implement it can not be given to an agent. |
@@ -307,6 +308,10 @@ What a service has to take care of itself, because nothing above it does:</p>
 <tr>
 <td><strong>Unmetered requests</strong></td>
 <td>Read <code translate="no" v-pre>UnmeteredScope.isActive()</code> once, in the caller&#x27;s thread, when the request starts. When it is true the application asks on its own account (the help assistant with an AI that is not shared or has no <em>Apply limits</em>): skip <code translate="no" v-pre>AILimitService.check</code> and do not call <code translate="no" v-pre>UsageService.record</code> for that request, however many rounds and threads it takes.</td>
+</tr>
+<tr>
+<td><strong>Session id</strong></td>
+<td>Call <code translate="no" v-pre>InferenceServices.currentSessionId()</code> once, in the caller&#x27;s thread, when the request starts (the <a href="../../services/#models"><code translate="no" v-pre>InferenceSession</code></a> the caller opened is that thread&#x27;s) and send a non-null answer in the header <code translate="no" v-pre>InferenceSession.HEADER</code> (<code translate="no" v-pre>X-Session-ID</code>) with every round of the request; the Anthropic plugin puts it on the request params, the Google plugin in the <code translate="no" v-pre>HttpOptions</code> of the call. It is a hash of the user and the kind of work that a server or proxy with a prompt cache can use, and ignored by one that does not. The factory hands <code translate="no" v-pre>inferenceServices::currentSessionId</code> to the service.</td>
 </tr>
 <tr>
 <td><strong>Usage</strong></td>
@@ -567,7 +572,7 @@ the error statuses, and a stalled stream that is cancelled. That is the way to t
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (cef06873f).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (ee3bba774).</p></div>
             </footer>
         </div>
     </div>

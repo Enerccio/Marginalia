@@ -25,6 +25,8 @@ final class FakeAnthropicServer implements AutoCloseable {
     private final Deque<Reply> replies = new ArrayDeque<>();
     final List<String> paths = Collections.synchronizedList(new ArrayList<>());
     final List<JsonNode> requests = Collections.synchronizedList(new ArrayList<>());
+    // the header X-Session-ID of each request, null when it had none
+    final List<String> sessionIds = Collections.synchronizedList(new ArrayList<>());
     // released when the test is over, so that a hanging reply lets go of its thread
     private final CountDownLatch over = new CountDownLatch(1);
     final CountDownLatch hanging = new CountDownLatch(1);
@@ -35,6 +37,7 @@ final class FakeAnthropicServer implements AutoCloseable {
             try (exchange) {
                 byte[] body = exchange.getRequestBody().readAllBytes();
                 paths.add(exchange.getRequestURI().getPath());
+                sessionIds.add(exchange.getRequestHeaders().getFirst("X-Session-ID"));
                 requests.add(body.length == 0 ? MAPPER.nullNode() : MAPPER.readTree(body));
                 Reply reply;
                 synchronized (replies) {

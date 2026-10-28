@@ -9,6 +9,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.sqlite.SQLiteDataSource;
 
 import javax.crypto.Cipher;
+import javax.crypto.Mac;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
@@ -44,6 +45,8 @@ public class Configuration implements InitializingBean {
     private static final String CIPHER = "AES/GCM/NoPadding";
     private static final int IV_LENGTH = 12;
     private static final int TAG_LENGTH = 128;
+    private static final String HMAC = "HmacSHA256";
+    private static final int HMAC_BYTES = 16;
 
     private final SecureRandom random = new SecureRandom();
 
@@ -180,6 +183,26 @@ public class Configuration implements InitializingBean {
         } catch (GeneralSecurityException | IllegalArgumentException e) {
             log.warn("Cannot decrypt secret, was it encrypted with a different {}?", SECRET_KEY_FILE, e);
             return null;
+        }
+    }
+
+    /**
+     * A keyed hash of the data for the purpose, with a key derived from the installation key: the same data gives the
+     * same value in this installation, an unrelated one in any other, and the value reveals nothing about the data.
+     * For identifiers that leave the application and must not be guessable from the ones inside (see
+     * {@code InferenceSession}).
+     *
+     * @return the first 128 bits as lower case hex, 32 characters
+     */
+    public String hmac(String purpose, String data) {
+        try {
+            Mac mac = Mac.getInstance(HMAC);
+            mac.init(new SecretKeySpec(secretKey.getEncoded(), HMAC));
+            byte[] subkey = mac.doFinal(("marginalia:" + purpose).getBytes(StandardCharsets.UTF_8));
+            mac.init(new SecretKeySpec(subkey, HMAC));
+            return HexFormat.of().formatHex(mac.doFinal(data.getBytes(StandardCharsets.UTF_8)), 0, HMAC_BYTES);
+        } catch (GeneralSecurityException e) {
+            throw new IllegalStateException("Cannot compute the hash", e);
         }
     }
 

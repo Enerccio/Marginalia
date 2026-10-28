@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
+import com.github.enerccio.marginalia.domain.service.InferenceSession;
 import com.github.enerccio.marginalia.domain.service.structured.PartialJson;
 import com.github.enerccio.marginalia.extensions.stconverter.STConverterLog;
 import com.github.enerccio.marginalia.extensions.stconverter.model.ChatLine;
@@ -751,7 +752,7 @@ public class ConverterView extends VerticalLayout {
             generating = true;
             updateControls();
             showStatus(progress(T.localized("Waiting for the model...")));
-            try {
+            try (InferenceSession _ = InferenceSession.open("sillytavern-converter")) {
                 running = inference.stream(service.toPayload(prompt), picker.getProtocol(), schema, null, callback(runFrom, runTo));
             } catch (Exception e) {
                 // nothing runs, do not leave the controls frozen

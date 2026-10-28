@@ -5,10 +5,7 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
-import com.github.enerccio.marginalia.domain.service.CancellationToken;
-import com.github.enerccio.marginalia.domain.service.InferenceErrors;
-import com.github.enerccio.marginalia.domain.service.InferenceService;
-import com.github.enerccio.marginalia.domain.service.InferenceServices;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.extensions.sidequery.SideQueryLog;
 import com.github.enerccio.marginalia.extensions.sidequery.model.*;
@@ -449,7 +446,7 @@ public class SideQueryTabContent extends VerticalLayout {
             // Obtain reference to the newly added AI card for in-place updates during streaming
             SideQueryMessageCard aiCard = (SideQueryMessageCard) messagesListLayout.getComponentAt(messagesListLayout.getComponentCount() - 1);
 
-            activeToken = service.stream(payload, targetProtocol, new InferenceService.InferenceAsyncCallback() {
+            InferenceService.InferenceAsyncCallback queryCallback = new InferenceService.InferenceAsyncCallback() {
                 private final StringBuilder responseBuf = new StringBuilder();
                 private final StringBuilder reasoningBuf = new StringBuilder();
 
@@ -507,7 +504,10 @@ public class SideQueryTabContent extends VerticalLayout {
                 public boolean isDead() {
                     return activeToken == null || activeToken.isCancelled();
                 }
-            });
+            };
+            try (InferenceSession _ = InferenceSession.open(SideQueryService.SESSION_KIND)) {
+                activeToken = service.stream(payload, targetProtocol, queryCallback);
+            }
 
         } catch (Exception e) {
             SideQueryMessage aiMsg = new SideQueryMessage();

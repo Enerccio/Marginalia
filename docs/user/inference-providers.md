@@ -168,6 +168,13 @@ The first method that works is used from then on. The local estimate is close fo
 is another reason to keep **Max Context Size** a little below the real limit. Providers of the type *Extension* count
 as their extension says; the [Google Gemini](extensions/google-genai.md) and [Anthropic Claude](extensions/anthropic.md) ones ask the provider to count.
 
+## Prompt cache
+
+Every request Marginalia makes for a kind of work (a new part, an annotation, a redraft, a summary...) carries the header
+`X-Session-ID`, a hash that is the same for the same user and kind. A server or proxy that keeps a prompt cache can use it
+to find the cache of the previous request of that kind. A server that doesn't know it ignores it. See
+[Prompt cache and session id](prompt-cache.md), with an example for one slot of llama.cpp kept on disk.
+
 ## Shared providers
 
 On an installation with several users, an administrator can **share** a provider: check **Shared with all users** in
