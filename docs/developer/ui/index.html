@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846459886712">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846492092507">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846459886712" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846492092507" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846459886712" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846492092507" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846459886712" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846459886712" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846492092507" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846492092507" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -1158,7 +1158,7 @@ otherwise the text the browser shows with some text around it (<code translate="
 </li>
 <li>
 <p><code translate="no" v-pre>AnnotationView</code> is one annotation with its actions, <code translate="no" v-pre>AnnotationDialog</code> asks for a new note, <code translate="no" v-pre>AnnotationsPanel</code> is the tab of the book (<code translate="no" v-pre>ManuscriptStoryPart.ANNOTATIONS_TAB</code>,
-in the default layout of the dock; the phone has it in the drawer), <code translate="no" v-pre>AnnotateDialog</code> runs <a href="../services/"><code translate="no" v-pre>AnnotateService</code></a> and lists the proposals. Opened on a part (<code translate="no" v-pre>open</code>) it annotates that part; opened without one (<code translate="no" v-pre>openRange</code>, from the <em>Annotate a range of parts with AI</em> item of the tools menu, <code translate="no" v-pre>StoryEditor.openAnnotateRangeDialog</code>, which shows the story again afterwards) it needs a range of the parts of the branch (both <em>From part</em> and <em>To part</em>, <code translate="no" v-pre>annotateNext</code>): the parts are annotated one after another, the next one is started from the callback of the one before (inside <code translate="no" v-pre>ui.access</code>, in the request scope copied when the run started), the proposals are <code translate="no" v-pre>Entry</code> records that remember their part, and accepting calls <code translate="no" v-pre>AnnotateService.accept</code> once per part. The service itself still annotates one part per call.</p>
+in the default layout of the dock; the phone has it in the drawer), <code translate="no" v-pre>AnnotateDialog</code> runs <a href="../services/"><code translate="no" v-pre>AnnotateService</code></a> and lists the proposals. Opened on a part (<code translate="no" v-pre>open</code>) it annotates that part; opened without one (<code translate="no" v-pre>openRange</code>, from the <em>Annotate a range of parts with AI</em> item of the tools menu, <code translate="no" v-pre>StoryEditor.openAnnotateRangeDialog</code>, which shows the story again afterwards) it needs a range of the parts of the branch (both <em>From part</em> and <em>To part</em>, <code translate="no" v-pre>annotateNext</code>): the parts are annotated one after another, the next one is started from the callback of the one before (inside <code translate="no" v-pre>ui.access</code>, in the request scope copied when the run started), the proposals are <code translate="no" v-pre>Entry</code> records that remember their part, and accepting calls <code translate="no" v-pre>AnnotateService.accept</code> once per part. The service itself still annotates one part per call. <strong>Automatic annotation.</strong> The <em>Automatic annotation</em> item of the tools menu (<code translate="no" v-pre>StoryMenuKeys.AUTO_ANNOTATE</code>, <code translate="no" v-pre>StoryEditor.openAutoAnnotateDialog</code> / <code translate="no" v-pre>isAutoAnnotate</code>, the item is ticked while it is on) opens <code translate="no" v-pre>AutoAnnotateDialog</code>, which stores the settings in the extended attributes <code translate="no" v-pre>autoAnnotate*</code> of <code translate="no" v-pre>Manuscript</code> (the AI and the protocol as uuids). <code translate="no" v-pre>StoryGenerationListener.onComplete</code> calls the new <code translate="no" v-pre>Callbacks.partCompleted(message)</code> (a default method) after the story was drawn again, and both story tabs answer it with <code translate="no" v-pre>new AutoAnnotate(manuscript, reload).run(message)</code>: when the book has it on and the part has a text, <code translate="no" v-pre>AnnotateDialog.openAuto</code> opens the annotation window on the reloaded part with an <code translate="no" v-pre>AnnotateDialog.Auto</code> (instructions, AI, protocol, accept) and starts the run at once. At the end of a run that was not stopped (<code translate="no" v-pre>endRun(true)</code>) and with <code translate="no" v-pre>accept</code>, the dialog calls <code translate="no" v-pre>accept()</code> itself (a closed dialog, <code translate="no" v-pre>isOpened()</code> false, does nothing: a late answer of a model the author stopped by closing the window must not add notes) or, when the model found nothing and there is no note about a part that could not be read, says so and closes. <code translate="no" v-pre>accept()</code> calls <code translate="no" v-pre>onAdded</code>, which only then moves on: it shows the story again and, with <code translate="no" v-pre>autoAnnotateRedraft</code> (and accept), calls <code translate="no" v-pre>RedraftDialog.openAuto(book, part, autoAnnotateAcceptRedraft, ...)</code>, which starts the redraft at once with the open annotations; with <code translate="no" v-pre>apply</code> the dialog applies the text itself when the model finished (<code translate="no" v-pre>completed</code>, not when it was stopped, and not when the dialog was closed). A closed window never calls its callback, so closing ends the run; nothing is redrafted when no note was added. The automatic redraft dialog never offers the summaries&#x27; revalidation box.</p>
 </li>
 <li>
 <p><strong>Notes in the margin</strong> (desktop): the cogs menu item <strong>Annotations in the margin</strong> (an item of the <code translate="no" v-pre>StoryMenuRegistry</code>; <code translate="no" v-pre>ManuscriptStoryPart.setAnnotationsInMargin</code>) stores the
@@ -1518,7 +1518,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (d4a7eb17a).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (cef06873f).</p></div>
             </footer>
         </div>
     </div>

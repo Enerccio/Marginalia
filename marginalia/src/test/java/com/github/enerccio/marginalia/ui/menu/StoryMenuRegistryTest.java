@@ -78,6 +78,7 @@ class StoryMenuRegistryTest extends MarginaliaTestBase {
                         yield null;
                     }
                     case "isAnnotationsInMargin" -> Boolean.FALSE;
+                    case "isAutoAnnotate" -> Boolean.FALSE;
                     default -> {
                         calls.add(method.getName());
                         yield null;
@@ -120,11 +121,11 @@ class StoryMenuRegistryTest extends MarginaliaTestBase {
     void theApplicationRegistersItsMenusAndThePhoneShowsOnlyTheItemsMarkedForIt() {
         assertThat(keys(registry.definition(MenuKind.TOOLS, false, null))).containsExactly(
                 StoryMenuKeys.CHANGE_STYLES, StoryMenuKeys.HIGHLIGHT_GENERATED, StoryMenuKeys.ANNOTATIONS_IN_MARGIN,
-                StoryMenuKeys.SEARCH_REPLACE, StoryMenuKeys.IMPORT_ARCHIVE, StoryMenuKeys.ANNOTATE_RANGE, StoryMenuKeys.BRANCH_TOKENS, StoryMenuKeys.EXPORT,
-                StoryMenuKeys.RESTORE_LAYOUT);
+                StoryMenuKeys.SEARCH_REPLACE, StoryMenuKeys.IMPORT_ARCHIVE, StoryMenuKeys.ANNOTATE_RANGE, StoryMenuKeys.AUTO_ANNOTATE,
+                StoryMenuKeys.BRANCH_TOKENS, StoryMenuKeys.EXPORT, StoryMenuKeys.RESTORE_LAYOUT);
         assertThat(keys(registry.definition(MenuKind.TOOLS, true, null))).containsExactly(
-                StoryMenuKeys.CHANGE_STYLES, StoryMenuKeys.SEARCH_REPLACE, StoryMenuKeys.IMPORT_ARCHIVE, StoryMenuKeys.ANNOTATE_RANGE, StoryMenuKeys.BRANCH_TOKENS,
-                StoryMenuKeys.EXPORT);
+                StoryMenuKeys.CHANGE_STYLES, StoryMenuKeys.SEARCH_REPLACE, StoryMenuKeys.IMPORT_ARCHIVE, StoryMenuKeys.ANNOTATE_RANGE,
+                StoryMenuKeys.AUTO_ANNOTATE, StoryMenuKeys.BRANCH_TOKENS, StoryMenuKeys.EXPORT);
         assertThat(registry.definition(MenuKind.CARD, false, null).getItems()).hasSize(15);
         assertThat(keys(registry.definition(MenuKind.CARD, false, null))).startsWith(StoryMenuKeys.EDIT, StoryMenuKeys.DISCARD);
         assertThat(keys(registry.definition(MenuKind.TEXT, true, null))).containsExactly(

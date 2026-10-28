@@ -92,6 +92,37 @@ public class Manuscript extends ExtendableEntity {
     @Transient
     private String impersonatePrompt;
 
+    // the automatic annotation of a generated part (Tools menu of the story): on, what to look for, the model to use (uuids of
+    // the AI and the protocol, none is the model of the book), whether the notes are added and the redraft started and applied
+    // without asking
+    @ExtendedAttribute
+    @Transient
+    private Boolean autoAnnotate;
+
+    @ExtendedAttribute
+    @Transient
+    private String autoAnnotateInstructions;
+
+    @ExtendedAttribute
+    @Transient
+    private String autoAnnotateModel;
+
+    @ExtendedAttribute
+    @Transient
+    private String autoAnnotateProtocol;
+
+    @ExtendedAttribute
+    @Transient
+    private Boolean autoAnnotateAccept;
+
+    @ExtendedAttribute
+    @Transient
+    private Boolean autoAnnotateRedraft;
+
+    @ExtendedAttribute
+    @Transient
+    private Boolean autoAnnotateAcceptRedraft;
+
     @ExtendedAttribute
     @Transient
     private BackupStrategy backupStrategy;
@@ -270,6 +301,62 @@ public class Manuscript extends ExtendableEntity {
 
     public void setSummaryPrompt(String summaryPrompt) {
         this.summaryPrompt = summaryPrompt;
+    }
+
+    public Boolean getAutoAnnotate() {
+        return autoAnnotate != null && autoAnnotate;
+    }
+
+    public void setAutoAnnotate(Boolean autoAnnotate) {
+        this.autoAnnotate = autoAnnotate;
+    }
+
+    public String getAutoAnnotateInstructions() {
+        return autoAnnotateInstructions;
+    }
+
+    public void setAutoAnnotateInstructions(String autoAnnotateInstructions) {
+        this.autoAnnotateInstructions = autoAnnotateInstructions;
+    }
+
+    public String getAutoAnnotateModel() {
+        return autoAnnotateModel;
+    }
+
+    public void setAutoAnnotateModel(String autoAnnotateModel) {
+        this.autoAnnotateModel = autoAnnotateModel;
+    }
+
+    public String getAutoAnnotateProtocol() {
+        return autoAnnotateProtocol;
+    }
+
+    public void setAutoAnnotateProtocol(String autoAnnotateProtocol) {
+        this.autoAnnotateProtocol = autoAnnotateProtocol;
+    }
+
+    public Boolean getAutoAnnotateAccept() {
+        return autoAnnotateAccept != null && autoAnnotateAccept;
+    }
+
+    public void setAutoAnnotateAccept(Boolean autoAnnotateAccept) {
+        this.autoAnnotateAccept = autoAnnotateAccept;
+    }
+
+    public Boolean getAutoAnnotateRedraft() {
+        return autoAnnotateRedraft != null && autoAnnotateRedraft;
+    }
+
+    public void setAutoAnnotateRedraft(Boolean autoAnnotateRedraft) {
+        this.autoAnnotateRedraft = autoAnnotateRedraft;
+    }
+
+    public Boolean getAutoAnnotateAcceptRedraft() {
+        return autoAnnotateAcceptRedraft != null && autoAnnotateAcceptRedraft;
+    }
+
+    public void setAutoAnnotateAcceptRedraft(Boolean autoAnnotateAcceptRedraft) {
+        this.autoAnnotateAcceptRedraft = autoAnnotateAcceptRedraft;
     }
 
     public BackupStrategy getBackupStrategy() {

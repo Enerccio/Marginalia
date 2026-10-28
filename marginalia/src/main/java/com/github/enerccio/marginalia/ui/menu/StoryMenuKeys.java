@@ -13,6 +13,7 @@ public final class StoryMenuKeys {
     public static final String SEARCH_REPLACE = "tools.searchReplace";
     public static final String IMPORT_ARCHIVE = "tools.importArchive";
     public static final String ANNOTATE_RANGE = "tools.annotateRange";
+    public static final String AUTO_ANNOTATE = "tools.autoAnnotate";
     public static final String BRANCH_TOKENS = "tools.branchTokens";
     public static final String EXPORT = "tools.export";
     public static final String RESTORE_LAYOUT = "tools.restoreLayout";

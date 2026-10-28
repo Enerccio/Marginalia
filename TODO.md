@@ -163,9 +163,11 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     see `manual/developer/plugins/ai-providers.md`); the only protocol type is `ProtocolType.CHAT_COMPLETION`.
     - ✅ Native Gemini client: the `google-genai` plugin (Google Gen AI SDK embedded in the plugin only).
     - ✅ Native Anthropic client: the `anthropic` plugin (Anthropic Java SDK embedded in the plugin only, same shape as `google-genai`).
-    - Text completion protocol (llama.cpp / KoboldCpp raw prompt with instruct templates): low priority, base models only.
-      The hosted APIs have dropped raw completion and the prompt pipeline is built around chat messages; extra body
-      parameters (samplers) on the chat protocol would cover most of the need more cheaply.
+    - ~~Text completion protocol (llama.cpp / KoboldCpp raw prompt with instruct templates)~~ Scratched, not planned.
+      Marginalia is structured (turns with instructions, lorebook, summaries, templates) and relies on lore injection,
+      which a raw text prompt cannot use well; the one place plain completion could work, inline editing, would be
+      spoiled by the lore as well. The hosted APIs have dropped raw completion, and the prompt pipeline is built around
+      chat messages. Extra body parameters (samplers) on the chat protocol cover the real need more cheaply.
 
 19. ✅ **Context / token budget view.** `PromptTokenBreakdown` (`domain.components`) records the raw tokens of every
     prompt section (jailbreak, template, lore, summaries, story, user lore, user prompt, reserved), the budget, the
@@ -329,9 +331,16 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
     structured, editable panel over them (date/time, location, who is present, injuries, inventory) that a side query
     updates after each part, plus a timeline view across the branch. Catches "it was night, now it is noon" and items
     that vanish.
-37. 🧩 **Continuity checker.** After a part is accepted, a side query compares it with the activated lore and the
-    summaries and lists contradictions (eye colour, who knows what, dead characters talking). Findings are annotations
-    on the part (item 68), not edits. The `reviewer` plugin is the natural base.
+37. ✅ **Continuity checker.** Done by the annotations (68): *Annotate with AI* (menu of a part), the batch over a range of parts and
+    `/generate-annotation` check a part against the story around it, the lore and the existing notes with an instruction like
+    "flag continuity errors", and the findings are notes, not edits (*Redraft* then fixes the accepted ones). Since 1.5.0 the
+    *Automatic annotation* item of the tools menu (`AutoAnnotateDialog`, `AutoAnnotate`) does it after every completed generation, per
+    book: the model (none is the one of the book), the instructions, on / off, adding the notes without asking, redrafting the part to
+    address them and applying that redraft without asking; the windows open and start by themselves, closing one ends the run. The
+    check is a separate request, so it evicts the prompt cache only when it shares a server slot with the generation (local llama.cpp
+    with one slot): choose another model for it. Not done: a continuity preset for the instructions (free text now), a run after a
+    generation made by a command or an agent, a check of the windows on a phone. Not verified: whether the annotate context includes
+    the summaries.
 38. **Time-scoped lorebook entries.** An entry valid from part X to part Y of a branch (the character is alive until
     chapter 12, the secret is public after the reveal), or with variants per story phase. Core: an activation
     condition that reads the branch position. Avoids the usual "disable the entry by hand and forget".
@@ -521,11 +530,13 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
 
 55. **Prompt dry run and diff.** Build the exact payload of the next turn without sending it, and diff it against the
     payload of any earlier part (what changed: which entries joined, which part was cut, which summary swapped).
-    Groundwork exists (`PromptTokenBreakdown`, 24a); this is the "why did the model suddenly forget X" tool.
-56. **Cache-friendly prompt ordering.** Providers and llama.cpp reuse the longest identical prompt prefix. Lore
-    that changes every turn near the top breaks the cache. Show in *Token Usage* where the prefix first differs from
-    the previous turn's payload, and add an ordering mode that keeps the stable parts first and the volatile lore
-    last. Real money/latency win on long books.
+    Groundwork exists (`PromptTokenBreakdown`, 24a); this is the "why did the model suddenly forget X" tool. It should
+    also show where the payload first differs from the previous turn's (providers and llama.cpp reuse the longest
+    identical prefix) and why: the active lore set changed, the context window slid, a summary or a note changed.
+56. ~~**Cache-friendly prompt ordering.**~~ Scratched, not planned. A prefix cache miss is inherent to lore chosen per
+    turn: the set of active entries follows the instructions of the turn, and the sliding context window moves the start
+    of the story as well. The ordering choice already exists per entry (`BEFORE_USER_PROMPT` puts the lore after the
+    story and leaves the prefix alone, `IN_LORE_BLOCK` puts it in the system message); the diagnostic is part of 55.
 57. **Template playground.** Render a template against a chosen part with the context variables listed, errors with
     line numbers, and macro autocomplete (the `DESC_MACRO_*` texts exist). Optional saved cases that run as tests
     when the template is edited.

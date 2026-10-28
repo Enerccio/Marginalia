@@ -746,6 +746,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_GENERATE_ANNOTATION, "Generate annotations");
         setValue(L.LABEL_REDRAFT_REVALIDATE_SUMMARIES, "Revalidate the summaries this redraft makes outdated (they still say the right thing)");
         setValue(L.LABEL_ACTIVATION_CONTEXT, "Activation context");
+        setValue(L.LABEL_AUTO_ANNOTATE, "Automatic annotation");
+        setValue(L.LABEL_AUTO_ANNOTATE_ENABLE, "Annotate every generated part automatically");
+        setValue(L.LABEL_AUTO_ANNOTATE_ACCEPT, "Add the annotations without asking (the window closes)");
+        setValue(L.LABEL_AUTO_ANNOTATE_REDRAFT, "Then redraft the part to address the annotations");
+        setValue(L.LABEL_AUTO_ANNOTATE_ACCEPT_REDRAFT, "Apply the redraft without asking (the window closes)");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1278,6 +1283,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_ANNOTATE_BATCH_PROGRESS, "Annotating part %d (%d of %d)");
         setValue(L.MSG_ANNOTATE_BATCH_SKIPPED, "Part %d skipped: %s");
         setValue(L.MSG_COMMAND_ANNOTATING, "Annotating the part…");
+        setValue(L.MSG_AUTO_ANNOTATE_INFO, "When a part has been generated, the annotation window opens and starts at once. Closing a window ends the whole run: the annotations and the redraft that would follow are dropped.");
+        setValue(L.MSG_AUTO_ANNOTATE_MODEL_HINT, "Leave the model empty to annotate with the model of the book.");
+        setValue(L.MSG_AUTO_ANNOTATE_SAVED, "Automatic annotation saved.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

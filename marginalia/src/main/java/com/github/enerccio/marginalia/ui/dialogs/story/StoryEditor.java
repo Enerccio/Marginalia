@@ -41,6 +41,16 @@ public interface StoryEditor {
     void openAnnotateRangeDialog();
 
     /**
+     * Opens the settings of the automatic annotation of the book: the model, what to look for, and what happens after a part is generated.
+     */
+    void openAutoAnnotateDialog();
+
+    /**
+     * Whether the book annotates the parts it generates by itself.
+     */
+    boolean isAutoAnnotate();
+
+    /**
      * Opens the export of the story.
      */
     void openExportDialog();

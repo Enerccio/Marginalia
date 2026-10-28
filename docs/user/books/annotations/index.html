@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846459886712">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846492092507">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846459886712" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846492092507" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846459886712" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846492092507" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846459886712" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846492092507" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -390,6 +390,61 @@ Every part is a request to the model, so a long range costs as many requests (an
 </figure>
 <p>If an answer can&#x27;t be read, Marginalia asks once more; if it still can&#x27;t be read, the model&#x27;s answer is shown so the work
 is not lost. The prompt is the <a href="../prompts/#annotate-prompt">annotate prompt</a>.</p>
+<h3 id="annotating-every-new-part-automatically">Annotating every new part automatically</h3>
+<p>The settings menu (⚙) of the story has <strong>Automatic annotation</strong> (on a phone too; a check mark shows that it is on). It makes the
+book review each part right after it was generated, and optionally redraft it. The settings are stored with the book:</p>
+<retype-table copy-text="| Option | |
+|---|---|
+| **Model**, **Protocol** | The model that reviews. Empty is the model of the book (not the **Default model for annotating** of your settings, which the window you open yourself starts with). |
+| **What to look for** | The instructions, as in **Annotate with AI**. Empty uses the task of the prompt. |
+| **Annotate every generated part automatically** | Turns it on. After a part was generated (a new part, a swipe or a regeneration; not one that was stopped or failed) the annotation window opens and **starts at once**. |
+| **Add the annotations without asking** | When the model is done, the notes it found are added and the window closes. Without it the window stays open with the proposals, as when you start it yourself. |
+| **Then redraft the part to address the annotations** | Only with the one above. After the notes were added the [redraft](story-editor.md#redrafting-a-part) window opens and starts at once, with **Deal with the open annotations of the part** checked and no instructions of its own. It writes with the model of the book and does not offer to revalidate summaries: the part is new, no summary describes it. |
+| **Apply the redraft without asking** | Only with the redraft. When the model is done the redraft replaces the text of the part, the notes it dealt with are marked resolved and the window closes. Without it the window stays open for you to look at the result. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Option</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Model</strong>, <strong>Protocol</strong></td>
+<td>The model that reviews. Empty is the model of the book (not the <strong>Default model for annotating</strong> of your settings, which the window you open yourself starts with).</td>
+</tr>
+<tr>
+<td><strong>What to look for</strong></td>
+<td>The instructions, as in <strong>Annotate with AI</strong>. Empty uses the task of the prompt.</td>
+</tr>
+<tr>
+<td><strong>Annotate every generated part automatically</strong></td>
+<td>Turns it on. After a part was generated (a new part, a swipe or a regeneration; not one that was stopped or failed) the annotation window opens and <strong>starts at once</strong>.</td>
+</tr>
+<tr>
+<td><strong>Add the annotations without asking</strong></td>
+<td>When the model is done, the notes it found are added and the window closes. Without it the window stays open with the proposals, as when you start it yourself.</td>
+</tr>
+<tr>
+<td><strong>Then redraft the part to address the annotations</strong></td>
+<td>Only with the one above. After the notes were added the <a href="../story-editor/#redrafting-a-part">redraft</a> window opens and starts at once, with <strong>Deal with the open annotations of the part</strong> checked and no instructions of its own. It writes with the model of the book and does not offer to revalidate summaries: the part is new, no summary describes it.</td>
+</tr>
+<tr>
+<td><strong>Apply the redraft without asking</strong></td>
+<td>Only with the redraft. When the model is done the redraft replaces the text of the part, the notes it dealt with are marked resolved and the window closes. Without it the window stays open for you to look at the result.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p><strong>Closing a window ends the whole run.</strong> If you close or stop the annotation window, nothing is added and no redraft follows; if you close the
+redraft window, the part keeps its text. A model that finds nothing closes its window (with a message) and nothing follows,
+since there is nothing to redraft. A window that stays open (no automatic add, an answer that could not be read, a stopped run) waits for
+you; closing it ends the run.</p>
+<p>Every generated part costs at least one more request to the model (two with the redraft). If you generate with a local server that keeps only one prompt in its cache,
+the review replaces the story in it and the next generation has to read the story again: choose another <strong>Model</strong> for the review, or
+a second server.</p>
 <h2 id="giving-a-note-to-the-model">Giving a note to the model</h2>
 <p>Check <strong>Give to the model with the part</strong> on a note and it becomes a note to the model too: the notes of the parts that are
 in the prompt go into the master template as <code translate="no" v-pre>{{annotations}}</code> (the built-in template has a block <em>Author&#x27;s notes on the
@@ -466,7 +521,7 @@ both changed is a conflict like any other.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (d4a7eb17a).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (cef06873f).</p></div>
             </footer>
         </div>
     </div>

@@ -130,6 +130,29 @@ Every part is a request to the model, so a long range costs as many requests (an
 If an answer can't be read, Marginalia asks once more; if it still can't be read, the model's answer is shown so the work
 is not lost. The prompt is the [annotate prompt](prompts.md#annotate-prompt).
 
+### Annotating every new part automatically
+
+The settings menu (⚙) of the story has **Automatic annotation** (on a phone too; a check mark shows that it is on). It makes the
+book review each part right after it was generated, and optionally redraft it. The settings are stored with the book:
+
+| Option | |
+|---|---|
+| **Model**, **Protocol** | The model that reviews. Empty is the model of the book (not the **Default model for annotating** of your settings, which the window you open yourself starts with). |
+| **What to look for** | The instructions, as in **Annotate with AI**. Empty uses the task of the prompt. |
+| **Annotate every generated part automatically** | Turns it on. After a part was generated (a new part, a swipe or a regeneration; not one that was stopped or failed) the annotation window opens and **starts at once**. |
+| **Add the annotations without asking** | When the model is done, the notes it found are added and the window closes. Without it the window stays open with the proposals, as when you start it yourself. |
+| **Then redraft the part to address the annotations** | Only with the one above. After the notes were added the [redraft](story-editor.md#redrafting-a-part) window opens and starts at once, with **Deal with the open annotations of the part** checked and no instructions of its own. It writes with the model of the book and does not offer to revalidate summaries: the part is new, no summary describes it. |
+| **Apply the redraft without asking** | Only with the redraft. When the model is done the redraft replaces the text of the part, the notes it dealt with are marked resolved and the window closes. Without it the window stays open for you to look at the result. |
+
+**Closing a window ends the whole run.** If you close or stop the annotation window, nothing is added and no redraft follows; if you close the
+redraft window, the part keeps its text. A model that finds nothing closes its window (with a message) and nothing follows,
+since there is nothing to redraft. A window that stays open (no automatic add, an answer that could not be read, a stopped run) waits for
+you; closing it ends the run.
+
+Every generated part costs at least one more request to the model (two with the redraft). If you generate with a local server that keeps only one prompt in its cache,
+the review replaces the story in it and the next generation has to read the story again: choose another **Model** for the review, or
+a second server.
+
 ## Giving a note to the model
 
 Check **Give to the model with the part** on a note and it becomes a note to the model too: the notes of the parts that are

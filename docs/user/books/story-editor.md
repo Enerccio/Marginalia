@@ -171,7 +171,7 @@ Every part has a menu (☰) in its top right corner:
 | **Swipe** | Writes another version of the last part and keeps the old one as a separate branch. Only on the last part. See [Branches & story tree](branches-and-story-tree.md#trying-another-version-of-the-last-part). |
 | **Redraft** | Lets the model write this part again from your instructions, on any part, see [below](#redrafting-a-part). Not while the text is edited. |
 | **Annotate part** | Makes a [note](annotations.md#making-an-annotation) about the whole part. To annotate words, select them and right click (**Annotate selection**). |
-| **Annotate with AI** | Lets a model [review the part](annotations.md#letting-a-model-annotate) and propose notes. Not while the text is edited. For several parts at once use **Annotate a range of parts with AI** in the settings menu (⚙). |
+| **Annotate with AI** | Lets a model [review the part](annotations.md#letting-a-model-annotate) and propose notes. Not while the text is edited. For several parts at once use **Annotate a range of parts with AI** in the settings menu (⚙), and for every new part **Automatic annotation** (see [Annotations](annotations.md#annotating-every-new-part-automatically)). |
 | **Branch Story** | Starts a new branch from this part, see [Branches & story tree](branches-and-story-tree.md#branching-from-an-earlier-part). |
 | **Merge into previous part** | Adds the text of this part to the part before it, see [below](#merging-a-part-into-the-previous-one). Not on the first part. |
 | **Show Prompt** | Shows the exact prompt that was sent to the model for this part. |

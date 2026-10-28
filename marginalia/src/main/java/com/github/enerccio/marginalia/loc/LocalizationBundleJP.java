@@ -746,6 +746,11 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_GENERATE_ANNOTATION, "注釈を生成");
         setValue(L.LABEL_REDRAFT_REVALIDATE_SUMMARIES, "この再執筆で古くなる要約を再検証する（内容は今も正しい）");
         setValue(L.LABEL_ACTIVATION_CONTEXT, "発動コンテキスト");
+        setValue(L.LABEL_AUTO_ANNOTATE, "自動注釈");
+        setValue(L.LABEL_AUTO_ANNOTATE_ENABLE, "生成したパートに自動で注釈を付ける");
+        setValue(L.LABEL_AUTO_ANNOTATE_ACCEPT, "確認せずに注釈を追加する（ウィンドウは閉じます）");
+        setValue(L.LABEL_AUTO_ANNOTATE_REDRAFT, "続けて注釈に対応するようパートを再執筆する");
+        setValue(L.LABEL_AUTO_ANNOTATE_ACCEPT_REDRAFT, "確認せずに再執筆を適用する（ウィンドウは閉じます）");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1278,6 +1283,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_ANNOTATE_BATCH_PROGRESS, "パート %d に注釈を付けています（%d / %d）");
         setValue(L.MSG_ANNOTATE_BATCH_SKIPPED, "パート %d をスキップしました: %s");
         setValue(L.MSG_COMMAND_ANNOTATING, "パートに注釈を付けています…");
+        setValue(L.MSG_AUTO_ANNOTATE_INFO, "パートが生成されると、注釈ウィンドウが開いてすぐに開始します。ウィンドウを閉じると実行全体が終了し、注釈とそれに続く再執筆は破棄されます。");
+        setValue(L.MSG_AUTO_ANNOTATE_MODEL_HINT, "モデルを空にすると、本のモデルで注釈を付けます。");
+        setValue(L.MSG_AUTO_ANNOTATE_SAVED, "自動注釈を保存しました。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

@@ -754,6 +754,11 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_GENERATE_ANNOTATION, "生成批注");
         setValue(L.LABEL_REDRAFT_REVALIDATE_SUMMARIES, "重新验证因本次重写而过期的摘要（它们的内容仍然正确）");
         setValue(L.LABEL_ACTIVATION_CONTEXT, "激活上下文");
+        setValue(L.LABEL_AUTO_ANNOTATE, "自动批注");
+        setValue(L.LABEL_AUTO_ANNOTATE_ENABLE, "自动为每个生成的段落添加批注");
+        setValue(L.LABEL_AUTO_ANNOTATE_ACCEPT, "无需确认直接添加批注（窗口会关闭）");
+        setValue(L.LABEL_AUTO_ANNOTATE_REDRAFT, "随后根据批注重写该段落");
+        setValue(L.LABEL_AUTO_ANNOTATE_ACCEPT_REDRAFT, "无需确认直接应用重写（窗口会关闭）");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1286,6 +1291,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_ANNOTATE_BATCH_PROGRESS, "正在为第 %d 段添加批注（%d / %d）");
         setValue(L.MSG_ANNOTATE_BATCH_SKIPPED, "已跳过第 %d 段：%s");
         setValue(L.MSG_COMMAND_ANNOTATING, "正在为该段添加批注…");
+        setValue(L.MSG_AUTO_ANNOTATE_INFO, "段落生成后，批注窗口会打开并立即开始。关闭窗口会结束整个流程：批注以及随后的重写都会被丢弃。");
+        setValue(L.MSG_AUTO_ANNOTATE_MODEL_HINT, "模型留空则使用书籍的模型进行批注。");
+        setValue(L.MSG_AUTO_ANNOTATE_SAVED, "已保存自动批注设置。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

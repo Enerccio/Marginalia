@@ -36,6 +36,11 @@ import java.util.function.Consumer;
  * Lets the model write a part of the story again (the desktop and the phone story tab), or only a passage of it that the author
  * selected: the author says what should change, the redraft streams in, and only <b>Apply</b> replaces the text of the part (of the
  * passage). The model gets the part, the story around it and the data the part was written with, see {@link RedraftService}.
+ * <p>
+ * Opened by {@link #openAuto} (the automatic annotation of a generated part) it starts at once, with the open annotations of the part
+ * for the author's instructions, and with {@code apply} it also applies the redraft when the model is done, without asking, and closes.
+ * Stopping it or closing it before that applies nothing. The part was only just generated, so no summary describes it and the box to
+ * revalidate summaries is not offered.
  */
 @Configurable(preConstruction = true)
 public class RedraftDialog extends Dialog {
@@ -63,6 +68,10 @@ public class RedraftDialog extends Dialog {
     private final String partText;
     private final String selected;
     private final Consumer<ChatMessage> onApplied;
+    // opened by the automatic annotation: the part is new, no summary is touched
+    private final boolean automatic;
+    // the redraft is applied as soon as the model is done
+    private final boolean applyAutomatically;
 
     private final TextArea instructions = new TextArea();
     private final Checkbox withAnnotations = new Checkbox();
@@ -99,26 +108,48 @@ public class RedraftDialog extends Dialog {
     }
 
     /**
+     * Opens the dialog on the part and starts the redraft at once, to address the open annotations of the part.
+     *
+     * @param apply     whether the redraft is applied without asking when the model is done, and the dialog closes
+     * @param onApplied gets the part with the redrafted text, after it was stored (not called when the dialog was closed before)
+     */
+    static void openAuto(Manuscript manuscript, ChatMessage part, boolean apply, Consumer<ChatMessage> onApplied) {
+        RedraftDialog dialog = createAuto(manuscript, part, apply, onApplied);
+        dialog.open();
+        dialog.startOrStop();
+    }
+
+    /**
+     * @return the dialog of the automatic redraft, not opened and not started
+     */
+    static RedraftDialog createAuto(Manuscript manuscript, ChatMessage part, boolean apply, Consumer<ChatMessage> onApplied) {
+        return new RedraftDialog(manuscript, part, null, onApplied, true, apply);
+    }
+
+    /**
      * @return the dialog, not opened
      */
     static RedraftDialog create(Manuscript manuscript, ChatMessage part, Consumer<ChatMessage> onApplied) {
-        return new RedraftDialog(manuscript, part, null, onApplied);
+        return new RedraftDialog(manuscript, part, null, onApplied, false, false);
     }
 
     /**
      * @return the dialog for the passage of the part, not opened
      */
     static RedraftDialog create(Manuscript manuscript, ChatMessage part, RedraftService.Passage passage, Consumer<ChatMessage> onApplied) {
-        return new RedraftDialog(manuscript, part, passage, onApplied);
+        return new RedraftDialog(manuscript, part, passage, onApplied, false, false);
     }
 
-    private RedraftDialog(Manuscript manuscript, ChatMessage part, RedraftService.Passage passage, Consumer<ChatMessage> onApplied) {
+    private RedraftDialog(Manuscript manuscript, ChatMessage part, RedraftService.Passage passage, Consumer<ChatMessage> onApplied,
+                          boolean automatic, boolean applyAutomatically) {
         this.manuscript = manuscript;
         this.part = part;
         this.passage = passage;
         this.partText = StringUtils.defaultString(part.getResponse());
         this.selected = passage == null ? partText : partText.substring(passage.start(), passage.end());
         this.onApplied = onApplied;
+        this.automatic = automatic;
+        this.applyAutomatically = applyAutomatically;
 
         setHeaderTitle(loc.getValue(title()));
         setWidth("min(900px, 95vw)");
@@ -154,10 +185,12 @@ public class RedraftDialog extends Dialog {
 
         revalidateSummaries.setLabel(loc.getValue(L.LABEL_REDRAFT_REVALIDATE_SUMMARIES));
         revalidateSummaries.setVisible(false);
-        try {
-            revalidateSummaries.setVisible(chatMessageService.isSummarized(manuscript, part));
-        } catch (Exception e) {
-            UIUtils.internalServerError(loc, e);
+        if (!automatic) {
+            try {
+                revalidateSummaries.setVisible(chatMessageService.isSummarized(manuscript, part));
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
         }
 
         start.addClickListener(_ -> startOrStop());
@@ -209,6 +242,12 @@ public class RedraftDialog extends Dialog {
                 cancellationToken.cancel();
             }
         });
+    }
+
+    // for the tests
+
+    void completedForTest(String text) {
+        completed(null, text);
     }
 
     private L title() {
@@ -265,7 +304,7 @@ public class RedraftDialog extends Dialog {
             @Override
             public void onFinished(String reasoning, String text) {
                 ui.access(() -> {
-                    finish(reasoning, text);
+                    completed(reasoning, text);
                     UIPushGuard.push(ui);
                 });
             }
@@ -321,6 +360,16 @@ public class RedraftDialog extends Dialog {
             reasoningDetails.setVisible(true);
         }
         result.setValue(StringUtils.defaultString(text));
+    }
+
+    /**
+     * The model is done (not stopped): the redraft is applied at once when the dialog was opened to do that, unless the author closed it.
+     */
+    private void completed(String reasoning, String text) {
+        finish(reasoning, text);
+        if (applyAutomatically && isOpened() && hasRedraft) {
+            apply();
+        }
     }
 
     /**
