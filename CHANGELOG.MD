@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-10-28
+
+Everything below is new since 1.4.0. Migrations `V19` and `V20`; plugins have to be rebuilt with the application.
+
 ### Added
 
 - **Session id for prompt caches**: every request the application makes for a kind of work carries the header `X-Session-ID`, an opaque hash (32 hex characters, a key derived from `secret.key`) of the user and the kind: *generation* (a new part, a regeneration and a swipe share it), *impersonate*, *annotate* (the second stage of the two stage mode has its own), *redraft*, *summary*, *agent* (one per run), *help*, and for each plugin its own (*reviewer*, *sidequery*, *lore-generator*, *arc-outline*, *sillytavern-converter*, *manga-generator*). One value per user and kind, not per book, so a server that keeps a prompt cache by it, or a proxy that saves and restores a llama.cpp slot by it, holds a bounded number of caches. Sent by the OpenAI-compatible AIs and by the `anthropic` and `google-genai` plugins; requests without a kind (models, connection test, token counting) send none; there is no setting to turn it off. The new page *Prompt cache and session id* of the user manual has an example hook for LiteLLM that keeps one llama-server slot and swaps the caches from disk, kept per route, server and model (taken from the route the request goes to, enabled by `model_info.slot_cache`; one wildcard route covers a llama-server in router mode), deleting the least recently used ones of a route beyond an optional limit of files or size. API change for plugins: the new scope `InferenceSession` (`domain.service`; `try (InferenceSession _ = InferenceSession.open("my-plugin")) { service.stream(...); }`) and `InferenceServices.currentSessionId()`, which an extension AI calls once in the thread that starts the request and sends in the header `InferenceSession.HEADER`; new `Configuration.hmac`. Plugins that call a model should open a scope with a kind of their own, as the bundled ones now do.
@@ -540,7 +544,8 @@ Initial release.
   Side Query plugins.
 - Docker image (amd64, arm64), WAR and desktop archives for five targets.
 
-[Unreleased]: https://github.com/Enerccio/Marginalia/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/Enerccio/Marginalia/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/Enerccio/Marginalia/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/Enerccio/Marginalia/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/Enerccio/Marginalia/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/Enerccio/Marginalia/compare/v1.1.0...v1.2.0
