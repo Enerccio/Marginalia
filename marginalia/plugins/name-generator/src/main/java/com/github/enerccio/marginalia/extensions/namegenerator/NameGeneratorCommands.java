@@ -20,13 +20,14 @@ public class NameGeneratorCommands {
 
     private static final Gson GSON = new Gson();
 
-    private static final String LIST_TEXT = "Lists the categories of names that generate-names accepts, all of them or those whose name starts with "
-            + "the filter. Reads only.";
+    private static final String LIST_TEXT = "Lists the categories of names that generate-names accepts, all of them or those in whose name every "
+            + "word of the filter starts a word. Reads only.";
     private static final String LIST_LLM = "Lists the categories of made-up names that generate-names accepts. There are over a thousand, so give "
-            + "`filter`, the start of the name of the category (not case sensitive; the names are paths like \"Africa - Central Africa - Chad - Male\", so \"Africa - Central\" lists that region), and only the categories that start so are listed. "
+            + "`filter`, words the name of the category contains (in any order, not case sensitive; the names are paths like \"Africa - Central Africa - Chad - Male\", so \"chad male\" or \"Africa - Central\" finds that), and only the categories that contain all the words are listed. "
+            + "Some entries are groups of categories (\"Native American - Male\"): every name of a group comes from one of its categories picked at random. "
             + "Returns a JSON array. Reads only.";
     private static final String LIST_RESULT = "JSON array of the categories";
-    private static final String PARAM_FILTER = "The start of the name of the categories to list, not case sensitive";
+    private static final String PARAM_FILTER = "Words the name of the categories contains, in any order, not case sensitive";
     private static final String GENERATE_TEXT = "Generates made-up names of a category from Markov chains (at most "
             + NameGeneratorFunctionsImpl.MAX_COUNT + " at a time). Reads only.";
     private static final String GENERATE_LLM = "Generates made-up names of one category (see list-name-categories), at random each time. Use it "
@@ -47,7 +48,7 @@ public class NameGeneratorCommands {
         this.tables = tables;
     }
 
-    @Command(commandName = LIST, humanNameText = "List name categories", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = LIST, linkedCommand = GENERATE, humanNameText = "List name categories", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = LIST_TEXT, llmDescriptionText = LIST_LLM,
             signature = @CommandParameterSignature,
             returns = @CommandReturn(name = "categories", type = String.class, descriptionText = LIST_RESULT))
@@ -55,7 +56,7 @@ public class NameGeneratorCommands {
         context.setReturn(json(tables.categories()));
     }
 
-    @Command(commandName = LIST, humanNameText = "List name categories", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = LIST, linkedCommand = GENERATE, humanNameText = "List name categories", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = LIST_TEXT, llmDescriptionText = LIST_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "filter", type = String.class, descriptionText = PARAM_FILTER)}),
@@ -69,7 +70,7 @@ public class NameGeneratorCommands {
         return categories.isEmpty() ? "[]" : "[\n" + categories.stream().map(GSON::toJson).collect(Collectors.joining(",\n")) + "\n]";
     }
 
-    @Command(commandName = GENERATE, humanNameText = "Generate names", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = GENERATE, linkedCommand = LIST, humanNameText = "Generate names", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "category", type = String.class, descriptionText = PARAM_CATEGORY),
@@ -79,7 +80,7 @@ public class NameGeneratorCommands {
         generateNames(context, null, null);
     }
 
-    @Command(commandName = GENERATE, humanNameText = "Generate names", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = GENERATE, linkedCommand = LIST, humanNameText = "Generate names", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "category", type = String.class, descriptionText = PARAM_CATEGORY),
@@ -90,7 +91,7 @@ public class NameGeneratorCommands {
         generateNames(context, context.get("min_length", Integer.class), null);
     }
 
-    @Command(commandName = GENERATE, humanNameText = "Generate names", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = GENERATE, linkedCommand = LIST, humanNameText = "Generate names", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "category", type = String.class, descriptionText = PARAM_CATEGORY),
@@ -105,8 +106,7 @@ public class NameGeneratorCommands {
     private void generateNames(CommandContext context, Integer minLength, Integer maxLength) {
         String category = context.get("category", String.class);
         if (category == null || !tables.has(category)) {
-            throw new IllegalArgumentException("Unknown category '" + category + "'. Call list-name-categories with a filter, the start of the name "
-                    + "of the category, to find it.");
+            throw new IllegalArgumentException(NameTables.unknown("category", category, tables.categories(), LIST));
         }
         int count = NameGeneratorFunctionsImpl.clampCount(context.get("count", Integer.class));
         context.setReturn(GSON.toJson(tables.generate(category, count, minLength, maxLength, ThreadLocalRandom.current())));

@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static com.github.enerccio.marginalia.extensions.lorebookvcs.LorebookVCSLocalization.T;
+
 // the constructor already reads the history and reports errors with loc, so the fields are injected before it runs
 @Configurable(preConstruction = true)
 public class LoreEntryRevisionPanel extends HorizontalLayout {
@@ -74,10 +76,10 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
     }
 
     private void buildUI() {
-        Span label = new Span("Revision:");
+        Span label = new Span(T.localized("Revision:"));
         label.addClassName(CssStyles.TEXT_BOLD);
 
-        indexSpan = new Span("None");
+        indexSpan = new Span(T.localized("None"));
         modifiedSpan = new Span("");
         modifiedSpan.addClassName(CssStyles.HINT_TEXT);
 
@@ -90,18 +92,18 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
 
         deleteBtn = new Button(Solid.MINUS.create(), e -> deleteCurrentRevision());
         deleteBtn.setThemeName("tertiary icon small error");
-        deleteBtn.setTooltipText("Delete current revision");
+        deleteBtn.setTooltipText(T.localized("Delete current revision"));
 
         prevBtn = new Button(Solid.CHEVRON_LEFT.create(), e -> shiftRevision(-1));
         prevBtn.setThemeName("tertiary icon small");
-        prevBtn.setTooltipText("Previous revision");
+        prevBtn.setTooltipText(T.localized("Previous revision"));
 
         revSelectCombo = new ComboBox<>();
         revSelectCombo.setWidth("220px");
         revSelectCombo.setItemLabelGenerator(idx -> {
             if (entryVcsData == null || idx < 0 || idx >= entryVcsData.getRevisions().size()) return "";
             LoreEntryRevision r = entryVcsData.getRevisions().get(idx);
-            return "Rev " + (idx + 1) + " (" + DATE_FORMAT.format(new Date(r.getLastModified())) + ")";
+            return T.localized("Rev %d (%s)").formatted(idx + 1, DATE_FORMAT.format(new Date(r.getLastModified())));
         });
         revSelectCombo.addValueChangeListener(e -> {
             if (e.isFromClient() && e.getValue() != null) {
@@ -111,11 +113,11 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
 
         nextBtn = new Button(Solid.CHEVRON_RIGHT.create(), e -> shiftRevision(1));
         nextBtn.setThemeName("tertiary icon small");
-        nextBtn.setTooltipText("Next revision");
+        nextBtn.setTooltipText(T.localized("Next revision"));
 
         addBtn = new Button(Solid.PLUS.create(), e -> createSnapshot());
         addBtn.setThemeName("primary icon small");
-        addBtn.setTooltipText("Create snapshot revision");
+        addBtn.setTooltipText(T.localized("Create snapshot revision"));
 
         HorizontalLayout controls = new HorizontalLayout(deleteBtn, prevBtn, revSelectCombo, nextBtn, addBtn);
         controls.setAlignItems(Alignment.CENTER);
@@ -147,7 +149,7 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
                 button.setEnabled(false);
             }
             revSelectCombo.setEnabled(false);
-            addBtn.setTooltipText("The lorebook is worked on by an agent");
+            addBtn.setTooltipText(T.localized("The lorebook is worked on by an agent"));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -185,6 +187,9 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
         target.setFilteringMode(source.getFilteringMode());
         target.setFiltering(source.getFiltering());
         target.setInsertionMode(source.getInsertionMode());
+        target.setPreventRecursion(source.isPreventRecursion());
+        target.setActivationContext(source.getActivationContext());
+        target.setActivationParts(source.getActivationParts());
         target.setPositiveTags(source.getPositiveTags());
         target.setNegativeTags(source.getNegativeTags());
         target.setLastModified(System.currentTimeMillis());
@@ -205,7 +210,7 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
         indexSpan.setText((currentIdx + 1) + " / " + total);
 
         LoreEntryRevision currentRev = entryVcsData.getRevisions().get(currentIdx);
-        modifiedSpan.setText("Modified: " + DATE_FORMAT.format(new Date(currentRev.getLastModified())));
+        modifiedSpan.setText(T.localized("Modified: %s").formatted(DATE_FORMAT.format(new Date(currentRev.getLastModified()))));
 
         List<Integer> indices = new ArrayList<>();
         for (int i = 0; i < total; i++) indices.add(i);
@@ -229,7 +234,7 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
                 data.setCurrentRevision(data.getRevisions().size() - 1);
             });
             refreshDisplay();
-            Notification.show("Revision snapshot created");
+            Notification.show(T.localized("Revision snapshot created"));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -237,7 +242,7 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
 
     private void deleteCurrentRevision() {
         if (entryVcsData.getRevisions().size() <= 1) {
-            Notification.warning("Cannot delete the last remaining revision");
+            Notification.warning(T.localized("Cannot delete the last remaining revision"));
             return;
         }
 

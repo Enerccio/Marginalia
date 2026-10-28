@@ -32,6 +32,15 @@ public class OpenAICompatible extends AI {
     @ExtendedAttribute
     private Integer maxRetries;
 
+    /**
+     * How the tokens are counted: null is automatic (the tokenizer endpoints of the server are tried, then a local estimate),
+     * otherwise the name of one tokenizer strategy or {@code ext:} and the id of a tokenizer of a plugin, see
+     * {@code TokenizerService.getChoices}.
+     */
+    @Transient
+    @ExtendedAttribute
+    private String tokenizer;
+
     @Transient
     @ExtendedAttribute(inject = true, injectPrefix = "additionalParameters")
     private JsonObject additionalParameters = new JsonObject();
@@ -90,5 +99,13 @@ public class OpenAICompatible extends AI {
 
     public void setMaxRetries(Integer maxRetries) {
         this.maxRetries = maxRetries;
+    }
+
+    public String getTokenizer() {
+        return tokenizer;
+    }
+
+    public void setTokenizer(String tokenizer) {
+        this.tokenizer = tokenizer;
     }
 }

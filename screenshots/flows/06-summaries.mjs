@@ -1,6 +1,6 @@
 // Step 06-story -> 07-summaries: a summary of part #3 and of part #5, then a meta summary of both.
 import {bookTab, dialog, idle, login, main, openBook, press, sleep, snapDialog} from '../lib/shot.mjs';
-import {partAction} from '../lib/story.mjs';
+import {partAction, clickSummaries} from '../lib/story.mjs';
 
 await main(async ({ page }) => {
   await login(page);
@@ -19,7 +19,7 @@ await main(async ({ page }) => {
   await press(dialog(page), 'Exit');
 
   // the Summaries dialog (list button of the story editor)
-  await page.mouse.click(460, 822);
+  await clickSummaries(page);
   await idle(page, 800);
   await snapDialog(page, '_summaries-plain');
 

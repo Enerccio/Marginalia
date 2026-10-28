@@ -350,7 +350,9 @@ public class LoreGeneratorService {
      */
     public String complete(ModelSelection model, List<LLMChatMessage> payload) throws Exception {
         CompletableFuture<String> answer = new CompletableFuture<>();
-        CancellationToken token = inferenceServices.forAIOrThrow(model.ai()).infer(payload, model.protocol(),
+        CancellationToken token;
+        try (InferenceSession _ = InferenceSession.open("lore-generator")) {
+            token = inferenceServices.forAIOrThrow(model.ai()).infer(payload, model.protocol(),
                 new InferenceService.InferenceResultCallback() {
                     @Override
                     public void onResult(String text, SchemaCheck check) {
@@ -372,6 +374,7 @@ public class LoreGeneratorService {
                         return answer.isDone();
                     }
                 });
+        }
         try {
             return answer.get();
         } catch (InterruptedException e) {

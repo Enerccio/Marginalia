@@ -1,12 +1,15 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
+import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
+import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.LorebookActivationService;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.service.TemplateService;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LorebookEntryVerdict;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
@@ -27,6 +30,9 @@ public class LorebookActivationServiceImpl implements LorebookActivationService 
 
     @Autowired
     private LorebookEntryService lorebookEntryService;
+
+    @Autowired
+    private ChatMessageService chatMessageService;
 
     @Autowired
     private TemplateService templateService;
@@ -80,6 +86,11 @@ public class LorebookActivationServiceImpl implements LorebookActivationService 
 
     @Override
     public Verdict evaluate(LorebookEntry entry, List<String> manuscriptTags, String text) {
+        return evaluate(entry, manuscriptTags, text, List.of());
+    }
+
+    @Override
+    public Verdict evaluate(LorebookEntry entry, List<String> manuscriptTags, String instructions, List<String> parts) {
         if (!entry.isEnabled()) {
             return new Verdict(Reason.DISABLED, null);
         }
@@ -93,8 +104,112 @@ public class LorebookActivationServiceImpl implements LorebookActivationService 
         if (StringUtils.isBlank(entry.getFiltering())) {
             return new Verdict(Reason.CONSTANT, null);
         }
-        return filterMatches(entry, text) ? new Verdict(Reason.FILTER_MATCHED, entry.getFiltering())
+        return filterMatches(entry, contextOf(entry, instructions, parts)) ? new Verdict(Reason.FILTER_MATCHED, entry.getFiltering())
                 : new Verdict(Reason.FILTER_NOT_MATCHED, entry.getFiltering());
+    }
+
+    @Override
+    public int partsNeeded(List<LorebookEntry> entries) {
+        return entries.stream().filter(LorebookEntry::isEnabled).mapToInt(LorebookEntry::partsInContext).max().orElse(0);
+    }
+
+    /**
+     * What the filter of the entry is looked for in: the instructions, with the newest parts of the story in front of
+     * them when the entry asks for any.
+     */
+    private static String contextOf(LorebookEntry entry, String instructions, List<String> parts) {
+        int wanted = Math.min(entry.partsInContext(), parts == null ? 0 : parts.size());
+        if (wanted == 0) {
+            return instructions;
+        }
+        StringBuilder text = new StringBuilder();
+        for (String part : parts.subList(parts.size() - wanted, parts.size())) {
+            text.append(part).append("\n\n");
+        }
+        return text.append(Objects.toString(instructions, "")).toString();
+    }
+
+    @Override
+    public List<String> recentParts(ChatMessage leaf, int count, boolean excludeLeaf) throws Exception {
+        if (count <= 0 || leaf == null) {
+            return List.of();
+        }
+        List<ChatMessage> branch = new ArrayList<>(chatMessageService.getBranchFromLeaf(leaf));
+        if (excludeLeaf && !branch.isEmpty()) {
+            branch.removeLast();
+        }
+        List<String> parts = new ArrayList<>();
+        for (ChatMessage message : branch.reversed()) {
+            if (StringUtils.isNotBlank(message.getResponse())) {
+                parts.add(message.getResponse());
+                if (parts.size() == count) {
+                    break;
+                }
+            }
+        }
+        return parts.reversed();
+    }
+
+    @Override
+    public int scanDepth(Lorebook root) {
+        return root == null ? 0 : Math.max(0, Math.min(MAX_SCAN_DEPTH, root.getScanDepth()));
+    }
+
+    @Override
+    public List<LorebookEntry> scannable(List<LorebookEntry> used) {
+        return used.stream().filter(entry -> !entry.isPreventRecursion() && StringUtils.isNotBlank(entry.getPayload())).toList();
+    }
+
+    @Override
+    public Verdict evaluateInContent(LorebookEntry entry, List<String> manuscriptTags, List<LorebookEntry> sources) {
+        Verdict all = evaluate(entry, manuscriptTags,
+                sources.stream().map(LorebookEntry::getPayload).collect(java.util.stream.Collectors.joining("\n\n")));
+        if (all.reason() != Reason.FILTER_MATCHED) {
+            return all;
+        }
+        for (LorebookEntry source : sources) {
+            if (evaluate(entry, manuscriptTags, source.getPayload()).activated()) {
+                return new Verdict(Reason.LORE_MATCHED, entry.getFiltering() + " <- " + source.getName());
+            }
+        }
+        return new Verdict(Reason.LORE_MATCHED, entry.getFiltering());
+    }
+
+    @Override
+    public List<LorebookEntryVerdict> evaluateAll(Lorebook root, List<Lorebook> lorebooks, List<String> manuscriptTags, String text) {
+        return evaluateAll(root, lorebooks, manuscriptTags, text, List.of());
+    }
+
+    @Override
+    public List<LorebookEntryVerdict> evaluateAll(Lorebook root, List<Lorebook> lorebooks, List<String> manuscriptTags, String text, List<String> parts) {
+        List<LorebookEntry> entries = orderedEntries(lorebooks);
+        LorebookEntryVerdict[] verdicts = new LorebookEntryVerdict[entries.size()];
+        List<LorebookEntry> pass = new ArrayList<>();
+        for (int i = 0; i < verdicts.length; i++) {
+            verdicts[i] = new LorebookEntryVerdict(entries.get(i), evaluate(entries.get(i), manuscriptTags, text, parts), 0);
+            if (verdicts[i].verdict().activated()) {
+                pass.add(entries.get(i));
+            }
+        }
+        int depth = scanDepth(root);
+        for (int d = 1; d <= depth; d++) {
+            List<LorebookEntry> sources = scannable(pass);
+            if (sources.isEmpty()) {
+                break;
+            }
+            pass = new ArrayList<>();
+            for (int i = 0; i < verdicts.length; i++) {
+                if (verdicts[i].verdict().reason() != Reason.FILTER_NOT_MATCHED) {
+                    continue;
+                }
+                Verdict verdict = evaluateInContent(entries.get(i), manuscriptTags, sources);
+                if (verdict.activated()) {
+                    verdicts[i] = new LorebookEntryVerdict(entries.get(i), verdict, d);
+                    pass.add(entries.get(i));
+                }
+            }
+        }
+        return Arrays.asList(verdicts);
     }
 
     @Override

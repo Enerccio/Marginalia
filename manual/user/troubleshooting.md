@@ -18,7 +18,7 @@ Most problems leave a trace in the log:
 Error dialogs in the application (*Internal Server Error*) show the error as well; the log has the full details.
 
 When you report a problem, include the version text in the bottom left corner of the page (for example
-`Marginalia 1.4.0 (93ec118)`: the version and the Git commit of the build).
+`Marginalia 1.5.0 (93ec118)`: the version and the Git commit of the build).
 
 ## Installing and starting
 
@@ -200,4 +200,4 @@ window is narrower than 768 pixels. It has no Admin page, a reduced lorebook edi
 best for writing and reading; set-up and administration are easier on a larger screen.
 
 **Is there a light theme or another language?**
-Not yet: the interface is in English, with a dark theme.
+Yes to both: the button with the sun / moon next to the language selector switches the theme (dark by default), and the language selector offers Japanese and the languages that extensions bring (see [Account](account.md#theme)).

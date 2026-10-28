@@ -17,6 +17,8 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.components.CommandBar;
+import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
+import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -44,6 +46,7 @@ import com.vaadin.flow.shared.Registration;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+import org.springframework.web.context.request.RequestAttributes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,9 +68,10 @@ import java.util.concurrent.Callable;
 public class AgentConsoleDialog extends Dialog implements LLMInteract {
 
     /**
-     * How often the open console looks at the run.
+     * How often the open console looks at the run when nothing told it to: the changes are pushed (see
+     * {@link AgentActivityService}), this only catches one that was missed (a lost connection, an event of another server).
      */
-    static final int POLL_MILLIS = 2000;
+    static final int SAFETY_POLL_MILLIS = 20_000;
     // the position of the checkpoints among the tabs, which are read again only while they are shown
     static final int CHECKPOINTS_TAB = 3;
     // the context is made when its tab is picked, not while the run works
@@ -76,9 +80,6 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     // the conversations of the sub-agents are read again while their tab is shown, the run may be working
     static final int SUBAGENTS_TAB = 6;
     static final int DIAGNOSTICS_TAB = 7;
-    // after a command: the answer of a run that waits comes in a moment, looked for faster for a while
-    static final int COMMAND_POLL_MILLIS = 500;
-    static final long COMMAND_POLL_FOR_MILLIS = 15_000;
 
     /**
      * Where the images attached to a message are kept in the workspace, for the agent to look at.
@@ -120,6 +121,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     private AgentRunner agentRunner;
 
     @Autowired
+    private AgentActivityService activityService;
+
+    @Autowired
     private CommandService commandService;
 
     @Autowired
@@ -157,6 +161,8 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     // the messages that wait for the agent: their bubbles are the last ones of the transcript, and the ids they show
     private final List<Div> queuedBubbles = new ArrayList<>();
     private List<String> shownQueued = List.of();
+    // the answer the model is writing now, after the transcript and before the queued messages; null when no request goes on
+    private AgentLiveBubble liveBubble;
     // the buttons that take the conversation back to before a message, enabled while the run waits or is paused
     private final List<Button> rollbackButtons = new ArrayList<>();
 
@@ -207,7 +213,8 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     private AgentApprovalDialog approvalDialog;
     private Registration pollRegistration;
     private int previousPollInterval = -1;
-    private long fastPollUntil;
+    // cancels the subscription to the changes of the runs of the agent, null while the console is not attached
+    private Runnable unsubscribe;
 
     public AgentConsoleDialog(Agent agent) {
         this(agent, UIUtils.isPhone());
@@ -513,14 +520,29 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     @PublicAPI(from = "1.4.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "attachEvent", type = AttachEvent.class)},
-            locals = {@APILocals(name = "ui", type = UI.class)})
+            locals = {@APILocals(name = "ui", type = UI.class),
+                    @APILocals(name = "attributes", type = RequestAttributes.class)})
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
         UI ui = attachEvent.getUI();
+        // the poll is a net under the push, never faster than what another part of the page asked for
         previousPollInterval = ui.getPollInterval();
-        ui.setPollInterval(POLL_MILLIS);
+        ui.setPollInterval(previousPollInterval > 0 ? Math.min(previousPollInterval, SAFETY_POLL_MILLIS) : SAFETY_POLL_MILLIS);
         pollRegistration = ui.addPollListener(event -> refreshRun());
+        // the push comes from another thread, which needs the session of this UI to resolve the user
+        RequestAttributes attributes = ThreadCopyRequestAttributes.create();
+        unsubscribe = activityService.subscribe(agent.getId(), () -> {
+            try {
+                ui.access(() -> {
+                    try (InRequestScope _ = new InRequestScope(attributes)) {
+                        refreshRun();
+                    }
+                });
+            } catch (UIDetachedException e) {
+                // the console is gone
+            }
+        });
     }
 
     @PublicAPI(from = "1.4.0",
@@ -531,6 +553,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         if (approvalDialog != null) {
             approvalDialog.close();
             approvalDialog = null;
+        }
+        if (unsubscribe != null) {
+            unsubscribe.run();
+            unsubscribe = null;
         }
         if (pollRegistration != null) {
             pollRegistration.remove();
@@ -640,10 +666,6 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     void refreshRun() {
         if (statusLabel == null) {
             return;
-        }
-        if (fastPollUntil != 0 && System.currentTimeMillis() > fastPollUntil) {
-            fastPollUntil = 0;
-            getUI().ifPresent(ui -> ui.setPollInterval(POLL_MILLIS));
         }
         try {
             List<AgentRun> runs = agentRunService.findForAgent(agent);
@@ -844,10 +866,11 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         }
     }
 
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.5.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "runId", type = Long.class),
                     @APILocals(name = "queued", type = List.class),
+                    @APILocals(name = "live", type = AgentRunner.LiveAnswer.class),
                     @APILocals(name = "message", type = AgentRunner.QueuedMessage.class),
                     @APILocals(name = "bubble", type = Div.class)})
     private void showTranscript() throws Exception {
@@ -860,26 +883,45 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             rollbackButtons.clear();
             queuedBubbles.clear();
             shownQueued = List.of();
+            liveBubble = null;
         }
-        // the messages that wait stay the last bubbles: they come off while the transcript grows and go back after it
+        // the messages that wait stay the last bubbles, after the answer that is being written: they come off while the transcript
+        // grows and go back after it
         List<AgentRunner.QueuedMessage> queued = run == null ? List.of() : agentRunner.queued(run);
-        boolean queuedChanged = !queued.stream().map(AgentRunner.QueuedMessage::id).toList().equals(shownQueued)
-                || run != null && agentMessageService.count(run) != shown;
-        if (queuedChanged) {
+        AgentRunner.LiveAnswer live = run == null ? null : agentRunner.live(run);
+        boolean messagesChanged = run != null && agentMessageService.count(run) != shown;
+        // the written answer is stored (or the request is over) when a message came: the real blocks take its place
+        boolean liveGone = liveBubble != null && (live == null || messagesChanged);
+        boolean liveNew = live != null && (liveBubble == null || liveGone);
+        boolean regroup = !queued.stream().map(AgentRunner.QueuedMessage::id).toList().equals(shownQueued)
+                || messagesChanged || liveGone || liveNew;
+        if (regroup) {
             queuedBubbles.forEach(transcriptBox::remove);
             queuedBubbles.clear();
         }
+        if (liveGone) {
+            transcriptBox.remove(liveBubble);
+            liveBubble = null;
+        }
         showMessages();
-        if (queuedChanged) {
+        boolean liveChanged = false;
+        if (live != null) {
+            if (liveBubble == null) {
+                liveBubble = new AgentLiveBubble(renderer, loc, loc.getValue(L.ENUM_DOMAIN_AGENT));
+                transcriptBox.add(liveBubble);
+            }
+            liveChanged = liveBubble.show(live);
+        }
+        if (regroup) {
             for (AgentRunner.QueuedMessage message : queued) {
                 Div bubble = queuedBubble(message);
                 queuedBubbles.add(bubble);
                 transcriptBox.add(bubble);
             }
             shownQueued = queued.stream().map(AgentRunner.QueuedMessage::id).toList();
-            if (!queued.isEmpty()) {
-                JavascriptLibrary.scrollToBottomIfAtBottom(transcriptBox.getElement());
-            }
+        }
+        if (liveChanged || regroup && (!queued.isEmpty() || liveNew)) {
+            JavascriptLibrary.scrollToBottomIfAtBottom(transcriptBox.getElement());
         }
     }
 
@@ -1011,8 +1053,6 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             parameters = {@APIParameter(name = "line", type = String.class)})
     private void runCommandNow(String line) {
         perform(() -> agentRunner.command(run, line));
-        fastPollUntil = System.currentTimeMillis() + COMMAND_POLL_FOR_MILLIS;
-        getUI().ifPresent(ui -> ui.setPollInterval(COMMAND_POLL_MILLIS));
     }
 
     /**

@@ -35,7 +35,7 @@ over HTTPS or on `127.0.0.1` with the desktop app (see [Server](docker-server.md
 
 ![The login screen](../../images/login.png)
 
-The version of Marginalia and the short id of the Git commit it was built from (for example `Marginalia 1.4.0 (93ec118)`) are
+The version of Marginalia and the short id of the Git commit it was built from (for example `Marginalia 1.5.0 (93ec118)`) are
 shown under the login form.
 
 ## The workspace

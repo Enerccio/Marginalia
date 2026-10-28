@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.domain.service;
 
+import com.github.enerccio.marginalia.domain.components.BranchTokens;
+import com.github.enerccio.marginalia.domain.components.PartMerge;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -9,7 +11,9 @@ import com.github.enerccio.marginalia.domain.service.SummaryService.SummaryBlock
 import com.github.enerccio.marginalia.domain.service.search.FulltextHit;
 import com.github.enerccio.marginalia.domain.service.search.FulltextQuery;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public interface ChatMessageService extends ExtendableService<ChatMessage, ChatMessageRepository> {
 
@@ -61,6 +65,15 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
     List<FulltextHit> searchFulltext(Manuscript manuscript, String query) throws Exception;
 
     /**
+     * Which of the books have a part with every word of the query, the parts in the branch of the active part only or
+     * in all branches. A book of another user is never found.
+     *
+     * @return the ids of the books found
+     * @see FulltextQuery
+     */
+    Set<Long> findManuscriptsWithText(Collection<Long> manuscriptIds, String query, boolean allBranches) throws Exception;
+
+    /**
      * The id and {@code _fulltext} of the parts of the book that are not deleted, oldest first.
      *
      * @param literal the text the {@code _fulltext} has to contain (the database does not tell the case of every
@@ -90,6 +103,12 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
 
     long getBranchTokenCount(ChatMessage leaf) throws Exception;
 
+    /**
+     * The tokens the story of the branch ending in the leaf takes in a prompt without and with its summaries, see
+     * {@link BranchTokens}.
+     */
+    BranchTokens getBranchTokens(ChatMessage leaf) throws Exception;
+
     int getTotalWordCount(Manuscript manuscript) throws Exception;
 
     int getTotalTokenCount(Manuscript manuscript) throws Exception;
@@ -117,6 +136,14 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
     PartEdit updateResponse(Manuscript manuscript, ChatMessage message, String text) throws Exception;
 
     /**
+     * Whether a summary describes the text of the part, so that an edit of the part can make it outdated: the part has a summary
+     * itself, or a newer part of its branch has one that goes down to it.
+     *
+     * @throws IllegalArgumentException when the part is not a part of the manuscript, or the manuscript is not the user's
+     */
+    boolean isSummarized(Manuscript manuscript, ChatMessage message) throws Exception;
+
+    /**
      * As {@link #updateResponse}, without the work of finding the summaries the edit made outdated (it reads the whole branch
      * of the part): for the code that changes many parts at once and does not tell about the summaries.
      *
@@ -137,6 +164,17 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
     ChatMessage createPart(Manuscript manuscript, ChatMessage parent, String text, TurnInput input) throws Exception;
 
     /**
+     * Stores a prepared part as a child of {@code parent}, or as one more first part of the book when the parent is null (the
+     * book may have parts already): counts the tokens and words of its text, nothing else of it is changed, and the active leaf
+     * of the book stays where it is. For the imports that build a whole tree of parts.
+     *
+     * @param part the part to store, with its text, instructions and the data kept on it; not stored yet
+     * @return the stored part
+     * @throws IllegalArgumentException when the parent is not a part of the manuscript, or the manuscript is not the user's
+     */
+    ChatMessage addPart(Manuscript manuscript, ChatMessage parent, ChatMessage part) throws Exception;
+
+    /**
      * Inserts a part into the story, between a part and what follows it: the new part becomes the only child of {@code after},
      * and everything that followed {@code after} (all its continuations, the swipes of the next part with their own
      * continuations) follows the new part now. No part is deleted or made again, so their uuids, summaries and the data
@@ -151,6 +189,50 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
      * @throws IllegalArgumentException when {@code after} is not a part of the manuscript or the manuscript is not the user's
      */
     ChatMessage insertPart(Manuscript manuscript, ChatMessage after, String text, TurnInput input) throws Exception;
+
+    /**
+     * What merging a part into the part before it would do, for the review of the author: the two parts, the prompt fields
+     * of both combined without the start they share, the data kept on them value by value and the join of the two texts the
+     * text asks for. Nothing is changed.
+     *
+     * @throws IllegalArgumentException when the part is not a part of the manuscript, or the manuscript is not the user's
+     * @throws IllegalStateException    when the part cannot be merged, see {@link #mergeIntoPrevious}
+     */
+    MergePreview previewMergeIntoPrevious(Manuscript manuscript, ChatMessage part) throws Exception;
+
+    /**
+     * Appends the text of the part to the part before it and removes the part: the continuation of a text the model
+     * stopped in the middle ("continue" is not reliable in chat completion). The previous part keeps its identity, summary
+     * and generation record (prompt, model, times); the texts, original texts (so that the generated text is told from the
+     * author's), reasoning, images and counts are put together, and what followed the removed part follows the previous
+     * one now (the active leaf moves to it when the removed part was the leaf). The summaries that described the story with
+     * the two parts are outdated by the change of the texts, as with an edit; the summary of the removed part is deleted.
+     * The part is deleted like by <i>Delete</i>, the Trash restores it (but not the merge).
+     *
+     * @param input        the prompt fields of the merged turn
+     * @param join         what stands between the two texts
+     * @param fromPrevious the attributes ({@link PartMerge.AttributeChange#path()}) for which the value of the previous part is
+     *                     taken instead of the value of the later part (which wins otherwise)
+     * @param dropped      the attributes that are left out
+     * @return the previous part as saved
+     * @throws IllegalArgumentException when the part is not a part of the manuscript, or the manuscript is not the user's
+     * @throws IllegalStateException    when the part is the first part of the book, or the part before it has other
+     *                                  continuations (the swipes of the part): they would follow a text that already contains
+     *                                  the part, delete them or make them a branch first
+     */
+    ChatMessage mergeIntoPrevious(Manuscript manuscript, ChatMessage part, TurnInput input, PartMerge.Join join,
+                                  Set<List<String>> fromPrevious, Set<List<String>> dropped) throws Exception;
+
+    /**
+     * @param previous   the part the other is merged into
+     * @param part       the part that is merged
+     * @param input      the combined prompt fields
+     * @param join       the join of the two texts
+     * @param attributes the data kept on the parts, every value of both
+     */
+    record MergePreview(ChatMessage previous, ChatMessage part, TurnInput input, PartMerge.Join join,
+                        List<PartMerge.AttributeChange> attributes) {
+    }
 
     /**
      * @param message  the part as saved

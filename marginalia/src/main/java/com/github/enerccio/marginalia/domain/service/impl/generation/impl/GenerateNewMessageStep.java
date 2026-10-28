@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.components.PromptTokenBreakdown;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.MessagePrompt;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
@@ -39,6 +40,10 @@ public class GenerateNewMessageStep extends GenerationStepBase {
                     initialNode = chatMessageService.find(controller.getRequest().getNode());
                     // the part is cleared below, keep a full copy so cleanup can restore it if no text arrives
                     controller.getProperties().put(GenerationProperties.ORIGINAL_MESSAGE, ChatMessage.copyOf(initialNode));
+                    MessagePrompt originalPrompt = messagePromptService.findFor(initialNode);
+                    if (originalPrompt != null) {
+                        controller.getProperties().put(GenerationProperties.ORIGINAL_PROMPT, originalPrompt);
+                    }
                 }
                 default -> throw new RuntimeException("FIX STATES!");
             }
@@ -56,10 +61,9 @@ public class GenerateNewMessageStep extends GenerationStepBase {
             initialNode.setBuiltPromptTokens(controller.getPrePromptData().getSystemPromptTokens() + controller.getPrePromptData().getUserPromptProcessedTokens());
             initialNode.setModelUsed(controller.getAi().getName());
             initialNode.setProtocolUsed(controller.getProtocol().getName());
-            initialNode.setBuiltPrompt(gson.toJson(payload));
-            initialNode.setBuiltPromptTokens(inferenceService.countTokens(initialNode.getBuiltPrompt()));
+            String builtPrompt = gson.toJson(payload);
+            initialNode.setBuiltPromptTokens(inferenceService.countTokens(builtPrompt));
             initialNode.setTokenBreakdown(createTokenBreakdown(controller, inferenceService, payload));
-            initialNode.setBackgroundLore(controller.getPrePromptData().getBackgroundLore());
             initialNode.setRequest(new Date());
 
             // persist template variables - local ones follow the branch, global ones belong to the manuscript
@@ -98,6 +102,7 @@ public class GenerateNewMessageStep extends GenerationStepBase {
             log.debug("ChatMessage created: {}", node.getId());
             // set right away, so cleanup removes (or restores) the part if anything below fails
             controller.setMessage(node);
+            messagePromptService.store(node, builtPrompt, controller.getPrePromptData().getBackgroundLore());
 
             manuscript.setActiveLeaf(node);
             controller.setManuscript(manuscriptService.save(manuscript));

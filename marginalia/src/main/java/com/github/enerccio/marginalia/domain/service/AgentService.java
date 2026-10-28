@@ -8,6 +8,9 @@ import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.repository.AgentRepository;
 import com.github.enerccio.marginalia.domain.security.model.User;
 
+import java.util.Collection;
+import java.util.Map;
+
 /**
  * Definitions of agents: LLMs that work on one manuscript on their own (see {@link Agent}). A manuscript has at most
  * one agent, and an agent has at most one unfinished run ({@link AgentRunService}).
@@ -208,6 +211,18 @@ public interface AgentService extends ExtendableService<Agent, AgentRepository> 
      * The agent of the manuscript of the current user, null when there is none.
      */
     Agent findForManuscript(Manuscript manuscript) throws Exception;
+
+    /**
+     * The manuscript of the agent of the current user, loaded; {@link Agent#getManuscript()} is lazy and is not
+     * readable outside a transaction. Null when the agent is not the user's own.
+     */
+    Manuscript findManuscript(Agent agent) throws Exception;
+
+    /**
+     * The names of the manuscripts of the agents of the current user, by the uuid of the agent, for a list of agents
+     * that must not load the manuscripts.
+     */
+    Map<String, String> findBookNames(Collection<Agent> agents) throws Exception;
 
     /**
      * The AI and the protocol of the profile when the current user can use them (the AI is their own or shared, the

@@ -19,6 +19,8 @@ import java.util.List;
  * @param availableForAgent whether an agent can be given the command, the same for all the overloads
  * @param readOnly       whether the command changes no data at all, the same for all the overloads
  * @param batch          how the command is used among the calls of one answer of an agent, the same for all the overloads
+ * @param linkedCommands the names of the commands an agent gets only together with this one, see
+ *                       {@link com.github.enerccio.marginalia.domain.traits.Command#linkedCommand()}, the same for all the overloads; empty for none
  * @param instance       the registered suite object, the one that has the method
  * @param anyArguments   whether the command takes any arguments (it declares no signature); then {@code parameters} is
  *                       empty
@@ -26,7 +28,7 @@ import java.util.List;
  * @param returns        what the command returns
  */
 public record CommandDefinition(String commandName, CommandText humanName, CommandText description, CommandText llmDescription,
-                                boolean async, CommandDataSeverity dataSeverity, boolean availableForAgent, boolean readOnly, BatchPolicy batch, Object instance, boolean anyArguments,
+                                boolean async, CommandDataSeverity dataSeverity, boolean availableForAgent, boolean readOnly, BatchPolicy batch, List<String> linkedCommands, Object instance, boolean anyArguments,
                                 List<CommandParameterDefinition> parameters, CommandReturnDefinition returns) {
 
 }

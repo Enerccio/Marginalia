@@ -18,6 +18,7 @@ import com.github.enerccio.marginalia.domain.service.agent.RunTools.PlanItem;
 import com.github.enerccio.marginalia.domain.service.agent.SubAgents.State;
 import com.github.enerccio.marginalia.domain.service.agent.SubAgents.Sub;
 import com.github.enerccio.marginalia.domain.service.command.CommandDefinition;
+import com.github.enerccio.marginalia.domain.service.command.CommandLinks;
 import com.github.enerccio.marginalia.domain.service.command.CommandRun;
 import com.github.enerccio.marginalia.domain.service.command.CommandScope;
 import com.github.enerccio.marginalia.domain.service.function.FunctionCallException;
@@ -93,6 +94,9 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
     @Autowired
     private AIGate aiGate;
 
+    @Autowired
+    private AgentActivityService activityService;
+
     // how long the stop of the server waits for the runs to pause
     private static final long PARK_MILLIS = 5_000;
     // the server is stopping: the workers pause their runs at the next stable point
@@ -153,6 +157,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
     private final Set<Long> working = ConcurrentHashMap.newKeySet();
     // the messages the author wrote to a conversation while it worked, by run; kept in a file of the run too (see inboxOf)
     private final Map<Long, Inbox> inboxes = new ConcurrentHashMap<>();
+    // what the model of a run has written so far in the request that is going on, by run, for the console (see live)
+    private final Map<Long, LiveAnswerBuffer> liveAnswers = new ConcurrentHashMap<>();
 
     @Override
     public void afterSingletonsInstantiated() {
@@ -361,7 +367,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         List<String> names = new ArrayList<>();
         names.add(COMPACT);
         names.add(CLEAR_WORKSPACE);
-        Set<String> allowed = agent == null ? Set.of() : new HashSet<>(agent.getAllowedCommands());
+        Set<String> allowed = agent == null ? Set.of() : CommandLinks.resolve(commandService.getCommands(), agent.getAllowedCommands());
         commandService.getCommands().stream()
                 .filter(definition -> allowed.contains(definition.commandName()) && definition.availableForAgent()
                         && !definition.dataSeverity().isDestructive())
@@ -459,6 +465,15 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             words.add(word.toString());
         }
         return words;
+    }
+
+    @Override
+    public LiveAnswer live(AgentRun run) {
+        if (run == null || run.getId() == null) {
+            return null;
+        }
+        LiveAnswerBuffer buffer = liveAnswers.get(run.getId());
+        return buffer == null ? null : buffer.snapshot();
     }
 
     @Override
@@ -697,6 +712,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
     }
 
     private void storeQueue(AgentRun run, List<Queued> items) {
+        // the consoles show the queue
+        activityService.changed(run.getAgent().getId());
         try {
             if (items.isEmpty()) {
                 fileSystemService.writeQueue(run, null);
@@ -982,6 +999,11 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         Round waited(long millis) {
             return new Round(text, reasoning, calls, usage, millis);
         }
+
+        /** The answer without its calls: what a model that was told to answer in text but called anyway said. */
+        Round withoutCalls() {
+            return calls.isEmpty() ? this : withCalls(List.of());
+        }
     }
 
     /**
@@ -1145,6 +1167,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         private volatile String resumedCallId;
         // how often the agent ended its turn with sub-agents working, since it last made a call
         private int stillWorkingNotices;
+        // rounds of the agent that changed nothing and repeat an earlier one: the agent is told, and then asked once more without tools
+        private final RepeatDetector repeats = new RepeatDetector();
         // the queued messages and commands of the author to deliver before the work goes on, null for none; a worker
         // for a run that waits only does these and leaves the run as it is
         private final List<Queued> initial;
@@ -1177,6 +1201,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 stopSubAgents();
                 dropInbox();
                 interrupts.remove(runId);
+                liveAnswers.remove(runId);
                 working.remove(runId);
                 runService.workerFinished(run);
                 if (attributes != null) {
@@ -1301,7 +1326,10 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
 
             startCheckpoint(transcript);
 
+            LiveAnswerBuffer liveAnswer = liveAnswers.computeIfAbsent(runId, id -> new LiveAnswerBuffer(() -> activityService.changed(run.getAgent().getId())));
             int unreadable = 0;
+            // the next request takes the tools away (the agent repeats itself), the turn ends with its answer
+            boolean textOnly = false;
             while (true) {
                 // the stable point: a pause or a stop asked meanwhile ends here
                 run = runService.find(runId);
@@ -1337,7 +1365,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
 
                     refreshModel();
                     try {
-                        round = ask(inference, profile, payload(transcript), tools);
+                        round = ask(inference, profile, payload(transcript), tools, textOnly, liveAnswer, this::await);
                     } catch (Interrupted e) {
                         // the answer, if it came, is not written; the stable point pauses
                         log.info("Agent run {}: the request was canceled, the author paused the run at once", run.getUuid());
@@ -1380,20 +1408,25 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                             round.calls().isEmpty() ? "answers in text" : "calls " + round.calls().stream().map(LLMToolCall::getName)
                                     .collect(java.util.stream.Collectors.joining(", ")));
 
+                    if (textOnly) {
+                        // a server that ignores the ban: the calls are not made, there would be nothing to answer them with
+                        round = round.withoutCalls();
+                    }
                     int asked = round.calls().size();
-                    int repeats = asked - withoutRepeats(round.calls()).size();
+                    int repeated = asked - withoutRepeats(round.calls()).size();
                     AgentBatchMode mode = agent.batchModeOrDefault();
                     int single = mode == AgentBatchMode.BATCHED ? singleCall(withoutRepeats(round.calls()), singleCalls) : -1;
                     String singleName = single < 0 ? null : withoutRepeats(round.calls()).get(single).getName();
                     round = limitCalls(round, mode, singleCalls);
                     callNotice = round.calls().size() == asked ? null
-                            : mode == AgentBatchMode.NOT_BATCHED && asked - repeats > 1 ? String.format(Defaults.AGENT_ONE_CALL_NOTICE, asked - repeats, round.calls().getFirst().getName(), asked - repeats - 1)
-                            : singleName != null && round.calls().size() < asked - repeats
-                            ? String.format(Defaults.AGENT_SINGLE_CALL_NOTICE, singleName, asked - repeats, round.calls().size())
-                            : String.format(Defaults.AGENT_TOO_MANY_CALLS, asked, repeats, round.calls().size());
+                            : mode == AgentBatchMode.NOT_BATCHED && asked - repeated > 1 ? String.format(Defaults.AGENT_ONE_CALL_NOTICE, asked - repeated, round.calls().getFirst().getName(), asked - repeated - 1)
+                            : singleName != null && round.calls().size() < asked - repeated
+                            ? String.format(Defaults.AGENT_SINGLE_CALL_NOTICE, singleName, asked - repeated, round.calls().size())
+                            : String.format(Defaults.AGENT_TOO_MANY_CALLS, asked, repeated, round.calls().size());
 
                     LLMChatMessage answer = round.calls().isEmpty()
-                            ? LLMChatMessage.of(LLMRole.ASSISTANT, round.text())
+                            ? LLMChatMessage.of(LLMRole.ASSISTANT, textOnly && StringUtils.isBlank(round.text())
+                            ? Defaults.AGENT_REPEATING_NO_ANSWER : round.text())
                             : LLMChatMessage.ofToolCalls(StringUtils.isEmpty(round.text()) ? null : round.text(), round.calls());
                     changeLock.lock();
                     try {
@@ -1401,10 +1434,20 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                                 AgentTelemetry.of(round.usage(), asked, round.calls().size(), round.waitMillis(), mainRole()).toJson());
                     } finally {
                         changeLock.unlock();
+                        // the answer is in the transcript now, the console shows it from there
+                        liveAnswer.end();
                     }
                     transcript.add(answer);
                     // the calls of the earlier round are over
                     fileSystemService.writeCallMarker(run, null);
+                }
+                if (textOnly) {
+                    // it said what it was doing: the author reads it, a go on starts with the tools and a clean slate
+                    log.info("Agent run {}: the agent repeated itself, it answered without tools and the run is paused", run.getUuid());
+                    textOnly = false;
+                    repeats.reset();
+                    pause(Defaults.AGENT_REPEATING_PAUSED);
+                    return;
                 }
                 if (round.calls().isEmpty()) {
                     if (subAgents != null && subAgents.live() > 0) {
@@ -1429,6 +1472,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 String notice = changes ? checkpointBeforeChanges() : null;
                 // the answers to the calls the author's message cut off, stored with the message (the others are stored as they are made)
                 List<LLMChatMessage> results = new ArrayList<>();
+                // what the calls of this round returned, for the check whether the agent repeats itself
+                List<String> made = new ArrayList<>();
                 boolean forced = false;
                 boolean paused = false;
                 boolean suspended = false;
@@ -1498,6 +1543,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     // stored at once: the console shows the result of a call when it is made, not when the round is over, and a
                     // pause in the middle of a round keeps what the calls before it did
                     append(transcript, LLMChatMessage.ofToolResult(call.getId(), result));
+                    made.add(result);
                     failed = result.startsWith("Error:");
                 }
                 if (suspended) {
@@ -1564,6 +1610,25 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                         continue;
                     }
                     return;
+                }
+                // a round that looked and changed nothing, with sub-agents that may change what it looks at not working, and the same as an
+                // earlier one: the agent learned nothing from it
+                if (!replayed && !changes && made.size() == round.calls().size() && (subAgents == null || subAgents.live() == 0)
+                        && round.calls().stream().noneMatch(call -> SUBAGENT_TOOLS.contains(call.getName()))) {
+                    RepeatDetector.Verdict verdict = repeats.record(round.calls(), made);
+                    if (verdict == RepeatDetector.Verdict.WARN) {
+                        log.info("Agent run {}: the agent made the same calls with the same results {} times, it is told", run.getUuid(),
+                                Defaults.AGENT_REPEAT_NOTICE_AFTER);
+                        append(transcript, LLMChatMessage.of(LLMRole.USER, String.format(Defaults.AGENT_REPEATING_NOTICE,
+                                Defaults.AGENT_REPEAT_NOTICE_AFTER)));
+                    } else if (verdict == RepeatDetector.Verdict.STOP) {
+                        log.info("Agent run {}: the agent still repeats itself, the next request takes its tools away", run.getUuid());
+                        append(transcript, LLMChatMessage.of(LLMRole.USER, Defaults.AGENT_REPEATING_NO_TOOLS));
+                        textOnly = true;
+                        continue;
+                    }
+                } else {
+                    repeats.reset();
                 }
                 String restore = checkpointTools.takeRestore();
                 if (restore != null) {
@@ -2831,11 +2896,21 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
 
         private Round ask(InferenceService inference, ResolvedProfile profile, List<LLMChatMessage> payload,
                           FunctionSet tools) throws Exception {
-            return ask(inference, profile, payload, tools, this::await);
+            return ask(inference, profile, payload, tools, false, null, this::await);
         }
 
         private Round ask(InferenceService inference, ResolvedProfile profile, List<LLMChatMessage> payload,
                           FunctionSet tools, Waiter waiter) throws Exception {
+            return ask(inference, profile, payload, tools, false, null, waiter);
+        }
+
+        /**
+         * @param noCalls the model has to answer in text (the tools are not offered, or not allowed, see {@link InferenceService#round})
+         * @param live    gets what arrives of the answer while it is written (see {@link AgentRunner#live}), null for none; it is
+         *                emptied when the request fails, by the caller when the answer is stored
+         */
+        private Round ask(InferenceService inference, ResolvedProfile profile, List<LLMChatMessage> payload,
+                          FunctionSet tools, boolean noCalls, LiveAnswerBuffer live, Waiter waiter) throws Exception {
             // the run has a cap of requests in the air, its agent and sub-agents take turns (a wait in a queue is part of the round: a
             // pause, a stop and a forced message find it)
             long asking = System.nanoTime();
@@ -2851,7 +2926,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 }
                 try (AIGate.Permit _ = waiter.await(place, () -> place.cancel(true), true)) {
                     long waited = (System.nanoTime() - asking) / 1_000_000;
-                    return request(inference, profile, payload, tools, waiter).waited(waited);
+                    return request(inference, profile, payload, tools, noCalls, live, waiter).waited(waited);
                 }
             } catch (ExecutionException e) {
                 throw e.getCause() instanceof Exception cause ? cause : e;
@@ -2859,9 +2934,36 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         }
 
         private Round request(InferenceService inference, ResolvedProfile profile, List<LLMChatMessage> payload,
-                              FunctionSet tools, Waiter waiter) throws Exception {
+                              FunctionSet tools, boolean noCalls, LiveAnswerBuffer live, Waiter waiter) throws Exception {
             CompletableFuture<Round> answer = new CompletableFuture<>();
-            CancellationToken token = inference.round(payload, profile.protocol(), tools, new InferenceService.InferenceRoundCallback() {
+            if (live != null) {
+                // from here the console shows that the model works, with what it has written so far
+                live.begin();
+            }
+            CancellationToken token;
+            // a run grows its own conversation, so each run has the cache of the provider to itself
+            try (InferenceSession _ = InferenceSession.open(InferenceSession.AGENT, String.valueOf(runId))) {
+                token = inference.round(payload, profile.protocol(), tools, noCalls, roundCallback(answer, live));
+            } catch (Exception | Error e) {
+                if (live != null) {
+                    live.end();
+                }
+                throw e;
+            }
+            try {
+                return waiter.await(answer, token::cancel, false);
+            } catch (ExecutionException e) {
+                throw e.getCause() instanceof Exception cause ? cause : e;
+            } catch (Exception | Error e) {
+                if (live != null) {
+                    live.end();
+                }
+                throw e;
+            }
+        }
+
+        private InferenceService.InferenceRoundCallback roundCallback(CompletableFuture<Round> answer, LiveAnswerBuffer live) {
+            return new InferenceService.InferenceRoundCallback() {
                 @Override
                 public void onRound(String text, List<LLMToolCall> calls, RoundUsage usage) {
                     onRound(text, null, calls, usage);
@@ -2881,12 +2983,14 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 public void onError(Throwable exception) {
                     answer.completeExceptionally(exception);
                 }
-            });
-            try {
-                return waiter.await(answer, token::cancel, false);
-            } catch (ExecutionException e) {
-                throw e.getCause() instanceof Exception cause ? cause : e;
-            }
+
+                @Override
+                public void onChunk(InferenceService.ChunkType chunkType, String text) {
+                    if (live != null) {
+                        live.append(chunkType, text);
+                    }
+                }
+            };
         }
 
         /**
@@ -3133,6 +3237,9 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             SubModel model = subModelOf(sub.profile());
             FunctionSet tools = subTools(sub, model);
             int unreadable = 0;
+            // as for the agent: it repeats itself, it is told, then asked once without tools and its text is its answer
+            RepeatDetector looping = new RepeatDetector();
+            boolean textOnly = false;
             int rounds = sub.rounds();
             long tokens = sub.tokens();
             long contextTokens = 0;
@@ -3158,7 +3265,10 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     // the main model is the one of the run, read again every round; the others are the ones built when the sub-agent began
                     ResolvedProfile modelProfile = model.role() == null ? profile : model.profile();
                     InferenceService modelService = model.role() == null ? inference : model.inference();
-                    Round answered = ask(modelService, modelProfile, subPayload(conversation, model, sub), tools, waiter);
+                    Round answered = ask(modelService, modelProfile, subPayload(conversation, model, sub), tools, textOnly, null, waiter);
+                    if (textOnly) {
+                        answered = answered.withoutCalls();
+                    }
                     asked = answered.calls().size();
                     round = limitCalls(answered, agent.batchModeOrDefault(), singleCalls);
                     unreadable = 0;
@@ -3193,6 +3303,9 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 sub.progress(rounds, tokens, null);
                 if (round.calls().isEmpty()) {
                     String text = StringUtils.defaultString(round.text()).strip();
+                    if (textOnly) {
+                        return Defaults.AGENT_REPEATING_SUBAGENT + (text.isEmpty() ? Defaults.AGENT_REPEATING_NO_ANSWER : text);
+                    }
                     return text.isEmpty() ? "(The sub-agent gave no answer.)" : text;
                 }
                 LLMChatMessage said = LLMChatMessage.ofToolCalls(StringUtils.isEmpty(round.text()) ? null : round.text(), round.calls());
@@ -3205,6 +3318,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     changeLock.unlock();
                 }
                 boolean failed = false;
+                List<String> made = new ArrayList<>();
                 for (LLMToolCall call : round.calls()) {
                     if (failed) {
                         // an error ends the answer, as for the agent
@@ -3223,6 +3337,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                         LLMChatMessage answer = LLMChatMessage.ofToolResult(call.getId(), result);
                         storeSub(sub, List.of(answer));
                         conversation.add(answer);
+                        made.add(result);
                         fileSystemService.writeCallMarker(run, sub.handle(), null);
                         sub.progress(rounds, tokens, call.getName());
                     } catch (SubStopped e) {
@@ -3237,6 +3352,20 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                         }
                         throw e;
                     }
+                }
+                if (made.size() == round.calls().size() && round.calls().stream().noneMatch(call -> changes(call) || SUBAGENT_TOOLS.contains(call.getName()))) {
+                    RepeatDetector.Verdict verdict = looping.record(round.calls(), made);
+                    if (verdict != RepeatDetector.Verdict.OK) {
+                        log.info("Agent run {}: sub-agent {} repeats itself, {}", runId, sub.handle(),
+                                verdict == RepeatDetector.Verdict.WARN ? "it is told" : "the next request takes its tools away");
+                        LLMChatMessage notice = LLMChatMessage.of(LLMRole.USER, verdict == RepeatDetector.Verdict.WARN
+                                ? String.format(Defaults.AGENT_REPEATING_NOTICE, Defaults.AGENT_REPEAT_NOTICE_AFTER) : Defaults.AGENT_REPEATING_NO_TOOLS);
+                        storeSub(sub, List.of(notice));
+                        conversation.add(notice);
+                        textOnly = verdict == RepeatDetector.Verdict.STOP;
+                    }
+                } else {
+                    looping.reset();
                 }
             }
         }
@@ -3342,11 +3471,11 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             if (resolved == null) {
                 throw new SubStopped(State.FAILED, "The model " + (role == null ? "of the agent" : role) + " is not available.");
             }
-            Collection<String> commands = agent.getAllowedCommands();
+            Collection<String> commands = CommandLinks.resolve(commandService.getCommands(), agent.getAllowedCommands());
             if (definition.getCommands() != null) {
                 Set<String> narrowed = new HashSet<>(commands);
-                narrowed.retainAll(definition.getCommands());
-                commands = narrowed;
+                narrowed.retainAll(CommandLinks.close(commandService.getCommands(), definition.getCommands()));
+                commands = CommandLinks.resolve(commandService.getCommands(), narrowed);
             }
             SubModel model = new SubModel(role, resolved, inferenceServices.forAIOrThrow(resolved.ai()), commands, role != null && !definition.isTools(),
                     AgentService.contextCap(agent, resolved), TokenLimits.responseTokens(resolved.ai(), resolved.protocol()));
@@ -3410,7 +3539,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         }
 
         private String describeCommands(List<String> commands) {
-            List<String> allowed = commands.stream().filter(agent.getAllowedCommands()::contains).sorted().toList();
+            Set<String> yours = CommandLinks.resolve(commandService.getCommands(), agent.getAllowedCommands());
+            List<String> allowed = commands.stream().filter(yours::contains).sorted().toList();
             if (allowed.isEmpty()) {
                 return "none of yours";
             }

@@ -47,6 +47,8 @@
         <property name="repository" ref="resourceRepository" />
     </bean>
 
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ResourceGarbageServiceImpl" />
+
     <bean id="aiRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaAIRepository">
         <property name="entityManager" ref="em"/>
     </bean>
@@ -131,6 +133,26 @@
         <property name="repository" ref="summaryRepository" />
     </bean>
 
+    <bean id="annotationRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaAnnotationRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AnnotationServiceImpl">
+        <property name="repository" ref="annotationRepository" />
+    </bean>
+
+    <bean id="messagePromptRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaMessagePromptRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.MessagePromptServiceImpl">
+        <property name="repository" ref="messagePromptRepository" />
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.RedraftServiceImpl" />
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ImpersonateServiceImpl" />
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AnnotateServiceImpl" />
+
     <bean id="agentRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaAgentRepository">
         <property name="entityManager" ref="em"/>
     </bean>
@@ -170,6 +192,8 @@
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentWebhookServiceImpl" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentAttentionServiceImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentActivityServiceImpl" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AIGateImpl" />
 
@@ -214,6 +238,8 @@
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.ToolServiceImpl" />
 
+    <bean class="com.github.enerccio.marginalia.ui.menu.StoryMenuRegistry" />
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.OsgiServiceImpl" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.ExtensionServiceImpl" />
@@ -225,6 +251,8 @@
     <bean class="com.github.enerccio.marginalia.domain.service.impl.ExporterServiceImpl" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.ArchiveImportServiceImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.SillyTavernImportServiceImpl" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.CommandServiceImpl" />
 

@@ -3,6 +3,8 @@ package com.github.enerccio.marginalia.ui.dialogs;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.AIType;
 import com.github.enerccio.marginalia.domain.collections.ReasoningEffort;
+import com.github.enerccio.marginalia.domain.components.TokenizerChoice;
+import com.github.enerccio.marginalia.domain.components.TokenizerProbe;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.ExtensionAI;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
@@ -41,6 +43,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Configurable
 @Extendable
@@ -48,6 +51,7 @@ public class AIDialog extends Dialog implements LLMInteract {
     private static final Gson gson = new GsonBuilder().create();
     private static final int DEFAULT_MAX_CONTEXT = 16384;
     private static final int DEFAULT_MAX_RESPONSE = 2048;
+    private static final String TOKENIZER_SAMPLE = "The quick brown fox jumps over the lazy dog.";
 
     @Autowired
     protected Localization loc;
@@ -93,7 +97,12 @@ public class AIDialog extends Dialog implements LLMInteract {
     private TextArea additionalParametersField;
     private IntegerField requestTimeoutField;
     private IntegerField maxRetriesField;
+    private ComboBox<TokenizerChoice> tokenizerCombo;
+    private TokenizerChoice automaticTokenizer;
+    // the user picked the tokenizer: the one suggested by the endpoint and the model does not replace it
+    private boolean tokenizerChosen;
     private Button testConnectionButton;
+    private Button testTokenizerButton;
 
     // Extension type: the provider the extension offers and the form of its settings (null until a provider is chosen)
     private ComboBox<ExtensionAIFactory> providerCombo;
@@ -353,7 +362,18 @@ public class AIDialog extends Dialog implements LLMInteract {
         maxRetriesField.setValue(OpenAICompatibleInferenceService.DEFAULT_MAX_RETRIES);
         maxRetriesField.setWidthFull();
 
+        automaticTokenizer = new TokenizerChoice("", loc.getValue(L.LABEL_AUTOMATIC));
+        tokenizerCombo = new ComboBox<>(loc.getValue(L.LABEL_TOKENIZER));
+        tokenizerCombo.setItemLabelGenerator(TokenizerChoice::label);
+        tokenizerCombo.setHelperText(loc.getValue(L.HELP_AI_TOKENIZER));
+        tokenizerCombo.setWidthFull();
+        tokenizerCombo.addValueChangeListener(event -> tokenizerChosen = tokenizerChosen || event.isFromClient());
+        showTokenizerChoices(null);
+        urlField.addValueChangeListener(event -> suggestTokenizer());
+        modelCombo.addValueChangeListener(event -> suggestTokenizer());
+
         testConnectionButton = new Button(loc.getValue(L.LABEL_TEST_CONNECTION), event -> testConnection());
+        testTokenizerButton = new Button(loc.getValue(L.LABEL_TEST_TOKENIZER), event -> testTokenizer());
     }
 
     @PublicAPI(from = "1.3.0",
@@ -378,7 +398,8 @@ public class AIDialog extends Dialog implements LLMInteract {
             modelLayout.setFlexGrow(1, modelCombo);
 
             dynamicFormLayout.add(urlField, apiKeyLayout, modelLayout, requestTimeoutField, maxRetriesField,
-                    additionalParametersField, testConnectionButton);
+                    tokenizerCombo, additionalParametersField, testConnectionButton, testTokenizerButton);
+            dynamicFormLayout.setColspan(tokenizerCombo, 2);
             dynamicFormLayout.setColspan(urlField, 2);
             dynamicFormLayout.setColspan(apiKeyLayout, 2);
             dynamicFormLayout.setColspan(modelLayout, 2);
@@ -498,6 +519,7 @@ public class AIDialog extends Dialog implements LLMInteract {
                     ? compatible.getRequestTimeoutSeconds() : OpenAICompatibleInferenceService.DEFAULT_TIMEOUT_SECONDS);
             maxRetriesField.setValue(compatible.getMaxRetries() != null && compatible.getMaxRetries() >= 0
                     ? compatible.getMaxRetries() : OpenAICompatibleInferenceService.DEFAULT_MAX_RETRIES);
+            showTokenizerChoices(compatible.getTokenizer());
         }
 
         if (ai.getAiType() == AIType.EXTENSION && ai instanceof ExtensionAI extensionAI) {
@@ -544,6 +566,7 @@ public class AIDialog extends Dialog implements LLMInteract {
         copy.setModelName(modelCombo.getValue());
         copy.setRequestTimeoutSeconds(requestTimeoutField.getValue());
         copy.setMaxRetries(maxRetriesField.getValue());
+        copy.setTokenizer(chosenTokenizer());
         if (StringUtils.isNotBlank(additionalParametersField.getValue())) {
             try {
                 JsonElement parameters = JsonParser.parseString(additionalParametersField.getValue());
@@ -631,6 +654,87 @@ public class AIDialog extends Dialog implements LLMInteract {
             } else {
                 UIUtils.internalServerError(loc, e);
             }
+        }
+    }
+
+    /**
+     * The automatic choice and the tokenizers there are, with the one the AI is set to selected (it stays in the list, marked, when
+     * the plugin it comes from is not loaded).
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "selectedId", type = String.class)},
+            locals = {@APILocals(name = "choices", type = List.class),
+                    @APILocals(name = "selected", type = TokenizerChoice.class),
+                    @APILocals(name = "name", type = String.class)})
+    private void showTokenizerChoices(String selectedId) {
+        List<TokenizerChoice> choices = new ArrayList<>();
+        choices.add(automaticTokenizer);
+        choices.addAll(tokenizerService.getChoices());
+        TokenizerChoice selected = choices.stream().filter(choice -> choice.id().equals(StringUtils.defaultString(selectedId))).findFirst().orElse(null);
+        if (selected == null) {
+            String name = selectedId.startsWith(TokenizerChoice.EXTENSION_PREFIX) ? selectedId.substring(TokenizerChoice.EXTENSION_PREFIX.length()) : selectedId;
+            selected = new TokenizerChoice(selectedId, String.format(loc.getValue(L.MSG_TOKENIZER_NOT_LOADED), name));
+            choices.add(selected);
+        }
+        tokenizerCombo.setItems(choices);
+        tokenizerCombo.setValue(selected);
+    }
+
+    /**
+     * The id of the tokenizer the AI is set to, null for automatic.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = String.class),
+            locals = {@APILocals(name = "choice", type = TokenizerChoice.class)})
+    private String chosenTokenizer() {
+        TokenizerChoice choice = tokenizerCombo.getValue();
+        return choice == null || choice.id().isEmpty() ? null : choice.id();
+    }
+
+    /**
+     * Preselects the tokenizer of a plugin that accepts the endpoint and the model for an AI that is being created, until the user
+     * chooses one.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "draft", type = OpenAICompatible.class),
+                    @APILocals(name = "suggested", type = String.class)})
+    private void suggestTokenizer() {
+        if (ai != null || tokenizerChosen || StringUtils.isBlank(urlField.getValue()) || StringUtils.isBlank(modelCombo.getValue())) {
+            return;
+        }
+        OpenAICompatible draft = new OpenAICompatible();
+        draft.setUri(urlField.getValue().trim());
+        draft.setModel(modelCombo.getValue());
+        String suggested = tokenizerService.suggestChoice(draft);
+        showTokenizerChoices(suggested);
+    }
+
+    /**
+     * Counts a sample text with the tokenizers the AI with the values in the dialog (not saved) would try, and tells what each
+     * answered.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "copy", type = OpenAICompatible.class),
+                    @APILocals(name = "probes", type = List.class),
+                    @APILocals(name = "summary", type = String.class)})
+    private void testTokenizer() {
+        OpenAICompatible copy = currentProvider(true);
+        if (copy == null) {
+            return;
+        }
+        List<TokenizerProbe> probes = tokenizerService.probe(copy, TOKENIZER_SAMPLE);
+        String summary = probes.stream()
+                .map(probe -> probe.worked()
+                        ? String.format(loc.getValue(L.MSG_TOKENIZER_TEST_OK), probe.name(), probe.tokens())
+                        : String.format(loc.getValue(L.MSG_TOKENIZER_TEST_FAILED), probe.name(), probe.error()))
+                .collect(Collectors.joining("; "));
+        if (probes.stream().noneMatch(TokenizerProbe::worked)) {
+            Notification.warning(loc.getValue(L.MSG_TOKENIZER_TEST_NONE) + " " + summary);
+        } else {
+            Notification.success(summary);
         }
     }
 
@@ -807,6 +911,7 @@ public class AIDialog extends Dialog implements LLMInteract {
                 compatible.setAdditionalParameters(gson.fromJson(additionalParametersField.getValue(), JsonObject.class));
                 compatible.setRequestTimeoutSeconds(requestTimeoutField.getValue());
                 compatible.setMaxRetries(maxRetriesField.getValue());
+                compatible.setTokenizer(chosenTokenizer());
             }
 
             if (editsExtensionSettings && ai instanceof ExtensionAI extensionAI) {

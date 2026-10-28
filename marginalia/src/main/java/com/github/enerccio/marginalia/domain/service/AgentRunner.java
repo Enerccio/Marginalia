@@ -139,6 +139,27 @@ public interface AgentRunner {
     List<QueuedMessage> queued(AgentRun run);
 
     /**
+     * What the model of the run has written so far in the request that is going on (its main agent, not the sub-agents),
+     * for a console that shows the answer while it is written. The strings are what arrived, the reasoning and the text
+     * apart, so far; the answer is in the transcript when the round is over, and then this is null again.
+     * In memory, read by the poll of the console.
+     *
+     * @return null when no request of the run is going on or the service does not stream
+     */
+    default LiveAnswer live(AgentRun run) {
+        return null;
+    }
+
+    /**
+     * The answer of a request that is going on, as far as it arrived.
+     *
+     * @param reasoning what the model thought, empty when nothing yet or the provider sends none
+     * @param text      what it wrote, empty when it thinks or writes only calls
+     */
+    record LiveAnswer(String reasoning, String text) {
+    }
+
+    /**
      * Gives a queued message to the agent now: the round the worker is in is thrown away (the request to the model is
      * canceled, the calls of the round that did not run are answered as skipped, a command that waited for an approval is
      * refused) and the message, with the ones queued before it, is the next thing the model reads. The thrown away part

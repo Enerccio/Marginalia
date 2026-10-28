@@ -50,9 +50,14 @@ export async function newAgent(page, { name, book, model = 'Local LLM', protocol
 export async function statusOf(page, name) {
   const y = await rowY(page, name);
   const cells = page.locator('vaadin-grid-cell-content');
+  // the column is found by its header (the columns before it have changed more than once)
+  let x = null;
+  for (let i = 0; i < await cells.count() && x === null; i++) {
+    if ((await cells.nth(i).innerText()).trim() === 'Status') x = (await cells.nth(i).boundingBox())?.x ?? null;
+  }
   for (let i = 0; i < await cells.count(); i++) {
     const box = await cells.nth(i).boundingBox();
-    if (box && Math.abs(box.y - y) < 4 && box.x > 1150 && box.x < 1400) return (await cells.nth(i).innerText()).trim();
+    if (box && x !== null && Math.abs(box.y - y) < 4 && Math.abs(box.x - x) < 4) return (await cells.nth(i).innerText()).trim();
   }
   return '';
 }

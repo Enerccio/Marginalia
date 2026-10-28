@@ -14,6 +14,7 @@ import com.github.enerccio.marginalia.domain.service.StoryGenerationService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.EventChain;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.Registration;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.GenerationFailure;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PrePromptData;
 import com.github.enerccio.marginalia.domain.traits.NoTx;
@@ -53,6 +54,7 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
     private List<GenerationStep> installedSteps;
     private final Map<GenerationStepType, GenerationStep> steps = new LinkedHashMap<>();
     private final Map<Events, List<GenerationEvent>> listeners = new ConcurrentHashMap<>();
+    private final Map<Events, List<GenerationObserver>> observers = new ConcurrentHashMap<>();
     private ExecutorService taskExecutor;
 
     @Override
@@ -62,6 +64,13 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
 
         // Return callback for clean, mid-run safe removal
         return () -> list.remove(listener);
+    }
+
+    @Override
+    public Registration addEventObserver(Events event, GenerationObserver observer) {
+        List<GenerationObserver> list = observers.computeIfAbsent(event, e -> new CopyOnWriteArrayList<>());
+        list.add(observer);
+        return () -> list.remove(observer);
     }
 
     // Accessible to GenerationEngine
@@ -94,7 +103,8 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         generationEngine.generationRequest = generationRequest;
         generationEngine.turnInput = input;
         generationEngine.cancellationToken = token;
-        generationEngine.uiListener = listener;
+        generationEngine.uiListener = new FailureTrackingListener(listener);
+        generationEngine.properties.put(GenerationProperties.RUN_ID, UUID.randomUUID().toString());
         generationEngine.requestAttributes = attributes;
         generationEngine.executeNextStep();
 
@@ -138,7 +148,7 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         private Manuscript manuscript;
         private ChatMessage chatMessage;
         private CancellationToken cancellationToken;
-        private GenerationListener uiListener;
+        private FailureTrackingListener uiListener;
         private RequestAttributes requestAttributes;
         private AI ai;
         private Protocol protocol;
@@ -251,6 +261,11 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         }
 
         @Override
+        public GenerationFailure getFailure() {
+            return uiListener.getFailure();
+        }
+
+        @Override
         public void next() throws Exception {
             currentStep = currentStep.next();
             executeNextStep();
@@ -316,6 +331,7 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         @Override
         public void emitEvent(Events event, FromEventCallback continueAfterEventHandlingArg) {
             log.debug("Emitting event {}.", event);
+            notifyObservers(event);
             FromEventCallback continueAfterEventHandling = () -> {
                 log.debug("Returning from event {}.", event);
                 continueAfterEventHandlingArg.returnFromEvent();
@@ -336,12 +352,12 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
                     AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
                     taskExecutor.submit(() -> {
                         try (InRequestScope _ = new InRequestScope(getRequestAttributes())) {
-                            if (cancellationToken.isCancelled()) {
+                            if (cancellationToken.isCancelled() && !event.isTerminal()) {
                                 invokeContinuation(continueAfterEventHandling);
                                 return;
                             }
 
-                            if (Thread.interrupted()) {
+                            if (!event.isTerminal() && Thread.interrupted()) {
                                 getUIListener().onSimpleError(loc.getValue(L.MSG_INTERRUPTED));
                                 try {
                                     wrapper.run(() -> jumpTo(GenerationStepType.CLEANUP));
@@ -378,6 +394,22 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
             chain.next();
         }
 
+        private void notifyObservers(Events event) {
+            List<GenerationObserver> eventObservers = observers.get(event);
+            if (eventObservers == null || eventObservers.isEmpty()) {
+                return;
+            }
+            GenerationObservation observation = new GenerationObservationImpl(event, this);
+            for (GenerationObserver observer : eventObservers) {
+                try {
+                    observer.observe(observation);
+                } catch (Throwable e) {
+                    log.warn("Observer of event {} failed: {}", event, e.getMessage());
+                    log.debug(e.getMessage(), e);
+                }
+            }
+        }
+
         @Override
         public Runnable wrapCallback(FromEventCallback callback) {
             return () -> {
@@ -402,6 +434,55 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
                     }
                 });
             }
+        }
+    }
+
+    private record GenerationObservationImpl(Events event, GenerationController controller)
+            implements GenerationObservation {
+
+        @Override
+        public Events getEvent() {
+            return event;
+        }
+
+        @Override
+        public String getRunId() {
+            return (String) controller.getProperties().get(GenerationProperties.RUN_ID);
+        }
+
+        @Override
+        public Manuscript getManuscript() {
+            return controller.getManuscript();
+        }
+
+        @Override
+        public AI getAi() {
+            return controller.getAi();
+        }
+
+        @Override
+        public Protocol getProtocol() {
+            return controller.getProtocol();
+        }
+
+        @Override
+        public ChatMessage getMessage() {
+            return controller.getMessage();
+        }
+
+        @Override
+        public GenerationRequest getRequest() {
+            return controller.getRequest();
+        }
+
+        @Override
+        public TurnInput getInput() {
+            return controller.getInput();
+        }
+
+        @Override
+        public Map<String, Object> getProperties() {
+            return Collections.unmodifiableMap(controller.getProperties());
         }
     }
 

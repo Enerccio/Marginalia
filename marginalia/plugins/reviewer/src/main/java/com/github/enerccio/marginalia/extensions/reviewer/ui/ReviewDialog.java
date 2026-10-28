@@ -5,10 +5,7 @@ import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
-import com.github.enerccio.marginalia.domain.service.CancellationToken;
-import com.github.enerccio.marginalia.domain.service.InferenceErrors;
-import com.github.enerccio.marginalia.domain.service.InferenceService;
-import com.github.enerccio.marginalia.domain.service.InferenceServices;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.extensions.reviewer.model.*;
 import com.github.enerccio.marginalia.extensions.reviewer.service.ReviewerService;
@@ -16,6 +13,7 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.details.Details;
@@ -30,6 +28,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.List;
+
+import static com.github.enerccio.marginalia.extensions.reviewer.ReviewerLocalization.T;
 
 @Configurable(preConstruction = true)
 public class ReviewDialog extends Dialog {
@@ -70,7 +70,7 @@ public class ReviewDialog extends Dialog {
         this.manuscript = manuscript;
         this.pendingAdvancedOptions = advancedOptions;
 
-        setHeaderTitle("Message Review");
+        setHeaderTitle(T.localized("Message Review"));
         setWidth("80vw");
         setHeight("80vh");
 
@@ -81,6 +81,14 @@ public class ReviewDialog extends Dialog {
             startGeneration();
         } else {
             displayReview();
+        }
+    }
+
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        super.onDetach(detachEvent);
+        if (isGenerating != null) {
+            isGenerating.cancel();
         }
     }
 
@@ -107,7 +115,7 @@ public class ReviewDialog extends Dialog {
         controlsHeader.setWidthFull();
         controlsHeader.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        stopContinueBtn = new Button("Stop generating", e -> toggleGeneration());
+        stopContinueBtn = new Button(T.localized("Stop generating"), e -> toggleGeneration());
         stopContinueBtn.setThemeName("error primary");
 
         leftSwipeBtn = new Button(Solid.CHEVRON_LEFT.create(), e -> shiftLeft());
@@ -117,7 +125,7 @@ public class ReviewDialog extends Dialog {
         controlsHeader.add(stopContinueBtn, UIUtils.voidComponent(), leftSwipeBtn, counterSpan, rightSwipeBtn);
 
         reasoningMarkdown = new Markdown();
-        reasoningDetails = new Details("Thinking Process", reasoningMarkdown);
+        reasoningDetails = new Details(T.localized("Thinking Process"), reasoningMarkdown);
         reasoningDetails.setWidthFull();
         reasoningDetails.setVisible(false);
 
@@ -138,7 +146,7 @@ public class ReviewDialog extends Dialog {
         mainLayout.setFlexGrow(1, scrollPanel);
         add(mainLayout);
 
-        Button closeBtn = new Button("Close", e -> close());
+        Button closeBtn = new Button(T.localized("Close"), e -> close());
         getFooter().add(closeBtn);
     }
 
@@ -152,7 +160,7 @@ public class ReviewDialog extends Dialog {
             reasoningDetails.setVisible(false);
         }
 
-        reviewMarkdown.setContent(item.getText().isEmpty() ? "Generating review, please wait..." : item.getText());
+        reviewMarkdown.setContent(item.getText().isEmpty() ? T.localized("Generating review, please wait...") : item.getText());
         counterSpan.setText((reviewData.getCurrent() + 1) + " / " + reviewData.getReviews().size());
 
         stopContinueBtn.setEnabled(isGenerating != null && !isGenerating.isCancelled());
@@ -230,7 +238,7 @@ public class ReviewDialog extends Dialog {
             ReviewItem currentItem = reviewData.getReviews().get(reviewData.getCurrent());
             currentItem.getMetadata().setAdvancedInfo(opts);
 
-            isGenerating = service.stream(payload, targetProtocol, new InferenceService.InferenceAsyncCallback() {
+            InferenceService.InferenceAsyncCallback reviewCallback = new InferenceService.InferenceAsyncCallback() {
                 private final StringBuilder responseBuf = new StringBuilder();
                 private final StringBuilder reasoningBuf = new StringBuilder();
 
@@ -273,7 +281,7 @@ public class ReviewDialog extends Dialog {
                 public void onError(Throwable exception) {
                     ui.access(() -> {
                         isGenerating = null;
-                        currentItem.setText("Error generating review: " + InferenceErrors.messageOf(loc, exception));
+                        currentItem.setText(T.localized("Error generating review: %s").formatted(InferenceErrors.messageOf(loc, exception)));
                         displayReview();
                         UIPushGuard.push(ui);
                     });
@@ -283,7 +291,10 @@ public class ReviewDialog extends Dialog {
                 public boolean isDead() {
                     return isGenerating != null && isGenerating.isCancelled();
                 }
-            });
+            };
+            try (InferenceSession _ = InferenceSession.open("reviewer")) {
+                isGenerating = service.stream(payload, targetProtocol, reviewCallback);
+            }
 
         } catch (Exception e) {
             if (isGenerating != null) {
@@ -291,7 +302,7 @@ public class ReviewDialog extends Dialog {
                 isGenerating = null;
             }
             ReviewItem currentItem = reviewData.getReviews().get(reviewData.getCurrent());
-            currentItem.setText("Failed to start inference: " + e.getMessage());
+            currentItem.setText(T.localized("Failed to start inference: %s").formatted(e.getMessage()));
             UIUtils.internalServerError(loc, e);
             displayReview();
         }

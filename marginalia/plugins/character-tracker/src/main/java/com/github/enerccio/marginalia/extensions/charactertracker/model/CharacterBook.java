@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.extensions.charactertracker.model;
 
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
+
 import java.util.*;
 
 /**
@@ -15,6 +17,10 @@ public class CharacterBook {
     private final Map<String, StoryCharacter> characters = new LinkedHashMap<>();
     private final Map<String, CharacterRelation> relations = new LinkedHashMap<>();
 
+    private boolean promptEnabled;
+    private int promptDepth = 1;
+    private LLMRole promptRole = LLMRole.SYSTEM;
+
     public CharacterBook() {
     }
 
@@ -22,6 +28,9 @@ public class CharacterBook {
         if (data == null) {
             return;
         }
+        promptEnabled = data.isPromptEnabled();
+        promptDepth = Math.max(0, data.getPromptDepth());
+        promptRole = data.getPromptRole() == null ? LLMRole.SYSTEM : data.getPromptRole();
         if (data.getCharacters() != null) {
             data.getCharacters().stream().filter(c -> c != null && c.getUuid() != null)
                     .forEach(c -> characters.put(c.getUuid(), c));
@@ -39,7 +48,40 @@ public class CharacterBook {
         CharacterTrackerData data = new CharacterTrackerData();
         data.setCharacters(new ArrayList<>(characters.values()));
         data.setRelations(new ArrayList<>(relations.values()));
+        data.setPromptEnabled(promptEnabled);
+        data.setPromptDepth(promptDepth);
+        data.setPromptRole(promptRole);
         return data;
+    }
+
+    /**
+     * Whether the characters are inserted into the prompt of every generation.
+     */
+    public boolean isPromptEnabled() {
+        return promptEnabled;
+    }
+
+    public void setPromptEnabled(boolean promptEnabled) {
+        this.promptEnabled = promptEnabled;
+    }
+
+    /**
+     * Number of prompt messages after the inserted characters, 0 is the very end of the prompt.
+     */
+    public int getPromptDepth() {
+        return promptDepth;
+    }
+
+    public void setPromptDepth(int promptDepth) {
+        this.promptDepth = Math.max(0, promptDepth);
+    }
+
+    public LLMRole getPromptRole() {
+        return promptRole;
+    }
+
+    public void setPromptRole(LLMRole promptRole) {
+        this.promptRole = promptRole == null ? LLMRole.SYSTEM : promptRole;
     }
 
     public StoryCharacter get(String uuid) {

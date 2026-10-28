@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.crud;
 
 import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.collections.ProtocolType;
+import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.security.model.User;
@@ -138,8 +139,9 @@ class ManuscriptCrudTest extends ExtendableCrudContract<Manuscript> {
 
         // there is no description column any more
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM pragma_table_info('manuscripts') WHERE name = 'description'", Integer.class)).isZero();
-        assertThat(jdbc.queryForObject("SELECT CAST(extendedContent AS TEXT) FROM manuscripts WHERE id = ?", String.class, saved.getId()))
-                .contains("\"description\":\"A description\"");
+        // the column is gzipped when it is big, see ExtendableEntity
+        byte[] stored = jdbc.queryForObject("SELECT extendedContent FROM manuscripts WHERE id = ?", byte[].class, saved.getId());
+        assertThat(new String(ExtendableEntity.plain(stored), StandardCharsets.UTF_8)).contains("\"description\":\"A description\"");
         assertThat(fulltext(saved)).isEqualTo("My book\nA description");
 
         saved.setDescription("New description");

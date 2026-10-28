@@ -9,10 +9,7 @@ import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.dom.DomEvent;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BooleanSupplier;
 
 /**
@@ -42,6 +39,10 @@ public class StoryLazyLoader<C extends Component & StoryCard> {
     private final LazyLoadIndicator laterIndicator;
 
     private LazyBranch window;
+    // the window of the story before it is drawn again, set only while it is, to show the same part afterwards
+    private KeptWindow kept;
+    // the panel was attached again and nothing decided where the story is yet
+    private boolean bottomOnReattach;
 
     public StoryLazyLoader(ScrollPanel panel, StoryCards<C> cards, StoryGenerationListener.CardFactory<C> cardFactory,
                            BooleanSupplier frozen, Localization loc) {
@@ -66,6 +67,23 @@ public class StoryLazyLoader<C extends Component & StoryCard> {
         laterIndicator.setVisible(false);
     }
 
+    private record KeptWindow(int offset, int count, boolean atTail) {
+    }
+
+    /**
+     * Runs the drawing of the story (which calls {@link #clear} and {@link #render}) so that the user keeps reading
+     * where they are: the same parts are loaded and the story scrolls to where it was, or to the bottom when it
+     * was scrolled there. For a story that is drawn again behind the back of the user (a generation ended).
+     */
+    public void keepViewportWhile(Runnable draw) {
+        kept = window == null ? null : new KeptWindow(window.offset(), window.loaded().size(), window.atTail());
+        try {
+            draw.run();
+        } finally {
+            kept = null;
+        }
+    }
+
     /**
      * Creates the cards of the last parts of the branch and scrolls to the bottom, or to the part when the story is
      * shown to find it (the window is moved to it).
@@ -75,11 +93,19 @@ public class StoryLazyLoader<C extends Component & StoryCard> {
      * @param openedReasonings ids of the parts whose reasoning stays opened
      */
     public void render(List<ChatMessage> branch, Integer limit, Long scrollTo, Set<Long> openedReasonings) {
-        window = LazyBranch.tail(branch, limit);
+        bottomOnReattach = false;
+        boolean keepViewport = kept != null && scrollTo == null;
+        window = keepViewport
+                ? LazyBranch.restore(branch, limit, kept.offset(), kept.count(), kept.atTail())
+                : LazyBranch.tail(branch, limit);
         if (scrollTo != null) {
             window.centerOn(scrollTo);
         }
         populate(openedReasonings);
+        if (keepViewport) {
+            JavascriptLibrary.restoreScroll(panel.getElement(), panel.getContent().getElement());
+            return;
+        }
 
         C target = scrollTo != null ? cards.get(scrollTo) : null;
         if (target != null) {
@@ -90,6 +116,25 @@ public class StoryLazyLoader<C extends Component & StoryCard> {
     }
 
     /**
+     * The panel was attached again after it was detached (its tab was moved to another sheet): the browser made it new, so
+     * the edges are armed again and, unless something else decides where the story is before the response goes out (a render
+     * of the story tab being entered, a scroll to a part), the story shows its end, as it does when it opens.
+     */
+    public void reattached() {
+        if (window == null) {
+            return;
+        }
+        settle(false);
+        bottomOnReattach = true;
+        panel.getUI().ifPresent(ui -> ui.beforeClientResponse(panel, context -> {
+            if (bottomOnReattach) {
+                bottomOnReattach = false;
+                JavascriptLibrary.scrollToBottomAfterLayout(panel.getElement());
+            }
+        }));
+    }
+
+    /**
      * Makes sure the last part of the branch has a card, as a new part is added after it: when the user scrolled away
      * from the end, the window moves back there and the story scrolls to the bottom.
      */
@@ -97,6 +142,7 @@ public class StoryLazyLoader<C extends Component & StoryCard> {
         if (window == null || window.atTail()) {
             return;
         }
+        bottomOnReattach = false;
         syncLoaded();
         window.moveToTail();
         populate(cards.collectOpenedReasonings());
@@ -111,6 +157,7 @@ public class StoryLazyLoader<C extends Component & StoryCard> {
         if (window == null || window.indexOf(messageId) < 0) {
             return;
         }
+        bottomOnReattach = false;
         if (!window.isLoaded(messageId)) {
             syncLoaded();
             window.centerOn(messageId);
@@ -119,6 +166,39 @@ public class StoryLazyLoader<C extends Component & StoryCard> {
         C card = cards.get(messageId);
         if (card != null) {
             JavascriptLibrary.scrollToAndHighlight(card.getElement());
+        }
+    }
+
+    /**
+     * Brings the match of a search to the screen: the window moves to the part when it is not loaded, the card is drawn
+     * again when it was (the mark of the current match changed) and the story scrolls to the mark with the CSS class.
+     */
+    public void showMatch(Long messageId, String currentCssClass) {
+        if (window == null || window.indexOf(messageId) < 0) {
+            return;
+        }
+        bottomOnReattach = false;
+        if (!window.isLoaded(messageId)) {
+            syncLoaded();
+            window.centerOn(messageId);
+            populate(cards.collectOpenedReasonings());
+        }
+        C card = cards.get(messageId);
+        if (card != null) {
+            card.renderResponse();
+            JavascriptLibrary.scrollToSearchMatch(card.getElement(), currentCssClass);
+        }
+    }
+
+    /**
+     * Draws the response of the cards of these parts again, the ones that have no card are skipped.
+     */
+    public void renderResponses(Collection<Long> messageIds) {
+        for (Long id : messageIds) {
+            C card = cards.get(id);
+            if (card != null) {
+                card.renderResponse();
+            }
         }
     }
 

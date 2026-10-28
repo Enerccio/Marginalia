@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceService.ChunkType;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncCallback;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncController;
+import com.github.enerccio.marginalia.domain.service.InferenceSession;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController.State;
 import com.github.enerccio.marginalia.loc.L;
@@ -37,7 +38,7 @@ public class InferenceStep extends GenerationStepBase {
             warnIfOverflowing(controller, promptTokens);
 
             Pointer<Long> lastChunkReceived = new Pointer<>(System.currentTimeMillis());
-            inferenceService.stream(controller.getPayload(), controller.getProtocol(), new InferenceAsyncCallback() {
+            InferenceAsyncCallback callback = new InferenceAsyncCallback() {
 
                 @Override
                 public void onChunk(InferenceAsyncController inferenceController, ChunkType chunkType, String text) throws Exception {
@@ -153,7 +154,11 @@ public class InferenceStep extends GenerationStepBase {
                 public boolean isDead() {
                     return controller.getCancellationToken().isCancelled();
                 }
-            });
+            };
+            // a new part, a regenerated one and a swipe are the same kind of work for the provider's cache
+            try (InferenceSession _ = InferenceSession.open(InferenceSession.GENERATION)) {
+                inferenceService.stream(controller.getPayload(), controller.getProtocol(), callback);
+            }
         });
     }
 

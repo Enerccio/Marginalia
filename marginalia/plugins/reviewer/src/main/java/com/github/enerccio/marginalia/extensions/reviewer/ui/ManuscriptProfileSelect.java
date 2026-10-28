@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.List;
 
+import static com.github.enerccio.marginalia.extensions.reviewer.ReviewerLocalization.T;
+
 /**
  * Chooses the reviewer profile of a book, it takes priority over the one selected in the settings. Saves the choice
  * with the book as soon as it is made.
@@ -26,7 +28,7 @@ public class ManuscriptProfileSelect extends ComboBox<ReviewerProfile> {
     private Manuscript manuscript;
 
     public ManuscriptProfileSelect(ReviewerService reviewerService) {
-        super("Reviewer Profile (Default: selected in settings)");
+        super(T.localized("Reviewer Profile (Default: selected in settings)"));
         this.reviewerService = reviewerService;
 
         setWidthFull();

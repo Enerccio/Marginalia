@@ -5,8 +5,12 @@ import com.github.enerccio.marginalia.domain.repository.ManuscriptRepository;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.search.LikePatterns;
 import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValues;
+import com.github.enerccio.marginalia.domain.service.search.ManuscriptSearchCriteria;
+import com.github.enerccio.marginalia.domain.service.search.ManuscriptSearchCriteria.TagMatch;
 import com.github.enerccio.marginalia.domain.service.search.Sorter;
 import jakarta.persistence.TypedQuery;
+
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
@@ -120,5 +124,79 @@ public class JpaManuscriptRepository extends JpaExtendableRepository<Manuscript>
 
             return q.getResultList();
         }
+    }
+
+    @SuppressWarnings("SqlSourceToSinkFlow")
+    @Override
+    public List<Long> searchManuscripts(ManuscriptSearchCriteria criteria, List<Sorter> sorters, User user) throws Exception {
+        Map<String, Object> parameters = new HashMap<>();
+        List<String> ands = new ArrayList<>();
+        ands.add("m.deleted = false");
+        ands.add("m.owner.id = :ownerId");
+        ands.add("m.agentic = false");
+        parameters.put("ownerId", user.getId());
+
+        if (StringUtils.isNotBlank(criteria.getName())) {
+            ands.add("m.name LIKE :name ESCAPE '\\'");
+            parameters.put("name", "%" + LikePatterns.fromWildcards(criteria.getName().strip()) + "%");
+        }
+        range(ands, parameters, "m.creation", "created", criteria.getCreatedFrom(), criteria.getCreatedTo());
+        range(ands, parameters, "m.modification", "modified", criteria.getModifiedFrom(), criteria.getModifiedTo());
+        if (criteria.getMinParts() != null) {
+            ands.add(PARTS + " >= :minParts");
+            parameters.put("minParts", (long) criteria.getMinParts());
+        }
+        if (criteria.getMaxParts() != null) {
+            ands.add(PARTS + " <= :maxParts");
+            parameters.put("maxParts", (long) criteria.getMaxParts());
+        }
+
+        List<String> included = tagChecks(criteria.getIncludeTags(), "in", parameters);
+        if (!included.isEmpty()) {
+            ands.add(criteria.getIncludeMatch() == TagMatch.ALL
+                    ? String.join(" AND ", included)
+                    : "(" + String.join(" OR ", included) + ")");
+        }
+        List<String> excluded = tagChecks(criteria.getExcludeTags(), "ex", parameters);
+        if (!excluded.isEmpty()) {
+            ands.add(criteria.getExcludeMatch() == TagMatch.ALL
+                    ? "NOT (" + String.join(" AND ", excluded) + ")"
+                    : "NOT (" + String.join(" OR ", excluded) + ")");
+        }
+        if (!included.isEmpty() || !excluded.isEmpty()) {
+            parameters.put("clazz", Manuscript.class.getName());
+        }
+
+        String query = "SELECT m.id FROM Manuscript m WHERE " + String.join(" AND ", ands) + " " + Sorter.toOrderBy("m", sorters);
+        TypedQuery<Long> q = getEntityManager().createQuery(query, Long.class);
+        parameters.forEach(q::setParameter);
+        return q.getResultList();
+    }
+
+    private static final String PARTS = "(SELECT COUNT(c) FROM ChatMessage c WHERE c.parentScript = m AND c.deleted = false)";
+
+    private static void range(List<String> ands, Map<String, Object> parameters, String field, String name, Date from, Date to) {
+        if (from != null) {
+            ands.add(field + " >= :" + name + "From");
+            parameters.put(name + "From", from);
+        }
+        if (to != null) {
+            ands.add(field + " < :" + name + "To");
+            parameters.put(name + "To", to);
+        }
+    }
+
+    /**
+     * One "the book carries the tag" check per tag, the values are the parameters {@code prefix + number}.
+     */
+    private static List<String> tagChecks(List<String> tags, String prefix, Map<String, Object> parameters) {
+        List<String> checks = new ArrayList<>();
+        for (int i = 0; i < tags.size(); i++) {
+            String name = prefix + i;
+            checks.add("EXISTS (SELECT 1 FROM TagRelation tr WHERE tr.objectId = m.id AND tr.clazz = :clazz AND tr.negative = false"
+                    + " AND tr.deleted = false AND tr.tag.deleted = false AND tr.tag.value = :" + name + ")");
+            parameters.put(name, tags.get(i));
+        }
+        return checks;
     }
 }

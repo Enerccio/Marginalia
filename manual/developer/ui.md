@@ -1,7 +1,7 @@
 ---
 label: User interface
 order: 910
-verified: 1e3193fc
+verified: 60a4afd23
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui
 ---
@@ -220,7 +220,7 @@ check - the administrator-only services call `AdminGuard.requireAdmin()` themsel
 ### The agents tab
 
 `AgentPart` (`ui.workspace.parts`, a `WorkspaceComponent` like the others) is a table of the agents of the user (a card for each on the phone,
-`new AgentPart(workspace, true)`): the name, the book and the status of the unfinished run (`Localization.getAgentRunStatus`), and a row of
+`new AgentPart(workspace, true)`): the name, the book, the status of the unfinished run (`Localization.getAgentRunStatus`) and when the newest run started (`AgentRunService.findForAgent`), with filter fields for the name and the book (every word must be contained, `AgentPart.containsWords`; a `ListDataProvider` filter), sortable columns (the phone has the `Sort` selector, `sortBy`), and a row of
 buttons whose visibility follows the status of the run (**Start** with *Start immediately* / *Start in console*, **Resume**, **Pause**,
 **Pause now**, **Stop**, the console, **Review changes**, **Edit**, **Clone**, **Delete**). They call `AgentRunService` and `AgentRunner`; the
 refusals of the service (`IllegalStateException`, `SecurityException`, `IllegalArgumentException`) are shown as a warning with the text of the
@@ -249,7 +249,7 @@ and `PhoneManuscriptDialogPart` (default: no state), both book dialogs, `Loreboo
 | `DesktopWorkspace`, `PhoneWorkspace` | `tab` (`books`, `lorebooks`, `settings`, `protocols`, `models`, `resources`, `trash`) and `parts`, the state of each part under its tab name. The admin panel is not remembered. |
 | `ManuscriptPart`, `PhoneManuscriptPart` | `filters` (`name`, `tags` as tag uuids) and `dialog`, the state of the open book window. |
 | `ManuscriptDialog`, `PhoneManuscriptDialog` | `manuscript` (uuid), `tab` (`info`, `prompt`, `lorebook`, `story`, `tree`, `backup`) and `parts`, the state of the tabs. |
-| `ManuscriptStoryPart`, `PhoneManuscriptStoryPart` | `newTurn`, the `NewTurnForm`: `scene`, `pov`, `present`, `instructions` and `edited`. The desktop part also stores `tabs`, the `TabDock` state: `selected`, the ids of the tab each sidebar panel shows. |
+| `ManuscriptStoryPart`, `PhoneManuscriptStoryPart` | `newTurn`, the `NewTurnForm`: `scene`, `pov`, `present`, `instructions` and `edited`. The desktop part also stores `tabs`, the `TabDock` state: `selected`, the ids of the tab each panel shows. |
 | `LorebookPart`, `LorebookView`, `PhoneLorebookView` and the lorebook tab of the book window | `lorebook` (uuid, not for the view pinned to the lorebook of a book), `rootOnly` (the *Only root lorebooks* box, `LorebookView` only, not when pinned) and `entries`, the uuids of the entries whose details are open. The lorebook tab of the book window (`ManuscriptLorebookPart`, `PhoneManuscriptLorebookPart`) adds `shown`, the uuid of the lorebook it shows when it is not the one of the book (see the lorebook parts above); it is restored before the rest, as the open entries are the ones of that lorebook. |
 
 Everything is stored by uuid and looked up when it is restored (`findForUser`), so a book, lorebook, entry or tag that
@@ -286,7 +286,7 @@ Opening a book creates a `ManuscriptDialog` - a full-screen, strictly modal dial
 The dialog holds the book (`getManuscript()`, `refreshManuscript()` reloads it, `save()` saves it) and
 `freeze()` / `unfreeze()`, which disable the tabs, the exit button and every part during generation.
 
-`ManuscriptStoryPart` is the story editor and the largest UI class: the sidebar with one button per part, a
+`ManuscriptStoryPart` is the story editor and the largest UI class: the outline (one button per part), a
 `ChatMessageCard` per part (Markdown view, edit mode, menu with Edit / Regenerate / Swipe / Branch / View prompt /
 Summary / Delete), the *New Turn Instructions* popover, starting generations and applying the result, the automatic
 book backups, and the menu bar of the bottom bar (see [The story menu bar](#the-story-menu-bar)).
@@ -295,7 +295,10 @@ book backups, and the menu bar of the bottom bar (see [The story menu bar](#the-
 (so the selected tab and the tabs of extensions survive), and the reasonings that were open are reopened on the new
 cards. `PhoneManuscriptStoryPart` does the same.
 
-The left bar (`leftBar`) is a `TabDock` (`ui.widgets`), a reusable widget: a row of columns, each a stack of tab sheets, whose
+The whole desktop editor is one `TabDock` (`leftBar`, the name is older than the story tab): the outline, the lorebook preview,
+the tabs of extensions and **the story itself** (`ManuscriptStoryPart.STORY_TAB`, `story`; its content is `centerLayout`: the
+scroll panel with the cards and the bottom bar with the menus, the command line and the round button) are its tabs, so the
+user arranges the whole screen. `TabDock` is a reusable widget: a row of columns, each a stack of tab sheets, whose
 tabs the user can drag out into sheets of their own (a strip between the sheets of a column) or into a column of their own (a
 strip between the columns and at the sides) and back (the drag and drop is Flow's `DragSource`/`DropTarget`, no JavaScript;
 the strips show while a tab is dragged). The columns and the sheets of a column are separated by `SplitLayout`s the user can
@@ -307,10 +310,31 @@ outline is `ManuscriptStoryPart.CHAPTERS_TAB`); the layout, `{"columns":[{"size"
 (`getLayout`/`setLayout`; a layout with `groups` at the top level, as the dock stored before it had columns, is one column), names tabs only by id and keeps the place of tabs that are not there now, because extensions add
 their tabs late (a tab the layout does not know goes to the first sheet). `ManuscriptStoryPart` stores the layout in the
 attributes of the manuscript under `$desktopManuscriptStoryPartTabsConfig` (`TABS_CONFIG_ATTRIBUTE`): `saveTabsConfig()` runs
-after a drag, `applyTabsConfig()` in `load()` before the story is drawn. The position of the splitter between the dock and the story is saved the same way,
-as a number in the attribute `$desktopManuscriptStoryPartSplitPosition` (`SPLIT_POSITION_ATTRIBUTE`): `saveSplitPosition()` runs after the drag,
-`applySplitPosition()` in `load()`. The selected tab of each sheet is not part of the
+after a drag or a resize, `applyTabsConfig()` in `load()` before the story is drawn. The selected tab of each sheet is not part of the
 layout but the `Restorable` state of the dock. `PhoneManuscriptStoryPart` uses `new TabDock(false)`, one plain sheet.
+
+`StoryDockLayout` (`ui.dialogs.story`) holds the layouts: `defaultLayout` (the outline and the lorebook in a column of 20 %
+on the left, the story in a column of 80 %), and `migrate`, which turns what a book stored before the story was a tab into a
+layout that has it. That is a layout without the `story` id: its columns keep their order and share the width the old
+splitter gave the sidebar (`$desktopManuscriptStoryPartSplitPosition`, `SPLIT_POSITION_ATTRIBUTE`, 20 % when the book never
+stored one), and the story gets a column of its own at the right; a book with nothing stored gets the default layout.
+Nothing is written back by `load()`; the next `saveTabsConfig()` stores the layout with the story and removes the old
+attribute. *Restore default layout* (settings menu of the story, `restoreDefaultLayout`) removes both attributes and applies
+the default layout.
+
+Two things about `TabDock` that the story relies on. A `TabSheet` disables the content of the tabs it does not show
+(`Element.isEnabled()` is false for it, so the story ignores events from the page while another tab of its sheet is selected;
+what the server changes in it still reaches the page) and keeps it in the page, hidden, so the scroll position survives a switch
+of tabs. Moving the tab to another sheet attaches the content anew, and the scripts that watch the edges for the lazy
+loading are lost, as is the scroll position: `StoryLazyLoader.reattached()` (called by an attach listener of `centerLayout`) arms
+them again and has the story scroll to its end before the response goes out (`beforeClientResponse`), unless a render or a scroll to
+a part of the same request decided where the story is (they clear `bottomOnReattach`), so entering the story tab from the tree
+still lands on the part that was asked for. And `setTabsEnabled(enabled, exceptId)` disables the tabs and the contents of all tabs but one (while a generation runs
+the story stays enabled: its stop button; `setFrozen` calls it) and only touches the contents the sheet does not manage
+itself. `TabDock.select(id)` selects a tab in whichever sheet it is; `ManuscriptStoryPart.showStory()` does it for the story,
+and the code that is about to show a part calls it: an entry of the outline, a hit of the search, `startGeneration`, the next
+`onTabEnter` when `scrollToMessageOnNextRender` asked for a part, and `ManuscriptDialog.selectStoryPart` (what the tree calls
+when the user chooses a branch).
 
 The tab with the id `ManuscriptStoryPart.LOREBOOK_TAB` (`lorebook`) of the left bar is the `LorebookPreview` (`ui.components`),
 a read only preview of the lore of the book, desktop only (the phone has the `PhoneLorebookView`). It is a `TreeGrid` of
@@ -331,8 +355,12 @@ their layout and the methods extensions decorate (`renderStoryContent`, `createS
 | `StoryHost` | What a story tab needs from its dialog (`refreshManuscript`, `save`, `freeze`, `unfreeze`); `ManuscriptDialog` and `PhoneManuscriptDialog` implement it (through `ManuscriptWindow`). |
 | `StoryCard`, `StoryCards` | The card interface both `ChatMessageCard` classes implement, and the registry of the cards of the branch and the streaming one (opened reasonings, last flags, freezing, autosave; `getOffset` is how many parts of the branch have no card because they are before the first one, `prependAll` puts earlier cards in front; the loader sets the offset after it drops cards at the start). |
 | `LazyBranch`, `StoryLazyLoader`, `ReaderLazyLoader` | Lazy loading of the parts, a window that slides over the branch. `LazyBranch` is the plain logic without UI: the size of the window is `UserSetting.storyPartsLimit` (empty loads everything), a chunk is half of it; `tail` starts the story with the last parts, `head` the reader with the first ones, `loadEarlier` / `loadLater` extend the window by a chunk and `trimLater` / `trimEarlier` drop the parts at the other end, `centerOn(id)` moves it around a part that is not loaded, `moveToTail` back to the end, `refresh` swaps in the instance a card holds now (an edit saves a new one). `StoryLazyLoader` fills the panel of a story tab with the cards of the window and answers `edge-top` / `edge-bottom` of the panel: it adds the chunk, drops the other end (an edited card is saved first; nothing is dropped while a part is generated, because the streaming card is the last one and the branch does not have it) and puts the visible part back in place. `scrollTo(id)` is the outline (moves the window when the part is not loaded), `showTail()` is called before a generation starts, so the new part is added after the last one. `ReaderLazyLoader` does the same for the reader (`Viewer`) with plain parts that carry `data-message-id`. Both put a `LazyLoadIndicator` in the header and footer of the `ScrollPanel` (`setHeader` / `setFooter`) while there is more to load at that edge, so a user who outruns the loading sees it. |
+| `StoryBranchSearch` | The search field of the outline of both story tabs: parses a `FulltextQuery`, finds every occurrence (`SearchHighlighter.count` in the `response` of the branch, which it reads through a `BranchSource`, because the browser's search cannot see parts that are not loaded), numbers them through the branch and keeps the current one (previous / next, Enter / Shift+Enter, status text and progress bar). The cards draw their response through `mark(messageId, text)` (`SearchHighlighter` wraps the matches in `<mark class="search-match">`, the current one also `search-match-current`, and leaves the `<mark>` tags of *Highlight Generated Text* alone), so `StoryCard.renderResponse` is the one place the text is set; `StoryLazyLoader.showMatch` moves the window to the part, redraws the card and `JavascriptLibrary.scrollToSearchMatch` scrolls to the mark. `refresh(branch)` is called when the story is drawn again. |
+| `ManuscriptSearchDialog` | The advanced search of the book list (the *Search* button of `ManuscriptPart` and the magnifier of `PhoneManuscriptPart`, which pass the callback that opens a found book after the `AgentLockCheck`). It builds a `ManuscriptSearchCriteria` from the fields (a *to* date becomes the start of the next day, the end is exclusive) and lists the result of `ManuscriptService.searchAdvanced`: `ManuscriptRepository.searchManuscripts(criteria, …)` does name, tags (one `EXISTS` per tag; include all/any, exclude any/all), dates and the number of parts in one JPQL query, then `ChatMessageService.findManuscriptsWithText` keeps the books that have a part with all the words (`_fulltext` `LIKE`s, as in `searchFulltext`), restricted to the active branch (`ChatMessageRepository.findActiveBranchIds`) unless *all branches* is on. |
+| `CloneNameDialog` (`ui.dialogs`) | Static helper, not `@Extendable`: a `TextInputDialog` that asks for the name of a copy (the original's name and *(Copy)*, required) and calls back with it. Used by the clone buttons of `LorebookView`, `ProtocolPart` / `PhoneProtocolPart` and `AIPart` / `PhoneAIPart`, which call `LorebookService.cloneLorebook`, `ProtocolService.cloneProtocol` and `AIService.cloneAI` (the `PhoneLorebookView` has no clone). |
 | `StoryGenerationListener` | The `GenerationListener` of a story tab: creates and fills the cards while a generation streams, redraws the story at its end. The tab reacts through `Callbacks`. |
-| `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics` | The fields of the *New Turn Instructions* popover, the turn details of a part, the metadata lines of a part. |
+| `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics` | The fields of the *New Turn Instructions* popover, the turn details of a part, the metadata lines of a part. `NewTurnForm.setOnImpersonate` shows the *Draft Instructions* button (the story parts set it to open the `ImpersonateDialog`), `setInstructions`, `setPovCharacter` and `setPresentCharacters` put a text into the field as if typed (the Character Tracker plugin gives the two character fields a picker button). |
+| `ImpersonateDialog` (`ui.dialogs.story`) | The window of the *Draft Instructions* button of the new turn form (desktop and phone) and of extensions that know the plan of the story: `ImpersonateDialog.open(book, turn, outline, onUse)`. The guidance (starts as the typed instructions), the read only `outline`, `ImpersonateService.impersonate` streamed into a text field the author may change; `onUse` gets the text. Nothing is stored. |
 | `StoryBackup`, `StorySupport` | The automatic backup after N parts / minutes, the limit of parts to load (`partsLimit`) and the saving of an edited part. The story does not remember a scroll position: it always opens at the bottom. |
 
 The helpers are `@Extendable` instances (the tabs create them with `new`, `StoryBackup` and `StorySupport` are
@@ -348,7 +376,7 @@ to it (see [Extending the UI](plugins/ui-extensions.md#the-story-menu-bar)):
 |---|---|
 | `createMenuBar()` | The bar: calls the three methods below. Stored in the field `menuBar`. |
 | `createSummariesMenuItem(bar)` | The **Summaries** item (field `summariesMenuItem`), which opens `SummariesDialog`. Its tooltip shows the tokens of the summaries in use (`refreshSummariesMenuItem()`, run when the story is loaded, after a summary is deleted and when a summary dialog is closed). |
-| `createCogsMenuItem(bar)` | The settings item (field `cogsMenuItem`, local `cogs`) and its sub menu: `createChangeStylesMenuItem(cogs)`, `createHighlightGeneratedMenuItem(cogs)`, `createSearchReplaceMenuItem(cogs)` (opens `ManuscriptSearchReplaceDialog`), `createImportArchiveMenuItem(cogs)` (an `ArchiveUploadDialog`, then `ArchiveImportRunner.appendParts`) and `createExportMenuItem(cogs)`. The phone tab has the same, without the highlight. |
+| `createCogsMenuItem(bar)` | The settings item (field `cogsMenuItem`, local `cogs`); its sub menu is built from the registry (`MenuKind.TOOLS`), the actions are the public methods of `StoryEditor` (`openSearchReplaceDialog`, `openArchiveImportDialog` (an `ArchiveUploadDialog`, then `ArchiveImportRunner.appendParts`), `openBranchTokensDialog`, `openExportDialog`, `toggleBookStyles`, `setShowGeneratedDiff`, `setAnnotationsInMargin`, `confirmRestoreDefaultLayout`). The phone tab has the same items without the desktop only ones (highlight, margin, restore layout) |
 | `populateMenuBar(bar)` | Empty, runs last: the hook for new items of the bar. |
 
 The checkable **Highlight Generated Text** item is the diff view: `setShowGeneratedDiff(show)` stores the flag (a field
@@ -366,7 +394,7 @@ the summaries generation uses are the top level, the summaries a meta summary st
 (including the summary it replaced, read from `replacedSummary`, which has no id). Columns: database id (the
 hierarchy column), message id, order in the branch, content, tokens, a checkbox and a delete button. Checkboxes,
 delete buttons and the edit pencil exist only on the top level - the text of the merged summaries is part of the hash
-of their meta summary, so editing them would invalidate it.
+of their meta summary, so editing them one by one would invalidate it (the search and replace works them out again).
 
 - **Content** (`SummaryContent`): reasoning (a `Details` with `Markdown`, reasoning is mostly markdown), badges (*Meta summary*, *Replaced*) and the text as
   plain text (`white-space: pre-wrap`, summaries are not markdown and the model's single line breaks must show), in a scrolling `Div` of a fixed height, so all rows have the same height. The pencil is in a gutter next
@@ -377,7 +405,8 @@ of their meta summary, so editing them would invalidate it.
   button labels).
 - **Create meta summary** takes the ticked summaries, uses the newest as `from` and the oldest as `to` and opens
   `SummaryDialog` with a meta request (`createMetaSummary`); it needs at least two.
-- The grid is reloaded after every change (`refresh()`): editing, deleting, and closing the dialog of a meta summary.
+- **Search and Replace** (menu bar, `openSearchReplaceDialog()`): the search and replace of the summaries only, see `SearchReplaceDialog` below for the dialog; it also changes the summaries a meta summary stands in for and the summary a meta summary replaced, and keeps the hash of the meta summaries valid (`ManuscriptReplaceService`).
+- The grid is reloaded after every change (`refresh()`): editing, deleting, replacing, and closing the dialog of a meta summary.
 
 `SummaryDialog` is the dialog of one summary: it generates it (`startGeneration`, streaming into a read-only text area,
 with a *Stop* button), or shows the existing one. It is created with the part, and with the oldest part of the range
@@ -397,13 +426,17 @@ page (`service.find(id)`) and wraps them in a `BackendTableItem` subclass. It al
 | Widget | Used for |
 |---|---|
 | `HTabSheet` | The workspace's left-hand tab sheet with a footer area. |
+| `ThemeSwitch` | The button next to the `LanguageSelector` in the workspace footers: toggles `UserSetting.themeMode` (`ThemeMode` DARK / LIGHT, dark when not chosen) and applies it with `Page.setColorScheme`; `ThemeSwitch.apply` is also called by `Main.proceedWithLogin`, so the scheme is set when the workspace opens. Only the current page changes at once. |
+| `RedraftDialog` (`ui.dialogs.story`) | The *Redraft* item of the part menu of `ManuscriptStoryPart` / `PhoneManuscriptStoryPart` (the method `redraft` of the card): the instructions of the author, the redraft streamed by `RedraftService.redraft` into a text field that can still be edited (a `ResizableTextArea`, value change mode `LAZY`), a `WordDiffView` of the changes (worked out again from the text whenever the author edits it, not while the model streams), and *Apply*, which stores the text with `ChatMessageService.updateResponse` and hands the saved part to the card (it draws the response and the metrics again). When `ChatMessageService.isSummarized` says a summary describes the part, the window has the checkbox *Revalidate the summaries this redraft makes outdated* (off at first): *Apply* then passes the summaries of `PartEdit.outdated()` to `SummaryService.revalidate`, so the edit does not leave them outdated. `RedraftDialog.open(book, part, passage, onApplied)` redrafts a selected `RedraftService.Passage` only: the selected text is shown, the diff is against it, and *Apply* (`replacePassage`, which keeps the whitespace at the edges of the passage) puts the text in the passage after checking that the stored text is still the one the passage was selected in. It is offered by the right click menu of the text of a card (`CardAnnotations`, which finds the selection and gives the passage to the card's `redraftSelection`; the menu ☰ is not used because it takes the selection away). Closing the dialog stops a running redraft. Not `@Extendable`. |
+| `BranchTokensDialog` (`ui.dialogs`) | The *Branch Tokens* item of the settings menu of `ManuscriptStoryPart` / `PhoneManuscriptStoryPart`: a stacked bar (`ChartJs`) and a table of `ChatMessageService.getBranchTokens` against `TokenLimits.promptTokens` of the book's model and protocol. Not `@Extendable`. |
 | `LanguageSelector` | The language combo box of the workspace footers: saves the choice in `UserSetting.language`, sets `SessionPoint.language` and reloads every page of the user ([Localization](architecture.md#localization)). |
 | `TagsView` (`ui.components`) | The Tags tab of `UserPart`: a grid of the tags with their relation counts, rename (a name that exists asks to merge) and delete. It acts at once and is not tracked as an unsaved setting. |
 | `LLMInteract` / `LLMSnapshot` (`ui`) | What the help assistant's model can read of the screen, see [Letting the help assistant see the UI](#letting-the-help-assistant-see-the-ui). |
-| `BuildInfoFooter` | The version text (`Marginalia 1.4.0 (93ec118)`) as a `Span` fixed in the bottom left corner (`CssStyles.BUILD_INFO_FOOTER`, 10 px, faded, outside the layout); the tooltip has the full commit id, the commit time and the build time. Added to `Main` after the workspace (the phone layout has it too). The login overlay shows the same text as `LoginI18n.additionalInformation` (`LoginCheckRoute.getLoginI18n`). The values come from `utils.BuildInfo`, see [Building](building.md#building-the-application). |
+| `BuildInfoFooter` | The version text (`Marginalia 1.5.0 (93ec118)`) as a `Span` fixed in the bottom left corner (`CssStyles.BUILD_INFO_FOOTER`, 10 px, faded, outside the layout); the tooltip has the full commit id, the commit time and the build time. Added to `Main` after the workspace (the phone layout has it too). The login overlay shows the same text as `LoginI18n.additionalInformation` (`LoginCheckRoute.getLoginI18n`). The values come from `utils.BuildInfo`, see [Building](building.md#building-the-application). |
 | `HelpAssistantWidget` | The help chat: a round robot `Button` fixed in the bottom right corner (`CssStyles.HELP_FAB`) opening a fixed panel above it (`HELP_PANEL`: header with clear and close, which AI answers, a warning when `Info.metered()`, the messages, an input row whose send button turns into stop). Added to `Main` after the workspace, so the phone layout has it too; hidden unless `HelpAssistantService.isAvailable()` when the page is built, the panel reads `getInfo()` at each opening. Answers stream into a `Markdown` card with `ui.access` + `UIPushGuard.push`; the conversation is `SessionPoint.getHelpChat()` (the widget keeps the list, the callbacks have no session). A request that fails or is refused (limit) takes the question back into the input field and shows the reason in the card. Reasoning chunks are not shown. |
 | `LorebookPreview` | The read only *Lorebook* tab of the desktop story editor: a tree grid of the lorebook (optionally with its sub lorebooks as top level rows) and its entries, opening to the content and the text activation. `create()`, then `refresh(lorebook)`. |
 | `TagMultiComboBox` | Tag selection with lazy search (`TagService.searchTagsForUser`) and creation of new tags. |
+| `LorebookActivationPreviewDialog` (`ui.dialogs`) | The *Preview activation* of `LorebookView` and `PhoneLorebookView`: a text area (lazy value change), an optional book to take the tags from (`TagRelationService.getTagsForObject`) and a grid of `LorebookEntryVerdict`s from `LorebookActivationService.evaluateAll(root, collectLorebooks(root), tags, text, parts)` (`parts`: `recentParts` of the active leaf of the picked book, as many as `partsNeeded` says, none without a book) - the used mark, name, lorebook, order, scan pass and the localized reason (`Localization.getActivationReason`, keys `ENUM_ACTIVATION_REASON_*`) with its detail. The summary counts the used entries and their tokens (`TokenizerService.countTokensApprox` of the raw payload). Read only, nothing is saved, no events: what extensions change in a generation is not shown. |
 | `LorebookMassEditDialog` (`ui.dialogs`) | The *Mass edit* of `LorebookView`: one `Grid<Row>` with the entries of a lorebook and of its subbooks (`LorebookService.getLorebookTree`, the lorebook first, each once), sorted by `LorebookEntry.order`, then by the position of the lorebook in the tree, then by name. A `Row` is an entry with the lorebook it is in and whether that lorebook is locked (`AgentRunService.findLockingRun(Lorebook)`, asked for each lorebook of the tree, as a subbook can be used by another book than the root). The cells change the enabled flag, name, order (the grid is sorted again), tags, filtering mode, filtering, insertion mode, negative tags and note (the fields of the detail row of `LorebookView`) in place through `LorebookEntryService.save`; the lorebook cell and the *Move checked* button call `LorebookEntryService.move`, which refuses (`LorebookLockedException`, shown by `UIUtils.internalServerError` as a warning) both a locked source and, since this dialog, a locked target lorebook. The text is `StringUtils.abbreviate`d to `CONTENT_PREVIEW_LENGTH` and kept on one line by `CssStyles.MASS_EDIT_CONTENT`. Locked rows use `CssStyles.MULTI_TAG_LOCKED` and are never targets. The `onChange` runnable (the view's `refreshEntries`) runs when the dialog is closed after a change. |
 | `MultiTagDialog` (`ui.dialogs`) | Puts one tag on many books, lorebooks or the entries of a lorebook (`Kind.BOOKS`, `Kind.LOREBOOKS`, or the constructor with a `Lorebook`), opened from `ManuscriptPart` and `LorebookView`. A `ComboBox<Tag>` (an unknown typed value is made with `TagService.getOrCreateForUser`) and a grid of rows (check box, name, chips of the tags with the picked one marked, apply / remove buttons); the rows with the picked tag sort first. The tags of all rows come from one `TagRelationService.getTagsForObjects`; apply and remove go through `createRelation` / `removeRelation` with the class of the entity (`Manuscript`, `Lorebook`, `LorebookEntry`), positive relations only. A row is locked when `AgentRunService.findLockingRun` returns a run (an entry is locked with its lorebook); locked rows are grayed out (`CssStyles.MULTI_TAG_LOCKED`), can not be ticked and are skipped when the change is made, which asks the lock again as the run may have started since the list was read. The tag relations themselves are not guarded by the services, so the lock is checked here. |
 | `ManuscriptCloneDialog` (`ui.dialogs`) | The clone button of the book list (`ManuscriptPart`, `PhoneManuscriptPart`): the name of the copy (the book's name and *(Copy)*) and **Only current branch**; **Clone** calls `BackupService.cloneManuscript(source, name, onlyCurrentBranch)` and gives the new book to `setOnClone`, which the book list uses to read itself again. The lorebook is linked, not copied. |
@@ -454,7 +487,7 @@ the result, and Replace works; a warning goes through `confirm`) → `REPLACING`
 runs on a `ThreadAccessDialog` thread and reports to the progress bar through `TaskProgress`. The constructor flag `phone`
 selects the layout (the fields and buttons below each other, one column in the table), so one class serves both
 layouts. `ManuscriptSearchReplaceDialog` adds the summaries and all branches options and calls `ManuscriptReplaceService`;
-the story parts of both layouts open it from the settings menu and show the story again when `onReplaced` fires. `LorebookSearchReplaceDialog` is the second subclass, for the entries of a lorebook (no extra options, `getIdColumnHeader()` makes the table show entry names); `LorebookView` has a button for it after *Add Entry* and `PhoneLorebookView` an icon button.
+the story parts of both layouts open it from the settings menu and show the story again when `onReplaced` fires. The third constructor argument `summariesOnly` is for the summaries overview (`SummariesDialog` and `PhoneSummariesDialog` open it from their menu bar item *Search and Replace*, `openSearchReplaceDialog()`, and load the overview again on `onReplaced`): it has no *Search in summaries* box and calls the service with `Options.summariesOnly`, so the story is not searched. `LorebookSearchReplaceDialog` is the second subclass, for the entries of a lorebook (no extra options, `getIdColumnHeader()` makes the table show entry names); `LorebookView` has a button for it after *Add Entry* and `PhoneLorebookView` an icon button.
 
 ![The ManuscriptSearchReplaceDialog with a part opened](../images/search-replace-found.png)
 
@@ -525,6 +558,91 @@ tree; `TreantTree` sends the tree as JSON and receives clicks back: `node-click`
 `data-node-id` of the card) and `node-goto` (an element with `data-goto-id` inside a card was clicked; the card itself
 is not clicked then). `src/main/frontend/graph-connector.js` is loaded by `GraphView` (npm package `cytoscape`).
 
+### Keyboard shortcuts
+
+Only the desktop layout has them (`ManuscriptStoryPart`; its phone twin has none). The code lives in `ui.shortcuts`:
+
+- `KeyCombo` is the canonical text of a key combination (`Ctrl+Alt+Shift+Meta+key`, the key as the browser's
+  `event.key`: lower-case characters, `Space`, `Enter`, `F5`; `Shift` is dropped for a character that is not a letter or
+  digit). The browser script produces it (`window.marginaliaKeyCombo` in `JavascriptLibrary`) and `KeyCombo.normalize`
+  must give the same text; keep the two in step. It also knows the keys the browser keeps (`isBrowserReserved`).
+- `ShortcutRegistry` (static) lists the `ShortcutAction`s (id, label from the `Localization`, default key, handler); the
+  application registers its story actions (`ShortcutActions`) in its static initializer, an extension registers its own
+  and unregisters them in `onExtensionUnload`. The application's actions have no handler: `ManuscriptStoryPart.handleShortcut`
+  does them, for other ids it calls the handler with the component of the story tab. Besides the writing loop they are the command bar (`/`), the search of the branch, annotate selection and the next / previous tab (`TabDock.selectRelative`).
+- `KeyBindings` resolves the key of every action from `UserSetting.keyBindings` (an injected `JsonObject`, id to key,
+  only what differs from the default, empty text = no key) and builds what is stored (`toStored` keeps the bindings
+  of actions that are not registered now, e.g. of an extension that is not loaded).
+- `KeyBindingsEditor` (a `CustomField`, so the settings part tracks it like any field) is the table of the tab
+  *Keyboard shortcuts* of `UserPart`.
+
+In the browser `JavascriptLibrary.fireShortcutEvents` puts a `keydown` listener (capture) on the document for the story
+tab and fires `marginalia-shortcut` (`detail` = action id) on the tab's element, which the story part listens to. The
+keys are the page-wide `window.marginaliaKeys` (`setShortcutKeys` replaces them, `UserPart.save` and the story's
+`onTabEnter` do), so a change of the settings reaches open stories. The script ignores the key when the element is not
+visible (not the open tab), when a dialog is open above the one that holds the story (the book window is a modal dialog
+itself), and for a key without Ctrl/Alt/Meta when an input, textarea or editable element has the focus (the focused
+element is found through shadow roots). Before it fires the event the script sends the change of a focused text field to the server (a Vaadin field syncs its value on `change`, i.e. on blur), so the action sees what was just typed. On a Mac a combination with `Meta` that no action has is tried again with `Ctrl` in its place. `recordKeyCombo` records the next combination for the table.
+
+### Menus of the story editor
+
+The three menus that act on the story are not written item by item in the story tabs, they are built from the `StoryMenuRegistry`
+(`ui.menu`, a Spring bean that fills itself in `afterPropertiesSet`): the settings menu (`MenuKind.TOOLS`, the cogs of the story), the
+menu of a part (`CARD`, the hamburger button of a card) and the right click menu of its text (`TEXT`).
+
+- `StoryMenuItem` defines an item: its key (`StoryMenuKeys` has the ones of the application, a plugin prefixes its own), the label, an optional
+  icon, the **callback** (`Consumer<StoryEditor>` for the tools menu, `BiConsumer<StoryEditor, StoryCard>` for the other two), an optional
+  default key (null = none), the `phone` flag (default true, `false` for the items only the desktop shows), `visibleWhen` / `enabledWhen` /
+  `checkedWhen` predicates and `contextLabel` (text that depends on the part: *Edit* / *Save*) that are asked each time the menu opens, and a
+  `parent` key that makes the item an item of the sub menu of another one (the parent has no callback, so a sub menu can have items that
+  come and go). `StoryEditor` and `StoryCard` are the interfaces both the desktop (`ManuscriptStoryPart`) and the phone
+  (`PhoneManuscriptStoryPart`) tab and their cards implement, so one definition serves both.
+- Every item with a callback is also a `ShortcutAction` of the key bindings (id `menu.<key>`, or `actionId(..)` for the ones the user already has
+  a key stored for, such as `story.swipe`; *Annotate selection* is only an item of the text menu, `story.annotateSelection`: opening the menu of a part takes the selection away), registered with its default key,
+  also none. So a new item is listed in *Settings → Keyboard shortcuts* the moment it is registered.
+- `StoryMenuRegistry.definition(kind, phone, bindings)` returns a `MenuDefinition`: the items of the kind in the order they were registered, and
+  the keys (the ones the user changed, else the defaults; `null` bindings = the phone, which shows no keys). `MenuDefinition.build(menu, loc,
+  editor, card)` adds the items to a `ContextMenu` or the sub menu of a menu bar item and wires them; the `BuiltMenu` it returns finds an item by
+  key (`get(key)`) and `refresh(definition)` works out text, visibility, enabled and ticked state and the key hint of every item again. The story
+  tab refreshes a menu when it opens (the part menus are `LazyContextMenu`s, filled the first time) and the tools menu after an item ran
+  and when the story tab is entered (the user may have changed the keys).
+- A key of a `CARD` or `TEXT` item acts on the part that is edited, else the part that holds the text selection (`JavascriptLibrary.selectionOwner`),
+  else the last part, and on the last part when the item does not apply to the chosen one (`ManuscriptStoryPart.runMenuItem`).
+- The hooks stay for extensions that decorate them (how to register an item and the details: [UI extensions](plugins/ui-extensions.md#menu-items-of-the-story-editor)): `createCogsMenuItem` (local `cogs`) and the card's `createMenuItems` (field `hamburgerMenu`)
+  run after the registry has filled the menu, and what they add directly is no registry item (no shortcut row, no key hint). Registering the
+  item is the way to go for new code. An extension unregisters its items in `onExtensionUnload`; a bundle that is unloaded loses the rest by its
+  symbolic name (`OsgiServiceImpl`).
+
+### Annotations in the story
+
+The marks, the notes and the list share a few classes in `ui.dialogs.story`; the desktop and the phone card use them the same way.
+
+- `utils.TextMarkup` puts **all layers into the text in one go**: the generated text of the diff view (`GeneratedTextHighlighter.ranges`), the
+  matches of the search (`StoryBranchSearch.marks`) and the annotations (`StoryAnnotations.marks`) are ranges of the *raw* source
+  text, and `TextMarkup.apply` cuts the text where a range starts or ends and wraps each piece in the `<mark>` elements of the ranges that
+  cover it (the first range outermost), line by line and outside of the white space and the markdown that opens a line. The layers
+  can not be chained (the HTML of one would shift the offsets of the next). `renderResponse()` of the card collects the ranges and
+  sets the content of the `Markdown`. The sanitizer of the component (DOMPurify) keeps `class` and `data-*`, which the marks use:
+  `data-annotation` is the uuid of the annotation.
+- `StoryAnnotations` keeps the annotations of the book (one query, dropped by `invalidate()` when the story is drawn again or a text changed),
+  gives the marks and the counts, and makes the changes (`create`, `update`, `setStatus`, `reattach`, `remove`: they go through
+  `AnnotationService`, invalidate, redraw the card of the part through the `StoryLazyLoader` and tell the listeners, the list).
+  A mark is drawn only when the card is not `generating` (a regeneration streams into the card, the passages are not in the text yet).
+- `CardAnnotations` is what a card does with its part's annotations: the badge (the number of open and orphaned ones), the popover
+  (`Popover` whose target is a small absolutely placed anchor in the card; `JavascriptLibrary.fireAnnotationClickEvent` moves it onto the mark that was
+  clicked, in the browser, before it tells the server which annotations cover the point, innermost first), **Annotate part**, **Annotate selection**
+  and **Attach to selection**. The selection is the offsets of the editor when the part is edited (`getTextAreaSelection`, the edit is saved first),
+  otherwise the text the browser shows with some text around it (`getSelectionContext`), found in the source with `QuoteFinder` (`StoryAnnotations.locate`).
+- `AnnotationView` is one annotation with its actions, `AnnotationDialog` asks for a new note, `AnnotationsPanel` is the tab of the book (`ManuscriptStoryPart.ANNOTATIONS_TAB`,
+  in the default layout of the dock; the phone has it in the drawer), `AnnotateDialog` runs [`AnnotateService`](services.md) and lists the proposals. Opened on a part (`open`) it annotates that part; opened without one (`openRange`, from the *Annotate a range of parts with AI* item of the tools menu, `StoryEditor.openAnnotateRangeDialog`, which shows the story again afterwards) it needs a range of the parts of the branch (both *From part* and *To part*, `annotateNext`): the parts are annotated one after another, the next one is started from the callback of the one before (inside `ui.access`, in the request scope copied when the run started), the proposals are `Entry` records that remember their part, and accepting calls `AnnotateService.accept` once per part. The service itself still annotates one part per call. **Automatic annotation.** The *Automatic annotation* item of the tools menu (`StoryMenuKeys.AUTO_ANNOTATE`, `StoryEditor.openAutoAnnotateDialog` / `isAutoAnnotate`, the item is ticked while it is on) opens `AutoAnnotateDialog`, which stores the settings in the extended attributes `autoAnnotate*` of `Manuscript` (the AI and the protocol as uuids). `StoryGenerationListener.onComplete` calls the new `Callbacks.partCompleted(message)` (a default method) after the story was drawn again, and both story tabs answer it with `new AutoAnnotate(manuscript, reload).run(message)`: when the book has it on and the part has a text, `AnnotateDialog.openAuto` opens the annotation window on the reloaded part with an `AnnotateDialog.Auto` (instructions, AI, protocol, accept) and starts the run at once. At the end of a run that was not stopped (`endRun(true)`) and with `accept`, the dialog calls `accept()` itself (a closed dialog, `isOpened()` false, does nothing: a late answer of a model the author stopped by closing the window must not add notes) or, when the model found nothing and there is no note about a part that could not be read, says so and closes. `accept()` calls `onAdded`, which only then moves on: it shows the story again and, with `autoAnnotateRedraft` (and accept), calls `RedraftDialog.openAuto(book, part, autoAnnotateAcceptRedraft, ...)`, which starts the redraft at once with the open annotations; with `apply` the dialog applies the text itself when the model finished (`completed`, not when it was stopped, and not when the dialog was closed). A closed window never calls its callback, so closing ends the run; nothing is redrafted when no note was added. The automatic redraft dialog never offers the summaries' revalidation box.
+- **Notes in the margin** (desktop): the cogs menu item **Annotations in the margin** (an item of the `StoryMenuRegistry`; `ManuscriptStoryPart.setAnnotationsInMargin`) stores the
+  preference in `UserSetting.annotationsInMargin` and tells every card (`ChatMessageCard.applyAnnotationMargin`). The card puts `CardAnnotations.getMargin()` (a column of
+  `AnnotationView`s of the notes that need a look, in the order of the passages; `data-annotation-id` is the uuid) before the text; with the mode on the card content has the class
+  `annotations-in-margin`, a two column grid (the margin left, the text and the editor right, the rest spans both), and a click on a mark finds the note in the column
+  (`flashMarginNote`) instead of opening the popover. `JavascriptLibrary.linkMarginNotes` lights the note and its marks together (`annotation-lit`). The notes are drawn again with the card
+  (`CardAnnotations.refresh`). The phone has no margin. Not done: aligning each note with the line of its passage.
+- The styles are `annotation-*` in `shared-styles.css` (wavy underline in the colour of the source, nested marks lower).
+
 ### Searching the story tree
 
 `ManuscriptTreePart` has a search bar above the tree: an editable `ComboBox` (the last 15 searches; typed text is a
@@ -585,10 +703,10 @@ The bundled plugins hook into these methods:
 |---|---|---|
 | Author's Note | `ManuscriptStoryPart` | `renderStoryContent` |
 | Chapter Marker | `ManuscriptStoryPart`, `ManuscriptStoryPart$ChatMessageCard` | `createSidebarButton`; `autosaveAndSwapToMarkdown` |
-| Instruction Exporter | `ManuscriptStoryPart`, `PhoneManuscriptStoryPart` | `createCogsMenuItem` |
+| Instruction Exporter | none | registers an item in the `StoryMenuRegistry` (settings menu) |
 | Lore Generator | `LorebookView`, `LorebookPart`, `UserPart` | `create` (adds a column to the `grid` field); `refresh` (the same for a workspace tab that was built before the extension was loaded); `refresh`, `save` |
 | Lorebook VCS | `LorebookView` | `create`, `createEntryDetailLayout` |
-| Reviewer | `ManuscriptStoryPart$ChatMessageCard`, `UserPart` | `createMenuItems`, `refreshSummaryMenuItems`; `refresh`, `save` |
+| Reviewer | `UserPart`, `ManuscriptInfoPart`, `PhoneManuscriptInfoPart` | `refresh`, `save`; `create`, `load` (the *Review* sub menu of a part is registered in the `StoryMenuRegistry`) |
 | Side Query | `ManuscriptStoryPart`, `UserPart` | `renderStoryContent`; `refresh`, `save` |
 
 Because plugins depend on method names and local variable names, **renaming or restructuring these methods breaks

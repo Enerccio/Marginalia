@@ -35,6 +35,7 @@ public final class BaseAdvance {
                 case MESSAGE -> message(base, book, item);
                 case LOREBOOK -> lorebook(base, book, item);
                 case ENTRY -> entry(base, book, item);
+                case ANNOTATION -> annotation(base, book, item);
             }
         }
     }
@@ -143,6 +144,54 @@ public final class BaseAdvance {
         for (Field field : item.fields()) {
             if (field.name().equals("summary")) {
                 copyField(to, from, "summary");
+            } else {
+                JsonElement fromExtended = from.get("extendedContent");
+                copyField(extended(to), fromExtended != null && fromExtended.isJsonObject() ? fromExtended.getAsJsonObject() : null, field.name());
+            }
+        }
+    }
+
+    // --- annotations
+
+    /**
+     * The part of the snapshot whose annotations hold the one with the uuid.
+     */
+    private static JsonObject partOfAnnotation(JsonArray messages, String uuid) {
+        for (JsonElement element : messages) {
+            if (element.isJsonObject() && find(arrayOf(element.getAsJsonObject(), "annotations"), uuid) != null) {
+                return element.getAsJsonObject();
+            }
+        }
+        return null;
+    }
+
+    private static JsonArray arrayOf(JsonObject object, String name) {
+        JsonElement element = object.get(name);
+        return element != null && element.isJsonArray() ? element.getAsJsonArray() : null;
+    }
+
+    private static void annotation(JsonObject base, JsonObject book, Item item) {
+        JsonArray messages = array(base, "messages");
+        JsonObject fromPart = partOfAnnotation(array(book, "messages"), key(item));
+        JsonObject from = fromPart == null ? null : find(arrayOf(fromPart, "annotations"), key(item));
+        if (from == null) {
+            return;
+        }
+        JsonObject inBase = partOfAnnotation(messages, key(item));
+        if (item.change() == Change.ADDED) {
+            JsonObject target = inBase != null ? null : find(messages, string(fromPart, "uuid"));
+            if (target != null) {
+                array(target, "annotations").add(from.deepCopy());
+            }
+            return;
+        }
+        JsonObject to = inBase == null ? null : find(arrayOf(inBase, "annotations"), key(item));
+        if (to == null || item.change() != Change.CHANGED) {
+            return;
+        }
+        for (Field field : item.fields()) {
+            if (field.name().equals("status")) {
+                copyField(to, from, "status");
             } else {
                 JsonElement fromExtended = from.get("extendedContent");
                 copyField(extended(to), fromExtended != null && fromExtended.isJsonObject() ? fromExtended.getAsJsonObject() : null, field.name());

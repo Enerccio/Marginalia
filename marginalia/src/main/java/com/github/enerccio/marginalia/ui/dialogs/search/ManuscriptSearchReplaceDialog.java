@@ -18,6 +18,8 @@ import java.util.List;
  * {@link SearchReplaceDialog} for the text of a book: the parts of the story and, if the user wants, their summaries,
  * of the active branch or of all the branches, and
  * optionally revalidates all the summaries of the book afterwards. For the desktop and, with {@code phone} set, for the phone.
+ * With {@code summariesOnly} (the one of the summaries overview) it looks into the summaries only and leaves the story
+ * alone.
  */
 @Configurable(preConstruction = true)
 @Extendable
@@ -27,14 +29,20 @@ public class ManuscriptSearchReplaceDialog extends SearchReplaceDialog {
     private ManuscriptReplaceService replaceService;
 
     private final Manuscript manuscript;
+    private final boolean summariesOnly;
 
     private Checkbox summariesBox;
     private Checkbox allBranchesBox;
     private Checkbox revalidateBox;
 
     public ManuscriptSearchReplaceDialog(Manuscript manuscript, boolean phone) {
+        this(manuscript, phone, false);
+    }
+
+    public ManuscriptSearchReplaceDialog(Manuscript manuscript, boolean phone, boolean summariesOnly) {
         super(phone);
         this.manuscript = manuscript;
+        this.summariesOnly = summariesOnly;
         create();
     }
 
@@ -42,7 +50,8 @@ public class ManuscriptSearchReplaceDialog extends SearchReplaceDialog {
             returns = @APIReturn(type = String.class))
     @Override
     protected String getTitle() {
-        return loc.getValue(L.LABEL_SEARCH_AND_REPLACE);
+        return summariesOnly ? loc.getValue(L.LABEL_SUMMARIES) + ": " + loc.getValue(L.LABEL_SEARCH_AND_REPLACE)
+                : loc.getValue(L.LABEL_SEARCH_AND_REPLACE);
     }
 
     @PublicAPI(from = "1.4.0",
@@ -52,7 +61,8 @@ public class ManuscriptSearchReplaceDialog extends SearchReplaceDialog {
         summariesBox = new Checkbox(loc.getValue(L.LABEL_SEARCH_IN_SUMMARIES), true);
         allBranchesBox = new Checkbox(loc.getValue(L.LABEL_SEARCH_IN_ALL_BRANCHES), false);
         revalidateBox = new Checkbox(loc.getValue(L.LABEL_REVALIDATE_ALL_SUMMARIES), true);
-        return List.of(summariesBox, allBranchesBox, revalidateBox);
+        // there is nothing else to look into in the summaries overview
+        return summariesOnly ? List.of(allBranchesBox, revalidateBox) : List.of(summariesBox, allBranchesBox, revalidateBox);
     }
 
     @PublicAPI(from = "1.4.0",
@@ -61,7 +71,10 @@ public class ManuscriptSearchReplaceDialog extends SearchReplaceDialog {
             locals = {@APILocals(name = "options", type = ManuscriptReplaceService.Options.class)})
     @Override
     protected Searcher createSearcher(SearchRequest request) {
-        Options options = new Options(request.search(), request.replacement(), request.regex(), request.caseSensitive(),
+        Options options = summariesOnly
+                ? Options.summariesOnly(request.search(), request.replacement(), request.regex(), request.caseSensitive(),
+                allBranchesBox.getValue(), revalidateBox.getValue())
+                : new Options(request.search(), request.replacement(), request.regex(), request.caseSensitive(),
                 summariesBox.getValue(), allBranchesBox.getValue(), revalidateBox.getValue());
         return progress -> {
             Plan plan = replaceService.plan(manuscript, options, progress);

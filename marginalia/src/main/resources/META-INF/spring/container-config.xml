@@ -4,6 +4,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/aop https://www.springframework.org/schema/aop/spring-aop.xsd">
 
     <bean name="localization" class="com.github.enerccio.marginalia.loc.LocalizationImpl">
+        <property name="defaultLanguageCode" value="${marginalia.default-language:}" />
         <property name="bundles">
             <list>
                 <bean class="com.github.enerccio.marginalia.loc.LocalizationBundleEN" />
@@ -13,9 +14,12 @@
     </bean>
 
     <bean name="configuration" class="com.github.enerccio.marginalia.Configuration">
-        <property name="allowPersistentLogin" value="${allowPersistentLogin:true}" />
-        <property name="persistentLoginInfoTTL" value="${persistentLoginTTL:true}" />
-        <property name="trustedProxies" value="${trustedProxies:}" />
+        <!-- every setting can be overridden by an environment variable or a -D system property of the same name
+             (marginalia.data = MARGINALIA_DATA), the older keys of configuration.properties are the fallback -->
+        <property name="folder" value="${marginalia.data:}" />
+        <property name="allowPersistentLogin" value="${marginalia.allow-persistent-login:${allowPersistentLogin:true}}" />
+        <property name="persistentLoginInfoTTL" value="${marginalia.persistent-login-ttl:${persistentLoginTTL:2592000}}" />
+        <property name="trustedProxies" value="${marginalia.trusted-proxies:${trustedProxies:}}" />
     </bean>
 
     <bean name="applicationPoint" class="com.github.enerccio.marginalia.bound.ApplicationPoint" />
@@ -31,7 +35,7 @@
     </bean>
 
     <bean name="applicationInitializer" class="com.github.enerccio.marginalia.bound.ApplicationInitializer">
-        <property name="appVersion" value="5" />
+        <property name="appVersion" value="6" />
         <property name="dbVersion" value="1" />
         <property name="migrations">
             <list>
@@ -39,6 +43,7 @@
                 <bean class="com.github.enerccio.marginalia.bound.migration.FulltextMigration" />
                 <bean class="com.github.enerccio.marginalia.bound.migration.OriginalResponseMigration" />
                 <bean class="com.github.enerccio.marginalia.bound.migration.PermissionsMigration" />
+                <bean class="com.github.enerccio.marginalia.bound.migration.ExtendedContentMigration" />
             </list>
         </property>
     </bean>

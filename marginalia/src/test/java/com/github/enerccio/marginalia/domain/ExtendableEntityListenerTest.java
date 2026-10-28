@@ -224,7 +224,7 @@ class ExtendableEntityListenerTest {
     @Test
     void invalidValueIsSkippedNotThrown() throws Exception {
         ChatMessage message = new ChatMessage();
-        setStored(message, "{\"promptTokens\": \"not a number\", \"backgroundLore\": \"ok\", \"unknownField\": 1}");
+        setStored(message, "{\"promptTokens\": \"not a number\", \"modelUsed\": \"ok\", \"unknownField\": 1}");
 
         try (ExpectedLog log = ExpectedLog.capture(ExtendableEntityListener.class)) {
             listener.deserialize(message);
@@ -233,7 +233,7 @@ class ExtendableEntityListenerTest {
         }
 
         assertThat(message.getPromptTokens()).isNull();
-        assertThat(message.getBackgroundLore()).isEqualTo("ok");
+        assertThat(message.getModelUsed()).isEqualTo("ok");
     }
 
     @Test

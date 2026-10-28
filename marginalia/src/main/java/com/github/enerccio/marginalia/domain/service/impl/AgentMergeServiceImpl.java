@@ -55,7 +55,14 @@ public class AgentMergeServiceImpl implements AgentMergeService {
 
     @Autowired
     @Lazy
+    private MessagePromptService messagePromptService;
+
+    @Autowired
+    @Lazy
     private SummaryService summaryService;
+
+    @Autowired
+    private AnnotationService annotationService;
 
     @Autowired
     @Lazy
@@ -389,6 +396,7 @@ public class AgentMergeServiceImpl implements AgentMergeService {
             case MESSAGE -> AgentRunPairKind.MESSAGE;
             case LOREBOOK -> AgentRunPairKind.LOREBOOK;
             case ENTRY -> AgentRunPairKind.ENTRY;
+            case ANNOTATION -> AgentRunPairKind.ANNOTATION;
             case BOOK -> null;
         };
         if (kind == null || copyUuid == null) {
@@ -498,6 +506,9 @@ public class AgentMergeServiceImpl implements AgentMergeService {
             each(chosen, Kind.MESSAGE, Change.ADDED, this::createMessage);
             each(chosen, Kind.MESSAGE, Change.CHANGED, this::changeMessage);
             each(chosen, Kind.MESSAGE, Change.DELETED, this::deleteMessage);
+            each(chosen, Kind.ANNOTATION, Change.ADDED, this::createAnnotation);
+            each(chosen, Kind.ANNOTATION, Change.CHANGED, this::changeAnnotation);
+            each(chosen, Kind.ANNOTATION, Change.DELETED, this::deleteAnnotation);
             relinkSummaries();
             if (switchToSourceBranch) {
                 switchBranch();
@@ -881,6 +892,7 @@ public class AgentMergeServiceImpl implements AgentMergeService {
             ChatMessage parent = source.getParent();
             ChatMessage saved = parent == null ? chatMessageService.createRoot(targetBook, created)
                     : chatMessageService.addChild(messageOf(targetOf(parent.getUuid())), created);
+            messagePromptService.copy(source, saved);
             made(AgentRunPairKind.MESSAGE, item.sourceUuid(), saved.getUuid());
             if (text != null && !text.equals(source.getResponse())) {
                 storeResponse(saved, source, text);
@@ -982,16 +994,77 @@ public class AgentMergeServiceImpl implements AgentMergeService {
             if (!text.equals(source.getResponse())) {
                 return chatMessageService.storeResponse(targetBook, message, text);
             }
+            String before = message.getResponse();
             message.setResponse(text);
             message.setTokenCount(source.getTokenCount());
             message.setWordCount(source.getWordCount());
             message.setEdited(true);
-            return chatMessageService.save(message);
+            ChatMessage saved = chatMessageService.save(message);
+            annotationService.shift(targetBook, saved, before, text);
+            return saved;
         }
 
         private void deleteMessage(Item item) throws Exception {
             ChatMessage message = messageOf(item.targetUuid());
             targetBook = chatMessageService.deleteNodeAndMigrateChildren(message, targetBook, false);
+        }
+
+        // --- annotations
+
+        /**
+         * Makes the annotation in the target. The parts it belongs to are there already (the apply goes through the parts first). The
+         * passage is the same offsets when the text of the part is the same on both sides, else it is found again by its quote.
+         */
+        private void createAnnotation(Item item) throws Exception {
+            Annotation source = annotationService.findForUser(item.sourceUuid());
+            ChatMessage sourcePart = source == null || source.getPartId() == null ? null : chatMessageService.find(source.getPartId());
+            if (sourcePart == null) {
+                throw new IllegalStateException("The annotation " + item.sourceUuid() + " is not in the other book");
+            }
+            ChatMessage part = messageOf(targetOf(sourcePart.getUuid()));
+            Field textField = field(item, "text");
+            Field typeField = field(item, "type");
+            String text = textField == null ? source.getText() : value(item, textField);
+            String type = typeField == null ? null : value(item, typeField);
+            Annotation created;
+            if (!source.hasRange()) {
+                created = annotationService.create(targetBook, part, null, null, text, source.getSource(), type, source.getLabel());
+            } else if (StringUtils.equals(part.getResponse(), sourcePart.getResponse())) {
+                created = annotationService.create(targetBook, part, source.getStart(), source.getEnd(), text, source.getSource(), type, source.getLabel());
+            } else {
+                created = annotationService.createFromQuote(targetBook, part, source.getQuote(), source.getContextBefore(),
+                        source.getContextAfter(), text, source.getSource(), type, source.getLabel());
+            }
+            if (source.isSendToPrompt()) {
+                created = annotationService.update(targetBook, created, null, null, true);
+            }
+            if (source.getStatus() == AnnotationStatus.RESOLVED || source.getStatus() == AnnotationStatus.DISMISSED) {
+                created = annotationService.setStatus(targetBook, created, source.getStatus());
+            }
+            made(AgentRunPairKind.ANNOTATION, item.sourceUuid(), created.getUuid());
+        }
+
+        private void changeAnnotation(Item item) throws Exception {
+            Annotation annotation = annotationService.findForUser(item.targetUuid());
+            Field text = field(item, "text");
+            Field type = field(item, "type");
+            Field send = field(item, "sendToPrompt");
+            if (text != null || type != null || send != null) {
+                annotation = annotationService.update(targetBook, annotation, text == null ? null : value(item, text),
+                        type == null ? null : value(item, type), send == null ? null : Boolean.parseBoolean(value(item, send)));
+            }
+            Field status = field(item, "status");
+            if (status != null) {
+                AnnotationStatus wanted = AnnotationStatus.valueOf(value(item, status).strip());
+                // the text orphans a note, a note that lost its passage is not opened by the agent
+                if (wanted != AnnotationStatus.OPEN || annotation.getStatus() != AnnotationStatus.ORPHANED) {
+                    annotationService.setStatus(targetBook, annotation, wanted);
+                }
+            }
+        }
+
+        private void deleteAnnotation(Item item) throws Exception {
+            annotationService.remove(targetBook, annotationService.findForUser(item.targetUuid()));
         }
 
         /**

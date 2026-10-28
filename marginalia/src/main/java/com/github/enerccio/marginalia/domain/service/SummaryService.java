@@ -62,6 +62,15 @@ public interface SummaryService extends ExtendableService<Summary, SummaryReposi
     List<SummaryBlock> revalidate(Manuscript manuscript, List<ChatMessage> newestFirst, ChatMessage only) throws Exception;
 
     /**
+     * Says that the given summaries still describe the story: stores the hash of their block as it was collected (so they must
+     * come from {@link #collectBlocks} after the change of the story, like the outdated summaries of
+     * {@link ChatMessageService.PartEdit}).
+     *
+     * @throws ManuscriptLockedException when an agent works on the book
+     */
+    void revalidate(Manuscript manuscript, Collection<SummaryBlock> blocks) throws Exception;
+
+    /**
      * Changes the text of the summary, its token count is counted again.
      * <p>
      * Only for summaries that no meta summary stands in for: the text of those is a part of the hash of the meta summary.

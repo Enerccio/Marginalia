@@ -25,6 +25,11 @@ Prose Rules:
 ===== SUMMARY OF STORY SO FAR =====
 {{.}}{{/summaries}}
 
+{{#annotations}}
+===== AUTHOR'S NOTES ON THE STORY =====
+The author marked these passages of the story above for you. Take the notes into account when you continue.
+{{.}}{{/annotations}}
+
 
 """;
 
@@ -112,6 +117,185 @@ Execute Level-2 Context Consolidation Protocol. Aggregate sequential event ledge
 === PREVIOUSLY SUMMARIZED BLOCKS START ===
 {{summaryBlocks}}
 === PREVIOUSLY SUMMARIZED BLOCKS END ===
+""";
+
+    public static final String DEFAULT_REDRAFT_SYSTEM_PROMPT = """
+### OBJECTIVE
+Redraft one part of the ongoing narrative "MANUSCRIPT CHRONICLE". Rewrite the PART TO REDRAFT the way the AUTHOR'S INSTRUCTIONS ask, so that it stays a seamless piece of the story: it must still fit what comes before it and lead into what follows it.
+{{#selection}}The author selected only one PASSAGE of the part, marked in it by [[PASSAGE TO REDRAFT]] and [[/PASSAGE TO REDRAFT]]: rewrite just that passage and leave the rest of the part as it is.
+{{/selection}}
+### CORE DIRECTIVES
+1. **Follow the Author**: Apply the AUTHOR'S INSTRUCTIONS to the part (add more of something, change something, expand, tighten, fix). Whatever the author does not ask to change stays as it is, in substance and as far as possible in wording.
+2. **Continuity**: The story before the part is established fact. The redrafted part begins where that story ends and must not contradict the text that follows it: events, names, injuries, possessions and promises that the following text relies on still have to happen.
+3. **Voice**: Keep the narrative voice, tense and style given below, and match the voice of the part and of the story before it.
+4. **Lore**: Use the BACKGROUND LORE strictly as a factual reference. Do not repeat it.
+5. **Annotations**: When the author's notes on passages of the part are given, they are problems the author found: deal with each of them (they are part of the AUTHOR'S INSTRUCTIONS).
+{{#selection}}6. **Seamless Join**: The text you write replaces the passage exactly where it stands, so it must join the text right before the passage and right after it without a seam: no repeated words, no missing punctuation, no new paragraph break where the sentence goes on.
+{{/selection}}
+### STRICT NEGATIVE CONSTRAINTS
+{{^selection}}* **Output Only the Part**: Begin immediately with the redrafted text. No intro, no notes about what was changed, no headings, no quotation of the instructions.
+* **Stay Inside the Part**: Do NOT continue the story past the end of the part and do NOT repeat the text before or after it.
+{{/selection}}{{#selection}}* **Output Only the Passage**: Begin immediately with the text that replaces the passage. No intro, no notes about what was changed, no headings, no quotation of the instructions, and not the markers of the passage.
+* **Stay Inside the Passage**: Do NOT write the text of the part before or after the passage, and do NOT continue the story past the end of the passage.
+{{/selection}}* **No Unrequested Inventions**: Do NOT add new named characters or major plot points the author did not ask for.
+
+### NARRATION
+{{#narrativePov}}Narrative Voice: {{.}}{{/narrativePov}}
+{{#narrativeTense}}Tense: {{.}}{{/narrativeTense}}
+{{#style}}Style & Tone Guidelines:
+{{.}}{{/style}}
+
+{{#summaries}}=== SUMMARY OF THE STORY BEFORE THE PART START ===
+{{.}}
+=== SUMMARY OF THE STORY BEFORE THE PART END ===
+
+{{/summaries}}{{#previousStory}}=== STORY BEFORE THE PART START ===
+{{.}}
+=== STORY BEFORE THE PART END ===
+
+{{/previousStory}}
+""";
+
+    public static final String DEFAULT_REDRAFT_PROMPT = """
+{{#backgroundLore}}=== BACKGROUND LORE START ===
+{{.}}
+=== BACKGROUND LORE END ===
+
+{{/backgroundLore}}{{#followingStory}}=== STORY AFTER THE PART START ===
+{{.}}
+=== STORY AFTER THE PART END ===
+
+{{/followingStory}}{{#povCharacter}}Point of View Character of the part: {{.}}
+{{/povCharacter}}{{#sceneSetting}}Location & Time of the part: {{.}}
+{{/sceneSetting}}{{#presentCharacters}}Characters present in the part: {{.}}
+{{/presentCharacters}}{{#instructions}}Plot specifications the part was written for:
+{{.}}
+{{/instructions}}
+=== PART TO REDRAFT START ===
+{{^selection}}{{text}}{{/selection}}{{#selection}}{{selectionBefore}}[[PASSAGE TO REDRAFT]]{{selection}}[[/PASSAGE TO REDRAFT]]{{selectionAfter}}{{/selection}}
+=== PART TO REDRAFT END ===
+
+=== AUTHOR'S INSTRUCTIONS START ===
+{{#redraftInstructions}}{{.}}{{/redraftInstructions}}{{^redraftInstructions}}{{^annotations}}{{#selection}}Write the passage again, better, keeping its events.{{/selection}}{{^selection}}Write the part again, better, keeping its events.{{/selection}}{{/annotations}}{{/redraftInstructions}}
+=== AUTHOR'S INSTRUCTIONS END ===
+{{#annotations}}
+=== AUTHOR'S NOTES ON PASSAGES OF THE PART START ===
+{{.}}
+=== AUTHOR'S NOTES ON PASSAGES OF THE PART END ===
+{{/annotations}}
+""";
+
+    public static final String DEFAULT_ANNOTATE_SYSTEM_PROMPT = """
+### OBJECTIVE
+Review one part of the ongoing narrative "MANUSCRIPT CHRONICLE" as its editor and annotate it: find the passages of the PART TO REVIEW that have a problem in the sense of the EDITOR'S TASK and write a short note for the author about each of them.
+
+### CORE DIRECTIVES
+1. **Quote exactly**: Every note is about a passage of the part. Quote the passage letter for letter, as short as it can be while still being found only once in the part (a sentence, or a part of one). Never paraphrase or correct the quote.
+2. **Notes for the author**: Say what is wrong or weak and, when you can, how to fix it, in a sentence or two. Do not rewrite the passage.
+3. **Continuity**: The story before the part is established fact, the story after it relies on the part. Use the lore and the story around the part to find contradictions.
+4. **Only real findings**: No praise and no filler. A part with nothing to flag gets no notes. Do not repeat what the author already noted (see EXISTING NOTES).
+
+### NARRATION
+{{#narrativePov}}Narrative Voice: {{.}}{{/narrativePov}}
+{{#narrativeTense}}Tense: {{.}}{{/narrativeTense}}
+{{#style}}Style & Tone Guidelines:
+{{.}}{{/style}}
+
+{{#summaries}}=== SUMMARY OF THE STORY BEFORE THE PART START ===
+{{.}}
+=== SUMMARY OF THE STORY BEFORE THE PART END ===
+
+{{/summaries}}{{#previousStory}}=== STORY BEFORE THE PART START ===
+{{.}}
+=== STORY BEFORE THE PART END ===
+
+{{/previousStory}}
+""";
+
+    public static final String DEFAULT_ANNOTATE_PROMPT = """
+{{#backgroundLore}}=== BACKGROUND LORE START ===
+{{.}}
+=== BACKGROUND LORE END ===
+
+{{/backgroundLore}}{{#followingStory}}=== STORY AFTER THE PART START ===
+{{.}}
+=== STORY AFTER THE PART END ===
+
+{{/followingStory}}{{#povCharacter}}Point of View Character of the part: {{.}}
+{{/povCharacter}}{{#sceneSetting}}Location & Time of the part: {{.}}
+{{/sceneSetting}}{{#presentCharacters}}Characters present in the part: {{.}}
+{{/presentCharacters}}{{#instructions}}Plot specifications the part was written for:
+{{.}}
+{{/instructions}}
+=== PART TO REVIEW START ===
+{{text}}
+=== PART TO REVIEW END ===
+{{#annotations}}
+=== EXISTING NOTES START ===
+{{.}}
+=== EXISTING NOTES END ===
+{{/annotations}}
+=== EDITOR'S TASK START ===
+{{#annotateInstructions}}{{.}}{{/annotateInstructions}}{{^annotateInstructions}}Find the continuity errors, the contradictions with the lore, the weak or unclear passages and the slips of style.{{/annotateInstructions}}
+=== EDITOR'S TASK END ===
+
+{{outputFormat}}
+""";
+
+    /**
+     * What the model is asked when the author wants it to draft the instructions of the next turn (impersonate), rendered as
+     * Handlebars template with {@link com.github.enerccio.marginalia.domain.templates.ImpersonateTemplateData}.
+     */
+    public static final String DEFAULT_IMPERSONATE_PROMPT = """
+### OBJECTIVE
+Write the instructions for the next turn of the ongoing narrative "MANUSCRIPT CHRONICLE" in the place of its author. The instructions are what the author types into the "instructions" box before the model writes the next part of the story: a short plot specification of what happens in that part. Read the story so far and the AUTHOR'S GUIDANCE and write the instructions the author would give.
+
+### CORE DIRECTIVES
+1. **Follow the Guidance**: The AUTHOR'S GUIDANCE (rough ideas, a direction, the plan for the chapter) decides what the next part is about. Develop it into concrete instructions and add nothing that contradicts it. Without guidance, continue the story where it leads on its own.
+2. **Continue the Story**: The next part begins where the story ends. Build on the established facts, the open threads and the state of the characters; do not repeat what already happened and do not ignore it.
+3. **Plot, Not Prose**: Say what happens, who does what, what changes, what the part has to reach and where it stops. Do not write the part itself, no dialogue lines unless the guidance has them, no description of the scenery.
+4. **Size**: Cover the events of one part of the story. Do not plan a whole chapter at once and do not jump over events the story has not reached.
+5. **The Author's Way**: Write the way the author writes their instructions (see the EXAMPLES) in length, person and tone.
+6. **Lore**: Use the BACKGROUND LORE strictly as a factual reference for names and terminology. Do not repeat it.
+
+### STRICT NEGATIVE CONSTRAINTS
+* **Output Only the Instructions**: Begin immediately with the instructions. No intro, no title, no explanation of your choices, no quotation of the guidance, no markers.
+* **No Unrequested Inventions**: Do NOT add new named characters or major plot points that neither the guidance nor the story leads to.
+* **No Spoiling**: Do NOT resolve the open threads of the story faster than the guidance asks.
+
+### NARRATION
+{{#narrativePov}}Narrative Voice: {{.}}{{/narrativePov}}
+{{#narrativeTense}}Tense: {{.}}{{/narrativeTense}}
+{{#style}}Style & Tone Guidelines:
+{{.}}{{/style}}
+
+{{#backgroundLore}}=== BACKGROUND LORE START ===
+{{.}}
+=== BACKGROUND LORE END ===
+
+{{/backgroundLore}}{{#summaries}}=== SUMMARY OF THE STORY START ===
+{{.}}
+=== SUMMARY OF THE STORY END ===
+
+{{/summaries}}{{#previousStory}}=== STORY SO FAR START ===
+{{.}}
+=== STORY SO FAR END ===
+
+{{/previousStory}}{{#povCharacter}}Point of View Character of the next part: {{.}}
+{{/povCharacter}}{{#sceneSetting}}Location & Time of the next part: {{.}}
+{{/sceneSetting}}{{#presentCharacters}}Characters present in the next part: {{.}}
+{{/presentCharacters}}{{#instructionExamples}}
+=== EXAMPLES OF THE AUTHOR'S INSTRUCTIONS START ===
+{{.}}
+=== EXAMPLES OF THE AUTHOR'S INSTRUCTIONS END ===
+{{/instructionExamples}}{{#outline}}
+=== PLAN OF THE STORY START ===
+{{.}}
+=== PLAN OF THE STORY END ===
+{{/outline}}
+=== AUTHOR'S GUIDANCE START ===
+{{#impersonateInstructions}}{{.}}{{/impersonateInstructions}}{{^impersonateInstructions}}No guidance: continue the story where it leads.{{/impersonateInstructions}}
+=== AUTHOR'S GUIDANCE END ===
 """;
 
     /**
@@ -390,6 +574,44 @@ You are a sub-agent: another agent started you for one task, which is your first
     public static final String AGENT_TOO_MANY_CALLS = "Notice from the run: your last answer had %d calls, %d of them repeats of a call you had "
             + "already made in it. Only %d were made. Do not repeat a call: its result is the same, and the calls that read need to be made "
             + "once. Go on with the next step of your task.";
+
+    /**
+     * How many rounds that changed nothing and are the same as one of the last {@link #AGENT_REPEAT_WINDOW} (same calls, same
+     * results) it takes to tell the agent so, and to take its tools away and end the turn, see {@code RepeatDetector}.
+     */
+    public static final int AGENT_REPEAT_NOTICE_AFTER = 3;
+    public static final int AGENT_REPEAT_STOP_AFTER = 5;
+    public static final int AGENT_REPEAT_WINDOW = 15;
+
+    /**
+     * The notice after a round that is the same as two earlier ones: it learned nothing, the next one will not either.
+     */
+    public static final String AGENT_REPEATING_NOTICE = "Notice from the run: you have now made these same calls %d times and got the "
+            + "same results each time, nothing has changed. Repeating them again will not help. Do something different: use what you "
+            + "already have, try another tool or other arguments, or call ask_user (or finish) and say what is blocking you.";
+
+    /**
+     * The message before the one request that is made without the tools: the agent that repeats itself has to say what it is doing.
+     */
+    public static final String AGENT_REPEATING_NO_TOOLS = "Notice from the run: you kept repeating the same calls with the same results "
+            + "even after you were told, so your tools are taken away for this answer and the run ends its turn after it. Answer in plain "
+            + "text: say what you were trying to do, what you already know, and what is blocking you or what you need from the author.";
+
+    /**
+     * The reason of the pause after such an answer.
+     */
+    public static final String AGENT_REPEATING_PAUSED = "The agent repeated the same calls with the same results and was stopped; "
+            + "its last answer says what it was doing. Rewind or write to it to go on.";
+
+    /**
+     * What a sub-agent that was stopped for repeating itself answers its parent, in front of what it said.
+     */
+    public static final String AGENT_REPEATING_SUBAGENT = "(The sub-agent was stopped because it repeated the same calls with the same results. This is what it said:)\n";
+
+    /**
+     * What stands in for the answer of a model that gave no text when its tools were taken away.
+     */
+    public static final String AGENT_REPEATING_NO_ANSWER = "(The agent gave no explanation.)";
 
     /**
      * The result given to the calls of an answer that were not made because a call before them failed: the model reads the

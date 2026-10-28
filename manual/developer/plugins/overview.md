@@ -1,7 +1,7 @@
 ---
 label: Plugin basics
 order: 100
-verified: 1e3193fc
+verified: 60a4afd23
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/extensions
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/ExtensionService.java
@@ -51,7 +51,7 @@ itself. The important parts:
     <dependency>
         <groupId>io.github.enerccio</groupId>
         <artifactId>marginalia</artifactId>
-        <version>1.4.0</version>
+        <version>1.5.0</version>
         <classifier>classes</classifier>
         <scope>provided</scope>
     </dependency>

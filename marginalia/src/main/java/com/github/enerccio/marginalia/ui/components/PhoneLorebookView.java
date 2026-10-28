@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.components;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.domain.collections.ActivationContext;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
@@ -14,6 +15,7 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.Restorable;
 import com.github.enerccio.marginalia.ui.RestorableState;
+import com.github.enerccio.marginalia.ui.dialogs.LorebookActivationPreviewDialog;
 import com.github.enerccio.marginalia.ui.dialogs.search.LorebookSearchReplaceDialog;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.ui.widgets.TemplateHints;
@@ -31,13 +33,18 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Reduced {@link LorebookView} for phones. Lorebooks can only be selected (no creating, deleting, importing or
@@ -78,6 +85,9 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
     private ComboBox<Lorebook> lorebookCombo;
     private Button refreshButton;
     private Button searchReplaceButton;
+    private Button previewActivationButton;
+    private TextField entrySearchField;
+    private ListDataProvider<LorebookEntry> entryProvider;
     private Checkbox lorebookEnabledCheckbox;
     private Span lorebookInfoSpan;
     private Span lorebookTokensSpan;
@@ -163,7 +173,18 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         searchReplaceButton = new Button(Solid.EXCHANGE_ALT.create(), _ -> openSearchReplaceDialog());
         searchReplaceButton.setTooltipText(loc.getValue(L.LABEL_SEARCH_AND_REPLACE));
 
-        HorizontalLayout enabledLayout = new HorizontalLayout(lorebookEnabledCheckbox, lorebookTokensSpan, searchReplaceButton);
+        previewActivationButton = new Button(Solid.EYE.create(), _ -> openActivationPreview());
+        previewActivationButton.setTooltipText(loc.getValue(L.LABEL_PREVIEW_ACTIVATION));
+
+        entrySearchField = new TextField();
+        entrySearchField.setPlaceholder(loc.getValue(L.LABEL_SEARCH));
+        entrySearchField.setPrefixComponent(Solid.SEARCH.create());
+        entrySearchField.setClearButtonVisible(true);
+        entrySearchField.setWidthFull();
+        entrySearchField.setValueChangeMode(ValueChangeMode.LAZY);
+        entrySearchField.addValueChangeListener(_ -> applyEntrySearch());
+
+        HorizontalLayout enabledLayout = new HorizontalLayout(lorebookEnabledCheckbox, lorebookTokensSpan, searchReplaceButton, previewActivationButton);
         enabledLayout.setWidthFull();
         enabledLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
@@ -175,7 +196,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         lockedSpan = new Span();
         lockedSpan.addClassNames(CssStyles.HINT_TEXT, CssStyles.WHITE_SPACE_NORMAL, CssStyles.WRAP_ANYWHERE);
         lockedSpan.setVisible(false);
-        add(lockedSpan, controlsLayout, enabledLayout, lorebookInfoSpan, grid);
+        add(lockedSpan, controlsLayout, enabledLayout, lorebookInfoSpan, entrySearchField, grid);
         setFlexGrow(1, grid);
 
         refresh();
@@ -188,6 +209,8 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
     private void setupGrid() {
         grid = new Grid<>(LorebookEntry.class, false);
         grid.setSizeFull();
+        // the buttons of the rows are the only way to open details, so that openEntries knows about all of them
+        grid.setDetailsVisibleOnClick(false);
         // rows grow with their content, so a long name breaks into lines instead of running under the button
         grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
         grid.addComponentColumn(this::createEntryRow).setFlexGrow(1);
@@ -261,6 +284,13 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         detailsLayout.add(infoSpan(L.LABEL_INSERTION_MODE,
                 entry.getInsertionMode() != null ? loc.getValue(loc.getInsertionMode(entry.getInsertionMode())) : null));
         detailsLayout.add(infoSpan(L.LABEL_NEGATIVE_TAGS, tagsOf(entry, true)));
+        if (entry.getActivationContext() == ActivationContext.INCLUDE_PARTS) {
+            detailsLayout.add(infoSpan(L.LABEL_ACTIVATION_CONTEXT,
+                    loc.getValue(loc.getActivationContext(entry.getActivationContext())) + " (" + entry.getActivationParts() + ")"));
+        }
+        if (entry.isPreventRecursion()) {
+            detailsLayout.add(infoSpan(L.LABEL_PREVENT_RECURSION, "✓"));
+        }
         detailsLayout.add(infoSpan(L.LABEL_NOTE, entry.getComment()));
 
         TextAreaPopoverComponent payloadField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_CONTENT));
@@ -469,6 +499,46 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
     }
 
     /**
+     * Shows only the entries whose name, content, note or filter has the text of the search box in it (case does not
+     * matter); all of them when the box is empty.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class))
+    private void applyEntrySearch() {
+        if (entryProvider != null) {
+            entryProvider.setFilter(this::matchesEntrySearch);
+        }
+    }
+
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "entry", type = LorebookEntry.class)},
+            locals = {@APILocals(name = "search", type = String.class)})
+    private boolean matchesEntrySearch(LorebookEntry entry) {
+        String search = entrySearchField == null ? null : entrySearchField.getValue();
+        if (StringUtils.isBlank(search)) {
+            return true;
+        }
+        return Stream.of(entry.getName(), entry.getPayload(), entry.getComment(), entry.getFiltering())
+                .anyMatch(text -> Strings.CI.contains(text, search.strip()));
+    }
+
+    /**
+     * Opens the preview of which entries a turn with some text would use.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = LorebookActivationPreviewDialog.class)})
+    private void openActivationPreview() {
+        if (currentLorebook == null) {
+            return;
+        }
+        LorebookActivationPreviewDialog dialog = new LorebookActivationPreviewDialog(currentLorebook);
+        dialog.create();
+        dialog.open();
+    }
+
+    /**
      * Reads whether an agent that works on a book that uses the lorebook locks it, and shows it.
      */
     @PublicAPI(from = "1.4.0",
@@ -496,6 +566,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         refreshButton.setEnabled(hasLorebook);
         searchReplaceButton.setEnabled(hasLorebook);
         searchReplaceButton.setVisible(lockedBy == null);
+        previewActivationButton.setEnabled(hasLorebook);
 
         if (hasLorebook) {
             lorebookEnabledCheckbox.setValue(currentLorebook.isEnabled());
@@ -504,6 +575,8 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         } else {
             lorebookEnabledCheckbox.setValue(false);
             lorebookInfoSpan.setText("");
+            // the grid keeps its own record of the opened details over setItems: close them, openEntries decides what opens again
+            currentEntries.forEach(old -> grid.setDetailsVisible(old, false));
             grid.setItems(new ArrayList<>());
             currentEntries = new ArrayList<>();
             entryTokens.clear();
@@ -523,6 +596,12 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
                 info.append(loc.getValue(L.LABEL_SUB_LOREBOOKS)).append(": ")
                         .append(currentLorebook.getSubbooks().stream().map(Lorebook::getName).sorted()
                                 .reduce((a, b) -> a + ", " + b).orElse(""));
+            }
+            if (currentLorebook.getScanDepth() > 0) {
+                if (!info.isEmpty()) {
+                    info.append("\n");
+                }
+                info.append(loc.getValue(L.LABEL_SCAN_DEPTH)).append(": ").append(currentLorebook.getScanDepth());
             }
             String tags = joinTags(tagRelationService.getTagsForObject(currentLorebook));
             if (!tags.isEmpty()) {
@@ -544,6 +623,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
                     @APILocals(name = "e", type = Exception.class)})
     public void refreshEntries() {
         if (currentLorebook == null || currentLorebook.getId() == null) {
+            currentEntries.forEach(old -> grid.setDetailsVisible(old, false));
             grid.setItems(new ArrayList<>());
             currentEntries = new ArrayList<>();
             entryTokens.clear();
@@ -552,7 +632,10 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         }
         try {
             List<LorebookEntry> entries = lorebookEntryService.getEntriesForLorebook(currentLorebook.getId());
-            grid.setItems(entries);
+            currentEntries.forEach(old -> grid.setDetailsVisible(old, false));
+            entryProvider = new ListDataProvider<>(entries);
+            entryProvider.setFilter(this::matchesEntrySearch);
+            grid.setItems(entryProvider);
             showOpenEntries(entries);
             currentEntries = entries;
             entryTokens.clear();
@@ -592,7 +675,8 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
     }
 
     /**
-     * Opens the details of the entries that were opened and still exist, forgets the others.
+     * Shows the details of the entries that were opened and still exist and hides those of the others, forgets the
+     * entries that are gone.
      */
     @PublicAPI(from = "1.3.0",
             returns = @APIReturn(type = void.class),
@@ -601,9 +685,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
     private void showOpenEntries(List<LorebookEntry> entries) {
         openEntries.retainAll(entries.stream().map(LorebookEntry::getUuid).collect(Collectors.toSet()));
         for (LorebookEntry entry : entries) {
-            if (openEntries.contains(entry.getUuid())) {
-                grid.setDetailsVisible(entry, true);
-            }
+            grid.setDetailsVisible(entry, openEntries.contains(entry.getUuid()));
         }
     }
 

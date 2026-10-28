@@ -137,7 +137,15 @@ public final class FunctionCompiler {
             root.set("$defs", definitions);
         }
 
-        return new FunctionDefinition(name, annotation.description(), root, parameters, handleOf(method), annotation.batch());
+        // several functions: an array, or a text with the names separated by commas
+        List<String> linked = java.util.Arrays.stream(annotation.linkedTool()).flatMap(text -> java.util.Arrays.stream(text.split(",")))
+                .map(String::strip).filter(other -> !other.isEmpty()).distinct().toList();
+        for (String other : linked) {
+            if (!VALID_NAME.matcher(other).matches() || other.equals(name)) {
+                throw new IllegalArgumentException("Linked tool '" + other + "' of " + method + " must be the name of another function");
+            }
+        }
+        return new FunctionDefinition(name, annotation.description(), root, parameters, handleOf(method), annotation.batch(), linked);
     }
 
     /** A function is asynchronous: {@code void name(FunctionContinuation<R> continuation, arguments...)}. */

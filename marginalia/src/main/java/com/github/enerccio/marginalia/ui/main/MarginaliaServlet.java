@@ -6,7 +6,8 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.annotation.WebInitParam;
 import jakarta.servlet.annotation.WebServlet;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.io.IOException;
@@ -15,7 +16,7 @@ import java.io.IOException;
         initParams = { @WebInitParam(name = "com.vaadin.safeUrlSchemes", value = "*")})
 @Configurable
 public class MarginaliaServlet extends VaadinServlet {
-    private static final Logger log = Logger.getLogger(MarginaliaServlet.class);
+    private static final Logger log = LoggerFactory.getLogger(MarginaliaServlet.class);
 
     @Override
     public void service(ServletRequest req, ServletResponse res) throws ServletException, IOException {

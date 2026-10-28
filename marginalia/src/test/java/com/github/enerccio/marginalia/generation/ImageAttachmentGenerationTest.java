@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.model.ImageAttachment;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
+import com.github.enerccio.marginalia.domain.service.MessagePromptService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
 import com.github.enerccio.marginalia.test.GenerationRun;
 import com.github.enerccio.marginalia.test.GenerationTestBase;
@@ -25,6 +26,9 @@ class ImageAttachmentGenerationTest extends GenerationTestBase {
 
     @Autowired
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private MessagePromptService messagePromptService;
 
     private Manuscript manuscript;
 
@@ -82,7 +86,7 @@ class ImageAttachmentGenerationTest extends GenerationTestBase {
 
         assertThat(run.await(TIMEOUT)).isEqualTo(GenerationRun.Outcome.COMPLETED);
         ChatMessage next = chatMessageService.find(run.getMessage().getId());
-        assertThat(next.getBuiltPrompt()).contains("ORIGINAL").doesNotContain("uuid-1").doesNotContain("map");
+        assertThat(messagePromptService.getBuiltPrompt(next)).contains("ORIGINAL").doesNotContain("uuid-1").doesNotContain("map");
         assertThat(next.getImages()).isEmpty();
         assertThat(chatMessageService.find(part.getId()).getImages()).hasSize(2);
     }

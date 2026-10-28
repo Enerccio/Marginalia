@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.lorebook;
 
+import com.github.enerccio.marginalia.domain.collections.ActivationContext;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
@@ -284,6 +285,45 @@ class LorebookImportExportTest extends MarginaliaTestBase {
         assertThat(lorebookEntryService.getEntriesForLorebook(subbook(imported, "Magic"))).hasSize(1);
         // existing tags are reused, not duplicated
         assertThat(tagService.searchTagsForUser("wizard", 0, 10)).hasSize(1);
+    }
+
+    @Test
+    void scanDepthAndPreventedRecursionSurviveExportImportAndClone() throws Exception {
+        Lorebook loaded = lorebookService.find(shared.getId());
+        loaded.setScanDepth(3);
+        lorebookService.save(loaded);
+        LorebookEntry harbour = entryNamed(shared, "harbour");
+        harbour.setPreventRecursion(true);
+        lorebookEntryService.save(harbour);
+
+        Lorebook imported = lorebookService.importLorebook(lorebookService.exportLorebook(world), null);
+        Lorebook cloned = lorebookService.cloneLorebook(lorebookService.find(shared.getId()), "copy");
+
+        assertThat(subbook(imported, "Shared").getScanDepth()).isEqualTo(3);
+        assertThat(entryNamed(subbook(imported, "Shared"), "harbour").isPreventRecursion()).isTrue();
+        assertThat(subbook(imported, "Magic").getScanDepth()).isZero();
+        assertThat(entryNamed(subbook(imported, "Magic"), "spells").isPreventRecursion()).isFalse();
+        assertThat(lorebookService.find(cloned.getId()).getScanDepth()).isEqualTo(3);
+        assertThat(entryNamed(cloned, "harbour").isPreventRecursion()).isTrue();
+    }
+
+    @Test
+    void activationContextSurvivesExportImportAndClone() throws Exception {
+        LorebookEntry harbour = entryNamed(shared, "harbour");
+        harbour.setActivationContext(ActivationContext.INCLUDE_PARTS);
+        harbour.setActivationParts(4);
+        lorebookEntryService.save(harbour);
+
+        Lorebook imported = lorebookService.importLorebook(lorebookService.exportLorebook(world), null);
+        Lorebook cloned = lorebookService.cloneLorebook(lorebookService.find(shared.getId()), "copy");
+
+        LorebookEntry importedEntry = entryNamed(subbook(imported, "Shared"), "harbour");
+        assertThat(importedEntry.getActivationContext()).isEqualTo(ActivationContext.INCLUDE_PARTS);
+        assertThat(importedEntry.getActivationParts()).isEqualTo(4);
+        assertThat(entryNamed(subbook(imported, "Magic"), "spells").getActivationContext()).isEqualTo(ActivationContext.INSTRUCTIONS);
+        LorebookEntry clonedEntry = entryNamed(cloned, "harbour");
+        assertThat(clonedEntry.getActivationContext()).isEqualTo(ActivationContext.INCLUDE_PARTS);
+        assertThat(clonedEntry.getActivationParts()).isEqualTo(4);
     }
 
     @Test

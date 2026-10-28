@@ -25,6 +25,8 @@ import org.springframework.beans.factory.annotation.Configurable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.github.enerccio.marginalia.extensions.reviewer.ReviewerLocalization.T;
+
 @Configurable(preConstruction = true)
 public class ReviewerSettingsForm extends VerticalLayout {
 
@@ -64,7 +66,7 @@ public class ReviewerSettingsForm extends VerticalLayout {
         profileLayout.setWidthFull();
         profileLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
 
-        profileCombo = new ComboBox<>("Profile");
+        profileCombo = new ComboBox<>(T.localized("Profile"));
         profileCombo.setWidthFull();
         profileCombo.setAllowCustomValue(false);
         profileCombo.addValueChangeListener(e -> {
@@ -77,9 +79,9 @@ public class ReviewerSettingsForm extends VerticalLayout {
             }
         });
 
-        newProfileBtn = new Button("New", e -> createNewProfile());
-        renameProfileBtn = new Button("Rename", e -> renameCurrentProfile());
-        deleteProfileBtn = new Button("Delete", e -> deleteCurrentProfile());
+        newProfileBtn = new Button(T.localized("New"), e -> createNewProfile());
+        renameProfileBtn = new Button(T.localized("Rename"), e -> renameCurrentProfile());
+        deleteProfileBtn = new Button(T.localized("Delete"), e -> deleteCurrentProfile());
 
         profileLayout.add(profileCombo, newProfileBtn, renameProfileBtn, deleteProfileBtn);
         profileLayout.setFlexGrow(1, profileCombo);
@@ -87,23 +89,23 @@ public class ReviewerSettingsForm extends VerticalLayout {
         FormLayout formLayout = new FormLayout();
         formLayout.setWidthFull();
 
-        overrideModelCombo = new ComboBox<>("Reviewer Model (Default: Manuscript AI)");
+        overrideModelCombo = new ComboBox<>(T.localized("Reviewer Model (Default: Manuscript AI)"));
         overrideModelCombo.setWidthFull();
         overrideModelCombo.setItemLabelGenerator(AI::getName);
         overrideModelCombo.setClearButtonVisible(true);
 
-        overrideProtocolCombo = new ComboBox<>("Reviewer Protocol (Default: Manuscript Protocol)");
+        overrideProtocolCombo = new ComboBox<>(T.localized("Reviewer Protocol (Default: Manuscript Protocol)"));
         overrideProtocolCombo.setWidthFull();
         overrideProtocolCombo.setItemLabelGenerator(Protocol::getName);
         overrideProtocolCombo.setClearButtonVisible(true);
 
         formLayout.add(overrideModelCombo, overrideProtocolCombo);
 
-        reviewPromptPreArea = new TextArea("Review Pre-Prompt (System)");
+        reviewPromptPreArea = new TextArea(T.localized("Review Pre-Prompt (System)"));
         reviewPromptPreArea.setWidthFull();
         ResizableTextArea.install(loc, reviewPromptPreArea, "120px");
 
-        reviewPromptArea = new TextArea("Review Post-Prompt (User)");
+        reviewPromptArea = new TextArea(T.localized("Review Post-Prompt (User)"));
         reviewPromptArea.setWidthFull();
         ResizableTextArea.install(loc, reviewPromptArea, "160px");
 
@@ -204,9 +206,9 @@ public class ReviewerSettingsForm extends VerticalLayout {
 
     private void createNewProfile() {
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle("New Profile");
+        dialog.setHeaderTitle(T.localized("New Profile"));
 
-        TextField nameField = new TextField("Profile Name");
+        TextField nameField = new TextField(T.localized("Profile Name"));
         nameField.setWidthFull();
         DialogFocus.onOpen(dialog, nameField);
 
@@ -214,14 +216,14 @@ public class ReviewerSettingsForm extends VerticalLayout {
         dialogLayout.setPadding(false);
         dialog.add(dialogLayout);
 
-        Button createBtn = new Button("Create", e -> {
+        Button createBtn = new Button(T.localized("Create"), e -> {
             String name = nameField.getValue() != null ? nameField.getValue().trim() : "";
             if (name.isEmpty()) {
-                Notification.error("Profile name cannot be empty");
+                Notification.error(T.localized("Profile name cannot be empty"));
                 return;
             }
             if (settings.getSettings().containsKey(name)) {
-                Notification.error("Profile already exists");
+                Notification.error(T.localized("Profile already exists"));
                 return;
             }
 
@@ -241,7 +243,7 @@ public class ReviewerSettingsForm extends VerticalLayout {
         });
         createBtn.setThemeName("primary");
 
-        Button cancelBtn = new Button("Cancel", e -> dialog.close());
+        Button cancelBtn = new Button(T.localized("Cancel"), e -> dialog.close());
 
         dialog.getFooter().add(cancelBtn, createBtn);
         dialog.open();
@@ -249,14 +251,14 @@ public class ReviewerSettingsForm extends VerticalLayout {
 
     private void renameCurrentProfile() {
         if (DEFAULT_PROFILE.equalsIgnoreCase(currentProfileName)) {
-            Notification.error("Cannot rename " + DEFAULT_PROFILE + " profile");
+            Notification.error(T.localized("Cannot rename %s profile").formatted(DEFAULT_PROFILE));
             return;
         }
 
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle("Rename Profile");
+        dialog.setHeaderTitle(T.localized("Rename Profile"));
 
-        TextField nameField = new TextField("New Profile Name");
+        TextField nameField = new TextField(T.localized("New Profile Name"));
         nameField.setWidthFull();
         DialogFocus.onOpen(dialog, nameField);
         nameField.setValue(currentProfileName != null ? currentProfileName : "");
@@ -265,10 +267,10 @@ public class ReviewerSettingsForm extends VerticalLayout {
         dialogLayout.setPadding(false);
         dialog.add(dialogLayout);
 
-        Button renameBtn = new Button("Rename", e -> {
+        Button renameBtn = new Button(T.localized("Rename"), e -> {
             String newName = nameField.getValue() != null ? nameField.getValue().trim() : "";
             if (newName.isEmpty()) {
-                Notification.error("Profile name cannot be empty");
+                Notification.error(T.localized("Profile name cannot be empty"));
                 return;
             }
             if (newName.equals(currentProfileName)) {
@@ -276,7 +278,7 @@ public class ReviewerSettingsForm extends VerticalLayout {
                 return;
             }
             if (settings.getSettings().containsKey(newName)) {
-                Notification.error("Profile already exists");
+                Notification.error(T.localized("Profile already exists"));
                 return;
             }
 
@@ -299,7 +301,7 @@ public class ReviewerSettingsForm extends VerticalLayout {
         });
         renameBtn.setThemeName("primary");
 
-        Button cancelBtn = new Button("Cancel", e -> dialog.close());
+        Button cancelBtn = new Button(T.localized("Cancel"), e -> dialog.close());
 
         dialog.getFooter().add(cancelBtn, renameBtn);
         dialog.open();
@@ -307,7 +309,7 @@ public class ReviewerSettingsForm extends VerticalLayout {
 
     private void deleteCurrentProfile() {
         if (DEFAULT_PROFILE.equalsIgnoreCase(currentProfileName)) {
-            Notification.error("Cannot delete " + DEFAULT_PROFILE + " profile");
+            Notification.error(T.localized("Cannot delete %s profile").formatted(DEFAULT_PROFILE));
             return;
         }
 

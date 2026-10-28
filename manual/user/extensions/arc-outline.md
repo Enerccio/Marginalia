@@ -37,6 +37,9 @@ buttons of a card:
 | trash | Deletes it (an arc with all its chapters), after a confirmation. |
 | robot (generated arcs and chapters) | Shows what the model wrote, see [below](#generating-an-arc). |
 
+Next to the wand at the top is a pen with a feather: it drafts the instructions of the next turn from the current chapter, see
+[below](#drafting-the-instructions-for-the-current-chapter).
+
 ![The Arcs tab: a finished, a current and a planned arc](../../images/plugin-arcoutline-tab.png)
 
 ### The note of a chapter
@@ -52,6 +55,18 @@ hide the note. Which notes are open is not saved.
 A chapter moved up from the first place of its arc goes to the end of the previous arc; one moved down from the last
 place goes to the start of the next arc. Keep pressing the arrow to take a chapter as far as you need.
 
+### Drafting the instructions for the current chapter
+
+The pen with a feather next to *Add new arc* opens the window that lets the model
+[draft the instructions](../books/story-editor.md#drafting-the-instructions) of the next turn, with the data of the chapter the
+story is at as its **Plan of the Story**. The current chapter is the first chapter marked **Current**; when none is, the first one
+that is not **Finished**; an arc marked current that has no chapters yet stands alone. The model gets that arc and chapter with their
+descriptions and notes, and the title and description (not the note) of the chapter after it, with the warning that the story must
+not get there yet. The window starts with what you typed into *Instructions* of the new turn panel as the guidance; **Use as
+Instructions** puts the draft into that panel and opens it. Without a current chapter the button says so.
+
+The same data is a source for the [Side Query](side-query.md), see [below](#the-outline-as-a-source-for-other-extensions).
+
 ### Finishing an arc
 
 Marking an arc **Finished** marks all its chapters **Finished** too. Changing an arc to another state leaves its
@@ -65,7 +80,8 @@ The outline is offered to other extensions as a source of data about the book: i
 **Arc outline** in the plug popover to send the arcs, their states, descriptions and chapters with your questions. There
 are two versions: **Arc outline** is the terse one (descriptions only), **Arc outline (with notes)** adds the note of every
 arc and chapter under its description, which is where the details of generated arcs and chapters are. Your private notes
-are sent only when you check the second one.
+are sent only when you check the second one. A third source, **Arc outline: current chapter**, sends only the arc and the chapter
+the story is at (see [Drafting the instructions for the current chapter](#drafting-the-instructions-for-the-current-chapter)).
 
 ## Generating an arc
 

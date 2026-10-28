@@ -92,6 +92,30 @@ public final class CssStyles {
     public static final String CHAT_MESSAGE_CONTENT = "chat-message-content";
     public static final String CHAT_MESSAGE_META = "chat-message-meta";
     public static final String GENERATED_TEXT = "generated-text";
+    public static final String SEARCH_MATCH = "search-match";
+    public static final String SEARCH_MATCH_CURRENT = "search-match-current";
+    public static final String ANNOTATION_MARK = "annotation-mark";
+    public static final String ANNOTATION_MARK_AUTHOR = "annotation-mark-author";
+    public static final String ANNOTATION_MARK_AI = "annotation-mark-ai";
+    public static final String ANNOTATION_MARK_AGENT = "annotation-mark-agent";
+    public static final String ANNOTATION_MARK_PLUGIN = "annotation-mark-plugin";
+    public static final String ANNOTATION_ANCHOR = "annotation-anchor";
+    public static final String ANNOTATION_BADGE = "annotation-badge";
+    public static final String ANNOTATION_VIEW = "annotation-view";
+    public static final String ANNOTATION_STATUS = "annotation-status";
+    public static final String ANNOTATION_STATUS_OPEN = "annotation-status-open";
+    public static final String ANNOTATION_STATUS_ORPHANED = "annotation-status-orphaned";
+    public static final String ANNOTATION_STATUS_RESOLVED = "annotation-status-resolved";
+    public static final String ANNOTATION_STATUS_DISMISSED = "annotation-status-dismissed";
+    public static final String ANNOTATION_TYPE = "annotation-type";
+    public static final String ANNOTATION_QUOTE = "annotation-quote";
+    public static final String ANNOTATION_NOTE = "annotation-note";
+    public static final String ANNOTATION_PANEL = "annotation-panel";
+    public static final String ANNOTATION_PART = "annotation-part";
+    public static final String ANNOTATION_POPOVER = "annotation-popover";
+    public static final String ANNOTATION_MARGIN = "annotation-margin";
+    public static final String ANNOTATION_MARGIN_LAYOUT = "annotations-in-margin";
+    public static final String ANNOTATION_LIT = "annotation-lit";
     public static final String SUMMARY_CONTENT = "summary-content";
     public static final String SUMMARY_ACTIONS = "summary-actions";
 
@@ -155,6 +179,9 @@ public final class CssStyles {
 
     // --- Commands (ui.components.CommandBar, CommandResultView) ---
     public static final String COMMAND_BOX = "command-box";
+    public static final String MENU_ITEM_CONTENT = "menu-item-content";
+    public static final String MENU_ITEM_TEXT = "menu-item-text";
+    public static final String MENU_ITEM_KEY = "menu-item-key";
     public static final String COMMAND_BAR = "command-bar";
     public static final String COMMAND_HELP = "command-help";
     public static final String COMMAND_HELP_USAGE = "command-help-usage";

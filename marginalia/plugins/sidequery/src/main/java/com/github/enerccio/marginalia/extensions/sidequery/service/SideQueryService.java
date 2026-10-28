@@ -25,6 +25,9 @@ import java.util.function.Consumer;
 @Configurable
 public class SideQueryService {
 
+    /** The kind of work its requests belong to for the cache of the provider (see {@code InferenceSession}). */
+    public static final String SESSION_KIND = "sidequery";
+
     @Autowired
     private Localization loc;
 
@@ -508,7 +511,7 @@ public class SideQueryService {
         Protocol protocol = resolveProtocol(setting, manuscript);
         InferenceService service = inferenceServices.forAI(ai);
         CancellationToken[] token = new CancellationToken[1];
-        token[0] = service.stream(payload, protocol, new InferenceService.InferenceAsyncCallback() {
+        InferenceService.InferenceAsyncCallback nameCallback = new InferenceService.InferenceAsyncCallback() {
             private final StringBuilder name = new StringBuilder();
 
             @Override
@@ -544,7 +547,11 @@ public class SideQueryService {
             public boolean isDead() {
                 return token[0] != null && token[0].isCancelled();
             }
-        });
+        };
+        // a prompt of its own, the cache of the conversation stays
+        try (InferenceSession _ = InferenceSession.open(SESSION_KIND, "tab-name")) {
+            token[0] = service.stream(payload, protocol, nameCallback);
+        }
         return token[0];
     }
 

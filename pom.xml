@@ -8,12 +8,13 @@
        To release, run `mvn versions:set -DnewVersion=<version> -DgenerateBackupPoms=false` in this folder. -->
   <groupId>io.github.enerccio</groupId>
   <artifactId>marginalia-parent</artifactId>
-  <version>1.4.0</version>
+  <version>1.5.0</version>
   <packaging>pom</packaging>
   <name>marginalia-parent</name>
 
   <modules>
     <module>marginalia</module>
+    <module>marginalia/plugins/anthropic</module>
     <module>marginalia/plugins/arc-outline</module>
     <module>marginalia/plugins/authorsnote</module>
     <module>marginalia/plugins/chaptermarker</module>
@@ -24,10 +25,12 @@
     <module>marginalia/plugins/google-genai</module>
     <module>marginalia/plugins/lore-generator</module>
     <module>marginalia/plugins/lorebookvcs</module>
+    <module>marginalia/plugins/manga-generator</module>
     <module>marginalia/plugins/name-generator</module>
     <module>marginalia/plugins/name-provider</module>
     <module>marginalia/plugins/place-provider</module>
     <module>marginalia/plugins/reviewer</module>
     <module>marginalia/plugins/sidequery</module>
+    <module>marginalia/plugins/sillytavern-converter</module>
   </modules>
 </project>

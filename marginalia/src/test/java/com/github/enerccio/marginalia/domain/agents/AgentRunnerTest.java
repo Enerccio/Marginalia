@@ -386,6 +386,125 @@ class AgentRunnerTest extends AgentTestBase {
         assertThat(result.getContent()).startsWith("Error: ").contains("no_such_tool");
     }
 
+    private static boolean toolsForbidden(MockLLMRequest request) {
+        return request.getBody().has("tool_choice") && "none".equals(request.getBody().get("tool_choice").getAsString());
+    }
+
+    @Test
+    void anAgentThatRepeatsItselfIsToldThenAskedWithoutToolsAndPaused() throws Exception {
+        Agent agent = readingAgent();
+        // the same call with the same result for ever, and a text when it may not call
+        llm.respondWith(request -> toolsForbidden(request)
+                ? MockLLMResponse.text("I kept asking for the book info and got the same answer, I do not know what to do next.")
+                : MockLLMResponse.toolCall("get-book-info", "{}"));
+
+        AgentRun run = await(startRun(agent));
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.PAUSED);
+        assertThat(run.getStatusReason()).isEqualTo(Defaults.AGENT_REPEATING_PAUSED);
+        // five rounds of calls and the answer without tools
+        assertThat(run.getRounds()).isEqualTo(Defaults.AGENT_REPEAT_STOP_AFTER + 1);
+        List<LLMChatMessage> transcript = transcript(run);
+        List<String> notices = transcript.stream().filter(m -> m.getRole() == LLMRole.USER).map(LLMChatMessage::getContent).toList();
+        assertThat(notices).contains(String.format(Defaults.AGENT_REPEATING_NOTICE, Defaults.AGENT_REPEAT_NOTICE_AFTER),
+                Defaults.AGENT_REPEATING_NO_TOOLS);
+        assertThat(transcript.getLast().getRole()).isEqualTo(LLMRole.ASSISTANT);
+        assertThat(transcript.getLast().hasToolCalls()).isFalse();
+        assertThat(transcript.getLast().getContent()).contains("I do not know what to do next");
+
+        // only the last request forbade the calls, and it still had the tools (so the start of the prompt, and the cache, is the same)
+        List<MockLLMRequest> requests = llm.getCompletionRequests();
+        assertThat(requests).hasSize(Defaults.AGENT_REPEAT_STOP_AFTER + 1);
+        assertThat(requests.stream().filter(AgentRunnerTest::toolsForbidden).count()).isEqualTo(1);
+        assertThat(toolsForbidden(requests.getLast())).isTrue();
+        assertThat(requests.getLast().getBody().getAsJsonArray("tools").toString()).contains("get-book-info");
+    }
+
+    @Test
+    void aServerThatIgnoresTheBanOnCallsDoesNotGetThemMade() throws Exception {
+        Agent agent = readingAgent();
+        llm.respondWith(request -> MockLLMResponse.toolCall("get-book-info", "{}"));
+
+        AgentRun run = await(startRun(agent));
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.PAUSED);
+        assertThat(run.getStatusReason()).isEqualTo(Defaults.AGENT_REPEATING_PAUSED);
+        List<LLMChatMessage> transcript = transcript(run);
+        // the call of the answer that was not allowed is not in the transcript, so no call is left without a result
+        assertThat(transcript.getLast().getRole()).isEqualTo(LLMRole.ASSISTANT);
+        assertThat(transcript.getLast().hasToolCalls()).isFalse();
+        assertThat(transcript.getLast().getContent()).isEqualTo(Defaults.AGENT_REPEATING_NO_ANSWER);
+    }
+
+    @Test
+    void anAgentThatMakesProgressIsNotStopped() throws Exception {
+        Agent agent = readingAgent();
+        // the same tool, other arguments each time: the results differ
+        MockLLMResponse[] rounds = new MockLLMResponse[Defaults.AGENT_REPEAT_STOP_AFTER * 3 + 1];
+        for (int i = 0; i < rounds.length - 1; i++) {
+            rounds[i] = MockLLMResponse.toolCall("search_manual", "{\"query\":\"topic" + i + "\"}");
+        }
+        rounds[rounds.length - 1] = MockLLMResponse.toolCall("finish", "{\"summary\":\"All read\"}");
+        llm.enqueue(rounds);
+
+        AgentRun run = await(startRun(agent));
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.DONE);
+        assertThat(transcript(run).stream().filter(m -> m.getRole() == LLMRole.USER).map(LLMChatMessage::getContent))
+                .doesNotContain(Defaults.AGENT_REPEATING_NO_TOOLS);
+    }
+
+    @Test
+    void aRepeatedRoundThatChangedSomethingIsNotARepeat() throws Exception {
+        Agent agent = readingAgent();
+        // a tool that may change the working copy resets the count: writing the same file again is not looking at the same thing
+        MockLLMResponse[] rounds = new MockLLMResponse[Defaults.AGENT_REPEAT_STOP_AFTER * 2 + 1];
+        for (int i = 0; i < rounds.length - 1; i++) {
+            rounds[i] = i % 2 == 0 ? MockLLMResponse.toolCall("get-book-info", "{}") : MockLLMResponse.toolCall("write_file", "{\"path\":\"/note.md\",\"content\":\"x\"}");
+        }
+        rounds[rounds.length - 1] = MockLLMResponse.toolCall("finish", "{\"summary\":\"done\"}");
+        llm.enqueue(rounds);
+
+        AgentRun run = await(startRun(agent));
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.DONE);
+    }
+
+    @Test
+    void whatTheModelWritesIsLiveWhileTheRequestGoesOnAndGoneWhenTheAnswerIsStored() throws Exception {
+        Agent agent = readingAgent();
+        llm.enqueue(MockLLMResponse.chunks("The ", "answer.").withReasoning("Let me think. ", "Still thinking. ").chunkDelay(Duration.ofMillis(400)));
+
+        AgentRun run = startRun(agent);
+
+        // while the chunks arrive, the console can read what is there; the transcript has no answer yet
+        AgentRunner.LiveAnswer seen = null;
+        long end = System.currentTimeMillis() + 10_000;
+        while (System.currentTimeMillis() < end && (seen == null || !seen.reasoning().contains("Let me think."))) {
+            seen = runner.live(run);
+            Thread.sleep(20);
+        }
+        assertThat(seen).isNotNull();
+        assertThat(seen.reasoning()).contains("Let me think.");
+        assertThat(transcript(run)).extracting(LLMChatMessage::getRole).doesNotContain(LLMRole.ASSISTANT);
+
+        run = await(run);
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.IDLE);
+        assertThat(runner.live(run)).isNull();
+        assertThat(transcript(run).getLast().getContent()).isEqualTo("The answer.");
+    }
+
+    @Test
+    void aRunThatDoesNotWorkHasNothingLive() throws Exception {
+        Agent agent = readingAgent();
+        llm.reply("Nothing to do.");
+
+        AgentRun run = await(startRun(agent));
+
+        assertThat(runner.live(run)).isNull();
+    }
+
     @Test
     void aCommandTheAgentMayNotCallIsNotOffered() throws Exception {
         Agent agent = readingAgent();
@@ -1287,7 +1406,7 @@ class AgentRunnerTest extends AgentTestBase {
     @Test
     void theAgentSavesAndRestoresACheckpointAndIsToldWhatCameBack() throws Exception {
         Agent agent = writingAgent();
-        String original = agentService.findForUser(agent.getUuid()).getManuscript().getName();
+        String original = agentService.findManuscript(agent).getName();
         llm.enqueue(MockLLMResponse.toolCall("write_file", "{\"path\":\"/notes.txt\",\"content\":\"keep\"}"),
                 MockLLMResponse.toolCall("checkpoint", "{\"label\":\"before renaming\"}"),
                 MockLLMResponse.toolCall("set-book-info", "{\"name\":\"Ruined\"}"),

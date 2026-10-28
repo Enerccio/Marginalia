@@ -14,10 +14,13 @@ import com.github.enerccio.marginalia.domain.templates.*;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.components.TagsView;
 import com.github.enerccio.marginalia.ui.dialogs.LorebookImportDialog;
+import com.github.enerccio.marginalia.ui.shortcuts.KeyBindings;
+import com.github.enerccio.marginalia.ui.shortcuts.KeyBindingsEditor;
 import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
@@ -25,6 +28,7 @@ import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.HasValue;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -99,6 +103,8 @@ public class UserPart implements WorkspaceComponent {
     // Tab 1 fields
     private ComboBox<AI> defaultModelCombo;
     private ComboBox<Protocol> defaultProtocolCombo;
+    private ComboBox<AI> defaultAnnotateModelCombo;
+    private ComboBox<Protocol> defaultAnnotateProtocolCombo;
     private ComboBox<BackupStrategy> backupStrategyCombo;
     private IntegerField backupStrategyValueField;
     private IntegerField storyPartsLimitField;
@@ -116,6 +122,11 @@ public class UserPart implements WorkspaceComponent {
     private TextAreaPopoverComponent defaultUserPromptField;
     private TextAreaPopoverComponent defaultSummaryPromptField;
     private TextAreaPopoverComponent defaultMetaSummaryPromptField;
+    private TextAreaPopoverComponent defaultRedraftSystemPromptField;
+    private TextAreaPopoverComponent defaultRedraftPromptField;
+    private TextAreaPopoverComponent defaultAnnotateSystemPromptField;
+    private TextAreaPopoverComponent defaultAnnotatePromptField;
+    private TextAreaPopoverComponent defaultImpersonatePromptField;
     private TextAreaPopoverComponent defaultAgentPromptField;
     private TextArea defaultAgentInstructionsField;
     private TextAreaPopoverComponent defaultAgentCompactionPromptField;
@@ -123,7 +134,10 @@ public class UserPart implements WorkspaceComponent {
     // Tab 3 Tags, not a setting: acts at once, outside of the save and discard of the part
     private TagsView tagsView;
 
-    // Tab 4 Extensions
+    // Tab 4 Keyboard shortcuts
+    private KeyBindingsEditor keyBindingsEditor;
+
+    // Tab 5 Extensions
     private Accordion extensionSettings;
 
     private UserSetting userSetting;
@@ -165,6 +179,7 @@ public class UserPart implements WorkspaceComponent {
         FormLayout defaultsFormLayout = new FormLayout();
         defaultsFormLayout.setWidthFull();
         defaultsFormLayout.add(defaultModelCombo, defaultProtocolCombo);
+        defaultsFormLayout.add(defaultAnnotateModelCombo, defaultAnnotateProtocolCombo);
         defaultsFormLayout.add(new HorizontalLayout(backupStrategyCombo, backupStrategyValueField));
         defaultsFormLayout.add(storyPartsLimitField);
         defaultsFormLayout.add(agentWebhookUrlField, 2);
@@ -194,6 +209,17 @@ public class UserPart implements WorkspaceComponent {
         templatesFormLayout.add(defaultMetaSummaryPromptField);
         templatesFormLayout.setColspan(defaultMetaSummaryPromptField, 2);
 
+        templatesFormLayout.add(defaultRedraftSystemPromptField);
+        templatesFormLayout.setColspan(defaultRedraftSystemPromptField, 2);
+        templatesFormLayout.add(defaultRedraftPromptField);
+        templatesFormLayout.setColspan(defaultRedraftPromptField, 2);
+        templatesFormLayout.add(defaultAnnotateSystemPromptField);
+        templatesFormLayout.setColspan(defaultAnnotateSystemPromptField, 2);
+        templatesFormLayout.add(defaultAnnotatePromptField);
+        templatesFormLayout.setColspan(defaultAnnotatePromptField, 2);
+        templatesFormLayout.add(defaultImpersonatePromptField);
+        templatesFormLayout.setColspan(defaultImpersonatePromptField, 2);
+
         templatesFormLayout.add(defaultAgentPromptField);
         templatesFormLayout.setColspan(defaultAgentPromptField, 2);
 
@@ -208,6 +234,8 @@ public class UserPart implements WorkspaceComponent {
         tagsView = new TagsView();
         tabSheet.add(loc.getValue(L.LABEL_TAGS), tagsView);
 
+        tabSheet.add(loc.getValue(L.LABEL_KEYBOARD_SHORTCUTS), createShortcutsTab());
+
         extensionSettings = new Accordion();
         extensionSettings.setSizeFull();
         tabSheet.add(loc.getValue(L.LABEL_EXTENSION_SETTINGS), extensionSettings);
@@ -218,6 +246,24 @@ public class UserPart implements WorkspaceComponent {
         refresh();
 
         return mainLayout;
+    }
+
+    /**
+     * The key bindings of the story editor shortcuts.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "layout", type = VerticalLayout.class),
+                    @APILocals(name = "help", type = Span.class)})
+    private Component createShortcutsTab() {
+        keyBindingsEditor = new KeyBindingsEditor(loc);
+        keyBindingsEditor.setWidthFull();
+        VerticalLayout layout = new VerticalLayout();
+        layout.setPadding(false);
+        Span help = new Span(loc.getValue(L.HELP_KEYBOARD_SHORTCUTS));
+        help.addClassName(CssStyles.TEXT_SECONDARY);
+        layout.add(help, keyBindingsEditor);
+        return layout;
     }
 
     /**
@@ -298,6 +344,16 @@ public class UserPart implements WorkspaceComponent {
         defaultProtocolCombo.setWidthFull();
         defaultProtocolCombo.setItemLabelGenerator(Protocol::getName);
         defaultProtocolCombo.setClearButtonVisible(true);
+
+        defaultAnnotateModelCombo = new ComboBox<>(loc.getValue(L.LABEL_DEFAULT_ANNOTATE_MODEL));
+        defaultAnnotateModelCombo.setWidthFull();
+        defaultAnnotateModelCombo.setItemLabelGenerator(AI::getName);
+        defaultAnnotateModelCombo.setClearButtonVisible(true);
+
+        defaultAnnotateProtocolCombo = new ComboBox<>(loc.getValue(L.LABEL_DEFAULT_ANNOTATE_PROTOCOL));
+        defaultAnnotateProtocolCombo.setWidthFull();
+        defaultAnnotateProtocolCombo.setItemLabelGenerator(Protocol::getName);
+        defaultAnnotateProtocolCombo.setClearButtonVisible(true);
 
         backupStrategyCombo = new ComboBox<>(loc.getValue(L.LABEL_BACKUP_STRATEGY));
         backupStrategyCombo.setWidthFull();
@@ -384,6 +440,45 @@ public class UserPart implements WorkspaceComponent {
         defaultMetaSummaryPromptField.setPlaceholder(Defaults.DEFAULT_META_SUMMARY);
         defaultMetaSummaryPromptField.setPopoverContent(createTemplateHintPopoverContent(
                 defaultMetaSummaryPromptField, defaultMetaSummaryPromptField.getPopover(), MetaSummaryTemplateData.class, Defaults.DEFAULT_META_SUMMARY));
+
+        defaultAnnotateSystemPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_ANNOTATE_SYSTEM_PROMPT));
+        defaultAnnotateSystemPromptField.setWidthFull();
+        defaultAnnotateSystemPromptField.setHelperText(loc.getValue(L.HELP_PART_SYSTEM_PROMPT));
+        ResizableTextArea.install(loc, defaultAnnotateSystemPromptField, "160px");
+        defaultAnnotateSystemPromptField.setPlaceholder(Defaults.DEFAULT_ANNOTATE_SYSTEM_PROMPT);
+        defaultAnnotateSystemPromptField.setPopoverContent(createTemplateHintPopoverContent(
+                defaultAnnotateSystemPromptField, defaultAnnotateSystemPromptField.getPopover(), AnnotateTemplateData.class, Defaults.DEFAULT_ANNOTATE_SYSTEM_PROMPT));
+
+        defaultAnnotatePromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_ANNOTATE_PROMPT));
+        defaultAnnotatePromptField.setWidthFull();
+        defaultAnnotatePromptField.setHelperText(loc.getValue(L.HELP_PART_LAST_PROMPT));
+        ResizableTextArea.install(loc, defaultAnnotatePromptField, "160px");
+        defaultAnnotatePromptField.setPlaceholder(Defaults.DEFAULT_ANNOTATE_PROMPT);
+        defaultAnnotatePromptField.setPopoverContent(createTemplateHintPopoverContent(
+                defaultAnnotatePromptField, defaultAnnotatePromptField.getPopover(), AnnotateTemplateData.class, Defaults.DEFAULT_ANNOTATE_PROMPT));
+
+        defaultImpersonatePromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_IMPERSONATE_PROMPT));
+        defaultImpersonatePromptField.setWidthFull();
+        ResizableTextArea.install(loc, defaultImpersonatePromptField, "160px");
+        defaultImpersonatePromptField.setPlaceholder(Defaults.DEFAULT_IMPERSONATE_PROMPT);
+        defaultImpersonatePromptField.setPopoverContent(createTemplateHintPopoverContent(
+                defaultImpersonatePromptField, defaultImpersonatePromptField.getPopover(), ImpersonateTemplateData.class, Defaults.DEFAULT_IMPERSONATE_PROMPT));
+
+        defaultRedraftSystemPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_REDRAFT_SYSTEM_PROMPT));
+        defaultRedraftSystemPromptField.setWidthFull();
+        defaultRedraftSystemPromptField.setHelperText(loc.getValue(L.HELP_PART_SYSTEM_PROMPT));
+        ResizableTextArea.install(loc, defaultRedraftSystemPromptField, "160px");
+        defaultRedraftSystemPromptField.setPlaceholder(Defaults.DEFAULT_REDRAFT_SYSTEM_PROMPT);
+        defaultRedraftSystemPromptField.setPopoverContent(createTemplateHintPopoverContent(
+                defaultRedraftSystemPromptField, defaultRedraftSystemPromptField.getPopover(), RedraftTemplateData.class, Defaults.DEFAULT_REDRAFT_SYSTEM_PROMPT));
+
+        defaultRedraftPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_REDRAFT_PROMPT));
+        defaultRedraftPromptField.setWidthFull();
+        defaultRedraftPromptField.setHelperText(loc.getValue(L.HELP_PART_LAST_PROMPT));
+        ResizableTextArea.install(loc, defaultRedraftPromptField, "160px");
+        defaultRedraftPromptField.setPlaceholder(Defaults.DEFAULT_REDRAFT_PROMPT);
+        defaultRedraftPromptField.setPopoverContent(createTemplateHintPopoverContent(
+                defaultRedraftPromptField, defaultRedraftPromptField.getPopover(), RedraftTemplateData.class, Defaults.DEFAULT_REDRAFT_PROMPT));
 
         // plain text, not a template; what it follows is the placeholder (see refreshAgentPrompt)
         defaultAgentPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_AGENT_DEFAULT_PROMPT));
@@ -502,6 +597,8 @@ public class UserPart implements WorkspaceComponent {
                     @APILocals(name = "allProtocols", type = List.class),
                     @APILocals(name = "defaultProtocolId", type = Long.class),
                     @APILocals(name = "selectedProtocol", type = Protocol.class),
+                    @APILocals(name = "annotateModel", type = AI.class),
+                    @APILocals(name = "annotateProtocol", type = Protocol.class),
                     @APILocals(name = "strategy", type = BackupService.BackupStrategy.class),
                     @APILocals(name = "stratVal", type = String.class),
                     @APILocals(name = "e", type = Exception.class)})
@@ -541,6 +638,14 @@ public class UserPart implements WorkspaceComponent {
                 defaultProtocolCombo.setValue(null);
             }
 
+            defaultAnnotateModelCombo.setItems(allModels);
+            AI annotateModel = userSetting.getDefaultAnnotateModel() == null ? null : aiService.find(userSetting.getDefaultAnnotateModel());
+            defaultAnnotateModelCombo.setValue(annotateModel != null && !annotateModel.isDeleted() ? annotateModel : null);
+            defaultAnnotateProtocolCombo.setItems(allProtocols);
+            Protocol annotateProtocol = userSetting.getDefaultAnnotateProtocol() == null ? null
+                    : protocolService.find(userSetting.getDefaultAnnotateProtocol());
+            defaultAnnotateProtocolCombo.setValue(annotateProtocol != null && !annotateProtocol.isDeleted() ? annotateProtocol : null);
+
             BackupStrategy strategy = userSetting.getBackupStrategy();
             backupStrategyCombo.setValue(strategy);
             String stratVal = userSetting.getBackupStrategyValue();
@@ -559,6 +664,11 @@ public class UserPart implements WorkspaceComponent {
             defaultUserPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultUserPrompt()));
             defaultSummaryPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultSummaryPrompt()));
             defaultMetaSummaryPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultMetaSummaryPrompt()));
+            defaultRedraftSystemPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultRedraftSystemPrompt()));
+            defaultRedraftPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultRedraftPrompt()));
+            defaultAnnotateSystemPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultAnnotateSystemPrompt()));
+            defaultAnnotatePromptField.setValue(StringUtils.defaultString(userSetting.getDefaultAnnotatePrompt()));
+            defaultImpersonatePromptField.setValue(StringUtils.defaultString(userSetting.getDefaultImpersonatePrompt()));
             defaultAgentPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultAgentPrompt()));
             defaultAgentInstructionsField.setValue(StringUtils.defaultString(userSetting.getDefaultAgentInstructions()));
             agentWebhookUrlField.setValue(StringUtils.defaultString(userSetting.getAgentWebhookUrl()));
@@ -570,7 +680,13 @@ public class UserPart implements WorkspaceComponent {
             validateTemplate(defaultUserPromptField, "defaultUserPrompt", UserPromptData.class);
             validateTemplate(defaultSummaryPromptField, "defaultSummaryPrompt", SummaryTemplateData.class);
             validateTemplate(defaultMetaSummaryPromptField, "defaultMetaSummaryPrompt", MetaSummaryTemplateData.class);
+            validateTemplate(defaultRedraftSystemPromptField, "defaultRedraftSystemPrompt", RedraftTemplateData.class);
+            validateTemplate(defaultRedraftPromptField, "defaultRedraftPrompt", RedraftTemplateData.class);
+            validateTemplate(defaultAnnotateSystemPromptField, "defaultAnnotateSystemPrompt", AnnotateTemplateData.class);
+            validateTemplate(defaultAnnotatePromptField, "defaultAnnotatePrompt", AnnotateTemplateData.class);
+            validateTemplate(defaultImpersonatePromptField, "defaultImpersonatePrompt", ImpersonateTemplateData.class);
             tagsView.refresh();
+            keyBindingsEditor.setValue(KeyBindings.of(userSetting).asMap());
 
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -648,6 +764,11 @@ public class UserPart implements WorkspaceComponent {
                     @APILocals(name = "userPrompt", type = String.class),
                     @APILocals(name = "summaryPrompt", type = String.class),
                     @APILocals(name = "metaSummaryPrompt", type = String.class),
+                    @APILocals(name = "redraftSystemPrompt", type = String.class),
+                    @APILocals(name = "redraftPrompt", type = String.class),
+                    @APILocals(name = "annotateSystemPrompt", type = String.class),
+                    @APILocals(name = "annotatePrompt", type = String.class),
+                    @APILocals(name = "impersonatePrompt", type = String.class),
                     @APILocals(name = "defaultPov", type = String.class),
                     @APILocals(name = "defaultTense", type = String.class),
                     @APILocals(name = "defaultStyle", type = String.class),
@@ -669,7 +790,12 @@ public class UserPart implements WorkspaceComponent {
         if (!validateTemplate(masterTemplateField, "masterTemplate", MasterTemplateData.class)
                 || !validateTemplate(defaultUserPromptField, "defaultUserPrompt", UserPromptData.class)
                 || !validateTemplate(defaultSummaryPromptField, "defaultSummaryPrompt", SummaryTemplateData.class)
-                || !validateTemplate(defaultMetaSummaryPromptField, "defaultMetaSummaryPrompt", MetaSummaryTemplateData.class)) {
+                || !validateTemplate(defaultMetaSummaryPromptField, "defaultMetaSummaryPrompt", MetaSummaryTemplateData.class)
+                || !validateTemplate(defaultRedraftSystemPromptField, "defaultRedraftSystemPrompt", RedraftTemplateData.class)
+                || !validateTemplate(defaultRedraftPromptField, "defaultRedraftPrompt", RedraftTemplateData.class)
+                || !validateTemplate(defaultAnnotateSystemPromptField, "defaultAnnotateSystemPrompt", AnnotateTemplateData.class)
+                || !validateTemplate(defaultAnnotatePromptField, "defaultAnnotatePrompt", AnnotateTemplateData.class)
+                || !validateTemplate(defaultImpersonatePromptField, "defaultImpersonatePrompt", ImpersonateTemplateData.class)) {
             return;
         }
 
@@ -677,6 +803,11 @@ public class UserPart implements WorkspaceComponent {
         String userPrompt = defaultUserPromptField.getValue();
         String summaryPrompt = defaultSummaryPromptField.getValue();
         String metaSummaryPrompt = defaultMetaSummaryPromptField.getValue();
+        String redraftSystemPrompt = defaultRedraftSystemPromptField.getValue();
+        String redraftPrompt = defaultRedraftPromptField.getValue();
+        String annotateSystemPrompt = defaultAnnotateSystemPromptField.getValue();
+        String annotatePrompt = defaultAnnotatePromptField.getValue();
+        String impersonatePrompt = defaultImpersonatePromptField.getValue();
 
         String defaultPov = defaultPovField.getValue();
         String defaultTense = defaultTenseField.getValue();
@@ -691,6 +822,8 @@ public class UserPart implements WorkspaceComponent {
 
             Protocol selectedProtocol = defaultProtocolCombo.getValue();
             userSetting.setDefaultProtocol(selectedProtocol != null ? selectedProtocol.getId() : null);
+            userSetting.setDefaultAnnotateModel(defaultAnnotateModelCombo.getValue() != null ? defaultAnnotateModelCombo.getValue().getId() : null);
+            userSetting.setDefaultAnnotateProtocol(defaultAnnotateProtocolCombo.getValue() != null ? defaultAnnotateProtocolCombo.getValue().getId() : null);
 
             userSetting.setBackupStrategy(strategy);
             userSetting.setBackupStrategyValue(strategy != null && backupStrategyValueField.getValue() != null ? String.valueOf(backupStrategyValueField.getValue()) : null);
@@ -705,6 +838,11 @@ public class UserPart implements WorkspaceComponent {
             userSetting.setDefaultUserPrompt(userPrompt);
             userSetting.setDefaultSummaryPrompt(summaryPrompt);
             userSetting.setDefaultMetaSummaryPrompt(metaSummaryPrompt);
+            userSetting.setDefaultRedraftSystemPrompt(redraftSystemPrompt);
+            userSetting.setDefaultRedraftPrompt(redraftPrompt);
+            userSetting.setDefaultAnnotateSystemPrompt(annotateSystemPrompt);
+            userSetting.setDefaultAnnotatePrompt(annotatePrompt);
+            userSetting.setDefaultImpersonatePrompt(impersonatePrompt);
             saveWebhook(userSetting);
             if (defaultAgentPromptField.isVisible()) {
                 // hidden for a user who may not use agents: what they once set stays
@@ -713,7 +851,11 @@ public class UserPart implements WorkspaceComponent {
                 userSetting.setDefaultAgentCompactionPrompt(defaultAgentCompactionPromptField.getValue());
             }
 
+            userSetting.setKeyBindings(KeyBindings.toStored(userSetting.getKeyBindings(), keyBindingsEditor.getValue()));
+
             settingService.save(userSetting);
+            // the open story tabs use the new keys from the next key press
+            JavascriptLibrary.setShortcutKeys(UI.getCurrent().getPage(), KeyBindings.of(userSetting).toJson());
             setChanged(false);
             Notification.success(loc.getValue(L.MSG_SETTINGS_SAVED));
         } catch (Exception e) {

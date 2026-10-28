@@ -1,7 +1,7 @@
 ---
 label: Architecture
 order: 980
-verified: 1e3193fc
+verified: 60a4afd23
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/bound
   - marginalia/src/main/java/com/github/enerccio/marginalia/Configuration.java
@@ -205,13 +205,30 @@ logged-in user's id, login and name into it; services inject `User` and use it t
 (`OwnedService.findAllForUser()`, `findForUser(uuid)`). Code running outside a request (generation threads) needs the
 request attributes copied over - see [Threads and push](#threads-and-push).
 
-**Configuration** comes from `src/main/webapp/config/configuration.properties`:
+**Configuration** is read by the property placeholder of `application-config.xml` and wired to the `configuration` and
+`localization` beans in `container-config.xml`. Each setting is a property `marginalia.<name>` that can be given as an
+environment variable (`MARGINALIA_<NAME>`, dots and dashes become underscores) or a `-D` system property, both before
+the older keys of `src/main/webapp/config/configuration.properties`, which stay as the fallback:
 
-| Key | Default | |
-|---|---|---|
-| `allowPersistentLogin` | `true` | Whether *Save login* is offered. |
-| `persistentLoginTTL` | `2592000` | Lifetime of saved logins in seconds (30 days). |
-| `trustedProxies` | empty | Reverse proxies (addresses or CIDR ranges, comma separated) whose `X-Forwarded-For` header is believed when finding the client address for [login throttling](services.md#login-throttling). Empty: the header is ignored. Can also be given as `-DtrustedProxies=...`. |
+| Setting (environment variable) | File key | Default | |
+|---|---|---|---|
+| `marginalia.data` (`MARGINALIA_DATA`) | | `~/.marginalia` | The application folder (database, data, backups, extensions, `secret.key`). The Docker entrypoint reads the same variable to fix the owner of the folder. An empty value keeps the default. |
+| `marginalia.default-language` (`MARGINALIA_DEFAULT_LANGUAGE`) | | `en` | Language of the login page and of users who chose none (`LocalizationImpl.setDefaultLanguageCode`). It must be a bundle of the application (`en`, `ja`), not one of an extension: those are loaded after the start and a code without a bundle stops the start. |
+| `marginalia.allow-persistent-login` (`MARGINALIA_ALLOW_PERSISTENT_LOGIN`) | `allowPersistentLogin` | `true` | Whether *Save login* is offered. |
+| `marginalia.persistent-login-ttl` (`MARGINALIA_PERSISTENT_LOGIN_TTL`) | `persistentLoginTTL` | `2592000` | Lifetime of saved logins in seconds (30 days). |
+| `marginalia.trusted-proxies` (`MARGINALIA_TRUSTED_PROXIES`) | `trustedProxies` | empty | Reverse proxies (addresses or CIDR ranges, comma separated) whose `X-Forwarded-For` header is believed when finding the client address for [login throttling](services.md#login-throttling). Empty: the header is ignored. `-DtrustedProxies=...` still works. |
+
+`Configuration.hmac(purpose, data)` is the keyed hash for identifiers that leave the application (`InferenceSession`, the `X-Session-ID`): HMAC-SHA256 with a subkey derived from `secret.key` and the purpose, the first 128 bits as 32 hex characters, so the value is stable in an installation and reveals nothing about the data. The application version in `container-config.xml` is 6 (`ExtendedContentMigration`, see [Database](database.md)).
+
+A new setting needs the placeholder in `container-config.xml` (`${marginalia.some-name:default}`) and a row here and in
+the [Docker server](../user/getting-started/docker-server.md#environment-variables) page. A value of the wrong type
+(`MARGINALIA_PERSISTENT_LOGIN_TTL=abc`) stops the start with the Spring error.
+
+**Health endpoint.** `GET /health` (`ui.main.HealthServlet`, registered in `WebappApplicationInitializer` with an exact
+mapping that wins over the `/*` of the Vaadin servlet) needs no login and answers `200 {"status":"UP"}` when the root
+application context is active and `SELECT 1` runs on the data source, else `503` with `{"status":"DOWN","context":...,
+"database":...}`; the context that is still starting counts as down. `HEAD` is answered without a body. It reveals no
+version or other detail, the cause of a failure is in the log. The Docker `HEALTHCHECK` uses it.
 
 ## User interface
 
@@ -335,7 +352,7 @@ SillyTavern macros ({%{`{{user}}`, `{{getvar::x}}`, `{{random::a::b}}`}%}...) ar
 `MacroTranslator` first. Inference goes through `InferenceServices`, which picks the implementation for the provider
 type: `OpenAICompatibleInferenceService` (openai-java), or the service that the factory of an extension creates for an `ExtensionAI` (see [Inference providers from a plugin](plugins/ai-providers.md)). Token counts come from `TokenizerService`, which tries the
 `TokenizerStrategy` implementations in turn (OpenAI SDK, llama.cpp and LiteLLM tokenize endpoints, JTokkit as the local
-fallback) and remembers the first one that works for each provider.
+fallback) and remembers the first one that works for each `TokenizerKey` (the endpoint, the model and the API key of the provider).
 
 See [Generation pipeline](generation-pipeline.md) and [Templating & macros](templating.md).
 

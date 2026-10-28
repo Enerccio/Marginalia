@@ -3,7 +3,7 @@
 Revision history for lorebook entries - keep earlier versions of your lore and go back to them.
 
 A revision is a snapshot of the whole entry: name, text, comment, enabled flag, order, filter and filtering mode,
-insertion mode, tags and negative tags.
+insertion mode, the *Do not search its content for other entries* flag, tags and negative tags.
 
 ![Entry revisions](../../../manual/images/plugin-lorebookvcs.png)
 

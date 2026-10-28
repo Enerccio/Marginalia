@@ -67,6 +67,30 @@ services:
 
 After changing the file, apply it with `docker compose up -d`.
 
+### Environment variables
+
+Marginalia's own settings are environment variables of the service, next to `JAVA_TOOL_OPTIONS`:
+
+```yaml
+    environment:
+      - JAVA_TOOL_OPTIONS=-Duser.home=/var/marginalia -Xms256m -Xmx1g
+      - MARGINALIA_DEFAULT_LANGUAGE=ja
+      - MARGINALIA_PERSISTENT_LOGIN_TTL=604800
+      - MARGINALIA_TRUSTED_PROXIES=172.16.0.0/12
+```
+
+| Variable | Default | What it does |
+|---|---|---|
+| `MARGINALIA_DATA` | `~/.marginalia` (`/var/marginalia/.marginalia` in the image) | Folder of the database, backups, extensions and the key that encrypts API keys. Change it only with a matching volume (`./data:/your/folder`); the container fixes the owner of this folder on start. |
+| `MARGINALIA_DEFAULT_LANGUAGE` | `en` | Language of the login page and of users who have not chosen one (`en` or `ja`; the language of an extension can't be used here). |
+| `MARGINALIA_ALLOW_PERSISTENT_LOGIN` | `true` | `false` hides *Save login*. |
+| `MARGINALIA_PERSISTENT_LOGIN_TTL` | `2592000` | How long a saved login lasts, in seconds (30 days). |
+| `MARGINALIA_TRUSTED_PROXIES` | empty | Reverse proxies whose `X-Forwarded-For` header is believed, see [below](#https-and-reverse-proxy). Replaces `-DtrustedProxies`. |
+
+The same settings can be given as Java options, `-Dmarginalia.default-language=ja`, which take precedence over the
+variables. A value that does not fit (text for the number of seconds, an unknown language) stops Marginalia from
+starting; the reason is in the log.
+
 ## HTTPS and reverse proxy
 
 !!!danger Don't use plain HTTP over the internet
@@ -116,8 +140,8 @@ server {
 Failed logins are throttled per user and per client address (after 30 failures from one address, logins from it are
 refused for a growing time, up to 15 minutes). Marginalia only believes the `X-Forwarded-For` header of a proxy you
 name: without it, all users appear to come from the proxy's address and 30 failures from anyone block everybody for a
-while. Keep the header in the proxy configuration (as above) and add `-DtrustedProxies=<address or range of the proxy>`
-to `JAVA_TOOL_OPTIONS` in `docker-compose.yml`. A proxy on the Docker host reaches the container from the Docker
+while. Keep the header in the proxy configuration (as above) and set `MARGINALIA_TRUSTED_PROXIES=<address or range of the proxy>`
+in the `environment` of `docker-compose.yml`. A proxy on the Docker host reaches the container from the Docker
 network, normally `172.16.0.0/12`; several entries are separated by commas. The throttling is kept in memory,
 restarting Marginalia clears it.
 
@@ -176,8 +200,13 @@ that uses them the plugins are always updated together with the application.
 ## Health
 
 The image has a Docker health check: `docker ps` shows `(health: starting)` while Marginalia starts (up to two
-minutes), then `(healthy)`. It is `unhealthy` when port 8080 stops answering with a page. Docker does not restart an
-unhealthy container by itself; use the status for your monitoring or an auto-heal tool.
+minutes), then `(healthy)`. It is `unhealthy` when `http://localhost:8080/health` stops answering with `200`. Docker
+does not restart an unhealthy container by itself; use the status for your monitoring or an auto-heal tool.
+
+`/health` needs no login, so a monitoring tool or a load balancer can use it too (through the proxy:
+`https://marginalia.example.com/health`). It answers `200` and `{"status":"UP"}` when Marginalia runs and its database
+answers, and `503` with `{"status":"DOWN",...}` while it is starting or when something is wrong. It shows nothing else
+(no version, no details); the log has the reason.
 
 ## Logs
 

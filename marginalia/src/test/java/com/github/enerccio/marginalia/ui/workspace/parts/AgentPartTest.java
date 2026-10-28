@@ -175,8 +175,84 @@ class AgentPartTest extends AgentTestBase {
 
         assertThat(rows()).extracting(Agent::getId).containsExactly(mine.getId()).doesNotContain(theirs.getId());
         List<String> headers = part.getGrid().getColumns().stream().map(Grid.Column::getHeaderText).toList();
-        assertThat(headers).startsWith("Agent ID", "Name", "Status");
+        assertThat(headers).startsWith("Agent ID", "Name", "Book", "Status", "Last run");
         assertThat(statusOf(mine)).isEqualTo("Not running");
+    }
+
+    @Test
+    void theFieldsAboveTheTableKeepTheAgentsWithAllTheWordsOfTheNameAndTheBook() throws Exception {
+        Agent alpha = newAgent(manuscript());
+        alpha.setName("Night Editor");
+        alpha = agentService.save(alpha);
+        Agent beta = newAgent(manuscript());
+        beta.setName("Day Editor");
+        beta = agentService.save(beta);
+        part.refresh();
+        assertThat(rows()).hasSize(2);
+
+        part.getNameFilter().setValue("editor night");
+        assertThat(rows()).extracting(Agent::getId).containsExactly(alpha.getId());
+
+        part.getNameFilter().setValue("");
+        part.getBookFilter().setValue(beta.getManuscript().getName().toUpperCase());
+        assertThat(rows()).extracting(Agent::getId).containsExactly(beta.getId());
+
+        part.getBookFilter().setValue("no such book");
+        assertThat(rows()).isEmpty();
+
+        part.getBookFilter().setValue("  ");
+        assertThat(rows()).hasSize(2);
+    }
+
+    @Test
+    void theColumnsOfNameStatusAndLastRunSortAndTheLastRunIsShown() throws Exception {
+        Agent never = newAgent(manuscript());
+        never.setName("A never");
+        never = agentService.save(never);
+        Agent ran = newAgent(manuscript());
+        ran.setName("B ran");
+        ran = agentService.save(ran);
+        AgentRun run = agentRunService.start(ran);
+        agentRunService.stop(run, false);
+        part.refresh();
+
+        assertThat(part.lastRunText(never)).isEqualTo("never");
+        assertThat(part.lastRunText(ran)).isNotEqualTo("never").isNotBlank();
+        List<String> headers = part.getGrid().getColumns().stream().map(Grid.Column::getHeaderText).toList();
+        assertThat(headers).startsWith("Agent ID", "Name", "Book", "Status", "Last run");
+        assertThat(part.getGrid().getColumns().stream().filter(c -> !c.getHeaderText().isEmpty()).filter(c -> !c.getHeaderText().equals("Agent ID")))
+                .allMatch(Grid.Column::isSortable);
+
+        Grid.Column<Agent> lastRun = part.getGrid().getColumns().get(4);
+        List<Agent> asc = rows().stream().sorted(lastRun.getComparator(com.vaadin.flow.data.provider.SortDirection.ASCENDING)).toList();
+        assertThat(asc).extracting(Agent::getId).containsExactly(never.getId(), ran.getId());
+        List<Agent> desc = rows().stream().sorted(lastRun.getComparator(com.vaadin.flow.data.provider.SortDirection.DESCENDING)).toList();
+        assertThat(desc).extracting(Agent::getId).containsExactly(ran.getId(), never.getId());
+    }
+
+    @Test
+    void thePhoneSortsByNameStatusOrTheNewestRun() throws Exception {
+        Agent never = newAgent(manuscript());
+        never.setName("A never");
+        never = agentService.save(never);
+        Agent ran = newAgent(manuscript());
+        ran.setName("B ran");
+        ran = agentService.save(ran);
+        agentRunService.start(ran);
+        AgentPart phonePart = new AgentPart(null, true);
+        phonePart.create();
+
+        List<Agent> byName = phonePart.getGrid().getDataProvider().fetch(new Query<>()).toList();
+        assertThat(byName).extracting(Agent::getId).containsExactly(never.getId(), ran.getId());
+
+        phonePart.getSortBox().setValue(AgentPart.Sort.LAST_RUN);
+        List<Agent> newest = phonePart.getGrid().getDataProvider().fetch(new Query<>()).toList();
+        assertThat(newest).extracting(Agent::getId).containsExactly(ran.getId(), never.getId());
+
+        phonePart.getSortBox().setValue(AgentPart.Sort.STATUS);
+        List<Agent> byStatus = phonePart.getGrid().getDataProvider().fetch(new Query<>()).toList();
+        // "Not running" sorts before "Running"
+        assertThat(byStatus).extracting(Agent::getId).containsExactly(never.getId(), ran.getId());
     }
 
     @Test

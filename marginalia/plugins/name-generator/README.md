@@ -6,12 +6,12 @@ Gives the model functions to get names instead of inventing them, from Markov ch
 
 | Function | Arguments | Answer |
 |---|---|---|
-| `list_name_categories` | none | the categories of names that can be generated |
+| `list_name_categories` | `filter` (optional: words the name of the category has to contain, e.g. `chad male`) | the categories of names that can be generated |
 | `generate_names` | `category`, `count`, optional `min_length`, `max_length` | `count` names of the category; `count` is limited to 1-100 and the lengths (in letters) to 2-30, whatever the model asks for; without lengths the usual ones of the category are used (see *Chain settings*), else 3 and 20; limits the wrong way round are swapped |
 
 ## Commands
 
-The same names for the command bar and for agents (`NameGeneratorCommands`, both `NON_DESTRUCTIVE`): `/list-name-categories [filter]` (a JSON array with a category on each line; `filter` is the start of the name of the categories to list, not case sensitive, since there are over a thousand of them) and `/generate-names category count [min_length [max_length]]` (a JSON array of names, same limits as the function).
+The same names for the command bar and for agents (`NameGeneratorCommands`, both `NON_DESTRUCTIVE`): `/list-name-categories [filter]` (a JSON array with a category on each line; `filter` is words that start words in the name of the categories to list, in any order, not case sensitive, since there are over a thousand of them) and `/generate-names category count [min_length [max_length]]` (a JSON array of names, same limits as the function).
 
 ## For developers
 
@@ -22,6 +22,51 @@ know only the checked ones. The provider brings `NameGeneratorCommands` along, s
 commands and the [Lore Generator](../lore-generator/README.md) and the [Arc Outline](../arc-outline/README.md) (the **Tools** button) the
 functions. The service removes both when the extension is unloaded, so it can be unloaded and installed again without restarting the
 others. The hint added to the prompt is `NameGeneratorToolProvider.HINT`; the user can replace it in the tool dialog.
+
+## Groups
+
+A category can also be a **group** of categories (`src/main/resources/name-groups.json`, committed, read at run time, no
+training needed):
+
+```json
+{"groups": [{"title": "Native American - Male", "members": ["America - Northern - * - Male"]},
+            {"title": "German - Male", "members": ["Europe Western - Germany - * Male"], "weight": "size"}]}
+```
+
+`members` are patterns for whole category titles, not case sensitive, `*` stands for any text, so a title without `*` is one
+category and `America - Northern - * - Male` every male category of the northern America (a new source file joins the group
+when the tables are trained again). `generate_names` on a group picks one member at random (the same chance for each) for
+every name and makes it with the chain and the usual lengths of that member, so a name belongs to one language instead of
+a blend. `weight` says how: `"equal"` (default) gives every member the same chance, `"size"` a chance proportional to the
+number of names the member was trained on (`size` in `name-tables.json`, written by `GenerateTables`; a member of unknown size
+counts as one name), so a list of 600 names is chosen 60 times as often as one of 10. The shipped groups use `size` where the
+members are slices of one language's names (the Onomastikon splits a country into Biblical, Germanic, Greek and Latin origins, India
+into `Male 'a'`, `'b'`, `'c-k'`, `'l-z'`, the Saints into letters) and `equal` where a member is a whole language or country
+(Caucasian, Turkic, Baltic, Polynesian, the African regions, the Native American groups, Deities...). Names are different across
+the call as before.
+
+The shipped groups (`name-groups.json`, 167): `<Language> - Male`, `- Female` and `- Surnames` for German, French, Spanish
+(with the surnames of Latin America), Italian, Portuguese, Dutch, Scandinavian, Finnic, Baltic, Irish, Scottish, Welsh, Celtic,
+West, East and South Slavic, Greek, Hungarian, Romanian, Albanian, Caucasian, Turkic, Persian, Arabic, Jewish, Hindu, South
+Asian, Southeast Asian, Malay-Indonesian, Polynesian, the African regions, Anglo-Saxon, Medieval Germanic, Medieval English and
+Ancient Near East (those that have no list of a gender have no group of it), and `<Language> - Forenames` for each of them (see below); `Chinese`, `Japanese`, `Korean` and `Vietnamese`
+`- Surnames` (the Onomastikon and the country dataset together); `Native American` (northern, and Central and South America);
+and `English - Surnames`, `Saints`, `Deities`, `Fantasy Creatures`, `Game of Thrones Houses`. The lists of both genders
+are separate, so `- Male` and `- Female` never mix them; patterns are written with `* Male` where the title
+is `Celtic Male` or `Aragonese Names Male`.
+
+**`<Language> - Forenames`** is the any-gender version: the members of the `- Male` group, of the `- Female` group and the unisex lists of
+the language (`German Forenames`, `Spanish Forenames` and `Humans - Spanish First Names`, `Italian`, `French`, `Dutch`, `Swedish`, `Irish`
+and `Russian Forenames`, `Indian Forenames`, `Japanese Forenames`), with the weight of the language group, so the share of the genders
+follows the sizes of the lists (47 to 77 % male, listed in [GROUP_LOGIC.md](GROUP_LOGIC.md)). `Chinese`, `Japanese`, `Korean` and
+`Vietnamese` have it too, made of their male and female categories. Not made: where the equal chance would give the genders unequal
+shares (Turkic, South Asian, West, Southern and Central African have more male members than female) and `Malay-Indonesian` (25 female
+names against 162 male); use the `- Male` and `- Female` groups there. `Icelandic Forenames` (3896 names, unisex) is in no group, it would
+outweigh the rest of the Scandinavian ones.
+`NameTables.categories()` lists groups together with the categories (they are items of the tool dialog too), `isGroup`
+and `members` tell them apart. A group with no member, or with the title of a category, is left out; groups can't contain
+groups. `NameGroupsTest` checks that every pattern of the shipped file matches a category, that a `- Male` group has no
+female or surname member and the other way round, and the weights.
 
 ## Name tables
 
@@ -35,7 +80,8 @@ with the profile `train-names` (`mvn package -Ptrain-names`; the executions of `
 ```
 
 and writes `src/main/resources/name-tables.json` (committed): per category (`title`) only the Markov chain
-probabilities of the next character (`^` pads the start, `$` ends a name), no names. Without source files the existing
+probabilities of the next character (`^` pads the start, `$` ends a name) and the number of names it was trained on
+(`size`), no names. Without source files the existing
 `name-tables.json` is left as it is, so a clone builds without them. Empty source files are skipped; a title used twice
 or a malformed file fails the build.
 

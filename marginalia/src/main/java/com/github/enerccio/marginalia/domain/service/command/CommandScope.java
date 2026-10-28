@@ -99,4 +99,13 @@ public interface CommandScope {
      */
     LorebookEntry resolveEntry(String uuid) throws Exception;
 
+    /**
+     * The annotation with that uuid, which has to be an annotation of a part of the book of the scope.
+     *
+     * @throws IllegalArgumentException when it is not one, or is deleted
+     */
+    default Annotation resolveAnnotation(String uuid) throws Exception {
+        throw new IllegalArgumentException("The annotation does not exist");
+    }
+
 }

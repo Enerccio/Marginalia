@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.components.BuildInfoFooter;
 import com.github.enerccio.marginalia.ui.components.HelpAssistantWidget;
+import com.github.enerccio.marginalia.ui.widgets.ThemeSwitch;
 import com.github.enerccio.marginalia.ui.workspace.DesktopWorkspace;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.phone.PhoneWorkspace;
@@ -116,6 +117,7 @@ public class Main extends LoginCheckRoute implements LLMInteract {
             sessionManager.userLoggedIn(user, VaadinSession.getCurrent());
 
             sessionPoint.setLanguage(loc.resolveLanguage(settingService.getOrCreate(UserSetting.class).getLanguage()));
+            ThemeSwitch.apply(settingService.getOrCreate(UserSetting.class).getThemeMode());
             UiProblems.attach(sessionPoint);
 
             ExtendedClientDetails details = UI.getCurrent().getPage().getExtendedClientDetails();

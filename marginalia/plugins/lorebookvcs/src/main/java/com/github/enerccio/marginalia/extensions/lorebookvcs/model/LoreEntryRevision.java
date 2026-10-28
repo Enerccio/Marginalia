@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.extensions.lorebookvcs.model;
 
+import com.github.enerccio.marginalia.domain.collections.ActivationContext;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
@@ -21,6 +22,11 @@ public class LoreEntryRevision {
     private FilteringMode filteringMode = FilteringMode.TEXT;
     private String filtering = "";
     private InsertionMode insertionMode = InsertionMode.IN_LORE_BLOCK;
+    // revisions made before the field existed have no value and read as false
+    private boolean preventRecursion = false;
+    // likewise: older revisions read as the instructions only
+    private ActivationContext activationContext = ActivationContext.INSTRUCTIONS;
+    private int activationParts = 1;
     private List<String> positiveTags = new ArrayList<>();
     private List<String> negativeTags = new ArrayList<>();
 
@@ -39,6 +45,9 @@ public class LoreEntryRevision {
         rev.setFilteringMode(entry.getFilteringMode() != null ? entry.getFilteringMode() : FilteringMode.TEXT);
         rev.setFiltering(entry.getFiltering() != null ? entry.getFiltering() : "");
         rev.setInsertionMode(entry.getInsertionMode() != null ? entry.getInsertionMode() : InsertionMode.IN_LORE_BLOCK);
+        rev.setPreventRecursion(entry.isPreventRecursion());
+        rev.setActivationContext(entry.getActivationContext());
+        rev.setActivationParts(entry.getActivationParts());
         rev.setPositiveTags(positiveTags != null ? new ArrayList<>(positiveTags) : new ArrayList<>());
         rev.setNegativeTags(negativeTags != null ? new ArrayList<>(negativeTags) : new ArrayList<>());
         return rev;
@@ -53,6 +62,9 @@ public class LoreEntryRevision {
         entry.setFilteringMode(getFilteringMode());
         entry.setFiltering(getFiltering());
         entry.setInsertionMode(getInsertionMode());
+        entry.setPreventRecursion(this.preventRecursion);
+        entry.setActivationContext(getActivationContext());
+        entry.setActivationParts(getActivationParts());
     }
 
     public boolean matches(LorebookEntry entry, List<String> curPosTags, List<String> curNegTags) {
@@ -65,6 +77,9 @@ public class LoreEntryRevision {
         if (getFilteringMode() != (entry.getFilteringMode() != null ? entry.getFilteringMode() : FilteringMode.TEXT)) return false;
         if (!Objects.equals(getFiltering(), entry.getFiltering() != null ? entry.getFiltering() : "")) return false;
         if (getInsertionMode() != (entry.getInsertionMode() != null ? entry.getInsertionMode() : InsertionMode.IN_LORE_BLOCK)) return false;
+        if (this.preventRecursion != entry.isPreventRecursion()) return false;
+        if (getActivationContext() != entry.getActivationContext()) return false;
+        if (getActivationParts() != entry.getActivationParts()) return false;
 
         List<String> p1 = getPositiveTags() != null ? new ArrayList<>(getPositiveTags()) : new ArrayList<>();
         List<String> p2 = curPosTags != null ? new ArrayList<>(curPosTags) : new ArrayList<>();
@@ -116,6 +131,15 @@ public class LoreEntryRevision {
 
     public InsertionMode getInsertionMode() { return insertionMode != null ? insertionMode : InsertionMode.IN_LORE_BLOCK; }
     public void setInsertionMode(InsertionMode insertionMode) { this.insertionMode = insertionMode; }
+
+    public boolean isPreventRecursion() { return preventRecursion; }
+    public void setPreventRecursion(boolean preventRecursion) { this.preventRecursion = preventRecursion; }
+
+    public ActivationContext getActivationContext() { return activationContext != null ? activationContext : ActivationContext.INSTRUCTIONS; }
+    public void setActivationContext(ActivationContext activationContext) { this.activationContext = activationContext; }
+
+    public int getActivationParts() { return Math.max(1, activationParts); }
+    public void setActivationParts(int activationParts) { this.activationParts = activationParts; }
 
     public List<String> getPositiveTags() { return positiveTags != null ? positiveTags : new ArrayList<>(); }
     public void setPositiveTags(List<String> positiveTags) { this.positiveTags = positiveTags; }

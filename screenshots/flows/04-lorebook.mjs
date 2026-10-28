@@ -8,7 +8,7 @@ execFileSync('node', [path.join(root, 'dataset/lorebook.mjs')], { stdio: 'inheri
 await main(async ({ page }) => {
   await login(page);
   await openTab(page, 'Lorebooks');
-  await page.mouse.click(1167, 71);          // the import menu button (next to Delete Lorebook)
+  await page.mouse.click(1226, 71);          // the import menu button (the first of the three icon buttons after Delete Lorebook)
   await idle(page, 500);
   await page.getByText('Import Marginalia Lorebook', { exact: true }).click();
   await idle(page, 800);

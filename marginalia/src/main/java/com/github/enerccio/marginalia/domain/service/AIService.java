@@ -27,4 +27,17 @@ public interface AIService extends ExtendableService<AI, AIRepository> {
      */
     boolean isOwnedByCurrentUser(AI ai);
 
+    /**
+     * Makes a new AI of the user with the settings of the AI: the provider, the model, the API key (or the settings
+     * of the extension), the reasoning, the limits of the tokens and the attributes of extensions. The clone is not
+     * shared, has no limits of users and no usage. Only the owner can clone an AI (the API key is copied), and the
+     * user needs the permission to create one.
+     *
+     * @param name the name of the clone, the name of the AI when blank
+     * @return the new AI
+     * @throws SecurityException        when the AI is not the user's own or the user can't create AIs
+     * @throws IllegalArgumentException when the AI does not exist or is of a type that can't be cloned
+     */
+    AI cloneAI(AI source, String name) throws Exception;
+
 }

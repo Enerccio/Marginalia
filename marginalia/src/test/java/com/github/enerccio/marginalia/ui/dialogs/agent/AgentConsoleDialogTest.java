@@ -63,6 +63,8 @@ class AgentConsoleDialogTest extends AgentTestBase {
     private final List<AgentRun> takenUp = new ArrayList<>();
     // what the fake runner reports as queued, and the ids it was told to force
     private List<AgentRunner.QueuedMessage> queued = List.of();
+    // what the fake runner reports as being written now
+    private AgentRunner.LiveAnswer live;
     private final List<String> forced = new ArrayList<>();
     private final List<String> cancelled = new ArrayList<>();
     private final List<AgentRun> pausedNow = new ArrayList<>();
@@ -121,6 +123,11 @@ class AgentConsoleDialogTest extends AgentTestBase {
             @Override
             public List<AgentRunner.QueuedMessage> queued(AgentRun run) {
                 return queued;
+            }
+
+            @Override
+            public AgentRunner.LiveAnswer live(AgentRun run) {
+                return live;
             }
 
             @Override
@@ -215,6 +222,49 @@ class AgentConsoleDialogTest extends AgentTestBase {
 
         assertThat(dialog.getQueuedBubbles()).isEmpty();
         assertThat(textOf(dialog.getTranscriptBox())).doesNotContain("Queued");
+    }
+
+    @Test
+    void theAnswerThatIsBeingWrittenIsShownBeforeTheQueuedMessagesAndTheStoredOneTakesItsPlace() throws Exception {
+        AgentRun run = agentRunService.start(agent, true);
+        say(run, LLMChatMessage.of(LLMRole.USER, "Start."));
+        queued = List.of(new AgentRunner.QueuedMessage("q1", "Do this next."));
+        live = new AgentRunner.LiveAnswer("Let me think.", "The ans");
+
+        AgentConsoleDialog dialog = console();
+
+        // the transcript, then what is being written, then what waits
+        int count = dialog.getTranscriptBox().getComponentCount();
+        Component bubble = dialog.getTranscriptBox().getComponentAt(count - 2);
+        assertThat(dialog.getTranscriptBox().getComponentAt(count - 1)).isSameAs(dialog.getQueuedBubbles().getFirst());
+        assertThat(textOf(bubble)).contains("Working...").contains("Let me think.").contains("The ans");
+
+        // it grows in place: the same bubble, the same place
+        live = new AgentRunner.LiveAnswer("Let me think. Now I know.", "The answer.");
+        dialog.refreshRun();
+
+        assertThat(dialog.getTranscriptBox().getComponentCount()).isEqualTo(count);
+        assertThat(dialog.getTranscriptBox().getComponentAt(count - 2)).isSameAs(bubble);
+        assertThat(textOf(bubble)).contains("Now I know.").contains("The answer.");
+
+        // stored: the real blocks come, the bubble goes, what waits is still last
+        say(run, LLMChatMessage.of(LLMRole.ASSISTANT, "The answer."));
+        live = null;
+        dialog.refreshRun();
+
+        assertThat(textOf(dialog.getTranscriptBox())).doesNotContain("Working...");
+        assertThat(dialog.getTranscriptBox().getComponentAt(dialog.getTranscriptBox().getComponentCount() - 1))
+                .isSameAs(dialog.getQueuedBubbles().getFirst());
+    }
+
+    @Test
+    void whenNothingIsBeingWrittenThereIsNoBubble() throws Exception {
+        AgentRun run = agentRunService.start(agent, true);
+        say(run, LLMChatMessage.of(LLMRole.USER, "Start."));
+
+        AgentConsoleDialog dialog = console();
+
+        assertThat(textOf(dialog.getTranscriptBox())).doesNotContain("Working...");
     }
 
     @Test

@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.service.command.*;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.github.enerccio.marginalia.ui.dialogs.CommandProgressDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
@@ -112,6 +113,16 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
             parameters = {@APIParameter(name = "lineRunner", type = Consumer.class)})
     public void setLineRunner(Consumer<String> lineRunner) {
         this.lineRunner = lineRunner;
+    }
+
+    /**
+     * Puts the cursor into the field of the bar.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class))
+    public void focusInput() {
+        // the bar may have just been shown (its tab selected), the field takes the focus when it is rendered
+        JavascriptLibrary.focusAfterRender(input.getElement());
     }
 
     @PublicAPI(from = "1.4.0",

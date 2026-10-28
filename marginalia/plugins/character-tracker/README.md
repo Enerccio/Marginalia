@@ -12,6 +12,10 @@ The story view gets a *Characters* tab in its left sidebar (next to the outline)
 - **Add new character** - a dialog with *Name*, *Tagline*, *Note*, *Icon* and *Color*. The same dialog edits a
   character (the pen). An uploaded icon is scaled down to at most 200 x 200 pixels (the proportions are kept, smaller
   images stay as they are) and stored in the book as a base64 PNG.
+- A button with a speech-bubble icon in the top bar opens a popover with **In prompt**, **Depth** and a role (the button is green while it is on): when checked, every generation gets the characters
+  (name, tagline in brackets and note of each, then the relationships as `A -> B: name, tagline`, `<->` when both ways)
+  as one message, `Depth` messages before the end of the prompt like the Author's Note (`0` the very end, `1` right
+  before the instructions), as a system, assistant or user message. Its tokens are reserved from the room for the story.
 - The wand menu next to it, with **Import lore entries as characters**: a dialog lists the entries of the book's
   lorebook and of its sub lorebooks, sorted by their order, each with a checkbox and an (i) icon that shows the entry's content in a popover (the checkbox in the header checks all); *Import*
   creates a character with the name of every checked entry.
@@ -19,6 +23,12 @@ The story view gets a *Characters* tab in its left sidebar (next to the outline)
 - The list of the characters, ordered by name. Each shows its name and, in small letters (two lines at most), its
   tagline, on the color of the character. The chevron expands the character to show its icon and note, the pen edits
   it, the trash deletes it with all its relationships.
+
+### Characters in the new turn form
+
+The *POV character* and *Present characters* fields of the new turn form get a button with a person icon that lists the
+characters of the book by name: a click on a name puts it into *POV character* (replacing the text) or adds it to
+*Present characters* (after a comma, not twice). The list is read when it opens. The fields stay free text.
 
 ### Relationships
 
@@ -58,12 +68,19 @@ characters again (`onChange`). Deleting is the only `DESTRUCTIVE` kind and asks 
 
 ## How it works
 
+In the `BEFORE_PREPARE_CONTENT` generation event the plugin reads the characters from the book and, when *In prompt* is
+on, reserves the tokens of their text (`PrePromptData.reservedTokens`); in `AFTER_PREPARE_PAYLOAD` it inserts the message
+into the payload (`CharacterTrackerService.promptInsertion` / `insert`). The text kept in the event is the one that was
+counted, even if the characters change during the generation.
+
 The plugin decorates `renderStoryContent` of `ManuscriptStoryPart` and `PhoneManuscriptStoryPart` and adds the tab to
-their `leftBar`. The characters are loaded into memory (`CharacterBook`) when the tab is created and the whole book of
+their `leftBar`; in the same place it reads their `newTurnForm` and gives its POV and present characters fields a suffix
+button (`TurnCharacterPicker`, a `ContextMenu` filled when it opens) that calls `NewTurnForm.setPovCharacter` /
+`setPresentCharacters`. The characters are loaded into memory (`CharacterBook`) when the tab is created and the whole book of
 characters is stored after every change.
 
 ## Storage
 
 Characters and relationships are stored with the book (`com.github.enerccio.marginalia.extensions.charactertracker` in
-its attributes: `characters` and `relations`), so they are included in book backups and copies. A relationship refers
+its attributes: `characters` and `relations`, and `promptEnabled`, `promptDepth`, `promptRole`), so they are included in book backups and copies. A relationship refers
 to its characters by `sourceUuid` and `targetUuid`.

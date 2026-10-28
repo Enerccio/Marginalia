@@ -1,0 +1,87 @@
+/* Styles of the SillyTavern Converter plugin only. Put into the page by the application while the extension is loaded
+   (STConverterExtension.getCss); the application's shared-styles.css is not used for them. */
+
+/* The whole tab: small text and tight spacing for everything in it (the Lumo variables are read by the fields, the grids
+   and the buttons, also inside their shadow DOM), and it scrolls when the sidebar is lower than the controls and the lists */
+.stc-root {
+    overflow-y: auto;
+    font-size: var(--lumo-font-size-xs);
+    --lumo-font-size-m: var(--lumo-font-size-xs);
+    --lumo-font-size-s: var(--lumo-font-size-xxs);
+    --lumo-space-m: 0.25rem;
+    --lumo-space-s: 0.125rem;
+    --lumo-space-l: 0.375rem;
+    --lumo-text-field-size: var(--lumo-size-xs);
+}
+
+/* Bars (model, range) separated from the content below */
+.stc-bar {
+    border-bottom: 1px solid var(--lumo-contrast-10pct);
+    padding: 0.25rem 0.375rem;
+}
+
+/* The tabs take the height that is left below the bar, and the grid in them scrolls by itself; the tab as a whole scrolls
+   only when the sidebar is lower than the minimum below */
+.stc-tabs {
+    flex: 1 1 0;
+    min-height: 300px;
+}
+
+.stc-tabs::part(content) {
+    overflow: hidden;
+}
+
+.stc-lists {
+    min-height: 0;
+}
+
+/* The model and the protocol side by side, one under the other when the tab is too narrow for both */
+.stc-picker {
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 0.25rem;
+}
+
+.stc-picker > vaadin-combo-box {
+    /* the combo boxes have a width of their own set inline */
+    flex: 1 1 9rem;
+    min-width: 0;
+    width: auto !important;
+}
+
+.stc-pad {
+    padding: 0.125rem 0.375rem;
+}
+
+/* The name of the file, cut off instead of wrapping */
+.stc-ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+/* Short explanation under a bar */
+.stc-hint {
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-xs);
+}
+
+/* Messages in the range the wand works on */
+vaadin-grid::part(stc-in-range) {
+    background-color: var(--lumo-primary-color-10pct);
+}
+
+/* Rows the user has reviewed */
+vaadin-grid::part(stc-reviewed) {
+    color: var(--lumo-secondary-text-color);
+}
+
+/* The message the "next unchecked" button went to */
+vaadin-grid::part(stc-current) {
+    box-shadow: inset 3px 0 0 var(--lumo-primary-color);
+}
+
+vaadin-grid::part(stc-clickable) {
+    cursor: pointer;
+}

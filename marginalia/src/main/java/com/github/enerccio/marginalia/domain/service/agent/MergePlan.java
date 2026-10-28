@@ -8,7 +8,7 @@ import java.util.Map;
  * comparison of the book as the run started (the base), the working copy of the agent and the book as it is now, item by
  * item (see {@link MergeDiff}).
  *
- * @param items       the changes, in the order they are applied: the settings of the book, lorebooks, entries, parts
+ * @param items       the changes, in the order they are applied: the settings of the book, lorebooks, entries, parts, annotations
  * @param names       the names of the lorebooks (by item key), for the fields that point to one
  * @param bookChanged whether the book changed since the run started (the plan then has conflicts to look at, a book that did
  *                    not change is taken over as it is)
@@ -21,6 +21,8 @@ public record MergePlan(List<Item> items, Map<String, String> names, boolean boo
     public static final String PROBLEM_NEEDS_PARENT = "needs-parent";
     /** The lorebook of the agent's new entry was deleted from the book. */
     public static final String PROBLEM_NEEDS_LOREBOOK = "needs-lorebook";
+    /** The part of the agent's new annotation was deleted from the book. */
+    public static final String PROBLEM_NEEDS_PART = "needs-part";
 
     public enum Kind {
         /** A setting of the book (its name, description, prompts, tags), or the data a plugin keeps in it. */
@@ -30,7 +32,9 @@ public record MergePlan(List<Item> items, Map<String, String> names, boolean boo
         /** A lorebook. */
         LOREBOOK,
         /** An entry of a lorebook. */
-        ENTRY
+        ENTRY,
+        /** A note on a passage of a part. */
+        ANNOTATION
     }
 
     public enum Change {

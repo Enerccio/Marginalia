@@ -140,7 +140,9 @@ changes the book; **No** leaves everything as it was. The question stays until y
 | `/list-lore-entries [lorebook] [filter] [offset] [limit]` | The entries of a lorebook with their settings and a preview; the filter keeps the entries whose name or tag contains it. |
 | `/get-lore-entry <entry> [lorebook] [offset] [length]` | One entry: settings, keys, tags, comment and its text in slices. |
 | `/search-lore <query> [regex] [limit]` | The entries of all the lorebooks of the book whose name, text or comment contain the query, with snippets. |
-| `/preview-lore-activation <text> [limit]`, `/preview-lore-activation <part> <branch> <limit>` | Which entries a generation would use for a text, or for a turn like the one that made a part, and why (no filter, filter found, or not used because it is switched off, a tag of the book decides, or the filter is not in the text), with the lore text and its tokens. The text may be the handle of a part. |
+| `/preview-lore-activation <text> [limit]`, `/preview-lore-activation <part> <branch> <limit>` | Which entries a generation would use for a text, or for a turn like the one that made a part, and why (no filter, filter found - in the text, or in the content of another entry when the lorebook has a [scan depth](../lorebooks/entries.md#entries-brought-in-by-other-entries) - or not used because it is switched off, a tag of the book decides, or the filter is not in the text), with the lore text and its tokens. The text may be the handle of a part. |
+| `/list-annotations [status [part [offset [limit]]]]` | The [annotations](../books/annotations.md) of the book or of a part: the open ones unless `status` says `resolved`, `dismissed`, `orphaned` or `all`. |
+| `/get-annotation <annotation>` | One annotation in full, with the text around its passage. |
 
 ### Reading the story
 
@@ -186,6 +188,8 @@ describes): the answer lists them and says what to do, `/revalidate-summaries` i
 | `/next [scene] [pov] [present] [instructions] [after] [profile]` | Has the model write the next part, like the **New turn** button. Slow, costs tokens; one generation of a book runs at a time, the others wait. `profile` names one of the model profiles of an agent. |
 | `/swipe [part] [scene] [pov] [present] [instructions] [profile]` | Has the model write another version of the last part of a branch. What you leave out is taken from the part. |
 | `/regenerate [part] [scene] [pov] [present] [instructions] [profile]` | Has the model write the last part of a branch again, replacing its text. Asks first. |
+| `/redraft-part <part> [instructions] [prompt] [profile] [apply]` | Has the model write any part again from your instructions (see [Redrafting a part](../books/story-editor.md#redrafting-a-part)) and replaces its text. `prompt` is a redraft prompt to use instead of the book's, `profile` a model profile of an agent, `apply` `false` only returns the text. `DESTRUCTIVE`; asks first. Slow, costs tokens. |
+| `/impersonate [instructions] [outline] [prompt]` | Has the model draft the instructions of the next turn in your place (see [Drafting the instructions](../books/story-editor.md#drafting-the-instructions)) and returns the text; nothing is changed. `instructions` is what the part should be about (empty continues the story where it leads), `outline` a plan of the story for the model, `prompt` an impersonate prompt to use instead of the book's. Only for you at the command bar: an [agent](../agents.md) is not offered it. Slow, costs tokens. |
 | `/set-book-info [name] [description] [pov] [tense] [style] [language]` | Changes the descriptive settings of the book; only the values you give. |
 | `/set-book-prompts [template] [userPrompt] [summaryPrompt] [metaSummaryPrompt]` | Replaces the prompt templates of the book. Each is checked first. `DESTRUCTIVE`: a bad template spoils every later generation. |
 | `/set-book-tags [add] [remove]` | Adds and takes off tags of the book (comma separated). |
@@ -199,7 +203,22 @@ describes): the answer lists them and says what to do, `/revalidate-summaries` i
 | `/add-subbook <lorebook> <subbook>`, `/remove-subbook <lorebook> <subbook>` | Changes which lorebooks a lorebook contains; a lorebook can't contain itself. For an [agent](../agents.md), `/add-subbook` also brings back a lorebook it deleted or took out of its parent earlier (it names it by the handle it had), with its entries. |
 | `/delete-lorebook <lorebook>` | Deletes a lorebook with its entries (not the root). Asks first. |
 
-The commands that have the model write (`/next`, `/swipe`, `/regenerate`, the two summaries) take time and show the **Stop** window.
+### Annotations
+
+The commands that read [annotations](../books/annotations.md) (`/list-annotations`, `/get-annotation`) answer in JSON like the other reading commands;
+an annotation is given by its **handle**, a part by its handle for the commands that change something. These commands change only the notes,
+never the story, so only the delete asks first. An agent can use all of them; its notes reach your book when you [review the result](../books/annotations.md#annotations-and-agents).
+
+| Command | What it does |
+|---------|--------------|
+| `/create-annotation <part> <text> [quote [type]]` | Adds a note to a part. `quote` is the words of the passage, copied from the part: the note sits on that passage and follows it when the text is edited. Without a quote, or with one that is not in the text, the note is about the whole part (the answer says so). |
+| `/update-annotation <annotation> <text> [type [sendToPrompt]]` | Changes the note, the type or whether the model gets the note; an empty text or type stays as it is. |
+| `/resolve-annotation <annotation> [status]` | Sets the status: `resolved` (default), `dismissed` or `open`. |
+| `/reattach-annotation <annotation> [quote]` | Moves a note to the passage the quote finds in its part; without a quote the note is about the whole part. |
+| `/delete-annotation <annotation>` | Deletes a note (it can be restored from the trash). Asks first. |
+| `/generate-annotation <part> [profile]` | Has the model review the part like [Annotate with AI](../books/annotations.md#letting-a-model-annotate) and adds everything it finds as notes (source *AI*; a quote that is not in the text makes a note about the whole part). Nothing is asked: the notes are the only change, and they can be resolved, edited or deleted. It reviews with the model of the book; an agent uses its own model when *Write the book with the model of the agent* is on (as the Lore Generator commands do), `profile` is a model profile of an agent. Runs alone, takes time, costs tokens. |
+
+The commands that have the model write or review (`/next`, `/swipe`, `/regenerate`, `/generate-annotation`, the two summaries) take time and show the **Stop** window.
 
 ## Commands that come with extensions
 
@@ -208,7 +227,7 @@ You see these in the list as long as the extension is loaded; each is described 
 | Command | Extension | What it does |
 |---|---|---|
 | `/list-lore-templates [<template>]` | [Lore Generator](../extensions/lore-generator.md) | Your saved generation prompts, or the text of one. |
-| `/generate-lore-entry [<prompt> ...]` | [Lore Generator](../extensions/lore-generator.md) | Generates the text of a lore entry with the lore of the lorebook and returns it. Stores nothing. |
+| `/generate-lore-entry [<prompt> ...]` | [Lore Generator](../extensions/lore-generator.md) | Generates the text of a lore entry with the lore of the lorebook, compacts it (unless `compact` is `false`) and returns it. Stores nothing. |
 | `/compact-lore-entry <text> [...]` | [Lore Generator](../extensions/lore-generator.md) | Compacts a generated text into a dense lore entry text and returns it. Stores nothing. |
 | `/list-name-categories [<filter>]`, `/generate-names <category> <count> [...]` | [Name generator](../extensions/name-generator.md) | The categories of made up names, and names of one of them. |
 | `/list-real-name-lists`, `/pick-real-names <list> <count>` | [Name provider](../extensions/name-provider.md) | The lists of real names, and names picked from one of them. |

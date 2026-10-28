@@ -71,6 +71,7 @@ public class ManuscriptPart implements ManuscriptSection {
     private Grid<ManuscriptWrapper> grid;
     private Button addBookButton;
     private Button tagBooksButton;
+    private Button searchButton;
     private VerticalLayout mainLayout;
 
     private Column<ManuscriptWrapper> nameColumn;
@@ -102,6 +103,7 @@ public class ManuscriptPart implements ManuscriptSection {
                     @APILocals(name = "titleSpan", type = Span.class),
                     @APILocals(name = "addBookButton", type = Button.class),
                     @APILocals(name = "importArchiveButton", type = Button.class),
+                    @APILocals(name = "importSillyTavernButton", type = Button.class),
                     @APILocals(name = "toolColumn", type = Grid.Column.class),
                     @APILocals(name = "filterRow", type = HeaderRow.class),
                     @APILocals(name = "refresh", type = Button.class)})
@@ -127,7 +129,10 @@ public class ManuscriptPart implements ManuscriptSection {
         tagBooksButton = new Button(loc.getValue(L.LABEL_TAG_BOOKS), Solid.TAGS.create(), event -> openTagDialog());
         Button importArchiveButton = new Button(Solid.FILE_IMPORT.create(), event -> new NewBookAction(this::openManuscript).runFromArchive());
         importArchiveButton.setTooltipText(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE));
-        headerLayout.add(titleSpan, tagBooksButton, importArchiveButton, addBookButton);
+        Button importSillyTavernButton = new Button(Solid.COMMENTS.create(), event -> new NewBookAction(this::openManuscript).runFromSillyTavern());
+        importSillyTavernButton.setTooltipText(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN));
+        searchButton = new Button(loc.getValue(L.LABEL_SEARCH), Solid.SEARCH.create(), event -> openSearchDialog());
+        headerLayout.add(titleSpan, searchButton, tagBooksButton, importArchiveButton, importSillyTavernButton, addBookButton);
         headerLayout.setFlexGrow(1, titleSpan);
         headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
@@ -283,6 +288,34 @@ public class ManuscriptPart implements ManuscriptSection {
         dialog.setOnClone(_ -> refreshGrid());
         dialog.create();
         dialog.open();
+    }
+
+    /**
+     * Opens the advanced search of the books; a book chosen in the results opens in its window above the search.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = ManuscriptSearchDialog.class)})
+    private void openSearchDialog() {
+        ManuscriptSearchDialog dialog = new ManuscriptSearchDialog(this::openFound);
+        dialog.open();
+    }
+
+    /**
+     * Opens a book chosen in the results of the advanced search, unless an agent works on it.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)},
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    private void openFound(Manuscript manuscript) {
+        try {
+            if (!new AgentLockCheck().refuses(manuscript)) {
+                openManuscript(manuscript);
+            }
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     /**

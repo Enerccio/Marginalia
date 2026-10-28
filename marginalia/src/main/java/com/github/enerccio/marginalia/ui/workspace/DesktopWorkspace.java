@@ -14,6 +14,7 @@ import com.github.enerccio.marginalia.ui.components.InvalidExtensionsWarning;
 import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
 import com.github.enerccio.marginalia.ui.widgets.HTabSheet;
 import com.github.enerccio.marginalia.ui.widgets.LanguageSelector;
+import com.github.enerccio.marginalia.ui.widgets.ThemeSwitch;
 import com.github.enerccio.marginalia.ui.workspace.parts.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonObject;
@@ -330,6 +331,7 @@ public class DesktopWorkspace implements Workspace {
             returns = @APIReturn(type = Component.class),
             parameters = {@APIParameter(name = "user", type = User.class)},
             locals = {@APILocals(name = "footer", type = VerticalLayout.class),
+                    @APILocals(name = "languageRow", type = HorizontalLayout.class),
                     @APILocals(name = "changePasswordButton", type = Button.class)})
     private Component createFooter(User user) {
         VerticalLayout footer = new VerticalLayout();
@@ -343,7 +345,12 @@ public class DesktopWorkspace implements Workspace {
 
         languageSelector = new LanguageSelector();
         languageSelector.setWidthFull();
-        footer.add(languageSelector);
+        HorizontalLayout languageRow = new HorizontalLayout(languageSelector, new ThemeSwitch());
+        languageRow.setWidthFull();
+        languageRow.setPadding(false);
+        languageRow.setAlignItems(Alignment.END);
+        languageRow.setFlexGrow(1, languageSelector);
+        footer.add(languageRow);
 
         Button changePasswordButton = new Button(loc.getValue(L.LABEL_CHANGE_PASSWORD), Solid.KEY.create());
         changePasswordButton.setWidthFull();

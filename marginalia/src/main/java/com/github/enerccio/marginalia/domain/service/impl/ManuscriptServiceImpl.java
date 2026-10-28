@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
 import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValues;
+import com.github.enerccio.marginalia.domain.service.search.ManuscriptSearchCriteria;
 import com.github.enerccio.marginalia.domain.service.search.Sorter;
 import com.github.enerccio.marginalia.domain.templates.*;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
@@ -35,6 +36,14 @@ import java.util.function.Function;
 public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, ManuscriptRepository> implements ManuscriptService {
     private static final Logger log = LoggerFactory.getLogger(ManuscriptServiceImpl.class);
 
+    /**
+     * Removes the text value of the key from the object and returns it, null when there was none.
+     */
+    private static String takeString(JsonObject object, String key) {
+        JsonElement value = object.remove(key);
+        return value != null && value.isJsonPrimitive() ? value.getAsString() : null;
+    }
+
 
     @Autowired
     private SettingService settingService;
@@ -47,6 +56,12 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
 
     @Autowired
     private SummaryService summaryService;
+
+    @Autowired
+    private AnnotationService annotationService;
+
+    @Autowired
+    private MessagePromptService messagePromptService;
 
     @Autowired
     private TagRelationService tagRelationService;
@@ -113,6 +128,17 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @CommonTxReadOnly
     public List<Long> searchRegularManuscripts(ManuscriptFilterValues filterValues, Sorter... sorters) throws Exception {
         return getRepository().searchManuscripts(filterValues, List.of(sorters), currentUser, false);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<Long> searchAdvanced(ManuscriptSearchCriteria criteria, Sorter... sorters) throws Exception {
+        List<Long> ids = getRepository().searchManuscripts(criteria, List.of(sorters), currentUser);
+        if (StringUtils.isBlank(criteria.getFulltext()) || ids.isEmpty()) {
+            return ids;
+        }
+        Set<Long> withText = chatMessageService.findManuscriptsWithText(ids, criteria.getFulltext(), criteria.isAllBranches());
+        return ids.stream().filter(withText::contains).toList();
     }
 
     @Override
@@ -228,6 +254,66 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     }
 
     @Override
+    public String getRedraftSystemPrompt(Manuscript manuscript) throws Exception {
+        if (StringUtils.isNotBlank(manuscript.getRedraftSystemPrompt())) {
+            return manuscript.getRedraftSystemPrompt();
+        }
+        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+        if (StringUtils.isNotBlank(userSetting.getDefaultRedraftSystemPrompt())) {
+            return userSetting.getDefaultRedraftSystemPrompt();
+        }
+        return Defaults.DEFAULT_REDRAFT_SYSTEM_PROMPT;
+    }
+
+    @Override
+    public String getAnnotateSystemPrompt(Manuscript manuscript) throws Exception {
+        if (StringUtils.isNotBlank(manuscript.getAnnotateSystemPrompt())) {
+            return manuscript.getAnnotateSystemPrompt();
+        }
+        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+        if (StringUtils.isNotBlank(userSetting.getDefaultAnnotateSystemPrompt())) {
+            return userSetting.getDefaultAnnotateSystemPrompt();
+        }
+        return Defaults.DEFAULT_ANNOTATE_SYSTEM_PROMPT;
+    }
+
+    @Override
+    public String getRedraftPrompt(Manuscript manuscript) throws Exception {
+        if (StringUtils.isNotBlank(manuscript.getRedraftPrompt())) {
+            return manuscript.getRedraftPrompt();
+        }
+        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+        if (StringUtils.isNotBlank(userSetting.getDefaultRedraftPrompt())) {
+            return userSetting.getDefaultRedraftPrompt();
+        }
+        return Defaults.DEFAULT_REDRAFT_PROMPT;
+    }
+
+    @Override
+    public String getAnnotatePrompt(Manuscript manuscript) throws Exception {
+        if (StringUtils.isNotBlank(manuscript.getAnnotatePrompt())) {
+            return manuscript.getAnnotatePrompt();
+        }
+        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+        if (StringUtils.isNotBlank(userSetting.getDefaultAnnotatePrompt())) {
+            return userSetting.getDefaultAnnotatePrompt();
+        }
+        return Defaults.DEFAULT_ANNOTATE_PROMPT;
+    }
+
+    @Override
+    public String getImpersonatePrompt(Manuscript manuscript) throws Exception {
+        if (StringUtils.isNotBlank(manuscript.getImpersonatePrompt())) {
+            return manuscript.getImpersonatePrompt();
+        }
+        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+        if (StringUtils.isNotBlank(userSetting.getDefaultImpersonatePrompt())) {
+            return userSetting.getDefaultImpersonatePrompt();
+        }
+        return Defaults.DEFAULT_IMPERSONATE_PROMPT;
+    }
+
+    @Override
     public String getMetaSummaryPrompt(Manuscript manuscript) throws Exception {
         if (StringUtils.isNotBlank(manuscript.getMetaSummaryPrompt())) {
             return manuscript.getMetaSummaryPrompt();
@@ -337,6 +423,8 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         List<ChatMessage> allMessages = chatMessageService.getAllMessages(m);
         JsonArray messagesArray = new JsonArray();
         ExtendableEntityListener listener = new ExtendableEntityListener();
+        Map<Long, JsonArray> annotations = annotationService.marshalForManuscript(m);
+        Map<Long, MessagePrompt> prompts = messagePromptService.findAllFor(allMessages);
 
         for (ChatMessage msg : allMessages) {
             JsonObject msgObj = new JsonObject();
@@ -359,6 +447,20 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
                     msgObj.addProperty("extendedContent", new String(msg.getExtendedContent(), StandardCharsets.UTF_8));
                 }
             }
+            // the prompt is stored apart from the part, but a backup keeps it in the extended content as it always did, so
+            // backups of every version are the same format (see restoreMessages)
+            MessagePrompt prompt = prompts.get(msg.getId());
+            if (prompt != null) {
+                JsonObject ext = msgObj.has("extendedContent") && msgObj.get("extendedContent").isJsonObject()
+                        ? msgObj.getAsJsonObject("extendedContent") : new JsonObject();
+                if (prompt.getBuiltPrompt() != null) {
+                    ext.addProperty(MessagePrompt.PROMPT_KEY, prompt.getBuiltPrompt());
+                }
+                if (prompt.getBackgroundLore() != null) {
+                    ext.addProperty(MessagePrompt.LORE_KEY, prompt.getBackgroundLore());
+                }
+                msgObj.add("extendedContent", ext);
+            }
 
             if (msg.getSummary() != null) {
                 Summary summary = summaryService.find(msg.getSummary());
@@ -377,6 +479,11 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
                     }
                     msgObj.add("summary", sumObj);
                 }
+            }
+
+            JsonArray messageAnnotations = annotations.get(msg.getId());
+            if (messageAnnotations != null) {
+                msgObj.add("annotations", messageAnnotations);
             }
 
             messagesArray.add(msgObj);
@@ -453,7 +560,8 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @Override
     @CommonTx
     public AgenticCopy createAgenticCopy(Manuscript original) throws Exception {
-        Manuscript source = original == null ? null : find(original);
+        // the book of an agent comes as a lazy proxy: its class is not the one the tags and relations are stored by
+        Manuscript source = original == null ? null : (Manuscript) Hibernate.unproxy(find(original));
         if (source == null || source.isDeleted()) {
             throw new IllegalArgumentException("The manuscript does not exist");
         }
@@ -819,8 +927,17 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
                 msg.setEdited(msgObj.get("edited").getAsBoolean());
             }
 
+            String restoredPrompt = null;
+            String restoredLore = null;
             if (msgObj.has("extendedContent") && !msgObj.get("extendedContent").isJsonNull()) {
                 JsonElement ext = msgObj.get("extendedContent");
+                if (ext.isJsonObject()) {
+                    // the prompt of the part is a row of its own, not a part of the extended content
+                    JsonObject content = ext.getAsJsonObject().deepCopy();
+                    restoredPrompt = takeString(content, MessagePrompt.PROMPT_KEY);
+                    restoredLore = takeString(content, MessagePrompt.LORE_KEY);
+                    ext = content;
+                }
                 msg.setExtendedContent(ext.toString().getBytes(StandardCharsets.UTF_8));
             }
 
@@ -843,6 +960,11 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
             }
 
             msg = chatMessageService.saveWithoutEvent(msg);
+            messagePromptService.store(msg, restoredPrompt, restoredLore);
+
+            if (msgObj.has("annotations") && msgObj.get("annotations").isJsonArray()) {
+                annotationService.restoreForPart(msg, msgObj.getAsJsonArray("annotations"), pairs);
+            }
 
             if (msgObj.has("uuid") && !msgObj.get("uuid").isJsonNull()) {
                 String uuid = msgObj.get("uuid").getAsString();

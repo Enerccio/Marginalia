@@ -31,6 +31,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.UIDetachedException;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
@@ -41,10 +42,15 @@ import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.ListDataProvider;
+import com.vaadin.flow.data.value.ValueChangeMode;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.web.context.request.RequestAttributes;
 
+import java.text.DateFormat;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.function.IntConsumer;
@@ -81,6 +87,19 @@ public class AgentPart implements WorkspaceComponent {
      */
     private static final Set<AgentRunStatus> REVIEWABLE = Set.of(AgentRunStatus.DONE, AgentRunStatus.STOPPED_KEPT);
 
+    /**
+     * What the agents are ordered by on the phone, where there are no column headers to press.
+     */
+    enum Sort {
+        NAME(L.LABEL_NAME), STATUS(L.LABEL_STATUS), LAST_RUN(L.LABEL_LAST_RUN);
+
+        private final L label;
+
+        Sort(L label) {
+            this.label = label;
+        }
+    }
+
     @Autowired
     private Localization loc;
 
@@ -102,6 +121,16 @@ public class AgentPart implements WorkspaceComponent {
     private final Workspace workspace;
     private Grid<Agent> grid;
     private Button addAgentButton;
+    // the agents of the user, filtered by what the fields above the table say
+    private final List<Agent> agents = new ArrayList<>();
+    // the name of the book of each agent by its uuid: the book itself is lazy and heavy, the table needs the name only
+    private final Map<String, String> bookNames = new HashMap<>();
+    private final ListDataProvider<Agent> dataProvider = new ListDataProvider<>(agents);
+    private TextField nameFilter;
+    private TextField bookFilter;
+    private ComboBox<Sort> sortBox;
+    // when the newest run of an agent started, by the agent's uuid; an agent that never ran is not there
+    private final Map<String, Date> lastRuns = new HashMap<>();
     // the unfinished run of an agent by the agent's uuid
     private final Map<String, AgentRun> runs = new HashMap<>();
     private boolean canCreate;
@@ -166,7 +195,9 @@ public class AgentPart implements WorkspaceComponent {
             returns = @APIReturn(type = Component.class),
             locals = {@APILocals(name = "mainLayout", type = VerticalLayout.class),
                     @APILocals(name = "headerLayout", type = HorizontalLayout.class),
-                    @APILocals(name = "titleSpan", type = Span.class)})
+                    @APILocals(name = "titleSpan", type = Span.class),
+                    @APILocals(name = "filterLayout", type = HorizontalLayout.class),
+                    @APILocals(name = "collator", type = Comparator.class)})
     @Override
     public Component create() throws Exception {
         VerticalLayout mainLayout = new VerticalLayout();
@@ -194,19 +225,44 @@ public class AgentPart implements WorkspaceComponent {
         headerLayout.setFlexGrow(1, titleSpan);
         headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
+        nameFilter = filterField(L.LABEL_NAME);
+        bookFilter = filterField(L.LABEL_BOOK);
+        HorizontalLayout filterLayout = new HorizontalLayout(nameFilter, bookFilter);
+        filterLayout.setWidthFull();
+        filterLayout.setWrap(true);
+        filterLayout.setFlexGrow(1, nameFilter, bookFilter);
+        if (phone) {
+            sortBox = new ComboBox<>(loc.getValue(L.LABEL_SORT_BY));
+            sortBox.setItems(Sort.values());
+            sortBox.setItemLabelGenerator(sort -> loc.getValue(sort.label));
+            sortBox.setAllowCustomValue(false);
+            sortBox.setValue(Sort.NAME);
+            sortBox.addValueChangeListener(event -> sortBy(event.getValue()));
+            filterLayout.add(sortBox);
+            filterLayout.setFlexGrow(1, sortBox);
+        }
+
         grid = new Grid<>(Agent.class, false);
         grid.setSizeFull();
+        grid.setItems(dataProvider);
         if (phone) {
             grid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES);
             grid.addComponentColumn(this::createCard).setHeader(loc.getValue(L.LABEL_AGENTS));
         } else {
+            Comparator<String> collator = loc.createLocaleComparator();
             grid.addColumn(Agent::getUuid).setHeader(loc.getValue(L.LABEL_AGENT_ID)).setFlexGrow(2).setResizable(true);
-            grid.addColumn(Agent::getName).setHeader(loc.getValue(L.LABEL_NAME)).setFlexGrow(2);
-            grid.addColumn(this::statusText).setHeader(loc.getValue(L.LABEL_STATUS)).setFlexGrow(1);
+            grid.addColumn(Agent::getName).setHeader(loc.getValue(L.LABEL_NAME)).setFlexGrow(2)
+                    .setComparator(Comparator.comparing(Agent::getName, collator));
+            grid.addColumn(this::bookName).setHeader(loc.getValue(L.LABEL_BOOK)).setFlexGrow(2)
+                    .setComparator(Comparator.comparing(this::bookName, collator));
+            grid.addColumn(this::statusText).setHeader(loc.getValue(L.LABEL_STATUS)).setFlexGrow(1)
+                    .setComparator(Comparator.comparing(this::statusText, collator));
+            grid.addColumn(this::lastRunText).setHeader(loc.getValue(L.LABEL_LAST_RUN)).setFlexGrow(1)
+                    .setComparator(lastRunOrder());
             grid.addComponentColumn(this::createActions).setHeader("").setFlexGrow(0).setWidth("410px");
         }
 
-        mainLayout.add(headerLayout, grid);
+        mainLayout.add(headerLayout, filterLayout, grid);
         mainLayout.setFlexGrow(1, grid);
 
         refreshGrid();
@@ -334,6 +390,101 @@ public class AgentPart implements WorkspaceComponent {
     }
 
     /**
+     * A field that narrows the table to the agents that contain all of the words typed into it.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = TextField.class),
+            parameters = {@APIParameter(name = "label", type = L.class)},
+            locals = {@APILocals(name = "field", type = TextField.class)})
+    private TextField filterField(L label) {
+        TextField field = new TextField(loc.getValue(label));
+        field.setClearButtonVisible(true);
+        field.setPrefixComponent(Solid.MAGNIFYING_GLASS.create());
+        field.setValueChangeMode(ValueChangeMode.LAZY);
+        field.addValueChangeListener(event -> applyFilter());
+        return field;
+    }
+
+    /**
+     * Shows the agents whose name and book have all the words of the two fields.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "name", type = String.class),
+                    @APILocals(name = "book", type = String.class)})
+    private void applyFilter() {
+        String name = nameFilter.getValue();
+        String book = bookFilter.getValue();
+        dataProvider.setFilter(agent -> containsWords(agent.getName(), name) && containsWords(bookName(agent), book));
+    }
+
+    /**
+     * Whether the text has every word of the filter, in any order, whatever the case; a blank filter has them all.
+     */
+    static boolean containsWords(String text, String filter) {
+        if (filter == null || filter.isBlank()) {
+            return true;
+        }
+        String lower = text == null ? "" : text.toLowerCase(Locale.ROOT);
+        for (String word : filter.strip().toLowerCase(Locale.ROOT).split("\\s+")) {
+            if (!lower.contains(word)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Orders the table of the phone; the table of the desktop is ordered by its headers.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "sort", type = Sort.class)},
+            locals = {@APILocals(name = "collator", type = Comparator.class),
+                    @APILocals(name = "byName", type = Comparator.class)})
+    void sortBy(Sort sort) {
+        Comparator<String> collator = loc.createLocaleComparator();
+        Comparator<Agent> byName = Comparator.comparing(Agent::getName, collator);
+        if (sort == Sort.STATUS) {
+            dataProvider.setSortComparator(Comparator.comparing(this::statusText, collator).thenComparing(byName)::compare);
+        } else if (sort == Sort.LAST_RUN) {
+            // the newest first, the agents that never ran at the end
+            dataProvider.setSortComparator(lastRunOrder().reversed().thenComparing(byName)::compare);
+        } else {
+            dataProvider.setSortComparator(byName::compare);
+        }
+    }
+
+    /**
+     * The older run first, an agent that never ran before all of them.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = Comparator.class))
+    private Comparator<Agent> lastRunOrder() {
+        return Comparator.comparing(agent -> lastRuns.get(agent.getUuid()), Comparator.nullsFirst(Comparator.<Date>naturalOrder()));
+    }
+
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "agent", type = Agent.class)})
+    private String bookName(Agent agent) {
+        return StringUtils.defaultString(bookNames.get(agent.getUuid()));
+    }
+
+    /**
+     * When the newest run of the agent started, "never" for an agent without one.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "agent", type = Agent.class)},
+            locals = {@APILocals(name = "started", type = Date.class)})
+    String lastRunText(Agent agent) {
+        Date started = lastRuns.get(agent.getUuid());
+        return started == null ? loc.getValue(L.LABEL_NEVER)
+                : DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(started);
+    }
+
+    /**
      * An agent on the phone: its name and state above, the buttons below them, wrapping onto more lines when they do not fit.
      */
     @PublicAPI(from = "1.4.0",
@@ -341,6 +492,7 @@ public class AgentPart implements WorkspaceComponent {
             parameters = {@APIParameter(name = "agent", type = Agent.class)},
             locals = {@APILocals(name = "name", type = Span.class),
                     @APILocals(name = "state", type = Span.class),
+                    @APILocals(name = "history", type = Span.class),
                     @APILocals(name = "title", type = HorizontalLayout.class),
                     @APILocals(name = "actions", type = Component.class),
                     @APILocals(name = "row", type = HorizontalLayout.class),
@@ -350,6 +502,8 @@ public class AgentPart implements WorkspaceComponent {
         name.addClassNames(CssStyles.TEXT_SEMIBOLD, CssStyles.WRAP_ANYWHERE);
         Span state = new Span(statusText(agent));
         state.addClassName(CssStyles.HINT_TEXT);
+        Span history = new Span(bookName(agent) + " - " + lastRunText(agent));
+        history.addClassNames(CssStyles.HINT_TEXT, CssStyles.WRAP_ANYWHERE);
         HorizontalLayout title = new HorizontalLayout(name, state);
         title.setWidthFull();
         title.setWrap(true);
@@ -360,7 +514,7 @@ public class AgentPart implements WorkspaceComponent {
             row.setWrap(true);
             row.setWidthFull();
         }
-        VerticalLayout card = new VerticalLayout(title, actions);
+        VerticalLayout card = new VerticalLayout(title, history, actions);
         card.setPadding(false);
         card.setSpacing(false);
         card.addClassName(CssStyles.GAP_S);
@@ -587,7 +741,7 @@ public class AgentPart implements WorkspaceComponent {
 
     @PublicAPI(from = "1.4.0",
             returns = @APIReturn(type = void.class),
-            locals = {@APILocals(name = "agents", type = List.class),
+            locals = {@APILocals(name = "found", type = List.class),
                     @APILocals(name = "agent", type = Agent.class),
                     @APILocals(name = "run", type = AgentRun.class),
                     @APILocals(name = "e", type = Exception.class)})
@@ -596,14 +750,18 @@ public class AgentPart implements WorkspaceComponent {
             return;
         }
         try {
-            List<Agent> agents = agentService.findAllForUser();
-            agents.sort(Comparator.comparing(Agent::getName, loc.createLocaleComparator()));
+            List<Agent> found = agentService.findAllForUser();
+            found.sort(Comparator.comparing(Agent::getName, loc.createLocaleComparator()));
             runs.clear();
-            for (Agent agent : agents) {
+            lastRuns.clear();
+            for (Agent agent : found) {
                 AgentRun run = agentRunService.findUnfinished(agent);
                 if (run != null) {
                     runs.put(agent.getUuid(), run);
                 }
+                // the newest first
+                agentRunService.findForAgent(agent).stream().map(AgentRun::getStartedAt).filter(Objects::nonNull).findFirst()
+                        .ifPresent(started -> lastRuns.put(agent.getUuid(), started));
             }
             waiting = agentRunService.findNeedingAttention().size();
             attentionBadge.setText(String.valueOf(waiting));
@@ -612,7 +770,11 @@ public class AgentPart implements WorkspaceComponent {
             canCreate = agentService.canCreate();
             addAgentButton.setEnabled(canCreate);
             addAgentButton.setTooltipText(canCreate ? null : loc.getValue(L.MSG_AGENT_LIMIT_REACHED));
-            grid.setItems(agents);
+            bookNames.clear();
+            bookNames.putAll(agentService.findBookNames(found));
+            agents.clear();
+            agents.addAll(found);
+            dataProvider.refreshAll();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -669,5 +831,23 @@ public class AgentPart implements WorkspaceComponent {
             returns = @APIReturn(type = Button.class))
     Button getAddAgentButton() {
         return addAgentButton;
+    }
+
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = TextField.class))
+    TextField getNameFilter() {
+        return nameFilter;
+    }
+
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = TextField.class))
+    TextField getBookFilter() {
+        return bookFilter;
+    }
+
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = ComboBox.class))
+    ComboBox<Sort> getSortBox() {
+        return sortBox;
     }
 }

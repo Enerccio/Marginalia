@@ -30,6 +30,11 @@ one, green for finished ones (their title is dimmed). The buttons:
 
 ![A chapter with its note shown](../../../manual/images/plugin-arcoutline-note.png)
 
+The pen with a feather next to the wand drafts the instructions of the next turn from the current chapter: the model of the story
+editor writes them from the data of that chapter (the first one marked *Current*, else the first one not *Finished*, with its arc and the
+title and description of the chapter after it), and **Use as Instructions** puts them into the new turn panel. The same data is the
+source `current-chapter` ("Arc outline: current chapter") that other extensions, like the Side Query, can ask for.
+
 A chapter moved up from the first place of its arc goes to the end of the previous arc, one moved down from the last
 place to the start of the next arc, so chapters can be moved between arcs.
 
@@ -39,11 +44,12 @@ Changes are saved at once.
 
 ## The outline as a source
 
-The plugin registers the outline with the `IPCService` as two sources of data about a book,
+The plugin registers the outline with the `IPCService` as three sources of data about a book,
 so other extensions can use it: `outline` ("Arc outline") has the arcs with their states, descriptions and chapters (the
 terse version), `outline-with-notes` ("Arc outline (with notes)") has the same with the note of every arc and chapter
-under its description (the full version). Nothing is sent unless the other extension is told to ask for it: the Side
-Query can send either with a question (plug button → *Arc outline* or *Arc outline (with notes)*).
+under its description (the full version), `current-chapter` ("Arc outline: current chapter") has only the arc and the chapter the story
+is at, with the title and description of the chapter after it. Nothing is sent unless the other extension is told to ask for it: the Side
+Query can send any of them with a question (plug button → *Arc outline*, *Arc outline (with notes)* or *Arc outline: current chapter*).
 
 ## Generating an arc
 

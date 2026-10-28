@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
+import com.github.enerccio.marginalia.domain.service.MessagePromptService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
 import com.github.enerccio.marginalia.test.GenerationRun;
 import com.github.enerccio.marginalia.test.GenerationTestBase;
@@ -28,6 +29,9 @@ class BuiltPromptHistoryTest extends GenerationTestBase {
     @Autowired
     private ChatMessageService chatMessageService;
 
+    @Autowired
+    private MessagePromptService messagePromptService;
+
     private Manuscript manuscript;
 
     private ChatMessage generate(GenerationRequest request, String text) throws Exception {
@@ -39,9 +43,9 @@ class BuiltPromptHistoryTest extends GenerationTestBase {
         return chatMessageService.find(run.getMessage().getId());
     }
 
-    private static List<String> assistantMessages(ChatMessage message) {
+    private List<String> assistantMessages(ChatMessage message) throws Exception {
         List<String> result = new ArrayList<>();
-        for (JsonElement element : new Gson().fromJson(message.getBuiltPrompt(), JsonArray.class)) {
+        for (JsonElement element : new Gson().fromJson(messagePromptService.getBuiltPrompt(message), JsonArray.class)) {
             String role = element.getAsJsonObject().get("role").getAsString();
             if ("assistant".equalsIgnoreCase(role)) {
                 result.add(element.getAsJsonObject().get("content").getAsString());

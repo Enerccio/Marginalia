@@ -19,6 +19,7 @@ import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptCloneDialog;
+import com.github.enerccio.marginalia.ui.dialogs.ManuscriptSearchDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptWindow;
 import com.github.enerccio.marginalia.ui.dialogs.agent.AgentLockCheck;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
@@ -80,6 +81,7 @@ public class PhoneManuscriptPart implements ManuscriptSection {
     private final Workspace workspace;
     private Grid<ManuscriptWrapper> grid;
     private Button addBookButton;
+    private Button searchButton;
 
     private String currentSortField = SORT_MODIFICATION;
     private Ordering currentSortOrdering = Ordering.DESC;
@@ -107,6 +109,7 @@ public class PhoneManuscriptPart implements ManuscriptSection {
                     @APILocals(name = "addBookButton", type = Button.class),
                     @APILocals(name = "refreshButton", type = Button.class),
                     @APILocals(name = "importArchiveButton", type = Button.class),
+                    @APILocals(name = "importSillyTavernButton", type = Button.class),
                     @APILocals(name = "headerLayout", type = HorizontalLayout.class),
                     @APILocals(name = "filtersLayout", type = VerticalLayout.class),
                     @APILocals(name = "nameFilter", type = TextField.class),
@@ -128,8 +131,13 @@ public class PhoneManuscriptPart implements ManuscriptSection {
 
         Button importArchiveButton = new Button(Solid.FILE_IMPORT.create(), event -> new NewBookAction(this::openManuscript).runFromArchive());
         importArchiveButton.setTooltipText(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE));
+        Button importSillyTavernButton = new Button(Solid.COMMENTS.create(), event -> new NewBookAction(this::openManuscript).runFromSillyTavern());
+        importSillyTavernButton.setTooltipText(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN));
 
-        HorizontalLayout headerLayout = new HorizontalLayout(addBookButton, importArchiveButton, refreshButton);
+        searchButton = new Button(Solid.SEARCH.create(), event -> openSearchDialog());
+        searchButton.setTooltipText(loc.getValue(L.LABEL_ADVANCED_SEARCH));
+
+        HorizontalLayout headerLayout = new HorizontalLayout(addBookButton, searchButton, importArchiveButton, importSillyTavernButton, refreshButton);
         headerLayout.setWidthFull();
         headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         headerLayout.setFlexGrow(1, addBookButton);
@@ -328,6 +336,34 @@ public class PhoneManuscriptPart implements ManuscriptSection {
             List<Long> ids = manuscriptService.searchRegularManuscripts(filterValues,
                     Sorter.sorter(currentSortField, currentSortOrdering));
             grid.setItems(new ManuscriptBackendProvider(ids));
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * Opens the advanced search of the books; a book chosen in the results opens in its window above the search.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = ManuscriptSearchDialog.class)})
+    private void openSearchDialog() {
+        ManuscriptSearchDialog dialog = new ManuscriptSearchDialog(this::openFound);
+        dialog.open();
+    }
+
+    /**
+     * Opens a book chosen in the results of the advanced search, unless an agent works on it.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)},
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    private void openFound(Manuscript manuscript) {
+        try {
+            if (!new AgentLockCheck().refuses(manuscript)) {
+                openManuscript(manuscript);
+            }
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }

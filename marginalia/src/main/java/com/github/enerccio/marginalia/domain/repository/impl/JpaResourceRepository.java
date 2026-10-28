@@ -7,8 +7,10 @@ import com.github.enerccio.marginalia.domain.security.model.User;
 
 import jakarta.persistence.metamodel.EntityType;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public class JpaResourceRepository extends JpaOwnedRepository<Resource> implements ResourceRepository {
 
@@ -49,6 +51,13 @@ public class JpaResourceRepository extends JpaOwnedRepository<Resource> implemen
                 .createQuery("SELECT COUNT(r) FROM Resource r WHERE r.deleted = false AND r.owner.id = :owner", Long.class)
                 .setParameter("owner", owner.getId())
                 .getSingleResult();
+    }
+
+    @Override
+    public Set<String> findAllPaths() {
+        return new HashSet<>(getEntityManager()
+                .createQuery("SELECT r.path FROM Resource r WHERE r.path IS NOT NULL", String.class)
+                .getResultList());
     }
 
     @Override

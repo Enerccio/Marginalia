@@ -29,10 +29,11 @@ import java.util.stream.Stream;
  * A source file is {@code {"_id": "demons", "title": "Demons", "values": ["azazel", "baal", ...]}}: the title is the category, the values
  * (names) train its chain. The output has only the title and the probabilities, never the names:
  * <pre>
- * {"categories": [{"title": "Demons", "order": 2, "minLength": 4, "maxLength": 9, "tables": {"^^": {"a": 0.25, ...}, "^a": {...}, "az": {"$": 0.5, ...}}}]}
+ * {"categories": [{"title": "Demons", "order": 2, "minLength": 4, "maxLength": 9, "size": 251, "tables": {"^^": {"a": 0.25, ...}, "^a": {...}, "az": {"$": 0.5, ...}}}]}
  * </pre>
  * A key is the last {@code order} characters (padded with {@code ^} at the start), its value the probabilities of the
- * next character, {@code $} being the end of the name. Names are lowercased for the training.
+ * next character, {@code $} being the end of the name. Names are lowercased for the training. {@code size} is the number of
+ * names the chain was trained on, which the groups of {@code name-groups.json} use to weight their members.
  * <p>
  * The length of the chain ({@code order}) and the usual lengths of the names ({@code minLength}, {@code maxLength}, the
  * defaults of {@code generate_names}) of a category come from the descriptor {@code src/build/chains.json} (committed,
@@ -175,6 +176,7 @@ public class GenerateTables {
         if (maxLength != null) {
             category.addProperty("maxLength", maxLength);
         }
+        category.addProperty("size", trained);
         category.add("tables", tables);
         return category;
     }

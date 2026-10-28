@@ -26,7 +26,7 @@ Cleanup covers the data of all users.
 
 Cleanup deletes entries from the database, and only the files of [agents](../agents.md): the workspace of a purged
 agent and the folder of a purged run. The files of deleted [resources](../resources.md) (pictures of the parts) stay in
-the data folder of their owner.
+the data folder of their owner until you remove them in the [Resource Files](resource-files.md) tab.
 
 ## Seeing what is deleted
 

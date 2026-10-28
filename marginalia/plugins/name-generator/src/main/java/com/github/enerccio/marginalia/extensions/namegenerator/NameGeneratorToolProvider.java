@@ -7,11 +7,9 @@ import com.github.enerccio.marginalia.domain.service.tool.ToolItem;
 import com.github.enerccio.marginalia.domain.service.tool.ToolProvider;
 import com.github.enerccio.marginalia.domain.service.tool.ToolRequest;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
+
+import static com.github.enerccio.marginalia.extensions.namegenerator.NameGeneratorLocalization.T;
 
 /**
  * The name generator as a tool suite: every category of names is an item, and the functions the model gets know only the
@@ -49,7 +47,7 @@ public class NameGeneratorToolProvider implements ToolProvider {
 
     @Override
     public String description() {
-        return "Names made up by Markov chains trained on lists of names: places, deities, companies, surnames of countries...";
+        return T.localized("Names made up by Markov chains trained on lists of names: places, deities, companies, surnames of countries... Groups (like all Native American names) pick a category at random for every name.");
     }
 
     @Override
@@ -71,15 +69,15 @@ public class NameGeneratorToolProvider implements ToolProvider {
         }
 
         @Override
-        public void listCategories(FunctionContinuation<List<String>> done) {
-            done.complete(List.copyOf(categories));
+        public void listCategories(FunctionContinuation<List<String>> done, String filter) {
+            done.complete(NameTables.filter(categories, filter));
         }
 
         @Override
         public void generateNames(FunctionContinuation<List<String>> done, String category, int count,
                                   Integer minLength, Integer maxLength) {
             if (category == null || !allowed.contains(category.strip())) {
-                done.fail("Unknown category '" + category + "'. Categories: " + String.join(", ", categories));
+                done.fail(NameTables.unknown("category", category, categories, "list_name_categories"));
                 return;
             }
             delegate.generateNames(done, category, count, minLength, maxLength);

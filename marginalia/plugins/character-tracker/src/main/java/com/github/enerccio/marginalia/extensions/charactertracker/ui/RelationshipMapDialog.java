@@ -17,6 +17,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Comparator;
 import java.util.List;
 
+import static com.github.enerccio.marginalia.extensions.charactertracker.CharacterTrackerLocalization.T;
+
 /**
  * Map of all relationships of the characters: a node for every character that has a relationship (its icon, name,
  * tagline and color) and an edge for every relationship (name and tagline, an arrow at the target, at both ends when
@@ -30,7 +32,7 @@ public class RelationshipMapDialog extends Dialog {
     public RelationshipMapDialog(CharacterBook book) {
         this.book = book;
 
-        setHeaderTitle("Relationship map");
+        setHeaderTitle(T.localized("Relationship map"));
         setWidth("90vw");
         setHeight("80vh");
         setResizable(true);
@@ -41,11 +43,11 @@ public class RelationshipMapDialog extends Dialog {
         content.setSizeFull();
         content.setPadding(false);
         if (config.getAsJsonArray("nodes").isEmpty()) {
-            Span empty = new Span("There are no relationships yet. Add them in the dialog of a character.");
+            Span empty = new Span(T.localized("There are no relationships yet. Add them in the dialog of a character."));
             empty.addClassName(CharacterTrackerStyles.MAP_EMPTY);
             content.add(empty);
         } else {
-            Span hint = new Span("Double-click a character to arrange the map around it. Drag to move, scroll to zoom.");
+            Span hint = new Span(T.localized("Double-click a character to arrange the map around it. Drag to move, scroll to zoom."));
             hint.addClassName(CharacterTrackerStyles.MAP_HINT);
             GraphView graph = new GraphView();
             graph.setGraph(config.toString());
@@ -53,7 +55,7 @@ public class RelationshipMapDialog extends Dialog {
             content.setFlexGrow(1, graph);
         }
         add(content);
-        getFooter().add(new Button("Close", _ -> close()));
+        getFooter().add(new Button(T.localized("Close"), _ -> close()));
     }
 
     /**

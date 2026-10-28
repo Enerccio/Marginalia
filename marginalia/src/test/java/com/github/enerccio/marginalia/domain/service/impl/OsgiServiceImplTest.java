@@ -2,8 +2,8 @@ package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.domain.security.AdminGuard;
-import com.github.enerccio.marginalia.domain.service.IPCService;
 import com.github.enerccio.marginalia.domain.service.ExtensionVerificationException;
+import com.github.enerccio.marginalia.domain.service.IPCService;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.domain.service.OsgiService.ExtensionReport;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
@@ -12,6 +12,7 @@ import com.github.enerccio.marginalia.loc.Language;
 import com.github.enerccio.marginalia.loc.LocalizationBundleEN;
 import com.github.enerccio.marginalia.loc.LocalizationImpl;
 import com.github.enerccio.marginalia.test.ExpectedLog;
+import com.github.enerccio.marginalia.ui.menu.StoryMenuRegistry;
 import com.vaadin.flow.component.html.Div;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -75,6 +76,7 @@ class OsgiServiceImplTest {
         ipc = new IPCServiceImpl();
         ReflectionTestUtils.setField(service, "ipcService", ipc);
         ReflectionTestUtils.setField(service, "toolService", new ToolServiceImpl());
+        ReflectionTestUtils.setField(service, "storyMenuRegistry", new StoryMenuRegistry());
         localization = new LocalizationImpl();
         localization.setBundles(List.of(new LocalizationBundleEN()));
         ReflectionTestUtils.setField(service, "localization", localization);
@@ -715,7 +717,7 @@ class OsgiServiceImplTest {
         // chained to the application log
         assertThat(mainLog.errors()).anyMatch(m -> m.contains("failed x"));
         assertThat(mainLog.entries()).anyMatch(e -> e.throwable() instanceof IllegalStateException);
-        assertThat(mainLog.atLeast(org.apache.log4j.Level.INFO)).anyMatch(m -> m.contains("loaded 1 of two"));
+        assertThat(mainLog.atLeast(ch.qos.logback.classic.Level.INFO)).anyMatch(m -> m.contains("loaded 1 of two"));
         mainLog.close();
 
         service.clearLog(a);

@@ -18,7 +18,9 @@ Download the archive for your system from the
 | `marginalia-<version>-<os>-<arch>-app` | The app: `Marginalia.app` on macOS, `Marginalia.exe` on Windows, `bin/Marginalia` on Linux |
 | `marginalia-<version>-<os>-<arch>` | A portable folder started with a script, with command line [options](#options) |
 
-Builds are available for Windows x64, macOS (Apple Silicon and Intel) and Linux (x64 and arm64).
+Builds are available for Windows x64, macOS (Apple Silicon and Intel) and Linux (x64 and arm64). `<arch>` in the
+file name is `x86_64` for 64-bit Intel and AMD processors (Windows, macOS Intel, Linux) and `aarch64` for ARM
+(Apple Silicon, Linux arm64).
 
 ## Install and start
 

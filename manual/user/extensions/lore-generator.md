@@ -118,7 +118,7 @@ model and protocol.
 | Command | What it does |
 |---|---|
 | `/list-lore-templates [template]` | Lists your saved generation prompts (name, length, start of the text) and the one used last. With a name it returns the whole text of that prompt. |
-| `/generate-lore-entry [prompt [template [lorebook [entry [order [scope [limit [images]]]]]]]]` | Generates a text with the lore of the lorebook and returns it. The text sent is a template followed by the prompt of the caller (see below). With `images` the model also looks at pictures, as with the attachments of the dialog. |
+| `/generate-lore-entry [prompt [template [lorebook [entry [order [scope [limit [images [compact]]]]]]]]]` | Generates a text with the lore of the lorebook, compacts it (like `/compact-lore-entry`) and returns the compacted text; with `compact` `false` it returns the generated text as it is. The text sent is a template followed by the prompt of the caller (see below). With `images` the model also looks at pictures, as with the attachments of the dialog. |
 | `/compact-lore-entry text [lorebook [entry [order [scope [limit]]]]]` | Compacts the text with the same lore and returns the result, without the code block around it. |
 
 The entry the text is for decides which lore the model sees. Give its handle or its number as `entry` (and the `lorebook` it is in, by handle or number, when you give the number) and the lore is the same as in
@@ -137,7 +137,9 @@ that is called with a template and no prompt sends just the template.
 The `images` of `/generate-lore-entry` are the images the dialog would attach to the generation. An [agent](../agents.md) passes a list of
 paths of image files of its workspace (`/refs/map.png`; at most 8, PNG, JPEG, GIF or WebP, scaled down when large), which you put there with
 **Upload file** in the Workspace tab. The command bar has no way to name an image, so `images` is for agents. It is your default model that looks at the
-pictures: if it does not take images the command fails and says so. Only the generation takes images, as in the dialog; `/compact-lore-entry` works on the text alone.
+pictures: if it does not take images the command fails and says so. Only the generation takes images, as in the dialog; the compaction works on the text alone.
+
+The `compact` parameter of `/generate-lore-entry` is `true` by default: the command generates and compacts in one call, so an [agent](../agents.md) needs a single command and cannot forget the second step. Pass `compact` `false` to get the long generated text (for example to review or edit it), and run `/compact-lore-entry` on it later.
 
 The model gets no tools here. A caller that wants names asks for them first, with `/generate-names` of the
 [Name generator](name-generator.md) or `/pick-real-names` of the [Name provider](name-provider.md), and writes the ones it

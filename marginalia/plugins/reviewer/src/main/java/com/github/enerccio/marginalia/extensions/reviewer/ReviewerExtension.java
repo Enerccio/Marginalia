@@ -16,14 +16,14 @@ import com.github.enerccio.marginalia.extensions.reviewer.ui.ManuscriptProfileSe
 import com.github.enerccio.marginalia.extensions.reviewer.ui.ReviewDialog;
 import com.github.enerccio.marginalia.extensions.reviewer.ui.ReviewerSettingsForm;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.menu.StoryMenuItem;
+import com.github.enerccio.marginalia.ui.menu.StoryMenuRegistry;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.accordion.AccordionPanel;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.contextmenu.ContextMenu;
-import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import org.osgi.framework.Bundle;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,11 +33,15 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import static com.github.enerccio.marginalia.extensions.reviewer.ReviewerLocalization.T;
+
 @Configurable
 public class ReviewerExtension implements MarginaliaExtension {
 
-    private static final String REVIEW_MENU_ITEM_KEY = ReviewerSettings.KEY + ".rootMenuItem";
-    private static final String DELETE_MENU_ITEM_KEY = ReviewerSettings.KEY + ".deleteMenuItem";
+    private static final String MENU_REVIEW = ReviewerSettings.KEY + ".review";
+    private static final String MENU_VIEW = MENU_REVIEW + ".view";
+    private static final String MENU_ADVANCED = MENU_REVIEW + ".advanced";
+    private static final String MENU_DELETE = MENU_REVIEW + ".delete";
     private static final String SETTINGS_PANEL_KEY = ReviewerSettings.KEY + ".settingsPanel";
 
     @Autowired
@@ -49,138 +53,69 @@ public class ReviewerExtension implements MarginaliaExtension {
     @Autowired
     private ManuscriptService manuscriptService;
 
+    @Autowired
+    private StoryMenuRegistry menuRegistry;
+
     private final ReviewerService reviewerService = new ReviewerService();
-    private ExtensionDecorator cardDecorator;
-    private ExtensionDecorator cardDecoratorRefresh;
     private ExtensionDecorator userPartDecorator;
     private ExtensionDecorator userPartSaveDecorator;
     private ExtensionDecorator infoPartCreateDecorator;
     private ExtensionDecorator infoPartLoadDecorator;
 
-    private final Set<ContextMenu> activeMenus = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
     private final Set<ManuscriptProfileSelect> activeProfileSelects = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
     private final Set<Accordion> activeAccordions = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
 
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
+        String owner = bundle.getSymbolicName();
         try {
-            cardDecorator = new ExtensionDecorator() {
-
-                @Override
-                public void onMethodEnter(Object instrumented, ExtendableMethodContext context) {
-
-                }
-
-                @Override
-                public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
-                    ContextMenu hamburgerMenu = context.getReflectiveFieldValue(instrumented, "hamburgerMenu", ContextMenu.class);
-                    ChatMessage message = context.getReflectiveFieldValue(instrumented, "message", ChatMessage.class);
-
-                    if (hamburgerMenu != null && message != null) {
-                        if (ComponentUtil.getData(hamburgerMenu, REVIEW_MENU_ITEM_KEY) != null) {
-                            return;
+            // the Review sub menu of the menu of a part (desktop and phone), its items are shown by the story tab with the keys of the user;
+            // what each one needs is read from the part the menu is opened for
+            menuRegistry.register(owner, StoryMenuItem.card(MENU_REVIEW, l -> T.localized("Review"), null)
+                    .icon(VaadinIcon.STAR::create));
+            menuRegistry.register(owner, StoryMenuItem.card(MENU_VIEW, l -> T.localized("View / Generate Review"), (story, card) -> {
+                        try {
+                            ChatMessage freshMessage = reviewerService.refreshMessage(card.getMessage());
+                            Manuscript manuscript = manuscriptService.find(freshMessage.getParentScript());
+                            ReviewDialog dialog = new ReviewDialog(reviewerService, freshMessage, manuscript, null);
+                            dialog.open();
+                        } catch (Exception ex) {
+                            UIUtils.internalServerError(loc, ex);
                         }
-
-                        MenuItem reviewMenuItem = hamburgerMenu.addItem("Review");
-                        reviewMenuItem.addComponentAsFirst(VaadinIcon.STAR.create());
-
-                        // Lazy evaluation inside click listeners prevents capturing heavy Manuscript/Tokenizer objects early
-                        reviewMenuItem.getSubMenu().addItem("View / Generate Review", e -> {
-                            try {
-                                ChatMessage freshMessage = reviewerService.refreshMessage(message);
-                                Manuscript manuscript = manuscriptService.find(freshMessage.getParentScript());
-                                ReviewDialog dialog = new ReviewDialog(reviewerService, freshMessage, manuscript, null);
-                                dialog.open();
-                            } catch (Exception ex) {
-                                UIUtils.internalServerError(loc, ex);
-                            }
-                        });
-
-                        reviewMenuItem.getSubMenu().addItem("Advanced Options", e -> {
-                            try {
-                                ChatMessage freshMessage = reviewerService.refreshMessage(message);
-                                Manuscript manuscript = manuscriptService.find(freshMessage.getParentScript());
-                                ReviewerSettings settings = reviewerService.getSettings();
-                                ReviewerSetting setting = reviewerService.resolveSetting(settings, manuscript);
-                                AI targetAi = reviewerService.resolveAI(setting, manuscript);
-                                InferenceService service = inferenceServices.forAI(targetAi);
-                                AdvancedOptionsDialog dialog = new AdvancedOptionsDialog(
-                                        reviewerService, service, manuscript, setting,
-                                        freshMessage, null, opts -> {
-                                    ReviewDialog rDialog = new ReviewDialog(reviewerService, freshMessage, manuscript, opts);
-                                    rDialog.open();
-                                });
-                                dialog.open();
-                            } catch (Exception ex) {
-                                UIUtils.internalServerError(loc, ex);
-                            }
-                        });
-
-                        boolean hasReview = reviewerService.getReviewData(message) != null;
-                        MenuItem deleteItem = reviewMenuItem.getSubMenu().addItem("Delete Review", e -> {
-                            try {
-                                ChatMessage freshMessage = reviewerService.refreshMessage(message);
-                                reviewerService.deleteReviewData(freshMessage);
-                            } catch (Exception ex) {
-                                UIUtils.internalServerError(loc, ex);
-                            }
-                        });
-                        deleteItem.setEnabled(hasReview);
-
-                        // Attach component data to Vaadin components directly
-                        ComponentUtil.setData(hamburgerMenu, REVIEW_MENU_ITEM_KEY, reviewMenuItem);
-                        ComponentUtil.setData(hamburgerMenu, DELETE_MENU_ITEM_KEY, deleteItem);
-
-                        // Register menu softly for unload cleanup
-                        activeMenus.add(hamburgerMenu);
-                    }
-                }
-            };
-
-            extensionService.registerDecorator(
-                    cardDecorator,
-                    "com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart$ChatMessageCard",
-                    "createMenuItems"
-            );
-            // the story of the phone dialog has its own card with the same menu
-            extensionService.registerDecorator(
-                    cardDecorator,
-                    "com.github.enerccio.marginalia.ui.dialogs.phone.manuscript.PhoneManuscriptStoryPart$ChatMessageCard",
-                    "createMenuItems"
-            );
-
-            cardDecoratorRefresh = new ExtensionDecorator() {
-
-                @Override
-                public void onMethodEnter(Object instrumented, ExtendableMethodContext context) throws Exception {
-
-                }
-
-                @Override
-                public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
-                    ContextMenu hamburgerMenu = context.getReflectiveFieldValue(instrumented, "hamburgerMenu", ContextMenu.class);
-                    ChatMessage message = context.getReflectiveFieldValue(instrumented, "message", ChatMessage.class);
-                    if (hamburgerMenu != null && message != null) {
-                        MenuItem deleteItem = (MenuItem) ComponentUtil.getData(hamburgerMenu, DELETE_MENU_ITEM_KEY);
-                        if (deleteItem != null) {
-                            boolean hasReview = reviewerService.getReviewData(message) != null;
-                            deleteItem.setEnabled(hasReview);
+                    })
+                    .parent(MENU_REVIEW));
+            menuRegistry.register(owner, StoryMenuItem.card(MENU_ADVANCED, l -> T.localized("Review: Advanced Options"), (story, card) -> {
+                        try {
+                            ChatMessage freshMessage = reviewerService.refreshMessage(card.getMessage());
+                            Manuscript manuscript = manuscriptService.find(freshMessage.getParentScript());
+                            ReviewerSettings settings = reviewerService.getSettings();
+                            ReviewerSetting setting = reviewerService.resolveSetting(settings, manuscript);
+                            AI targetAi = reviewerService.resolveAI(setting, manuscript);
+                            InferenceService service = inferenceServices.forAI(targetAi);
+                            AdvancedOptionsDialog dialog = new AdvancedOptionsDialog(
+                                    reviewerService, service, manuscript, setting,
+                                    freshMessage, null, opts -> {
+                                ReviewDialog rDialog = new ReviewDialog(reviewerService, freshMessage, manuscript, opts);
+                                rDialog.open();
+                            });
+                            dialog.open();
+                        } catch (Exception ex) {
+                            UIUtils.internalServerError(loc, ex);
                         }
-                    }
-                }
-            };
-
-            extensionService.registerDecorator(
-                    cardDecoratorRefresh,
-                    "com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart$ChatMessageCard",
-                    "refreshSummaryMenuItems"
-            );
-            // the story of the phone dialog has its own card with the same menu
-            extensionService.registerDecorator(
-                    cardDecoratorRefresh,
-                    "com.github.enerccio.marginalia.ui.dialogs.phone.manuscript.PhoneManuscriptStoryPart$ChatMessageCard",
-                    "refreshSummaryMenuItems"
-            );
+                    })
+                    .contextLabel((l, story, card) -> T.localized("Advanced Options"))
+                    .parent(MENU_REVIEW));
+            menuRegistry.register(owner, StoryMenuItem.card(MENU_DELETE, l -> T.localized("Delete Review"), (story, card) -> {
+                        try {
+                            ChatMessage freshMessage = reviewerService.refreshMessage(card.getMessage());
+                            reviewerService.deleteReviewData(freshMessage);
+                        } catch (Exception ex) {
+                            UIUtils.internalServerError(loc, ex);
+                        }
+                    })
+                    // the part menu reloads the message before it works the state of its items out
+                    .enabledWhen((story, card) -> card != null && reviewerService.getReviewData(card.getMessage()) != null)
+                    .parent(MENU_REVIEW));
 
             // Hook into UserPart to insert extension settings panel into Accordion
             userPartDecorator = new ExtensionDecorator() {
@@ -202,7 +137,7 @@ public class ReviewerExtension implements MarginaliaExtension {
                             });
                         } else {
                             ReviewerSettingsForm form = new ReviewerSettingsForm(reviewerService);
-                            contentPanel = extensionSettings.add("Reviewer Settings", form);
+                            contentPanel = extensionSettings.add(T.localized("Reviewer Settings"), form);
                             ComponentUtil.setData(extensionSettings, SETTINGS_PANEL_KEY, contentPanel);
                             activeAccordions.add(extensionSettings);
                         }
@@ -314,12 +249,8 @@ public class ReviewerExtension implements MarginaliaExtension {
 
     @Override
     public void onExtensionUnload(Bundle b, OsgiService osgiService, ExtensionService extensionService) {
-        if (cardDecorator != null) {
-            extensionService.unregisterDecorator(cardDecorator);
-        }
-        if (cardDecoratorRefresh != null) {
-            extensionService.unregisterDecorator(cardDecoratorRefresh);
-        }
+        // the menus that are open hide the items and they run nothing any more
+        menuRegistry.unregisterAll(b.getSymbolicName());
         if (userPartDecorator != null) {
             extensionService.unregisterDecorator(userPartDecorator);
         }
@@ -334,20 +265,6 @@ public class ReviewerExtension implements MarginaliaExtension {
         }
 
         // the components belong to the UIs of all users - change each one in its own session
-        synchronized (activeMenus) {
-            for (ContextMenu menu : activeMenus) {
-                UIUtils.accessComponent(menu, () -> {
-                    MenuItem reviewMenuItem = (MenuItem) ComponentUtil.getData(menu, REVIEW_MENU_ITEM_KEY);
-                    if (reviewMenuItem != null) {
-                        menu.remove(reviewMenuItem);
-                        ComponentUtil.setData(menu, REVIEW_MENU_ITEM_KEY, null);
-                        ComponentUtil.setData(menu, DELETE_MENU_ITEM_KEY, null);
-                    }
-                });
-            }
-            activeMenus.clear();
-        }
-
         synchronized (activeProfileSelects) {
             for (ManuscriptProfileSelect select : activeProfileSelects) {
                 UIUtils.accessComponent(select, select::removeFromParent);

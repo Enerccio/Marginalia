@@ -29,19 +29,27 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.web.context.request.RequestAttributes;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
+
+import static com.github.enerccio.marginalia.extensions.googlegenai.GoogleGenAiLocalization.T;
 
 /**
  * The inference service of a Google Gemini AI, over the Google Gen AI Java SDK. It does what the service of an OpenAI
  * compatible AI does: streams with the reasoning (the thought summaries of Gemini) apart from the answer, lets the model
  * call the functions, answers in a JSON schema, counts the usage of the user and honors the limits an administrator set.
  * <p>
- * The tokens of the texts are counted with the approximate tokenizer of the application, the count of Google's own
- * tokenizer would need a request for each text. The usage is what Google reports.
+ * The tokens of the texts are counted by Google ({@code models.countTokens}, through the {@link TokenizerResolver} of the
+ * {@link GoogleGenAiFactory} so that the application caches the way of counting and counts approximately inside a transaction
+ * that holds the database write lock). Each text is asked once (the answers are remembered), and after a failure the service
+ * counts approximately for a minute instead of waiting for Google on every text. The usage is what Google reports.
  */
 @Configurable
 public class GoogleGenAiInferenceService implements InferenceService, AutoCloseable {
@@ -61,6 +69,7 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
     private final ExtensionAI ai;
     private final GoogleGenAiSettings settings;
     private final Logger log;
+    private final Supplier<String> sessionIds;
 
     /**
      * The header that names the request on its way through the client, so that the HTTP call of a request can be
@@ -71,13 +80,36 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
     // the HTTP calls that are running, by the id of the request they belong to
     private final Map<String, Call> activeCalls = new ConcurrentHashMap<>();
 
+    private static final int COUNT_CACHE_SIZE = 512;
+    private static final long COUNT_PAUSE_MILLIS = 60_000;
+
+    // the tokens of the texts Google counted, by the hash of the text (the least recently used go first)
+    private final Map<String, Long> countCache = Collections.synchronizedMap(new LinkedHashMap<>(64, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, Long> eldest) {
+            return size() > COUNT_CACHE_SIZE;
+        }
+    });
+
+    // after a failed count Google is not asked until then, the estimate is used
+    private volatile long countPausedUntil;
+
     private Client client;
     private boolean closed;
 
     GoogleGenAiInferenceService(ExtensionAI ai, GoogleGenAiSettings settings, Logger log) {
+        this(ai, settings, log, () -> null);
+    }
+
+    /**
+     * @param sessionIds the session id of the request that starts on the calling thread, see
+     *                   {@code InferenceServices.currentSessionId()}
+     */
+    GoogleGenAiInferenceService(ExtensionAI ai, GoogleGenAiSettings settings, Logger log, Supplier<String> sessionIds) {
         this.ai = ai;
         this.settings = settings;
         this.log = log;
+        this.sessionIds = sessionIds;
     }
 
     // ---- models and connection
@@ -113,7 +145,40 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
 
     @Override
     public long countTokens(String text) throws Exception {
-        return tokenizerService.countTokensApprox(text);
+        return tokenizerService.countTokens(ai, text);
+    }
+
+    /**
+     * The count of Google's own tokenizer, for {@link GoogleGenAiFactory}'s resolver: the application calls it through
+     * {@link TokenizerService#countTokens}, which falls back to the estimate when this throws.
+     */
+    long countTokensOnline(String text) {
+        if (System.currentTimeMillis() < countPausedUntil) {
+            throw new IllegalStateException("Counting with Google is paused after a failure");
+        }
+        String hash = sha256(text);
+        Long known = countCache.get(hash);
+        if (known != null) {
+            return known;
+        }
+        try {
+            long tokens = client().models.countTokens(model(), text, CountTokensConfig.builder().build()).totalTokens()
+                    .orElseThrow(() -> new IllegalStateException("Google did not tell the number of tokens"));
+            countCache.put(hash, tokens);
+            return tokens;
+        } catch (RuntimeException e) {
+            countPausedUntil = System.currentTimeMillis() + COUNT_PAUSE_MILLIS;
+            logFailure("Counting the tokens with Google failed, counting approximately for a minute", e);
+            throw runtime(e);
+        }
+    }
+
+    private static String sha256(String text) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 is not available", e);
+        }
     }
 
     @Override
@@ -341,6 +406,8 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
         // read in the thread that starts the request: it is not metered inside an UnmeteredScope (the help assistant)
         final boolean metered = !UnmeteredScope.isActive();
         final String id = UUID.randomUUID().toString();
+        // read in the same thread: the header that tells a server with a prompt cache what kind of work this is
+        final String sessionId = sessionIds.get();
 
         Run(Protocol protocol, FunctionSet functions, JsonNode schema, Content systemInstruction, Outcome outcome) {
             this.protocol = protocol;
@@ -378,8 +445,10 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
 
     private GenerateContentConfig config(Run run, boolean noFunctionCalls) {
         Protocol protocol = run.protocol;
+        Map<String, String> headers = run.sessionId == null ? Map.of(REQUEST_HEADER, run.id)
+                : Map.of(REQUEST_HEADER, run.id, InferenceSession.HEADER, run.sessionId);
         GenerateContentConfig.Builder config = GenerateContentConfig.builder()
-                .httpOptions(HttpOptions.builder().headers(Map.of(REQUEST_HEADER, run.id)).build());
+                .httpOptions(HttpOptions.builder().headers(headers).build());
         if (run.systemInstruction != null) {
             config.systemInstruction(run.systemInstruction);
         }
@@ -475,7 +544,7 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
 
     private String model() {
         if (settings.model().isBlank()) {
-            throw new InferenceException(Type.MODEL_NOT_FOUND, null, "No model is set", null);
+            throw new InferenceException(Type.MODEL_NOT_FOUND, null, T.localized("No model is set"), null);
         }
         return settings.model();
     }
@@ -491,7 +560,7 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
         }
         if (client == null) {
             if (settings.apiKey().isBlank()) {
-                throw new InferenceException(Type.AUTHENTICATION, null, "No API key is set", null);
+                throw new InferenceException(Type.AUTHENTICATION, null, T.localized("No API key is set"), null);
             }
             Duration timeout = Duration.ofSeconds(settings.timeoutSeconds());
             // read is the wait for the first text and between the chunks; the whole request limit must not cut a long

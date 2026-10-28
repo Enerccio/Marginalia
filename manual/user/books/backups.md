@@ -21,6 +21,9 @@ the number of **Messages** (parts) it contains and the number of **Images** (the
 
 Backups can also be taken automatically, see [below](#automatic-backups).
 
+A backup holds the whole story tree, the summaries and the [annotations](annotations.md) of the parts; restoring it, copying a book and importing a
+backup bring the notes back.
+
 ## Pictures in a backup
 
 A backup remembers **which pictures** the parts have (and their captions), but **not the picture files**. This keeps

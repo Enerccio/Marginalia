@@ -15,13 +15,14 @@ Administrators are also normal users with their own books - they don't see other
 ## The Admin page
 
 Administrators have an **Admin** button at the bottom of the workspace. It is only in the normal layout: the
-[phone layout](../phone.md) (a window narrower than 768 pixels) has no Admin page, so open Marginalia in a wider window (and reload the page) for administration. It opens the admin page with six tabs:
+[phone layout](../phone.md) (a window narrower than 768 pixels) has no Admin page, so open Marginalia in a wider window (and reload the page) for administration. It opens the admin page with these tabs:
 
 | Tab | |
 |---|---|
 | **Users** | Creating, editing and deleting accounts, and giving users [permissions](permissions.md). See [Users](users.md). |
 | **Database Backups** | Backups of the whole database, on demand or on a schedule, and restoring them. See [Database backups](database-backups.md). |
 | **Cleanup** | Permanently removing deleted data. See [Cleanup](cleanup.md). |
+| **Resource Files** | Finding the files of resources that nothing uses any more, downloading them as a ZIP and deleting them from the disk. See [Resource Files](resource-files.md). |
 | **Help assistant** | The chat that answers questions from the manual: the model, the prompts and who pays for it. See [Help assistant](help-assistant.md). |
 | **Agents** | The system prompt and the compaction prompt that agents follow when neither they nor their user have one of their own. Empty is the built-in prompt; the info icon has **Insert Default Template**, which fills it in so you can edit a copy. What users may do with agents is their [permission](permissions.md). Also **Agents may send messages to the webhooks of users**: the server calls the address a user typed in their settings when an agent needs them and they have the application closed ([When you are not there](../agents.md#when-you-are-not-there)); turn it off where that is not acceptable. |
 | **Extensions** | Installing and removing extensions. See [Managing extensions](extensions.md). |

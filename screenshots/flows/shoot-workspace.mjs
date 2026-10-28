@@ -1,20 +1,6 @@
 // Screenshots of the workspace tabs (Books, Protocols, Inference Providers, Settings, Lorebooks, Resources, Trash,
 // Language). Run on step 13-db-backup or later. Nothing stays changed (dialogs are cancelled, the language is reset).
-import {
-    CONTENT,
-    dialog,
-    fill,
-    idle,
-    login,
-    main,
-    openTab,
-    pick,
-    press,
-    section,
-    sleep,
-    snap,
-    snapDialog
-} from '../lib/shot.mjs';
+import {CONTENT, dialog, fill, idle, login, main, openTab, pick, press, section, sleep, snap, snapDialog, rowIconButton} from '../lib/shot.mjs';
 
 await main(async ({ page }) => {
   await login(page);
@@ -43,7 +29,7 @@ await main(async ({ page }) => {
   await section(page, 'providers', async () => {
     await openTab(page, 'Inference Providers');
     await snap(page, 'inference-providers-list', { clip: CONTENT });
-    await page.mouse.click(1850, 228);                         // pen of Local LLM
+    await (await rowIconButton(page, 'Local LLM', 'pen')).click();   // pen of Local LLM
     await idle(page, 800);
     const d = dialog(page);
     await d.getByText('Per Type Settings', { exact: true }).click();
