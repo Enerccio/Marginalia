@@ -6,6 +6,8 @@ import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.domain.service.SummaryService.SummaryBlock;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -27,7 +29,67 @@ final class StoryAround {
      */
     private static final int FOLLOWING_SHARE = 4;
 
+    /**
+     * Parts of the budget the room of the story is rounded down to (a power of two, the room is never less than one step).
+     */
+    private static final int ROOM_STEPS = 16;
+
     private StoryAround() {
+    }
+
+    /**
+     * The room for the story around the part, rounded down to a step of a sixteenth of the budget. The room is what the budget
+     * leaves after the rest of the prompt (the part, its notes, the task), and as such it changes with every redraft by a few
+     * tokens; and where it ends decides which part is the first of the story that is sent. A server that keeps the prompt it has
+     * read can only reuse it up to the first difference, so a start of the story that moves by a part with each request makes it
+     * read the whole story again. With a rounded room the story stays the same until the rest of the prompt changes by a step.
+     * The prompt only gets shorter by the rounding, never longer.
+     *
+     * @param room   what is left of the budget
+     * @param budget the tokens the whole prompt may take
+     */
+    static long stableRoom(long room, long budget) {
+        long step = Math.max(256, Long.highestOneBit(Math.max(1, budget / ROOM_STEPS)));
+        long rounded = room / step * step;
+        return rounded > 0 ? rounded : room;
+    }
+
+    /** The user message in front of the first part of the story that is sent as messages. */
+    static final String STORY_START = "[ The story so far. ]";
+
+    /** The user message in front of every other part. */
+    static final String STORY_MORE = "[ The story goes on. ]";
+
+    /** What the text of the prompt says about the story that is sent as messages instead of in it. */
+    static final String STORY_IN_MESSAGES = "The story before the part follows as the earlier messages of this conversation, oldest first.";
+
+    /**
+     * The tokens a part takes besides its text when it is sent as a message: the message before it from the user and the markers
+     * of the roles of both.
+     */
+    private static final int MESSAGE_OVERHEAD = 24;
+
+    /**
+     * The prompt as the messages the model gets: the system message, then the parts of the story as the answers of the model (each
+     * after a message from the user, as a generation sends them) and the last message from the user, which holds what changes from
+     * one request to the next. A server that keeps what it has read can only continue from where a message of the user starts, and
+     * a new part only adds messages at the end, so what it has read of the story stays valid; a story inside one big message would
+     * not, and neither would a part inside the system message.
+     *
+     * @param story the parts of the story before the part, oldest first
+     */
+    static List<LLMChatMessage> messages(String system, List<String> story, String user) {
+        List<LLMChatMessage> messages = new ArrayList<>();
+        if (!system.isBlank()) {
+            messages.add(LLMChatMessage.of(LLMRole.SYSTEM, system.stripTrailing()));
+        }
+        for (int i = 0; i < story.size(); i++) {
+            messages.add(LLMChatMessage.of(LLMRole.USER, i == 0 ? STORY_START : STORY_MORE));
+            messages.add(LLMChatMessage.of(LLMRole.ASSISTANT, story.get(i)));
+        }
+        // the conversation ends with a message from the user
+        messages.add(LLMChatMessage.of(LLMRole.USER, user.isBlank() ? STORY_MORE : user.strip()));
+        return messages;
     }
 
     /**
@@ -35,7 +97,7 @@ final class StoryAround {
      * @param previous  the story before the part that is not covered by the summaries, oldest first
      * @param following the story after the part
      */
-    record Around(String summaries, String previous, String following) {
+    record Around(String summaries, String previous, String following, List<String> previousParts, long previousPartsTokens) {
     }
 
     /**
@@ -45,6 +107,16 @@ final class StoryAround {
      */
     static Around collect(SummaryService summaryService, InferenceService inferenceService, List<ChatMessage> before,
                           List<ChatMessage> after, long room) throws Exception {
+        return collect(summaryService, inferenceService, before, after, room, false);
+    }
+
+    /**
+     * @param chain whether the story before the part is sent as messages ({@link #messages}) and not in the text: each of its parts
+     *              then takes the tokens of a message besides its own
+     */
+    static Around collect(SummaryService summaryService, InferenceService inferenceService, List<ChatMessage> before,
+                          List<ChatMessage> after, long room, boolean chain) throws Exception {
+        long overhead = chain ? MESSAGE_OVERHEAD : 2;
         // the story after the part is only a hint of where it leads, so it gets a share of the room
         long followingRoom = room / FOLLOWING_SHARE;
         List<String> following = new ArrayList<>();
@@ -61,7 +133,9 @@ final class StoryAround {
             followingTokens += tokens;
         }
 
-        long previousRoom = room - followingTokens;
+        // the share of the story after the part is taken from the room whenever there is some, however much of it fits: the story
+        // before the part must not start elsewhere each time a part is added after it
+        long previousRoom = room - (following.isEmpty() ? 0 : followingRoom);
         List<ChatMessage> newestFirst = new ArrayList<>(before.reversed());
         List<SummaryBlock> blocks = summaryService.collectBlocks(newestFirst);
         // summaries that do not describe the story anymore are not told to the model, the story is used as it is instead
@@ -85,6 +159,7 @@ final class StoryAround {
 
         List<String> previous = new ArrayList<>();
         long previousTokens = summaryTokens;
+        long partsTokens = 0;
         ChatMessage stop = summarized ? blocks.getFirst().head() : null;
         for (ChatMessage earlier : newestFirst) {
             if (stop != null && Objects.equals(stop.getId(), earlier.getId())) {
@@ -93,16 +168,18 @@ final class StoryAround {
             if (StringUtils.isBlank(earlier.getResponse())) {
                 continue;
             }
-            long tokens = tokensOf(inferenceService, earlier) + 2;
+            long tokens = tokensOf(inferenceService, earlier) + overhead;
             if (previousTokens + tokens > previousRoom) {
                 break;
             }
             previous.add(earlier.getResponse());
             previousTokens += tokens;
+            partsTokens += tokens;
         }
         Collections.reverse(previous);
 
-        return new Around(String.join(SEPARATOR, summaries), String.join(SEPARATOR, previous), String.join(SEPARATOR, following));
+        return new Around(String.join(SEPARATOR, summaries), String.join(SEPARATOR, previous), String.join(SEPARATOR, following),
+                List.copyOf(previous), partsTokens);
     }
 
     /**

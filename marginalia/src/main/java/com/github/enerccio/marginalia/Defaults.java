@@ -119,7 +119,7 @@ Execute Level-2 Context Consolidation Protocol. Aggregate sequential event ledge
 === PREVIOUSLY SUMMARIZED BLOCKS END ===
 """;
 
-    public static final String DEFAULT_REDRAFT_PROMPT = """
+    public static final String DEFAULT_REDRAFT_SYSTEM_PROMPT = """
 ### OBJECTIVE
 Redraft one part of the ongoing narrative "MANUSCRIPT CHRONICLE". Rewrite the PART TO REDRAFT the way the AUTHOR'S INSTRUCTIONS ask, so that it stays a seamless piece of the story: it must still fit what comes before it and lead into what follows it.
 {{#selection}}The author selected only one PASSAGE of the part, marked in it by [[PASSAGE TO REDRAFT]] and [[/PASSAGE TO REDRAFT]]: rewrite just that passage and leave the rest of the part as it is.
@@ -145,11 +145,7 @@ Redraft one part of the ongoing narrative "MANUSCRIPT CHRONICLE". Rewrite the PA
 {{#style}}Style & Tone Guidelines:
 {{.}}{{/style}}
 
-{{#backgroundLore}}=== BACKGROUND LORE START ===
-{{.}}
-=== BACKGROUND LORE END ===
-
-{{/backgroundLore}}{{#summaries}}=== SUMMARY OF THE STORY BEFORE THE PART START ===
+{{#summaries}}=== SUMMARY OF THE STORY BEFORE THE PART START ===
 {{.}}
 === SUMMARY OF THE STORY BEFORE THE PART END ===
 
@@ -157,7 +153,17 @@ Redraft one part of the ongoing narrative "MANUSCRIPT CHRONICLE". Rewrite the PA
 {{.}}
 === STORY BEFORE THE PART END ===
 
-{{/previousStory}}{{#followingStory}}=== STORY AFTER THE PART START ===
+{{/previousStory}}
+
+{{#backgroundLore}}=== BACKGROUND LORE START ===
+{{.}}
+=== BACKGROUND LORE END ===
+
+{{/backgroundLore}}
+""";
+
+    public static final String DEFAULT_REDRAFT_PROMPT = """
+{{#followingStory}}=== STORY AFTER THE PART START ===
 {{.}}
 === STORY AFTER THE PART END ===
 
@@ -181,7 +187,7 @@ Redraft one part of the ongoing narrative "MANUSCRIPT CHRONICLE". Rewrite the PA
 {{/annotations}}
 """;
 
-    public static final String DEFAULT_ANNOTATE_PROMPT = """
+    public static final String DEFAULT_ANNOTATE_SYSTEM_PROMPT = """
 ### OBJECTIVE
 Review one part of the ongoing narrative "MANUSCRIPT CHRONICLE" as its editor and annotate it: find the passages of the PART TO REVIEW that have a problem in the sense of the EDITOR'S TASK and write a short note for the author about each of them.
 
@@ -197,11 +203,7 @@ Review one part of the ongoing narrative "MANUSCRIPT CHRONICLE" as its editor an
 {{#style}}Style & Tone Guidelines:
 {{.}}{{/style}}
 
-{{#backgroundLore}}=== BACKGROUND LORE START ===
-{{.}}
-=== BACKGROUND LORE END ===
-
-{{/backgroundLore}}{{#summaries}}=== SUMMARY OF THE STORY BEFORE THE PART START ===
+{{#summaries}}=== SUMMARY OF THE STORY BEFORE THE PART START ===
 {{.}}
 === SUMMARY OF THE STORY BEFORE THE PART END ===
 
@@ -209,7 +211,17 @@ Review one part of the ongoing narrative "MANUSCRIPT CHRONICLE" as its editor an
 {{.}}
 === STORY BEFORE THE PART END ===
 
-{{/previousStory}}{{#followingStory}}=== STORY AFTER THE PART START ===
+{{/previousStory}}
+
+{{#backgroundLore}}=== BACKGROUND LORE START ===
+{{.}}
+=== BACKGROUND LORE END ===
+
+{{/backgroundLore}}
+""";
+
+    public static final String DEFAULT_ANNOTATE_PROMPT = """
+{{#followingStory}}=== STORY AFTER THE PART START ===
 {{.}}
 === STORY AFTER THE PART END ===
 

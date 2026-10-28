@@ -8,9 +8,9 @@ icon: database
 
 Model servers keep the prompt they have just read (the *prompt cache*), so that the next request that starts with the
 same text doesn't have to read it again. For a long story that is the difference between waiting a few seconds and
-waiting minutes. Marginalia builds its prompts so that this works (the story first, the new part last), and it can also
-tell the server **what kind of work a request is**, so that a server, or a proxy in front of it, can keep a cache for each
-kind.
+waiting minutes. A cache only helps as far as the new prompt starts like the old one (see [Why a cache may not
+help](#why-a-cache-may-not-help)). Marginalia can also tell the server **what kind of work a request is**, so that a
+server, or a proxy in front of it, can keep a cache for each kind.
 
 ## What is sent
 
@@ -44,6 +44,49 @@ not one per book, so a server never has to keep more caches than that.
 All providers send it: OpenAI-compatible ones, and the [Anthropic Claude](extensions/anthropic.md) and
 [Google Gemini](extensions/google-genai.md) providers. A server that doesn't use the header ignores it. There is no
 setting to switch it off.
+
+## Why a cache may not help
+
+A server reuses the part of the cache where the new prompt is the same as the old one **from the very first token**; the
+first difference ends it, and everything after it is read again, however much of it is unchanged. Look at the
+`llama-server` line printed when a request starts:
+
+```
+selected slot by LCP similarity, sim_best = 0.163, f_keep = 0.151
+```
+
+`f_keep` is the share of the cached prompt the new request keeps. Near 1 the cache is used; here only 15 % is, so the
+prompt differs from the cached one early on, whether the cache was restored from disk or never left the slot.
+
+Models with a **sliding window** (Gemma, for one) and hybrid models can not drop the end of their cache and go on from
+the middle. As far as the `llama.cpp` source says, `llama-server` can only continue from a cached prompt when the new
+prompt extends it exactly, or when a **context checkpoint** exists at or before the place where the two differ. It makes
+checkpoints only at the start of user messages (at least 8192 tokens apart) and shortly before the end of the prompt,
+and keeps them in the slot file (INFO lines `appended N context checkpoint(s)` and `restored N context checkpoint(s)` tell
+when it does). Without a usable checkpoint it reads the whole prompt again, whatever the `f_keep` says, and it reports
+that only at trace level (`-lv 4`: `forcing full prompt re-processing due to lack of cache data`). That is why the
+story of a generation, of an annotation and of a redraft is sent as a chain of messages, each part as an answer of the
+model after a message of the user: the last message of the user is checkpointed, which is where the next request starts
+to differ, and a new part only adds messages at the end. Reading a cold prefill off the log: the first
+`prompt processing, n_tokens = 4096` line comes after about 7 s here; if a prefix had been reused it would come after
+a second or two.
+
+The [prompt](books/prompts.md#how-the-prompt-is-put-together) starts with the **system message**, and the story comes
+after it, so what is in the system message must stay the same from one request to the next. In the default master template the system message holds, in this order, the lore block, the summaries and the
+author's notes (annotations). When any of them changes between two requests, which is usual (the new text activates other
+lore entries, a summary is added, a note is added or resolved), the cache is valid only up to that point and the whole
+story behind it is read again. The oldest parts leave the prompt first when the story no longer fits, which moves the
+start of the story by one part on every turn. What helps:
+
+- Give the entries that change from part to part the insertion mode **Before User Prompt**
+  ([Order and insertion](lorebooks/entries.md#order-and-insertion)): they go to the end of the prompt, behind the
+  story, and do not disturb the cache. Keep what is always true in the lore block.
+- Leave the blocks you do not use out of the master template (the author's notes, for example, if you do not give notes
+  to the model), so that the system message stays the same.
+- Compare the prompts of two parts in a row with **Show Prompt** and look for the first line that differs: that is where
+  the cache ends.
+
+The request kinds below matter for what is kept when you switch between them; the prompt decides how much of it is used.
 
 ## Using it: one slot on disk with llama.cpp
 
@@ -250,9 +293,15 @@ class SlotSwitcher:
             if response.status_code in (401, 403):
                 log.warning("slot_cache: %s %s: the server refused the api key (%d)", self.base_url, action,
                             response.status_code)
+            detail = ""
+            if response.is_success:
+                try:
+                    detail = describe(response.json())
+                except ValueError:
+                    pass
             log.info("slot_cache: %s %s %s (%s%s): %s", self.base_url, action, key or "", self.model or "-",
                      "" if self.slot == 0 else f", slot {self.slot}",
-                     "ok" if response.is_success else
+                     "ok" + detail if response.is_success else
                      (f"miss ({response.status_code})" if action == "restore" else f"failed ({response.status_code})"))
             return response.is_success
         except httpx.HTTPError as e:
@@ -317,6 +366,56 @@ class SlotSwitcher:
             self.current = None
 
 
+def describe(body):
+    """What llama-server says about a slot call that worked: it logs nothing itself, the numbers are in the answer."""
+    if not isinstance(body, dict):
+        return ""
+    timings = body.get("timings") if isinstance(body.get("timings"), dict) else {}
+    try:
+        if "n_restored" in body:
+            return f" ({body['n_restored']} tokens, {body.get('n_read', 0) / 1e6:.0f} MB, {timings.get('restore_ms', 0) / 1000:.1f} s)"
+        if "n_saved" in body:
+            return f" ({body['n_saved']} tokens, {body.get('n_written', 0) / 1e6:.0f} MB, {timings.get('save_ms', 0) / 1000:.1f} s)"
+        if "n_erased" in body:
+            return f" ({body['n_erased']} tokens dropped)"
+    except (TypeError, ValueError):
+        pass
+    return ""
+
+
+def text_of(message):
+    """The text of a chat message: a string, or the text parts of a list."""
+    content = message.get("content") if isinstance(message, dict) else None
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        return "".join(part.get("text", "") for part in content if isinstance(part, dict))
+    return ""
+
+
+def compare(previous, messages):
+    """Says where a prompt first differs from the last one of its session: a server can reuse its cache up to there, and not
+    after it, however much of the rest is the same. `previous` and `messages` are lists of (role, text). The last message is
+    compared with the last one of the other prompt as well: it holds what changes, and when a story grew by a message it is not
+    at the same place."""
+    shared = 0
+    while shared < min(len(previous), len(messages)) and previous[shared] == messages[shared]:
+        shared += 1
+    if shared == len(previous) == len(messages):
+        return f"the same as the last one ({len(messages)} messages)"
+    if shared == len(previous) or shared == len(messages):
+        said = (f"{len(messages)} messages, the last one had {len(previous)}: the first {shared} are the same, "
+                f"{'new messages follow' if shared == len(previous) else 'the end is cut'}")
+    else:
+        role, text = messages[shared]
+        same = len(os.path.commonprefix([previous[shared][1], text]))
+        said = (f"{len(messages)} messages, the last one had {len(previous)}: the first {shared} are the same, message {shared + 1} "
+                f"({role}) is the same for its first {same} of {len(text)} characters (the last one: {len(previous[shared][1])})")
+    last_now, last_before = messages[-1][1], previous[-1][1]
+    return (said + f"; the last message is the same as the last one's last message for its first "
+            f"{len(os.path.commonprefix([last_before, last_now]))} of {len(last_now)} characters (the last one: {len(last_before)})")
+
+
 def upstream_model(model):
     """The name the server knows the model by: LiteLLM's name is `openai/<name>`."""
     return model[len("openai/"):] if model and model.startswith("openai/") else model
@@ -334,7 +433,17 @@ class SlotCacheHook(CustomLogger):
         self.switchers = {}
         self.loaded = {}            # per server: the models the router has loaded, the one used longest ago first
         self.skipped = set()        # the routes that were reported as not used
+        self.last = {}              # the messages of the last prompt of each session, to say where the next one differs
         self.client = httpx.AsyncClient(timeout=None)
+
+    def explain(self, key, messages):
+        if not isinstance(messages, list):
+            return
+        current = [(m.get("role"), text_of(m)) for m in messages if isinstance(m, dict)]
+        previous = self.last.get(key)
+        self.last[key] = current
+        if previous is not None:
+            log.info("slot_cache: %s prompt: %s", key, compare(previous, current))
 
     async def make_room(self, root, model, models_max, api_key):
         """Follows the models the router has loaded; the ones it unloads for `model` get their slot saved first."""
@@ -373,6 +482,7 @@ class SlotCacheHook(CustomLogger):
         slot = int(options.get("slot", SLOT))
         model = options.get("model") or upstream_model(kwargs.get("model"))
         where = (server_root(api_base), model, slot)
+        self.explain(f"{tag}_{session}", kwargs.get("messages"))
         await self.make_room(where[0], model, int(options.get("models_max", MODELS_MAX)), kwargs.get("api_key"))
         if where not in self.switchers:
             self.switchers[where] = SlotSwitcher(where[0], slot, self.client, model)
@@ -473,11 +583,21 @@ Things to know:
   while the hook still thinks the last session is in it. A request for the same session simply reads its prompt again;
   a request for another one saves the empty slot over that session's file first, so its cache is lost too. Both only
   cost a prefill.
-- **The log of the proxy** (with `LITELLM_LOG=INFO`) has a line for every call the hook makes, for example
-  `slot_cache: https://… restore <file> (openai/model): ok`, `… save <file> …: ok` or `… restore … miss (400)`; the miss of
+- **`llama-server` does not log a plain save or restore** (it logs the context checkpoints it appends or restores, and
+  errors). What it did is in its answer, and the log of the proxy (with `LITELLM_LOG=INFO`) has it, with a line for every
+  call the hook makes, for example `slot_cache: https://… restore <file> (openai/model): ok (21920 tokens, 2580 MB,
+  3.1 s)`, `… save <file> …: ok (…)` or `… restore … miss (400)`; the miss of
   the first request of a session is normal (llama-server logs it as "Unable to restore slot, no available space in KV
   cache or invalid slot save file"). Real problems are warnings: a certificate that does not match the address, a
   refused api key, a server that does not answer.
+- **Where the prompt differs.** For every request after the first of a session the log has a line that says how far the
+  prompt is the same as the last one of that session, for example `slot_cache: <route>_<session> prompt: 14 messages, the last
+  one had 12: the first 11 are the same, message 12 (user) is the same for its first 2150 of 9031 characters`. A server can
+  reuse its cache only up to there (a message is about three or four characters per token), so this is the line to read
+  when a second request reads almost everything again: the message it names is the one whose start changed. The line also
+  compares the last message of the two prompts, which holds what changes (the lore, the part, the task): when the story grew by
+  a part, the old last message is not at the same place any more, and the number of characters the two last messages share is
+  how far the lore, for one, is the same in both.
 - **If nothing happens**, look at the log of the proxy (`docker logs litellm-proxy 2>&1 | grep slot_cache`): with the
   hook at work there is a line for every call, and a request of Marginalia for a route without `slot_cache` is reported
   once (`not used for <route>: no model_info.slot_cache`). No `slot_cache` line at all means the hook did not run: the
