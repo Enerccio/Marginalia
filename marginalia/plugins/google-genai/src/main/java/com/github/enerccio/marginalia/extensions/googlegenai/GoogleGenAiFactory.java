@@ -56,7 +56,7 @@ public class GoogleGenAiFactory implements ExtensionAIFactory {
      */
     GoogleGenAiInferenceService createService(ExtensionAI ai) {
         GoogleGenAiSettings settings = GoogleGenAiSettings.of(ai, inferenceServices::revealSecret);
-        GoogleGenAiInferenceService service = new GoogleGenAiInferenceService(ai, settings, log);
+        GoogleGenAiInferenceService service = new GoogleGenAiInferenceService(ai, settings, log, inferenceServices::currentSessionId);
         services.add(service);
         return service;
     }

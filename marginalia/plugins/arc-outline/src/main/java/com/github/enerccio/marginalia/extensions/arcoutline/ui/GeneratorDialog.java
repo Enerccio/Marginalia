@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
+import com.github.enerccio.marginalia.domain.service.InferenceSession;
 import com.github.enerccio.marginalia.domain.service.structured.PartialJson;
 import com.github.enerccio.marginalia.domain.service.tool.ToolSelection;
 import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
@@ -334,7 +335,7 @@ public abstract class GeneratorDialog extends Dialog {
             UI ui = UI.getCurrent();
             generating = true;
             updateControls();
-            try {
+            try (InferenceSession _ = InferenceSession.open("arc-outline")) {
                 running = inference.stream(service.toPayload(prompt), modelPicker.getProtocol(), schema, tools.functions(),
                         callback(ui));
             } catch (Exception e) {

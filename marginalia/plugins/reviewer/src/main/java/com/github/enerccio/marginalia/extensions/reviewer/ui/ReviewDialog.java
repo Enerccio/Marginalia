@@ -5,10 +5,7 @@ import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
-import com.github.enerccio.marginalia.domain.service.CancellationToken;
-import com.github.enerccio.marginalia.domain.service.InferenceErrors;
-import com.github.enerccio.marginalia.domain.service.InferenceService;
-import com.github.enerccio.marginalia.domain.service.InferenceServices;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.extensions.reviewer.model.*;
 import com.github.enerccio.marginalia.extensions.reviewer.service.ReviewerService;
@@ -241,7 +238,7 @@ public class ReviewDialog extends Dialog {
             ReviewItem currentItem = reviewData.getReviews().get(reviewData.getCurrent());
             currentItem.getMetadata().setAdvancedInfo(opts);
 
-            isGenerating = service.stream(payload, targetProtocol, new InferenceService.InferenceAsyncCallback() {
+            InferenceService.InferenceAsyncCallback reviewCallback = new InferenceService.InferenceAsyncCallback() {
                 private final StringBuilder responseBuf = new StringBuilder();
                 private final StringBuilder reasoningBuf = new StringBuilder();
 
@@ -294,7 +291,10 @@ public class ReviewDialog extends Dialog {
                 public boolean isDead() {
                     return isGenerating != null && isGenerating.isCancelled();
                 }
-            });
+            };
+            try (InferenceSession _ = InferenceSession.open("reviewer")) {
+                isGenerating = service.stream(payload, targetProtocol, reviewCallback);
+            }
 
         } catch (Exception e) {
             if (isGenerating != null) {

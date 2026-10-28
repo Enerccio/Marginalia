@@ -37,6 +37,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static com.github.enerccio.marginalia.extensions.googlegenai.GoogleGenAiLocalization.T;
 
@@ -68,6 +69,7 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
     private final ExtensionAI ai;
     private final GoogleGenAiSettings settings;
     private final Logger log;
+    private final Supplier<String> sessionIds;
 
     /**
      * The header that names the request on its way through the client, so that the HTTP call of a request can be
@@ -96,9 +98,18 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
     private boolean closed;
 
     GoogleGenAiInferenceService(ExtensionAI ai, GoogleGenAiSettings settings, Logger log) {
+        this(ai, settings, log, () -> null);
+    }
+
+    /**
+     * @param sessionIds the session id of the request that starts on the calling thread, see
+     *                   {@code InferenceServices.currentSessionId()}
+     */
+    GoogleGenAiInferenceService(ExtensionAI ai, GoogleGenAiSettings settings, Logger log, Supplier<String> sessionIds) {
         this.ai = ai;
         this.settings = settings;
         this.log = log;
+        this.sessionIds = sessionIds;
     }
 
     // ---- models and connection
@@ -395,6 +406,8 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
         // read in the thread that starts the request: it is not metered inside an UnmeteredScope (the help assistant)
         final boolean metered = !UnmeteredScope.isActive();
         final String id = UUID.randomUUID().toString();
+        // read in the same thread: the header that tells a server with a prompt cache what kind of work this is
+        final String sessionId = sessionIds.get();
 
         Run(Protocol protocol, FunctionSet functions, JsonNode schema, Content systemInstruction, Outcome outcome) {
             this.protocol = protocol;
@@ -432,8 +445,10 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
 
     private GenerateContentConfig config(Run run, boolean noFunctionCalls) {
         Protocol protocol = run.protocol;
+        Map<String, String> headers = run.sessionId == null ? Map.of(REQUEST_HEADER, run.id)
+                : Map.of(REQUEST_HEADER, run.id, InferenceSession.HEADER, run.sessionId);
         GenerateContentConfig.Builder config = GenerateContentConfig.builder()
-                .httpOptions(HttpOptions.builder().headers(Map.of(REQUEST_HEADER, run.id)).build());
+                .httpOptions(HttpOptions.builder().headers(headers).build());
         if (run.systemInstruction != null) {
             config.systemInstruction(run.systemInstruction);
         }

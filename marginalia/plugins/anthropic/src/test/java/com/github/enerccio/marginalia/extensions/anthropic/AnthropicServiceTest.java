@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 import static com.github.enerccio.marginalia.extensions.anthropic.FakeAnthropicServer.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -62,8 +63,12 @@ class AnthropicServiceTest {
     }
 
     private AnthropicInferenceService newService(ExtensionAI ai) {
+        return newService(ai, () -> null);
+    }
+
+    private AnthropicInferenceService newService(ExtensionAI ai, Supplier<String> sessionIds) {
         AnthropicInferenceService created = new AnthropicInferenceService(ai, AnthropicSettings.of(ai, key -> key),
-                LoggerFactory.getLogger("test"));
+                LoggerFactory.getLogger("test"), sessionIds);
         TokenizerService tokenizer = (TokenizerService) Proxy.newProxyInstance(getClass().getClassLoader(),
                 new Class<?>[]{TokenizerService.class}, (proxy, method, args) -> switch (method.getName()) {
                     case "countTokensApprox" -> (long) ((String) args[0]).length() / 4;
@@ -190,6 +195,27 @@ class AnthropicServiceTest {
         assertEquals("Begin.", request.path("messages").get(0).path("content").get(0).path("text").asText());
         assertFalse(request.has("temperature"), "the sampling settings are refused by the API");
         assertFalse(request.has("thinking"), "reasoning is off");
+    }
+
+    @Test
+    void sessionIdOfTheRequestIsSentAsAHeader() throws Exception {
+        server.stream(messageStart(10, 0), text(0, "ok"), end("end_turn", 1));
+        server.stream(messageStart(10, 0), text(0, "ok"), end("end_turn", 1));
+        AnthropicInferenceService withSession = newService(ai, () -> "0123456789abcdef0123456789abcdef");
+        try {
+            // a request of the plain service has none, the one of the service that has a session sends it
+            Collector without = new Collector();
+            service.stream(story(), null, without);
+            without.await();
+            Collector with = new Collector();
+            withSession.stream(story(), null, with);
+            with.await();
+        } finally {
+            withSession.close();
+        }
+
+        assertNull(server.sessionIds.get(0));
+        assertEquals("0123456789abcdef0123456789abcdef", server.sessionIds.get(1));
     }
 
     @Test

@@ -333,7 +333,9 @@ public class ArcOutlineService {
         record Answer(String text, SchemaCheck check) {
         }
         CompletableFuture<Answer> answer = new CompletableFuture<>();
-        CancellationToken token = inferenceServices.forAIOrThrow(model.ai()).infer(toPayload(prompt), model.protocol(), schema,
+        CancellationToken token;
+        try (InferenceSession _ = InferenceSession.open("arc-outline")) {
+            token = inferenceServices.forAIOrThrow(model.ai()).infer(toPayload(prompt), model.protocol(), schema,
                 new InferenceService.InferenceResultCallback() {
                     @Override
                     public void onResult(String text, SchemaCheck check) {
@@ -355,6 +357,7 @@ public class ArcOutlineService {
                         return answer.isDone();
                     }
                 });
+        }
         Answer result;
         try {
             result = answer.get();

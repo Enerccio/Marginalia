@@ -148,7 +148,7 @@ public class ImpersonateServiceImpl implements ImpersonateService {
             }
         };
 
-        try {
+        try (InferenceSession _ = InferenceSession.open(InferenceSession.IMPERSONATE)) {
             inferenceService.stream(payload, protocol, inferenceCallback);
         } catch (Exception e) {
             log.error("Failed to start the impersonate inference", e);

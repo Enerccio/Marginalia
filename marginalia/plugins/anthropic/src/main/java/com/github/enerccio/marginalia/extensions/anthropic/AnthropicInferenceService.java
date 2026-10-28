@@ -44,6 +44,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 import static com.github.enerccio.marginalia.extensions.anthropic.AnthropicLocalization.T;
@@ -80,6 +81,7 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
     private final ExtensionAI ai;
     private final AnthropicSettings settings;
     private final Logger log;
+    private final Supplier<String> sessionIds;
 
     private static final int COUNT_CACHE_SIZE = 512;
     private static final long COUNT_PAUSE_MILLIS = 60_000;
@@ -109,9 +111,18 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
     private boolean closed;
 
     AnthropicInferenceService(ExtensionAI ai, AnthropicSettings settings, Logger log) {
+        this(ai, settings, log, () -> null);
+    }
+
+    /**
+     * @param sessionIds the session id of the request that starts on the calling thread, see
+     *                   {@code InferenceServices.currentSessionId()}
+     */
+    AnthropicInferenceService(ExtensionAI ai, AnthropicSettings settings, Logger log, Supplier<String> sessionIds) {
         this.ai = ai;
         this.settings = settings;
         this.log = log;
+        this.sessionIds = sessionIds;
     }
 
     /** What the application injects, for a test that has no Spring context. */
@@ -428,6 +439,8 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
         final RequestAttributes attributes = ThreadCopyRequestAttributes.create();
         // read in the thread that starts the request: it is not metered inside an UnmeteredScope (the help assistant)
         final boolean metered = !UnmeteredScope.isActive();
+        // read in the same thread: the header that tells a server with a prompt cache what kind of work this is
+        final String sessionId = sessionIds.get();
 
         // the response that is being read: closing it cancels the HTTP call, also while a read waits for the next chunk
         private volatile StreamResponse<?> current;
@@ -513,6 +526,9 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
         MessageCreateParams.Builder request = MessageCreateParams.builder().model(model())
                 .maxTokens((long) responseTokens(run.protocol));
         new Prepared(system, turns).into(request);
+        if (run.sessionId != null) {
+            request.putAdditionalHeader(InferenceSession.HEADER, run.sessionId);
+        }
 
         ThinkingConfigParam thinking = thinking(run.protocol);
         OutputConfig.Builder output = OutputConfig.builder();

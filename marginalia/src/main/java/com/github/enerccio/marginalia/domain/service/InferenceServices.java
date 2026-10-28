@@ -69,6 +69,17 @@ public interface InferenceServices {
     String revealSecret(String protectedSecret);
 
     /**
+     * The value of the header {@value InferenceSession#HEADER} for the request that starts on this thread now: an
+     * opaque hash (hex) of the current user and of the kind of work named by the open {@link InferenceSession}. The
+     * same user and kind always give the same value, other users and kinds give other ones. An inference service
+     * calls it in the thread that starts the request and sends the value to the provider, which may use it for its
+     * prompt cache.
+     *
+     * @return null when no {@link InferenceSession} is open or there is no user
+     */
+    String currentSessionId();
+
+    /**
      * The functions the LLM can call, compiled once per interface. See {@link FunctionRegistry}.
      */
     FunctionRegistry getFunctionRegistry();

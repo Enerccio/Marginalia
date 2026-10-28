@@ -257,7 +257,7 @@ public class AnnotateServiceImpl implements AnnotateService {
          */
         <T> void ask(InferenceService inference, Protocol protocol, List<LLMChatMessage> payload, Class<T> type, int retries,
                      Done<T> done) throws Exception {
-            inference.infer(payload, protocol, type, new TypedInferenceCallback<T>() {
+            TypedInferenceCallback<T> typed = new TypedInferenceCallback<T>() {
                 @Override
                 public void onResult(T result, String raw) throws Exception {
                     try (InRequestScope _ = new InRequestScope(attributes)) {
@@ -299,7 +299,10 @@ public class AnnotateServiceImpl implements AnnotateService {
                 public boolean isDead() {
                     return token.isCancelled();
                 }
-            });
+            };
+            try (InferenceSession _ = InferenceSession.open(InferenceSession.ANNOTATE)) {
+                inference.infer(payload, protocol, type, typed);
+            }
         }
 
         /**
@@ -309,7 +312,7 @@ public class AnnotateServiceImpl implements AnnotateService {
                     Protocol extractProtocol) throws Exception {
             StringBuilder reasoning = new StringBuilder();
             StringBuilder answer = new StringBuilder();
-            inference.stream(payload, protocol, new InferenceAsyncCallback() {
+            InferenceAsyncCallback streamed = new InferenceAsyncCallback() {
                 @Override
                 public void onChunk(InferenceAsyncController controller, ChunkType chunkType, String chunk) throws Exception {
                     try (InRequestScope _ = new InRequestScope(attributes)) {
@@ -353,7 +356,10 @@ public class AnnotateServiceImpl implements AnnotateService {
                 public boolean isDead() {
                     return token.isCancelled();
                 }
-            });
+            };
+            try (InferenceSession _ = InferenceSession.open(InferenceSession.ANNOTATE)) {
+                inference.stream(payload, protocol, streamed);
+            }
         }
 
         /**
@@ -376,7 +382,7 @@ public class AnnotateServiceImpl implements AnnotateService {
                 List<LLMChatMessage> asText = List.of(LLMChatMessage.of(LLMRole.SYSTEM,
                         EXTRACT_PROMPT.replace(STRUCTURED_FORMAT, DELIMITED_FORMAT)), payload.get(1));
                 StringBuilder answer = new StringBuilder();
-                inference.stream(asText, protocol, new InferenceAsyncCallback() {
+                InferenceAsyncCallback extracted = new InferenceAsyncCallback() {
                     @Override
                     public void onChunk(InferenceAsyncController controller, ChunkType chunkType, String chunk) throws Exception {
                         if (chunkType != ChunkType.REASONING) {
@@ -410,7 +416,11 @@ public class AnnotateServiceImpl implements AnnotateService {
                     public boolean isDead() {
                         return token.isCancelled();
                     }
-                });
+                };
+                // another prompt than the critique: it must not take the cache of the critique
+                try (InferenceSession _ = InferenceSession.open(InferenceSession.ANNOTATE, "extract")) {
+                    inference.stream(asText, protocol, extracted);
+                }
             }
         }
 

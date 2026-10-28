@@ -484,7 +484,7 @@ public class MangaService {
      */
     public CancellationToken stream(Request request, StreamListener listener) throws Exception {
         CancellationToken[] token = new CancellationToken[1];
-        token[0] = request.service().stream(request.payload(), request.protocol(), new InferenceService.InferenceAsyncCallback() {
+        InferenceService.InferenceAsyncCallback callback = new InferenceService.InferenceAsyncCallback() {
             private final StringBuilder text = new StringBuilder();
             private final StringBuilder reasoning = new StringBuilder();
             private long reasoningStart;
@@ -529,7 +529,10 @@ public class MangaService {
             public boolean isDead() {
                 return token[0] != null && token[0].isCancelled();
             }
-        });
+        };
+        try (InferenceSession _ = InferenceSession.open("manga-generator")) {
+            token[0] = request.service().stream(request.payload(), request.protocol(), callback);
+        }
         return token[0];
     }
 }

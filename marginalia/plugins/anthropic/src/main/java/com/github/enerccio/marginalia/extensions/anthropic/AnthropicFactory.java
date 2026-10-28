@@ -56,7 +56,7 @@ public class AnthropicFactory implements ExtensionAIFactory {
      */
     AnthropicInferenceService createService(ExtensionAI ai) {
         AnthropicSettings settings = AnthropicSettings.of(ai, inferenceServices::revealSecret);
-        AnthropicInferenceService service = new AnthropicInferenceService(ai, settings, log);
+        AnthropicInferenceService service = new AnthropicInferenceService(ai, settings, log, inferenceServices::currentSessionId);
         services.add(service);
         return service;
     }
