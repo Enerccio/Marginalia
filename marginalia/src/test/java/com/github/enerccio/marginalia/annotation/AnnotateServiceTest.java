@@ -53,6 +53,12 @@ class AnnotateServiceTest extends GenerationTestBase {
     @Autowired
     private SettingService settingService;
 
+    @Autowired
+    private com.github.enerccio.marginalia.domain.service.MessagePromptService messagePromptService;
+
+    /** The reasoning of the model as the run reported it while the answer was written. */
+    private final List<String> reasoningSeen = new java.util.concurrent.CopyOnWriteArrayList<>();
+
     private Manuscript manuscript;
     private ChatMessage before;
     private ChatMessage part;
@@ -98,6 +104,9 @@ class AnnotateServiceTest extends GenerationTestBase {
                 new AnnotateService.Callback() {
                     @Override
                     public void onProgress(String reasoning, String text) {
+                        if (!reasoning.isBlank()) {
+                            reasoningSeen.add(reasoning);
+                        }
                     }
 
                     @Override
@@ -171,7 +180,7 @@ class AnnotateServiceTest extends GenerationTestBase {
         String prompt = llm.lastCompletionRequest().getPromptText();
         assertThat(prompt).contains(TEXT).contains("Anna sailed to the harbour.").contains("flag weak scenes")
                 .contains("OUTPUT FORMAT").contains("\"findings\"");
-        assertThat(llm.lastCompletionRequest().isStream()).isFalse();
+        assertThat(llm.lastCompletionRequest().isStream()).isTrue();
     }
 
     @Test
@@ -236,7 +245,7 @@ class AnnotateServiceTest extends GenerationTestBase {
         Done result = done(request(null, Mode.AUTO));
 
         assertThat(result.proposals()).hasSize(2);
-        assertThat(llm.lastCompletionRequest().isStream()).isFalse();
+        assertThat(llm.lastCompletionRequest().isStream()).isTrue();
     }
 
     // ------------------------------------------------------------------------------------------------ delimited
@@ -376,6 +385,65 @@ class AnnotateServiceTest extends GenerationTestBase {
         assertThat(llm.lastCompletionRequest().getPromptText()).contains("ONE RUN x");
     }
 
+    // ------------------------------------------------------------------------------------------------ while the model writes
+
+    @Test
+    void theReasoningOfTheModelIsReportedWhileItWritesTheStructuredAnswer() throws Exception {
+        llm.enqueue(MockLLMResponse.text(FINDINGS).withReasoning("Let me read ", "the part again."));
+
+        Done result = done(request("flag weak scenes", Mode.STRUCTURED));
+
+        assertThat(result.proposals()).hasSize(2);
+        assertThat(reasoningSeen).isNotEmpty();
+        assertThat(reasoningSeen.getLast()).isEqualTo("Let me read the part again.");
+    }
+
+    @Test
+    void stopEndsTheRunAtOnceAndWhatTheModelAnswersLaterIsDropped() throws Exception {
+        java.util.concurrent.CountDownLatch gate = new java.util.concurrent.CountDownLatch(1);
+        llm.enqueue(MockLLMResponse.text(FINDINGS).waitFor(gate));
+        List<String> events = new java.util.concurrent.CopyOnWriteArrayList<>();
+        CompletableFuture<Void> stopped = new CompletableFuture<>();
+        var token = annotateService.annotate(manuscriptService.find(manuscript.getId()), chatMessageService.find(part.getId()),
+                request("flag weak scenes", Mode.STRUCTURED), new AnnotateService.Callback() {
+                    @Override
+                    public void onProgress(String reasoning, String text) {
+                        events.add("progress");
+                    }
+
+                    @Override
+                    public void onFinished(List<Proposal> proposals, String raw) {
+                        events.add("finished");
+                    }
+
+                    @Override
+                    public void onUnreadable(String raw, String reason) {
+                        events.add("unreadable");
+                    }
+
+                    @Override
+                    public void onTerminated(String raw) {
+                        events.add("terminated");
+                        stopped.complete(null);
+                    }
+
+                    @Override
+                    public void onError(Throwable throwable) {
+                        events.add("error");
+                    }
+                });
+        assertThat(token).isNotNull();
+        llm.awaitCompletionRequests(1, java.time.Duration.ofSeconds(10));
+
+        // the model has not written a word yet: the request is out, the author presses Stop
+        token.cancel();
+
+        stopped.get(5, TimeUnit.SECONDS);
+        gate.countDown();
+        Thread.sleep(1000);
+        assertThat(events).containsExactly("terminated");
+    }
+
     // ------------------------------------------------------------------------------------------------ what a server can reuse
 
     private List<MockLLMRequest.Message> sent() {
@@ -504,6 +572,29 @@ class AnnotateServiceTest extends GenerationTestBase {
         assertThat(second).hasSameSizeAs(first);
         assertThat(second.subList(0, second.size() - 1)).isEqualTo(first.subList(0, first.size() - 1));
         assertThat(second.getLast().content()).isNotEqualTo(first.getLast().content()).contains("a redraft that is much longer");
+    }
+
+    @Test
+    void theSystemMessageDoesNotDependOnThePartThatIsAnnotated() throws Exception {
+        List<ChatMessage> parts = new ArrayList<>();
+        Manuscript book = longBook(parts);
+        budget(32_000);
+        // each part keeps the lore it was written with, and that differs from part to part
+        messagePromptService.store(parts.get(9), null, "LORE-OF-TEN");
+        messagePromptService.store(parts.get(10), null, "LORE-OF-ELEVEN");
+
+        llm.enqueue(MockLLMResponse.text("{\"findings\": []}"));
+        done(book, parts.get(9), request("flag weak scenes", Mode.STRUCTURED));
+        List<MockLLMRequest.Message> first = sent();
+        llm.enqueue(MockLLMResponse.text("{\"findings\": []}"));
+        done(book, parts.get(10), request("flag weak scenes", Mode.STRUCTURED));
+        List<MockLLMRequest.Message> second = sent();
+
+        // the lore is in the last message: a server that kept the first request goes on from the same system message
+        assertThat(second.getFirst()).isEqualTo(first.getFirst());
+        assertThat(first.getFirst().content()).doesNotContain("LORE-OF");
+        assertThat(first.getLast().content()).contains("LORE-OF-TEN").doesNotContain("LORE-OF-ELEVEN");
+        assertThat(second.getLast().content()).contains("LORE-OF-ELEVEN").doesNotContain("LORE-OF-TEN");
     }
 
     @Test

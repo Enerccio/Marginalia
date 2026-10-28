@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.github.enerccio.marginalia.domain.collections.AnnotationSource;
 import com.github.enerccio.marginalia.domain.components.AnnotationTexts;
 import com.github.enerccio.marginalia.domain.components.TokenLimits;
@@ -13,6 +14,8 @@ import com.github.enerccio.marginalia.domain.service.InferenceService.TypedInfer
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
+import com.github.enerccio.marginalia.domain.service.structured.SchemaCheck;
+import com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs;
 import com.github.enerccio.marginalia.domain.service.structured.StructuredOutputException;
 import com.github.enerccio.marginalia.domain.templates.AnnotateTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateContext;
@@ -34,6 +37,8 @@ import org.springframework.web.context.request.RequestAttributes;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 public class AnnotateServiceImpl implements AnnotateService {
 
@@ -228,16 +233,23 @@ public class AnnotateServiceImpl implements AnnotateService {
         private final String text;
         private final Callback callback;
         private final CancellationToken token = new CancellationToken();
+        // the run reports its end once: Stop ends it at once, what the model answers later is dropped
+        private final AtomicBoolean ended = new AtomicBoolean();
+        // what the model has written, for the end by Stop
+        private volatile Supplier<String> partial = () -> "";
         private RequestAttributes attributes;
 
         Run(String text, Callback callback) {
             this.text = text;
             this.callback = callback;
+            // the flag of the token is only looked at between the pieces of an answer, and the model may think for minutes before
+            // the first one: the author is told at once that the run is over
+            token.onCancel(() -> terminated(partial.get()));
         }
 
         /**
-         * The answer is JSON matching a schema, one more try when it doesn't. A service that can't infer makes the answer text in
-         * blocks when {@code fallBack}.
+         * The answer is JSON matching a schema, one more try when it doesn't. A service that can't ask for a schema makes the answer
+         * text in blocks when {@code fallBack}.
          */
         void structured(InferenceService inference, Protocol protocol, List<LLMChatMessage> payload, boolean fallBack) throws Exception {
             try {
@@ -252,46 +264,77 @@ public class AnnotateServiceImpl implements AnnotateService {
         }
 
         /**
-         * The answer is the JSON of the class. When it can't be read the model is told what is wrong and asked once more; after that the
-         * answer is handed over as it is.
+         * The answer is the JSON of the class, streamed (so the reasoning of the model can be shown and a stop stops the model) and
+         * read when it is complete. When it can't be read the model is told what is wrong and asked once more; after that the answer
+         * is handed over as it is.
          */
         <T> void ask(InferenceService inference, Protocol protocol, List<LLMChatMessage> payload, Class<T> type, int retries,
                      Done<T> done) throws Exception {
-            TypedInferenceCallback<T> typed = new TypedInferenceCallback<T>() {
+            JsonNode schema = StructuredOutputs.schemaOf(type);
+            StringBuilder reasoning = new StringBuilder();
+            StringBuilder answer = new StringBuilder();
+            partial = () -> answer.toString().strip();
+            InferenceAsyncCallback streamed = new InferenceAsyncCallback() {
                 @Override
-                public void onResult(T result, String raw) throws Exception {
+                public void onChunk(InferenceAsyncController controller, ChunkType chunkType, String chunk) throws Exception {
                     try (InRequestScope _ = new InRequestScope(attributes)) {
+                        if (chunkType == ChunkType.REASONING) {
+                            reasoning.append(chunk);
+                        } else {
+                            answer.append(chunk);
+                        }
+                        progress(reasoning.toString(), answer.toString());
+                        controller.continueInference();
+                    }
+                }
+
+                @Override
+                public void onCompletion() throws Exception {
+                    try (InRequestScope _ = new InRequestScope(attributes)) {
+                        String raw = answer.toString().strip();
+                        SchemaCheck check = StructuredOutputs.validate(schema, raw);
+                        if (!check.valid()) {
+                            retryOrGiveUp(new StructuredOutputException(raw, check.errors(), null));
+                            return;
+                        }
+                        T result;
+                        try {
+                            result = StructuredOutputs.parse(raw, type);
+                        } catch (StructuredOutputException e) {
+                            retryOrGiveUp(e);
+                            return;
+                        }
                         done.accept(result);
                     }
+                }
+
+                private void retryOrGiveUp(StructuredOutputException unreadable) throws Exception {
+                    if (retries > 0 && !token.isCancelled()) {
+                        List<LLMChatMessage> again = new ArrayList<>(payload);
+                        again.add(LLMChatMessage.of(LLMRole.ASSISTANT, unreadable.getAnswer()));
+                        again.add(LLMChatMessage.of(LLMRole.USER, "That answer could not be read: "
+                                + String.join("; ", unreadable.getErrors()) + ". Answer again with the JSON object only."));
+                        try {
+                            ask(inference, protocol, again, type, retries - 1, done);
+                        } catch (Exception e) {
+                            failed(e);
+                        }
+                        return;
+                    }
+                    unreadable(unreadable.getAnswer(), String.join("; ", unreadable.getErrors()));
                 }
 
                 @Override
                 public void onCancel() throws Exception {
                     try (InRequestScope _ = new InRequestScope(attributes)) {
-                        callback.onTerminated("");
+                        terminated(answer.toString().strip());
                     }
                 }
 
                 @Override
                 public void onError(Throwable exception) throws Exception {
                     try (InRequestScope _ = new InRequestScope(attributes)) {
-                        if (exception instanceof StructuredOutputException unreadable) {
-                            if (retries > 0 && !token.isCancelled()) {
-                                List<LLMChatMessage> again = new ArrayList<>(payload);
-                                again.add(LLMChatMessage.of(LLMRole.ASSISTANT, unreadable.getAnswer()));
-                                again.add(LLMChatMessage.of(LLMRole.USER, "That answer could not be read: "
-                                        + String.join("; ", unreadable.getErrors()) + ". Answer again with the JSON object only."));
-                                try {
-                                    ask(inference, protocol, again, type, retries - 1, done);
-                                } catch (Exception e) {
-                                    callback.onError(e);
-                                }
-                                return;
-                            }
-                            callback.onUnreadable(unreadable.getAnswer(), String.join("; ", unreadable.getErrors()));
-                            return;
-                        }
-                        callback.onError(exception);
+                        failed(exception);
                     }
                 }
 
@@ -301,7 +344,7 @@ public class AnnotateServiceImpl implements AnnotateService {
                 }
             };
             try (InferenceSession _ = InferenceSession.open(InferenceSession.ANNOTATE)) {
-                inference.infer(payload, protocol, type, typed);
+                follow(inference.stream(payload, protocol, schema, null, streamed));
             }
         }
 
@@ -312,6 +355,7 @@ public class AnnotateServiceImpl implements AnnotateService {
                     Protocol extractProtocol) throws Exception {
             StringBuilder reasoning = new StringBuilder();
             StringBuilder answer = new StringBuilder();
+            partial = () -> answer.toString().strip();
             InferenceAsyncCallback streamed = new InferenceAsyncCallback() {
                 @Override
                 public void onChunk(InferenceAsyncController controller, ChunkType chunkType, String chunk) throws Exception {
@@ -321,7 +365,7 @@ public class AnnotateServiceImpl implements AnnotateService {
                         } else {
                             answer.append(chunk);
                         }
-                        callback.onProgress(reasoning.toString(), answer.toString());
+                        progress(reasoning.toString(), answer.toString());
                         controller.continueInference();
                     }
                 }
@@ -341,14 +385,14 @@ public class AnnotateServiceImpl implements AnnotateService {
                 @Override
                 public void onCancel() throws Exception {
                     try (InRequestScope _ = new InRequestScope(attributes)) {
-                        callback.onTerminated(answer.toString().strip());
+                        terminated(answer.toString().strip());
                     }
                 }
 
                 @Override
                 public void onError(Throwable exception) throws Exception {
                     try (InRequestScope _ = new InRequestScope(attributes)) {
-                        callback.onError(exception);
+                        failed(exception);
                     }
                 }
 
@@ -358,7 +402,16 @@ public class AnnotateServiceImpl implements AnnotateService {
                 }
             };
             try (InferenceSession _ = InferenceSession.open(InferenceSession.ANNOTATE)) {
-                inference.stream(payload, protocol, streamed);
+                follow(inference.stream(payload, protocol, streamed));
+            }
+        }
+
+        /**
+         * A stop is also told to the request that runs, so that the model stops writing when the service can.
+         */
+        private void follow(CancellationToken inferred) {
+            if (inferred != null) {
+                token.onCancel(inferred::cancel);
             }
         }
 
@@ -375,6 +428,7 @@ public class AnnotateServiceImpl implements AnnotateService {
                     LLMChatMessage.of(LLMRole.SYSTEM, EXTRACT_PROMPT),
                     LLMChatMessage.of(LLMRole.USER, "=== PART START ===\n" + text + "\n=== PART END ===\n\n=== CRITIQUE START ===\n"
                             + critique + "\n=== CRITIQUE END ==="));
+            partial = () -> critique;
             try {
                 ask(inference, protocol, payload, Findings.class, 1, result -> finish(proposalsOf(result), critique));
             } catch (UnsupportedOperationException e) {
@@ -401,14 +455,14 @@ public class AnnotateServiceImpl implements AnnotateService {
                     @Override
                     public void onCancel() throws Exception {
                         try (InRequestScope _ = new InRequestScope(attributes)) {
-                            callback.onTerminated(critique);
+                            terminated(critique);
                         }
                     }
 
                     @Override
                     public void onError(Throwable exception) throws Exception {
                         try (InRequestScope _ = new InRequestScope(attributes)) {
-                            callback.onError(exception);
+                            failed(exception);
                         }
                     }
 
@@ -419,7 +473,7 @@ public class AnnotateServiceImpl implements AnnotateService {
                 };
                 // another prompt than the critique: it must not take the cache of the critique
                 try (InferenceSession _ = InferenceSession.open(InferenceSession.ANNOTATE, "extract")) {
-                    inference.stream(asText, protocol, extracted);
+                    follow(inference.stream(asText, protocol, extracted));
                 }
             }
         }
@@ -451,13 +505,46 @@ public class AnnotateServiceImpl implements AnnotateService {
                     match == null ? null : match.start(), match == null ? null : match.end());
         }
 
+        private void progress(String reasoning, String answer) throws Exception {
+            if (!ended.get()) {
+                callback.onProgress(reasoning, answer);
+            }
+        }
+
         private void finish(List<Proposal> proposals, String raw) throws Exception {
-            callback.onFinished(proposals, raw);
+            if (ended.compareAndSet(false, true)) {
+                callback.onFinished(proposals, raw);
+            }
+        }
+
+        private void unreadable(String raw, String reason) throws Exception {
+            if (ended.compareAndSet(false, true)) {
+                callback.onUnreadable(raw, reason);
+            }
+        }
+
+        /**
+         * The run was stopped, here or by the service: reported once, whoever comes first.
+         */
+        private void terminated(String raw) {
+            if (ended.compareAndSet(false, true)) {
+                try (InRequestScope _ = attributes == null ? null : new InRequestScope(attributes)) {
+                    callback.onTerminated(raw);
+                } catch (Exception e) {
+                    log.error("The annotation was stopped and that could not be reported", e);
+                }
+            }
+        }
+
+        private void failed(Throwable error) throws Exception {
+            if (ended.compareAndSet(false, true)) {
+                callback.onError(error);
+            }
         }
 
         void fail(Throwable error) {
             try (InRequestScope _ = new InRequestScope(attributes)) {
-                callback.onError(error);
+                failed(error);
             } catch (Exception e) {
                 log.error("The annotation failed and the failure could not be reported", e);
             }

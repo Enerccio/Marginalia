@@ -36,8 +36,8 @@ point for your own version. The template fields also list the **Available Templa
 | **Default User Prompt** | last message | The request for the next part, built from the [turn instructions](story-editor.md#writing-the-next-part). A template. |
 | **Default Summary Prompt** | summaries | The request for a [summary](summaries.md). A template. |
 | **Default Meta Summary Prompt** | meta summaries | The request for a [meta summary](summaries.md#meta-summaries), which merges summaries. A template. |
-| **Redraft System Prompt** | redrafts | The system message of a [redraft](story-editor.md#redrafting-a-part): the directives, the narration, the lore and the summaries. A template. |
-| **Redraft Prompt** | redrafts | The last message of a redraft, the request itself. A template. |
+| **Redraft System Prompt** | redrafts | The system message of a [redraft](story-editor.md#redrafting-a-part): the directives, the narration and the summaries. A template. |
+| **Redraft Prompt** | redrafts | The last message of a redraft, the request itself: the lore the part was written with, the story after the part, the part and the instructions. A template. |
 | **Annotate System Prompt** | annotating | The system message of a request for a model to [annotate](annotations.md#letting-a-model-annotate) a part. A template. |
 | **Annotate Prompt** | annotating | The last message of the request to annotate. A template. |
 | **Impersonate Prompt** | drafting instructions | The request for a model to [draft the instructions](story-editor.md#drafting-the-instructions) of the next turn in your place. A template. |
@@ -107,7 +107,7 @@ model, like a generation sends them), and the **Redraft Prompt** is the last mes
 model to apply your instructions, keep what you did not ask to change, stay consistent with the story before and after the part,
 keep the voice, and answer with the redrafted part only. Both prompts have the same variables; `{%{{{previousStory}}}%}` is only a
 note that the story follows as messages. Keep in the system prompt what stays the same from one redraft to the next and in the
-last prompt what changes (the part, the instructions, the story after the part): a server that remembers the prompt it read can then
+last prompt what changes (the lore, which is not the same for every part, the story after the part, the part, the instructions): a server that remembers the prompt it read can then
 reuse most of it. Your own version of the last prompt should keep the variables it needs: without `{%{{{text}}}%}` the model does
 not see the part. Each prompt follows the rule of all prompts: the book's field, else the one in *Settings → Templates*, else the
 built-in one.

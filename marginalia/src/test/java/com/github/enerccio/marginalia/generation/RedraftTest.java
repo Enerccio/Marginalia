@@ -151,7 +151,10 @@ class RedraftTest extends GenerationTestBase {
         assertThat(messages.get(0).content()).doesNotContain("TEXT-1").doesNotContain("TEXT-3");
         assertThat(messages.get(2).content()).isEqualTo("TEXT-1");
         assertThat(messages.get(4).content()).isEqualTo("TEXT-2");
-        assertThat(messages.get(5).content()).startsWith("=== STORY AFTER THE PART START ===").contains("TEXT-4").contains("TEXT-3")
+        // the lore stored with the part comes first: it differs from part to part, and the system message must not
+        assertThat(messages.get(0).content()).doesNotContain("Dragons exist.");
+        assertThat(messages.get(5).content()).startsWith("=== BACKGROUND LORE START ===\nDragons exist.")
+                .contains("=== STORY AFTER THE PART START ===").contains("TEXT-4").contains("TEXT-3")
                 .contains("Make the harbour scene longer");
         assertThat(part(3).getResponse()).isEqualTo("TEXT-3");
         assertThat(chatMessageService.getAllMessages(manuscriptService.find(manuscript.getId()))).hasSize(5);

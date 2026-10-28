@@ -383,6 +383,33 @@ def describe(body):
     return ""
 
 
+def text_of(message):
+    """The text of a chat message: a string, or the text parts of a list."""
+    content = message.get("content") if isinstance(message, dict) else None
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        return "".join(part.get("text", "") for part in content if isinstance(part, dict))
+    return ""
+
+
+def compare(previous, messages):
+    """Says where a prompt first differs from the last one of its session: a server can reuse its cache up to there, and not
+    after it, however much of the rest is the same. `previous` and `messages` are lists of (role, text)."""
+    shared = 0
+    while shared < min(len(previous), len(messages)) and previous[shared] == messages[shared]:
+        shared += 1
+    if shared == len(previous) == len(messages):
+        return f"the same as the last one ({len(messages)} messages)"
+    if shared == len(previous) or shared == len(messages):
+        return (f"{len(messages)} messages, the last one had {len(previous)}: the first {shared} are the same, "
+                f"{'new messages follow' if shared == len(previous) else 'the end is cut'}")
+    role, text = messages[shared]
+    same = len(os.path.commonprefix([previous[shared][1], text]))
+    return (f"{len(messages)} messages, the last one had {len(previous)}: the first {shared} are the same, message {shared + 1} "
+            f"({role}) is the same for its first {same} of {len(text)} characters (the last one: {len(previous[shared][1])})")
+
+
 def upstream_model(model):
     """The name the server knows the model by: LiteLLM's name is `openai/<name>`."""
     return model[len("openai/"):] if model and model.startswith("openai/") else model
@@ -400,7 +427,17 @@ class SlotCacheHook(CustomLogger):
         self.switchers = {}
         self.loaded = {}            # per server: the models the router has loaded, the one used longest ago first
         self.skipped = set()        # the routes that were reported as not used
+        self.last = {}              # the messages of the last prompt of each session, to say where the next one differs
         self.client = httpx.AsyncClient(timeout=None)
+
+    def explain(self, key, messages):
+        if not isinstance(messages, list):
+            return
+        current = [(m.get("role"), text_of(m)) for m in messages if isinstance(m, dict)]
+        previous = self.last.get(key)
+        self.last[key] = current
+        if previous is not None:
+            log.info("slot_cache: %s prompt: %s", key, compare(previous, current))
 
     async def make_room(self, root, model, models_max, api_key):
         """Follows the models the router has loaded; the ones it unloads for `model` get their slot saved first."""
@@ -439,6 +476,7 @@ class SlotCacheHook(CustomLogger):
         slot = int(options.get("slot", SLOT))
         model = options.get("model") or upstream_model(kwargs.get("model"))
         where = (server_root(api_base), model, slot)
+        self.explain(f"{tag}_{session}", kwargs.get("messages"))
         await self.make_room(where[0], model, int(options.get("models_max", MODELS_MAX)), kwargs.get("api_key"))
         if where not in self.switchers:
             self.switchers[where] = SlotSwitcher(where[0], slot, self.client, model)
@@ -546,6 +584,11 @@ Things to know:
   the first request of a session is normal (llama-server logs it as "Unable to restore slot, no available space in KV
   cache or invalid slot save file"). Real problems are warnings: a certificate that does not match the address, a
   refused api key, a server that does not answer.
+- **Where the prompt differs.** For every request after the first of a session the log has a line that says how far the
+  prompt is the same as the last one of that session, for example `slot_cache: <route>_<session> prompt: 14 messages, the last
+  one had 12: the first 11 are the same, message 12 (user) is the same for its first 2150 of 9031 characters`. A server can
+  reuse its cache only up to there (a message is about three or four characters per token), so this is the line to read
+  when a second request reads almost everything again: the message it names is the one whose start changed.
 - **If nothing happens**, look at the log of the proxy (`docker logs litellm-proxy 2>&1 | grep slot_cache`): with the
   hook at work there is a line for every call, and a request of Marginalia for a route without `slot_cache` is reported
   once (`not used for <route>: no model_info.slot_cache`). No `slot_cache` line at all means the hook did not run: the
