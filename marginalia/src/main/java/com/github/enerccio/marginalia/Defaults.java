@@ -145,11 +145,7 @@ Redraft one part of the ongoing narrative "MANUSCRIPT CHRONICLE". Rewrite the PA
 {{#style}}Style & Tone Guidelines:
 {{.}}{{/style}}
 
-{{#backgroundLore}}=== BACKGROUND LORE START ===
-{{.}}
-=== BACKGROUND LORE END ===
-
-{{/backgroundLore}}{{#summaries}}=== SUMMARY OF THE STORY BEFORE THE PART START ===
+{{#summaries}}=== SUMMARY OF THE STORY BEFORE THE PART START ===
 {{.}}
 === SUMMARY OF THE STORY BEFORE THE PART END ===
 
@@ -161,7 +157,11 @@ Redraft one part of the ongoing narrative "MANUSCRIPT CHRONICLE". Rewrite the PA
 """;
 
     public static final String DEFAULT_REDRAFT_PROMPT = """
-{{#followingStory}}=== STORY AFTER THE PART START ===
+{{#backgroundLore}}=== BACKGROUND LORE START ===
+{{.}}
+=== BACKGROUND LORE END ===
+
+{{/backgroundLore}}{{#followingStory}}=== STORY AFTER THE PART START ===
 {{.}}
 === STORY AFTER THE PART END ===
 
@@ -201,11 +201,7 @@ Review one part of the ongoing narrative "MANUSCRIPT CHRONICLE" as its editor an
 {{#style}}Style & Tone Guidelines:
 {{.}}{{/style}}
 
-{{#backgroundLore}}=== BACKGROUND LORE START ===
-{{.}}
-=== BACKGROUND LORE END ===
-
-{{/backgroundLore}}{{#summaries}}=== SUMMARY OF THE STORY BEFORE THE PART START ===
+{{#summaries}}=== SUMMARY OF THE STORY BEFORE THE PART START ===
 {{.}}
 === SUMMARY OF THE STORY BEFORE THE PART END ===
 
@@ -217,7 +213,11 @@ Review one part of the ongoing narrative "MANUSCRIPT CHRONICLE" as its editor an
 """;
 
     public static final String DEFAULT_ANNOTATE_PROMPT = """
-{{#followingStory}}=== STORY AFTER THE PART START ===
+{{#backgroundLore}}=== BACKGROUND LORE START ===
+{{.}}
+=== BACKGROUND LORE END ===
+
+{{/backgroundLore}}{{#followingStory}}=== STORY AFTER THE PART START ===
 {{.}}
 === STORY AFTER THE PART END ===
 
