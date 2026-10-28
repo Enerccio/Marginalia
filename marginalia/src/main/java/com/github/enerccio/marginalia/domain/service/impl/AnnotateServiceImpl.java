@@ -569,6 +569,8 @@ public class AnnotateServiceImpl implements AnnotateService {
         List<ChatMessage> before = upToPart.isEmpty() ? new ArrayList<>() : new ArrayList<>(upToPart.subList(0, upToPart.size() - 1));
         List<ChatMessage> after = StoryAround.partsAfter(chatMessageService, book, part);
 
+        String systemTemplate = manuscriptService.getAnnotateSystemPrompt(book);
+        // the prompt given for one run replaces the last message, the one that holds the part
         String template = StringUtils.isNotBlank(prompt) ? prompt : manuscriptService.getAnnotatePrompt(book);
         int maxTokens = TokenLimits.promptTokens(ai, protocol);
 
@@ -597,22 +599,27 @@ public class AnnotateServiceImpl implements AnnotateService {
         String jailbreak = Boolean.TRUE.equals(ai.getNeedsJailbreak()) && StringUtils.isNotBlank(ai.getJailbreak())
                 ? ai.getJailbreak() + StoryAround.SEPARATOR : "";
 
-        long base = inferenceService.countTokens(jailbreak + templateService.processTemplate(template, "annotatePrompt", data)) + BUFFER_TOKENS;
+        String estimation = jailbreak + templateService.processTemplate(systemTemplate, "annotateSystemPrompt", data)
+                + templateService.processTemplate(template, "annotatePrompt", data);
+        long base = inferenceService.countTokens(estimation) + BUFFER_TOKENS;
         long room = maxTokens - base;
         if (room < 0) {
             throw new ContextInsufficient(base, maxTokens);
         }
-        StoryAround.Around around = StoryAround.collect(summaryService, inferenceService, before, after, room);
+        // the same story for the same part, whatever the length of the part and of its notes is now; it goes in as messages
+        StoryAround.Around around = StoryAround.collect(summaryService, inferenceService, before, after,
+                StoryAround.stableRoom(room, maxTokens), true);
         data.setSummaries(around.summaries());
-        data.setPreviousStory(around.previous());
+        data.setPreviousStory(around.previousParts().isEmpty() ? "" : StoryAround.STORY_IN_MESSAGES);
         data.setFollowingStory(around.following());
         data.setTemplateContext(context);
-        String rendered = jailbreak + templateService.processTemplate(template, "annotatePrompt", data);
-        long tokens = inferenceService.countTokens(rendered);
+        String system = jailbreak + templateService.processTemplate(systemTemplate, "annotateSystemPrompt", data);
+        String user = templateService.processTemplate(template, "annotatePrompt", data);
+        long tokens = inferenceService.countTokens(system + user) + around.previousPartsTokens();
         if (tokens > maxTokens) {
             throw new ContextInsufficient(tokens, maxTokens);
         }
-        return List.of(LLMChatMessage.of(LLMRole.SYSTEM, rendered));
+        return StoryAround.messages(system, around.previousParts(), user);
     }
 
 }

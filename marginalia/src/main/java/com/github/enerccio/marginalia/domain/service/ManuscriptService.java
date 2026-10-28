@@ -64,10 +64,26 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
     String getSummaryPrompt(Manuscript manuscript) throws Exception;
 
     String getMetaSummaryPrompt(Manuscript manuscript) throws Exception;
+
+    /**
+     * The system message of the redraft: the one of the book, else the one of the user, else the built in one. The story before the
+     * part follows it as the earlier messages of the conversation and {@link #getRedraftPrompt} is the last message from the user.
+     */
+    String getRedraftSystemPrompt(Manuscript manuscript) throws Exception;
+
+    /**
+     * The last message of the redraft, from the user (the story after the part, the part, the instructions): the one of the book,
+     * else the one of the user, else the built in one.
+     */
     String getRedraftPrompt(Manuscript manuscript) throws Exception;
 
     /**
-     * The prompt that lets a model annotate a part: the one of the book, else the one of the user, else the built in one.
+     * The system message of the annotation, see {@link #getRedraftSystemPrompt}.
+     */
+    String getAnnotateSystemPrompt(Manuscript manuscript) throws Exception;
+
+    /**
+     * The last message of the annotation, from the user: the one of the book, else the one of the user, else the built in one.
      */
     String getAnnotatePrompt(Manuscript manuscript) throws Exception;
 

@@ -122,7 +122,9 @@ public class UserPart implements WorkspaceComponent {
     private TextAreaPopoverComponent defaultUserPromptField;
     private TextAreaPopoverComponent defaultSummaryPromptField;
     private TextAreaPopoverComponent defaultMetaSummaryPromptField;
+    private TextAreaPopoverComponent defaultRedraftSystemPromptField;
     private TextAreaPopoverComponent defaultRedraftPromptField;
+    private TextAreaPopoverComponent defaultAnnotateSystemPromptField;
     private TextAreaPopoverComponent defaultAnnotatePromptField;
     private TextAreaPopoverComponent defaultImpersonatePromptField;
     private TextAreaPopoverComponent defaultAgentPromptField;
@@ -207,8 +209,12 @@ public class UserPart implements WorkspaceComponent {
         templatesFormLayout.add(defaultMetaSummaryPromptField);
         templatesFormLayout.setColspan(defaultMetaSummaryPromptField, 2);
 
+        templatesFormLayout.add(defaultRedraftSystemPromptField);
+        templatesFormLayout.setColspan(defaultRedraftSystemPromptField, 2);
         templatesFormLayout.add(defaultRedraftPromptField);
         templatesFormLayout.setColspan(defaultRedraftPromptField, 2);
+        templatesFormLayout.add(defaultAnnotateSystemPromptField);
+        templatesFormLayout.setColspan(defaultAnnotateSystemPromptField, 2);
         templatesFormLayout.add(defaultAnnotatePromptField);
         templatesFormLayout.setColspan(defaultAnnotatePromptField, 2);
         templatesFormLayout.add(defaultImpersonatePromptField);
@@ -435,8 +441,17 @@ public class UserPart implements WorkspaceComponent {
         defaultMetaSummaryPromptField.setPopoverContent(createTemplateHintPopoverContent(
                 defaultMetaSummaryPromptField, defaultMetaSummaryPromptField.getPopover(), MetaSummaryTemplateData.class, Defaults.DEFAULT_META_SUMMARY));
 
+        defaultAnnotateSystemPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_ANNOTATE_SYSTEM_PROMPT));
+        defaultAnnotateSystemPromptField.setWidthFull();
+        defaultAnnotateSystemPromptField.setHelperText(loc.getValue(L.HELP_PART_SYSTEM_PROMPT));
+        ResizableTextArea.install(loc, defaultAnnotateSystemPromptField, "160px");
+        defaultAnnotateSystemPromptField.setPlaceholder(Defaults.DEFAULT_ANNOTATE_SYSTEM_PROMPT);
+        defaultAnnotateSystemPromptField.setPopoverContent(createTemplateHintPopoverContent(
+                defaultAnnotateSystemPromptField, defaultAnnotateSystemPromptField.getPopover(), AnnotateTemplateData.class, Defaults.DEFAULT_ANNOTATE_SYSTEM_PROMPT));
+
         defaultAnnotatePromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_ANNOTATE_PROMPT));
         defaultAnnotatePromptField.setWidthFull();
+        defaultAnnotatePromptField.setHelperText(loc.getValue(L.HELP_PART_LAST_PROMPT));
         ResizableTextArea.install(loc, defaultAnnotatePromptField, "160px");
         defaultAnnotatePromptField.setPlaceholder(Defaults.DEFAULT_ANNOTATE_PROMPT);
         defaultAnnotatePromptField.setPopoverContent(createTemplateHintPopoverContent(
@@ -449,8 +464,17 @@ public class UserPart implements WorkspaceComponent {
         defaultImpersonatePromptField.setPopoverContent(createTemplateHintPopoverContent(
                 defaultImpersonatePromptField, defaultImpersonatePromptField.getPopover(), ImpersonateTemplateData.class, Defaults.DEFAULT_IMPERSONATE_PROMPT));
 
+        defaultRedraftSystemPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_REDRAFT_SYSTEM_PROMPT));
+        defaultRedraftSystemPromptField.setWidthFull();
+        defaultRedraftSystemPromptField.setHelperText(loc.getValue(L.HELP_PART_SYSTEM_PROMPT));
+        ResizableTextArea.install(loc, defaultRedraftSystemPromptField, "160px");
+        defaultRedraftSystemPromptField.setPlaceholder(Defaults.DEFAULT_REDRAFT_SYSTEM_PROMPT);
+        defaultRedraftSystemPromptField.setPopoverContent(createTemplateHintPopoverContent(
+                defaultRedraftSystemPromptField, defaultRedraftSystemPromptField.getPopover(), RedraftTemplateData.class, Defaults.DEFAULT_REDRAFT_SYSTEM_PROMPT));
+
         defaultRedraftPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_REDRAFT_PROMPT));
         defaultRedraftPromptField.setWidthFull();
+        defaultRedraftPromptField.setHelperText(loc.getValue(L.HELP_PART_LAST_PROMPT));
         ResizableTextArea.install(loc, defaultRedraftPromptField, "160px");
         defaultRedraftPromptField.setPlaceholder(Defaults.DEFAULT_REDRAFT_PROMPT);
         defaultRedraftPromptField.setPopoverContent(createTemplateHintPopoverContent(
@@ -640,7 +664,9 @@ public class UserPart implements WorkspaceComponent {
             defaultUserPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultUserPrompt()));
             defaultSummaryPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultSummaryPrompt()));
             defaultMetaSummaryPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultMetaSummaryPrompt()));
+            defaultRedraftSystemPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultRedraftSystemPrompt()));
             defaultRedraftPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultRedraftPrompt()));
+            defaultAnnotateSystemPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultAnnotateSystemPrompt()));
             defaultAnnotatePromptField.setValue(StringUtils.defaultString(userSetting.getDefaultAnnotatePrompt()));
             defaultImpersonatePromptField.setValue(StringUtils.defaultString(userSetting.getDefaultImpersonatePrompt()));
             defaultAgentPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultAgentPrompt()));
@@ -654,7 +680,9 @@ public class UserPart implements WorkspaceComponent {
             validateTemplate(defaultUserPromptField, "defaultUserPrompt", UserPromptData.class);
             validateTemplate(defaultSummaryPromptField, "defaultSummaryPrompt", SummaryTemplateData.class);
             validateTemplate(defaultMetaSummaryPromptField, "defaultMetaSummaryPrompt", MetaSummaryTemplateData.class);
+            validateTemplate(defaultRedraftSystemPromptField, "defaultRedraftSystemPrompt", RedraftTemplateData.class);
             validateTemplate(defaultRedraftPromptField, "defaultRedraftPrompt", RedraftTemplateData.class);
+            validateTemplate(defaultAnnotateSystemPromptField, "defaultAnnotateSystemPrompt", AnnotateTemplateData.class);
             validateTemplate(defaultAnnotatePromptField, "defaultAnnotatePrompt", AnnotateTemplateData.class);
             validateTemplate(defaultImpersonatePromptField, "defaultImpersonatePrompt", ImpersonateTemplateData.class);
             tagsView.refresh();
@@ -736,7 +764,9 @@ public class UserPart implements WorkspaceComponent {
                     @APILocals(name = "userPrompt", type = String.class),
                     @APILocals(name = "summaryPrompt", type = String.class),
                     @APILocals(name = "metaSummaryPrompt", type = String.class),
+                    @APILocals(name = "redraftSystemPrompt", type = String.class),
                     @APILocals(name = "redraftPrompt", type = String.class),
+                    @APILocals(name = "annotateSystemPrompt", type = String.class),
                     @APILocals(name = "annotatePrompt", type = String.class),
                     @APILocals(name = "impersonatePrompt", type = String.class),
                     @APILocals(name = "defaultPov", type = String.class),
@@ -761,7 +791,9 @@ public class UserPart implements WorkspaceComponent {
                 || !validateTemplate(defaultUserPromptField, "defaultUserPrompt", UserPromptData.class)
                 || !validateTemplate(defaultSummaryPromptField, "defaultSummaryPrompt", SummaryTemplateData.class)
                 || !validateTemplate(defaultMetaSummaryPromptField, "defaultMetaSummaryPrompt", MetaSummaryTemplateData.class)
+                || !validateTemplate(defaultRedraftSystemPromptField, "defaultRedraftSystemPrompt", RedraftTemplateData.class)
                 || !validateTemplate(defaultRedraftPromptField, "defaultRedraftPrompt", RedraftTemplateData.class)
+                || !validateTemplate(defaultAnnotateSystemPromptField, "defaultAnnotateSystemPrompt", AnnotateTemplateData.class)
                 || !validateTemplate(defaultAnnotatePromptField, "defaultAnnotatePrompt", AnnotateTemplateData.class)
                 || !validateTemplate(defaultImpersonatePromptField, "defaultImpersonatePrompt", ImpersonateTemplateData.class)) {
             return;
@@ -771,7 +803,9 @@ public class UserPart implements WorkspaceComponent {
         String userPrompt = defaultUserPromptField.getValue();
         String summaryPrompt = defaultSummaryPromptField.getValue();
         String metaSummaryPrompt = defaultMetaSummaryPromptField.getValue();
+        String redraftSystemPrompt = defaultRedraftSystemPromptField.getValue();
         String redraftPrompt = defaultRedraftPromptField.getValue();
+        String annotateSystemPrompt = defaultAnnotateSystemPromptField.getValue();
         String annotatePrompt = defaultAnnotatePromptField.getValue();
         String impersonatePrompt = defaultImpersonatePromptField.getValue();
 
@@ -804,7 +838,9 @@ public class UserPart implements WorkspaceComponent {
             userSetting.setDefaultUserPrompt(userPrompt);
             userSetting.setDefaultSummaryPrompt(summaryPrompt);
             userSetting.setDefaultMetaSummaryPrompt(metaSummaryPrompt);
+            userSetting.setDefaultRedraftSystemPrompt(redraftSystemPrompt);
             userSetting.setDefaultRedraftPrompt(redraftPrompt);
+            userSetting.setDefaultAnnotateSystemPrompt(annotateSystemPrompt);
             userSetting.setDefaultAnnotatePrompt(annotatePrompt);
             userSetting.setDefaultImpersonatePrompt(impersonatePrompt);
             saveWebhook(userSetting);

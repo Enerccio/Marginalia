@@ -254,6 +254,30 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     }
 
     @Override
+    public String getRedraftSystemPrompt(Manuscript manuscript) throws Exception {
+        if (StringUtils.isNotBlank(manuscript.getRedraftSystemPrompt())) {
+            return manuscript.getRedraftSystemPrompt();
+        }
+        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+        if (StringUtils.isNotBlank(userSetting.getDefaultRedraftSystemPrompt())) {
+            return userSetting.getDefaultRedraftSystemPrompt();
+        }
+        return Defaults.DEFAULT_REDRAFT_SYSTEM_PROMPT;
+    }
+
+    @Override
+    public String getAnnotateSystemPrompt(Manuscript manuscript) throws Exception {
+        if (StringUtils.isNotBlank(manuscript.getAnnotateSystemPrompt())) {
+            return manuscript.getAnnotateSystemPrompt();
+        }
+        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+        if (StringUtils.isNotBlank(userSetting.getDefaultAnnotateSystemPrompt())) {
+            return userSetting.getDefaultAnnotateSystemPrompt();
+        }
+        return Defaults.DEFAULT_ANNOTATE_SYSTEM_PROMPT;
+    }
+
+    @Override
     public String getRedraftPrompt(Manuscript manuscript) throws Exception {
         if (StringUtils.isNotBlank(manuscript.getRedraftPrompt())) {
             return manuscript.getRedraftPrompt();

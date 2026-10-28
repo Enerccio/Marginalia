@@ -751,6 +751,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_AUTO_ANNOTATE_ACCEPT, "Add the annotations without asking (the window closes)");
         setValue(L.LABEL_AUTO_ANNOTATE_REDRAFT, "Then redraft the part to address the annotations");
         setValue(L.LABEL_AUTO_ANNOTATE_ACCEPT_REDRAFT, "Apply the redraft without asking (the window closes)");
+        setValue(L.LABEL_ANNOTATE_SYSTEM_PROMPT, "Annotate System Prompt");
+        setValue(L.LABEL_REDRAFT_SYSTEM_PROMPT, "Redraft System Prompt");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1374,6 +1376,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_ACTIVATION_PREVIEW, "Shows which entries of this lorebook and its subbooks would be used for a turn with this text, and why, with the scan depth of this lorebook. In a real generation extensions can still change the result. Entries that also look into the parts of the story use the newest parts of the picked book.");
         setValue(L.HELP_ACTIVATION_CONTEXT, "Where the filter is looked for: only in the instructions of the turn, or in the instructions and the newest parts of the story.");
         setValue(L.HELP_ACTIVATION_PARTS, "How many of the newest parts of the story are searched together with the instructions (at least 1).");
+        setValue(L.HELP_PART_SYSTEM_PROMPT, "The system message. The story before the part is sent after it as the earlier messages of the conversation, so keep here what stays the same from one request to the next: a server can then reuse what it has already read.");
+        setValue(L.HELP_PART_LAST_PROMPT, "The last message from the user: what changes from one request to the next (the story after the part, the part itself, its notes, the task).");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");
