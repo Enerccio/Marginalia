@@ -17,7 +17,8 @@ switch a book between them without touching the connection. Like providers, prot
 ## Creating a protocol
 
 Open the **Protocols** tab and click **Add Protocol**. Existing protocols are edited with the pen button and deleted
-with the trash button.
+with the trash button. The clone button (two sheets) makes a copy of a protocol, with all its settings, under a name you
+confirm (the original's with *(Copy)*), handy for trying other sampling settings without losing the ones that work.
 
 ![The protocol dialog](../images/protocol-dialog.png)
 

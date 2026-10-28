@@ -33,8 +33,9 @@ public class Agent extends ExtendableEntity {
     @Column(nullable = false)
     private boolean enabled = true;
 
-    // a soft deleted manuscript takes its agent with it
-    @ManyToOne(fetch = FetchType.EAGER)
+    // a soft deleted manuscript takes its agent with it; lazy, as a book carries the data of all the plugins (and its
+    // active part): the tab of the agents shows the names only, see AgentService#findBookNames and #findManuscript
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manuscript_id")
     @CleanupReference(Policy.OWNED_BY)
     private Manuscript manuscript;

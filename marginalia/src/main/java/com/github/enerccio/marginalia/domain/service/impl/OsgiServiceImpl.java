@@ -2,17 +2,14 @@ package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.domain.security.AdminGuard;
-import com.github.enerccio.marginalia.domain.service.ExtensionService;
-import com.github.enerccio.marginalia.domain.service.ExtensionVerificationException;
-import com.github.enerccio.marginalia.domain.service.IPCService;
-import com.github.enerccio.marginalia.domain.service.ToolService;
-import com.github.enerccio.marginalia.domain.service.OsgiService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.extensions.ExtensionHasLocalization;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.instruct.verify.ExtensionVerification;
 import com.github.enerccio.marginalia.instruct.verify.ExtensionVerifier;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.loc.LocalizationBundle;
+import com.github.enerccio.marginalia.ui.menu.StoryMenuRegistry;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.shared.Registration;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -71,6 +68,9 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
 
     @Autowired
     private ToolService toolService;
+
+    @Autowired
+    private StoryMenuRegistry storyMenuRegistry;
 
     @Autowired
     private ExtensionService extensionService;
@@ -686,6 +686,7 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
             if (b.getSymbolicName() != null) {
                 ipcService.unregisterAll(b.getSymbolicName());
                 toolService.unregisterAll(b.getSymbolicName());
+                storyMenuRegistry.unregisterAll(b.getSymbolicName());
             }
             getContext().ungetService(sr);
             if (reported) {

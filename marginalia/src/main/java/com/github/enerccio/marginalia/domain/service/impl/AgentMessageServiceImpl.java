@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.domain.service.impl;
 import com.github.enerccio.marginalia.domain.model.impl.AgentMessage;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.repository.AgentMessageRepository;
+import com.github.enerccio.marginalia.domain.service.AgentActivityService;
 import com.github.enerccio.marginalia.domain.service.AgentMessageService;
 import com.github.enerccio.marginalia.domain.service.AgentRunService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
@@ -12,6 +13,8 @@ import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.*;
 
@@ -23,6 +26,9 @@ public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage,
     @Autowired
     @Lazy
     private AgentRunService agentRunService;
+
+    @Autowired
+    private AgentActivityService activityService;
 
     @Override
     @CommonTx
@@ -37,6 +43,7 @@ public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage,
             message.setChatMessage(chatMessage);
             saved.add(save(message));
         }
+        announce(stored);
         return saved;
     }
 
@@ -57,7 +64,9 @@ public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage,
         message.setContextTokens(contextTokens);
         message.setReasoning(reasoning);
         message.setTelemetry(telemetry);
-        return save(message);
+        AgentMessage saved = save(message);
+        announce(stored);
+        return saved;
     }
 
     @Override
@@ -84,7 +93,9 @@ public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage,
         message.setSummary(true);
         message.setContextTokens(contextTokens);
         message.setTelemetry(telemetry);
-        return save(message);
+        AgentMessage saved = save(message);
+        announce(stored);
+        return saved;
     }
 
     @Override
@@ -127,6 +138,7 @@ public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage,
                 }
             }
         }
+        announce(stored);
         return forgotten;
     }
 
@@ -157,7 +169,9 @@ public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage,
         message.setThreadTask(task);
         message.setThreadCall(callId);
         message.setThreadProfile(profile);
-        return save(message);
+        AgentMessage saved = save(message);
+        announce(stored);
+        return saved;
     }
 
     @Override
@@ -174,6 +188,7 @@ public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage,
             message.setChatMessage(chatMessage);
             saved.add(save(message));
         }
+        announce(stored);
         return saved;
     }
 
@@ -196,7 +211,9 @@ public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage,
         message.setContextTokens(contextTokens);
         message.setReasoning(reasoning);
         message.setTelemetry(telemetry);
-        return save(message);
+        AgentMessage saved = save(message);
+        announce(stored);
+        return saved;
     }
 
     @Override
@@ -215,7 +232,9 @@ public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage,
         message.setOrdinal(getRepository().countByRunAndThread(stored, handle));
         message.setChatMessage(LLMChatMessage.of(LLMRole.ASSISTANT, text == null ? "" : text));
         message.setThreadEnd(end);
-        return save(message);
+        AgentMessage saved = save(message);
+        announce(stored);
+        return saved;
     }
 
     @Override
@@ -299,6 +318,23 @@ public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage,
     public void deleteForRun(AgentRun run, boolean hard) throws Exception {
         for (AgentMessage message : getRepository().findEveryByRun(run)) {
             delete(message, hard);
+        }
+    }
+
+    /**
+     * The consoles of the agent read the transcript again when it is stored.
+     */
+    private void announce(AgentRun run) {
+        Long agentId = run.getAgent() == null ? null : run.getAgent().getId();
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    activityService.changed(agentId);
+                }
+            });
+        } else {
+            activityService.changed(agentId);
         }
     }
 

@@ -23,7 +23,15 @@ import {
 await main(async ({ page }) => {
   await login(page);
   await openTab(page, 'Inference Providers');
-  await page.mouse.click(1792, 228);                      // Limits of the shared provider (second row)
+  // the buttons of the shared provider's row (the second one): info, Limits, pen, clone; Limits is the second
+  const rowButtons = page.locator('vaadin-grid vaadin-button');
+  const buttons = [];
+  for (let i = 0; i < await rowButtons.count(); i++) {
+    const box = await rowButtons.nth(i).boundingBox();
+    if (box && Math.abs(box.y + box.height / 2 - 228) < 20) buttons.push({ i, x: box.x });
+  }
+  buttons.sort((p, q) => p.x - q.x);
+  await rowButtons.nth(buttons[1].i).click();             // Limits of the shared provider (second row)
   await idle(page, 800);
   await press(page, 'Add limit', { exact: false });
   await idle(page, 600);

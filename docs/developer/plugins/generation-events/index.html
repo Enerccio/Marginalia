@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522787704">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846522787704" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846005664026" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846522787704" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -60,7 +60,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.5.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -416,6 +416,9 @@ The note is edited in the sidebar and saved right away, so <code translate="no" 
 with the plugin&#x27;s package don&#x27;t clash with other plugins.</p>
 </li>
 <li>
+<p><strong>The prompt of a part is not on the part.</strong> The payload and the lore that were built for a part are a <code translate="no" v-pre>MessagePrompt</code> row (<code translate="no" v-pre>MessagePromptService.getBuiltPrompt(message)</code>, <code translate="no" v-pre>getBackgroundLore(message)</code>), not a field of <code translate="no" v-pre>ChatMessage</code> any more. A regeneration keeps the row it replaces in the property <code translate="no" v-pre>GenerationProperties.ORIGINAL_PROMPT</code> next to <code translate="no" v-pre>ORIGINAL_MESSAGE</code>; cleanup puts it back when generation ends before any text arrived.</p>
+</li>
+<li>
 <p><strong>Replace, don&#x27;t mutate.</strong> The listener builds a new list and calls <code translate="no" v-pre>event.setPayload(...)</code>. Another listener may
 have set an immutable list, and the new list makes it obvious what the plugin sends.</p>
 </li>
@@ -432,11 +435,15 @@ to keep the note after it.</p>
 |---|---|---|
 | Add text to the system prompt | `AFTER_PREPARE_CONTENT` | change `PrePromptData.systemPrompt` |
 | Hide or add lore | `PROCESS_ACTIVATED_ENTRIES` | modify the `ACTIVATED_LOREBOOK_ENTRIES` list |
+| Know how a generation ended (notify, count, clean up) | `AFTER_CLEANUP` | read `OUTCOME` (`COMPLETED` / `CANCELLED` / `FAILED`) and `FAILURE`; the event is emitted for every generation and its listeners run also when the user stopped it, `getMessage()` is the part (`null` when it was removed). Tell the data of generations that run at the same time apart by `RUN_ID` |
+| Force a lore entry in or out | `PROCESS_LOREBOOK_ENTRY` | replace the `LOREBOOK_VERDICT` property (the activation's `Verdict` for the `LOREBOOK_ENTRY`) with `new Verdict(Reason.EXTENSION_ACTIVATED or EXTENSION_SKIPPED, why)`; the entry is used by the verdict that is left. The event comes again, with `LOREBOOK_SCAN_DEPTH` n &gt; 0 and a `LORE_MATCHED` verdict, for an entry the content of the used entries brought in (the scan depth of the lorebook); replacing that verdict with `EXTENSION_SKIPPED` keeps it out, and then its own content is not searched |
+| See why lore entries were used or left out | `PROCESS_ACTIVATED_ENTRIES` | read the `LOREBOOK_VERDICTS` property (`LorebookEntryVerdict`: the entry, its final `Verdict` with the `Reason` and detail, and the `depth` (the scan pass that found it, 0 for the prompt), for every evaluated entry); it is a record, removing entries from `ACTIVATED_LOREBOOK_ENTRIES` does not change it |
 | Reserve room for text added later | `BEFORE_PREPARE_CONTENT` | add to `PrePromptData.reservedTokens` |
 | Shorten the story sent to the model | `AFTER_MANUSCRIPT_CONCATENATION` | replace `MANUSCRIPT_CHRONICLE` |
 | Change the instructions of the turn | `AFTER_PREPARE_CONSTANT_DATA` | change the processed user prompt in `PrePromptData` |
 | Read how the context was spent | `AFTER_PREPARE_CONTENT` | read the `TOKEN_BREAKDOWN` property (`PromptTokenBreakdown`: tokens of each section and of what was cut); the tokens of the payload messages are added when the part is created, so changes made in `AFTER_PREPARE_PAYLOAD` are counted |
 | Post-process the answer as it streams | `CHUNK_RECEIVED` | replace the `CHUNK` property |
+| Only watch the answer as it streams (live counter, mirror, log) | `CHUNK_RECEIVED`, `REASONING_CHUNK_RECEIVED` | an observer: `storyGenerationService.addEventObserver(event, observation -&gt; ...)` runs synchronously on the stream's thread with no hop and no `chain.next()`, gets a read-only `GenerationObservation` and cannot change anything; keep it fast and hand slow work to another thread |
 | Act on the finished part | `AFTER_INFERENCE` | read `event.getMessage()` |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -457,6 +464,21 @@ to keep the note after it.</p>
 <td>Hide or add lore</td>
 <td><code translate="no" v-pre>PROCESS_ACTIVATED_ENTRIES</code></td>
 <td>modify the <code translate="no" v-pre>ACTIVATED_LOREBOOK_ENTRIES</code> list</td>
+</tr>
+<tr>
+<td>Know how a generation ended (notify, count, clean up)</td>
+<td><code translate="no" v-pre>AFTER_CLEANUP</code></td>
+<td>read <code translate="no" v-pre>OUTCOME</code> (<code translate="no" v-pre>COMPLETED</code> / <code translate="no" v-pre>CANCELLED</code> / <code translate="no" v-pre>FAILED</code>) and <code translate="no" v-pre>FAILURE</code>; the event is emitted for every generation and its listeners run also when the user stopped it, <code translate="no" v-pre>getMessage()</code> is the part (<code translate="no" v-pre>null</code> when it was removed). Tell the data of generations that run at the same time apart by <code translate="no" v-pre>RUN_ID</code></td>
+</tr>
+<tr>
+<td>Force a lore entry in or out</td>
+<td><code translate="no" v-pre>PROCESS_LOREBOOK_ENTRY</code></td>
+<td>replace the <code translate="no" v-pre>LOREBOOK_VERDICT</code> property (the activation&#x27;s <code translate="no" v-pre>Verdict</code> for the <code translate="no" v-pre>LOREBOOK_ENTRY</code>) with <code translate="no" v-pre>new Verdict(Reason.EXTENSION_ACTIVATED or EXTENSION_SKIPPED, why)</code>; the entry is used by the verdict that is left. The event comes again, with <code translate="no" v-pre>LOREBOOK_SCAN_DEPTH</code> n &gt; 0 and a <code translate="no" v-pre>LORE_MATCHED</code> verdict, for an entry the content of the used entries brought in (the scan depth of the lorebook); replacing that verdict with <code translate="no" v-pre>EXTENSION_SKIPPED</code> keeps it out, and then its own content is not searched</td>
+</tr>
+<tr>
+<td>See why lore entries were used or left out</td>
+<td><code translate="no" v-pre>PROCESS_ACTIVATED_ENTRIES</code></td>
+<td>read the <code translate="no" v-pre>LOREBOOK_VERDICTS</code> property (<code translate="no" v-pre>LorebookEntryVerdict</code>: the entry, its final <code translate="no" v-pre>Verdict</code> with the <code translate="no" v-pre>Reason</code> and detail, and the <code translate="no" v-pre>depth</code> (the scan pass that found it, 0 for the prompt), for every evaluated entry); it is a record, removing entries from <code translate="no" v-pre>ACTIVATED_LOREBOOK_ENTRIES</code> does not change it</td>
 </tr>
 <tr>
 <td>Reserve room for text added later</td>
@@ -482,6 +504,11 @@ to keep the note after it.</p>
 <td>Post-process the answer as it streams</td>
 <td><code translate="no" v-pre>CHUNK_RECEIVED</code></td>
 <td>replace the <code translate="no" v-pre>CHUNK</code> property</td>
+</tr>
+<tr>
+<td>Only watch the answer as it streams (live counter, mirror, log)</td>
+<td><code translate="no" v-pre>CHUNK_RECEIVED</code>, <code translate="no" v-pre>REASONING_CHUNK_RECEIVED</code></td>
+<td>an observer: <code translate="no" v-pre>storyGenerationService.addEventObserver(event, observation -&gt; ...)</code> runs synchronously on the stream&#x27;s thread with no hop and no <code translate="no" v-pre>chain.next()</code>, gets a read-only <code translate="no" v-pre>GenerationObservation</code> and cannot change anything; keep it fast and hand slow work to another thread</td>
 </tr>
 <tr>
 <td>Act on the finished part</td>
@@ -530,7 +557,7 @@ to keep the note after it.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (60a4afd23).</p></div>
             </footer>
         </div>
     </div>

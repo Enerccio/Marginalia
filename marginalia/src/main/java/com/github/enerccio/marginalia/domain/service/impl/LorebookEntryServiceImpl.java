@@ -152,6 +152,9 @@ public class LorebookEntryServiceImpl extends ExtendableServiceImpl<LorebookEntr
         to.setFiltering(from.getFiltering());
         to.setFilteringMode(from.getFilteringMode());
         to.setInsertionMode(from.getInsertionMode());
+        to.setPreventRecursion(from.isPreventRecursion());
+        to.setActivationContext(from.getActivationContext());
+        to.setActivationParts(from.getActivationParts());
     }
 
     @Override

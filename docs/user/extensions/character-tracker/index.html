@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522787704">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846522787704" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -65,7 +65,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.5.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -175,7 +175,14 @@
 relationships between them, and a map of those relationships.</p>
 <h2 id="the-characters-tab">The Characters tab</h2>
 <p>The left sidebar of the <a href="../../books/story-editor/">story editor</a> gets a <strong>Characters</strong> tab next to <em>Outline</em>. Above the
-list are two buttons, <strong>Add new character</strong> and <strong>Relationship map</strong>.</p>
+list is one line of buttons: <strong>Add</strong> (a new character), a menu with the import of lore entries, the <strong>Relationship map</strong>
+and a speech-bubble button for the prompt (hover for the names).</p>
+<p>The speech-bubble button opens a popover with <strong>In prompt</strong>, <strong>Depth</strong> and a role, like the <a href="../authors-note/">Author&#x27;s Note</a>;
+the button is green while the characters are in the prompt. When <em>In prompt</em> is checked, every generation gets the characters as a message: a line with the name, the tagline in brackets
+and the note of each character, and a list of the relationships (<code translate="no" v-pre>Mara -&gt; Tomas: employs</code>, <code translate="no" v-pre>&lt;-&gt;</code> when it goes both
+ways). <em>Depth</em> is the number of messages after it (<code translate="no" v-pre>0</code> the very end, after your instructions, <code translate="no" v-pre>1</code> right before them) and
+the role is <em>System</em>, <em>Assistant</em> or <em>User</em>. The text takes its tokens from the room for the story. Nothing is inserted
+while the book has no characters. The settings are saved with the book.</p>
 <p>The wand button between them has the menu item <strong>Import lore entries as characters</strong>, see
 <doc-anchor-trigger to="#importing-characters-from-the-lorebook">below</doc-anchor-trigger>.</p>
 <p>The list is ordered by name. Every character is on its own color and shows its <strong>name</strong> with the <strong>tagline</strong> below it in
@@ -215,8 +222,15 @@ smaller letters (two lines at most). The buttons of a character:</p>
     <img src="../../../images/plugin-charactertracker-tab.png" alt="The Characters tab" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
     <figcaption class="caption">The Characters tab</figcaption>
 </figure>
+<h2 id="picking-characters-for-a-turn">Picking characters for a turn</h2>
+<p>The <a href="../../books/story-editor/">new turn</a> form has the fields <strong>POV character</strong> and <strong>Present characters</strong>. They stay
+free text, but each has a button with a person icon at its end that lists the characters of the book, ordered by name.
+A name chosen in the list of the <strong>POV character</strong> replaces what is in the field; a name chosen in the list of
+<strong>Present characters</strong> is added at the end, after a comma, unless it is there already. The list is read when you open it,
+so a character you added a moment ago is in it. You can still type any name, and a name in the field does not have to be
+a character of the book.</p>
 <h2 id="the-character-dialog">The character dialog</h2>
-<p><strong>Add new character</strong> and the pen open the same dialog:</p>
+<p><strong>Add</strong> (the button with the plus; its tooltip reads <em>Add new character</em>) and the pen open the same dialog:</p>
 <retype-table copy-text="| Field | |
 |---|---|
 | **Name** | Required. |
@@ -369,7 +383,8 @@ dialog.</p>
 </retype-table>
 <p>Adding and changing is not destructive; only the <code translate="no" v-pre>delete</code> commands are, which an agent may be set to ask you about.</p>
 <h2 id="phone">Phone</h2>
-<p>The tab is in the drawer of the story, next to the outline, like the <a href="../authors-note/">Author&#x27;s Note</a>.</p>
+<p>The tab is in the drawer of the story, next to the outline, like the <a href="../authors-note/">Author&#x27;s Note</a>. The buttons for the
+POV and present characters are in the new turn form of the phone too.</p>
 
                 
                 <!-- Required only on API pages -->
@@ -407,7 +422,7 @@ dialog.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (60a4afd23).</p></div>
             </footer>
         </div>
     </div>

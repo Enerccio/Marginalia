@@ -331,7 +331,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
             Agent agent = isEdit() ? agentService.findForUser(source.getUuid()) : null;
             List<Manuscript> books = new ArrayList<>();
             if (agent != null) {
-                books.add(agent.getManuscript());
+                books.add(agentService.findManuscript(agent));
             } else {
                 for (Manuscript manuscript : manuscriptService.findAllRegularForUser()) {
                     if (agentService.findForManuscript(manuscript) == null) {
@@ -356,7 +356,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
 
             nameField.setValue(agent.getName());
             enabledCheckbox.setValue(agent.isEnabled());
-            manuscriptCombo.setValue(agent.getManuscript());
+            manuscriptCombo.setValue(books.getFirst());
             manuscriptCombo.setReadOnly(true);
             AgentModelProfile main = agent.getMainProfile();
             if (main != null) {

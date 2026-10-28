@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.agents;
 
+import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
 import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
 import com.github.enerccio.marginalia.domain.model.AgentModelProfile;
@@ -157,6 +158,29 @@ class AgentSubagentsTest extends AgentTestBase {
                 "update_plan", "report");
         // the request of the sub-agent counts in the budgets of the run
         assertThat(run.getRounds()).isEqualTo(3);
+    }
+
+    @Test
+    void aSubagentThatRepeatsItselfIsAskedWithoutToolsAndItsTextIsItsAnswer() throws Exception {
+        Agent agent = agentWith(1);
+        llm.respondWith(request -> {
+            if (isSub(request)) {
+                boolean forbidden = request.getBody().has("tool_choice") && "none".equals(request.getBody().get("tool_choice").getAsString());
+                return forbidden ? MockLLMResponse.text("I could not get past the book info.") : MockLLMResponse.toolCall("get-book-info", "{}");
+            }
+            return request.getMessages("tool").isEmpty() ? MockLLMResponse.toolCall("spawn_agent", "{\"task\":\"Count the parts.\"}")
+                    : MockLLMResponse.toolCall("finish", "{\"summary\":\"done\"}");
+        });
+
+        AgentRun run = await(startRun(agent));
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.DONE);
+        List<MockLLMRequest> subRequests = llm.getCompletionRequests().stream().filter(AgentSubagentsTest::isSub).toList();
+        // five rounds of calls and the one without tools
+        assertThat(subRequests).hasSize(Defaults.AGENT_REPEAT_STOP_AFTER + 1);
+        assertThat(subRequests.getLast().getMessages("user")).contains(Defaults.AGENT_REPEATING_NO_TOOLS);
+        String result = messageService.transcript(run).stream().filter(message -> message.getRole() == LLMRole.TOOL).findFirst().orElseThrow().getContent();
+        assertThat(result).contains("was stopped because it repeated").contains("I could not get past the book info.");
     }
 
     @Test

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522787704">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846522787704" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -65,7 +65,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.5.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -288,7 +288,7 @@ in the prompt.</p>
 </retype-table>
 <p>Summaries that are merged into a meta summary are shown under it, see <doc-anchor-trigger to="#meta-summaries">below</doc-anchor-trigger>. They have no
 <strong>Select</strong> box, no trash icon and no pencil: only the summaries that are in use can be changed.</p>
-<p>The empty menu bar above the grid is for <a href="../../extensions/">extensions</a> that add tools to the overview.</p>
+<p>The menu bar above the grid has <strong>Search and Replace</strong> (see <doc-anchor-trigger to="#search-and-replace-in-the-summaries">below</doc-anchor-trigger>); <a href="../../extensions/">extensions</a> can add tools to it.</p>
 <h3 id="editing-a-summary">Editing a summary</h3>
 <p>Click the pencil to the right of the content of a summary. The text turns into a text area of the same size. Click
 the green check to save the change, or the red trash icon to throw it away. The token count is counted again after
@@ -299,6 +299,19 @@ saving.</p>
 </figure>
 <p>Editing a summary changes what the model gets, nothing else: the summary stays valid. Only the text can be edited,
 not the reasoning.</p>
+<h3 id="search-and-replace-in-the-summaries">Search and replace in the summaries</h3>
+<p><strong>Search and Replace</strong> in the menu bar of the overview changes a name or a phrase in the summaries only, for instance
+when a character was renamed, and leaves the story as it is. It is the <a href="../story-editor/#search-and-replace">search and replace of the story</a>
+with the same fields and options, except that there is no <strong>Search in summaries</strong> (the summaries are all it looks into).
+The table lists every summary with a match, and the matches in it.</p>
+<p>It also looks into the summaries a meta summary stands in for and into the summary a meta summary replaced (they are shown
+under the meta summary and come back when it is <doc-anchor-trigger to="#unwinding-a-meta-summary">unwound</doc-anchor-trigger>): a match in them is listed with the
+meta summary that holds them.</p>
+<p>The text of the merged summaries is part of what makes a meta summary valid, so the replace works out the check value of
+those meta summaries again and they stay valid. <strong>Revalidate all summaries</strong> (on by default) does that for every summary of
+the book, also for those the replace did not touch and for those that were outdated before, see
+<a href="../story-editor/#search-and-replace">the story search</a>. With it off, a meta summary on a branch that is not searched
+(<strong>Search in all branches</strong> off) would become outdated, and the window tells you how many and asks whether to go on.</p>
 <h3 id="deleting-a-summary">Deleting a summary</h3>
 <p>The trash icon of a summary does the same as <strong>Delete summary</strong> in the part menu. For a meta summary it asks what to
 do, see <doc-anchor-trigger to="#unwinding-a-meta-summary">Unwinding a meta summary</doc-anchor-trigger>.</p>
@@ -419,9 +432,11 @@ names, items, agreements or unresolved plot threads, and without adding anything
 generate without them, or <strong>No</strong> to stop and generate new summaries first. Either way the outdated summaries are gone;
 the parts they covered are sent in full again (as far as they fit) until you summarize them again.</p>
 <p>A <a href="../story-editor/#search-and-replace">search and replace</a> in the story keeps the summaries it covers valid and warns about
-the ones that become outdated.</p>
+the ones that become outdated. The <doc-anchor-trigger to="#search-and-replace-in-the-summaries">search and replace of the summaries</doc-anchor-trigger> keeps the meta
+summaries valid.</p>
 <p>A meta summary is outdated when a part it covers is edited or deleted, but also when a summary it merged is deleted.
-(That is why the merged summaries can&#x27;t be edited: the change would make the meta summary outdated.) Removing an
+(That is why the merged summaries can&#x27;t be edited one by one: the change would make the meta summary outdated. The
+<doc-anchor-trigger to="#search-and-replace-in-the-summaries">search and replace</doc-anchor-trigger> works out the check value of the meta summary again.) Removing an
 outdated meta summary is the same as unwinding it: the summary it replaced comes back, and is checked as well. If it
 is outdated too, it is removed in the same way.</p>
 <p>When you <a href="../branches-and-story-tree/#branching-from-an-earlier-part">branch</a> from a part with a summary, the new
@@ -517,7 +532,7 @@ stops with <em>Contextual limit not sufficient.</em> Then shorten them (a more c
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (60a4afd23).</p></div>
             </footer>
         </div>
     </div>

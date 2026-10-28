@@ -26,9 +26,13 @@ have it, but the limits are the same as for everybody: the defaults unless they 
 |---|---|
 | **Agent ID** | The identifier of the agent. |
 | **Name** | The name you gave it. |
+| **Book** | The book the agent works on. |
 | **Status** | What its run is doing: *Running*, *Waiting for you*, *Waiting for approval*, *Pausing*, *Paused*, *Stopping*, *Stopped, result kept*, *Done, waits for the review*, *Applied*. An agent without a run says *Not running*, or *Disabled* when it is switched off. |
+| **Last run** | When the newest run of the agent started, *never* for an agent without a run. |
 
 ![The Agents tab](../images/agents-tab.png)
+
+Above the table, two fields narrow the list: **Name** and **Book** show only the agents whose name, or whose book's name, contains all the words you type, in any order and whatever the case. The headers **Name**, **Book**, **Status** and **Last run** sort the table (press again to reverse; the agents that never ran come first when the last run is ascending). On a phone, a **Sort by** selector above the cards orders them by name, status, or the newest run first.
 
 The buttons at the end of a row depend on the run:
 
@@ -102,7 +106,7 @@ While the agent waits for a free place at its model (see [One model, several age
 ![A run started in the console: the agent asks what to do](../images/agent-console-start.png)
 
 **Run** shows the *transcript*: what you told the agent, what it said (both as [Markdown](https://commonmark.org/help/), so lists, headings and emphasis show as such), and every command or file tool it called, folded to one line with the
-arguments (click it to see them and the result, shown as plain text). When the model sends its **reasoning** (what it thought before it answered), a folded *Reasoning* block shows it before the answer, and the download has it. Whether you get any depends on the model and the server: it has to report it, and your AI has to have reasoning switched on. Every message has the time it was written at the right of its first line (the time of day, with the date when it was another day; hover for the whole time), so you can tell how long the agent worked and when it stopped. The state of the run, the **context** (how many tokens the last request used of the limit of the model, so you see how close the run is to a pause), the rounds and tokens it used (and the token budget, when there
+arguments (click it to see them and the result, shown as plain text). When the model sends its **reasoning** (what it thought before it answered), a folded *Reasoning* block shows it before the answer, and the download has it. Whether you get any depends on the model and the server: it has to report it, and your AI has to have reasoning switched on. While a request is going on the console shows what the model has written so far (its reasoning, open so you can follow it, and its text) in a block marked *Working...* at the end of the transcript, above the messages that wait; it is replaced by the real blocks when the round is over. While it is shown the console reads the run twice a second, otherwise every two seconds. Only the agent itself is shown this way, not its sub-agents, and what the model writes inside a call (a long file, say) appears only when the round is over. Every message has the time it was written at the right of its first line (the time of day, with the date when it was another day; hover for the whole time), so you can tell how long the agent worked and when it stopped. The state of the run, the **context** (how many tokens the last request used of the limit of the model, so you see how close the run is to a pause), the rounds and tokens it used (and the token budget, when there
 is one) stay above it and the box for your message under it, while the transcript scrolls. What the agent waits for is in the transcript where it was written, as a bubble of its own that stays there when the run goes on:
 
 ![The console while the agent works: a message of the author waits in the queue](../images/agent-console-run.png)
@@ -162,6 +166,8 @@ The notices need a context cap: the lowest of the cap of the agent and the limit
 A call that was cut off but reached the application (the call result says "not valid JSON ... cut off in the middle") stays in the transcript as the model wrote it, so you can read it, but it is sent back to the model with empty arguments: a server that reads the earlier calls again would otherwise refuse every following request, and the run could not go on without a rewind.
 
 **Runaway calls.** A model can fall into a loop and write the same call hundreds of times in one answer; the results would fill the context before the next request. The run makes at most 32 calls of an answer, and a repeat of a call that only reads (the same tool with the same arguments, in the same answer) is made once. The calls that are left out are not in the transcript, and the agent gets a notice that says so.
+
+**Going in circles.** A model can also repeat itself over many answers: the same look-up (listing files, listing lorebooks...) with the same result, round after round, without getting anywhere. The run watches for that. When the agent makes rounds that only look, change nothing and are the same as earlier ones (same calls, same results), it is told at the third that nothing has changed. If it goes on, at the fifth its tools are taken away for one request: it has to answer in plain text what it was doing and what blocks it, and the run **pauses** with that answer as the last message, so you see why it was stuck instead of paying for another hundred rounds. **Resume** (or write to it) gives the tools back and starts counting afresh. A round in which something changed, or while sub-agents are working, is not counted. A sub-agent that repeats itself is stopped the same way, and what it said is its answer to the agent that started it.
 
 **`/clear-workspace [what to keep]`** deletes the files and all the folders of the [workspace](#the-working-copy) of the run (after you confirm, as with the button of the workspace). Name what
 to keep after it, separated by spaces: files, folders (with everything in them) or patterns such as `*.md` or `chapters/*.md`, a path with spaces in double quotes
@@ -292,7 +298,7 @@ as they are at that moment, and the lorebook with its sub-lorebooks. The copy is
 agent does, it does to the copy; your book stays as it was.
 
 When the agent has **Write the book with the model of the agent** on (the default), the copy also gets the **model of the agent** (the AI and the protocol of its main model profile) in place of the AI and the protocol of your book, every time the run starts or
-is resumed. So the commands that write with a model (`/next`, `/swipe`, `/regenerate`, the summaries) and the model commands of extensions (the Lore Generator, the Arc Outline) use the agent's model even when your book is set to another one, or to none;
+is resumed. So the commands that write with a model (`/next`, `/swipe`, `/regenerate`, `/redraft-part`, `/generate-annotation`, the summaries) and the model commands of extensions (the Lore Generator, the Arc Outline) use the agent's model even when your book is set to another one, or to none;
 a `profile` named in the call still wins. With the setting off they use the model of the book. This is not a change of your book: the review does not list it and applying the result leaves the AI and the protocol of your book as they are.
 
 A paused run keeps its copy and works on it again when you resume it. A run that is *Done*, or that you stopped and kept, keeps it until you
@@ -326,8 +332,9 @@ everything the agent changed, compared with your book **as it is now**, one line
 - **Book:** its name, description, language, point of view, tense, style and templates, its tags, and the data an extension keeps in the book (an arc outline, the character tracker).
 - **Part:** a part whose text, instructions, scene setting, point-of-view character, present characters or summary the agent changed, a part it wrote, a part it deleted. The variables a generation keeps with a part (and the data of extensions) are taken over with it, as the field **Data**.
 - **Lorebook** and **Entry:** a lorebook or an entry the agent made, changed (also moved, renamed, or with other tags, or other subbooks) or deleted.
+- **Annotation:** a [note](books/annotations.md#annotations-and-agents) on a passage of a part that the agent made, changed (the note, type, status) or deleted.
 
-Tick the lines you want, then **Apply the picked changes**. The buttons above the list tick **all** of them, **none**, **only new parts** (the new branch the agent wrote, nothing else) or everything
+Tick the lines you want, then **Apply the picked changes**. The buttons above the list tick **all** of them, **none**, **only new parts** (the new branch the agent wrote, nothing else), **only annotations** or everything
 **without conflicts**. A line that needs another (a new part needs the part it follows if that is new too) brings it along when you tick it, and loses its followers when you untick it. Click a line to see it
 on the right: the text of your book now and the text that will be written, **which you can edit** before you apply. If you write nothing, the agent's text is applied.
 
@@ -472,8 +479,8 @@ of two thousand parts). You can restore while the agent does not work; the agent
 
 The agent is offered only the commands you tick. The table lists every command with its effect (*Destructive* changes or removes
 data, *Non-destructive* only reads or adds). The **Selection** box ticks many at once: **All**, **None** or **All non-destructive**
-(the default for a new agent), or a role; ticking a command yourself makes the selection *Custom*. Commands that an extension brings stay allowed
-when the extension is not loaded, you just don't see them. The **Batch** column says whether the command is used *Together* with other calls in one answer or *Alone* (a command that makes a call to a model, such as `next`, `swipe`, `regenerate` or the compaction, is alone; see **Calls in one answer** below). All the columns can be resized. The **Tokens** column is what the definition of the command (its name, description and parameters) adds to every request of the agent, and
+(the default for a new agent), or a role; ticking a command yourself makes the selection *Custom*. The **Search commands** field above the table shows only the commands that have all the words you type (in any order, in the name or the description); the selection still applies to all commands, also the hidden ones. Commands that an extension brings stay allowed
+when the extension is not loaded, you just don't see them. The **Batch** column says whether the command is used *Together* with other calls in one answer or *Alone* (a command that makes a call to a model, such as `next`, `swipe`, `regenerate`, `redraft-part`, `generate-annotation` or the compaction, is alone; see **Calls in one answer** below). All the columns can be resized. The **Tokens** column is what the definition of the command (its name, description and parameters) adds to every request of the agent, and
 the line under the instructions adds up the ticked ones: the whole set is about 20 000 tokens, so a smaller selection (a role) leaves more room in the context for the work.
 
 ![The allowed commands, with the roles of the Selection box](../images/agent-commands.png)

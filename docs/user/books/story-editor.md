@@ -12,11 +12,13 @@ This page describes the desktop layout. On a phone the story is one column with 
 |---|---|
 | **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part (the parts before it are loaded first when it is not loaded yet). The header shows how many parts the branch has. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |
 | **Lorebook** (left, next to the Outline) | A read only look at the lore of the book, see [The lorebook tab](#the-lorebook-tab). |
-| **Parts** (center) | The text of each part, with its menu (☰) and its metadata on the right. |
-| **Bottom bar** | The **Summaries** button (list icon) and the settings menu (⚙) on the left, the **+** button on the right. |
+| **Annotations** (left, next to the Outline) | The [notes](annotations.md) on passages of the story, for the whole book. |
+| **Story** (center) | The text of each part, with its menu (☰) and its metadata on the right, and under it the bottom bar. |
+| **Bottom bar** | The **Summaries** button (list icon) and the settings menu (⚙) on the left, the command line, and the **+** button on the right. |
 
-The divider between the sidebar and the parts can be dragged. Marginalia remembers where you left it (saved with the book)
-and returns to it when you open the book again.
+This is how a new book looks. All of these are tabs you can arrange as you like, the story included, see
+[Arranging the tabs](#arranging-the-tabs). The divider between the sidebar and the story can be dragged, and Marginalia
+remembers where you left it (saved with the book) and returns to it when you open the book again.
 
 The story always opens at the bottom, at the newest part. A long book is not drawn all at once: only the last parts are
 loaded, and the earlier ones are added above as you scroll up, without moving the part you are reading. The parts at the
@@ -24,6 +26,24 @@ other end are dropped again, so no more than the **Parts loaded at once in the s
 [account](../account.md) stay loaded (empty loads all of them). If you scroll faster than the parts arrive, a *Loading
 earlier parts* (or *later parts*) mark at the edge says that there is more. Clicking a part in the outline, or finding one
 with the search, loads the parts around it, and starting a new part brings you back to the end of the story.
+
+### Searching the story
+
+Above the outline there is a search field for the text of the **branch you are on** (the search of the story tree
+searches all branches). Because a long book is not loaded all at once, the search of the browser (Ctrl+F) cannot find
+text in the parts that are not loaded; this one can.
+
+- Type what you look for; the search starts when you stop typing. Several words must all be in the same part, a phrase
+  goes in double quotes (`"old key"`) and `*` stands for any characters (`light*house`). The case does not matter.
+- Every place where a word stands is a match, and they are numbered through the whole branch. Below the field you see
+  *Match 3 of 27, in part #5* and a bar with how far you are. The story scrolls to the match and loads the parts around it
+  when they are not loaded.
+- The **up** and **down** buttons go to the previous and the next match (after the last one it goes round to the first).
+  **Enter** in the field does the same as the down button, **Shift+Enter** as the up button.
+- All the matches in the loaded parts are highlighted in the text, the match you are at in a stronger colour. Clear the
+  field to remove the highlight.
+
+On the phone the search is in the outline drawer; the drawer closes when it shows a match, open it again for the next one.
 
 ### The lorebook tab
 
@@ -40,17 +60,20 @@ swap tabs to check what an entry says. It is a preview: nothing can be changed h
 
 ![The Lorebook tab with two entries opened](../../images/story-lorebook-tab.png)
 
-Like every sidebar tab it can be dragged out into a panel of its own, see below.
+Like every tab of the editor it can be dragged out into a panel of its own, see below.
 
-### Arranging the sidebar tabs
+### Arranging the tabs
 
-The left sidebar is a set of tabs: the **Outline**, the **Lorebook**, and the tabs [extensions](../extensions/index.md) add (Characters, Arcs,
-Side Query...). Drag a tab by its header to rearrange them (desktop only, the drawer on a phone keeps one list):
+The editor is a set of tabs: the **Story** itself (the parts and the bottom bar under them), the **Outline**, the **Lorebook**, and the
+tabs [extensions](../extensions/index.md) add (Characters, Arcs, Side Query...). Drag a tab by its header to rearrange
+them (desktop only, the phone keeps one column with the outline in a drawer). A new book has the Outline and the Lorebook in a panel
+on the left and the Story in a column of its own on the right; you can put the story anywhere, for example in the middle with the
+outline on one side and the lore on the other, or above the outline:
 
 - Drop it on one of the dashed strips that appear above, between and under the panels of a column to **detach** it into a
   panel of its own in that column; the panels of a column are stacked under each other.
 - Drop it on one of the tall strips at the left, right or between the columns to **detach it to the side**: it gets a
-  column of its own, next to the others. Widen the sidebar with the divider to make room for more columns.
+  column of its own, next to the others. Widen the editor with the dividers to make room for more columns.
 
 The panels and the columns are separated by splitters: drag them to give each panel the room you need. The sizes are saved
 with the arrangement.
@@ -63,6 +86,15 @@ with the arrangement.
 The arrangement and the sizes are saved with the book, so it is the same the next time you open it and in every browser; the tab each
 panel shows is remembered with the rest of your workspace. A tab of an extension that is not loaded keeps its place for when
 the extension is back.
+
+The story is always somewhere: its tab can't be closed, and a tab that lives in a panel together with other tabs is hidden
+while another one is selected. Whatever shows a part brings the story back: clicking an entry of the outline, a hit of the
+search, choosing a branch in the [story tree](branches-and-story-tree.md), and starting a generation select the **Story** tab
+first. While a generation runs the other tabs are disabled and only the story stays usable, so you can stop it.
+
+To go back to the arrangement of a new book, choose **Restore default layout** in the settings menu (⚙) of the story and confirm.
+It only moves the tabs back (and forgets the sizes): your texts, the tab each panel shows and the tabs of extensions stay, the
+latter in the first panel.
 
 ## Writing the next part
 
@@ -102,6 +134,31 @@ The text is written in Markdown: `*italics*`, `**bold**`, `# Heading` and so on 
 `#` heading is a chapter for the [Chapter Marker](../extensions/chapter-marker.md) extension.
 !!!
 
+### Drafting the instructions
+
+Do not know what should happen next? **Draft Instructions** under the *Instructions* field of the panel lets the model write
+the instructions in your place, the way you would. A window opens with:
+
+| | |
+|---|---|
+| **Guidance** | What the part should be about: a rough idea, a direction ("she confronts him about the letter"), or nothing at all, and the model continues the story where it leads. It starts as what you already typed into *Instructions*. |
+| **Plan of the Story** | Only when something gives one. The [Arc Outline](../extensions/arc-outline.md#drafting-the-instructions-for-the-current-chapter) does, with the data of the current chapter. Read only; the model follows it. |
+
+**Draft Instructions** starts the model and streams the answer into **Drafted Instructions**, which you can change or empty
+before you go on; **Draft Again** tries once more, **Stop** keeps what has arrived. Nothing is changed until you click
+**Use as Instructions**: the text then replaces the *Instructions* of the panel (the other fields are not touched) and the panel opens
+again, ready for **Generate**.
+
+The model gets the story so far (the older story as [summaries](summaries.md), as in a generation), the scene setting, POV and
+present characters that are in the panel, the lore of the last part, your latest instructions as examples of how you write them, your
+guidance and the plan. It does not see your lorebook entries that a new turn would activate. The request is the
+[impersonate prompt](prompts.md#impersonate-prompt). The model is the one of the book; drafting costs tokens like any request.
+
+![Drafting the instructions of the next turn](../../images/impersonate-dialog.png)
+
+The same is the command [`/impersonate`](../commands/index.md), which returns the text. [Agents](../agents.md) do not get it, they write
+the story with instructions of their own.
+
 ## The part menu
 
 Every part has a menu (☰) in its top right corner:
@@ -109,9 +166,14 @@ Every part has a menu (☰) in its top right corner:
 | Item | |
 |---|---|
 | **Edit** | Turns the text into an editable field. **Save** (the same menu item) saves it. Starting a generation or leaving the tab saves open edits too. |
+| **Discard Changes** | Only while the text is edited: closes the field without saving, the part keeps the text it was last saved with. If you changed the text, you are asked first. |
 | **Regenerate** | Writes the last part again, replacing its text. Only on the last part. |
 | **Swipe** | Writes another version of the last part and keeps the old one as a separate branch. Only on the last part. See [Branches & story tree](branches-and-story-tree.md#trying-another-version-of-the-last-part). |
+| **Redraft** | Lets the model write this part again from your instructions, on any part, see [below](#redrafting-a-part). Not while the text is edited. |
+| **Annotate part** | Makes a [note](annotations.md#making-an-annotation) about the whole part. To annotate words, select them and right click (**Annotate selection**). |
+| **Annotate with AI** | Lets a model [review the part](annotations.md#letting-a-model-annotate) and propose notes. Not while the text is edited. For several parts at once use **Annotate a range of parts with AI** in the settings menu (⚙), and for every new part **Automatic annotation** (see [Annotations](annotations.md#annotating-every-new-part-automatically)). |
 | **Branch Story** | Starts a new branch from this part, see [Branches & story tree](branches-and-story-tree.md#branching-from-an-earlier-part). |
+| **Merge into previous part** | Adds the text of this part to the part before it, see [below](#merging-a-part-into-the-previous-one). Not on the first part. |
 | **Show Prompt** | Shows the exact prompt that was sent to the model for this part. |
 | **Token Usage** | Shows how the context of the model was used for this part: a chart of the sections of the prompt (instructions of the model, lore, summaries, story so far, your instructions, room kept for the response) and the size of each message sent to the model. If part of the story did not fit, it says how many parts were left out. Parts written before this was recorded have no chart. |
 | **Images** | Attaches pictures to the part, see [Images](#images). |
@@ -152,11 +214,103 @@ parts are sent to the model as you edited them.
 Editing a part that a [summary](summaries.md) covers makes that summary outdated; Marginalia notices it at the next
 generation and drops the summary.
 
+## Keyboard shortcuts
+
+On a computer (the [phone layout](../phone.md) has none) the writing loop works with the keyboard:
+
+| Key | |
+|---|---|
+| `+` | Opens the *New Turn Instructions* panel with the cursor in *Instructions*. |
+| `Ctrl+Enter` | Generates from the open panel. `Esc` closes it; the keyboard goes back to the story. |
+| `Ctrl+.` | Stops the generation that runs. |
+| `s` / `r` | **Swipe** / **Regenerate** the last part. |
+| `e` | Opens the editor of the last part. |
+| `Ctrl+S` | Saves the part that is being edited (also while the cursor is in its text). |
+| `/` | Puts the cursor into the command bar (the story tab is shown first). |
+| `Ctrl+Shift+F` | Opens the *Outline* tab and puts the cursor into the search of the branch (`Enter` / `Shift+Enter` go to the next / previous match). |
+| `Ctrl+Shift+H` | Opens the *Search and replace* window of the book. |
+| `a` | **Annotate selection**: makes a note about the text selected in a part. |
+| `Alt+PageDown` / `Alt+PageUp` | Shows the next / previous tab, going through the tabs of all sheets in the order of the layout and round again. |
+
+A key without `Ctrl`, `Alt` or `Meta` (such as `+`, `s`, `r`, `e`, `a`, `/`) works only when no text field has the focus, so it
+never gets in the way of typing. The shortcuts work in the story tab of the open book and not while another window is
+open above it. The buttons show their key in the tooltip, and the menu of the last part shows it after *Edit*, *Regenerate* and *Swipe*. On a Mac `Cmd` works where a key says `Ctrl` (unless you gave that `Cmd` key to another action). You can change every key in
+[Settings → Keyboard shortcuts](../account.md#keyboard-shortcuts).
+
 ## Deleting a part
 
 **Delete** removes the part from the story. The parts that followed it stay and continue from the part before it, so
 deleting a part in the middle of the story just takes it out. Deleting the last part makes the part before it the new
 end of the branch.
+
+## Redrafting a part
+
+**Regenerate** and **Swipe** work on the last part only and write it from scratch. **Redraft** works on any part, also an
+old one in the middle of the story, and keeps what you do not ask to change. Choose **Redraft** in the menu of the part:
+
+1. Write what should change in **Instructions for the redraft**: *add more dialogue between the two*, *make the fight
+   longer*, *remove the explanation of the map*, *keep the ending as it is*. Empty instructions write the part again with
+   the same events.
+2. Choose **Redraft**. The text streams into **Redrafted text**; **Stop** ends it early. Choose **Redraft again** for
+   another try, with other instructions if you like. **Differences** shows what changed against the part, word by word.
+   When the part has open [annotations](annotations.md), **Deal with the open annotations of the part** (checked at first)
+   gives them to the model as well, and **Apply** marks them resolved.
+3. The redrafted text is a field you can still edit (its corner icon makes it grow to fit the whole text), and **Differences** follows your edits. **Apply** replaces the text of the part with it; **Close** throws it
+   away. Nothing in the book changes before **Apply**.
+
+![The redraft window: the instructions, the new text and the differences](../../images/redraft-dialog.png)
+
+The model gets the [redraft prompts](prompts.md#redraft-prompt): the part, your instructions, the story before
+the part (the older story as [summaries](summaries.md) where there are valid ones, the rest as text, the newest part first
+when it does not all fit), as much of the story after the part as fits (up to a quarter of the room), the lore the part
+was written with, the point of view, tense and style of the book, and the scene setting, point of view character, present
+characters and instructions of the turn the part came from. The story after the part is there so the new text still leads
+into it: events the following parts rely on should stay.
+
+The part keeps its place, its summary, its pictures and how it was generated; the text, its words and tokens are replaced
+and the part counts as edited. Applying the redraft is an edit like **Save** in the editor, so [summaries](summaries.md)
+that describe the old text become outdated, and Marginalia tells how many. A summary on the part itself is one of them.
+
+When a summary describes the part (the part has one, or a newer part of the branch does), the window has the checkbox
+**Revalidate the summaries this redraft makes outdated**, unchecked at first. Check it when the summaries still say the
+right thing (the redraft changed the wording, not what happens): **Apply** then works out their hash again and they stay
+valid. Leave it unchecked when the events changed, and make the summaries again.
+
+### Redrafting only a passage
+
+To rewrite a few sentences and leave the rest of the part alone, select them in the text of the part and **right click** (a
+long press on a phone): the menu has **Redraft selection**. (The menu ☰ of the part is not offered for this, opening it can
+lose the selection in some browsers.) The window works as above with two differences: it shows the **Selected text**, and the
+redraft is only the text that replaces it. The model gets the whole part with the selection marked, and the story and lore
+around it, so the new passage joins the sentences before and after it. **Differences** compares the selection with the
+redrafted text; **Apply** puts the redrafted text in the place of the selection and keeps the rest of the part, including the
+space or line break at the edges of the selection. With open [annotations](annotations.md) the check box offers only the ones
+whose passage overlaps the selection. If the part was changed after you selected the text (in another window), **Apply** refuses
+and you select it again. While the part is edited the selection in the editor is used, and the edit is saved first.
+
+## Merging a part into the previous one
+
+A model that stopped in the middle of a sentence (the response limit, a cut connection) cannot be told to "continue" the
+same text reliably. Write the next part instead (*continue from where the last part stopped*) and join the two with
+**Merge into previous part** in the menu of the second one. A review opens:
+
+- **Join the texts with**: an empty line, a line break, a space or nothing. It is preselected from the end of the previous
+  text: a paragraph after a text that ended a sentence, a space after one that was cut.
+- The **scene setting**, **POV character**, **present characters** and **instructions** of both turns, combined in fields
+  you can edit. What the two turns have in common at the start is kept once ("Write the duel. Keep it short" and "Write the
+  duel. Add rain" give the first, and "Add rain" on the next line).
+- **Data**: what the two parts keep, value by value (for example the [variables](../templates/macros.md) of the story
+  and the data of extensions), with whether the value is the same, different or only on one of the parts. The merged part
+  keeps the value of the **later part** (it is where the story stands now) unless you choose the value of the previous
+  part for it, or leave the value out. Values that are the same are hidden unless you ask for them.
+
+![The review before a part is merged into the previous one](../../images/part-merge-dialog.png)
+
+The previous part keeps its place, its summary and how it was generated (prompt, model, times); it gets the joined text,
+the joined reasoning and pictures, and its words and tokens are counted again. The part you merged is deleted (it is in
+the [Trash](../trash.md)) and what followed it continues from the previous part. Summaries that cover the two parts become
+outdated, as after an edit. The part cannot be merged when it is the first part of the book, or when the part before it has
+other continuations (swipes of the part): delete them or make them a branch first.
 
 ## Images
 
@@ -195,6 +349,17 @@ Good to know:
 The **Summaries** button in the bottom bar (left of the settings menu ⚙) opens the overview of the summaries of the
 branch, where they can be edited, deleted and merged into meta summaries. The tooltip of the button shows how many
 tokens the summaries in use take in the prompt. See [Summaries](summaries.md#the-summaries-overview).
+
+## How much of the context the story takes
+
+The settings menu (⚙) has **Branch Tokens**. It shows, before you generate anything, what the story of the active branch
+takes of the prompt: a bar for the story **without summaries** (all the parts) and **with summaries** (the summaries
+and the parts after the newest one), and a table with the parts, the tokens and the share of the **prompt budget**
+(the context of the book's model minus the room for the response). Only summaries that still describe the story count;
+the ones that no longer match are named, they are dropped when a part is generated. The lore, the system template and the
+instructions of the turn take room from the same budget. Without a model with a context size the table has no shares.
+
+![Branch Tokens](../../images/branch-tokens.png)
 
 ## Book styles
 
@@ -275,6 +440,8 @@ summary that was outdated already stays so.
 
 In the [phone layout](../phone.md) the same window has the fields and buttons below each other, and the table has one
 column that shows the type and id, and below them the match and the replacement.
+
+The [Summaries overview](summaries.md#search-and-replace-in-the-summaries) has the same window for the summaries only.
 
 The same search and replace can be run from the [command line](../commands/index.md#commands-that-come-with-marginalia)
 with `/search-replace-parts`; it asks before it replaces.

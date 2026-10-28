@@ -48,6 +48,9 @@ public class ReviewerService {
     @Autowired
     private ChatMessageService chatMessageService;
 
+    @Autowired
+    private MessagePromptService messagePromptService;
+
     private static final String MANUSCRIPT_PROFILE_KEY = ReviewerSettings.KEY + ".profile";
 
     private final Gson gson = new Gson();
@@ -247,7 +250,7 @@ public class ReviewerService {
             }
 
             // Lorebook background lore attached to target message
-            String lore = targetMessage.getBackgroundLore();
+            String lore = messagePromptService.getBackgroundLore(targetMessage);
             boolean includeLore = advancedOptions.isLorebook() && StringUtils.isNotBlank(lore);
             if (includeLore) {
                 currentTokens += countTokens(inferenceService, lore);
@@ -290,7 +293,7 @@ public class ReviewerService {
                 payload.add(LLMChatMessage.of(LLMRole.SYSTEM, prePrompt));
             }
 
-            String buildPrompt = targetMessage.getBuiltPrompt();
+            String buildPrompt = messagePromptService.getBuiltPrompt(targetMessage);
             if (buildPrompt != null) {
                 JsonArray originalChain = gson.fromJson(buildPrompt,JsonArray.class);
                 for (int i=0; i<originalChain.size() - 1; i++) {

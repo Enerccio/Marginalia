@@ -1,0 +1,30 @@
+/* Styles of the Manga Generator plugin only. Put into the page by the application while the extension is loaded
+   (MangaGeneratorExtension.getCss); the application's shared-styles.css is not used for them. */
+
+/* Header bars separated from the content below */
+.manga-bar {
+    border-bottom: 1px solid var(--lumo-contrast-10pct);
+}
+
+/* A section of a manga */
+.manga-card {
+    border: 1px solid var(--lumo-contrast-10pct);
+    border-radius: var(--lumo-border-radius-m);
+    flex-shrink: 0;
+}
+
+/* The script or the tags of a section: a fixed height (smaller in a small window) that scrolls instead of growing with the text */
+.manga-output {
+    height: 22em;
+    max-height: 55vh;
+    box-sizing: border-box;
+    overflow-y: auto;
+    padding: var(--lumo-space-s);
+    background-color: var(--lumo-contrast-5pct);
+    border-radius: var(--lumo-border-radius-m);
+}
+
+.manga-empty {
+    color: var(--lumo-secondary-text-color);
+    font-style: italic;
+}

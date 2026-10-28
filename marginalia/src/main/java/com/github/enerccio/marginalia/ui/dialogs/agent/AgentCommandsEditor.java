@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.service.CommandService;
 import com.github.enerccio.marginalia.domain.service.TokenizerService;
 import com.github.enerccio.marginalia.domain.service.agent.CommandFunctions;
 import com.github.enerccio.marginalia.domain.service.command.CommandDefinition;
+import com.github.enerccio.marginalia.domain.service.command.CommandLinks;
 import com.github.enerccio.marginalia.domain.service.function.FunctionDefinition;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
@@ -18,6 +19,9 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.ListDataProvider;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -50,7 +54,9 @@ public class AgentCommandsEditor extends VerticalLayout {
     private TokenizerService tokenizerService;
 
     private final ComboBox<AgentCommandPreset> presetCombo;
+    private final TextField searchField;
     private final Grid<Row> grid;
+    private final ListDataProvider<Row> dataProvider = new ListDataProvider<>(new ArrayList<>());
     private final List<Row> rows = new ArrayList<>();
     private final Set<String> selected = new LinkedHashSet<>();
     // allowed names that no command has now
@@ -79,7 +85,15 @@ public class AgentCommandsEditor extends VerticalLayout {
             }
         });
 
+        searchField = new TextField(loc.getValue(L.LABEL_SEARCH_COMMANDS));
+        searchField.setClearButtonVisible(true);
+        searchField.setPrefixComponent(com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid.MAGNIFYING_GLASS.create());
+        searchField.setHelperText(loc.getValue(L.HELP_COMMAND_SEARCH));
+        searchField.setValueChangeMode(ValueChangeMode.LAZY);
+        searchField.addValueChangeListener(event -> dataProvider.setFilter(row -> matches(row, event.getValue())));
+
         grid = new Grid<>(Row.class, false);
+        grid.setDataProvider(dataProvider);
         grid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES);
         if (phone) {
             grid.setHeight("420px");
@@ -100,7 +114,12 @@ public class AgentCommandsEditor extends VerticalLayout {
 
         setPadding(false);
         setSpacing(false);
-        add(presetCombo, grid);
+        HorizontalLayout controls = new HorizontalLayout(presetCombo, searchField);
+        controls.setWidthFull();
+        controls.setPadding(false);
+        controls.setWrap(true);
+        controls.setFlexGrow(1, presetCombo, searchField);
+        add(controls, grid);
         loadCommands();
     }
 
@@ -112,15 +131,37 @@ public class AgentCommandsEditor extends VerticalLayout {
     private Checkbox checkbox(Row row, String label) {
         Checkbox checkbox = label == null ? new Checkbox(selected.contains(row.name())) : new Checkbox(label, selected.contains(row.name()));
         checkbox.addValueChangeListener(event -> {
-            if (event.getValue()) {
-                selected.add(row.name());
-            } else {
-                selected.remove(row.name());
+            if (toggle(row.name(), event.getValue())) {
+                grid.getDataProvider().refreshAll();
             }
             presetCombo.setValue(currentPreset());
             changed();
         });
         return checkbox;
+    }
+
+    /**
+     * Ticks or clears the command with the commands that go with it: ticking adds the commands linked to it, clearing
+     * clears those that are linked to it.
+     *
+     * @return whether another command than this one changed
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "commandName", type = String.class),
+                    @APIParameter(name = "value", type = boolean.class)},
+            locals = {@APILocals(name = "others", type = Set.class)})
+    private boolean toggle(String commandName, boolean value) {
+        Set<String> others = new LinkedHashSet<>(value ? CommandLinks.close(commandService.getCommands(), List.of(commandName))
+                : CommandLinks.dependents(commandService.getCommands(), commandName));
+        others.remove(commandName);
+        if (value) {
+            selected.add(commandName);
+            others.retainAll(rows.stream().map(Row::name).collect(Collectors.toSet()));
+            return selected.addAll(others);
+        }
+        selected.remove(commandName);
+        return selected.removeAll(others);
     }
 
     // package visible for the tests
@@ -171,7 +212,21 @@ public class AgentCommandsEditor extends VerticalLayout {
                     definition.readOnly(), tokensOf(definition.commandName())));
         }
         rows.sort(Comparator.comparing(Row::humanName, loc.createLocaleComparator()));
-        grid.setItems(rows);
+        dataProvider.getItems().clear();
+        dataProvider.getItems().addAll(rows);
+        dataProvider.refreshAll();
+    }
+
+    /**
+     * Whether the command has every word of the filter (in any order, ignoring the case) in its name, human name or
+     * description; every command for a blank filter.
+     */
+    static boolean matches(Row row, String filter) {
+        if (filter == null || filter.isBlank()) {
+            return true;
+        }
+        String text = (row.name() + " " + row.humanName() + " " + row.description()).toLowerCase(Locale.ROOT);
+        return Arrays.stream(filter.strip().toLowerCase(Locale.ROOT).split("\\s+")).allMatch(text::contains);
     }
 
     /**
@@ -188,6 +243,10 @@ public class AgentCommandsEditor extends VerticalLayout {
             long tokens = 0;
             for (FunctionDefinition function : CommandFunctions.create(commandService, List.of(commandName), DestructiveCommandMode.AUTO,
                     l -> loc.getValue(l), null).getDefinitions()) {
+                if (!function.getName().equals(CommandFunctions.functionName(commandName))) {
+                    // the commands linked to it come along, but they have a row (and tokens) of their own
+                    continue;
+                }
                 tokens += tokenizerService.countTokensApprox(function.getName() + " " + StringUtils.defaultString(function.getDescription())
                         + " " + function.getParametersSchema());
             }
@@ -220,7 +279,8 @@ public class AgentCommandsEditor extends VerticalLayout {
             Set<String> known = rows.stream().map(Row::name).collect(Collectors.toSet());
             selected.clear();
             unknown.clear();
-            for (String name : names) {
+            // the linked commands go with a command, also for an agent that was saved before they were linked
+            for (String name : CommandLinks.close(commandService.getCommands(), names)) {
                 (known.contains(name) ? selected : unknown).add(name);
             }
             presetCombo.setValue(currentPreset());
@@ -257,6 +317,8 @@ public class AgentCommandsEditor extends VerticalLayout {
                 selected.add(row.name());
             }
         }
+        selected.addAll(CommandLinks.close(commandService.getCommands(), selected).stream()
+                .filter(name -> rows.stream().anyMatch(row -> row.name().equals(name))).toList());
         loading = true;
         try {
             presetCombo.setValue(currentPreset());
@@ -294,11 +356,7 @@ public class AgentCommandsEditor extends VerticalLayout {
         if (rows.stream().noneMatch(row -> row.name().equals(commandName))) {
             throw new IllegalArgumentException("No such command: " + commandName);
         }
-        if (value) {
-            selected.add(commandName);
-        } else {
-            selected.remove(commandName);
-        }
+        toggle(commandName, value);
         presetCombo.setValue(currentPreset());
         grid.getDataProvider().refreshAll();
         changed();
@@ -349,6 +407,12 @@ public class AgentCommandsEditor extends VerticalLayout {
             returns = @APIReturn(type = ComboBox.class))
     ComboBox<AgentCommandPreset> getPresetCombo() {
         return presetCombo;
+    }
+
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = TextField.class))
+    TextField getSearchField() {
+        return searchField;
     }
 
     @PublicAPI(from = "1.4.0",

@@ -6,7 +6,7 @@ For everyday builds see [Building from source](building.md).
 
 ```mermaid
 flowchart LR
-    src["marginalia/ sources"] --> war["marginalia-1.4.0.war"]
+    src["marginalia/ sources"] --> war["marginalia-1.5.0.war"]
     war --> docker["Docker image<br/>Jetty 12 + WAR"]
     war --> desktop["Desktop distribution<br/>jlink runtime + Jetty + WAR + launcher"]
     desktop --> portable["portable archive<br/>marginalia-&lt;v&gt;-&lt;os&gt;-&lt;arch&gt;"]
@@ -24,7 +24,7 @@ flowchart LR
 
 ## The WAR
 
-`mvn package` in `marginalia/` produces `target/marginalia-1.4.0.war` (see
+`mvn package` in `marginalia/` produces `target/marginalia-1.5.0.war` (see
 [Building the application](building.md#building-the-application)). The WAR always runs in Vaadin production mode:
 `build-frontend` writes the production `flow-build-info.json` into it, and a development one left in
 `src/main/resources` is never packaged (see [Development and production mode](building.md#development-and-production-mode)).
@@ -33,7 +33,7 @@ One resource differs between a development build and a release build:
 
 | File | Development | Release |
 |---|---|---|
-| `log4j.properties` | `src/main/resources/` - `com.github.enerccio` at `DEBUG` | `src/main/resources-release/` - everything at `INFO`, no story content in the log |
+| `logback.xml` | `src/main/resources/` - `com.github.enerccio` at `DEBUG` | `src/main/resources-release/` - everything at `INFO`, no story content in the log |
 
 The build decides, not the packaging: IDE runs and `mvn jetty:run` use `target/classes`, which has the development
 file. The WAR plugin adds `src/main/resources-release/` to `WEB-INF/classes` and leaves the development file out, so
@@ -63,8 +63,9 @@ The `Dockerfile` in the repository root has two stages:
    - deploys the WAR as `webapps/ROOT.war`, so Marginalia is at `/`;
    - creates `/var/marginalia/.marginalia` for the data, owned by the `jetty` user;
    - declares a `HEALTHCHECK` (every 30 s, 120 s start period): the image has no `curl`, so `bash` opens a socket to
-     `127.0.0.1:8080`, sends `GET /` and the container is healthy when the status line is 2xx or 3xx (the login
-     redirect counts). Docker only reports the state, it does not restart the container;
+     `127.0.0.1:8080`, sends `GET /health` and the container is healthy when the status line is 200 (the
+     application context is up and the database answers, see [Architecture](architecture.md)). Docker only reports the
+     state, it does not restart the container;
    - starts with `docker-entrypoint.sh` (as `marginalia-entrypoint.sh`) as root: it creates the data folder if
      needed and, when it isn't owned by `jetty` - a `./data` bind mount that Docker created on a Linux host is owned
      by root - changes its owner to `jetty` (recursively, only then). It then runs the Jetty image's own
@@ -131,12 +132,12 @@ Outputs in `target/desktop/`:
 
 | Path | |
 |---|---|
-| `marginalia-1.4.0/` | The portable folder: `bin/marginalia`, `bin/marginalia.bat`, `app/`, `server/`, `runtime/`. |
+| `marginalia-1.5.0/` | The portable folder: `bin/marginalia`, `bin/marginalia.bat`, `app/`, `server/`, `runtime/`. |
 | `package/` | The app image: `Marginalia.app` (macOS), `Marginalia/Marginalia.exe` (Windows), `Marginalia/bin/Marginalia` (Linux). |
-| `marginalia-1.4.0-<os>-<arch>.tar.gz` / `.zip` | Archive of the portable folder (`.zip` on Windows). |
-| `marginalia-1.4.0-<os>-<arch>-app.tar.gz` / `.zip` | Archive of the app image. |
+| `marginalia-1.5.0-<os>-<arch>.tar.gz` / `.zip` | Archive of the portable folder (`.zip` on Windows). |
+| `marginalia-1.5.0-<os>-<arch>-app.tar.gz` / `.zip` | Archive of the app image. |
 
-`<os>` is `linux`, `macos` or `windows`, `<arch>` is Java's `os.arch` (`amd64`, `aarch64`...). Archives are made with
+`<os>` is `linux`, `macos` or `windows`, `<arch>` is Java's `os.arch` (`aarch64`...), except that `amd64` is written `x86_64` on every system. Archives are made with
 `tar` so the executable bits of the launchers survive.
 
 ### The launcher
@@ -187,7 +188,7 @@ one exact version of the application:
 ```sh
 mvn -N install                            # the parent POM in the repository root
 cd marginalia && mvn install -DskipTests
-cd plugins/reviewer && mvn package        # target/reviewer-1.4.0.jar
+cd plugins/reviewer && mvn package        # target/reviewer-1.5.0.jar
 ```
 
 `server.yml` builds all the plugins against the freshly installed application and attaches the JARs to the release
@@ -292,11 +293,11 @@ the first time it is pushed; make it public in the package settings on GitHub so
 5. **Tag.** Commit, then create and push the tag:
 
    ```sh
-   git tag v1.4.0
-   git push origin master v1.4.0
+   git tag v1.5.0
+   git push origin master v1.5.0
    ```
 
-6. **Release.** Create the GitHub release for the tag (by hand or `gh release create v1.4.0`) with the release
+6. **Release.** Create the GitHub release for the tag (by hand or `gh release create v1.5.0`) with the release
    notes. `desktop.yml` attaches the ten desktop archives when its matrix finishes, `server.yml` the WAR and the
    plugin JARs and pushes the Docker image - whichever finishes first creates the release if it doesn't exist yet
    (`softprops/action-gh-release`).

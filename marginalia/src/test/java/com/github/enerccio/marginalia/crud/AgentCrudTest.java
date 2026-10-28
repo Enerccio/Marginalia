@@ -61,10 +61,12 @@ class AgentCrudTest extends ExtendableCrudContract<Agent> {
     }
 
     @Override
-    protected void assertCreated(Agent loaded) {
+    protected void assertCreated(Agent loaded) throws Exception {
         assertThat(loaded.getName()).isEqualTo("Continuity");
         assertThat(loaded.isEnabled()).isTrue();
-        assertThat(loaded.getManuscript().getName()).isEqualTo("Agent's book");
+        // the book is lazy: read through the service
+        assertThat(agentService.findManuscript(loaded).getName()).isEqualTo("Agent's book");
+        assertThat(agentService.findBookNames(List.of(loaded))).containsEntry(loaded.getUuid(), "Agent's book");
         assertThat(loaded.getModelProfiles()).hasSize(2);
         AgentModelProfile main = loaded.getMainProfile();
         assertThat(main.getRole()).isEqualTo("overseer");

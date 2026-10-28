@@ -12,6 +12,7 @@ The toolbar has two rows, which wrap onto more lines in a narrow window: the fir
 | **Lorebook** | Selects the lorebook to edit. |
 | **Only root lorebooks** | Lists only the lorebooks that are not a sub lorebook of another one (the selected lorebook stays in the list). |
 | **Add Lorebook** | Creates a new lorebook named *New Lorebook* and selects it. |
+| Clone (two sheets icon) | Makes a copy of the selected lorebook: asks for the name (the original's with *(Copy)*) and selects the copy. The copy has the same entries (with their settings, tags and negative tags), tags and data of extensions. Its sub lorebooks are not copied, the copy uses the same ones. The original is not changed. |
 | **Delete Lorebook** | Deletes the selected lorebook (after confirming). |
 | Import (file icon) | **Import Marginalia Lorebook**, **Import from SillyTavern** or **Import from archive** (a zip of `.md` files), see [Import & export](import-export.md). |
 | Export (file icon) | Downloads the lorebook with its sub lorebooks, see [Import & export](import-export.md#exporting). |
@@ -20,7 +21,10 @@ The toolbar has two rows, which wrap onto more lines in a narrow window: the fir
 | **Search and replace** | Changes a text in the name, text and comment of the entries of the lorebook, see [Search and replace](entries.md#search-and-replace). |
 | **Mass edit** | Opens all the entries of the lorebook and of its sub lorebooks in one table, see [Mass edit](#mass-edit). |
 | Tags (tags icon, right of **Search and replace**, second row) | **Tag entries**: puts a tag on many entries of the selected lorebook at once, see [below](#tagging-many-at-once). |
+| **Preview activation** | Shows which entries a turn with a text you type would use and why, see [Preview activation](entries.md#preview-activation). |
 | **Refresh** | Reloads the entries. |
+| Search box | Shows only the entries that have the text in them, see [Searching and deleting many entries](entries.md#searching-and-deleting-many-entries). |
+| **Delete selected** | Appears when entries are selected in the list; deletes them after confirming. |
 
 Below the toolbar are the settings of the selected lorebook:
 
@@ -29,6 +33,7 @@ Below the toolbar are the settings of the selected lorebook:
 | **Name** | The name of the lorebook, shown when you pick it for a book or as a sub lorebook. |
 | **Sub Lorebooks** | Other lorebooks whose entries are included with this one, see [below](#sub-lorebooks). Click the name of a selected sub lorebook to open it. |
 | **Tags** | Tags of the whole lorebook; they count as tags of each of its entries, see [Tags](entries.md#tags). |
+| **Scan depth** | `0` to `5`: how many times the content of the entries that were used is searched for the filters of the other entries, see [Entries brought in by other entries](entries.md#entries-brought-in-by-other-entries). Only the lorebook a book uses counts, not its sub lorebooks. |
 | **Enabled** | When unchecked, the lorebook contributes nothing - neither its entries nor those of its sub lorebooks. |
 
 The rest of the editor is the list of [entries](entries.md). All changes are saved as you make them.

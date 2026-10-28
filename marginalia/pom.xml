@@ -6,7 +6,7 @@
   <parent>
     <groupId>io.github.enerccio</groupId>
     <artifactId>marginalia-parent</artifactId>
-    <version>1.4.0</version>
+    <version>1.5.0</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -107,15 +107,17 @@
     </dependency>
 
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <version>2.0.17</version>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.5.35</version>
     </dependency>
 
+    <!-- POI brings log4j-api, which Spring and Hibernate prefer over SLF4J and which drops everything without a
+         provider; this routes it into SLF4J (so into logback), keep the version of log4j-api -->
     <dependency>
-      <groupId>ch.qos.reload4j</groupId>
-      <artifactId>reload4j</artifactId>
-      <version>1.2.25</version>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-to-slf4j</artifactId>
+      <version>2.24.3</version>
     </dependency>
 
     <dependency>
@@ -479,7 +481,7 @@
           <packagingExcludes>**/gwt-unitCache/**,WEB-INF/classes/META-INF/VAADIN/config/flow-build-info.json.*</packagingExcludes>
           <webResources>
             <!-- release logging (INFO, no story content) - the WAR gets it instead of the development
-                 log4j.properties, which stays in target/classes for IDE runs and mvn jetty:run -->
+                 logback.xml, which stays in target/classes for IDE runs and mvn jetty:run -->
             <resource>
               <directory>src/main/resources-release</directory>
               <targetPath>WEB-INF/classes</targetPath>
@@ -492,7 +494,7 @@
               <filtering>true</filtering>
               <excludes>
                 <exclude>META-INF/VAADIN/config/flow-build-info.json*</exclude>
-                <exclude>log4j.properties</exclude>
+                <exclude>logback.xml</exclude>
               </excludes>
             </resource>
 
@@ -706,7 +708,12 @@
                     <condition property="desktop.tar" value="${env.SystemRoot}\System32\tar.exe" else="tar">
                       <os family="windows"/>
                     </condition>
-                    <property name="desktop.archiveBase" value="marginalia-${project.version}-${desktop.os}-${os.arch}"/>
+                    <!-- Java calls x86-64 "amd64" on Windows and Linux and "x86_64" on macOS: one name for all -->
+                    <condition property="desktop.arch" value="x86_64">
+                      <equals arg1="${os.arch}" arg2="amd64"/>
+                    </condition>
+                    <property name="desktop.arch" value="${os.arch}"/>
+                    <property name="desktop.archiveBase" value="marginalia-${project.version}-${desktop.os}-${desktop.arch}"/>
                     <delete>
                       <fileset dir="${desktop.dir}" includes="marginalia-*.tar.gz,marginalia-*.zip"/>
                     </delete>

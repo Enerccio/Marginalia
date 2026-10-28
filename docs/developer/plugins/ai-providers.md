@@ -4,7 +4,7 @@ A plugin can bring a model API of its own. The user then creates an AI of the ty
 provider of the plugin in the AI dialog, and the AI works like an OpenAI-compatible one: books use it, it is shared and
 limited, its usage is counted. The bundled
 [Google Gemini](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/google-genai) plugin is the
-worked example.
+worked example, [Anthropic Claude](#the-anthropic-claude-plugin) a second one.
 
 ```mermaid
 flowchart LR
@@ -98,12 +98,36 @@ What a service has to take care of itself, because nothing above it does:
 |---|---|
 | **Limits** | Call `AILimitService.check(ai, promptTokens, responseTokens)` at the start of `stream` and `infer`, in the caller's thread: it throws `InferenceException` (`NOT_AVAILABLE`, `LIMIT_REACHED`) when an administrator's limit for the user forbids the request. |
 | **Unmetered requests** | Read `UnmeteredScope.isActive()` once, in the caller's thread, when the request starts. When it is true the application asks on its own account (the help assistant with an AI that is not shared or has no *Apply limits*): skip `AILimitService.check` and do not call `UsageService.record` for that request, however many rounds and threads it takes. |
+| **Session id** | Call `InferenceServices.currentSessionId()` once, in the caller's thread, when the request starts (the [`InferenceSession`](../services.md#models) the caller opened is that thread's) and send a non-null answer in the header `InferenceSession.HEADER` (`X-Session-ID`) with every round of the request; the Anthropic plugin puts it on the request params, the Google plugin in the `HttpOptions` of the call. It is a hash of the user and the kind of work that a server or proxy with a prompt cache can use, and ignored by one that does not. The factory hands `inferenceServices::currentSessionId` to the service. |
 | **Usage** | Call `UsageService.record(ai, prefill, generated)` once per request, whichever way it ends, with the numbers the API reported (otherwise your own estimate - `TokenizerService.countTokensApprox`). It needs the user: capture `ThreadCopyRequestAttributes.create()` in the thread that calls `stream`/`infer` and run the recording in `InRequestScope`. |
 | **Errors** | Fail with `InferenceException` and the right `Type` (authentication, rate limit, context overflow...): the application has a localized text for each and `InferenceErrors.describe` adds the provider's message. Anything else is shown as an internal error. |
 | **Agents** | The runner of an [agent](../agents.md) asks with `InferenceService.round(payload, protocol, functions, callback)`: one request, the text, the reasoning and the calls the model wants made handed to `onRound` (they are **not** called) with a `RoundUsage` (tokens, and a `RoundStats` of what is known: the cache, the reasoning, the time, why it ended; -1 or null for what the provider does not tell). The default throws `UnsupportedOperationException`, so a service that does not implement it can not be given to an agent. |
 | **Callbacks** | `stream` hands chunks one at a time: call `onChunk(controller, type, text)` and wait for `controller.continueInference()` before the next, then `onCompletion()`. `ChunkType.REASONING` is the thinking, shown apart from the answer. Check `callback.isDead()` and the `CancellationToken` between chunks and end with `onCancel()`. Cut a blocked read short by cancelling the HTTP call when the token is cancelled (the Google plugin does it with an OkHttp interceptor). |
 | **Functions** | When a `FunctionSet` is passed, offer its definitions, run the calls the model makes with `FunctionSet.call(...)` (asynchronously, in the request scope), report each with `onFunctionCall`, ask again with the results, up to `MAX_FUNCTION_ROUNDS`. See `callFunctions` in the Google plugin. |
-| **Tokens** | `countTokens` is called very often (every part of the prompt): do not make a request for it. `TokenizerService.countTokensApprox` is local. |
+| **Tokens** | `countTokens` is called very often (every part of the prompt): do not make a request for it per call. `TokenizerService.countTokensApprox` is local. A provider with real tokenizers (several, or a different one per URL) overrides `ExtensionAIFactory.createTokenizerResolver()` and calls `TokenizerService.countTokens(ai, text)` from `countTokens`. The `TokenizerResolver` gives each of its AIs a `TokenizerKey` (`TokenizerKey.of(id)` or `TokenizerKey.of(id, secret)`, which keeps only an HMAC fingerprint of the secret; AIs with an equal key share the tokenizer that worked) and the `TokenizerStrategy` list to try for it. It is asked for the AIs of the provider only, once per registered factory. `countTokens` is also called inside read-write transactions (they hold the database write lock): `TokenizerService` counts approximately there, a provider that does not use it must not make a slow request in `countTokens`. |
+
+## Tokenizers for OpenAI-compatible AIs
+
+A plugin that is not a provider can still bring a tokenizer for the AIs of the type OpenAI-compatible (a custom endpoint, a
+model whose vocabulary tiktoken does not know). Implement `ExtensionTokenizer` (`getId`, `getName`, `countTokens(TokenizerKey,
+String)`, optionally `accepts(TokenizerKey)`) and call `TokenizerService.registerTokenizer` in `onExtensionLoad`,
+`unregisterTokenizer` in `onExtensionUnload`.
+
+- The tokenizer is listed in the **Tokenizer** selector of the AI dialog (`TokenizerService.getChoices`, id `ext:<id>`) and
+  is used by the AIs whose user chose it (`OpenAICompatible.tokenizer`, an extended attribute; null is automatic). Nothing
+  is ever sent to it for an AI that did not choose it.
+- It sees the `TokenizerKey` only: `key.id()` is the normalized endpoint and the model (`http://host:8080#model`), the API
+  key and the other settings of the AI never reach it.
+- `accepts(key)` is only a suggestion: the dialog preselects the first accepting tokenizer when the user creates an AI and
+  has not chosen one. Existing AIs are never changed by it.
+- An exception from `countTokens` makes the application count by the local estimate for that call. It is called often and
+  in the middle of the work, so keep it quick. Inside a read-write transaction `TokenizerService` does not call it at all
+  (it counts approximately, the transaction holds the database write lock).
+- When the plugin is unloaded, the AIs that chose it keep the choice (the dialog shows it as *not loaded*) and count by the
+  local estimate until it is loaded again.
+
+A plugin that provides AIs does not use this: it counts in its `InferenceService`, or gives the application its own
+resolver with `ExtensionAIFactory.createTokenizerResolver()` (see *Tokens* above).
 
 ## When the plugin is not loaded
 
@@ -139,7 +163,7 @@ it, the form of the chosen provider and the **Test Connection** button. The meth
 | Class | Role |
 |---|---|
 | `GoogleGenAiActivator`, `GoogleGenAiExtension` | Bundle start; the extension registers `GoogleGenAiFactory` and closes it on unload. |
-| `GoogleGenAiFactory` | `google-genai`, "Google Gemini"; creates the services and keeps them (weakly) to close their clients. |
+| `GoogleGenAiFactory` | `google-genai`, "Google Gemini"; creates the services and keeps them (weakly) to close their clients. Its `createTokenizerResolver()` gives the AIs a `TokenizerKey` (`google-genai#<endpoint>#<model>` + the API key fingerprint) and one strategy that asks the service of the AI for `countTokensOnline`; `GoogleGenAiInferenceService.countTokens` goes through `TokenizerService.countTokens`, so the application's estimate takes over inside write transactions. The service remembers the answers (by the hash of the text) and stops asking Google for a minute after a failure. |
 | `GoogleGenAiSettings` | The settings of an AI (`apiKey` encrypted, `model`, `baseUrl`, `requestTimeoutSeconds`, `maxRetries`, `safetyFiltersOff`) read from `ExtensionAI.getSettings()`. |
 | `GoogleGenAiForm` | The fields, **Refresh** for the model list, validation, `apply`. |
 | `GoogleGenAiInferenceService` | `stream`, `infer`, `round` (one request for an agent: not streamed, the calls are handed back and not made), function calls, JSON schema (`responseJsonSchema`), usage, limits, thinking (`ThinkingConfig`: a level for `gemini-3*`, a token budget for the others), safety settings, cancellation. |
@@ -184,3 +208,31 @@ Google's servers, under Google's terms, and that sharing such an AI sends the te
 The plugin has unit tests for the pure parts (`GoogleGenAiMessagesTest`, `GoogleGenAiErrorsTest`,
 `GoogleGenAiSettingsTest`); the core has `ExtensionAIFactoryTest`, `ExtensionAICrudTest`, `ExtensionAIGenerationTest` and
 `AIDialogExtensionTest` with a fake factory, which is the way to test your own provider's contract without a plugin.
+
+## The Anthropic Claude plugin
+
+`marginalia/plugins/anthropic` uses the [Anthropic Java SDK](https://github.com/anthropics/anthropic-sdk-java) and has the
+same classes as the Google plugin (`AnthropicActivator`, `AnthropicExtension`, `AnthropicFactory`, `AnthropicSettings`,
+`AnthropicForm`, `AnthropicInferenceService`, `AnthropicMessages`, `AnthropicErrors`). It is packaged the same way: the SDK
+(`anthropic-java`, about 36 MB with the model classes) is embedded, and what the application has (OkHttp, Jackson, Kotlin, the JSON
+schema generator, slf4j) is excluded. Only the OpenTelemetry API and Standard Webhooks, which the SDK needs and the application
+does not, come along. Where it differs from the Google plugin:
+
+- **Cancellation needs no interceptor.** The SDK closes the HTTP call when the `StreamResponse` is closed, also while another
+  thread waits in a read, so the `CancellationToken` closes the stream of the run.
+- **Everything is streamed**, `infer` and `round` too (the SDK refuses a long non-streamed request); the pieces of a `round`
+  are shown through `InferenceRoundCallback.onChunk` while it is written.
+- **Signed thinking.** The next round of a function call has to carry the thinking blocks of the answer with their signatures.
+  Inside one request the service sends the whole `Message` back (`ContentBlock.toParam()`); an agent rebuilds its history from the
+  calls, so the blocks are encoded into the `LLMToolCall` signature of the first call (`AnthropicMessages.encodeThinking`) and put
+  back in front of the text when the history is sent again.
+- **No sampling parameters.** The API version the SDK sends refuses `temperature`, `top_p` and `top_k`; the protocol's values are
+  ignored. Thinking is `adaptive` with a summarized display for Claude 4.6 and later, a token budget for the earlier models
+  (`AnthropicInferenceService.BUDGET_THINKING`), and `output_config.effort` carries the effort. With reasoning off no `thinking`
+  parameter is sent, because some models refuse `disabled`.
+- **Conversation shape.** System messages in the middle become user messages; results of calls come first in their user
+  message; the payload has to start and end with the user, because the models after Claude 4.5 refuse a prefill. Anything else is
+  an `InferenceException` of the type `BAD_REQUEST` thrown before the request is sent, nothing is added to the prompt.
+- **Tests.** `AnthropicServiceTest` runs the real SDK against `FakeAnthropicServer` (a JDK `HttpServer` that streams scripted
+  server-sent events): chunks, usage, the request bodies, the function loop with signed thinking, `infer` with a schema, `round`,
+  the error statuses, and a stalled stream that is cancelled. That is the way to test a provider without an API key.

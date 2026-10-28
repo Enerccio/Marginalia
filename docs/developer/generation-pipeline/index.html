@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522787704">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846522787704" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846005664026" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846522787704" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -67,7 +67,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.5.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -402,7 +402,7 @@ is loaded with <code translate="no" v-pre>LorebookService.fillEntries</code> (en
    | enabled | `entry.enabled` |
    | negative tags | none of the entry's negative tags is a tag of the book |
    | tags | the entry has no tags, or one of them is a tag of the book (the entry's tags include the tags of its lorebook) |
-   | filter | no filter, or the filter matches the **rendered user prompt**: `KEYWORDS_OR` / `KEYWORDS_AND` - the filter split by commas, trimmed, blanks dropped; any / every keyword is a case-insensitive substring (no keyword never matches); `TEXT` - case-insensitive substring; `REGEX` - case-insensitive `find()` (`DOTALL`); an invalid regex never matches |">
+   | filter | no filter, or the filter matches the **rendered user prompt** (for `activationContext = INCLUDE_PARTS`: the text of the newest `activationParts` parts of the branch, oldest first, then the user prompt, all joined by blank lines; see below): `KEYWORDS_OR` / `KEYWORDS_AND` - the filter split by commas, trimmed, blanks dropped; any / every keyword is a case-insensitive substring (no keyword never matches); `TEXT` - case-insensitive substring; `REGEX` - case-insensitive `find()` (`DOTALL`); an invalid regex never matches |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -426,13 +426,27 @@ is loaded with <code translate="no" v-pre>LorebookService.fillEntries</code> (en
 </tr>
 <tr>
 <td>filter</td>
-<td>no filter, or the filter matches the <strong>rendered user prompt</strong>: <code translate="no" v-pre>KEYWORDS_OR</code> / <code translate="no" v-pre>KEYWORDS_AND</code> - the filter split by commas, trimmed, blanks dropped; any / every keyword is a case-insensitive substring (no keyword never matches); <code translate="no" v-pre>TEXT</code> - case-insensitive substring; <code translate="no" v-pre>REGEX</code> - case-insensitive <code translate="no" v-pre>find()</code> (<code translate="no" v-pre>DOTALL</code>); an invalid regex never matches</td>
+<td>no filter, or the filter matches the <strong>rendered user prompt</strong> (for <code translate="no" v-pre>activationContext = INCLUDE_PARTS</code>: the text of the newest <code translate="no" v-pre>activationParts</code> parts of the branch, oldest first, then the user prompt, all joined by blank lines; see below): <code translate="no" v-pre>KEYWORDS_OR</code> / <code translate="no" v-pre>KEYWORDS_AND</code> - the filter split by commas, trimmed, blanks dropped; any / every keyword is a case-insensitive substring (no keyword never matches); <code translate="no" v-pre>TEXT</code> - case-insensitive substring; <code translate="no" v-pre>REGEX</code> - case-insensitive <code translate="no" v-pre>find()</code> (<code translate="no" v-pre>DOTALL</code>); an invalid regex never matches</td>
 </tr>
 </tbody>
 </table>
 </div>
 </retype-table>
+<p>Before the entries are evaluated the step asks <code translate="no" v-pre>LorebookActivationService.partsNeeded</code> (the largest <code translate="no" v-pre>activationParts</code> of the
+enabled <code translate="no" v-pre>INCLUDE_PARTS</code> entries, 0 when there is none) and reads that many parts with <code translate="no" v-pre>recentParts(activeLeaf, n, excludeLeaf)</code>: the non-blank <code translate="no" v-pre>response</code> of the branch from the root to the active leaf, the newest <code translate="no" v-pre>n</code>, oldest first (the leaf is left out
+for a swipe or a regeneration - it is the part being replaced). With 0 the story is not read. Each entry then takes the newest of the
+parts it asks for (<code translate="no" v-pre>evaluate(entry, tags, instructions, parts)</code>); the scan of step 4 does not use the parts.</p>
 </li>
+<li><strong>Scan</strong> (only with a scan depth): <code translate="no" v-pre>Lorebook.scanDepth</code> of the lorebook the book uses (clamped to
+<code translate="no" v-pre>LorebookActivationService.MAX_SCAN_DEPTH</code>, 5; the value of a sub-lorebook is ignored) is how many passes follow.
+Pass n takes the entries pass n - 1 activated (pass 0 is step 3), leaves out those with <code translate="no" v-pre>preventRecursion</code> or no
+payload, and evaluates the entries whose verdict is still <code translate="no" v-pre>FILTER_NOT_MATCHED</code> against the <strong>raw</strong> payloads of
+those (joined; templates are not run): <code translate="no" v-pre>evaluateInContent</code> gives <code translate="no" v-pre>LORE_MATCHED</code>, the detail being
+<code translate="no" v-pre>filter &lt;- name of the first entry that has it</code>. The pass ends the scan when nothing was activated. Each such entry gets
+<code translate="no" v-pre>PROCESS_LOREBOOK_ENTRY</code> again (<code translate="no" v-pre>LOREBOOK_SCAN_DEPTH</code> = n) and a verdict a listener replaced counts. The activated
+entries are in the order of step 2 whatever pass found them. <code translate="no" v-pre>LorebookActivationService.evaluateAll</code> runs the same
+rules without events (the preview in the lorebook editor and <code translate="no" v-pre>/preview-lore-activation</code>; they take the parts of the picked book / the part
+given with <code translate="no" v-pre>recentParts</code>).</li>
 <li><strong>Render</strong> the active entries&#x27; payloads as templates with one shared <code translate="no" v-pre>LorebookTemplateData</code> - so variables set in
 one entry are visible in the following ones. A payload that fails to render is used as it is.</li>
 <li><strong>Insert</strong>: payloads with <code translate="no" v-pre>IN_LORE_BLOCK</code> are joined into <code translate="no" v-pre>backgroundLore</code> (the master template&#x27;s
@@ -440,8 +454,11 @@ one entry are visible in the following ones. A payload that fails to render is u
 the user prompt.</li>
 </ol>
 <p>Events: <code translate="no" v-pre>BEFORE_PROCESS_LOREBOOK</code>, <code translate="no" v-pre>PROCESS_LOREBOOKS</code> (the list in <code translate="no" v-pre>LOREBOOKS</code> can be changed),
-<code translate="no" v-pre>PROCESS_LOREBOOK_ENTRY</code> (once per entry, <code translate="no" v-pre>LOREBOOK_ENTRY</code>), <code translate="no" v-pre>PROCESS_ACTIVATED_ENTRIES</code> (<code translate="no" v-pre>ACTIVATED_LOREBOOK_ENTRIES</code>
-can be changed), <code translate="no" v-pre>AFTER_PROCESS_LOREBOOK</code>.</p>
+<code translate="no" v-pre>PROCESS_LOREBOOK_ENTRY</code> (once per entry, <code translate="no" v-pre>LOREBOOK_ENTRY</code>; the entry is evaluated first and <code translate="no" v-pre>LOREBOOK_VERDICT</code> holds
+the decision, a listener can replace it and the entry is used by the verdict that is left; <code translate="no" v-pre>LOREBOOK_SCAN_DEPTH</code> is 0, and
+again for each entry a pass of the scan depth found, with its pass number),
+<code translate="no" v-pre>PROCESS_ACTIVATED_ENTRIES</code> (<code translate="no" v-pre>ACTIVATED_LOREBOOK_ENTRIES</code> can be changed; <code translate="no" v-pre>LOREBOOK_VERDICTS</code> lists the final decision on
+every evaluated entry, used or not, with its reason), <code translate="no" v-pre>AFTER_PROCESS_LOREBOOK</code>.</p>
 <h3 id="4-prepare_content---preparecontentstep">4. <code translate="no" v-pre>PREPARE_CONTENT</code> - <code translate="no" v-pre>PrepareContentStep</code></h3>
 <p>Decides which part of the story goes into the prompt and renders the system prompt.</p>
 <p><strong>Summaries.</strong> The branch from the root to the active leaf is read, and the summaries on it are collected (oldest
@@ -467,7 +484,8 @@ limit, jailbreak, system template (the system prompt without lore and summaries)
 user prompt, the user prompt and <code translate="no" v-pre>reserved</code> - and what was cut: the parts that didn&#x27;t fit (<code translate="no" v-pre>cutMessages</code>,
 <code translate="no" v-pre>cutTokens</code>), without the parts a summary replaces. The counts are measured separately, so they need not add up exactly
 to the payload.</p>
-<p><strong>System prompt.</strong> The master template is rendered with <code translate="no" v-pre>MasterTemplateData</code> (<code translate="no" v-pre>backgroundLore</code>, <code translate="no" v-pre>summaries</code>,
+<p><strong>Notes of the author.</strong> The open <a href="../domain-model/#annotation">annotations</a> with <code translate="no" v-pre>sendToPrompt</code> are read once for the book (<code translate="no" v-pre>flaggedAnnotations</code>). A part that is taken into the story brings its notes (<code translate="no" v-pre>AnnotationTexts.promptNotes</code>: the passage in quotes, or the first words of the part for a note about the whole part, and the note), their tokens count against the room like the part itself, so a part whose notes do not fit is cut; the notes of the parts that made it become <code translate="no" v-pre>MasterTemplateData.annotations</code> for the final render (the estimation render has none).</p>
+<p><strong>System prompt.</strong> The master template is rendered with <code translate="no" v-pre>MasterTemplateData</code> (<code translate="no" v-pre>backgroundLore</code>, <code translate="no" v-pre>summaries</code>, <code translate="no" v-pre>annotations</code>,
 <code translate="no" v-pre>narrativePov</code>, <code translate="no" v-pre>narrativeTense</code>, <code translate="no" v-pre>style</code> + the template context) into <code translate="no" v-pre>systemPrompt</code>. The estimate above renders it
 with a <em>fork</em> of the template context, so macros that change variables don&#x27;t run twice.</p>
 <p>Events: <code translate="no" v-pre>BEFORE_PREPARE_CONTENT</code>, <code translate="no" v-pre>BEFORE_SUMMARIES</code> (<code translate="no" v-pre>SUMMARIES</code> can be changed), <code translate="no" v-pre>AFTER_MANUSCRIPT_CONCATENATION</code>
@@ -492,7 +510,7 @@ compatible provider sends those of a user message as content parts. This step ad
 assistant message) or be the result of one (<code translate="no" v-pre>LLMRole.TOOL</code> with <code translate="no" v-pre>toolCallId</code>); the pipeline builds none of them, they
 are added by <code translate="no" v-pre>OpenAICompatibleInferenceService</code> when the model calls a function, see
 <a href="../services/#function-calls">Function calls</a>.</p>
-<p>The payload is stored in the part (<code translate="no" v-pre>builtPrompt</code>) and can be inspected in the story editor with <em>View prompt</em>:</p>
+<p>The payload is stored for the part (<a href="../domain-model/#messageprompt"><code translate="no" v-pre>MessagePrompt</code></a>) and can be inspected in the story editor with <em>View prompt</em>:</p>
 <figure class="content-center">
     <img src="../../images/dev-view-prompt.png" alt="The prompt of a part in the View prompt dialog" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="850" height="650" />
     <figcaption class="caption">The prompt of a part in the View prompt dialog</figcaption>
@@ -505,7 +523,7 @@ sent).</p>
 |---|---|
 | `NEW_MESSAGE` | A new part, child of the active leaf (or the first part of the book). |
 | `SWIPE` | A new part, sibling of the swiped one. |
-| `REGENERATE` | The existing part, cleared (`response` and `originalResponse` both). A full copy of it as it was (`ChatMessage.copyOf`, attributes deep copied) is kept in the `ORIGINAL_MESSAGE` property first. |">
+| `REGENERATE` | The existing part, cleared (`response` and `originalResponse` both). A full copy of it as it was (`ChatMessage.copyOf`, attributes deep copied) is kept in the `ORIGINAL_MESSAGE` property first, and its prompt row in `ORIGINAL_PROMPT`. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -525,14 +543,14 @@ sent).</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>REGENERATE</code></td>
-<td>The existing part, cleared (<code translate="no" v-pre>response</code> and <code translate="no" v-pre>originalResponse</code> both). A full copy of it as it was (<code translate="no" v-pre>ChatMessage.copyOf</code>, attributes deep copied) is kept in the <code translate="no" v-pre>ORIGINAL_MESSAGE</code> property first.</td>
+<td>The existing part, cleared (<code translate="no" v-pre>response</code> and <code translate="no" v-pre>originalResponse</code> both). A full copy of it as it was (<code translate="no" v-pre>ChatMessage.copyOf</code>, attributes deep copied) is kept in the <code translate="no" v-pre>ORIGINAL_MESSAGE</code> property first, and its prompt row in <code translate="no" v-pre>ORIGINAL_PROMPT</code>.</td>
 </tr>
 </tbody>
 </table>
 </div>
 </retype-table>
-<p>The part gets the <code translate="no" v-pre>TurnInput</code>, the model and protocol names, the payload as JSON (<code translate="no" v-pre>builtPrompt</code>, shown by <em>Show
-Prompt</em>), the activated lore and the request time. The token breakdown gets the tokens of every message of the final
+<p>The part gets the <code translate="no" v-pre>TurnInput</code>, the model and protocol names, the payload as JSON (stored as <code translate="no" v-pre>MessagePrompt.builtPrompt</code>, shown by <em>Show
+Prompt</em>), the activated lore (<code translate="no" v-pre>MessagePrompt.backgroundLore</code>) and the request time. The token breakdown gets the tokens of every message of the final
 payload (as listeners left it, counted with the provider&#x27;s tokenizer) and is stored as the part&#x27;s <code translate="no" v-pre>tokenBreakdown</code>
 (shown by <em>Token Usage</em>, see <a href="../ui/">UI</a>). Parts generated before it existed have none, <code translate="no" v-pre>getTokenBreakdown()</code> is <code translate="no" v-pre>null</code>
 for them. The template variables of the generation are stored: local ones in
@@ -542,7 +560,7 @@ part is only a placeholder that cleanup removes or restores.</p>
 <p>Events: <code translate="no" v-pre>BEFORE_GENERATE_NEW_MESSAGE</code>, <code translate="no" v-pre>AFTER_GENERATE_NEW_MESSAGE</code> (the part is available as <code translate="no" v-pre>getMessage()</code>).</p>
 <h3 id="7-inference---inferencestep">7. <code translate="no" v-pre>INFERENCE</code> - <code translate="no" v-pre>InferenceStep</code></h3>
 <p>Counts the prompt tokens (when the prompt plus the response limit still exceeds the context, the UI gets
-<code translate="no" v-pre>GenerationListener.onWarning</code>; the request is sent anyway), then calls <code translate="no" v-pre>InferenceService.stream(payload, protocol, callback)</code>. For each chunk:</p>
+<code translate="no" v-pre>GenerationListener.onWarning</code>; the request is sent anyway), then calls <code translate="no" v-pre>InferenceService.stream(payload, protocol, callback)</code> inside an <code translate="no" v-pre>InferenceSession</code> of the kind <code translate="no" v-pre>GENERATION</code> (a new part, a regeneration and a swipe share it, so the provider&#x27;s cache is that of the story; the service sends it as the header <code translate="no" v-pre>X-Session-ID</code>). For each chunk:</p>
 <ul>
 <li>
 <p><strong>reasoning</strong> chunks are appended to <code translate="no" v-pre>responseReasoning</code> (<code translate="no" v-pre>REASONING_CHUNK_RECEIVED</code>, the text in
@@ -618,7 +636,15 @@ extensions handle it like any provider failure. The limits are described in the 
 </table>
 </div>
 </retype-table>
-<p>Event: <code translate="no" v-pre>BEFORE_CLEANUP</code>.</p>
+<p>Events: <code translate="no" v-pre>BEFORE_CLEANUP</code> (its listeners do not run when the user stopped the generation, like those of every event) and
+<code translate="no" v-pre>AFTER_CLEANUP</code>, the last event of <strong>every</strong> generation: it is emitted when the cleanup is done, also when the cleanup
+itself failed, and its listeners run also when the generation was stopped or interrupted (<code translate="no" v-pre>Events.isTerminal()</code>). Before
+the cleanup starts the step sets <code translate="no" v-pre>OUTCOME</code> (<code translate="no" v-pre>GenerationOutcome</code>: <code translate="no" v-pre>COMPLETED</code>; <code translate="no" v-pre>CANCELLED</code> when the user stopped it - that
+wins over an error the stop caused; otherwise <code translate="no" v-pre>FAILED</code>) and, when an error was reported to the user (<code translate="no" v-pre>onError</code>,
+<code translate="no" v-pre>onSimpleError</code>, <code translate="no" v-pre>onInferenceError</code> of the <code translate="no" v-pre>GenerationListener</code>; the engine wraps the listener in a
+<code translate="no" v-pre>FailureTrackingListener</code>, so it does not matter which step reported it), <code translate="no" v-pre>FAILURE</code> (<code translate="no" v-pre>GenerationFailure</code>: the first
+message and the exception). <code translate="no" v-pre>getMessage()</code> of the event is the part with the text that arrived, <code translate="no" v-pre>null</code> when it was
+removed. The listener of the caller (<code translate="no" v-pre>onComplete</code>, <code translate="no" v-pre>onCancelled</code>) has been told by then.</p>
 <h2 id="prompt-data">Prompt data</h2>
 <p><code translate="no" v-pre>PrePromptData</code> (<code translate="no" v-pre>generation/dto/</code>) collects the prompt as the steps build it:</p>
 <retype-table copy-text="| Field | Set in | |
@@ -729,6 +755,14 @@ prefixed with the extension&#x27;s package.</p>
 <p>Unregister on unload - registrations are not removed automatically.</p>
 </li>
 </ul>
+<p>To only <strong>watch</strong> an event, most of all a hot one such as <code translate="no" v-pre>CHUNK_RECEIVED</code>, register an observer instead:
+<code translate="no" v-pre>storyGenerationService.addEventObserver(Events.CHUNK_RECEIVED, observation -&gt; ...)</code> (<code translate="no" v-pre>GenerationObserver</code>, returns a
+<code translate="no" v-pre>Registration</code> too). It is called synchronously on the thread that emits the event - for a chunk the thread of the
+inference stream - before the listeners of the event, so it costs no hop to another thread and takes no part in the chain
+(no <code translate="no" v-pre>chain.next()</code>). It gets a read-only <code translate="no" v-pre>GenerationObservation</code> (event, <code translate="no" v-pre>getRunId()</code>, manuscript, AI, protocol, message,
+request, input and an unmodifiable view of the properties), sees the values as the step produced them (a chunk before the
+listeners changed it) and is also called for a generation that was stopped. It must return quickly, because the generation
+waits for it, and must not need a request context. What it throws is logged and ignored.</p>
 <p>The bundled Author&#x27;s Note plugin is a complete example: it reserves tokens in <code translate="no" v-pre>BEFORE_PREPARE_CONTENT</code>
 (<code translate="no" v-pre>PrePromptData.reservedTokens</code>) and inserts a message into the payload in <code translate="no" v-pre>AFTER_PREPARE_PAYLOAD</code>, see
 <a href="../plugins/generation-events/">Generation events</a>.</p>
@@ -741,8 +775,8 @@ prefixed with the extension&#x27;s package.</p>
 | `AFTER_PREPARE_CONSTANT_DATA` | 2 | rendered user prompt, `TEMPLATE_CONTEXT` |
 | `BEFORE_PROCESS_LOREBOOK` | 3 | |
 | `PROCESS_LOREBOOKS` | 3 | `LOREBOOKS` (read back) |
-| `PROCESS_LOREBOOK_ENTRY` | 3 | `LOREBOOK_ENTRY`, once per entry |
-| `PROCESS_ACTIVATED_ENTRIES` | 3 | `ACTIVATED_LOREBOOK_ENTRIES` (read back) |
+| `PROCESS_LOREBOOK_ENTRY` | 3 | `LOREBOOK_ENTRY`, `LOREBOOK_VERDICT` (read back), `LOREBOOK_SCAN_DEPTH`; once per entry, again for entries found by a scan pass |
+| `PROCESS_ACTIVATED_ENTRIES` | 3 | `ACTIVATED_LOREBOOK_ENTRIES` (read back), `LOREBOOK_VERDICTS` |
 | `AFTER_PROCESS_LOREBOOK` | 3 | `backgroundLore`, `LOREBOOK_TEMPLATE_DATA` |
 | `BEFORE_PREPARE_CONTENT` | 4 | `PrePromptData.reservedTokens` - reserve room for text added later |
 | `BEFORE_SUMMARIES` | 4 | `SUMMARIES` (read back) |
@@ -753,7 +787,8 @@ prefixed with the extension&#x27;s package.</p>
 | `BEFORE_INFERENCE` | 7 | |
 | `REASONING_CHUNK_RECEIVED`, `CHUNK_RECEIVED` | 7 | `REASONING_CHUNK` / `CHUNK` (read back), per chunk |
 | `AFTER_INFERENCE` | 7 | complete part |
-| `BEFORE_CLEANUP` | 8 | state |">
+| `BEFORE_CLEANUP` | 8 | state, `OUTCOME`, `FAILURE` |
+| `AFTER_CLEANUP` | 8 | `OUTCOME`, `FAILURE`; also after a stopped or failed generation |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -797,12 +832,12 @@ prefixed with the extension&#x27;s package.</p>
 <tr>
 <td><code translate="no" v-pre>PROCESS_LOREBOOK_ENTRY</code></td>
 <td>3</td>
-<td><code translate="no" v-pre>LOREBOOK_ENTRY</code>, once per entry</td>
+<td><code translate="no" v-pre>LOREBOOK_ENTRY</code>, <code translate="no" v-pre>LOREBOOK_VERDICT</code> (read back), <code translate="no" v-pre>LOREBOOK_SCAN_DEPTH</code>; once per entry, again for entries found by a scan pass</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>PROCESS_ACTIVATED_ENTRIES</code></td>
 <td>3</td>
-<td><code translate="no" v-pre>ACTIVATED_LOREBOOK_ENTRIES</code> (read back)</td>
+<td><code translate="no" v-pre>ACTIVATED_LOREBOOK_ENTRIES</code> (read back), <code translate="no" v-pre>LOREBOOK_VERDICTS</code></td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>AFTER_PROCESS_LOREBOOK</code></td>
@@ -857,12 +892,19 @@ prefixed with the extension&#x27;s package.</p>
 <tr>
 <td><code translate="no" v-pre>BEFORE_CLEANUP</code></td>
 <td>8</td>
-<td>state</td>
+<td>state, <code translate="no" v-pre>OUTCOME</code>, <code translate="no" v-pre>FAILURE</code></td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AFTER_CLEANUP</code></td>
+<td>8</td>
+<td><code translate="no" v-pre>OUTCOME</code>, <code translate="no" v-pre>FAILURE</code>; also after a stopped or failed generation</td>
 </tr>
 </tbody>
 </table>
 </div>
 </retype-table>
+<p><code translate="no" v-pre>RUN_ID</code> (a random UUID, set before the first event) is in every event of a generation: extensions that keep data per
+generation key it by this, generations run at the same time.</p>
 <p>&quot;Read back&quot; means the step reads the property again after the event, so listeners can replace or modify the value.
 <code translate="no" v-pre>GenerationProperties</code> documents each key.</p>
 <h2 id="cancellation-and-errors">Cancellation and errors</h2>
@@ -944,7 +986,7 @@ wait for it to finish. See <a href="../testing/">Testing</a>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (60a4afd23).</p></div>
             </footer>
         </div>
     </div>

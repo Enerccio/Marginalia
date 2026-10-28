@@ -145,17 +145,35 @@ Skipped when the book has no lorebook. Otherwise:
    | enabled | `entry.enabled` |
    | negative tags | none of the entry's negative tags is a tag of the book |
    | tags | the entry has no tags, or one of them is a tag of the book (the entry's tags include the tags of its lorebook) |
-   | filter | no filter, or the filter matches the **rendered user prompt**: `KEYWORDS_OR` / `KEYWORDS_AND` - the filter split by commas, trimmed, blanks dropped; any / every keyword is a case-insensitive substring (no keyword never matches); `TEXT` - case-insensitive substring; `REGEX` - case-insensitive `find()` (`DOTALL`); an invalid regex never matches |
+   | filter | no filter, or the filter matches the **rendered user prompt** (for `activationContext = INCLUDE_PARTS`: the text of the newest `activationParts` parts of the branch, oldest first, then the user prompt, all joined by blank lines; see below): `KEYWORDS_OR` / `KEYWORDS_AND` - the filter split by commas, trimmed, blanks dropped; any / every keyword is a case-insensitive substring (no keyword never matches); `TEXT` - case-insensitive substring; `REGEX` - case-insensitive `find()` (`DOTALL`); an invalid regex never matches |
 
-4. **Render** the active entries' payloads as templates with one shared `LorebookTemplateData` - so variables set in
+   Before the entries are evaluated the step asks `LorebookActivationService.partsNeeded` (the largest `activationParts` of the
+   enabled `INCLUDE_PARTS` entries, 0 when there is none) and reads that many parts with `recentParts(activeLeaf, n,
+   excludeLeaf)`: the non-blank `response` of the branch from the root to the active leaf, the newest `n`, oldest first (the leaf is left out
+   for a swipe or a regeneration - it is the part being replaced). With 0 the story is not read. Each entry then takes the newest of the
+   parts it asks for (`evaluate(entry, tags, instructions, parts)`); the scan of step 4 does not use the parts.
+4. **Scan** (only with a scan depth): `Lorebook.scanDepth` of the lorebook the book uses (clamped to
+   `LorebookActivationService.MAX_SCAN_DEPTH`, 5; the value of a sub-lorebook is ignored) is how many passes follow.
+   Pass n takes the entries pass n - 1 activated (pass 0 is step 3), leaves out those with `preventRecursion` or no
+   payload, and evaluates the entries whose verdict is still `FILTER_NOT_MATCHED` against the **raw** payloads of
+   those (joined; templates are not run): `evaluateInContent` gives `LORE_MATCHED`, the detail being
+   `filter <- name of the first entry that has it`. The pass ends the scan when nothing was activated. Each such entry gets
+   `PROCESS_LOREBOOK_ENTRY` again (`LOREBOOK_SCAN_DEPTH` = n) and a verdict a listener replaced counts. The activated
+   entries are in the order of step 2 whatever pass found them. `LorebookActivationService.evaluateAll` runs the same
+   rules without events (the preview in the lorebook editor and `/preview-lore-activation`; they take the parts of the picked book / the part
+   given with `recentParts`).
+5. **Render** the active entries' payloads as templates with one shared `LorebookTemplateData` - so variables set in
    one entry are visible in the following ones. A payload that fails to render is used as it is.
-5. **Insert**: payloads with `IN_LORE_BLOCK` are joined into `backgroundLore` (the master template's
+6. **Insert**: payloads with `IN_LORE_BLOCK` are joined into `backgroundLore` (the master template's
    ``); payloads with `BEFORE_USER_PROMPT` are joined into `backgroundUserLore` and put in front of
    the user prompt.
 
 Events: `BEFORE_PROCESS_LOREBOOK`, `PROCESS_LOREBOOKS` (the list in `LOREBOOKS` can be changed),
-`PROCESS_LOREBOOK_ENTRY` (once per entry, `LOREBOOK_ENTRY`), `PROCESS_ACTIVATED_ENTRIES` (`ACTIVATED_LOREBOOK_ENTRIES`
-can be changed), `AFTER_PROCESS_LOREBOOK`.
+`PROCESS_LOREBOOK_ENTRY` (once per entry, `LOREBOOK_ENTRY`; the entry is evaluated first and `LOREBOOK_VERDICT` holds
+the decision, a listener can replace it and the entry is used by the verdict that is left; `LOREBOOK_SCAN_DEPTH` is 0, and
+again for each entry a pass of the scan depth found, with its pass number),
+`PROCESS_ACTIVATED_ENTRIES` (`ACTIVATED_LOREBOOK_ENTRIES` can be changed; `LOREBOOK_VERDICTS` lists the final decision on
+every evaluated entry, used or not, with its reason), `AFTER_PROCESS_LOREBOOK`.
 
 ### 4. `PREPARE_CONTENT` - `PrepareContentStep`
 
@@ -189,7 +207,9 @@ user prompt, the user prompt and `reserved` - and what was cut: the parts that d
 `cutTokens`), without the parts a summary replaces. The counts are measured separately, so they need not add up exactly
 to the payload.
 
-**System prompt.** The master template is rendered with `MasterTemplateData` (`backgroundLore`, `summaries`,
+**Notes of the author.** The open [annotations](domain-model.md#annotation) with `sendToPrompt` are read once for the book (`flaggedAnnotations`). A part that is taken into the story brings its notes (`AnnotationTexts.promptNotes`: the passage in quotes, or the first words of the part for a note about the whole part, and the note), their tokens count against the room like the part itself, so a part whose notes do not fit is cut; the notes of the parts that made it become `MasterTemplateData.annotations` for the final render (the estimation render has none).
+
+**System prompt.** The master template is rendered with `MasterTemplateData` (`backgroundLore`, `summaries`, `annotations`,
 `narrativePov`, `narrativeTense`, `style` + the template context) into `systemPrompt`. The estimate above renders it
 with a *fork* of the template context, so macros that change variables don't run twice.
 
@@ -221,7 +241,7 @@ assistant message) or be the result of one (`LLMRole.TOOL` with `toolCallId`); t
 are added by `OpenAICompatibleInferenceService` when the model calls a function, see
 [Function calls](services.md#function-calls).
 
-The payload is stored in the part (`builtPrompt`) and can be inspected in the story editor with *View prompt*:
+The payload is stored for the part ([`MessagePrompt`](domain-model.md#messageprompt)) and can be inspected in the story editor with *View prompt*:
 
 ![The prompt of a part in the View prompt dialog](../images/dev-view-prompt.png)
 
@@ -236,10 +256,10 @@ Prepares the part that receives the answer:
 |---|---|
 | `NEW_MESSAGE` | A new part, child of the active leaf (or the first part of the book). |
 | `SWIPE` | A new part, sibling of the swiped one. |
-| `REGENERATE` | The existing part, cleared (`response` and `originalResponse` both). A full copy of it as it was (`ChatMessage.copyOf`, attributes deep copied) is kept in the `ORIGINAL_MESSAGE` property first. |
+| `REGENERATE` | The existing part, cleared (`response` and `originalResponse` both). A full copy of it as it was (`ChatMessage.copyOf`, attributes deep copied) is kept in the `ORIGINAL_MESSAGE` property first, and its prompt row in `ORIGINAL_PROMPT`. |
 
-The part gets the `TurnInput`, the model and protocol names, the payload as JSON (`builtPrompt`, shown by *Show
-Prompt*), the activated lore and the request time. The token breakdown gets the tokens of every message of the final
+The part gets the `TurnInput`, the model and protocol names, the payload as JSON (stored as `MessagePrompt.builtPrompt`, shown by *Show
+Prompt*), the activated lore (`MessagePrompt.backgroundLore`) and the request time. The token breakdown gets the tokens of every message of the final
 payload (as listeners left it, counted with the provider's tokenizer) and is stored as the part's `tokenBreakdown`
 (shown by *Token Usage*, see [UI](ui.md)). Parts generated before it existed have none, `getTokenBreakdown()` is `null`
 for them. The template variables of the generation are stored: local ones in
@@ -252,7 +272,7 @@ Events: `BEFORE_GENERATE_NEW_MESSAGE`, `AFTER_GENERATE_NEW_MESSAGE` (the part is
 ### 7. `INFERENCE` - `InferenceStep`
 
 Counts the prompt tokens (when the prompt plus the response limit still exceeds the context, the UI gets
-`GenerationListener.onWarning`; the request is sent anyway), then calls `InferenceService.stream(payload, protocol, callback)`. For each chunk:
+`GenerationListener.onWarning`; the request is sent anyway), then calls `InferenceService.stream(payload, protocol, callback)` inside an `InferenceSession` of the kind `GENERATION` (a new part, a regeneration and a swipe share it, so the provider's cache is that of the story; the service sends it as the header `X-Session-ID`). For each chunk:
 
 - **reasoning** chunks are appended to `responseReasoning` (`REASONING_CHUNK_RECEIVED`, the text in
   `REASONING_CHUNK`),
@@ -297,7 +317,15 @@ Always the last step. Depending on the state:
 | `NOT_SUCCESSFUL`, no part yet | `onCancelled(null)`. |
 | `NOT_SUCCESSFUL`, part exists (no text arrived) | New part: the book's active leaf goes back to its parent, the part is deleted (children moved to its parent), `onCancelled(null)`. Swipe: the swiped version becomes active again, the new sibling is deleted, `onCancelled(previous)`. Regenerate: every value of the part is restored from `ORIGINAL_MESSAGE` (`loadFrom`, attributes included), `onCancelled(part)`. |
 
-Event: `BEFORE_CLEANUP`.
+Events: `BEFORE_CLEANUP` (its listeners do not run when the user stopped the generation, like those of every event) and
+`AFTER_CLEANUP`, the last event of **every** generation: it is emitted when the cleanup is done, also when the cleanup
+itself failed, and its listeners run also when the generation was stopped or interrupted (`Events.isTerminal()`). Before
+the cleanup starts the step sets `OUTCOME` (`GenerationOutcome`: `COMPLETED`; `CANCELLED` when the user stopped it - that
+wins over an error the stop caused; otherwise `FAILED`) and, when an error was reported to the user (`onError`,
+`onSimpleError`, `onInferenceError` of the `GenerationListener`; the engine wraps the listener in a
+`FailureTrackingListener`, so it does not matter which step reported it), `FAILURE` (`GenerationFailure`: the first
+message and the exception). `getMessage()` of the event is the part with the text that arrived, `null` when it was
+removed. The listener of the caller (`onComplete`, `onCancelled`) has been told by then.
 
 ## Prompt data
 
@@ -356,6 +384,15 @@ Rules:
   `ui.access(...)`.
 - Unregister on unload - registrations are not removed automatically.
 
+To only **watch** an event, most of all a hot one such as `CHUNK_RECEIVED`, register an observer instead:
+`storyGenerationService.addEventObserver(Events.CHUNK_RECEIVED, observation -> ...)` (`GenerationObserver`, returns a
+`Registration` too). It is called synchronously on the thread that emits the event - for a chunk the thread of the
+inference stream - before the listeners of the event, so it costs no hop to another thread and takes no part in the chain
+(no `chain.next()`). It gets a read-only `GenerationObservation` (event, `getRunId()`, manuscript, AI, protocol, message,
+request, input and an unmodifiable view of the properties), sees the values as the step produced them (a chunk before the
+listeners changed it) and is also called for a generation that was stopped. It must return quickly, because the generation
+waits for it, and must not need a request context. What it throws is logged and ignored.
+
 The bundled Author's Note plugin is a complete example: it reserves tokens in `BEFORE_PREPARE_CONTENT`
 (`PrePromptData.reservedTokens`) and inserts a message into the payload in `AFTER_PREPARE_PAYLOAD`, see
 [Generation events](plugins/generation-events.md).
@@ -370,8 +407,8 @@ The bundled Author's Note plugin is a complete example: it reserves tokens in `B
 | `AFTER_PREPARE_CONSTANT_DATA` | 2 | rendered user prompt, `TEMPLATE_CONTEXT` |
 | `BEFORE_PROCESS_LOREBOOK` | 3 | |
 | `PROCESS_LOREBOOKS` | 3 | `LOREBOOKS` (read back) |
-| `PROCESS_LOREBOOK_ENTRY` | 3 | `LOREBOOK_ENTRY`, once per entry |
-| `PROCESS_ACTIVATED_ENTRIES` | 3 | `ACTIVATED_LOREBOOK_ENTRIES` (read back) |
+| `PROCESS_LOREBOOK_ENTRY` | 3 | `LOREBOOK_ENTRY`, `LOREBOOK_VERDICT` (read back), `LOREBOOK_SCAN_DEPTH`; once per entry, again for entries found by a scan pass |
+| `PROCESS_ACTIVATED_ENTRIES` | 3 | `ACTIVATED_LOREBOOK_ENTRIES` (read back), `LOREBOOK_VERDICTS` |
 | `AFTER_PROCESS_LOREBOOK` | 3 | `backgroundLore`, `LOREBOOK_TEMPLATE_DATA` |
 | `BEFORE_PREPARE_CONTENT` | 4 | `PrePromptData.reservedTokens` - reserve room for text added later |
 | `BEFORE_SUMMARIES` | 4 | `SUMMARIES` (read back) |
@@ -382,7 +419,11 @@ The bundled Author's Note plugin is a complete example: it reserves tokens in `B
 | `BEFORE_INFERENCE` | 7 | |
 | `REASONING_CHUNK_RECEIVED`, `CHUNK_RECEIVED` | 7 | `REASONING_CHUNK` / `CHUNK` (read back), per chunk |
 | `AFTER_INFERENCE` | 7 | complete part |
-| `BEFORE_CLEANUP` | 8 | state |
+| `BEFORE_CLEANUP` | 8 | state, `OUTCOME`, `FAILURE` |
+| `AFTER_CLEANUP` | 8 | `OUTCOME`, `FAILURE`; also after a stopped or failed generation |
+
+`RUN_ID` (a random UUID, set before the first event) is in every event of a generation: extensions that keep data per
+generation key it by this, generations run at the same time.
 
 "Read back" means the step reads the property again after the event, so listeners can replace or modify the value.
 `GenerationProperties` documents each key.

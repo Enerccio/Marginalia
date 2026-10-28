@@ -9,4 +9,5 @@ public enum AgentRunPairKind {
     SUMMARY,
     LOREBOOK,
     ENTRY,
+    ANNOTATION,
 }

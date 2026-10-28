@@ -20,14 +20,14 @@ public class NameProviderFunctionsImpl implements NameProviderFunctions {
     }
 
     @Override
-    public void listLists(FunctionContinuation<List<String>> done) {
-        done.complete(lists.categories());
+    public void listLists(FunctionContinuation<List<String>> done, String filter) {
+        done.complete(lists.categories(filter));
     }
 
     @Override
     public void pickNames(FunctionContinuation<List<NameEntry>> done, String category, int count) {
         if (!lists.has(category)) {
-            done.fail("Unknown category '" + category + "'. Categories: " + String.join(", ", lists.categories()));
+            done.fail(NameLists.unknown("category", category, lists.categories(), "list_real_name_lists"));
             return;
         }
         done.complete(lists.pick(category, clampCount(count), ThreadLocalRandom.current()));

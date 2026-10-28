@@ -6,6 +6,11 @@ import com.github.enerccio.marginalia.domain.service.ExtensionService;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtendableMethodContext;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
+import com.github.enerccio.marginalia.domain.service.StoryGenerationService;
+import com.github.enerccio.marginalia.domain.service.impl.generation.Events;
+import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent;
+import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.EventChain;
+import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.Registration;
 import com.github.enerccio.marginalia.extensions.ExtensionHasCss;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.extensions.charactertracker.commands.CharacterTrackerCommands;
@@ -13,29 +18,43 @@ import com.github.enerccio.marginalia.extensions.charactertracker.model.Characte
 import com.github.enerccio.marginalia.extensions.charactertracker.service.CharacterTrackerService;
 import com.github.enerccio.marginalia.extensions.charactertracker.ui.CharacterTrackerStyles;
 import com.github.enerccio.marginalia.extensions.charactertracker.ui.CharacterTrackerView;
+import com.github.enerccio.marginalia.extensions.charactertracker.ui.TurnCharacterPicker;
+import com.github.enerccio.marginalia.ui.dialogs.story.NewTurnForm;
 import com.github.enerccio.marginalia.ui.main.ApplicationEntryPoint;
 import com.github.enerccio.marginalia.ui.main.Main;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ComponentUtil;
+import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.component.textfield.TextField;
 import org.osgi.framework.Bundle;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import static com.github.enerccio.marginalia.extensions.charactertracker.CharacterTrackerLocalization.T;
+
 /**
- * Adds the Characters tab to the left sidebar of the story view.
+ * Adds the Characters tab to the left sidebar of the story view and the lists of the characters to the new turn form.
  */
 @Configurable
 public class CharacterTrackerExtension implements MarginaliaExtension, ExtensionHasCss {
 
     private static final String VIEW_KEY = CharacterTrackerData.KEY + ".view";
 
+    /** The logger of this extension, its lines go to the extension log (Admin → Extensions → Log). */
+    private Logger log;
+
     @Autowired
     private CommandService commandService;
+
+    @Autowired
+    private StoryGenerationService storyGenerationService;
 
     private final CharacterTrackerService service = new CharacterTrackerService();
 
@@ -43,11 +62,16 @@ public class CharacterTrackerExtension implements MarginaliaExtension, Extension
     private CharacterTrackerCommands commands;
 
     private ExtensionDecorator storyPartDecorator;
+    private Registration reserveRegistration;
+    private Registration payloadRegistration;
 
     private final Set<TabDock> activeTabSheets = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+    /** The POV field of every new turn form with a picker, with its present characters field. */
+    private final Map<TextField, TextArea> activePickers = Collections.synchronizedMap(new WeakHashMap<>());
 
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
+        log = parentService.createLogger(bundle);
         try {
             // the Characters tab in the left sidebar of the story view (the drawer on a phone), next to the outline
             storyPartDecorator = new ExtensionDecorator() {
@@ -65,10 +89,21 @@ public class CharacterTrackerExtension implements MarginaliaExtension, Extension
                         }
 
                         CharacterTrackerView view = new CharacterTrackerView(currentManuscript, service);
-                        leftBar.add("character-tracker", "Characters", view);
+                        leftBar.add("character-tracker", T.localized("Characters"), view);
 
                         ComponentUtil.setData(leftBar, VIEW_KEY, view);
                         activeTabSheets.add(leftBar);
+
+                        // the lists of the characters at the POV and present characters of the new turn
+                        NewTurnForm newTurnForm = context.getReflectiveFieldValue(instrumented, "newTurnForm", NewTurnForm.class);
+                        if (newTurnForm != null) {
+                            TextField pov = context.getReflectiveFieldValue(newTurnForm, "povCharacterField", TextField.class);
+                            TextArea present = context.getReflectiveFieldValue(newTurnForm, "presentCharactersField", TextArea.class);
+                            if (pov != null && present != null) {
+                                TurnCharacterPicker.attach(newTurnForm, pov, present, currentManuscript, service);
+                                activePickers.put(pov, present);
+                            }
+                        }
                     }
                 }
             };
@@ -88,9 +123,53 @@ public class CharacterTrackerExtension implements MarginaliaExtension, Extension
             // the characters for the command bar and for agents
             commands = new CharacterTrackerCommands(service);
             commandService.registerCommands(commands);
+
+            // the context budget is computed in PREPARE_CONTENT - reserve room for the characters before it
+            reserveRegistration = storyGenerationService.addEventListener(Events.BEFORE_PREPARE_CONTENT,
+                    this::reserveCharacters);
+            // the payload is complete after PREPARE_PAYLOAD, what the listener sets is sent to the model
+            payloadRegistration = storyGenerationService.addEventListener(Events.AFTER_PREPARE_PAYLOAD,
+                    this::insertCharacters);
         } catch (Exception e) {
             // there may be no UI (loading at startup), the extension service logs it and skips the extension
             throw new IllegalStateException("Failed to load the Character Tracker extension", e);
+        }
+    }
+
+    private void reserveCharacters(GenerationControllerEvent event, EventChain chain) {
+        try {
+            // listeners are global - every generation of every user comes here, the characters are per book
+            Manuscript manuscript = event.getManuscript();
+            if (manuscript != null && event.getPrePromptData() != null) {
+                CharacterTrackerService.PromptInsertion insertion = service.promptInsertion(service.load(manuscript));
+                if (insertion != null) {
+                    // the same text is inserted later, even if the user edits the characters during the generation
+                    event.getProperties().put(CharacterTrackerData.KEY, insertion);
+                    long tokens = service.countTokens(event.getAi(), insertion);
+                    event.getPrePromptData().setReservedTokens(event.getPrePromptData().getReservedTokens() + tokens);
+                }
+            }
+        } catch (Exception e) {
+            // the characters are then not inserted either - nothing is in the properties
+            event.getProperties().remove(CharacterTrackerData.KEY);
+            log.warn("Failed to reserve tokens for the characters: {}", e.getMessage(), e);
+        } finally {
+            chain.next();
+        }
+    }
+
+    private void insertCharacters(GenerationControllerEvent event, EventChain chain) {
+        try {
+            // only characters that were counted in the context budget are inserted
+            CharacterTrackerService.PromptInsertion insertion = event.getProperty(CharacterTrackerData.KEY);
+            if (insertion != null) {
+                event.setPayload(service.insert(event.getPayload(), insertion));
+            }
+        } catch (Exception e) {
+            // generate without the characters rather than fail the generation
+            log.warn("Failed to insert the characters: {}", e.getMessage(), e);
+        } finally {
+            chain.next();
         }
     }
 
@@ -109,6 +188,14 @@ public class CharacterTrackerExtension implements MarginaliaExtension, Extension
         if (storyPartDecorator != null) {
             extensionService.unregisterDecorator(storyPartDecorator);
         }
+        if (reserveRegistration != null) {
+            reserveRegistration.unregister();
+            reserveRegistration = null;
+        }
+        if (payloadRegistration != null) {
+            payloadRegistration.unregister();
+            payloadRegistration = null;
+        }
 
         // remove the tab from story views that are open
         synchronized (activeTabSheets) {
@@ -123,6 +210,10 @@ public class CharacterTrackerExtension implements MarginaliaExtension, Extension
                 });
             }
             activeTabSheets.clear();
+        }
+        synchronized (activePickers) {
+            activePickers.forEach((pov, present) -> UIUtils.accessComponent(pov, () -> TurnCharacterPicker.detach(pov, present)));
+            activePickers.clear();
         }
     }
 }

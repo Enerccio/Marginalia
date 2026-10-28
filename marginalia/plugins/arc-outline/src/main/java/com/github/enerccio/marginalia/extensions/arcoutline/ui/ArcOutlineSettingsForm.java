@@ -13,6 +13,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import static com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineLocalization.T;
+
 /**
  * The Arc Outline section of the user settings.
  */
@@ -37,28 +39,28 @@ public class ArcOutlineSettingsForm extends VerticalLayout {
         setPadding(true);
         setSpacing(true);
 
-        generationPromptArea = new TextAreaPopoverComponent("Arc generation prompt");
+        generationPromptArea = new TextAreaPopoverComponent(T.localized("Arc generation prompt"));
         generationPromptArea.setWidthFull();
         generationPromptArea.setPlaceholder(Defaults.GENERATION_PROMPT);
-        generationPromptArea.setHelperText("Template. Variables: {{backgroundLore}}, {{existingArcs}}, {{specification}}. Empty: the default prompt.");
+        generationPromptArea.setHelperText(T.localized("Template. Variables: {{backgroundLore}}, {{existingArcs}}, {{specification}}. Empty: the default prompt."));
         ResizableTextArea.install(loc, generationPromptArea, "240px");
         generationPromptArea.setPopoverContent(TemplateHints.create(loc, generationPromptArea,
                 generationPromptArea.getPopover(), null, Defaults.GENERATION_PROMPT));
         add(generationPromptArea);
 
-        chapterGenerationPromptArea = new TextAreaPopoverComponent("Chapter generation prompt");
+        chapterGenerationPromptArea = new TextAreaPopoverComponent(T.localized("Chapter generation prompt"));
         chapterGenerationPromptArea.setWidthFull();
         chapterGenerationPromptArea.setPlaceholder(Defaults.CHAPTER_GENERATION_PROMPT);
-        chapterGenerationPromptArea.setHelperText("Template. Variables: {{backgroundLore}}, {{outline}}, {{numberOfChapters}}, {{generalSpecification}}, {{chapterSpecification}}. Empty: the default prompt.");
+        chapterGenerationPromptArea.setHelperText(T.localized("Template. Variables: {{backgroundLore}}, {{outline}}, {{numberOfChapters}}, {{generalSpecification}}, {{chapterSpecification}}. Empty: the default prompt."));
         ResizableTextArea.install(loc, chapterGenerationPromptArea, "240px");
         chapterGenerationPromptArea.setPopoverContent(TemplateHints.create(loc, chapterGenerationPromptArea,
                 chapterGenerationPromptArea.getPopover(), null, Defaults.CHAPTER_GENERATION_PROMPT));
         add(chapterGenerationPromptArea);
 
-        importPromptArea = new TextAreaPopoverComponent("Story import prompt");
+        importPromptArea = new TextAreaPopoverComponent(T.localized("Story import prompt"));
         importPromptArea.setWidthFull();
         importPromptArea.setPlaceholder(Defaults.IMPORT_PROMPT);
-        importPromptArea.setHelperText("Template. Variables: {{backgroundLore}}, {{existingArcs}}, {{story}}, {{numberOfChapters}}. Empty: the default prompt.");
+        importPromptArea.setHelperText(T.localized("Template. Variables: {{backgroundLore}}, {{existingArcs}}, {{story}}, {{numberOfChapters}}. Empty: the default prompt."));
         ResizableTextArea.install(loc, importPromptArea, "240px");
         importPromptArea.setPopoverContent(TemplateHints.create(loc, importPromptArea,
                 importPromptArea.getPopover(), null, Defaults.IMPORT_PROMPT));

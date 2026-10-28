@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522787704">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846522787704" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -59,7 +59,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.5.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -226,8 +226,8 @@ something. <a href="../architecture/">Architecture</a> explains how the parts wo
 <pre translate="no" class="language-none"><code v-pre class="language-none">marginalia/
 ├── pom.xml                       dependencies, build plugins, the desktop profile
 ├── src/main/java/                application code
-├── src/main/resources/           Spring XML, Flyway migrations, log4j, Vaadin build info
-├── src/main/resources-release/   WAR-only resources: the release log4j.properties
+├── src/main/resources/           Spring XML, Flyway migrations, logback, Vaadin build info
+├── src/main/resources-release/   WAR-only resources: the release logback.xml
 ├── src/main/resources-raw/       copied into WEB-INF/classes without filtering (empty)
 ├── src/main/webapp/config/       configuration.properties, persistence.xml
 ├── src/main/frontend/            CSS and JavaScript for the Vaadin frontend
@@ -355,13 +355,15 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 | `ui.workspace` | `Workspace` (interface of the workspace shown after login), `DesktopWorkspace` (its tabbed implementation with footer buttons), `WorkspaceComponent` (interface of its tabs) and `WorkspaceAutosave` (stores the state of the workspace in `UserSetting.workspaceState`). `WorkspaceLLMSupport` (what the workspaces and the table sections tell the help assistant: the sections by their labels, the moves to open them, the state of a table with an add button). |
 | `ui.workspace.phone`, `ui.workspace.phone.parts` | `PhoneWorkspace` (the workspace for phones: an `AppLayout` with a drawer instead of the left-hand tabs) `PhoneManuscriptPart` (single column book list), `PhoneLorebookPart` (reduced lorebook view), `PhoneProtocolPart` / `PhoneAIPart` (two column protocol and model lists) `PhoneSettingsPart` (`UserPart` with a stacked header) and `PhoneTrashPart` (trash with `PhoneTrashGrid`). |
 | `ui.dialogs.phone`, `ui.dialogs.phone.manuscript` | `PhoneManuscriptDialog` (the book dialog for phones: full screen, one scrolling tab row), `PhoneSummariesDialog` (`SummariesDialog` with a wide content column) and its tabs `PhoneManuscriptInfoPart`, `PhoneManuscriptPromptPart`, `PhoneManuscriptLorebookPart` (with `PhoneLorebookView`), `PhoneManuscriptStoryPart` (one column, outline in the drawer of an `AppLayout`, message cards with a header line of icons), `PhoneManuscriptTreePart`, `PhoneManuscriptBackupPart`. |
+| `ui.menu` | The menus of the story editor built from one registry: `StoryMenuRegistry` (Spring bean), `StoryMenuItem`, `StoryMenuKeys`, `MenuKind`, `MenuDefinition` / `BuiltMenu` / `MenuItemContent`, see [User interface](ui.md#menus-of-the-story-editor). |
+| `ui.shortcuts` | The keyboard shortcuts of the story editor: `ShortcutRegistry`, `ShortcutAction` / `ShortcutActions`, `KeyCombo`, `KeyBindings`, `KeyBindingsEditor`, see [User interface](ui.md#keyboard-shortcuts). |
 | `ui.workspace.parts` | One class per workspace tab: `ManuscriptPart` (Books), `LorebookPart`, `UserPart` (Settings), `ProtocolPart`, `AIPart` (Inference Providers), `ResourcesPart` (Resources: lazy `Grid` over `ResourceService.findPageForUser`), `TrashPart` (Trash: the `TrashGrid` widget), `AdminPart`, plus `NewBookAction` (the *Add Book* flow shared by both book lists). |
-| `ui.workspace.parts.admin` | Admin panels with their own logic: `DatabaseBackupPanel`, `CleanupPanel`, `HelpAssistantPanel` (the settings of the help assistant). |
+| `ui.workspace.parts.admin` | Admin panels with their own logic: `DatabaseBackupPanel`, `CleanupPanel`, `ResourceGarbagePanel` (the *Resource Files* tab: scan and delete the files nothing refers to), `HelpAssistantPanel` (the settings of the help assistant). |
 | `ui.dialogs.permissions` | `PermissionsDialog` (the permissions of a user, opened from the key button of Admin → Users), `PermissionUIFactory` / `PermissionUIFactoryImpl` and `PermissionUIComponent` (the settings of a permission type, `HelperPermissionComponent` for `HELPER`), see [Permissions dialog](ui.md#permissions-dialog). |
 | `ui.dialogs.agent` | The screens of [agents](agents.md#the-screens): `AgentConsoleDialog` and its tabs, `AgentDialog` and its editors, `AgentMergeDialog` / `JsonMergeDialog` (the review of a result), the dialogs of a run (`AgentApprovalDialog`, `AgentStopDialog`, `AgentResumeDialog`, `AgentCloneDialog`). |
 | `ui.dialogs.search` | The search and replace windows: `SearchReplaceDialog` (the part both share) with `ManuscriptSearchReplaceDialog` (story) and `LorebookSearchReplaceDialog` (entries), see [Books and the story](services.md#books-and-the-story). |
-| `ui.dialogs` | Entity dialogs (`AIDialog`, `ProtocolDialog`, `LorebookDialog`, `UserDialog`), the limits of a shared AI (`AILimitsDialog`, `AILimitEditDialog`; `AILimitInfoDialog` is the user's own view), `UsageDialog` (every user's usage), `ManuscriptDialog` (the book window), `LorebookImportDialog` (resolving lorebooks during restores), `PromptDialog` (shows the prompt a part was generated from), `ExtensionLogDialog` (the log of an extension, opened from the Admin page), `UsageDialog` (what every user used of every AI, opened by administrators from the Inference Providers tab) and generic dialogs: `ConfirmDialog`, `TextInputDialog`, `ListSelectDialog`, `ErrorDialog`, `ProgressBarDialog`. `ExportDialog` exports the story of a book. `ManuscriptCloneDialog` (clone a book), `ArchiveUploadDialog` / `ArchiveEntryNamesDialog` / `ArchiveImportRunner` (import of `.md` archives), `MultiTagDialog` (a tag on many books, lorebooks or entries), `LorebookMassEditDialog` (all entries of a lorebook in one table), `CommandProgressDialog` (the Stop window of a running command). Threading helpers `ThreadAccessDialog` and `UIPushGuard`. |
-| `ui.dialogs.story` | What the desktop and the phone story tab share: `StoryHost` (implemented by both book dialogs), `StoryCard` / `StoryCards`, `StoryGenerationListener`, `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics`, `StoryBackup`, `StorySupport`, and the lazy loading of long stories: `LazyBranch`, `StoryLazyLoader`, `ReaderLazyLoader`. |
+| `ui.dialogs` | Entity dialogs (`AIDialog`, `ProtocolDialog`, `LorebookDialog`, `UserDialog`), the limits of a shared AI (`AILimitsDialog`, `AILimitEditDialog`; `AILimitInfoDialog` is the user's own view), `UsageDialog` (every user's usage), `ManuscriptDialog` (the book window), `LorebookImportDialog` (resolving lorebooks during restores), `PromptDialog` (shows the prompt a part was generated from), `ExtensionLogDialog` (the log of an extension, opened from the Admin page), `UsageDialog` (what every user used of every AI, opened by administrators from the Inference Providers tab) and generic dialogs: `ConfirmDialog`, `TextInputDialog`, `ListSelectDialog`, `ErrorDialog`, `ProgressBarDialog`. `ExportDialog` exports the story of a book. `ManuscriptCloneDialog` (clone a book), `ArchiveUploadDialog` / `ArchiveEntryNamesDialog` / `ArchiveImportRunner` (import of `.md` archives), `MultiTagDialog` (a tag on many books, lorebooks or entries), `LorebookMassEditDialog` (all entries of a lorebook in one table), `LorebookActivationPreviewDialog` (which entries a text would use and why), `CommandProgressDialog` (the Stop window of a running command). Threading helpers `ThreadAccessDialog` and `UIPushGuard`. |
+| `ui.dialogs.story` | What the desktop and the phone story tab share: `StoryHost` (implemented by both book dialogs), `StoryEditor` (the interface of the story tab, desktop and phone, that the menu callbacks get), `StoryCard` / `StoryCards`, `StoryDockLayout` (the layouts of the desktop dock), `StoryBranchSearch` (the search of the branch), `StoryAnnotations` / `CardAnnotations` / `AnnotationsPanel` / `AnnotationView` / `AnnotationDialog` / `AnnotateDialog` (the notes), `RedraftDialog`, `ImpersonateDialog` (draft the instructions), `PartMergeDialog`, `StoryGenerationListener`, `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics`, `StoryBackup`, `StorySupport`, and the lazy loading of long stories: `LazyBranch`, `StoryLazyLoader`, `ReaderLazyLoader`. |
 | `ui.dialogs.manuscript` | The tabs of the book window, each a `ManuscriptDialogPart`: `ManuscriptStoryPart` (story editor - the largest UI class), `ManuscriptTreePart`, `ManuscriptInfoPart` (About), `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptBackupPart`; and the summary dialogs: `SummariesDialog` (overview of the summaries of the branch, opened from the story editor), `SummaryDialog` (one summary or meta summary, generating or viewing) and `SummaryRemoval` (asking before a summary is removed); and `ImagesDialog` (add, caption and remove the images of a part, opened from its card). |
 | `ui.components` | Larger reusable components: `TagsView` (the Tags tab of the settings: tags with their usage, rename, merge, delete), `LorebookView` (the lorebook editor, used in the Lorebooks tab and in books), `PhoneLorebookView` (its reduced phone version), `LorebookPreview` (the read only Lorebook tab of the desktop story editor), `InvalidExtensionsWarning` (the red bar of the workspace about invalid extensions), `TreantTree` (story tree drawn with treant.js), `MessageImages` (the images of a part under its text - in the story editor, the Viewer, the image dialog and the Resources tab preview; the files are read when the browser asks for them), `ThreadCopyRequestAttributes` (carries the session to worker threads). `HelpAssistantWidget` (the robot button and chat panel `Main` adds after the workspace; it answers the model's requests to read and move through the page on the page's thread)., `BuildInfoFooter` (the version text in the corner), `CommandBar` (the command line, see [Commands](commands/index.md)). |
 | `ui.widgets` | Small widgets: `ChartJs` (a Chart.js chart drawn from a JSON configuration, see [UI](ui.md)), `GraphView` (a Cytoscape.js graph, see [Custom components](custom-components.md)), `HTabSheet` (tab sheet with the tabs on the left and room for custom content, used by the workspace), `TabDock` (columns of tab sheets whose tabs can be dragged apart and together, the left bar of the story editor), `BackendTableProvider*` / `BackendTableItem` (lazy grids backed by a repository query), `TagMultiComboBox`, `LazyContextMenu` (a context menu filled when it opens), `LazyLoadIndicator`, `WordDiffView` (the word by word differences of the review), `TrashGrid` (restoring deleted objects and deleting parts and entries for good, used by `TrashPart` and `CleanupPanel`), `PhoneTrashGrid` (its phone layout, used by `PhoneTrashPart`), `TemplateHints` (hint popovers of prompt fields), `TextAreaPopoverComponent` / `TextFieldPopOverComponent`, `HtmlText`, `ScrollPanel`, `ModelProtocolPicker` (a model and a protocol to choose from, for dialogs that run the model with a choice of their own), `ToolSelectionButton` (choosing the tools the model may use, with `ui.dialogs.ToolSelectionDialog`), `ResizableTextArea` (`install(loc, area, fixedHeight)` adds a corner icon that switches a text area between a fixed height and growing with its content; used by the prompt, description and lorebook fields), `Notification`, `PermissiveLoginOverlay` (allows empty passwords). |">
@@ -395,12 +397,20 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 <td><code translate="no" v-pre>PhoneManuscriptDialog</code> (the book dialog for phones: full screen, one scrolling tab row), <code translate="no" v-pre>PhoneSummariesDialog</code> (<code translate="no" v-pre>SummariesDialog</code> with a wide content column) and its tabs <code translate="no" v-pre>PhoneManuscriptInfoPart</code>, <code translate="no" v-pre>PhoneManuscriptPromptPart</code>, <code translate="no" v-pre>PhoneManuscriptLorebookPart</code> (with <code translate="no" v-pre>PhoneLorebookView</code>), <code translate="no" v-pre>PhoneManuscriptStoryPart</code> (one column, outline in the drawer of an <code translate="no" v-pre>AppLayout</code>, message cards with a header line of icons), <code translate="no" v-pre>PhoneManuscriptTreePart</code>, <code translate="no" v-pre>PhoneManuscriptBackupPart</code>.</td>
 </tr>
 <tr>
+<td><code translate="no" v-pre>ui.menu</code></td>
+<td>The menus of the story editor built from one registry: <code translate="no" v-pre>StoryMenuRegistry</code> (Spring bean), <code translate="no" v-pre>StoryMenuItem</code>, <code translate="no" v-pre>StoryMenuKeys</code>, <code translate="no" v-pre>MenuKind</code>, <code translate="no" v-pre>MenuDefinition</code> / <code translate="no" v-pre>BuiltMenu</code> / <code translate="no" v-pre>MenuItemContent</code>, see <a href="../ui/#menus-of-the-story-editor">User interface</a>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ui.shortcuts</code></td>
+<td>The keyboard shortcuts of the story editor: <code translate="no" v-pre>ShortcutRegistry</code>, <code translate="no" v-pre>ShortcutAction</code> / <code translate="no" v-pre>ShortcutActions</code>, <code translate="no" v-pre>KeyCombo</code>, <code translate="no" v-pre>KeyBindings</code>, <code translate="no" v-pre>KeyBindingsEditor</code>, see <a href="../ui/#keyboard-shortcuts">User interface</a>.</td>
+</tr>
+<tr>
 <td><code translate="no" v-pre>ui.workspace.parts</code></td>
 <td>One class per workspace tab: <code translate="no" v-pre>ManuscriptPart</code> (Books), <code translate="no" v-pre>LorebookPart</code>, <code translate="no" v-pre>UserPart</code> (Settings), <code translate="no" v-pre>ProtocolPart</code>, <code translate="no" v-pre>AIPart</code> (Inference Providers), <code translate="no" v-pre>ResourcesPart</code> (Resources: lazy <code translate="no" v-pre>Grid</code> over <code translate="no" v-pre>ResourceService.findPageForUser</code>), <code translate="no" v-pre>TrashPart</code> (Trash: the <code translate="no" v-pre>TrashGrid</code> widget), <code translate="no" v-pre>AdminPart</code>, plus <code translate="no" v-pre>NewBookAction</code> (the <em>Add Book</em> flow shared by both book lists).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.workspace.parts.admin</code></td>
-<td>Admin panels with their own logic: <code translate="no" v-pre>DatabaseBackupPanel</code>, <code translate="no" v-pre>CleanupPanel</code>, <code translate="no" v-pre>HelpAssistantPanel</code> (the settings of the help assistant).</td>
+<td>Admin panels with their own logic: <code translate="no" v-pre>DatabaseBackupPanel</code>, <code translate="no" v-pre>CleanupPanel</code>, <code translate="no" v-pre>ResourceGarbagePanel</code> (the <em>Resource Files</em> tab: scan and delete the files nothing refers to), <code translate="no" v-pre>HelpAssistantPanel</code> (the settings of the help assistant).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.dialogs.permissions</code></td>
@@ -416,11 +426,11 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.dialogs</code></td>
-<td>Entity dialogs (<code translate="no" v-pre>AIDialog</code>, <code translate="no" v-pre>ProtocolDialog</code>, <code translate="no" v-pre>LorebookDialog</code>, <code translate="no" v-pre>UserDialog</code>), the limits of a shared AI (<code translate="no" v-pre>AILimitsDialog</code>, <code translate="no" v-pre>AILimitEditDialog</code>; <code translate="no" v-pre>AILimitInfoDialog</code> is the user&#x27;s own view), <code translate="no" v-pre>UsageDialog</code> (every user&#x27;s usage), <code translate="no" v-pre>ManuscriptDialog</code> (the book window), <code translate="no" v-pre>LorebookImportDialog</code> (resolving lorebooks during restores), <code translate="no" v-pre>PromptDialog</code> (shows the prompt a part was generated from), <code translate="no" v-pre>ExtensionLogDialog</code> (the log of an extension, opened from the Admin page), <code translate="no" v-pre>UsageDialog</code> (what every user used of every AI, opened by administrators from the Inference Providers tab) and generic dialogs: <code translate="no" v-pre>ConfirmDialog</code>, <code translate="no" v-pre>TextInputDialog</code>, <code translate="no" v-pre>ListSelectDialog</code>, <code translate="no" v-pre>ErrorDialog</code>, <code translate="no" v-pre>ProgressBarDialog</code>. <code translate="no" v-pre>ExportDialog</code> exports the story of a book. <code translate="no" v-pre>ManuscriptCloneDialog</code> (clone a book), <code translate="no" v-pre>ArchiveUploadDialog</code> / <code translate="no" v-pre>ArchiveEntryNamesDialog</code> / <code translate="no" v-pre>ArchiveImportRunner</code> (import of <code translate="no" v-pre>.md</code> archives), <code translate="no" v-pre>MultiTagDialog</code> (a tag on many books, lorebooks or entries), <code translate="no" v-pre>LorebookMassEditDialog</code> (all entries of a lorebook in one table), <code translate="no" v-pre>CommandProgressDialog</code> (the Stop window of a running command). Threading helpers <code translate="no" v-pre>ThreadAccessDialog</code> and <code translate="no" v-pre>UIPushGuard</code>.</td>
+<td>Entity dialogs (<code translate="no" v-pre>AIDialog</code>, <code translate="no" v-pre>ProtocolDialog</code>, <code translate="no" v-pre>LorebookDialog</code>, <code translate="no" v-pre>UserDialog</code>), the limits of a shared AI (<code translate="no" v-pre>AILimitsDialog</code>, <code translate="no" v-pre>AILimitEditDialog</code>; <code translate="no" v-pre>AILimitInfoDialog</code> is the user&#x27;s own view), <code translate="no" v-pre>UsageDialog</code> (every user&#x27;s usage), <code translate="no" v-pre>ManuscriptDialog</code> (the book window), <code translate="no" v-pre>LorebookImportDialog</code> (resolving lorebooks during restores), <code translate="no" v-pre>PromptDialog</code> (shows the prompt a part was generated from), <code translate="no" v-pre>ExtensionLogDialog</code> (the log of an extension, opened from the Admin page), <code translate="no" v-pre>UsageDialog</code> (what every user used of every AI, opened by administrators from the Inference Providers tab) and generic dialogs: <code translate="no" v-pre>ConfirmDialog</code>, <code translate="no" v-pre>TextInputDialog</code>, <code translate="no" v-pre>ListSelectDialog</code>, <code translate="no" v-pre>ErrorDialog</code>, <code translate="no" v-pre>ProgressBarDialog</code>. <code translate="no" v-pre>ExportDialog</code> exports the story of a book. <code translate="no" v-pre>ManuscriptCloneDialog</code> (clone a book), <code translate="no" v-pre>ArchiveUploadDialog</code> / <code translate="no" v-pre>ArchiveEntryNamesDialog</code> / <code translate="no" v-pre>ArchiveImportRunner</code> (import of <code translate="no" v-pre>.md</code> archives), <code translate="no" v-pre>MultiTagDialog</code> (a tag on many books, lorebooks or entries), <code translate="no" v-pre>LorebookMassEditDialog</code> (all entries of a lorebook in one table), <code translate="no" v-pre>LorebookActivationPreviewDialog</code> (which entries a text would use and why), <code translate="no" v-pre>CommandProgressDialog</code> (the Stop window of a running command). Threading helpers <code translate="no" v-pre>ThreadAccessDialog</code> and <code translate="no" v-pre>UIPushGuard</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.dialogs.story</code></td>
-<td>What the desktop and the phone story tab share: <code translate="no" v-pre>StoryHost</code> (implemented by both book dialogs), <code translate="no" v-pre>StoryCard</code> / <code translate="no" v-pre>StoryCards</code>, <code translate="no" v-pre>StoryGenerationListener</code>, <code translate="no" v-pre>NewTurnForm</code>, <code translate="no" v-pre>TurnDetailsForm</code>, <code translate="no" v-pre>MessageMetrics</code>, <code translate="no" v-pre>StoryBackup</code>, <code translate="no" v-pre>StorySupport</code>, and the lazy loading of long stories: <code translate="no" v-pre>LazyBranch</code>, <code translate="no" v-pre>StoryLazyLoader</code>, <code translate="no" v-pre>ReaderLazyLoader</code>.</td>
+<td>What the desktop and the phone story tab share: <code translate="no" v-pre>StoryHost</code> (implemented by both book dialogs), <code translate="no" v-pre>StoryEditor</code> (the interface of the story tab, desktop and phone, that the menu callbacks get), <code translate="no" v-pre>StoryCard</code> / <code translate="no" v-pre>StoryCards</code>, <code translate="no" v-pre>StoryDockLayout</code> (the layouts of the desktop dock), <code translate="no" v-pre>StoryBranchSearch</code> (the search of the branch), <code translate="no" v-pre>StoryAnnotations</code> / <code translate="no" v-pre>CardAnnotations</code> / <code translate="no" v-pre>AnnotationsPanel</code> / <code translate="no" v-pre>AnnotationView</code> / <code translate="no" v-pre>AnnotationDialog</code> / <code translate="no" v-pre>AnnotateDialog</code> (the notes), <code translate="no" v-pre>RedraftDialog</code>, <code translate="no" v-pre>ImpersonateDialog</code> (draft the instructions), <code translate="no" v-pre>PartMergeDialog</code>, <code translate="no" v-pre>StoryGenerationListener</code>, <code translate="no" v-pre>NewTurnForm</code>, <code translate="no" v-pre>TurnDetailsForm</code>, <code translate="no" v-pre>MessageMetrics</code>, <code translate="no" v-pre>StoryBackup</code>, <code translate="no" v-pre>StorySupport</code>, and the lazy loading of long stories: <code translate="no" v-pre>LazyBranch</code>, <code translate="no" v-pre>StoryLazyLoader</code>, <code translate="no" v-pre>ReaderLazyLoader</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.dialogs.manuscript</code></td>
@@ -580,7 +590,7 @@ no state besides their fields.</p>
 | `AILimitService` | The per-user limits of a shared AI: the owning administrator sets them, `check` refuses a request of a user who is over their limit (called by `OpenAICompatibleInferenceService.stream`), `getStatus` is for the user's own view. |
 | `UsageService` | Tokens a user used with an AI, counted by `OpenAICompatibleInferenceService` (`Usage`, one per AI and user); `findAllUsages()` lists everybody's for administrators. |
 | `StoryGenerationService` | The generation engine (`StoryGenerationServiceImpl.GenerationEngine`). |
-| `InferenceServices`, `InferenceService`, `InferenceException`, `InferenceErrors` | Choosing and calling the model API; classified failures and their localized texts. |
+| `InferenceServices`, `InferenceService`, `InferenceSession`, `InferenceException`, `InferenceErrors` | Choosing and calling the model API; the kind of work a request belongs to (header `X-Session-ID`); classified failures and their localized texts. |
 | `FunctionRegistry` | The Java interfaces the model can call as functions, compiled once (see [Function calls](services.md#function-calls)). |
 | `TokenizerService` | Token counting. |
 | `ManualService` | The user manual packed into the WAR (`classpath:/manual/`), parsed once and searched in memory (BM25) for the help assistant. |
@@ -633,8 +643,8 @@ no state besides their fields.</p>
 <td>The generation engine (<code translate="no" v-pre>StoryGenerationServiceImpl.GenerationEngine</code>).</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>InferenceServices</code>, <code translate="no" v-pre>InferenceService</code>, <code translate="no" v-pre>InferenceException</code>, <code translate="no" v-pre>InferenceErrors</code></td>
-<td>Choosing and calling the model API; classified failures and their localized texts.</td>
+<td><code translate="no" v-pre>InferenceServices</code>, <code translate="no" v-pre>InferenceService</code>, <code translate="no" v-pre>InferenceSession</code>, <code translate="no" v-pre>InferenceException</code>, <code translate="no" v-pre>InferenceErrors</code></td>
+<td>Choosing and calling the model API; the kind of work a request belongs to (header <code translate="no" v-pre>X-Session-ID</code>); classified failures and their localized texts.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>FunctionRegistry</code></td>
@@ -762,7 +772,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 <retype-table copy-text="| File | |
 |---|---|
 | `TemplateData` | Base of all template data; implements the SillyTavern-compatible macros. |
-| `MasterTemplateData`, `UserPromptData`, `LorebookTemplateData`, `SummaryTemplateData`, `MetaSummaryTemplateData` | The variables available in each kind of template (listed in the UI hints). |
+| `MasterTemplateData`, `UserPromptData`, `LorebookTemplateData`, `SummaryTemplateData`, `MetaSummaryTemplateData`, `RedraftTemplateData` | The variables available in each kind of template (listed in the UI hints). |
 | `ExportHeaderTemplateData` | The variables (`title`, `author`) of the title page template of story exports. |
 | `TemplateContext` | What macros are evaluated against: POV character, model, story so far, variables. One per generation. |
 | `TemplateVariables` | Storage of `setvar` / `getvar` variables (local per branch, global per book). |
@@ -783,7 +793,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 <td>Base of all template data; implements the SillyTavern-compatible macros.</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>MasterTemplateData</code>, <code translate="no" v-pre>UserPromptData</code>, <code translate="no" v-pre>LorebookTemplateData</code>, <code translate="no" v-pre>SummaryTemplateData</code>, <code translate="no" v-pre>MetaSummaryTemplateData</code></td>
+<td><code translate="no" v-pre>MasterTemplateData</code>, <code translate="no" v-pre>UserPromptData</code>, <code translate="no" v-pre>LorebookTemplateData</code>, <code translate="no" v-pre>SummaryTemplateData</code>, <code translate="no" v-pre>MetaSummaryTemplateData</code>, <code translate="no" v-pre>RedraftTemplateData</code></td>
 <td>The variables available in each kind of template (listed in the UI hints).</td>
 </tr>
 <tr>
@@ -852,7 +862,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 <retype-table copy-text="| Package | |
 |---|---|
 | `domain.traits` | Annotations: `@CommonTx`, `@CommonTxReadOnly`, `@NoTx` (transactions), `@Extendable` (instrumented UI classes) with `@PublicAPI`, `@APIReturn`, `@APIParameter`, `@APILocals` (the signature of each of their methods that plugins see), `@LLMSchema` / `@LLMField` (describe a class the model answers with, see `StructuredOutputs`), `@ExtendedAttribute` (fields stored in `attributes`), `@Fulltextable` (fields whose text goes into `_fulltext`), `@CleanupReference(s)` (how references behave during cleanup), `@LocalizedTemplateDescription` (texts of template hints), `@SupportedAI` (provider type of an inference service). `@Command` with `CommandDataSeverity` (what a command does to existing data, see [Commands](commands/index.md#data-severity)). |
-| `domain.collections` | Enums: `AIType`, `ProtocolType`, `ReasoningEffort`, `LimitStrategy`, `ResetStrategy`, `FilteringMode`, `InsertionMode`, `SummaryType`. |
+| `domain.collections` | Enums: `AIType`, `ProtocolType`, `ReasoningEffort`, `LimitStrategy`, `ResetStrategy`, `FilteringMode`, `InsertionMode`, `ActivationContext`, `SummaryType`. |
 | `domain.listener` | `ExtendableEntityListener` - serializes `attributes` and `@ExtendedAttribute` fields to `extendedContent` and back, and collects the `@Fulltextable` fields into `_fulltext`. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -869,7 +879,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 </tr>
 <tr>
 <td><code translate="no" v-pre>domain.collections</code></td>
-<td>Enums: <code translate="no" v-pre>AIType</code>, <code translate="no" v-pre>ProtocolType</code>, <code translate="no" v-pre>ReasoningEffort</code>, <code translate="no" v-pre>LimitStrategy</code>, <code translate="no" v-pre>ResetStrategy</code>, <code translate="no" v-pre>FilteringMode</code>, <code translate="no" v-pre>InsertionMode</code>, <code translate="no" v-pre>SummaryType</code>.</td>
+<td>Enums: <code translate="no" v-pre>AIType</code>, <code translate="no" v-pre>ProtocolType</code>, <code translate="no" v-pre>ReasoningEffort</code>, <code translate="no" v-pre>LimitStrategy</code>, <code translate="no" v-pre>ResetStrategy</code>, <code translate="no" v-pre>FilteringMode</code>, <code translate="no" v-pre>InsertionMode</code>, <code translate="no" v-pre>ActivationContext</code>, <code translate="no" v-pre>SummaryType</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>domain.listener</code></td>
@@ -933,8 +943,8 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 | `.../spring/datasources-config.xml` | Data source, Flyway, JPA, transaction manager. |
 | `.../spring/services-config.xml` | Repositories, services, generation steps, extensions. |
 | `src/main/resources/migration/V&lt;n&gt;__&lt;name&gt;.sql` | Flyway migrations - currently `V1__initial` to `V18__agent_message_threads`. |
-| `src/main/resources/log4j.properties` | Logging for development (IDE, `mvn jetty:run`) - `DEBUG`. |
-| `src/main/resources-release/log4j.properties` | Logging packaged into the WAR instead - `INFO` (see [Packaging &amp; releases](packaging.md#the-war)). |
+| `src/main/resources/logback.xml` | Logging for development (IDE, `mvn jetty:run`) - `DEBUG`. |
+| `src/main/resources-release/logback.xml` | Logging packaged into the WAR instead - `INFO` (see [Packaging &amp; releases](packaging.md#the-war)). |
 | `src/main/resources/META-INF/build-info/build-info.properties` | Version and build time, filtered by Maven. |
 | `../manual/user/**/*.md` (outside `marginalia/`) | The user manual, copied by the `&lt;resources&gt;` of the POM to `classpath:/manual/` for the help assistant, see [Packaging &amp; releases](packaging.md). |
 | `src/main/resources/META-INF/VAADIN/config/flow-build-info.json.DEVELOPMENT` | Template of a development build info for IDE runs; never packaged into the WAR (see [Development and production mode](building.md#development-and-production-mode)). |
@@ -970,11 +980,11 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 <td>Flyway migrations - currently <code translate="no" v-pre>V1__initial</code> to <code translate="no" v-pre>V18__agent_message_threads</code>.</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>src/main/resources/log4j.properties</code></td>
+<td><code translate="no" v-pre>src/main/resources/logback.xml</code></td>
 <td>Logging for development (IDE, <code translate="no" v-pre>mvn jetty:run</code>) - <code translate="no" v-pre>DEBUG</code>.</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>src/main/resources-release/log4j.properties</code></td>
+<td><code translate="no" v-pre>src/main/resources-release/logback.xml</code></td>
 <td>Logging packaged into the WAR instead - <code translate="no" v-pre>INFO</code> (see <a href="../packaging/#the-war">Packaging &amp; releases</a>).</td>
 </tr>
 <tr>
@@ -1150,7 +1160,7 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 <p>Each plugin is a Maven project with <code translate="no" v-pre>bundle</code> packaging and the same layout:</p>
 <div id="plugins-marginaliaplugins-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-none"><code v-pre class="language-none">plugins/&lt;name&gt;/
-├── pom.xml          depends on io.github.enerccio:marginalia:1.4.0:classes (provided)
+├── pom.xml          depends on io.github.enerccio:marginalia:1.5.0:classes (provided)
 ├── README.md        user documentation
 └── src/main/java/com/github/enerccio/marginalia/extensions/&lt;name&gt;/
     ├── &lt;Name&gt;Activator.java   OSGi BundleActivator - registers the extension service
@@ -1161,6 +1171,7 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 </doc-codeblock></div>
 <retype-table copy-text="| Plugin | Package | Size |
 |---|---|---|
+| Anthropic Claude | `extensions.anthropic` | Activator and extension, `AnthropicFactory` (the `ExtensionAIFactory`), the settings form, the inference service over the Anthropic Java SDK (embedded in the JAR) and helpers for the messages, the errors and the settings; has unit tests and a test against a fake Messages API. |
 | Arc Outline | `extensions.arcoutline` | Model (arcs, chapters, the in-memory `ArcOutline`, settings, the schema of a generated arc), service (outline, prompt building), a sidebar tab, dialogs (arc, the generators of arcs and chapters on a common `GeneratorDialog`), a settings form, `LegacyNameTools` (reads the name categories saved before the tool dialog) and `arcoutline.css`. |
 | Author's Note | `extensions.authorsnote` | Model, service, a sidebar panel and a generation listener. |
 | Chapter Marker | `extensions.chaptermarking` | Activator and extension only - the smallest example. |
@@ -1170,11 +1181,13 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 | Instruction Exporter | `extensions.instructionexporter` | Activator and extension only. |
 | Lore Generator | `extensions.loregenerator` | Model (the prompts), service (lore selection, prompts), a dialog split into `SavePromptAsDialog`, `AttachmentPanel` and `GenerationPane`, a settings form, and `LegacyNameTools` (reads the name categories and hints saved before the tool dialog). |
 | Lorebook VCS | `extensions.lorebookvcs` | Model, service, two UI panels. |
-| Name generator | `extensions.namegenerator` | The extension, the `@LLMFunction` interface and its implementation, `NameGeneratorToolProvider` (the suite for `ToolService`), `NameTables` (the chains and the sampling). `src/build` holds the Java programs of the build: importers of the sources of names, the tuner and the trainer, see its README. |
+| Manga Generator | `extensions.mangagenerator` | Model (mangas, sections, the user's defaults), service (requests: story text, activated lore fitted to the context, previous script; streaming), the window (`MangaDialog`), a card per section, `MangaSettingsForm` (the panel of the extension settings), `TextEditDialog` and `manga.css`; has unit tests. |
+| Name generator | `extensions.namegenerator` | The extension, the `@LLMFunction` interface and its implementation, `NameGeneratorToolProvider` (the suite for `ToolService`), `NameTables` (the chains and the sampling; a chain is packed in arrays, `NameTables.Chain`, and read token by token, the tables of all the categories are 12 MB in memory). `src/build` holds the Java programs of the build: importers of the sources of names, the tuner and the trainer, see its README. |
 | Name provider | `extensions.nameprovider` | The extension, the `@LLMFunction` interface and its implementation, `NameProviderToolProvider` (the suite for `ToolService`), `NameLists` (the lists of real names and the random choice), `NameEntry` (a pair of the romanized and the original name). `src/build/ImportPopularNames.java` writes `name-lists.json` from the popular names by country dataset, see its README. |
 | Place provider | `extensions.placeprovider` | The extension, the `@LLMFunction` interface and its implementation, `PlaceIndex` (the places read from `places.json`: search, nearby, distance), the records of the answers, `PlaceProviderToolProvider` (the suite for `ToolService`) and `PlaceProviderCommands`. `src/build` holds the two Java programs that download Natural Earth and reduce it to `places.json` (profile `import-places`), see its README. |
 | Reviewer | `extensions.reviewer` | Model (`ReviewerProfile` with a stable uuid), service, dialogs, a settings form and `ManuscriptProfileSelect`, the profile picker of a book's info tab. |
 | Side Query | `extensions.sidequery` | Model, service, a chat panel and a settings form; `SideQueryLog` holds its logger for classes the extension class does not create. |
+| SillyTavern Converter | `extensions.stconverter` | Model (the chat, the turn items and the schema of the answer), service (storage in the attributes of the book, the prompt, the pure functions that read and merge the answer), `ConverterView` (the tab) and its CSS; `STConverterLog` holds the logger. |
 | Chinese localization | `extensions.chineselocalization` | Activator, extension and one `LocalizationBundle` - a language, no UI code. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -1186,6 +1199,11 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>Anthropic Claude</td>
+<td><code translate="no" v-pre>extensions.anthropic</code></td>
+<td>Activator and extension, <code translate="no" v-pre>AnthropicFactory</code> (the <code translate="no" v-pre>ExtensionAIFactory</code>), the settings form, the inference service over the Anthropic Java SDK (embedded in the JAR) and helpers for the messages, the errors and the settings; has unit tests and a test against a fake Messages API.</td>
+</tr>
 <tr>
 <td>Arc Outline</td>
 <td><code translate="no" v-pre>extensions.arcoutline</code></td>
@@ -1232,9 +1250,14 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 <td>Model, service, two UI panels.</td>
 </tr>
 <tr>
+<td>Manga Generator</td>
+<td><code translate="no" v-pre>extensions.mangagenerator</code></td>
+<td>Model (mangas, sections, the user&#x27;s defaults), service (requests: story text, activated lore fitted to the context, previous script; streaming), the window (<code translate="no" v-pre>MangaDialog</code>), a card per section, <code translate="no" v-pre>MangaSettingsForm</code> (the panel of the extension settings), <code translate="no" v-pre>TextEditDialog</code> and <code translate="no" v-pre>manga.css</code>; has unit tests.</td>
+</tr>
+<tr>
 <td>Name generator</td>
 <td><code translate="no" v-pre>extensions.namegenerator</code></td>
-<td>The extension, the <code translate="no" v-pre>@LLMFunction</code> interface and its implementation, <code translate="no" v-pre>NameGeneratorToolProvider</code> (the suite for <code translate="no" v-pre>ToolService</code>), <code translate="no" v-pre>NameTables</code> (the chains and the sampling). <code translate="no" v-pre>src/build</code> holds the Java programs of the build: importers of the sources of names, the tuner and the trainer, see its README.</td>
+<td>The extension, the <code translate="no" v-pre>@LLMFunction</code> interface and its implementation, <code translate="no" v-pre>NameGeneratorToolProvider</code> (the suite for <code translate="no" v-pre>ToolService</code>), <code translate="no" v-pre>NameTables</code> (the chains and the sampling; a chain is packed in arrays, <code translate="no" v-pre>NameTables.Chain</code>, and read token by token, the tables of all the categories are 12 MB in memory). <code translate="no" v-pre>src/build</code> holds the Java programs of the build: importers of the sources of names, the tuner and the trainer, see its README.</td>
 </tr>
 <tr>
 <td>Name provider</td>
@@ -1257,6 +1280,11 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 <td>Model, service, a chat panel and a settings form; <code translate="no" v-pre>SideQueryLog</code> holds its logger for classes the extension class does not create.</td>
 </tr>
 <tr>
+<td>SillyTavern Converter</td>
+<td><code translate="no" v-pre>extensions.stconverter</code></td>
+<td>Model (the chat, the turn items and the schema of the answer), service (storage in the attributes of the book, the prompt, the pure functions that read and merge the answer), <code translate="no" v-pre>ConverterView</code> (the tab) and its CSS; <code translate="no" v-pre>STConverterLog</code> holds the logger.</td>
+</tr>
+<tr>
 <td>Chinese localization</td>
 <td><code translate="no" v-pre>extensions.chineselocalization</code></td>
 <td>Activator, extension and one <code translate="no" v-pre>LocalizationBundle</code> - a language, no UI code.</td>
@@ -1271,8 +1299,8 @@ ignored by Git), see <a href="../packaging/#building-the-plugins-in-docker">Pack
 <h2 id="build-output-marginaliatarget">Build output (<code translate="no" v-pre>marginalia/target/</code>)</h2>
 <retype-table copy-text="| Path | |
 |---|---|
-| `marginalia-1.4.0.war`, `marginalia-1.4.0/` | The WAR and its exploded form. |
-| `marginalia-1.4.0-classes.jar` | Classes for plugin builds. |
+| `marginalia-1.5.0.war`, `marginalia-1.5.0/` | The WAR and its exploded form. |
+| `marginalia-1.5.0-classes.jar` | Classes for plugin builds. |
 | `classes/`, `test-classes/` | Woven classes. |
 | `dev-bundle/`, `sw.ts`, `vaadin-dev-server-settings.json` | Vaadin frontend build files. |
 | `surefire-reports/`, `test-home/` | Test reports and test data folders. |
@@ -1287,11 +1315,11 @@ ignored by Git), see <a href="../packaging/#building-the-plugins-in-docker">Pack
 </thead>
 <tbody>
 <tr>
-<td><code translate="no" v-pre>marginalia-1.4.0.war</code>, <code translate="no" v-pre>marginalia-1.4.0/</code></td>
+<td><code translate="no" v-pre>marginalia-1.5.0.war</code>, <code translate="no" v-pre>marginalia-1.5.0/</code></td>
 <td>The WAR and its exploded form.</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>marginalia-1.4.0-classes.jar</code></td>
+<td><code translate="no" v-pre>marginalia-1.5.0-classes.jar</code></td>
 <td>Classes for plugin builds.</td>
 </tr>
 <tr>
@@ -1447,7 +1475,7 @@ ignored by Git), see <a href="../packaging/#building-the-plugins-in-docker">Pack
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (60a4afd23).</p></div>
             </footer>
         </div>
     </div>

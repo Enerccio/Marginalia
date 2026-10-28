@@ -12,7 +12,7 @@ the part. An empty value prints nothing.
 
 | Template | Variables |
 |---|---|
-| **Master Template** | `{{backgroundLore}}` activated lorebook entries (*In Lore Block*), `{{narrativePov}}`, `{{narrativeTense}}`, `{{style}}`, `{{summaries}}` all summaries of the branch |
+| **Master Template** | `{{backgroundLore}}` activated lorebook entries (*In Lore Block*), `{{narrativePov}}`, `{{narrativeTense}}`, `{{style}}`, `{{summaries}}` all summaries of the branch, `{{annotations}}` the [notes](../books/annotations.md#giving-a-note-to-the-model) you marked to give to the model, for the parts in the prompt |
 | **User Prompt** | `{{sceneSetting}}`, `{{povCharacter}}`, `{{presentCharacters}}`, `{{instructions}}` - the turn instructions |
 | **Summary Prompt** | `{{text}}` the parts to summarize, `{{backgroundLore}}` lore active when the summarized part was written |
 | **Meta Summary Prompt** | `{{summaryBlocks}}` the summaries to merge, oldest first, `{{backgroundLore}}` lore active when the part of the meta summary was written |

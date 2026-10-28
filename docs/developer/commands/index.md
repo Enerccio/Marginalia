@@ -248,6 +248,18 @@ parts as a tree, with the numbers of the branches). All are `NON_DESTRUCTIVE`, s
 Tests: `ManuscriptReadCommandsTest` runs them in an agent session (`AgenticRequestAttributes` in the test sources puts an
 `AgenticSessionPoint` into the session scope of the logged in test user).
 
+### Commands for annotations
+
+`ListAnnotationsCommand` (`list-annotations [status [part [offset [limit]]]]`) and `GetAnnotationCommand` (`get-annotation`) read, `AnnotationWriteCommands`
+(`create-annotation`, `update-annotation`, `resolve-annotation`, `reattach-annotation`, `delete-annotation`, `generate-annotation`) change the [annotations](../domain-model.md#annotation). An annotation is given
+by its uuid (`Book.annotation` checks that it is one of a part of the book of the scope). They change only the notes, never the story, so they are `NON_DESTRUCTIVE`
+except the delete. An agent writes them in its working copy with the source `AGENT` (`CommandScope.isAgent`); the annotations are items of the
+[merge](../agents.md#merge-and-apply) like parts and entries. `CommandScope.resolveAnnotation` finds one of the book of the scope (the handles of the agent, `h:a17`).
+`generate-annotation part [profile]` is *Annotate with AI* as a command: it calls `AnnotateService` (answer format *Automatic*, the default task of the annotate prompt)
+and stores every note it finds at once with the source `AI`; it is `async`, `BatchPolicy.SINGLE` (it calls a model) and, like the other commands that write with a model,
+takes the model from `CommandScope.getModel` (the model of the agent when the agent's setting says so, else the one of the book; `profile` is a model profile of the agent).
+Tests: `AnnotationCommandsTest`, `AgentAnnotationsTest`, `GenerationCommandsTest`.
+
 ### Commands that read the lorebooks
 
 The package `domain.service.impl.commands.lorebook.read` has `ListLorebooksCommand`, `ListLoreEntriesCommand`, `GetLoreEntryCommand`,
@@ -260,8 +272,9 @@ name and tag in Java and keeps the numbers of the whole lorebook; `search-lore` 
 (plain text or a regular expression) and reports one hit per entry with the fields that match.
 
 `preview-lore-activation` asks `LorebookActivationService` (`domain.service`), the rules the generation step `ProcessLorebookStep` uses too: `collectLorebooks` (the enabled
-tree with the entries filled in), `orderedEntries` (by `order`, the older first), `evaluate(entry, bookTags, text)` (a `Verdict` with a `Reason`: `CONSTANT`,
-`FILTER_MATCHED`, `DISABLED`, `NEGATIVE_TAG`, `MISSING_TAG`, `FILTER_NOT_MATCHED`) and `renderPayload`. The step only adds its events around them, so what the command
+tree with the entries filled in), `orderedEntries` (by `order`, the older first), `evaluate(entry, bookTags, text, parts)` (`parts`: the story before the turn, from `recentParts` with `partsNeeded` as the count - the active branch of the book, or the parts in front of the given part - for the entries that look into it; a `Verdict` with a `Reason`: `CONSTANT`,
+`FILTER_MATCHED`, `LORE_MATCHED`, `DISABLED`, `NEGATIVE_TAG`, `MISSING_TAG`, `FILTER_NOT_MATCHED`), `evaluateAll` (all the entries and the same `parts`, with the passes of the scan depth of the root
+lorebook: an entry found by the content of others is `LORE_MATCHED`, its row has `scanDepth`, the pass) and `renderPayload`. The step only adds its events around them, so what the command
 shows is what a generation does. With a part the filters are looked for in the user prompt of the book rendered from the turn input stored with the part, in a
 fresh `TemplateContext` (the book, the narration settings, the variables of the book and of the part; not the story), so a payload that reads the story renders
 without it. The form with `text` and the form with `part` both have one argument, a number on the command line is taken for the text: give a part as a number
@@ -276,7 +289,7 @@ The packages `domain.service.impl.commands.manuscript.write` and `lorebook.write
 `PartEditCommands` (`edit-part`, `replace-part-text`, `append-to-part`, `set-part-fields`), `PartStructureCommands` (`create-part`,
 `insert-part`, `branch-part`, `delete-part`, `switch-branch`), `SummaryWriteCommands` (`set-summary`, `remove-summary`, `revalidate-summaries`),
 `BookSettingsCommands` (`set-book-info`, `set-book-prompts`, `set-book-tags`), `StoryGenerationCommands` (`next`, `swipe`,
-`regenerate`), `SummaryGenerationCommands` (`regenerate-summary`, `create-meta-summary`), `LoreEntryWriteCommands` and
+`regenerate`), `SummaryGenerationCommands` (`regenerate-summary`, `create-meta-summary`), `RedraftCommands` (`redraft-part`, over `RedraftService`; the model is the one of the book as the scope gives it, which for an agent follows `Agent.useAgentModel`, or a `profile` through `ManuscriptWriteSupport.options`), `AnnotationWriteCommands.generate` (`generate-annotation`, over `AnnotateService` in `AUTO` mode with the default task of the prompt; `batch = SINGLE`, `async`; adds every proposal with `AnnotateService.accept`, labelled with the model; the model is `CommandScope.getModel` like in the Lore Generator, or a `profile` through `ManuscriptWriteSupport.options`), `ImpersonateCommands` (`impersonate`, over `ImpersonateService`, returns the drafted instructions; `availableForAgent = false` and `readOnly`), `LoreEntryWriteCommands` and
 `LorebookWriteCommands`. They call the services the screens use (`ChatMessageService.updateResponse` / `createPart` / `insertPart` /
 `branchAndSwitch` / `swipeAndSwitch` / `deleteNodeAndMigrateChildren`, `SummaryService.updateSummaryText` / `removeSummary` /
 `revalidate`, `ManuscriptService.updateSettings`, `LorebookEntryService.create` / `update` / `move` / `deleteEntry`,

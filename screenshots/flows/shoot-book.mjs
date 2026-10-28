@@ -1,20 +1,7 @@
 // Screenshots of the book window: About, Prompts, Story (hero, turn details, prompt, token usage, images...), Branch view,
 // Backups, Export. Run on step 13-db-backup or later. Nothing stays changed.
-import {
-    bookTab,
-    closeDialog,
-    fill,
-    idle,
-    login,
-    main,
-    openBook,
-    section,
-    sleep,
-    snap,
-    snapDialog,
-    snapPopover
-} from '../lib/shot.mjs';
-import {partAction, parts, readingStyle} from '../lib/story.mjs';
+import {bookTab, closeDialog, fill, idle, login, main, openBook, section, sleep, snap, snapDialog, snapPopover, menuItem} from '../lib/shot.mjs';
+import {bottomButton, partAction, parts, readingStyle, clickCogs, clickPlus} from '../lib/story.mjs';
 
 const scrollStory = (page, where) => page.evaluate(w => {
   const p = document.querySelector('.story-scroll-panel');
@@ -61,7 +48,7 @@ await main(async ({ page }) => {
   await section(page, 'hero', async () => {
     await bookTab(page, 'Story');
     await scrollStory(page, 'bottom');
-    await page.mouse.click(1857, 822);
+    await clickPlus(page);
     await idle(page, 600);
     await fill(page, 'Scene Setting', 'Hogsmeade evening, behind the Three Broomsticks');
     await fill(page, 'POV Character', 'Harry');
@@ -106,24 +93,28 @@ await main(async ({ page }) => {
   });
 
   await section(page, 'highlight', async () => {
-    await page.mouse.click(534, 822);
+    await clickCogs(page);
     await idle(page, 400);
-    await page.getByText('Highlight Generated Text', { exact: true }).click();
+    await menuItem(page, 'Highlight Generated Text').click();
     await idle(page, 800);
-    await scrollStory(page, 'bottom');
-    await page.mouse.click(534, 822);
+    // the end of the story with the highlighted text above the picture (the menu covers the lower part)
+    await page.evaluate(() => { const p = document.querySelector('.story-scroll-panel'); p.scrollTop = p.scrollHeight - p.clientHeight - 230; });
+    await sleep(300);
+    await clickCogs(page);
     await idle(page, 400);
     await snap(page, 'highlight-generated');
     await page.keyboard.press('Escape');
-    await page.mouse.click(534, 822);                          // menu closed again, highlight off
+    await clickCogs(page);                          // menu closed again, highlight off
     await idle(page, 300);
-    await page.getByText('Highlight Generated Text', { exact: true }).click().catch(() => {});
+    await menuItem(page, 'Highlight Generated Text').click().catch(() => {});
   });
 
   await section(page, 'summaries-button', async () => {
-    await page.mouse.move(460, 822);
+    const button = bottomButton(page, 'fas:list-ul');
+    await button.hover();
     await sleep(1800);
-    await snap(page, 'summaries-menu-button', { clip: { x: 410, y: 790, width: 240, height: 108 } });
+    const box = await button.boundingBox();
+    await snap(page, 'summaries-menu-button', { clip: { x: box.x - 30, y: box.y - 2, width: 240, height: 108 } });
   });
 
   await section(page, 'branch-view', async () => {

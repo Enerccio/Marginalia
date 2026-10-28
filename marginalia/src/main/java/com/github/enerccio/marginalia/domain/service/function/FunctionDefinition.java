@@ -45,6 +45,7 @@ public final class FunctionDefinition {
     private final List<Parameter> parameters;
     private final MethodHandle handle;
     private final BatchPolicy batch;
+    private final List<String> linkedTools;
     // set for a function that is not a method of an interface, see dynamic()
     private final Handler dynamic;
 
@@ -62,8 +63,9 @@ public final class FunctionDefinition {
 
     /** @param handle takes the target, the continuation and then the arguments as Objects, see {@link FunctionCompiler} */
     FunctionDefinition(String name, String description, ObjectNode parametersSchema, List<Parameter> parameters,
-                       MethodHandle handle, BatchPolicy batch) {
+                       MethodHandle handle, BatchPolicy batch, List<String> linkedTools) {
         this.batch = batch;
+        this.linkedTools = List.copyOf(linkedTools);
         this.name = name;
         this.description = description;
         this.parametersSchema = parametersSchema;
@@ -74,6 +76,7 @@ public final class FunctionDefinition {
 
     private FunctionDefinition(String name, String description, ObjectNode parametersSchema, Handler dynamic) {
         this.batch = BatchPolicy.BATCHABLE;
+        this.linkedTools = List.of();
         this.name = name;
         this.description = description;
         this.parametersSchema = parametersSchema;
@@ -110,6 +113,13 @@ public final class FunctionDefinition {
      */
     public BatchPolicy getBatch() {
         return batch;
+    }
+
+    /**
+     * The names of the functions that go with this one, see {@link LLMFunction#linkedTool()}; empty for none.
+     */
+    public List<String> getLinkedTools() {
+        return linkedTools;
     }
 
     /**

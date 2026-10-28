@@ -32,6 +32,7 @@ public final class MergeDiff {
     public static final String ID_MESSAGE = "M:";
     public static final String ID_LOREBOOK = "L:";
     public static final String ID_ENTRY = "E:";
+    public static final String ID_ANNOTATION = "A:";
 
     /**
      * The settings of a book an agent can change, besides its tags and the data of the plugins ({@code attributes_*}).
@@ -47,10 +48,16 @@ public final class MergeDiff {
     public static final List<String> ENTRY_FIELDS = List.of("name", "payload", "comment", "enabled", "order", "filtering",
             "filteringMode", "insertionMode", "tags", "negativeTags", "lorebook");
 
+    /**
+     * What of an annotation is compared: the note and how it is classed. Its passage is not (it follows the text of the part it is
+     * in, which the part's own item takes over), nor are the quote and the context it is found again by.
+     */
+    public static final List<String> ANNOTATION_FIELDS = List.of("text", "type", "status", "sendToPrompt");
+
     private static final Set<String> SETS = Set.of("tags", "negativeTags", "subbooks");
     private static final Set<String> EDITABLE = Set.of("name", "description", "pov", "tense", "style", "template", "userPrompt",
             "summaryPrompt", "metaSummaryPrompt", "response", "instructions", "sceneSetting", "povCharacter", "presentCharacters",
-            "summary", "payload", "comment", "filtering");
+            "summary", "payload", "comment", "filtering", "text", "type");
 
     private static final Pattern UUID = Pattern.compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
     private static final String SEPARATOR = "\u0000";
@@ -73,6 +80,7 @@ public final class MergeDiff {
         final Map<String, Map<String, String>> messages = new LinkedHashMap<>();
         final Map<String, Map<String, String>> lorebooks = new LinkedHashMap<>();
         final Map<String, Map<String, String>> entries = new LinkedHashMap<>();
+        final Map<String, Map<String, String>> annotations = new LinkedHashMap<>();
         final Map<String, String> book = new LinkedHashMap<>();
     }
 
@@ -133,7 +141,8 @@ public final class MergeDiff {
     private static MergePlan compute(View baseView, View changed, View other, Function<String, String> source,
                                      Function<String, String> target) {
         boolean bookChanged = !baseView.messages.equals(other.messages) || !baseView.lorebooks.equals(other.lorebooks)
-                || !baseView.entries.equals(other.entries) || !baseView.book.equals(other.book);
+                || !baseView.entries.equals(other.entries) || !baseView.annotations.equals(other.annotations)
+                || !baseView.book.equals(other.book);
 
         Map<String, String> names = new HashMap<>();
         for (View v : List.of(baseView, other, changed)) {
@@ -145,6 +154,7 @@ public final class MergeDiff {
         items.addAll(lorebookItems(context));
         items.addAll(entryItems(context));
         items.addAll(messageItems(context));
+        items.addAll(annotationItems(context));
         return new MergePlan(items, names, bookChanged);
     }
 
@@ -364,11 +374,40 @@ public final class MergeDiff {
                 props.put(DISPLAY + "summary", text(content, "summary"));
             }
             view.messages.put(messageKey, props);
+            readAnnotations(message, messageKey, view, toOriginal);
         }
         // what a part follows is shown as the part (its place and its start), not as a key
         for (Map<String, String> props : view.messages.values()) {
             String parent = props.get("parent");
             props.put(DISPLAY + "parent", parent == null || !view.messages.containsKey(parent) ? "" : messageLabel(view, parent));
+        }
+    }
+
+    private static void readAnnotations(JsonObject message, String messageKey, View view, Map<String, String> toOriginal) {
+        JsonArray annotations = array(message, "annotations");
+        if (annotations == null) {
+            return;
+        }
+        for (JsonElement element : annotations) {
+            if (!element.isJsonObject()) {
+                continue;
+            }
+            JsonObject annotation = element.getAsJsonObject();
+            String key = key(text(annotation, "uuid"), toOriginal);
+            if (key.isEmpty()) {
+                continue;
+            }
+            JsonObject extended = object(annotation, "extendedContent");
+            Map<String, String> props = new LinkedHashMap<>();
+            props.put("part", messageKey);
+            props.put("text", text(extended, "text"));
+            props.put("type", text(extended, "type"));
+            // an orphaned note is an open one that lost its passage, which the text decides and not the agent
+            String status = text(annotation, "status");
+            props.put("status", status.equals("ORPHANED") ? "OPEN" : status);
+            props.put("sendToPrompt", Boolean.toString(Boolean.parseBoolean(text(extended, "sendToPrompt"))));
+            props.put("quote", text(extended, "quote"));
+            view.annotations.put(key, props);
         }
     }
 
@@ -470,6 +509,62 @@ public final class MergeDiff {
             text = norm(props.get("instructions")).strip().replaceAll("\\s+", " ");
         }
         return text.length() > SNIPPET ? text.substring(0, SNIPPET).stripTrailing() + "…" : text;
+    }
+
+    // --- annotations
+
+    private static List<Item> annotationItems(Context context) {
+        List<Item> changed = new ArrayList<>();
+        List<Item> added = new ArrayList<>();
+        List<Item> deleted = new ArrayList<>();
+        for (Map.Entry<String, Map<String, String>> e : context.changed.annotations.entrySet()) {
+            String key = e.getKey();
+            Map<String, String> props = e.getValue();
+            Map<String, String> base = context.base.annotations.get(key);
+            Map<String, String> current = context.other.annotations.get(key);
+            if (base == null) {
+                if (current == null) {
+                    String part = props.get("part");
+                    boolean newPart = isNewPart(context, part);
+                    List<String> names = new ArrayList<>(ANNOTATION_FIELDS);
+                    names.add(0, "quote");
+                    added.add(new Item(ID_ANNOTATION + key, Kind.ANNOTATION, Change.ADDED, context.sourceUuid(key), null, annotationLabel(context.changed, props),
+                            newPart ? ID_MESSAGE + part : null, oneSided(names, props, true, null), false,
+                            newPart || context.other.messages.containsKey(part) ? null : MergePlan.PROBLEM_NEEDS_PART, List.of()));
+                }
+                continue;
+            }
+            List<Field> fields = compareAll(ANNOTATION_FIELDS, base, props, current);
+            if (!fields.isEmpty()) {
+                changed.add(new Item(ID_ANNOTATION + key, Kind.ANNOTATION, Change.CHANGED, context.sourceUuid(key), context.targetUuid(key),
+                        annotationLabel(context.changed, props), null, fields, fields.stream().anyMatch(Field::conflict),
+                        current == null ? MergePlan.PROBLEM_GONE : null, List.of()));
+            }
+        }
+        for (Map.Entry<String, Map<String, String>> e : context.base.annotations.entrySet()) {
+            String key = e.getKey();
+            Map<String, String> current = context.other.annotations.get(key);
+            // the annotations of a part that was deleted go with it
+            if (context.changed.annotations.containsKey(key) || current == null || !context.changed.messages.containsKey(e.getValue().get("part"))) {
+                continue;
+            }
+            deleted.add(new Item(ID_ANNOTATION + key, Kind.ANNOTATION, Change.DELETED, null, context.targetUuid(key), annotationLabel(context.base, e.getValue()), null,
+                    oneSided(ANNOTATION_FIELDS, e.getValue(), false, current), !same(ANNOTATION_FIELDS, e.getValue(), current), null, List.of()));
+        }
+        List<Item> items = new ArrayList<>(added);
+        items.addAll(changed);
+        items.addAll(deleted);
+        return items;
+    }
+
+    /**
+     * The part (its place and start) and the start of the note.
+     */
+    private static String annotationLabel(View view, Map<String, String> props) {
+        String note = norm(props.get("text")).strip().replaceAll("\\s+", " ");
+        String part = props.get("part");
+        return (view.messages.containsKey(part) ? depth(view.messages, part) + ": " : "")
+                + (note.length() > SNIPPET ? note.substring(0, SNIPPET).stripTrailing() + "…" : note);
     }
 
     // --- the settings of the book

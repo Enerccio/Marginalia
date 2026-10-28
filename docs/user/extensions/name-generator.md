@@ -15,7 +15,7 @@ choose which categories the model may use (see [Tools for the model](tools.md));
 
 | Function | What it does |
 |---|---|
-| `list_name_categories` | Lists the categories of names. |
+| `list_name_categories` | Lists the categories of names; with a `filter` only those that have its words in the name. |
 | `generate_names` | Makes up to 100 new names of one category. Optionally with a shortest and longest length. |
 
 Without a length, the names are as long as the names of that category usually are (a category of long company names gives
@@ -30,7 +30,7 @@ which can use them in their own prompts (for example for `/generate-lore-entry` 
 
 | Command | What it does |
 |---|---|
-| `/list-name-categories [<filter>]` | Lists the categories as a JSON array; with a filter only those whose name starts with it (not case sensitive). |
+| `/list-name-categories [<filter>]` | Lists the categories as a JSON array; with a filter only those whose name has all its words (each at the start of a word, in any order, not case sensitive: `chad male` finds *Africa - Central Africa - Chad - Male* but not *…Female*). |
 | `/generate-names category count [min_length [max_length]]` | Makes up to 100 names of the category and returns them as a JSON array. Different names each time. |
 
 Both only read.
@@ -48,6 +48,35 @@ There are about 1270 categories. Their names say what they are:
 - **Lists from other collections**: gods, angels, demons, ancient cities and states, emperors, planets (fantasygen),
   Corpora (animals, tarot, Tolkien names, Game of Thrones houses, drugs, hospitals, fabrics, gemstones, programming
   languages...) and markov-namegen-lib (Pokemon, dragons, cocktails, banks, Roman place names...).
+
+### Groups
+
+About 170 entries are **groups** of categories. They put the many small lists of a language together, so you ask for
+`German - Male` instead of picking among *Germany - Germanic - Male*, *Germany - Biblical - Male*, *Austria - First names - Male*
+and the rest. They are listed like any category, and a group is one item in the [tools window](tools.md). The groups:
+
+- **By language**, each as `- Male`, `- Female` and `- Surnames` where there are such lists: German, French, Spanish (the
+  surnames include Latin America), Italian, Portuguese, Dutch, Scandinavian, Finnic, Baltic, Irish, Scottish, Welsh, Celtic (all
+  of them), West, East and South Slavic, Greek, Hungarian, Romanian, Albanian, Caucasian, Turkic, Persian, Arabic, Jewish, Hindu
+  (the four alphabetical lists of male names as one), South Asian, Southeast Asian, Malay-Indonesian, Polynesian and the African
+  regions (West, East, Southern, North, Central). `Chinese`, `Japanese`, `Korean` and `Vietnamese` have `- Surnames`.
+- **Any gender**: `<Language> - Forenames` (`German - Forenames`, `Spanish - Forenames`, `Celtic - Forenames`...) takes the male
+  and the female lists of the language and its lists of names for both genders, so a call returns men's and women's names mixed
+  (the shares follow the sizes of the lists, mostly between half and three quarters men). Chinese, Japanese, Korean and Vietnamese
+  have it too. Languages where the mix would be lopsided (Turkic, South Asian, West and Southern African, Malay-Indonesian) have only the
+  male and female groups.
+- **Of the past**: Anglo-Saxon, Medieval Germanic, Medieval English, Ancient Near East.
+- **Native American**: `Native American - Male`, `- Female` and `- Surnames` (the northern American categories of the Onomastikon:
+  Apache, Sioux, Iroquois, Cherokee, Inuit...) and the same for Central and South America (Aztec, Maya, Inca, Amazonian).
+- **Other**: `English - Surnames` (patronymics, trades, places...), `Saints`, `Deities`, `Fantasy Creatures`, `Game of Thrones Houses`.
+
+For every name the extension first picks one of the categories of the group at random, and then makes the name with the
+chain of that category (with its usual lengths). A name sounds like one people and language instead of a blend of all of them,
+and one call returns names of several. The lists of the countries, which are split by origin or by letter, are chosen by
+their size (a list of 600 names is chosen more often than one of 10); in the groups of whole languages and countries (Turkic,
+Caucasian, Baltic, Polynesian, the African regions, Native American...) every member has the same chance. The sources of some
+groups are short and partly English translations (*Calf-Woman*), so the names are rough.
+A group is a line in `name-groups.json` (the members and how they are chosen), see the [plugin README](https://github.com/Enerccio/Marginalia/blob/master/marginalia/plugins/name-generator/README.md#groups).
 
 Each category has a chain of the length that suited it best (short lists get short chains, which repeat the originals
 less) and the lengths its names usually have. The lists themselves are not part of Marginalia: only the probabilities

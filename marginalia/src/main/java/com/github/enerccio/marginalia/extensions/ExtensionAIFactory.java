@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.extensions;
 
 import com.github.enerccio.marginalia.domain.model.impl.ExtensionAI;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
+import com.github.enerccio.marginalia.domain.service.TokenizerResolver;
 
 /**
  * An inference provider implemented by an extension. The extension registers the factory with
@@ -40,5 +41,21 @@ public interface ExtensionAIFactory {
      *           the form reads its {@link ExtensionAI#getSettings() settings}
      */
     ExtensionAIForm createForm(ExtensionAI ai);
+
+    /**
+     * How the tokens of the AIs of the provider are counted by {@code TokenizerService}, for a provider that has tokenizers
+     * (even several, or a different one for each URL it calls). The resolver gives each AI a
+     * {@link com.github.enerccio.marginalia.domain.components.TokenizerKey} (AIs with an equal key share the tokenizer found to
+     * work) and the strategies to try for it. It is asked for the AIs of this provider only, so nothing of other AIs reaches it.
+     * The service asks once for each registered factory and keeps the resolver until the factory is unregistered.
+     * <p>
+     * The provider uses it by calling {@code TokenizerService.countTokens(ai, text)} from
+     * {@link InferenceService#countTokens}; the service counts approximately there when called in a read-write transaction.
+     *
+     * @return the resolver, null (the default) when the provider counts the tokens by itself
+     */
+    default TokenizerResolver createTokenizerResolver() {
+        return null;
+    }
 
 }

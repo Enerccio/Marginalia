@@ -41,8 +41,8 @@ Marginalia/
 marginalia/
 ├── pom.xml                       dependencies, build plugins, the desktop profile
 ├── src/main/java/                application code
-├── src/main/resources/           Spring XML, Flyway migrations, log4j, Vaadin build info
-├── src/main/resources-release/   WAR-only resources: the release log4j.properties
+├── src/main/resources/           Spring XML, Flyway migrations, logback, Vaadin build info
+├── src/main/resources-release/   WAR-only resources: the release logback.xml
 ├── src/main/resources-raw/       copied into WEB-INF/classes without filtering (empty)
 ├── src/main/webapp/config/       configuration.properties, persistence.xml
 ├── src/main/frontend/            CSS and JavaScript for the Vaadin frontend
@@ -93,13 +93,15 @@ Application code lives in `com.github.enerccio.marginalia` (paths below are rela
 | `ui.workspace` | `Workspace` (interface of the workspace shown after login), `DesktopWorkspace` (its tabbed implementation with footer buttons), `WorkspaceComponent` (interface of its tabs) and `WorkspaceAutosave` (stores the state of the workspace in `UserSetting.workspaceState`). `WorkspaceLLMSupport` (what the workspaces and the table sections tell the help assistant: the sections by their labels, the moves to open them, the state of a table with an add button). |
 | `ui.workspace.phone`, `ui.workspace.phone.parts` | `PhoneWorkspace` (the workspace for phones: an `AppLayout` with a drawer instead of the left-hand tabs) `PhoneManuscriptPart` (single column book list), `PhoneLorebookPart` (reduced lorebook view), `PhoneProtocolPart` / `PhoneAIPart` (two column protocol and model lists) `PhoneSettingsPart` (`UserPart` with a stacked header) and `PhoneTrashPart` (trash with `PhoneTrashGrid`). |
 | `ui.dialogs.phone`, `ui.dialogs.phone.manuscript` | `PhoneManuscriptDialog` (the book dialog for phones: full screen, one scrolling tab row), `PhoneSummariesDialog` (`SummariesDialog` with a wide content column) and its tabs `PhoneManuscriptInfoPart`, `PhoneManuscriptPromptPart`, `PhoneManuscriptLorebookPart` (with `PhoneLorebookView`), `PhoneManuscriptStoryPart` (one column, outline in the drawer of an `AppLayout`, message cards with a header line of icons), `PhoneManuscriptTreePart`, `PhoneManuscriptBackupPart`. |
+| `ui.menu` | The menus of the story editor built from one registry: `StoryMenuRegistry` (Spring bean), `StoryMenuItem`, `StoryMenuKeys`, `MenuKind`, `MenuDefinition` / `BuiltMenu` / `MenuItemContent`, see [User interface](ui.md#menus-of-the-story-editor). |
+| `ui.shortcuts` | The keyboard shortcuts of the story editor: `ShortcutRegistry`, `ShortcutAction` / `ShortcutActions`, `KeyCombo`, `KeyBindings`, `KeyBindingsEditor`, see [User interface](ui.md#keyboard-shortcuts). |
 | `ui.workspace.parts` | One class per workspace tab: `ManuscriptPart` (Books), `LorebookPart`, `UserPart` (Settings), `ProtocolPart`, `AIPart` (Inference Providers), `ResourcesPart` (Resources: lazy `Grid` over `ResourceService.findPageForUser`), `TrashPart` (Trash: the `TrashGrid` widget), `AdminPart`, plus `NewBookAction` (the *Add Book* flow shared by both book lists). |
-| `ui.workspace.parts.admin` | Admin panels with their own logic: `DatabaseBackupPanel`, `CleanupPanel`, `HelpAssistantPanel` (the settings of the help assistant). |
+| `ui.workspace.parts.admin` | Admin panels with their own logic: `DatabaseBackupPanel`, `CleanupPanel`, `ResourceGarbagePanel` (the *Resource Files* tab: scan and delete the files nothing refers to), `HelpAssistantPanel` (the settings of the help assistant). |
 | `ui.dialogs.permissions` | `PermissionsDialog` (the permissions of a user, opened from the key button of Admin → Users), `PermissionUIFactory` / `PermissionUIFactoryImpl` and `PermissionUIComponent` (the settings of a permission type, `HelperPermissionComponent` for `HELPER`), see [Permissions dialog](ui.md#permissions-dialog). |
 | `ui.dialogs.agent` | The screens of [agents](agents.md#the-screens): `AgentConsoleDialog` and its tabs, `AgentDialog` and its editors, `AgentMergeDialog` / `JsonMergeDialog` (the review of a result), the dialogs of a run (`AgentApprovalDialog`, `AgentStopDialog`, `AgentResumeDialog`, `AgentCloneDialog`). |
 | `ui.dialogs.search` | The search and replace windows: `SearchReplaceDialog` (the part both share) with `ManuscriptSearchReplaceDialog` (story) and `LorebookSearchReplaceDialog` (entries), see [Books and the story](services.md#books-and-the-story). |
-| `ui.dialogs` | Entity dialogs (`AIDialog`, `ProtocolDialog`, `LorebookDialog`, `UserDialog`), the limits of a shared AI (`AILimitsDialog`, `AILimitEditDialog`; `AILimitInfoDialog` is the user's own view), `UsageDialog` (every user's usage), `ManuscriptDialog` (the book window), `LorebookImportDialog` (resolving lorebooks during restores), `PromptDialog` (shows the prompt a part was generated from), `ExtensionLogDialog` (the log of an extension, opened from the Admin page), `UsageDialog` (what every user used of every AI, opened by administrators from the Inference Providers tab) and generic dialogs: `ConfirmDialog`, `TextInputDialog`, `ListSelectDialog`, `ErrorDialog`, `ProgressBarDialog`. `ExportDialog` exports the story of a book. `ManuscriptCloneDialog` (clone a book), `ArchiveUploadDialog` / `ArchiveEntryNamesDialog` / `ArchiveImportRunner` (import of `.md` archives), `MultiTagDialog` (a tag on many books, lorebooks or entries), `LorebookMassEditDialog` (all entries of a lorebook in one table), `CommandProgressDialog` (the Stop window of a running command). Threading helpers `ThreadAccessDialog` and `UIPushGuard`. |
-| `ui.dialogs.story` | What the desktop and the phone story tab share: `StoryHost` (implemented by both book dialogs), `StoryCard` / `StoryCards`, `StoryGenerationListener`, `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics`, `StoryBackup`, `StorySupport`, and the lazy loading of long stories: `LazyBranch`, `StoryLazyLoader`, `ReaderLazyLoader`. |
+| `ui.dialogs` | Entity dialogs (`AIDialog`, `ProtocolDialog`, `LorebookDialog`, `UserDialog`), the limits of a shared AI (`AILimitsDialog`, `AILimitEditDialog`; `AILimitInfoDialog` is the user's own view), `UsageDialog` (every user's usage), `ManuscriptDialog` (the book window), `LorebookImportDialog` (resolving lorebooks during restores), `PromptDialog` (shows the prompt a part was generated from), `ExtensionLogDialog` (the log of an extension, opened from the Admin page), `UsageDialog` (what every user used of every AI, opened by administrators from the Inference Providers tab) and generic dialogs: `ConfirmDialog`, `TextInputDialog`, `ListSelectDialog`, `ErrorDialog`, `ProgressBarDialog`. `ExportDialog` exports the story of a book. `ManuscriptCloneDialog` (clone a book), `ArchiveUploadDialog` / `ArchiveEntryNamesDialog` / `ArchiveImportRunner` (import of `.md` archives), `MultiTagDialog` (a tag on many books, lorebooks or entries), `LorebookMassEditDialog` (all entries of a lorebook in one table), `LorebookActivationPreviewDialog` (which entries a text would use and why), `CommandProgressDialog` (the Stop window of a running command). Threading helpers `ThreadAccessDialog` and `UIPushGuard`. |
+| `ui.dialogs.story` | What the desktop and the phone story tab share: `StoryHost` (implemented by both book dialogs), `StoryEditor` (the interface of the story tab, desktop and phone, that the menu callbacks get), `StoryCard` / `StoryCards`, `StoryDockLayout` (the layouts of the desktop dock), `StoryBranchSearch` (the search of the branch), `StoryAnnotations` / `CardAnnotations` / `AnnotationsPanel` / `AnnotationView` / `AnnotationDialog` / `AnnotateDialog` (the notes), `RedraftDialog`, `ImpersonateDialog` (draft the instructions), `PartMergeDialog`, `StoryGenerationListener`, `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics`, `StoryBackup`, `StorySupport`, and the lazy loading of long stories: `LazyBranch`, `StoryLazyLoader`, `ReaderLazyLoader`. |
 | `ui.dialogs.manuscript` | The tabs of the book window, each a `ManuscriptDialogPart`: `ManuscriptStoryPart` (story editor - the largest UI class), `ManuscriptTreePart`, `ManuscriptInfoPart` (About), `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptBackupPart`; and the summary dialogs: `SummariesDialog` (overview of the summaries of the branch, opened from the story editor), `SummaryDialog` (one summary or meta summary, generating or viewing) and `SummaryRemoval` (asking before a summary is removed); and `ImagesDialog` (add, caption and remove the images of a part, opened from its card). |
 | `ui.components` | Larger reusable components: `TagsView` (the Tags tab of the settings: tags with their usage, rename, merge, delete), `LorebookView` (the lorebook editor, used in the Lorebooks tab and in books), `PhoneLorebookView` (its reduced phone version), `LorebookPreview` (the read only Lorebook tab of the desktop story editor), `InvalidExtensionsWarning` (the red bar of the workspace about invalid extensions), `TreantTree` (story tree drawn with treant.js), `MessageImages` (the images of a part under its text - in the story editor, the Viewer, the image dialog and the Resources tab preview; the files are read when the browser asks for them), `ThreadCopyRequestAttributes` (carries the session to worker threads). `HelpAssistantWidget` (the robot button and chat panel `Main` adds after the workspace; it answers the model's requests to read and move through the page on the page's thread)., `BuildInfoFooter` (the version text in the corner), `CommandBar` (the command line, see [Commands](commands/index.md)). |
 | `ui.widgets` | Small widgets: `ChartJs` (a Chart.js chart drawn from a JSON configuration, see [UI](ui.md)), `GraphView` (a Cytoscape.js graph, see [Custom components](custom-components.md)), `HTabSheet` (tab sheet with the tabs on the left and room for custom content, used by the workspace), `TabDock` (columns of tab sheets whose tabs can be dragged apart and together, the left bar of the story editor), `BackendTableProvider*` / `BackendTableItem` (lazy grids backed by a repository query), `TagMultiComboBox`, `LazyContextMenu` (a context menu filled when it opens), `LazyLoadIndicator`, `WordDiffView` (the word by word differences of the review), `TrashGrid` (restoring deleted objects and deleting parts and entries for good, used by `TrashPart` and `CleanupPanel`), `PhoneTrashGrid` (its phone layout, used by `PhoneTrashPart`), `TemplateHints` (hint popovers of prompt fields), `TextAreaPopoverComponent` / `TextFieldPopOverComponent`, `HtmlText`, `ScrollPanel`, `ModelProtocolPicker` (a model and a protocol to choose from, for dialogs that run the model with a choice of their own), `ToolSelectionButton` (choosing the tools the model may use, with `ui.dialogs.ToolSelectionDialog`), `ResizableTextArea` (`install(loc, area, fixedHeight)` adds a corner icon that switches a text area between a fixed height and growing with its content; used by the prompt, description and lorebook fields), `Notification`, `PermissiveLoginOverlay` (allows empty passwords). |
@@ -158,7 +160,7 @@ Interfaces in `domain.service`, implementations in `domain.service.impl`:
 | `AILimitService` | The per-user limits of a shared AI: the owning administrator sets them, `check` refuses a request of a user who is over their limit (called by `OpenAICompatibleInferenceService.stream`), `getStatus` is for the user's own view. |
 | `UsageService` | Tokens a user used with an AI, counted by `OpenAICompatibleInferenceService` (`Usage`, one per AI and user); `findAllUsages()` lists everybody's for administrators. |
 | `StoryGenerationService` | The generation engine (`StoryGenerationServiceImpl.GenerationEngine`). |
-| `InferenceServices`, `InferenceService`, `InferenceException`, `InferenceErrors` | Choosing and calling the model API; classified failures and their localized texts. |
+| `InferenceServices`, `InferenceService`, `InferenceSession`, `InferenceException`, `InferenceErrors` | Choosing and calling the model API; the kind of work a request belongs to (header `X-Session-ID`); classified failures and their localized texts. |
 | `FunctionRegistry` | The Java interfaces the model can call as functions, compiled once (see [Function calls](services.md#function-calls)). |
 | `TokenizerService` | Token counting. |
 | `ManualService` | The user manual packed into the WAR (`classpath:/manual/`), parsed once and searched in memory (BM25) for the help assistant. |
@@ -195,7 +197,7 @@ See [Services](services.md) and [Generation pipeline](generation-pipeline.md).
 | File | |
 |---|---|
 | `TemplateData` | Base of all template data; implements the SillyTavern-compatible macros. |
-| `MasterTemplateData`, `UserPromptData`, `LorebookTemplateData`, `SummaryTemplateData`, `MetaSummaryTemplateData` | The variables available in each kind of template (listed in the UI hints). |
+| `MasterTemplateData`, `UserPromptData`, `LorebookTemplateData`, `SummaryTemplateData`, `MetaSummaryTemplateData`, `RedraftTemplateData` | The variables available in each kind of template (listed in the UI hints). |
 | `ExportHeaderTemplateData` | The variables (`title`, `author`) of the title page template of story exports. |
 | `TemplateContext` | What macros are evaluated against: POV character, model, story so far, variables. One per generation. |
 | `TemplateVariables` | Storage of `setvar` / `getvar` variables (local per branch, global per book). |
@@ -227,7 +229,7 @@ See [Story export](services.md#story-export).
 | Package | |
 |---|---|
 | `domain.traits` | Annotations: `@CommonTx`, `@CommonTxReadOnly`, `@NoTx` (transactions), `@Extendable` (instrumented UI classes) with `@PublicAPI`, `@APIReturn`, `@APIParameter`, `@APILocals` (the signature of each of their methods that plugins see), `@LLMSchema` / `@LLMField` (describe a class the model answers with, see `StructuredOutputs`), `@ExtendedAttribute` (fields stored in `attributes`), `@Fulltextable` (fields whose text goes into `_fulltext`), `@CleanupReference(s)` (how references behave during cleanup), `@LocalizedTemplateDescription` (texts of template hints), `@SupportedAI` (provider type of an inference service). `@Command` with `CommandDataSeverity` (what a command does to existing data, see [Commands](commands/index.md#data-severity)). |
-| `domain.collections` | Enums: `AIType`, `ProtocolType`, `ReasoningEffort`, `LimitStrategy`, `ResetStrategy`, `FilteringMode`, `InsertionMode`, `SummaryType`. |
+| `domain.collections` | Enums: `AIType`, `ProtocolType`, `ReasoningEffort`, `LimitStrategy`, `ResetStrategy`, `FilteringMode`, `InsertionMode`, `ActivationContext`, `SummaryType`. |
 | `domain.listener` | `ExtendableEntityListener` - serializes `attributes` and `@ExtendedAttribute` fields to `extendedContent` and back, and collects the `@Fulltextable` fields into `_fulltext`. |
 
 ### Extensions, localization, helpers
@@ -250,8 +252,8 @@ See [Story export](services.md#story-export).
 | `.../spring/datasources-config.xml` | Data source, Flyway, JPA, transaction manager. |
 | `.../spring/services-config.xml` | Repositories, services, generation steps, extensions. |
 | `src/main/resources/migration/V<n>__<name>.sql` | Flyway migrations - currently `V1__initial` to `V18__agent_message_threads`. |
-| `src/main/resources/log4j.properties` | Logging for development (IDE, `mvn jetty:run`) - `DEBUG`. |
-| `src/main/resources-release/log4j.properties` | Logging packaged into the WAR instead - `INFO` (see [Packaging & releases](packaging.md#the-war)). |
+| `src/main/resources/logback.xml` | Logging for development (IDE, `mvn jetty:run`) - `DEBUG`. |
+| `src/main/resources-release/logback.xml` | Logging packaged into the WAR instead - `INFO` (see [Packaging & releases](packaging.md#the-war)). |
 | `src/main/resources/META-INF/build-info/build-info.properties` | Version and build time, filtered by Maven. |
 | `../manual/user/**/*.md` (outside `marginalia/`) | The user manual, copied by the `<resources>` of the POM to `classpath:/manual/` for the help assistant, see [Packaging & releases](packaging.md). |
 | `src/main/resources/META-INF/VAADIN/config/flow-build-info.json.DEVELOPMENT` | Template of a development build info for IDE runs; never packaged into the WAR (see [Development and production mode](building.md#development-and-production-mode)). |
@@ -309,7 +311,7 @@ Each plugin is a Maven project with `bundle` packaging and the same layout:
 
 ```
 plugins/<name>/
-├── pom.xml          depends on io.github.enerccio:marginalia:1.4.0:classes (provided)
+├── pom.xml          depends on io.github.enerccio:marginalia:1.5.0:classes (provided)
 ├── README.md        user documentation
 └── src/main/java/com/github/enerccio/marginalia/extensions/<name>/
     ├── <Name>Activator.java   OSGi BundleActivator - registers the extension service
@@ -321,6 +323,7 @@ plugins/<name>/
 
 | Plugin | Package | Size |
 |---|---|---|
+| Anthropic Claude | `extensions.anthropic` | Activator and extension, `AnthropicFactory` (the `ExtensionAIFactory`), the settings form, the inference service over the Anthropic Java SDK (embedded in the JAR) and helpers for the messages, the errors and the settings; has unit tests and a test against a fake Messages API. |
 | Arc Outline | `extensions.arcoutline` | Model (arcs, chapters, the in-memory `ArcOutline`, settings, the schema of a generated arc), service (outline, prompt building), a sidebar tab, dialogs (arc, the generators of arcs and chapters on a common `GeneratorDialog`), a settings form, `LegacyNameTools` (reads the name categories saved before the tool dialog) and `arcoutline.css`. |
 | Author's Note | `extensions.authorsnote` | Model, service, a sidebar panel and a generation listener. |
 | Chapter Marker | `extensions.chaptermarking` | Activator and extension only - the smallest example. |
@@ -330,11 +333,13 @@ plugins/<name>/
 | Instruction Exporter | `extensions.instructionexporter` | Activator and extension only. |
 | Lore Generator | `extensions.loregenerator` | Model (the prompts), service (lore selection, prompts), a dialog split into `SavePromptAsDialog`, `AttachmentPanel` and `GenerationPane`, a settings form, and `LegacyNameTools` (reads the name categories and hints saved before the tool dialog). |
 | Lorebook VCS | `extensions.lorebookvcs` | Model, service, two UI panels. |
-| Name generator | `extensions.namegenerator` | The extension, the `@LLMFunction` interface and its implementation, `NameGeneratorToolProvider` (the suite for `ToolService`), `NameTables` (the chains and the sampling). `src/build` holds the Java programs of the build: importers of the sources of names, the tuner and the trainer, see its README. |
+| Manga Generator | `extensions.mangagenerator` | Model (mangas, sections, the user's defaults), service (requests: story text, activated lore fitted to the context, previous script; streaming), the window (`MangaDialog`), a card per section, `MangaSettingsForm` (the panel of the extension settings), `TextEditDialog` and `manga.css`; has unit tests. |
+| Name generator | `extensions.namegenerator` | The extension, the `@LLMFunction` interface and its implementation, `NameGeneratorToolProvider` (the suite for `ToolService`), `NameTables` (the chains and the sampling; a chain is packed in arrays, `NameTables.Chain`, and read token by token, the tables of all the categories are 12 MB in memory). `src/build` holds the Java programs of the build: importers of the sources of names, the tuner and the trainer, see its README. |
 | Name provider | `extensions.nameprovider` | The extension, the `@LLMFunction` interface and its implementation, `NameProviderToolProvider` (the suite for `ToolService`), `NameLists` (the lists of real names and the random choice), `NameEntry` (a pair of the romanized and the original name). `src/build/ImportPopularNames.java` writes `name-lists.json` from the popular names by country dataset, see its README. |
 | Place provider | `extensions.placeprovider` | The extension, the `@LLMFunction` interface and its implementation, `PlaceIndex` (the places read from `places.json`: search, nearby, distance), the records of the answers, `PlaceProviderToolProvider` (the suite for `ToolService`) and `PlaceProviderCommands`. `src/build` holds the two Java programs that download Natural Earth and reduce it to `places.json` (profile `import-places`), see its README. |
 | Reviewer | `extensions.reviewer` | Model (`ReviewerProfile` with a stable uuid), service, dialogs, a settings form and `ManuscriptProfileSelect`, the profile picker of a book's info tab. |
 | Side Query | `extensions.sidequery` | Model, service, a chat panel and a settings form; `SideQueryLog` holds its logger for classes the extension class does not create. |
+| SillyTavern Converter | `extensions.stconverter` | Model (the chat, the turn items and the schema of the answer), service (storage in the attributes of the book, the prompt, the pure functions that read and merge the answer), `ConverterView` (the tab) and its CSS; `STConverterLog` holds the logger. |
 | Chinese localization | `extensions.chineselocalization` | Activator, extension and one `LocalizationBundle` - a language, no UI code. |
 
 `plugins/Dockerfile` and `plugins/docker-compose.yml` build all of them in a container (JARs end up in `plugins/build/`,
@@ -346,8 +351,8 @@ See [Plugin development](plugins/index.md).
 
 | Path | |
 |---|---|
-| `marginalia-1.4.0.war`, `marginalia-1.4.0/` | The WAR and its exploded form. |
-| `marginalia-1.4.0-classes.jar` | Classes for plugin builds. |
+| `marginalia-1.5.0.war`, `marginalia-1.5.0/` | The WAR and its exploded form. |
+| `marginalia-1.5.0-classes.jar` | Classes for plugin builds. |
 | `classes/`, `test-classes/` | Woven classes. |
 | `dev-bundle/`, `sw.ts`, `vaadin-dev-server-settings.json` | Vaadin frontend build files. |
 | `surefire-reports/`, `test-home/` | Test reports and test data folders. |

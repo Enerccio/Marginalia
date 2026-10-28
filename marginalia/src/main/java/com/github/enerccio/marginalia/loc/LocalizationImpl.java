@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
+import com.github.enerccio.marginalia.domain.service.LorebookActivationService;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookDecision;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookMatch;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference;
@@ -39,6 +40,8 @@ public class LocalizationImpl implements Localization, InitializingBean {
     private final Map<BackupStrategy, L> backupStrategies = new HashMap<>();
     private final Map<FilteringMode, L> filteringModes = new HashMap<>();
     private final Map<InsertionMode, L> insertionModes = new HashMap<>();
+    private final Map<ActivationContext, L> activationContexts = new HashMap<>();
+    private final Map<LorebookActivationService.Reason, L> activationReasons = new HashMap<>();
     private final Map<CleanupReference.Policy, L> cleanupPolicies = new HashMap<>();
     private final Map<LorebookMatch, L> lorebookMatches = new HashMap<>();
     private final Map<LorebookDecision, L> lorebookDecisions = new HashMap<>();
@@ -61,11 +64,23 @@ public class LocalizationImpl implements Localization, InitializingBean {
         this.defaultLanguage = defaultLanguage;
     }
 
+    /**
+     * The default language by its code, from the setting {@code marginalia.default-language}
+     * ({@code MARGINALIA_DEFAULT_LANGUAGE}); empty keeps English. It has to be one of the bundles of the application,
+     * the languages of extensions are not loaded yet at the start.
+     */
+    public void setDefaultLanguageCode(String code) {
+        if (code != null && !code.isBlank()) {
+            this.defaultLanguage = Language.of(code);
+        }
+    }
+
     @Override
     public void afterPropertiesSet() {
         LocalizationBundle bundle = bundles.get(defaultLanguage);
         if (bundle == null) {
-            throw new IllegalStateException("No localization bundle for the default language " + defaultLanguage);
+            throw new IllegalStateException("No localization bundle for the default language " + defaultLanguage
+                    + ", the application has " + bundles.keySet() + " (the default language can't be one of an extension)");
         }
         // the other bundles fall back to this one, so it has to be complete
         String missing = missingKeys(bundle);
@@ -129,6 +144,13 @@ public class LocalizationImpl implements Localization, InitializingBean {
         insertionModes.put(InsertionMode.IN_LORE_BLOCK, L.ENUM_INSERTION_MODE_IN_LORE_BLOCK);
         insertionModes.put(InsertionMode.BEFORE_USER_PROMPT, L.ENUM_INSERTION_MODE_BEFORE_USER_PROMPT);
 
+        activationContexts.put(ActivationContext.INSTRUCTIONS, L.LABEL_INSTRUCTIONS);
+        activationContexts.put(ActivationContext.INCLUDE_PARTS, L.ENUM_ACTIVATION_CONTEXT_INCLUDE_PARTS);
+
+        for (LorebookActivationService.Reason reason : LorebookActivationService.Reason.values()) {
+            activationReasons.put(reason, L.valueOf("ENUM_ACTIVATION_REASON_" + reason.name()));
+        }
+
         cleanupPolicies.put(CleanupReference.Policy.STRONG, L.ENUM_CLEANUP_POLICY_STRONG);
         cleanupPolicies.put(CleanupReference.Policy.OWNED_BY, L.ENUM_CLEANUP_POLICY_OWNED_BY);
         cleanupPolicies.put(CleanupReference.Policy.OWNS, L.ENUM_CLEANUP_POLICY_OWNS);
@@ -147,6 +169,7 @@ public class LocalizationImpl implements Localization, InitializingBean {
         domainObjects.put(LorebookEntry.class, L.ENUM_DOMAIN_LOREBOOK_ENTRY);
         domainObjects.put(ChatMessage.class, L.ENUM_DOMAIN_MESSAGE);
         domainObjects.put(Summary.class, L.LABEL_SUMMARY);
+        domainObjects.put(Annotation.class, L.ENUM_DOMAIN_ANNOTATION);
         domainObjects.put(AI.class, L.LABEL_MODEL);
         domainObjects.put(Protocol.class, L.ENUM_DOMAIN_PROTOCOL);
         domainObjects.put(Agent.class, L.ENUM_DOMAIN_AGENT);
@@ -365,6 +388,16 @@ public class LocalizationImpl implements Localization, InitializingBean {
     @Override
     public L getInsertionMode(InsertionMode type) {
         return insertionModes.get(type);
+    }
+
+    @Override
+    public L getActivationContext(ActivationContext type) {
+        return activationContexts.get(type);
+    }
+
+    @Override
+    public L getActivationReason(LorebookActivationService.Reason type) {
+        return activationReasons.get(type);
     }
 
     @Override

@@ -24,17 +24,32 @@ public class NameProviderCommands {
         this.lists = lists;
     }
 
-    @Command(commandName = LIST, humanNameText = "List real name lists", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            descriptionText = "Lists the lists of real names (forenames and surnames of countries) that pick-real-names accepts. Reads only.",
-            llmDescriptionText = "Lists the lists of real names (forenames and surnames of countries) that pick-real-names accepts. Call it "
-                    + "first. Returns a JSON array. Reads only.",
+    private static final String LIST_TEXT = "Lists the lists of real names (forenames and surnames of countries) that pick-real-names accepts, "
+            + "all of them or those whose name contains the words of the filter. Reads only.";
+    private static final String LIST_LLM = "Lists the lists of real names (forenames and surnames of countries) that pick-real-names accepts. "
+            + "Call it first; give `filter`, words the name of the list contains (in any order, not case sensitive), to list only those. "
+            + "Some entries are groups of lists (\"Nordic - Surnames\"): every name of a group comes from one of its lists picked at random. "
+            + "Returns a JSON array. Reads only.";
+
+    @Command(commandName = LIST, linkedCommand = PICK, humanNameText = "List real name lists", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            descriptionText = LIST_TEXT, llmDescriptionText = LIST_LLM,
             signature = @CommandParameterSignature,
             returns = @CommandReturn(name = "lists", type = String.class, descriptionText = "JSON array of the lists"))
     public void listLists(CommandContext context) {
         context.setReturn(GSON.toJson(lists.categories()));
     }
 
-    @Command(commandName = PICK, humanNameText = "Pick real names", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = LIST, linkedCommand = PICK, humanNameText = "List real name lists", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            descriptionText = LIST_TEXT, llmDescriptionText = LIST_LLM,
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "filter", type = String.class,
+                            descriptionText = "Words the name of the lists contains, in any order, not case sensitive")}),
+            returns = @CommandReturn(name = "lists", type = String.class, descriptionText = "JSON array of the lists"))
+    public void listListsFiltered(CommandContext context) {
+        context.setReturn(GSON.toJson(lists.categories(context.get("filter", String.class))));
+    }
+
+    @Command(commandName = PICK, linkedCommand = LIST, humanNameText = "Pick real names", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = "Picks real names at random from a list (at most " + NameProviderFunctionsImpl.MAX_COUNT + " at a time). Reads only.",
             llmDescriptionText = "Picks real, existing names at random from one list (see list-real-name-lists), different each time. Each "
                     + "name is a pair: the romanized name (Latin script) and the original one (as written in its own language, the same when "
@@ -50,7 +65,7 @@ public class NameProviderCommands {
     public void pick(CommandContext context) {
         String list = context.get("list", String.class);
         if (list == null || !lists.has(list)) {
-            throw new IllegalArgumentException("Unknown list '" + list + "'. Lists: " + String.join(", ", lists.categories()));
+            throw new IllegalArgumentException(NameLists.unknown("list", list, lists.categories(), LIST));
         }
         int count = NameProviderFunctionsImpl.clampCount(context.get("count", Integer.class));
         context.setReturn(GSON.toJson(lists.pick(list, count, ThreadLocalRandom.current())));

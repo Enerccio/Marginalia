@@ -1,16 +1,19 @@
 package com.github.enerccio.marginalia.extensions.charactertracker.service;
 
+import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.InferenceServices;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
-import com.github.enerccio.marginalia.extensions.charactertracker.model.CharacterBook;
-import com.github.enerccio.marginalia.extensions.charactertracker.model.CharacterTrackerData;
-import com.github.enerccio.marginalia.extensions.charactertracker.model.StoryCharacter;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
+import com.github.enerccio.marginalia.extensions.charactertracker.model.*;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -26,6 +29,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Configurable
 public class CharacterTrackerService {
@@ -57,7 +62,22 @@ public class CharacterTrackerService {
     @Autowired
     private LorebookEntryService lorebookEntryService;
 
+    @Autowired
+    private InferenceServices inferenceServices;
+
+    /**
+     * Buffer for the headers of the inserted message, like {@code PrepareContentStep} adds for every story part.
+     */
+    private static final long MESSAGE_BUFFER_TOKENS = 100;
+
     private final Gson gson = new Gson();
+
+    /**
+     * What a generation inserts into its prompt: the text of the characters and where it goes. Taken once when the
+     * generation starts, so the tokens that were reserved for it are the ones that are sent.
+     */
+    public record PromptInsertion(String text, int depth, LLMRole role) {
+    }
 
     /** Who wants to know that the characters of a book were changed from outside of its view, by the uuid of the book. */
     private final Map<String, Set<Runnable>> changeListeners = new ConcurrentHashMap<>();
@@ -114,6 +134,92 @@ public class CharacterTrackerService {
         }
         attrs.add(CharacterTrackerData.KEY, gson.toJsonTree(book.toData()));
         manuscriptService.save(manuscript);
+    }
+
+    /**
+     * The characters of the book for the prompt, null when they are not inserted (switched off, or no characters). A
+     * line for each character with its tagline and note, then a line for each relationship.
+     */
+    public PromptInsertion promptInsertion(CharacterBook book) {
+        if (!book.isPromptEnabled()) {
+            return null;
+        }
+        String text = renderPrompt(book);
+        return text.isEmpty() ? null : new PromptInsertion(text, book.getPromptDepth(), book.getPromptRole());
+    }
+
+    /**
+     * Text of the characters as the model reads it, empty when there are none.
+     */
+    public static String renderPrompt(CharacterBook book) {
+        List<StoryCharacter> characters = book.sortedCharacters().stream()
+                .filter(c -> StringUtils.isNotBlank(c.getName())).toList();
+        if (characters.isEmpty()) {
+            return "";
+        }
+        StringBuilder text = new StringBuilder("Characters of the story:");
+        for (StoryCharacter character : characters) {
+            text.append("\n- ").append(character.getName().trim());
+            if (StringUtils.isNotBlank(character.getTagline())) {
+                text.append(" (").append(character.getTagline().trim()).append(')');
+            }
+            if (StringUtils.isNotBlank(character.getNote())) {
+                text.append(": ").append(character.getNote().trim().replaceAll("\\s*\\R\\s*", " "));
+            }
+        }
+        StringBuilder relations = new StringBuilder();
+        for (CharacterRelation relation : book.allRelations()) {
+            StoryCharacter source = book.get(relation.getSourceUuid());
+            StoryCharacter target = book.get(relation.getTargetUuid());
+            if (source == null || target == null || StringUtils.isBlank(source.getName()) || StringUtils.isBlank(target.getName())) {
+                continue;
+            }
+            relations.append("\n- ").append(source.getName().trim())
+                    .append(relation.getDirection() == RelationDirection.UNIDIRECTIONAL ? " <-> " : " -> ")
+                    .append(target.getName().trim());
+            String detail = Stream.of(relation.getName(), relation.getTagline()).filter(StringUtils::isNotBlank)
+                    .map(String::trim).collect(Collectors.joining(", "));
+            if (!detail.isEmpty()) {
+                relations.append(": ").append(detail);
+            }
+        }
+        if (!relations.isEmpty()) {
+            text.append("\n\nRelationships:").append(relations);
+        }
+        return text.toString();
+    }
+
+    /**
+     * Tokens the insertion takes in the prompt of the model {@code ai} that generates.
+     */
+    public long countTokens(AI ai, PromptInsertion insertion) throws Exception {
+        return inferenceServices.forAI(ai).countTokens(insertion.text()) + MESSAGE_BUFFER_TOKENS;
+    }
+
+    /**
+     * Approximate size of the characters text for the model of the book - cheap enough to call when the view is built.
+     */
+    public long estimateTokens(Manuscript manuscript, String text) throws Exception {
+        if (StringUtils.isBlank(text)) {
+            return 0;
+        }
+        return inferenceServices.forAI(manuscript.getAi()).countTokensApprox(text);
+    }
+
+    /**
+     * Returns a copy of {@code payload} with the text inserted {@link PromptInsertion#depth() depth} messages before
+     * its end. It never goes before the leading system prompt.
+     */
+    public List<LLMChatMessage> insert(List<LLMChatMessage> payload, PromptInsertion insertion) {
+        if (payload == null || insertion == null) {
+            return payload;
+        }
+        int min = !payload.isEmpty() && payload.getFirst().getRole() == LLMRole.SYSTEM ? 1 : 0;
+        int index = Math.clamp(payload.size() - Math.max(0, insertion.depth()), min, payload.size());
+
+        List<LLMChatMessage> result = new ArrayList<>(payload);
+        result.add(index, LLMChatMessage.of(insertion.role(), insertion.text()));
+        return result;
     }
 
     /**

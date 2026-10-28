@@ -2,7 +2,7 @@
 // Pictures: story-settings-menu, search-replace-dialog, search-replace-found, search-replace-warning,
 // lorebook-search-replace. State: 13-db-backup; nothing is replaced (the questions are answered with No/Cancel).
 import {openStoryMenu} from '../lib/story.mjs';
-import {bookTab, closeDialog, closeRestoredBook, fill, idle, login, main, openBook, openTab, pick, section, sleep, snap, snapDialog} from '../lib/shot.mjs';
+import {bookTab, closeDialog, closeRestoredBook, dialog, fill, idle, login, main, openBook, openTab, pick, section, sleep, snap, snapDialog, menuItem} from '../lib/shot.mjs';
 
 const openMenu = openStoryMenu;
 
@@ -13,14 +13,23 @@ await main(async ({ page }) => {
 
   await section(page, 'menu', async () => {
     await openMenu(page);
-    await snap(page, 'story-settings-menu', { clip: { x: 410, y: 570, width: 520, height: 330 } });
+    // the menu opens upwards from the cogs and has grown with every item: the clip is the menu and the bottom bar under it
+    const box = await page.evaluate(() => {
+      const rects = [...document.querySelectorAll('vaadin-menu-bar-list-box')]
+        .map(e => e.getBoundingClientRect()).filter(r => r.width > 50 && r.height > 50);
+      const bar = [...document.querySelectorAll('vaadin-horizontal-layout.border-top-subtle')].pop().getBoundingClientRect();
+      const left = Math.min(bar.x + 8, ...rects.map(r => r.x)), top = Math.min(...rects.map(r => r.y));
+      const right = Math.max(...rects.map(r => r.x + r.width)), bottom = bar.y + bar.height;
+      return { x: left - 12, y: top - 12, width: right - left + 24, height: bottom - top + 24 };
+    });
+    await snap(page, 'story-settings-menu', { clip: box });
     await page.keyboard.press('Escape');
     await sleep(300);
   });
 
   await section(page, 'story', async () => {
     await openMenu(page);
-    await page.getByText('Search and replace', { exact: true }).click();
+    await menuItem(page, 'Search and replace').click();
     await idle(page, 800);
     await fill(page, 'Search for', 'Draconia');
     await fill(page, 'Replace with', 'Dracona');
@@ -28,7 +37,7 @@ await main(async ({ page }) => {
     await sleep(300);
     await snapDialog(page, 'search-replace-dialog', 0);
 
-    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await dialog(page).getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByText('Found ', { exact: false }).first().waitFor({ timeout: 30000 });
     await idle(page, 1200);
     await page.mouse.click(406, 519);                      // open the first row, Story #2: the matches in it
@@ -40,7 +49,7 @@ await main(async ({ page }) => {
     await idle(page, 600);
     await page.getByLabel('Search in summaries', { exact: true }).uncheck({ force: true });
     await page.getByLabel('Revalidate all summaries', { exact: true }).uncheck({ force: true });
-    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await dialog(page).getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByText('Found ', { exact: false }).first().waitFor({ timeout: 30000 });
     await idle(page, 1200);
     await page.getByRole('button', { name: 'Replace', exact: true }).click();
@@ -62,7 +71,7 @@ await main(async ({ page }) => {
     await idle(page, 800);
     await fill(page, 'Search for', 'Draconia');
     await fill(page, 'Replace with', 'Dracona');
-    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await dialog(page).getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByText('Found ', { exact: false }).first().waitFor({ timeout: 30000 });
     await idle(page, 1200);
     await page.mouse.click(406, 591);                      // open the row of Draconia Malfoy: the matches in it

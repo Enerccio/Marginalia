@@ -2,23 +2,8 @@
 // extension that fails verification, the first part of a new book. Run it on a throwaway copy of step 13-db-backup
 // (bin/restore.sh 13-db-backup first and again afterwards): it changes the data.
 import path from 'node:path';
-import {
-    bookTab,
-    dialog,
-    fill,
-    idle,
-    llm,
-    login,
-    main,
-    openBook,
-    openTab,
-    press,
-    root,
-    section,
-    showToasts,
-    sleep,
-    snap
-} from '../lib/shot.mjs';
+import {bookTab, dialog, fill, idle, llm, login, main, openBook, openTab, press, root, section, showToasts, sleep, snap, rowIconButton} from '../lib/shot.mjs';
+import {clickPlus} from '../lib/story.mjs';
 
 await main(async ({ page }) => {
   await login(page);
@@ -46,7 +31,7 @@ await main(async ({ page }) => {
     await page.getByText('Branch view', { exact: true }).first().waitFor();
     await idle(page, 800);
     await bookTab(page, 'Story');
-    await page.mouse.click(1857, 822);
+    await clickPlus(page);
     await idle(page, 600);
     await fill(page, 'Scene Setting', 'Hogsmeade evening, in front of the Three Broomsticks');
     await fill(page, 'POV Character', 'Harry');
@@ -65,7 +50,7 @@ await main(async ({ page }) => {
   await section(page, 'context-warning', async () => {
     // make the shared provider so small that the prompt cannot fit, then generate
     await openTab(page, 'Inference Providers');
-    await page.mouse.click(1850, 228);
+    await (await rowIconButton(page, 'Local LLM', 'pen')).click();
     await idle(page, 800);
     await fill(dialog(page), 'Max Context Size', '2200');
     await fill(dialog(page), 'Max Response Tokens', '1000');
@@ -73,7 +58,7 @@ await main(async ({ page }) => {
     await idle(page, 800);
     await openBook(page);
     await bookTab(page, 'Story');
-    await page.mouse.click(1857, 822);
+    await clickPlus(page);
     await idle(page, 600);
     await fill(page, 'Scene Setting', 'Hogsmeade evening');
     await fill(page, 'POV Character', 'Harry');
@@ -101,7 +86,7 @@ await main(async ({ page }) => {
     await idle(page, 1500);
     await press(page, 'Admin');
     await openTab(page, 'Extensions');
-    await page.locator('vaadin-upload input[type=file]').setInputFiles(path.join(root, 'out/broken/authorsnote-1.4.0.jar'));
+    await page.locator('vaadin-upload input[type=file]').setInputFiles(path.join(root, 'out/broken/authorsnote-1.5.0.jar'));
     await page.getByText('Verification Report', { exact: true }).waitFor({ timeout: 20000 });
     await sleep(500);
     await snap(page, 'extension-verification');

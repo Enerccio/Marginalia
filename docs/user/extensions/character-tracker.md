@@ -6,7 +6,15 @@ relationships between them, and a map of those relationships.
 ## The Characters tab
 
 The left sidebar of the [story editor](../books/story-editor.md) gets a **Characters** tab next to *Outline*. Above the
-list are two buttons, **Add new character** and **Relationship map**.
+list is one line of buttons: **Add** (a new character), a menu with the import of lore entries, the **Relationship map**
+and a speech-bubble button for the prompt (hover for the names).
+
+The speech-bubble button opens a popover with **In prompt**, **Depth** and a role, like the [Author's Note](authors-note.md);
+the button is green while the characters are in the prompt. When *In prompt* is checked, every generation gets the characters as a message: a line with the name, the tagline in brackets
+and the note of each character, and a list of the relationships (`Mara -> Tomas: employs`, `<->` when it goes both
+ways). *Depth* is the number of messages after it (`0` the very end, after your instructions, `1` right before them) and
+the role is *System*, *Assistant* or *User*. The text takes its tokens from the room for the story. Nothing is inserted
+while the book has no characters. The settings are saved with the book.
 
 The wand button between them has the menu item **Import lore entries as characters**, see
 [below](#importing-characters-from-the-lorebook).
@@ -24,9 +32,18 @@ Characters are saved with the book as soon as you change them, so they are inclu
 
 ![The Characters tab](../../images/plugin-charactertracker-tab.png)
 
+## Picking characters for a turn
+
+The [new turn](../books/story-editor.md) form has the fields **POV character** and **Present characters**. They stay
+free text, but each has a button with a person icon at its end that lists the characters of the book, ordered by name.
+A name chosen in the list of the **POV character** replaces what is in the field; a name chosen in the list of
+**Present characters** is added at the end, after a comma, unless it is there already. The list is read when you open it,
+so a character you added a moment ago is in it. You can still type any name, and a name in the field does not have to be
+a character of the book.
+
 ## The character dialog
 
-**Add new character** and the pen open the same dialog:
+**Add** (the button with the plus; its tooltip reads *Add new character*) and the pen open the same dialog:
 
 | Field | |
 |---|---|
@@ -107,4 +124,5 @@ Adding and changing is not destructive; only the `delete` commands are, which an
 
 ## Phone
 
-The tab is in the drawer of the story, next to the outline, like the [Author's Note](authors-note.md).
+The tab is in the drawer of the story, next to the outline, like the [Author's Note](authors-note.md). The buttons for the
+POV and present characters are in the new turn form of the phone too.

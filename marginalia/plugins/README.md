@@ -5,6 +5,7 @@ a restart.
 
 | Plugin | What it adds |
 |---|---|
+| [Anthropic Claude](anthropic/README.md) | Anthropic's Claude models as an inference provider (type *Extension*), over the Anthropic Java SDK: thinking summaries as reasoning, adaptive thinking and effort, exact usage. |
 | [Arc Outline](arc-outline/README.md) | The arcs of the book and their chapters, each planned, current or finished, in the story sidebar; the model can write an arc from the lore. |
 | [Author's Note](authorsnote/README.md) | A per-book note inserted into the prompt of every generation, at a chosen depth and role. |
 | [Chapter Marker](chaptermarker/README.md) | Story parts starting a chapter (a Markdown `#` heading) are shown as chapters in the story sidebar. |
@@ -14,11 +15,13 @@ a restart.
 | [Instruction Exporter](instructionexporter/README.md) | "Export instructions" in the story settings menu: copies the instructions, scene settings and characters of the active branch to the clipboard. |
 | [Lore Generator](lore-generator/README.md) | Writes the content of a lorebook entry with the model from the existing lore (generation, compaction, attachments), from a button in the lorebook editor. |
 | [Lorebook VCS](lorebookvcs/README.md) | Revision history for lorebook entries: snapshots, browsing and restoring old versions, export/import. |
+| [Manga Generator](manga-generator/README.md) | Turns parts of the story into a manga script of pages and panels and into image generation tags, from the story settings menu. |
 | [Name generator](name-generator/README.md) | Functions for the model to list name categories (about 1270: names of the world, places, deities, drugs...) and generate names from Markov chains; used by the Lore Generator and Arc Outline. |
 | [Name provider](name-provider/README.md) | Functions for the model to list lists of real names (forenames and surnames of about 100 countries) and pick names from them, each as a pair of the romanized and the original name; used by the Lore Generator and Arc Outline. |
 | [Place provider](place-provider/README.md) | Functions and commands to look up real places (Natural Earth, about 18 000 notable ones): a search by name, type and country, the places around a point and the distance of two places. |
 | [Reviewer](reviewer/README.md) | AI-written reviews of a story part, with configurable reviewer profiles. |
 | [Side Query](sidequery/README.md) | A chat panel next to the story for asking the model questions about the book, its lore and recent parts. |
+| [SillyTavern Converter](sillytavern-converter/README.md) | A tab next to the story with a SillyTavern chat to review and the turn details the model prepares from it, to put into the new turn form. |
 | [Chinese localization](chineselocalization/README.md) | Simplified Chinese as a language of the user interface; the example for adding a language. |
 
 ## Installing
@@ -43,7 +46,7 @@ mvn -N install                   # in the repository root: installs the parent P
 cd marginalia
 mvn install -DskipTests          # installs the application (and its classes JAR used by plugins)
 
-cd plugins/chaptermarker          # or arc-outline, authorsnote, character-tracker, gemma4toolsfix, google-genai, instructionexporter, lore-generator, lorebookvcs, name-generator, name-provider, place-provider, reviewer, sidequery, chineselocalization
+cd plugins/chaptermarker          # or anthropic, arc-outline, authorsnote, character-tracker, gemma4toolsfix, google-genai, instructionexporter, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, reviewer, sidequery, sillytavern-converter, chineselocalization
 mvn package                       # target/chaptermarker-1.4.0.jar
 ```
 

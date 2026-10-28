@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
+import com.github.enerccio.marginalia.domain.service.MessagePromptService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
 import com.github.enerccio.marginalia.test.GenerationRun;
 import com.github.enerccio.marginalia.test.GenerationTestBase;
@@ -24,6 +25,9 @@ class FailedGenerationTest extends GenerationTestBase {
 
     @Autowired
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private MessagePromptService messagePromptService;
 
     private Manuscript manuscript;
 
@@ -135,7 +139,9 @@ class FailedGenerationTest extends GenerationTestBase {
         assertThat(after.getTokenReasoningCount()).isEqualTo(before.getTokenReasoningCount());
         assertThat(after.getWordCount()).isEqualTo(before.getWordCount());
         assertThat(after.getPromptTokens()).isEqualTo(before.getPromptTokens());
-        assertThat(after.getBuiltPrompt()).isEqualTo(before.getBuiltPrompt());
+        assertThat(messagePromptService.getBuiltPrompt(before)).isNotBlank();
+        assertThat(messagePromptService.getBuiltPrompt(after)).isEqualTo(messagePromptService.getBuiltPrompt(before));
+        assertThat(messagePromptService.getBackgroundLore(after)).isEqualTo(messagePromptService.getBackgroundLore(before));
         assertThat(after.getRequest()).isEqualTo(before.getRequest());
         assertThat(after.getTtft()).isEqualTo(before.getTtft());
         assertThat(after.getReasoningEnd()).isEqualTo(before.getReasoningEnd());

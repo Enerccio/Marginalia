@@ -14,7 +14,8 @@ Lorebook VCS is not available in the [phone layout](../phone.md#extensions).
 !!!
 
 A revision is a snapshot of the whole entry: name, content, note, enabled, order, filter and filtering mode, insertion
-mode, tags and negative tags.
+mode, *Do not search its content for other entries*, tags and negative tags. (Revisions made before that flag existed
+read as off.)
 
 ![The revision bar of an entry](../../images/plugin-lorebookvcs.png)
 

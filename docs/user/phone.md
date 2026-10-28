@@ -36,7 +36,7 @@ While the *Settings* tab has unsaved changes, the drawer is locked as on the des
 ### Books
 
 The book list is one column. Above it are the name filter, the tag filter and the sort buttons (*Last Modified*,
-*Created*, *Name*; tap the active one again to reverse the order), then **Add Book** and refresh. Each book has two
+*Created*, *Name*; tap the active one again to reverse the order), then **Add Book**, the magnifier (the [advanced search](books/managing-books.md#advanced-search): tags to include and exclude, dates, number of parts and text) and refresh. Each book has two
 buttons: the pencil opens it, the trash deletes it (into the [Trash](trash.md)).
 
 ![The book list on a phone](../images/phone-book-list.png)
@@ -90,6 +90,8 @@ The story tab is one column of parts. The differences from the [story editor](bo
 - The **Summaries** button and the settings menu (⚙, with *Change Styles For Text*, *Search and replace*, *Import from archive* and *Export story*) are in the top bar, not
   at the bottom.
 - The **+** button for a new part is at the bottom.
+- [Annotations](books/annotations.md): the **Annotations** tab is in the drawer next to the outline; a tap on an underlined passage
+  opens its note; **Annotate part** and **Annotate with AI** are in the menu of the part, **Annotate selection** in the menu of a long press on the selected text.
 - **Search and replace** opens the same window as on the desktop, with the fields and buttons below each other:
 
   ![Search and replace of the story on a phone](../images/phone-search-replace.png)
@@ -127,6 +129,7 @@ Marginalia:
 | [Chapter Marker](extensions/chapter-marker.md) | Works. Chapter titles are in the outline drawer. |
 | [Character Tracker](extensions/character-tracker.md) | Works. The Characters tab is in the outline drawer. |
 | [Instruction Exporter](extensions/instruction-exporter.md) | Works. **Export instructions** is in the settings menu of the story. |
+| [Manga Generator](extensions/manga-generator.md) | Works. **Manga Generator** is in the settings menu of the story; its window is large, so landscape is easier. |
 | [Reviewer](extensions/reviewer.md) | Works. Its items are in the menu of a part, its settings in *Settings → Extension Settings*. |
 | [Side Query](extensions/side-query.md) | **Not available.** The side chat is only added to the desktop story editor. |
 | [Lore Generator](extensions/lore-generator.md) | **Not available.** The generator button is only added to the desktop lorebook editor. |

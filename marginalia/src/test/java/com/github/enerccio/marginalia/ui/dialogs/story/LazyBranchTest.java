@@ -184,6 +184,32 @@ class LazyBranchTest {
     }
 
     @Test
+    void restoreKeepsTheWindowOfBeforeAndFollowsTheTailWhenPartsWereAdded() {
+        // the user scrolled up to 3..8 of 10 parts, a window that reached the end now ends at the new part
+        LazyBranch window = LazyBranch.restore(branch(11), 4, 4, 6, true);
+
+        assertThat(ids(window.loaded())).containsExactly(5L, 6L, 7L, 8L, 9L, 10L, 11L);
+        assertThat(window.atTail()).isTrue();
+    }
+
+    @Test
+    void restoreKeepsAWindowThatDidNotReachTheEnd() {
+        LazyBranch window = LazyBranch.restore(branch(11), 4, 2, 3, false);
+
+        assertThat(ids(window.loaded())).containsExactly(3L, 4L, 5L);
+        assertThat(window.hasLater()).isTrue();
+    }
+
+    @Test
+    void restoreCutsTheWindowToABranchThatGotShorter() {
+        LazyBranch window = LazyBranch.restore(branch(5), 4, 6, 4, false);
+
+        assertThat(window.loaded()).isEmpty();
+        assertThat(window.offset()).isEqualTo(5);
+        assertThat(window.total()).isEqualTo(5);
+    }
+
+    @Test
     void refreshReplacesThePartByTheNewInstance() {
         LazyBranch window = LazyBranch.tail(branch(5), 5);
         ChatMessage edited = new ChatMessage();

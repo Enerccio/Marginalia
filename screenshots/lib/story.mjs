@@ -1,10 +1,27 @@
 // Driving the story editor: writing a turn, selecting parts.
-import {fill, idle, press} from './shot.mjs';
+import {fill, idle, menuItem, press} from './shot.mjs';
 
-/** Clicks the round "+" button of the story editor (bottom right) and fills the New Turn panel. */
-export async function fillTurn(page, t) {
-  await page.mouse.click(1857, 822);
+/** The buttons of the bottom bar of the story: found by their icons, their place depends on the layout of the dock. */
+export const bottomButton = (page, icon) => page.locator(`vaadin-button:has(vaadin-icon[icon="${icon}"]), vaadin-menu-bar-button:has(vaadin-icon[icon="${icon}"])`).last();
+/** Clicks the "+" button of the bottom bar (opens the New Turn panel). */
+export async function clickPlus(page) {
+  await bottomButton(page, 'fas:plus').click();
   await idle(page, 600);
+}
+/** Clicks the cogs button (the settings menu) of the bottom bar. */
+export async function clickCogs(page) {
+  await bottomButton(page, 'fas:cogs').click();
+  await idle(page, 400);
+}
+/** Clicks the Summaries button (the list icon) of the bottom bar. */
+export async function clickSummaries(page) {
+  await bottomButton(page, 'fas:list-ul').click();
+  await idle(page, 400);
+}
+
+/** Clicks the "+" button of the story editor (bottom right) and fills the New Turn panel. */
+export async function fillTurn(page, t) {
+  await clickPlus(page);
   await fill(page, 'Scene Setting', t.scene);
   await fill(page, 'POV Character', t.pov);
   await fill(page, 'Present Characters', t.present);
@@ -28,9 +45,9 @@ export async function partAction(page, index, item) {
   const n = await all.count();
   const part = all.nth(index < 0 ? n + index : index);
   await part.scrollIntoViewIfNeeded();
-  await part.locator('.chat-message-content > vaadin-horizontal-layout > vaadin-button.margin-left-auto').first().click();
+  await part.locator('.chat-message-content > vaadin-horizontal-layout > vaadin-horizontal-layout > vaadin-button.margin-left-auto').first().click();
   await idle(page, 400);
-  await page.getByRole('menuitem', { name: item, exact: true }).first().click();
+  await menuItem(page, item).click();
   await idle(page, 600);
 }
 
@@ -42,9 +59,8 @@ export async function readingStyle(page, on = true) {
     return /garamond|georgia|serif/i.test(getComputedStyle(p.querySelector('vaadin-markdown, p, div') ?? p).fontFamily);
   });
   if (isOn === on) return;
-  await page.mouse.click(534, 822);
-  await idle(page, 400);
-  await page.getByText('Change Styles For Text', { exact: true }).click();
+  await clickCogs(page);
+  await menuItem(page, 'Change Styles For Text').click();
   await idle(page, 500);
 }
 

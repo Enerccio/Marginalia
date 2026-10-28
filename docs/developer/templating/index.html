@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522787704">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846522787704" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846005664026" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846522787704" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -61,7 +61,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.5.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -215,9 +215,12 @@ parameters (<code translate="no" v-pre>{{#if name}}</code>) are not checked.</p>
 |---|---|---|---|
 | User prompt | `PrepareConstantsStep` | `UserPromptData` | `povCharacter`, `sceneSetting`, `presentCharacters`, `instructions` |
 | Lorebook entry payload | `ProcessLorebookStep` (one data object for all active entries) | `LorebookTemplateData` | the four above + `narrativePov`, `narrativeTense`, `style` |
-| Master template | `PrepareContentStep` (twice: token estimate on a fork, then for real) | `MasterTemplateData` | `backgroundLore`, `narrativePov`, `narrativeTense`, `style`, `summaries` |
+| Master template | `PrepareContentStep` (twice: token estimate on a fork, then for real) | `MasterTemplateData` | `backgroundLore`, `narrativePov`, `narrativeTense`, `style`, `summaries`, `annotations` (the open annotations marked `sendToPrompt` of the parts in the prompt; only the final render has them) |
 | Summary prompt | `SummaryServiceImpl.createSummaryPayload` | `SummaryTemplateData` | `backgroundLore`, `text` (the parts to summarize) |
-| Meta summary prompt | `SummaryServiceImpl.createMetaSummaryPayload` | `MetaSummaryTemplateData` | `backgroundLore`, `summaryBlocks` (the summaries to merge, oldest first) |">
+| Meta summary prompt | `SummaryServiceImpl.createMetaSummaryPayload` | `MetaSummaryTemplateData` | `backgroundLore`, `summaryBlocks` (the summaries to merge, oldest first) |
+| Redraft system prompt and redraft prompt | `RedraftServiceImpl.createPayload` (an estimation render of both on a fork, then for real: the system prompt is the system message, the story before the part follows as the earlier messages, the redraft prompt is the last message) | `RedraftTemplateData` | `text` (the part), `redraftInstructions`, `previousStory` (only a note that the story follows as messages), `summaries`, `followingStory`, `backgroundLore` (stored on the part), `narrativePov`, `narrativeTense`, `style`, and the turn of the part: `povCharacter`, `sceneSetting`, `presentCharacters`, `instructions`, `annotations` (the open annotations of the part when the redraft is asked to deal with them), and for the redraft of a passage `selection`, `selectionBefore`, `selectionAfter` (all `null` for the whole part, so `{{#selection}}` tells the cases apart) |
+| Impersonate prompt | `ImpersonateServiceImpl.createPayload` (an estimation render on a fork, then for real) | `ImpersonateTemplateData` | `impersonateInstructions` (the guidance of the author), `outline` (the plan a caller gives), `previousStory`, `summaries`, `backgroundLore` (stored on the last part), `instructionExamples` (the instructions of the last three parts that have some, oldest first), `narrativePov`, `narrativeTense`, `style`, `sceneSetting`, `povCharacter`, `presentCharacters` (of the request, else of the last part) |
+| Annotate system prompt and annotate prompt | `AnnotateServiceImpl.createPayload` (as the redraft) | `AnnotateTemplateData` | the variables of the redraft prompts with `annotateInstructions` instead of `redraftInstructions`, `annotations` (the open ones the part has) and `outputFormat` (the description of the answer of the mode; the service writes it, a prompt of the author has to print it) |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -245,7 +248,7 @@ parameters (<code translate="no" v-pre>{{#if name}}</code>) are not checked.</p>
 <td>Master template</td>
 <td><code translate="no" v-pre>PrepareContentStep</code> (twice: token estimate on a fork, then for real)</td>
 <td><code translate="no" v-pre>MasterTemplateData</code></td>
-<td><code translate="no" v-pre>backgroundLore</code>, <code translate="no" v-pre>narrativePov</code>, <code translate="no" v-pre>narrativeTense</code>, <code translate="no" v-pre>style</code>, <code translate="no" v-pre>summaries</code></td>
+<td><code translate="no" v-pre>backgroundLore</code>, <code translate="no" v-pre>narrativePov</code>, <code translate="no" v-pre>narrativeTense</code>, <code translate="no" v-pre>style</code>, <code translate="no" v-pre>summaries</code>, <code translate="no" v-pre>annotations</code> (the open annotations marked <code translate="no" v-pre>sendToPrompt</code> of the parts in the prompt; only the final render has them)</td>
 </tr>
 <tr>
 <td>Summary prompt</td>
@@ -258,6 +261,24 @@ parameters (<code translate="no" v-pre>{{#if name}}</code>) are not checked.</p>
 <td><code translate="no" v-pre>SummaryServiceImpl.createMetaSummaryPayload</code></td>
 <td><code translate="no" v-pre>MetaSummaryTemplateData</code></td>
 <td><code translate="no" v-pre>backgroundLore</code>, <code translate="no" v-pre>summaryBlocks</code> (the summaries to merge, oldest first)</td>
+</tr>
+<tr>
+<td>Redraft system prompt and redraft prompt</td>
+<td><code translate="no" v-pre>RedraftServiceImpl.createPayload</code> (an estimation render of both on a fork, then for real: the system prompt is the system message, the story before the part follows as the earlier messages, the redraft prompt is the last message)</td>
+<td><code translate="no" v-pre>RedraftTemplateData</code></td>
+<td><code translate="no" v-pre>text</code> (the part), <code translate="no" v-pre>redraftInstructions</code>, <code translate="no" v-pre>previousStory</code> (only a note that the story follows as messages), <code translate="no" v-pre>summaries</code>, <code translate="no" v-pre>followingStory</code>, <code translate="no" v-pre>backgroundLore</code> (stored on the part), <code translate="no" v-pre>narrativePov</code>, <code translate="no" v-pre>narrativeTense</code>, <code translate="no" v-pre>style</code>, and the turn of the part: <code translate="no" v-pre>povCharacter</code>, <code translate="no" v-pre>sceneSetting</code>, <code translate="no" v-pre>presentCharacters</code>, <code translate="no" v-pre>instructions</code>, <code translate="no" v-pre>annotations</code> (the open annotations of the part when the redraft is asked to deal with them), and for the redraft of a passage <code translate="no" v-pre>selection</code>, <code translate="no" v-pre>selectionBefore</code>, <code translate="no" v-pre>selectionAfter</code> (all <code translate="no" v-pre>null</code> for the whole part, so <code translate="no" v-pre>{{#selection}}</code> tells the cases apart)</td>
+</tr>
+<tr>
+<td>Impersonate prompt</td>
+<td><code translate="no" v-pre>ImpersonateServiceImpl.createPayload</code> (an estimation render on a fork, then for real)</td>
+<td><code translate="no" v-pre>ImpersonateTemplateData</code></td>
+<td><code translate="no" v-pre>impersonateInstructions</code> (the guidance of the author), <code translate="no" v-pre>outline</code> (the plan a caller gives), <code translate="no" v-pre>previousStory</code>, <code translate="no" v-pre>summaries</code>, <code translate="no" v-pre>backgroundLore</code> (stored on the last part), <code translate="no" v-pre>instructionExamples</code> (the instructions of the last three parts that have some, oldest first), <code translate="no" v-pre>narrativePov</code>, <code translate="no" v-pre>narrativeTense</code>, <code translate="no" v-pre>style</code>, <code translate="no" v-pre>sceneSetting</code>, <code translate="no" v-pre>povCharacter</code>, <code translate="no" v-pre>presentCharacters</code> (of the request, else of the last part)</td>
+</tr>
+<tr>
+<td>Annotate system prompt and annotate prompt</td>
+<td><code translate="no" v-pre>AnnotateServiceImpl.createPayload</code> (as the redraft)</td>
+<td><code translate="no" v-pre>AnnotateTemplateData</code></td>
+<td>the variables of the redraft prompts with <code translate="no" v-pre>annotateInstructions</code> instead of <code translate="no" v-pre>redraftInstructions</code>, <code translate="no" v-pre>annotations</code> (the open ones the part has) and <code translate="no" v-pre>outputFormat</code> (the description of the answer of the mode; the service writes it, a prompt of the author has to print it)</td>
 </tr>
 </tbody>
 </table>
@@ -303,7 +324,7 @@ the same variables. <code translate="no" v-pre>fork()</code> makes a copy with c
 token estimate of the master template uses one.</p>
 <p>Summaries and meta summaries build their own context (<code translate="no" v-pre>SummaryServiceImpl.createTemplateContext</code>) from the part being
 summarized (for a meta summary: the part it is stored on); the variable changes made by a summary prompt are not
-stored.</p>
+stored. A redraft uses the same method for the part being redrafted.</p>
 <h2 id="how-macros-are-translated">How macros are translated</h2>
 <p><code translate="no" v-pre>MacroTranslator</code> scans the template, recognizes SillyTavern constructs, and rewrites only those into calls of
 helpers named <code translate="no" v-pre>st_*</code>. Everything else - <code translate="no" v-pre>{{variable}}</code>, <code translate="no" v-pre>{{#section}}...{{/section}}</code>, <code translate="no" v-pre>{{#if}}</code>, <code translate="no" v-pre>{{#each}}</code>,
@@ -734,7 +755,7 @@ whose content is the last argument.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (60a4afd23).</p></div>
             </footer>
         </div>
     </div>

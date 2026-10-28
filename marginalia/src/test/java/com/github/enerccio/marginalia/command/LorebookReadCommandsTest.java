@@ -445,6 +445,39 @@ class LorebookReadCommandsTest extends GenerationTestBase {
     }
 
     @Test
+    void previewFollowsTheScanDepthOfTheBook() throws Exception {
+        Lorebook scanning = lorebook("Scanning");
+        scanning.setScanDepth(1);
+        scanning = lorebookService.save(scanning);
+        entry(scanning, "Dragon", 10, e -> {
+            e.setPayload("A dragon lives in the castle.");
+            e.setFiltering("dragon");
+        });
+        entry(scanning, "Castle", 20, e -> {
+            e.setPayload("The castle has a moat.");
+            e.setFiltering("castle");
+        });
+        entry(scanning, "Moat", 30, e -> {
+            e.setPayload("The moat is dry.");
+            e.setFiltering("moat");
+        });
+        Manuscript book = newManuscript();
+        book.setLorebook(scanning);
+        sessionPoint.setManuscript(manuscriptService.save(book));
+
+        JsonObject result = run("/preview-lore-activation dragon");
+
+        assertThat(names(result.getAsJsonArray("activated"))).containsExactly("Dragon", "Castle");
+        JsonObject castle = at(result.getAsJsonArray("activated"), 1);
+        assertThat(castle.get("reason").getAsString()).isEqualTo("LORE_MATCHED");
+        assertThat(castle.get("detail").getAsString()).isEqualTo("castle <- Dragon");
+        assertThat(castle.get("scanDepth").getAsInt()).isEqualTo(1);
+        assertThat(at(result.getAsJsonArray("activated"), 0).has("scanDepth")).isFalse();
+        assertThat(names(result.getAsJsonArray("notActivated"))).containsExactly("Moat");
+        assertThat(result.get("loreBlock").getAsString()).isEqualTo("A dragon lives in the castle.\n\nThe castle has a moat.");
+    }
+
+    @Test
     void aFilterThatIsNotInTheTextDoesNotActivate() throws Exception {
         sessionPoint.setManuscript(filteredBook());
 

@@ -44,14 +44,18 @@ With the [Docker version](getting-started/docker-server.md), `localhost` means t
 ## Adding a provider
 
 Open the **Inference Providers** tab and click **Add Inference Provider**. Existing providers are edited with the pen
-button and deleted with the trash button.
+button and deleted with the trash button. The clone button (two sheets) makes a copy of a provider under a name you
+confirm (the original's with *(Copy)*): the copy has the same address, model, **API key** (or the settings of the
+extension), reasoning, token limits and parameters, so a second model on the same service takes a name and a click.
+The copy is not shared and has no limits or usage of its own. You can clone only your own providers (not a shared one of
+an administrator, whose key you must not see) and only when you may create providers.
 
 At the top of the dialog:
 
 | Field | |
 |---|---|
 | **Name** | Your name for the provider, shown when you pick a model for a book. Include the model, e.g. `OpenRouter - Claude Sonnet`. |
-| **Type** | The kind of API: **OpenAI Compatible**, or **Extension** for a provider that an [extension](extensions/index.md) brings (it is offered only while such an extension is loaded, e.g. [Google Gemini](extensions/google-genai.md)). The type can't be changed after the provider is created. |
+| **Type** | The kind of API: **OpenAI Compatible**, or **Extension** for a provider that an [extension](extensions/index.md) brings (it is offered only while such an extension is loaded, e.g. [Google Gemini](extensions/google-genai.md) or [Anthropic Claude](extensions/anthropic.md)). The type can't be changed after the provider is created. |
 | **Provider** | Only for the type **Extension**: which extension's provider this is. Its own settings fill the *Per Type Settings* tab. |
 
 ### Per Type Settings
@@ -69,6 +73,7 @@ The tab is taller than the dialog and scrolls. The lower fields:
 | **Model** | The model to use. Click **Refresh** to load the list of models from the API, or type the model ID yourself (e.g. `anthropic/claude-sonnet-4.5` on OpenRouter). |
 | **Timeout (seconds)** | How long to wait for the API to answer, and for more text once it started writing. The default is 300. Reasoning models may need minutes before the first text; a request that hears nothing for this long fails with a timeout message (the thinking of a model counts as text, so a model that keeps thinking is not cut). A change is used by the next request, also of an agent that is working. |
 | **Retries** | How often a request is repeated when the API answers with a rate limit (429) or a server error (5xx), or cannot be reached. The wait between attempts grows, and a `Retry-After` header of the API is respected. The default is 2, 0 turns retrying off. Only the start of a request is retried, text that already arrived is never written twice. |
+| **Tokenizer** | How Marginalia counts the tokens of the texts for this provider. **Automatic** (the default) tries the tokenizer endpoints of the server one after the other (OpenAI, llama.cpp, LiteLLM) and uses the first that answers, and a local estimate when none does. Choose one to use only that, or **LOCAL_TOKKIT** for the local estimate that never calls the server (useful when counting would make the server load another model). A tokenizer from a plugin is listed here too; it gets the address, the model and the text, never the API key, and only when you choose it. **Test tokenizer** counts a sample text with what the provider would try and shows what each answered. When you create a provider, a plugin tokenizer that fits the address is preselected until you choose yourself. |
 | **Additional Parameters** | A JSON object with extra fields for every request to this provider, e.g. `{"top_k": 40, "min_p": 0.05}` for a local server, or `{"provider": {"order": ["anthropic"]}}` for OpenRouter. A field set here wins over the same setting from the [protocol](protocols.md) (e.g. `temperature`) or the response limit (`max_completion_tokens`). Must be a valid JSON object or empty. |
 
 When you edit an existing provider, the API key is not shown again. It is kept as it is unless you click
@@ -161,7 +166,14 @@ and tries these methods in order:
 
 The first method that works is used from then on. The local estimate is close for most models but not exact, which
 is another reason to keep **Max Context Size** a little below the real limit. Providers of the type *Extension* count
-as their extension says; the [Google Gemini](extensions/google-genai.md) one uses the local estimate.
+as their extension says; the [Google Gemini](extensions/google-genai.md) and [Anthropic Claude](extensions/anthropic.md) ones ask the provider to count.
+
+## Prompt cache
+
+Every request Marginalia makes for a kind of work (a new part, an annotation, a redraft, a summary...) carries the header
+`X-Session-ID`, a hash that is the same for the same user and kind. A server or proxy that keeps a prompt cache can use it
+to find the cache of the previous request of that kind. A server that doesn't know it ignores it. See
+[Prompt cache and session id](prompt-cache.md), with an example for one slot of llama.cpp kept on disk.
 
 ## Shared providers
 

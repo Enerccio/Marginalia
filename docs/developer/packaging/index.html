@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522787704">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846522787704" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846005664026" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846522787704" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -61,7 +61,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.5.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -171,7 +171,7 @@
 with its own Java runtime and Jetty. This page describes how each is built, what CI does, and how a release is made.
 For everyday builds see <a href="../building/">Building from source</a>.</p>
 <div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">flowchart LR
-    src[&quot;marginalia/ sources&quot;] --&gt; war[&quot;marginalia-1.4.0.war&quot;]
+    src[&quot;marginalia/ sources&quot;] --&gt; war[&quot;marginalia-1.5.0.war&quot;]
     war --&gt; docker[&quot;Docker image&lt;br/&gt;Jetty 12 + WAR&quot;]
     war --&gt; desktop[&quot;Desktop distribution&lt;br/&gt;jlink runtime + Jetty + WAR + launcher&quot;]
     desktop --&gt; portable[&quot;portable archive&lt;br/&gt;marginalia-&amp;lt;v&amp;gt;-&amp;lt;os&amp;gt;-&amp;lt;arch&amp;gt;&quot;]
@@ -224,14 +224,14 @@ For everyday builds see <a href="../building/">Building from source</a>.</p>
 </div>
 </retype-table>
 <h2 id="the-war">The WAR</h2>
-<p><code translate="no" v-pre>mvn package</code> in <code translate="no" v-pre>marginalia/</code> produces <code translate="no" v-pre>target/marginalia-1.4.0.war</code> (see
+<p><code translate="no" v-pre>mvn package</code> in <code translate="no" v-pre>marginalia/</code> produces <code translate="no" v-pre>target/marginalia-1.5.0.war</code> (see
 <a href="../building/#building-the-application">Building the application</a>). The WAR always runs in Vaadin production mode:
 <code translate="no" v-pre>build-frontend</code> writes the production <code translate="no" v-pre>flow-build-info.json</code> into it, and a development one left in
 <code translate="no" v-pre>src/main/resources</code> is never packaged (see <a href="../building/#development-and-production-mode">Development and production mode</a>).</p>
 <p>One resource differs between a development build and a release build:</p>
 <retype-table copy-text="| File | Development | Release |
 |---|---|---|
-| `log4j.properties` | `src/main/resources/` - `com.github.enerccio` at `DEBUG` | `src/main/resources-release/` - everything at `INFO`, no story content in the log |">
+| `logback.xml` | `src/main/resources/` - `com.github.enerccio` at `DEBUG` | `src/main/resources-release/` - everything at `INFO`, no story content in the log |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -243,7 +243,7 @@ For everyday builds see <a href="../building/">Building from source</a>.</p>
 </thead>
 <tbody>
 <tr>
-<td><code translate="no" v-pre>log4j.properties</code></td>
+<td><code translate="no" v-pre>logback.xml</code></td>
 <td><code translate="no" v-pre>src/main/resources/</code> - <code translate="no" v-pre>com.github.enerccio</code> at <code translate="no" v-pre>DEBUG</code></td>
 <td><code translate="no" v-pre>src/main/resources-release/</code> - everything at <code translate="no" v-pre>INFO</code>, no story content in the log</td>
 </tr>
@@ -291,8 +291,9 @@ the sources change;</p>
 </li>
 <li>
 <p>declares a <code translate="no" v-pre>HEALTHCHECK</code> (every 30 s, 120 s start period): the image has no <code translate="no" v-pre>curl</code>, so <code translate="no" v-pre>bash</code> opens a socket to
-<code translate="no" v-pre>127.0.0.1:8080</code>, sends <code translate="no" v-pre>GET /</code> and the container is healthy when the status line is 2xx or 3xx (the login
-redirect counts). Docker only reports the state, it does not restart the container;</p>
+<code translate="no" v-pre>127.0.0.1:8080</code>, sends <code translate="no" v-pre>GET /health</code> and the container is healthy when the status line is 200 (the
+application context is up and the database answers, see <a href="../architecture/">Architecture</a>). Docker only reports the
+state, it does not restart the container;</p>
 </li>
 <li>
 <p>starts with <code translate="no" v-pre>docker-entrypoint.sh</code> (as <code translate="no" v-pre>marginalia-entrypoint.sh</code>) as root: it creates the data folder if
@@ -388,10 +389,10 @@ the <code translate="no" v-pre>server/</code> folder as app content;</p>
 <p>Outputs in <code translate="no" v-pre>target/desktop/</code>:</p>
 <retype-table copy-text="| Path | |
 |---|---|
-| `marginalia-1.4.0/` | The portable folder: `bin/marginalia`, `bin/marginalia.bat`, `app/`, `server/`, `runtime/`. |
+| `marginalia-1.5.0/` | The portable folder: `bin/marginalia`, `bin/marginalia.bat`, `app/`, `server/`, `runtime/`. |
 | `package/` | The app image: `Marginalia.app` (macOS), `Marginalia/Marginalia.exe` (Windows), `Marginalia/bin/Marginalia` (Linux). |
-| `marginalia-1.4.0-&lt;os&gt;-&lt;arch&gt;.tar.gz` / `.zip` | Archive of the portable folder (`.zip` on Windows). |
-| `marginalia-1.4.0-&lt;os&gt;-&lt;arch&gt;-app.tar.gz` / `.zip` | Archive of the app image. |">
+| `marginalia-1.5.0-&lt;os&gt;-&lt;arch&gt;.tar.gz` / `.zip` | Archive of the portable folder (`.zip` on Windows). |
+| `marginalia-1.5.0-&lt;os&gt;-&lt;arch&gt;-app.tar.gz` / `.zip` | Archive of the app image. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -402,7 +403,7 @@ the <code translate="no" v-pre>server/</code> folder as app content;</p>
 </thead>
 <tbody>
 <tr>
-<td><code translate="no" v-pre>marginalia-1.4.0/</code></td>
+<td><code translate="no" v-pre>marginalia-1.5.0/</code></td>
 <td>The portable folder: <code translate="no" v-pre>bin/marginalia</code>, <code translate="no" v-pre>bin/marginalia.bat</code>, <code translate="no" v-pre>app/</code>, <code translate="no" v-pre>server/</code>, <code translate="no" v-pre>runtime/</code>.</td>
 </tr>
 <tr>
@@ -410,18 +411,18 @@ the <code translate="no" v-pre>server/</code> folder as app content;</p>
 <td>The app image: <code translate="no" v-pre>Marginalia.app</code> (macOS), <code translate="no" v-pre>Marginalia/Marginalia.exe</code> (Windows), <code translate="no" v-pre>Marginalia/bin/Marginalia</code> (Linux).</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>marginalia-1.4.0-&lt;os&gt;-&lt;arch&gt;.tar.gz</code> / <code translate="no" v-pre>.zip</code></td>
+<td><code translate="no" v-pre>marginalia-1.5.0-&lt;os&gt;-&lt;arch&gt;.tar.gz</code> / <code translate="no" v-pre>.zip</code></td>
 <td>Archive of the portable folder (<code translate="no" v-pre>.zip</code> on Windows).</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>marginalia-1.4.0-&lt;os&gt;-&lt;arch&gt;-app.tar.gz</code> / <code translate="no" v-pre>.zip</code></td>
+<td><code translate="no" v-pre>marginalia-1.5.0-&lt;os&gt;-&lt;arch&gt;-app.tar.gz</code> / <code translate="no" v-pre>.zip</code></td>
 <td>Archive of the app image.</td>
 </tr>
 </tbody>
 </table>
 </div>
 </retype-table>
-<p><code translate="no" v-pre>&lt;os&gt;</code> is <code translate="no" v-pre>linux</code>, <code translate="no" v-pre>macos</code> or <code translate="no" v-pre>windows</code>, <code translate="no" v-pre>&lt;arch&gt;</code> is Java&#x27;s <code translate="no" v-pre>os.arch</code> (<code translate="no" v-pre>amd64</code>, <code translate="no" v-pre>aarch64</code>...). Archives are made with
+<p><code translate="no" v-pre>&lt;os&gt;</code> is <code translate="no" v-pre>linux</code>, <code translate="no" v-pre>macos</code> or <code translate="no" v-pre>windows</code>, <code translate="no" v-pre>&lt;arch&gt;</code> is Java&#x27;s <code translate="no" v-pre>os.arch</code> (<code translate="no" v-pre>aarch64</code>...), except that <code translate="no" v-pre>amd64</code> is written <code translate="no" v-pre>x86_64</code> on every system. Archives are made with
 <code translate="no" v-pre>tar</code> so the executable bits of the launchers survive.</p>
 <h3 id="the-launcher">The launcher</h3>
 <p><code translate="no" v-pre>DesktopLauncher</code> is the main class of the app image and of the portable scripts. It depends on the JDK only and
@@ -471,7 +472,7 @@ one exact version of the application:</p>
 <div id="plugins-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">mvn -N install                            # the parent POM in the repository root
 cd marginalia &amp;&amp; mvn install -DskipTests
-cd plugins/reviewer &amp;&amp; mvn package        # target/reviewer-1.4.0.jar</code></pre>
+cd plugins/reviewer &amp;&amp; mvn package        # target/reviewer-1.5.0.jar</code></pre>
 </doc-codeblock></div>
 <p><code translate="no" v-pre>server.yml</code> builds all the plugins against the freshly installed application and attaches the JARs to the release
 of a <code translate="no" v-pre>v*</code> tag; the Docker image doesn&#x27;t contain them (server users put them into <code translate="no" v-pre>&lt;data folder&gt;/extensions</code> or install
@@ -617,11 +618,11 @@ against a real model.</li>
 <li>
 <p><strong>Tag.</strong> Commit, then create and push the tag:</p>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">git tag v1.4.0
-git push origin master v1.4.0</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">git tag v1.5.0
+git push origin master v1.5.0</code></pre>
 </doc-codeblock></div>
 </li>
-<li><strong>Release.</strong> Create the GitHub release for the tag (by hand or <code translate="no" v-pre>gh release create v1.4.0</code>) with the release
+<li><strong>Release.</strong> Create the GitHub release for the tag (by hand or <code translate="no" v-pre>gh release create v1.5.0</code>) with the release
 notes. <code translate="no" v-pre>desktop.yml</code> attaches the ten desktop archives when its matrix finishes, <code translate="no" v-pre>server.yml</code> the WAR and the
 plugin JARs and pushes the Docker image - whichever finishes first creates the release if it doesn&#x27;t exist yet
 (<code translate="no" v-pre>softprops/action-gh-release</code>).</li>
@@ -673,7 +674,7 @@ with a new <code translate="no" v-pre>docs/</code> reaches <code translate="no" 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (60a4afd23).</p></div>
             </footer>
         </div>
     </div>

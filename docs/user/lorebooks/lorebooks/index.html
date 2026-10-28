@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522787704">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846522787704" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -65,7 +65,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.5.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -180,6 +180,7 @@ Lorebooks belong to your account: other users don&#x27;t see them.</p>
 | **Lorebook** | Selects the lorebook to edit. |
 | **Only root lorebooks** | Lists only the lorebooks that are not a sub lorebook of another one (the selected lorebook stays in the list). |
 | **Add Lorebook** | Creates a new lorebook named *New Lorebook* and selects it. |
+| Clone (two sheets icon) | Makes a copy of the selected lorebook: asks for the name (the original's with *(Copy)*) and selects the copy. The copy has the same entries (with their settings, tags and negative tags), tags and data of extensions. Its sub lorebooks are not copied, the copy uses the same ones. The original is not changed. |
 | **Delete Lorebook** | Deletes the selected lorebook (after confirming). |
 | Import (file icon) | **Import Marginalia Lorebook**, **Import from SillyTavern** or **Import from archive** (a zip of `.md` files), see [Import &amp; export](import-export.md). |
 | Export (file icon) | Downloads the lorebook with its sub lorebooks, see [Import &amp; export](import-export.md#exporting). |
@@ -188,7 +189,10 @@ Lorebooks belong to your account: other users don&#x27;t see them.</p>
 | **Search and replace** | Changes a text in the name, text and comment of the entries of the lorebook, see [Search and replace](entries.md#search-and-replace). |
 | **Mass edit** | Opens all the entries of the lorebook and of its sub lorebooks in one table, see [Mass edit](#mass-edit). |
 | Tags (tags icon, right of **Search and replace**, second row) | **Tag entries**: puts a tag on many entries of the selected lorebook at once, see [below](#tagging-many-at-once). |
-| **Refresh** | Reloads the entries. |">
+| **Preview activation** | Shows which entries a turn with a text you type would use and why, see [Preview activation](entries.md#preview-activation). |
+| **Refresh** | Reloads the entries. |
+| Search box | Shows only the entries that have the text in them, see [Searching and deleting many entries](entries.md#searching-and-deleting-many-entries). |
+| **Delete selected** | Appears when entries are selected in the list; deletes them after confirming. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -209,6 +213,10 @@ Lorebooks belong to your account: other users don&#x27;t see them.</p>
 <tr>
 <td><strong>Add Lorebook</strong></td>
 <td>Creates a new lorebook named <em>New Lorebook</em> and selects it.</td>
+</tr>
+<tr>
+<td>Clone (two sheets icon)</td>
+<td>Makes a copy of the selected lorebook: asks for the name (the original&#x27;s with <em>(Copy)</em>) and selects the copy. The copy has the same entries (with their settings, tags and negative tags), tags and data of extensions. Its sub lorebooks are not copied, the copy uses the same ones. The original is not changed.</td>
 </tr>
 <tr>
 <td><strong>Delete Lorebook</strong></td>
@@ -243,8 +251,20 @@ Lorebooks belong to your account: other users don&#x27;t see them.</p>
 <td><strong>Tag entries</strong>: puts a tag on many entries of the selected lorebook at once, see <doc-anchor-trigger to="#tagging-many-at-once">below</doc-anchor-trigger>.</td>
 </tr>
 <tr>
+<td><strong>Preview activation</strong></td>
+<td>Shows which entries a turn with a text you type would use and why, see <a href="../entries/#preview-activation">Preview activation</a>.</td>
+</tr>
+<tr>
 <td><strong>Refresh</strong></td>
 <td>Reloads the entries.</td>
+</tr>
+<tr>
+<td>Search box</td>
+<td>Shows only the entries that have the text in them, see <a href="../entries/#searching-and-deleting-many-entries">Searching and deleting many entries</a>.</td>
+</tr>
+<tr>
+<td><strong>Delete selected</strong></td>
+<td>Appears when entries are selected in the list; deletes them after confirming.</td>
 </tr>
 </tbody>
 </table>
@@ -256,6 +276,7 @@ Lorebooks belong to your account: other users don&#x27;t see them.</p>
 | **Name** | The name of the lorebook, shown when you pick it for a book or as a sub lorebook. |
 | **Sub Lorebooks** | Other lorebooks whose entries are included with this one, see [below](#sub-lorebooks). Click the name of a selected sub lorebook to open it. |
 | **Tags** | Tags of the whole lorebook; they count as tags of each of its entries, see [Tags](entries.md#tags). |
+| **Scan depth** | `0` to `5`: how many times the content of the entries that were used is searched for the filters of the other entries, see [Entries brought in by other entries](entries.md#entries-brought-in-by-other-entries). Only the lorebook a book uses counts, not its sub lorebooks. |
 | **Enabled** | When unchecked, the lorebook contributes nothing - neither its entries nor those of its sub lorebooks. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -277,6 +298,10 @@ Lorebooks belong to your account: other users don&#x27;t see them.</p>
 <tr>
 <td><strong>Tags</strong></td>
 <td>Tags of the whole lorebook; they count as tags of each of its entries, see <a href="../entries/#tags">Tags</a>.</td>
+</tr>
+<tr>
+<td><strong>Scan depth</strong></td>
+<td><code translate="no" v-pre>0</code> to <code translate="no" v-pre>5</code>: how many times the content of the entries that were used is searched for the filters of the other entries, see <a href="../entries/#entries-brought-in-by-other-entries">Entries brought in by other entries</a>. Only the lorebook a book uses counts, not its sub lorebooks.</td>
 </tr>
 <tr>
 <td><strong>Enabled</strong></td>
@@ -412,7 +437,7 @@ affected.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (60a4afd23).</p></div>
             </footer>
         </div>
     </div>

@@ -31,6 +31,8 @@ public class NewTurnForm implements Restorable {
     private TextField povCharacterField;
     private TextArea presentCharactersField;
     private TextArea instructionsField;
+    private Button generateButton;
+    private Button impersonateButton;
 
     private String pendingSceneSetting = "";
     private String pendingPovCharacter = "";
@@ -38,6 +40,7 @@ public class NewTurnForm implements Restorable {
     private String pendingInstructions = "";
     private boolean editedByUser = false;
     private Runnable onChange;
+    private Runnable onImpersonate;
 
     public NewTurnForm(Localization loc) {
         this.loc = loc;
@@ -51,7 +54,8 @@ public class NewTurnForm implements Restorable {
             parameters = {@APIParameter(name = "onGenerate", type = Runnable.class)},
             locals = {@APILocals(name = "content", type = VerticalLayout.class),
                     @APILocals(name = "title", type = Span.class),
-                    @APILocals(name = "generateBtn", type = Button.class)})
+                    @APILocals(name = "generateBtn", type = Button.class),
+                    @APILocals(name = "impersonateBtn", type = Button.class)})
     public VerticalLayout createContent(Runnable onGenerate) {
         VerticalLayout content = new VerticalLayout();
         content.setPadding(true);
@@ -98,9 +102,93 @@ public class NewTurnForm implements Restorable {
         Button generateBtn = new Button(loc.getValue(L.LABEL_GENERATE), Solid.PLAY.create(), event -> onGenerate.run());
         generateBtn.setThemeName("primary small");
         generateBtn.setWidthFull();
+        generateButton = generateBtn;
 
-        content.add(title, sceneSettingField, povCharacterField, presentCharactersField, instructionsField, generateBtn);
+        Button impersonateBtn = new Button(loc.getValue(L.LABEL_IMPERSONATE), Solid.PEN_FANCY.create(), event -> {
+            if (onImpersonate != null) {
+                onImpersonate.run();
+            }
+        });
+        impersonateBtn.setThemeName("tertiary small");
+        impersonateBtn.setVisible(onImpersonate != null);
+        impersonateButton = impersonateBtn;
+
+        content.add(title, sceneSettingField, povCharacterField, presentCharactersField, instructionsField, impersonateBtn, generateBtn);
         return content;
+    }
+
+    /**
+     * Shows the button that lets the model draft the instructions in the place of the author.
+     *
+     * @param onImpersonate runs when the button is clicked, {@code null} hides the button
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "onImpersonate", type = Runnable.class)})
+    public void setOnImpersonate(Runnable onImpersonate) {
+        this.onImpersonate = onImpersonate;
+        if (impersonateButton != null) {
+            impersonateButton.setVisible(onImpersonate != null);
+        }
+    }
+
+    /**
+     * Puts the text into the instructions, as if the user typed it.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "instructions", type = String.class)})
+    public void setInstructions(String instructions) {
+        pendingInstructions = StringUtils.defaultString(instructions);
+        editedByUser = true;
+        if (instructionsField != null) {
+            instructionsField.setValue(pendingInstructions);
+        }
+        fireChanged(true);
+    }
+
+    /**
+     * Puts the name into the POV character, as if the user typed it.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "povCharacter", type = String.class)})
+    public void setPovCharacter(String povCharacter) {
+        pendingPovCharacter = StringUtils.defaultString(povCharacter);
+        editedByUser = true;
+        if (povCharacterField != null) {
+            povCharacterField.setValue(pendingPovCharacter);
+        }
+        fireChanged(true);
+    }
+
+    /**
+     * Puts the text into the present characters, as if the user typed it.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "presentCharacters", type = String.class)})
+    public void setPresentCharacters(String presentCharacters) {
+        pendingPresentCharacters = StringUtils.defaultString(presentCharacters);
+        editedByUser = true;
+        if (presentCharactersField != null) {
+            presentCharactersField.setValue(pendingPresentCharacters);
+        }
+        fireChanged(true);
+    }
+
+    /**
+     * Shows the key that generates in the tooltip of the generate button.
+     *
+     * @param key the key combination, null for none
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "key", type = String.class)})
+    public void setGenerateShortcut(String key) {
+        if (generateButton != null) {
+            generateButton.setTooltipText(key == null ? null : loc.getValue(L.LABEL_GENERATE) + " (" + key + ")");
+        }
     }
 
     /**

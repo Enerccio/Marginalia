@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.extensions.charactertracker.ui;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.extensions.charactertracker.model.CharacterBook;
 import com.github.enerccio.marginalia.extensions.charactertracker.model.StoryCharacter;
 import com.github.enerccio.marginalia.extensions.charactertracker.service.CharacterTrackerService;
@@ -14,6 +15,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -24,6 +26,9 @@ import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.popover.Popover;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +37,8 @@ import org.springframework.beans.factory.annotation.Configurable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import static com.github.enerccio.marginalia.extensions.charactertracker.CharacterTrackerLocalization.T;
 
 /**
  * The Characters tab of the story sidebar: the characters of the book ordered by name, each on its own color, with the
@@ -98,20 +105,25 @@ public class CharacterTrackerView extends VerticalLayout {
     }
 
     private void buildUI() {
-        Button add = new Button("Add new character", Solid.PLUS.create(), _ -> openDialog(null));
-        add.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        Button map = new Button("Relationship map", Solid.SITEMAP.create(), _ -> new RelationshipMapDialog(book).open());
+        Button add = new Button(T.localized("Add"), Solid.PLUS.create(), _ -> openDialog(null));
+        add.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
+        add.setTooltipText(T.localized("Add new character"));
+        Button map = new Button(Solid.SITEMAP.create(), _ -> new RelationshipMapDialog(book).open());
+        map.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
+        map.setTooltipText(T.localized("Relationship map"));
+        map.getElement().setAttribute("aria-label", T.localized("Relationship map"));
+        Button prompt = createPromptButton();
 
         MenuBar tools = new MenuBar();
         tools.addThemeVariants(MenuBarVariant.LUMO_TERTIARY);
         MenuItem toolsItem = tools.addItem(Solid.WAND_MAGIC_SPARKLES.create());
-        toolsItem.getElement().setAttribute("aria-label", "More actions");
-        toolsItem.getSubMenu().addItem("Import lore entries as characters", _ -> openImportDialog());
+        toolsItem.getElement().setAttribute("aria-label", T.localized("More actions"));
+        toolsItem.getSubMenu().addItem(T.localized("Import lore entries as characters"), _ -> openImportDialog());
 
-        HorizontalLayout buttons = new HorizontalLayout(add, tools, map);
+        HorizontalLayout buttons = new HorizontalLayout(add, tools, map, prompt);
         buttons.setAlignItems(Alignment.CENTER);
-        buttons.setWrap(true);
         buttons.setPadding(true);
+        buttons.setSpacing(false);
 
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_NO_ROW_BORDERS);
         grid.setDetailsVisibleOnClick(false);
@@ -121,6 +133,75 @@ public class CharacterTrackerView extends VerticalLayout {
 
         add(buttons, grid);
         setFlexGrow(1, grid);
+    }
+
+    /**
+     * The button that opens the popover with the switch that puts the characters into the prompt and where they go,
+     * like the Author's Note. It is green while the characters are in the prompt.
+     */
+    private Button createPromptButton() {
+        Button button = new Button(Solid.COMMENT_DOTS.create());
+        button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
+        button.getElement().setAttribute("aria-label", T.localized("Characters in the prompt"));
+        button.setTooltipText(T.localized("Characters in the prompt"));
+        showPromptState(button);
+
+        Popover popover = new Popover();
+        popover.setTarget(button);
+        popover.setModal(false);
+        popover.add(createPromptControls(button));
+        return button;
+    }
+
+    private void showPromptState(Button button) {
+        if (book.isPromptEnabled()) {
+            button.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+        } else {
+            button.removeThemeVariants(ButtonVariant.LUMO_SUCCESS);
+        }
+    }
+
+    private VerticalLayout createPromptControls(Button button) {
+        Checkbox enabled = new Checkbox(T.localized("In prompt"), book.isPromptEnabled());
+        enabled.setTooltipText(T.localized("Insert the characters and their relationships into the prompt of every generation"));
+        enabled.addValueChangeListener(e -> {
+            book.setPromptEnabled(e.getValue());
+            showPromptState(button);
+            persist();
+        });
+
+        IntegerField depth = new IntegerField();
+        depth.setPrefixComponent(new Span(T.localized("Depth")));
+        depth.setTooltipText(T.localized("Messages after the characters: 0 = after the instructions, 1 = right before them"));
+        depth.setMin(0);
+        depth.setStepButtonsVisible(true);
+        depth.setValue(book.getPromptDepth());
+        depth.setWidth("11em");
+        depth.addValueChangeListener(e -> {
+            if (e.getValue() != null && e.getValue() >= 0) {
+                book.setPromptDepth(e.getValue());
+                persist();
+            }
+        });
+
+        Select<LLMRole> role = new Select<>();
+        role.setTooltipText(T.localized("Role of the message with the characters"));
+        // text the model reads, not the result of a function call
+        role.setItems(LLMRole.SYSTEM, LLMRole.ASSISTANT, LLMRole.USER);
+        role.setItemLabelGenerator(r -> T.localized(StringUtils.capitalize(r.name().toLowerCase())));
+        role.setValue(book.getPromptRole());
+        role.setWidth("11em");
+        role.addValueChangeListener(e -> {
+            if (e.getValue() != null) {
+                book.setPromptRole(e.getValue());
+                persist();
+            }
+        });
+
+        VerticalLayout controls = new VerticalLayout(enabled, depth, role);
+        controls.setPadding(false);
+        controls.setSpacing(true);
+        return controls;
     }
 
     private void refreshGrid() {
@@ -154,7 +235,7 @@ public class CharacterTrackerView extends VerticalLayout {
             book.put(character);
         }
         persist();
-        Notification.success("Imported " + names.size() + " characters");
+        Notification.success(T.localized("Imported %d characters").formatted(names.size()));
     }
 
     /**
@@ -192,11 +273,11 @@ public class CharacterTrackerView extends VerticalLayout {
             }
             toggle.setIcon(toggleIcon(character));
         });
-        toggle.setAriaLabel("Show icon and note");
+        toggle.setAriaLabel(T.localized("Show icon and note"));
         Button edit = new Button(Solid.PEN.create(), _ -> openDialog(character));
-        edit.setAriaLabel("Edit character");
+        edit.setAriaLabel(T.localized("Edit character"));
         Button delete = new Button(Solid.TRASH.create(), _ -> confirmDelete(character));
-        delete.setAriaLabel("Delete character");
+        delete.setAriaLabel(T.localized("Delete character"));
         for (Button button : new Button[]{toggle, edit, delete}) {
             button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SMALL);
         }
@@ -233,7 +314,7 @@ public class CharacterTrackerView extends VerticalLayout {
             details.add(note);
         }
         if (source == null && StringUtils.isBlank(character.getNote())) {
-            details.add(new Span("No icon or note"));
+            details.add(new Span(T.localized("No icon or note")));
         }
         return details;
     }
@@ -249,7 +330,7 @@ public class CharacterTrackerView extends VerticalLayout {
     }
 
     private void confirmDelete(StoryCharacter character) {
-        ConfirmDialog.show("Delete the character " + character.getName() + " and all its relationships?", () -> {
+        ConfirmDialog.show(T.localized("Delete the character %s and all its relationships?").formatted(character.getName()), () -> {
             book.delete(character);
             expanded.remove(character.getUuid());
             persist();

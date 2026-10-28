@@ -10,6 +10,7 @@ The buttons at the bottom of the workspace:
 | Button | |
 |---|---|
 | **Language** | The language of the user interface, see [Language](#language). |
+| sun / moon button | Next to the language: switches between the dark and the light theme, see [Theme](#theme). |
 | **Change Password** | Changes your password, user name and full name, see below. |
 | **Logout** | Logs you out on this device. |
 | **Admin** | Only for administrators, see [Administration](administration/index.md). |
@@ -39,12 +40,21 @@ too), and it is used again the next time you log in. The login screen itself is 
 
 The list contains only the languages that are installed. English and Japanese come with Marginalia; an administrator
 can add more by loading an [extension](extensions/index.md), for example
-[Chinese localization](extensions/chinese-localization.md). Texts a language doesn't translate are shown in English.
+[Chinese localization](extensions/chinese-localization.md). Texts a language doesn't translate are shown in English. The bundled extensions bring their own texts in Japanese and Chinese (the Chinese ones show when the Chinese localization is loaded).
 Dates are written the way that language does. Your books and their texts are not translated, only the interface.
 
 ![The Language selector](../images/language-selector.png)
 
 ![The workspace in Japanese](../images/ui-japanese.png)
+
+### Theme
+
+The button next to the **Language** selector switches the user interface between the dark theme (the default) and the
+light one. The choice is saved in your account and used again the next time you log in, on any device; a page that is
+already open in another tab changes when it is reloaded. Charts and the relationship map take the colors of the theme
+when they are opened.
+
+![The workspace in the light theme](../images/theme-light.png)
 
 ### Logging in
 
@@ -80,6 +90,7 @@ unlock them.
 |---|---|
 | **Default Model** | The [inference provider](inference-providers.md) new books start with. |
 | **Default Protocol** | The [protocol](protocols.md) new books start with. |
+| **Default model for annotating**, **Default protocol for annotating** | The model that [annotates a part](books/annotations.md#letting-a-model-annotate) when you do not choose another one for the run. Empty is the model of the book. |
 | **Backup Strategy** | Automatic [book backups](books/backups.md#automatic-backups) for books without their own strategy: *No Backups*, *After N Messages* or *After N Minutes*, with the number next to it. |
 | **Parts loaded at once in the story** | How many parts of a book the [story](books/story-editor.md) and the [viewer](books/publishing.md) keep loaded. The story starts with the last parts, the viewer where you stopped reading (or the first parts); the parts before and after are loaded as you scroll and the ones far from you are dropped again. Empty loads all the parts at once. |
 
@@ -98,6 +109,9 @@ The defaults for the [book prompts](books/prompts.md):
 | **Default User Prompt** | The request for each part, see [User prompt](books/prompts.md#user-prompt). |
 | **Default Summary Prompt** | The request for a [summary](books/summaries.md#the-summary-prompt). |
 | **Default Meta Summary Prompt** | The request for a [meta summary](books/summaries.md#the-meta-summary-prompt), which merges summaries. |
+| **Redraft System Prompt**, **Redraft Prompt** | The system message and the last message of a [redraft](books/story-editor.md#redrafting-a-part) of a part, see [Redraft prompt](books/prompts.md#redraft-prompt). |
+| **Annotate System Prompt**, **Annotate Prompt** | The system message and the last message of the request for a model to [annotate](books/annotations.md#letting-a-model-annotate) a part, see [Annotate prompt](books/prompts.md#annotate-prompt). |
+| **Impersonate Prompt** | The request for a model to [draft the instructions](books/story-editor.md#drafting-the-instructions) of the next turn in your place, see [Impersonate prompt](books/prompts.md#impersonate-prompt). |
 | **Compaction prompt of agents** | Only for users who may use [agents](agents.md). What your agents are asked when you [`/compact`](agents.md#running-a-command-yourself) them, if their own compaction prompt is empty; empty here is the one your administrator set, else the built-in one. |
 | **Instructions of agents (agents.md)** | Only for users who may use [agents](agents.md). Your instructions for the agents that have none of their own, added to their prompt in every run. Empty is none. |
 | **Message to a URL when an agent needs you**, **Format of the message**, **Also when the application is open**, **Send a test message** | Only for users with the permission [*Notifications*](administration/permissions.md) (and not only those who use [agents](agents.md)), in the *General* tab, and only if your administrator allows it. Where to send a short message when an agent asks something, waits for you, finishes or fails and you have the application closed: see [When you are not there](agents.md#when-you-are-not-there). |
@@ -138,6 +152,25 @@ tag and deletes the renamed one; an object that has both ends up with the existi
 changes, the tag keeps its old name.
 
 ![Asking whether to merge two tags](../images/tag-merge.png)
+
+### Keyboard shortcuts
+
+The keys of the [story editor shortcuts](books/story-editor.md#keyboard-shortcuts) (they work in the story
+editor on a computer, the [phone layout](phone.md) has none).
+The table lists every action, also the ones [extensions](extensions/index.md) bring, with its key. Every item of the story's settings menu, of the menu of a part and of the right click menu of its text is an action here (most have no key until you give them one), and the menus show the key next to the item.
+
+| Button | |
+|---|---|
+| **Record** | Press the new key combination (modifiers first or together, e.g. `Ctrl+Shift+K`); a click anywhere else cancels. |
+| **Reset to default** | Gives the action its default key back. |
+| **Clear** | The action has no key. |
+
+A red note names a key two actions share, a key the browser keeps for itself (`Ctrl+N`, `Ctrl+T`, `Ctrl+W` and the like,
+the page never gets them) and `Alt` with a letter (types a character on some keyboards, e.g. macOS). A key without
+`Ctrl`, `Alt` or `Meta` works only when no text field has the focus. The keys are saved with **Save** like the other
+settings and apply at once in the open stories.
+
+![Settings, Keyboard shortcuts](../images/settings-shortcuts.png)
 
 ### Extension Settings
 

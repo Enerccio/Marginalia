@@ -63,6 +63,12 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
          * Redraws the story.
          */
         void renderStory();
+
+        /**
+         * The part is complete and shown: time for what the book does after a generation (its automatic annotation).
+         */
+        default void partCompleted(ChatMessage message) {
+        }
     }
 
     private final UI ui;
@@ -200,6 +206,7 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
             callbacks.partGenerated();
 
             callbacks.renderStory();
+            callbacks.partCompleted(message);
             UIPushGuard.push(ui);
         });
     }

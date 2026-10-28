@@ -46,6 +46,9 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
     private SummaryService self;
 
     @Autowired
+    private MessagePromptService messagePromptService;
+
+    @Autowired
     private ChatMessageService chatMessageService;
 
     @Autowired
@@ -178,7 +181,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         // the summary row is inserted by this transaction: the inference runs on another thread, which saves the summary
         // as soon as the model answers, so it must not start before the commit makes the row visible to it
         Runnable start = () -> {
-            try {
+            try (InferenceSession _ = InferenceSession.open(InferenceSession.SUMMARY)) {
                 inferenceService.stream(payload, protocol, inferenceCallback);
             } catch (Exception e) {
                 log.error("Failed to start the summary inference", e);
@@ -321,6 +324,17 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         }
         Collections.reverse(revalidated);
         return revalidated;
+    }
+
+    @Override
+    @CommonTx
+    public void revalidate(Manuscript manuscript, Collection<SummaryBlock> blocks) throws Exception {
+        agentRunService.checkNotLocked(manuscript);
+        for (SummaryBlock block : blocks) {
+            Summary summary = find(block.summary());
+            summary.setSummaryMessageHash(block.hash());
+            save(summary);
+        }
     }
 
     private static long inferenceTokensFallback(String text) {
@@ -469,11 +483,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         String jailbreak = Boolean.TRUE.equals(ai.getNeedsJailbreak()) && StringUtils.isNotBlank(ai.getJailbreak())
                 ? ai.getJailbreak() + "\n\n" : "";
 
-        if (StringUtils.isNotBlank(from.getBackgroundLore())) {
-            template.setBackgroundLore(from.getBackgroundLore());
-        } else {
-            template.setBackgroundLore("");
-        }
+        template.setBackgroundLore(StringUtils.defaultString(messagePromptService.getBackgroundLore(from)));
 
         String prompt = jailbreak + templateService.processTemplate(systemPrompt, "summaryPrompt", template);
         long tokens = inferenceService.countTokens(prompt);
@@ -570,7 +580,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         String jailbreak = Boolean.TRUE.equals(ai.getNeedsJailbreak()) && StringUtils.isNotBlank(ai.getJailbreak())
                 ? ai.getJailbreak() + "\n\n" : "";
 
-        template.setBackgroundLore(StringUtils.defaultString(from.getBackgroundLore()));
+        template.setBackgroundLore(StringUtils.defaultString(messagePromptService.getBackgroundLore(from)));
         template.setSummaryBlocks("");
 
         long summaryTokens = 0;
@@ -616,7 +626,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
      *
      * @param newestFirst branch from {@code from} back to the root
      */
-    private TemplateContext createTemplateContext(Manuscript manuscript, ChatMessage from, AI ai, Protocol protocol, List<ChatMessage> newestFirst) {
+    static TemplateContext createTemplateContext(Manuscript manuscript, ChatMessage from, AI ai, Protocol protocol, List<ChatMessage> newestFirst) {
         TemplateContext context = new TemplateContext();
         context.setPovCharacter(from.getPovCharacter());
         context.setPresentCharacters(from.getPresentCharacters());

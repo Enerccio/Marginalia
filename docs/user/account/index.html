@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522787704">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846522787704" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -65,7 +65,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.5.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -178,6 +178,7 @@ and settings. Other users don&#x27;t see them (except books you <a href="../book
 <retype-table copy-text="| Button | |
 |---|---|
 | **Language** | The language of the user interface, see [Language](#language). |
+| sun / moon button | Next to the language: switches between the dark and the light theme, see [Theme](#theme). |
 | **Change Password** | Changes your password, user name and full name, see below. |
 | **Logout** | Logs you out on this device. |
 | **Admin** | Only for administrators, see [Administration](administration/index.md). |">
@@ -193,6 +194,10 @@ and settings. Other users don&#x27;t see them (except books you <a href="../book
 <tr>
 <td><strong>Language</strong></td>
 <td>The language of the user interface, see <doc-anchor-trigger to="#language">Language</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td>sun / moon button</td>
+<td>Next to the language: switches between the dark and the light theme, see <doc-anchor-trigger to="#theme">Theme</doc-anchor-trigger>.</td>
 </tr>
 <tr>
 <td><strong>Change Password</strong></td>
@@ -230,7 +235,7 @@ your account: the page reloads with the new language, and so does every other pa
 too), and it is used again the next time you log in. The login screen itself is always in the default language.</p>
 <p>The list contains only the languages that are installed. English and Japanese come with Marginalia; an administrator
 can add more by loading an <a href="../extensions/">extension</a>, for example
-<a href="../extensions/chinese-localization/">Chinese localization</a>. Texts a language doesn&#x27;t translate are shown in English.
+<a href="../extensions/chinese-localization/">Chinese localization</a>. Texts a language doesn&#x27;t translate are shown in English. The bundled extensions bring their own texts in Japanese and Chinese (the Chinese ones show when the Chinese localization is loaded).
 Dates are written the way that language does. Your books and their texts are not translated, only the interface.</p>
 <figure class="content-center">
     <img src="../../images/language-selector.png" alt="The Language selector" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="292" height="332" />
@@ -239,6 +244,15 @@ Dates are written the way that language does. Your books and their texts are not
 <figure class="content-center">
     <img src="../../images/ui-japanese.png" alt="The workspace in Japanese" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
     <figcaption class="caption">The workspace in Japanese</figcaption>
+</figure>
+<h3 id="theme">Theme</h3>
+<p>The button next to the <strong>Language</strong> selector switches the user interface between the dark theme (the default) and the
+light one. The choice is saved in your account and used again the next time you log in, on any device; a page that is
+already open in another tab changes when it is reloaded. Charts and the relationship map take the colors of the theme
+when they are opened.</p>
+<figure class="content-center">
+    <img src="../../images/theme-light.png" alt="The workspace in the light theme" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">The workspace in the light theme</figcaption>
 </figure>
 <h3 id="logging-in">Logging in</h3>
 <p><strong>Save login</strong> on the login screen keeps you logged in on this device for 30 days (it needs HTTPS on a server, see
@@ -290,6 +304,7 @@ unlock them.</p>
 |---|---|
 | **Default Model** | The [inference provider](inference-providers.md) new books start with. |
 | **Default Protocol** | The [protocol](protocols.md) new books start with. |
+| **Default model for annotating**, **Default protocol for annotating** | The model that [annotates a part](books/annotations.md#letting-a-model-annotate) when you do not choose another one for the run. Empty is the model of the book. |
 | **Backup Strategy** | Automatic [book backups](books/backups.md#automatic-backups) for books without their own strategy: *No Backups*, *After N Messages* or *After N Minutes*, with the number next to it. |
 | **Parts loaded at once in the story** | How many parts of a book the [story](books/story-editor.md) and the [viewer](books/publishing.md) keep loaded. The story starts with the last parts, the viewer where you stopped reading (or the first parts); the parts before and after are loaded as you scroll and the ones far from you are dropped again. Empty loads all the parts at once. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -308,6 +323,10 @@ unlock them.</p>
 <tr>
 <td><strong>Default Protocol</strong></td>
 <td>The <a href="../protocols/">protocol</a> new books start with.</td>
+</tr>
+<tr>
+<td><strong>Default model for annotating</strong>, <strong>Default protocol for annotating</strong></td>
+<td>The model that <a href="../books/annotations/#letting-a-model-annotate">annotates a part</a> when you do not choose another one for the run. Empty is the model of the book.</td>
 </tr>
 <tr>
 <td><strong>Backup Strategy</strong></td>
@@ -333,6 +352,9 @@ books. The <a href="../extensions/lore-generator/">Lore Generator</a> extension 
 | **Default User Prompt** | The request for each part, see [User prompt](books/prompts.md#user-prompt). |
 | **Default Summary Prompt** | The request for a [summary](books/summaries.md#the-summary-prompt). |
 | **Default Meta Summary Prompt** | The request for a [meta summary](books/summaries.md#the-meta-summary-prompt), which merges summaries. |
+| **Redraft System Prompt**, **Redraft Prompt** | The system message and the last message of a [redraft](books/story-editor.md#redrafting-a-part) of a part, see [Redraft prompt](books/prompts.md#redraft-prompt). |
+| **Annotate System Prompt**, **Annotate Prompt** | The system message and the last message of the request for a model to [annotate](books/annotations.md#letting-a-model-annotate) a part, see [Annotate prompt](books/prompts.md#annotate-prompt). |
+| **Impersonate Prompt** | The request for a model to [draft the instructions](books/story-editor.md#drafting-the-instructions) of the next turn in your place, see [Impersonate prompt](books/prompts.md#impersonate-prompt). |
 | **Compaction prompt of agents** | Only for users who may use [agents](agents.md). What your agents are asked when you [`/compact`](agents.md#running-a-command-yourself) them, if their own compaction prompt is empty; empty here is the one your administrator set, else the built-in one. |
 | **Instructions of agents (agents.md)** | Only for users who may use [agents](agents.md). Your instructions for the agents that have none of their own, added to their prompt in every run. Empty is none. |
 | **Message to a URL when an agent needs you**, **Format of the message**, **Also when the application is open**, **Send a test message** | Only for users with the permission [*Notifications*](administration/permissions.md) (and not only those who use [agents](agents.md)), in the *General* tab, and only if your administrator allows it. Where to send a short message when an agent asks something, waits for you, finishes or fails and you have the application closed: see [When you are not there](agents.md#when-you-are-not-there). |
@@ -369,6 +391,18 @@ books. The <a href="../extensions/lore-generator/">Lore Generator</a> extension 
 <tr>
 <td><strong>Default Meta Summary Prompt</strong></td>
 <td>The request for a <a href="../books/summaries/#the-meta-summary-prompt">meta summary</a>, which merges summaries.</td>
+</tr>
+<tr>
+<td><strong>Redraft System Prompt</strong>, <strong>Redraft Prompt</strong></td>
+<td>The system message and the last message of a <a href="../books/story-editor/#redrafting-a-part">redraft</a> of a part, see <a href="../books/prompts/#redraft-prompt">Redraft prompt</a>.</td>
+</tr>
+<tr>
+<td><strong>Annotate System Prompt</strong>, <strong>Annotate Prompt</strong></td>
+<td>The system message and the last message of the request for a model to <a href="../books/annotations/#letting-a-model-annotate">annotate</a> a part, see <a href="../books/prompts/#annotate-prompt">Annotate prompt</a>.</td>
+</tr>
+<tr>
+<td><strong>Impersonate Prompt</strong></td>
+<td>The request for a model to <a href="../books/story-editor/#drafting-the-instructions">draft the instructions</a> of the next turn in your place, see <a href="../books/prompts/#impersonate-prompt">Impersonate prompt</a>.</td>
 </tr>
 <tr>
 <td><strong>Compaction prompt of agents</strong></td>
@@ -449,6 +483,48 @@ changes, the tag keeps its old name.</p>
     <img src="../../images/tag-merge.png" alt="Asking whether to merge two tags" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="811" height="195" />
     <figcaption class="caption">Asking whether to merge two tags</figcaption>
 </figure>
+<h3 id="keyboard-shortcuts">Keyboard shortcuts</h3>
+<p>The keys of the <a href="../books/story-editor/#keyboard-shortcuts">story editor shortcuts</a> (they work in the story
+editor on a computer, the <a href="../phone/">phone layout</a> has none).
+The table lists every action, also the ones <a href="../extensions/">extensions</a> bring, with its key. Every item of the story&#x27;s settings menu, of the menu of a part and of the right click menu of its text is an action here (most have no key until you give them one), and the menus show the key next to the item.</p>
+<retype-table copy-text="| Button | |
+|---|---|
+| **Record** | Press the new key combination (modifiers first or together, e.g. `Ctrl+Shift+K`); a click anywhere else cancels. |
+| **Reset to default** | Gives the action its default key back. |
+| **Clear** | The action has no key. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Button</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Record</strong></td>
+<td>Press the new key combination (modifiers first or together, e.g. <code translate="no" v-pre>Ctrl+Shift+K</code>); a click anywhere else cancels.</td>
+</tr>
+<tr>
+<td><strong>Reset to default</strong></td>
+<td>Gives the action its default key back.</td>
+</tr>
+<tr>
+<td><strong>Clear</strong></td>
+<td>The action has no key.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>A red note names a key two actions share, a key the browser keeps for itself (<code translate="no" v-pre>Ctrl+N</code>, <code translate="no" v-pre>Ctrl+T</code>, <code translate="no" v-pre>Ctrl+W</code> and the like,
+the page never gets them) and <code translate="no" v-pre>Alt</code> with a letter (types a character on some keyboards, e.g. macOS). A key without
+<code translate="no" v-pre>Ctrl</code>, <code translate="no" v-pre>Alt</code> or <code translate="no" v-pre>Meta</code> works only when no text field has the focus. The keys are saved with <strong>Save</strong> like the other
+settings and apply at once in the open stories.</p>
+<figure class="content-center">
+    <img src="../../images/settings-shortcuts.png" alt="Settings, Keyboard shortcuts" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1612" height="900" />
+    <figcaption class="caption">Settings, Keyboard shortcuts</figcaption>
+</figure>
 <h3 id="extension-settings">Extension Settings</h3>
 <p>Settings of the installed <a href="../extensions/">extensions</a>, one section per extension (for example <em>Reviewer Settings</em>
 and <em>SideQuery Settings</em>). They are saved with the same <strong>Save</strong> button. The tab is empty when no extension with
@@ -466,11 +542,11 @@ settings is installed.</p>
             
                 <nav id="retype-nextprev" class="print:hidden flex mt-14">
                     <div class="w-1/2">
-                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../user/extensions/side-query/">
+                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../user/extensions/sillytavern-converter/">
                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                             <span>
                                 <span class="block text-xs font-normal text-base-text-muted">Previous</span>
-                                <span class="block mt-1">Side Query</span>
+                                <span class="block mt-1">Silly​Tavern Converter</span>
                             </span>
                         </a>
                     </div>
@@ -494,7 +570,7 @@ settings is installed.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (60a4afd23).</p></div>
             </footer>
         </div>
     </div>

@@ -10,6 +10,13 @@ package com.github.enerccio.marginalia.domain.service.impl.generation;
 public final class GenerationProperties {
 
     /**
+     * {@code String} id of this generation (a random UUID), set before the first event and the same in every event of
+     * it: tells the data of generations that run at the same time apart (an extension that keeps state per
+     * generation keys it by this).
+     */
+    public static final String RUN_ID = "RUN_ID";
+
+    /**
      * {@code TemplateContext} shared by all templates of the generation. Created on first template rendering,
      * available from {@link Events#AFTER_PREPARE_CONSTANT_DATA}.
      */
@@ -22,9 +29,36 @@ public final class GenerationProperties {
     public static final String LOREBOOKS = "LOREBOOKS";
 
     /**
-     * {@code LorebookEntry} entry being evaluated, set for each {@link Events#PROCESS_LOREBOOK_ENTRY}.
+     * {@code LorebookEntry} entry that was evaluated, set for each {@link Events#PROCESS_LOREBOOK_ENTRY}.
      */
     public static final String LOREBOOK_ENTRY = "LOREBOOK_ENTRY";
+
+    /**
+     * {@code LorebookActivationService.Verdict} the activation's decision on the entry in {@link #LOREBOOK_ENTRY}, set
+     * for each {@link Events#PROCESS_LOREBOOK_ENTRY}. Read back after the event: a listener replaces it with
+     * {@code new Verdict(Reason.EXTENSION_ACTIVATED / EXTENSION_SKIPPED, why)} to force the entry in or out, and the
+     * entry is activated by the verdict that is left.
+     */
+    public static final String LOREBOOK_VERDICT = "LOREBOOK_VERDICT";
+
+    /**
+     * {@code Integer} the pass of the scan depth the entry in {@link #LOREBOOK_ENTRY} is decided in, set for each
+     * {@link Events#PROCESS_LOREBOOK_ENTRY}: 0 when the filter is looked for in the prompt (every entry gets this event
+     * once), n when it was found in the content of the entries that the pass n - 1 used (the event is only for such
+     * entries and comes again for an entry already decided; the verdict is {@code LORE_MATCHED}, and a listener can
+     * replace it as usual). See {@code Lorebook#getScanDepth}.
+     */
+    public static final String LOREBOOK_SCAN_DEPTH = "LOREBOOK_SCAN_DEPTH";
+
+    /**
+     * {@code List<LorebookEntryVerdict>} the final decision on every entry that was evaluated (used or not, with the
+     * {@code Reason}, its detail and the pass of the scan depth), in evaluation order. Created empty at {@link Events#PROCESS_LOREBOOKS}, an entry is
+     * added after its {@link Events#PROCESS_LOREBOOK_ENTRY} (with the verdict the listeners left in
+     * {@link #LOREBOOK_VERDICT}), and it is complete from {@link Events#PROCESS_ACTIVATED_ENTRIES}. A record: to change
+     * a decision use {@link #LOREBOOK_VERDICT}, changes made to {@link #ACTIVATED_LOREBOOK_ENTRIES} are not reflected in
+     * it. Not set when manuscript has no lorebook.
+     */
+    public static final String LOREBOOK_VERDICTS = "LOREBOOK_VERDICTS";
 
     /**
      * {@code List<LorebookEntry>} entries that passed activation, available from
@@ -72,6 +106,26 @@ public final class GenerationProperties {
      * part from it when generation ends before any text arrived.
      */
     public static final String ORIGINAL_MESSAGE = "ORIGINAL_MESSAGE";
+
+    /**
+     * {@code MessagePrompt} the prompt the regenerated part had before it was replaced by the one of this generation, kept
+     * together with {@link #ORIGINAL_MESSAGE} (it is not a part of the message, see {@code MessagePromptService}). Not set
+     * when the part had none. Cleanup puts it back when generation ends before any text arrived.
+     */
+    public static final String ORIGINAL_PROMPT = "ORIGINAL_PROMPT";
+
+    /**
+     * {@code GenerationOutcome} how the generation ended: completed, stopped by the user or failed. Set when the cleanup
+     * starts, so it is there in {@link Events#BEFORE_CLEANUP} (whose listeners do not run when the user stopped the
+     * generation) and in {@link Events#AFTER_CLEANUP}. A stop wins over an error the stop caused.
+     */
+    public static final String OUTCOME = "OUTCOME";
+
+    /**
+     * {@code GenerationFailure} the first error reported to the user (message and exception), set together with
+     * {@link #OUTCOME} when there was one, also for a stopped generation that failed first. Absent otherwise.
+     */
+    public static final String FAILURE = "FAILURE";
 
     private GenerationProperties() {
 

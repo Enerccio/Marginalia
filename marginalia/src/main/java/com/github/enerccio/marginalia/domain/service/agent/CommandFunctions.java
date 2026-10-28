@@ -8,10 +8,7 @@ import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.service.CommandService;
-import com.github.enerccio.marginalia.domain.service.command.CommandDefinition;
-import com.github.enerccio.marginalia.domain.service.command.CommandException;
-import com.github.enerccio.marginalia.domain.service.command.CommandParameterDefinition;
-import com.github.enerccio.marginalia.domain.service.command.CommandRun;
+import com.github.enerccio.marginalia.domain.service.command.*;
 import com.github.enerccio.marginalia.domain.service.function.FunctionCallException;
 import com.github.enerccio.marginalia.domain.service.function.FunctionCallException.Kind;
 import com.github.enerccio.marginalia.domain.service.function.FunctionContinuation;
@@ -229,7 +226,8 @@ public final class CommandFunctions {
     public static FunctionSet create(CommandService commands, Collection<String> allowed, DestructiveCommandMode mode,
                                      Function<L, String> lookup, Approval approval, Function<String, String> files,
                                      CommandResults commandResults, Function<String, LLMAttachment> images, CommandCage cage) {
-        Set<String> names = new HashSet<>(allowed);
+        // the allowlist is completed with the linked commands, and a command that lacks one of them is not offered
+        Set<String> names = CommandLinks.resolve(commands.getCommands(), allowed);
         Map<String, List<CommandDefinition>> byName = new TreeMap<>();
         for (CommandDefinition definition : commands.getCommands()) {
             if (definition.availableForAgent() && names.contains(definition.commandName())) {

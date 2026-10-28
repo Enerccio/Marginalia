@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.command;
 
 import com.github.enerccio.marginalia.domain.model.impl.*;
+import com.github.enerccio.marginalia.domain.service.AnnotationService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.CommandService;
 import com.github.enerccio.marginalia.domain.service.SummaryService;
@@ -35,6 +36,9 @@ class GenerationCommandsTest extends GenerationTestBase {
 
     @Autowired
     private SummaryService summaryService;
+
+    @Autowired
+    private AnnotationService annotationService;
 
     private Manuscript manuscript;
     private ChatMessage first, second;
@@ -205,5 +209,110 @@ class GenerationCommandsTest extends GenerationTestBase {
         assertThat(meta.get("type").getAsString()).isEqualTo("meta");
         assertThat(meta.get("text").getAsString()).isEqualTo("The whole story.");
         assertThat(summaryService.find(chatMessageService.find(second.getId()).getSummary()).getSummary()).isEqualTo("The whole story.");
+    }
+
+    @Test
+    void anOlderPartIsRedraftedAndReplaced() throws Exception {
+        llm.fallback(com.github.enerccio.marginalia.test.llm.MockLLMResponse.text("Anna met John in the rain."));
+
+        JsonObject result = json("/redraft-part " + first.getUuid() + " \"Add rain\"");
+
+        assertThat(result.get("applied").getAsBoolean()).isTrue();
+        assertThat(chatMessageService.find(first.getId()).getResponse()).isEqualTo("Anna met John in the rain.");
+        // the part after it stays, the story around the part was told to the model
+        assertThat(chatMessageService.find(second.getId()).getResponse()).isEqualTo("John went home.");
+        String prompt = llm.lastCompletionRequest().getPromptText();
+        assertThat(prompt).contains("Add rain").contains("Anna met John.").contains("John went home.");
+    }
+
+    @Test
+    void aRedraftWithApplyFalseOnlyReturnsTheText() throws Exception {
+        llm.fallback(com.github.enerccio.marginalia.test.llm.MockLLMResponse.text("A longer meeting."));
+
+        JsonObject result = json("/redraft-part " + first.getUuid() + " \"Longer\" \"\" \"\" false");
+
+        assertThat(result.get("applied").getAsBoolean()).isFalse();
+        assertThat(result.get("text").getAsString()).isEqualTo("A longer meeting.");
+        assertThat(chatMessageService.find(first.getId()).getResponse()).isEqualTo("Anna met John.");
+    }
+
+    @Test
+    void aRedraftCanUseAnotherPromptThanTheBook() throws Exception {
+        llm.fallback(com.github.enerccio.marginalia.test.llm.MockLLMResponse.text("New."));
+
+        run("/redraft-part " + first.getUuid() + " \"x\" \"REWRITE {{text}} BECAUSE {{redraftInstructions}}\"");
+
+        assertThat(llm.lastCompletionRequest().getPromptText()).contains("REWRITE Anna met John. BECAUSE x");
+        assertThatThrownBy(() -> run("/redraft-part " + first.getUuid() + " \"x\" \"{{#unclosed}}\"")).isInstanceOf(ExecutionException.class);
+    }
+
+    @Test
+    void theModelAnnotatesAnOlderPartAndTheNotesAreAdded() throws Exception {
+        llm.fallback(com.github.enerccio.marginalia.test.llm.MockLLMResponse.text(
+                "{\"findings\": [{\"quote\": \"Anna met John.\", \"note\": \"Flat opening\", \"type\": \"style\"},"
+                        + " {\"quote\": \"not in the part\", \"note\": \"Contradicts the lore\"}]}"));
+
+        JsonObject result = json("/generate-annotation " + first.getUuid());
+
+        assertThat(result.get("part").getAsString()).isEqualTo(first.getUuid());
+        assertThat(result.get("created").getAsInt()).isEqualTo(2);
+        assertThat(result.getAsJsonArray("annotations")).hasSize(2);
+        var notes = annotationService.listForPart(book(), chatMessageService.find(first.getId()));
+        assertThat(notes).extracting(Annotation::getText).containsExactlyInAnyOrder("Flat opening", "Contradicts the lore");
+        assertThat(notes).allSatisfy(note -> assertThat(note.getSource()).isEqualTo(com.github.enerccio.marginalia.domain.collections.AnnotationSource.AI));
+        // the story is untouched, the model was told the part and the story after it
+        assertThat(chatMessageService.find(first.getId()).getResponse()).isEqualTo("Anna met John.");
+        assertThat(llm.lastCompletionRequest().getPromptText()).contains("Anna met John.").contains("John went home.");
+    }
+
+    @Test
+    void aPartWithoutFindingsGetsNoNotes() throws Exception {
+        llm.fallback(com.github.enerccio.marginalia.test.llm.MockLLMResponse.text("{\"findings\": []}"));
+
+        JsonObject result = json("/generate-annotation " + first.getUuid());
+
+        assertThat(result.get("created").getAsInt()).isZero();
+        assertThat(annotationService.listForPart(book(), chatMessageService.find(first.getId()))).isEmpty();
+    }
+
+    @Test
+    void anAnnotationProfileBelongsToAnAgent() {
+        assertThatThrownBy(() -> run("/generate-annotation " + first.getUuid() + " Prose")).isInstanceOf(ExecutionException.class)
+                .hasMessageContaining("agents");
+    }
+
+    @Test
+    void aRedraftProfileBelongsToAnAgent() {
+        assertThatThrownBy(() -> run("/redraft-part " + first.getUuid() + " \"\" \"\" Prose")).isInstanceOf(ExecutionException.class)
+                .hasMessageContaining("agents");
+    }
+
+    @Test
+    void impersonateReturnsTheDraftedInstructionsAndChangesNothing() throws Exception {
+        llm.fallback(com.github.enerccio.marginalia.test.llm.MockLLMResponse.text("Anna asks John about the letter."));
+
+        Object result = run("/impersonate \"She asks about the letter\"");
+
+        assertThat(result).isEqualTo("Anna asks John about the letter.");
+        String prompt = llm.lastCompletionRequest().getPromptText();
+        assertThat(prompt).contains("She asks about the letter").contains("Anna met John.").contains("John went home.");
+        assertThat(chatMessageService.getAllMessages(book())).hasSize(2);
+        assertThat(book().getActiveLeaf().getId()).isEqualTo(second.getId());
+    }
+
+    @Test
+    void impersonateTakesThePlanOfTheStoryAndAnotherPrompt() throws Exception {
+        llm.fallback(com.github.enerccio.marginalia.test.llm.MockLLMResponse.text("Drafted."));
+
+        run("/impersonate \"x\" \"Chapter 2\" \"DRAFT {{impersonateInstructions}} FOR {{outline}}\"");
+
+        assertThat(llm.lastCompletionRequest().getPromptText()).contains("DRAFT x FOR Chapter 2");
+        assertThatThrownBy(() -> run("/impersonate \"x\" \"\" \"{{#unclosed}}\"")).isInstanceOf(ExecutionException.class);
+    }
+
+    @Test
+    void impersonateIsNotForAgents() {
+        assertThat(commands.getCommands()).filteredOn(definition -> definition.commandName().equals("impersonate"))
+                .isNotEmpty().noneMatch(definition -> definition.availableForAgent());
     }
 }

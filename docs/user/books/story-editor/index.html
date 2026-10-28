@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522787704">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846522787704" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -65,7 +65,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.5.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -183,8 +183,9 @@ from the beginning to the end.</p>
 |---|---|
 | **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part (the parts before it are loaded first when it is not loaded yet). The header shows how many parts the branch has. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |
 | **Lorebook** (left, next to the Outline) | A read only look at the lore of the book, see [The lorebook tab](#the-lorebook-tab). |
-| **Parts** (center) | The text of each part, with its menu (☰) and its metadata on the right. |
-| **Bottom bar** | The **Summaries** button (list icon) and the settings menu (⚙) on the left, the **+** button on the right. |">
+| **Annotations** (left, next to the Outline) | The [notes](annotations.md) on passages of the story, for the whole book. |
+| **Story** (center) | The text of each part, with its menu (☰) and its metadata on the right, and under it the bottom bar. |
+| **Bottom bar** | The **Summaries** button (list icon) and the settings menu (⚙) on the left, the command line, and the **+** button on the right. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -203,25 +204,54 @@ from the beginning to the end.</p>
 <td>A read only look at the lore of the book, see <doc-anchor-trigger to="#the-lorebook-tab">The lorebook tab</doc-anchor-trigger>.</td>
 </tr>
 <tr>
-<td><strong>Parts</strong> (center)</td>
-<td>The text of each part, with its menu (☰) and its metadata on the right.</td>
+<td><strong>Annotations</strong> (left, next to the Outline)</td>
+<td>The <a href="../annotations/">notes</a> on passages of the story, for the whole book.</td>
+</tr>
+<tr>
+<td><strong>Story</strong> (center)</td>
+<td>The text of each part, with its menu (☰) and its metadata on the right, and under it the bottom bar.</td>
 </tr>
 <tr>
 <td><strong>Bottom bar</strong></td>
-<td>The <strong>Summaries</strong> button (list icon) and the settings menu (⚙) on the left, the <strong>+</strong> button on the right.</td>
+<td>The <strong>Summaries</strong> button (list icon) and the settings menu (⚙) on the left, the command line, and the <strong>+</strong> button on the right.</td>
 </tr>
 </tbody>
 </table>
 </div>
 </retype-table>
-<p>The divider between the sidebar and the parts can be dragged. Marginalia remembers where you left it (saved with the book)
-and returns to it when you open the book again.</p>
+<p>This is how a new book looks. All of these are tabs you can arrange as you like, the story included, see
+<doc-anchor-trigger to="#arranging-the-tabs">Arranging the tabs</doc-anchor-trigger>. The divider between the sidebar and the story can be dragged, and Marginalia
+remembers where you left it (saved with the book) and returns to it when you open the book again.</p>
 <p>The story always opens at the bottom, at the newest part. A long book is not drawn all at once: only the last parts are
 loaded, and the earlier ones are added above as you scroll up, without moving the part you are reading. The parts at the
 other end are dropped again, so no more than the <strong>Parts loaded at once in the story</strong> setting of your
 <a href="../../account/">account</a> stay loaded (empty loads all of them). If you scroll faster than the parts arrive, a <em>Loading
 earlier parts</em> (or <em>later parts</em>) mark at the edge says that there is more. Clicking a part in the outline, or finding one
 with the search, loads the parts around it, and starting a new part brings you back to the end of the story.</p>
+<h3 id="searching-the-story">Searching the story</h3>
+<p>Above the outline there is a search field for the text of the <strong>branch you are on</strong> (the search of the story tree
+searches all branches). Because a long book is not loaded all at once, the search of the browser (Ctrl+F) cannot find
+text in the parts that are not loaded; this one can.</p>
+<ul>
+<li>
+<p>Type what you look for; the search starts when you stop typing. Several words must all be in the same part, a phrase
+goes in double quotes (<code translate="no" v-pre>&quot;old key&quot;</code>) and <code translate="no" v-pre>*</code> stands for any characters (<code translate="no" v-pre>light*house</code>). The case does not matter.</p>
+</li>
+<li>
+<p>Every place where a word stands is a match, and they are numbered through the whole branch. Below the field you see
+<em>Match 3 of 27, in part #5</em> and a bar with how far you are. The story scrolls to the match and loads the parts around it
+when they are not loaded.</p>
+</li>
+<li>
+<p>The <strong>up</strong> and <strong>down</strong> buttons go to the previous and the next match (after the last one it goes round to the first).
+<strong>Enter</strong> in the field does the same as the down button, <strong>Shift+Enter</strong> as the up button.</p>
+</li>
+<li>
+<p>All the matches in the loaded parts are highlighted in the text, the match you are at in a stronger colour. Clear the
+field to remove the highlight.</p>
+</li>
+</ul>
+<p>On the phone the search is in the outline drawer; the drawer closes when it shows a match, open it again for the next one.</p>
 <h3 id="the-lorebook-tab">The lorebook tab</h3>
 <p>The <strong>Lorebook</strong> tab of the sidebar shows the lore of the book&#x27;s lorebook without leaving the story, so you do not have to
 swap tabs to check what an entry says. It is a preview: nothing can be changed here, change the lore in the book&#x27;s
@@ -246,10 +276,13 @@ under them; click the arrow of a lorebook to hide its entries. Without it only t
     <img src="../../../images/story-lorebook-tab.png" alt="The Lorebook tab with two entries opened" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
     <figcaption class="caption">The Lorebook tab with two entries opened</figcaption>
 </figure>
-<p>Like every sidebar tab it can be dragged out into a panel of its own, see below.</p>
-<h3 id="arranging-the-sidebar-tabs">Arranging the sidebar tabs</h3>
-<p>The left sidebar is a set of tabs: the <strong>Outline</strong>, the <strong>Lorebook</strong>, and the tabs <a href="../../extensions/">extensions</a> add (Characters, Arcs,
-Side Query...). Drag a tab by its header to rearrange them (desktop only, the drawer on a phone keeps one list):</p>
+<p>Like every tab of the editor it can be dragged out into a panel of its own, see below.</p>
+<h3 id="arranging-the-tabs">Arranging the tabs</h3>
+<p>The editor is a set of tabs: the <strong>Story</strong> itself (the parts and the bottom bar under them), the <strong>Outline</strong>, the <strong>Lorebook</strong>, and the
+tabs <a href="../../extensions/">extensions</a> add (Characters, Arcs, Side Query...). Drag a tab by its header to rearrange
+them (desktop only, the phone keeps one column with the outline in a drawer). A new book has the Outline and the Lorebook in a panel
+on the left and the Story in a column of its own on the right; you can put the story anywhere, for example in the middle with the
+outline on one side and the lore on the other, or above the outline:</p>
 <ul>
 <li>
 <p>Drop it on one of the dashed strips that appear above, between and under the panels of a column to <strong>detach</strong> it into a
@@ -257,7 +290,7 @@ panel of its own in that column; the panels of a column are stacked under each o
 </li>
 <li>
 <p>Drop it on one of the tall strips at the left, right or between the columns to <strong>detach it to the side</strong>: it gets a
-column of its own, next to the others. Widen the sidebar with the divider to make room for more columns.</p>
+column of its own, next to the others. Widen the editor with the dividers to make room for more columns.</p>
 </li>
 </ul>
 <p>The panels and the columns are separated by splitters: drag them to give each panel the room you need. The sizes are saved
@@ -273,6 +306,13 @@ tab, dropping on the body puts it last). A panel that loses its last tab disappe
 <p>The arrangement and the sizes are saved with the book, so it is the same the next time you open it and in every browser; the tab each
 panel shows is remembered with the rest of your workspace. A tab of an extension that is not loaded keeps its place for when
 the extension is back.</p>
+<p>The story is always somewhere: its tab can&#x27;t be closed, and a tab that lives in a panel together with other tabs is hidden
+while another one is selected. Whatever shows a part brings the story back: clicking an entry of the outline, a hit of the
+search, choosing a branch in the <a href="../branches-and-story-tree/">story tree</a>, and starting a generation select the <strong>Story</strong> tab
+first. While a generation runs the other tabs are disabled and only the story stays usable, so you can stop it.</p>
+<p>To go back to the arrangement of a new book, choose <strong>Restore default layout</strong> in the settings menu (⚙) of the story and confirm.
+It only moves the tabs back (and forgets the sizes): your texts, the tab each panel shows and the tabs of extensions stay, the
+latter in the first panel.</p>
 <h2 id="writing-the-next-part">Writing the next part</h2>
 <ol>
 <li>Click <strong>+</strong> in the bottom right corner. The <em>New Turn Instructions</em> panel opens.</li>
@@ -319,7 +359,7 @@ what is different. <em>Instructions</em> starts empty each time.</p>
 <li>Click <strong>Generate</strong>.</li>
 </ol>
 <figure class="content-center">
-    <img src="../../../images/new-turn-instructions.png" alt="The New Turn Instructions panel" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="556" height="541" />
+    <img src="../../../images/new-turn-instructions.png" alt="The New Turn Instructions panel" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="556" height="581" />
     <figcaption class="caption">The New Turn Instructions panel</figcaption>
 </figure>
 <p>The new part appears at the end and fills in as the model writes it. For <a href="../../inference-providers/#reasoning-models">reasoning models</a>
@@ -351,14 +391,61 @@ prompt, the model gets them as <em>Current Location &amp; Time</em>, <em>Point o
         </div>
     </div>
 </div>
+<h3 id="drafting-the-instructions">Drafting the instructions</h3>
+<p>Do not know what should happen next? <strong>Draft Instructions</strong> under the <em>Instructions</em> field of the panel lets the model write
+the instructions in your place, the way you would. A window opens with:</p>
+<retype-table copy-text="| | |
+|---|---|
+| **Guidance** | What the part should be about: a rough idea, a direction (&quot;she confronts him about the letter&quot;), or nothing at all, and the model continues the story where it leads. It starts as what you already typed into *Instructions*. |
+| **Plan of the Story** | Only when something gives one. The [Arc Outline](../extensions/arc-outline.md#drafting-the-instructions-for-the-current-chapter) does, with the data of the current chapter. Read only; the model follows it. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th> </th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Guidance</strong></td>
+<td>What the part should be about: a rough idea, a direction (&quot;she confronts him about the letter&quot;), or nothing at all, and the model continues the story where it leads. It starts as what you already typed into <em>Instructions</em>.</td>
+</tr>
+<tr>
+<td><strong>Plan of the Story</strong></td>
+<td>Only when something gives one. The <a href="../../extensions/arc-outline/#drafting-the-instructions-for-the-current-chapter">Arc Outline</a> does, with the data of the current chapter. Read only; the model follows it.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p><strong>Draft Instructions</strong> starts the model and streams the answer into <strong>Drafted Instructions</strong>, which you can change or empty
+before you go on; <strong>Draft Again</strong> tries once more, <strong>Stop</strong> keeps what has arrived. Nothing is changed until you click
+<strong>Use as Instructions</strong>: the text then replaces the <em>Instructions</em> of the panel (the other fields are not touched) and the panel opens
+again, ready for <strong>Generate</strong>.</p>
+<p>The model gets the story so far (the older story as <a href="../summaries/">summaries</a>, as in a generation), the scene setting, POV and
+present characters that are in the panel, the lore of the last part, your latest instructions as examples of how you write them, your
+guidance and the plan. It does not see your lorebook entries that a new turn would activate. The request is the
+<a href="../prompts/#impersonate-prompt">impersonate prompt</a>. The model is the one of the book; drafting costs tokens like any request.</p>
+<figure class="content-center">
+    <img src="../../../images/impersonate-dialog.png" alt="Drafting the instructions of the next turn" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="900" height="792" />
+    <figcaption class="caption">Drafting the instructions of the next turn</figcaption>
+</figure>
+<p>The same is the command <a href="../../commands/"><code translate="no" v-pre>/impersonate</code></a>, which returns the text. <a href="../../agents/">Agents</a> do not get it, they write
+the story with instructions of their own.</p>
 <h2 id="the-part-menu">The part menu</h2>
 <p>Every part has a menu (☰) in its top right corner:</p>
 <retype-table copy-text="| Item | |
 |---|---|
 | **Edit** | Turns the text into an editable field. **Save** (the same menu item) saves it. Starting a generation or leaving the tab saves open edits too. |
+| **Discard Changes** | Only while the text is edited: closes the field without saving, the part keeps the text it was last saved with. If you changed the text, you are asked first. |
 | **Regenerate** | Writes the last part again, replacing its text. Only on the last part. |
 | **Swipe** | Writes another version of the last part and keeps the old one as a separate branch. Only on the last part. See [Branches &amp; story tree](branches-and-story-tree.md#trying-another-version-of-the-last-part). |
+| **Redraft** | Lets the model write this part again from your instructions, on any part, see [below](#redrafting-a-part). Not while the text is edited. |
+| **Annotate part** | Makes a [note](annotations.md#making-an-annotation) about the whole part. To annotate words, select them and right click (**Annotate selection**). |
+| **Annotate with AI** | Lets a model [review the part](annotations.md#letting-a-model-annotate) and propose notes. Not while the text is edited. For several parts at once use **Annotate a range of parts with AI** in the settings menu (⚙), and for every new part **Automatic annotation** (see [Annotations](annotations.md#annotating-every-new-part-automatically)). |
 | **Branch Story** | Starts a new branch from this part, see [Branches &amp; story tree](branches-and-story-tree.md#branching-from-an-earlier-part). |
+| **Merge into previous part** | Adds the text of this part to the part before it, see [below](#merging-a-part-into-the-previous-one). Not on the first part. |
 | **Show Prompt** | Shows the exact prompt that was sent to the model for this part. |
 | **Token Usage** | Shows how the context of the model was used for this part: a chart of the sections of the prompt (instructions of the model, lore, summaries, story so far, your instructions, room kept for the response) and the size of each message sent to the model. If part of the story did not fit, it says how many parts were left out. Parts written before this was recorded have no chart. |
 | **Images** | Attaches pictures to the part, see [Images](#images). |
@@ -379,6 +466,10 @@ prompt, the model gets them as <em>Current Location &amp; Time</em>, <em>Point o
 <td>Turns the text into an editable field. <strong>Save</strong> (the same menu item) saves it. Starting a generation or leaving the tab saves open edits too.</td>
 </tr>
 <tr>
+<td><strong>Discard Changes</strong></td>
+<td>Only while the text is edited: closes the field without saving, the part keeps the text it was last saved with. If you changed the text, you are asked first.</td>
+</tr>
+<tr>
 <td><strong>Regenerate</strong></td>
 <td>Writes the last part again, replacing its text. Only on the last part.</td>
 </tr>
@@ -387,8 +478,24 @@ prompt, the model gets them as <em>Current Location &amp; Time</em>, <em>Point o
 <td>Writes another version of the last part and keeps the old one as a separate branch. Only on the last part. See <a href="../branches-and-story-tree/#trying-another-version-of-the-last-part">Branches &amp; story tree</a>.</td>
 </tr>
 <tr>
+<td><strong>Redraft</strong></td>
+<td>Lets the model write this part again from your instructions, on any part, see <doc-anchor-trigger to="#redrafting-a-part">below</doc-anchor-trigger>. Not while the text is edited.</td>
+</tr>
+<tr>
+<td><strong>Annotate part</strong></td>
+<td>Makes a <a href="../annotations/#making-an-annotation">note</a> about the whole part. To annotate words, select them and right click (<strong>Annotate selection</strong>).</td>
+</tr>
+<tr>
+<td><strong>Annotate with AI</strong></td>
+<td>Lets a model <a href="../annotations/#letting-a-model-annotate">review the part</a> and propose notes. Not while the text is edited. For several parts at once use <strong>Annotate a range of parts with AI</strong> in the settings menu (⚙), and for every new part <strong>Automatic annotation</strong> (see <a href="../annotations/#annotating-every-new-part-automatically">Annotations</a>).</td>
+</tr>
+<tr>
 <td><strong>Branch Story</strong></td>
 <td>Starts a new branch from this part, see <a href="../branches-and-story-tree/#branching-from-an-earlier-part">Branches &amp; story tree</a>.</td>
+</tr>
+<tr>
+<td><strong>Merge into previous part</strong></td>
+<td>Adds the text of this part to the part before it, see <doc-anchor-trigger to="#merging-a-part-into-the-previous-one">below</doc-anchor-trigger>. Not on the first part.</td>
 </tr>
 <tr>
 <td><strong>Show Prompt</strong></td>
@@ -479,10 +586,163 @@ written from. For the last part they can be changed (changes are saved right awa
 parts are sent to the model as you edited them.</p>
 <p>Editing a part that a <a href="../summaries/">summary</a> covers makes that summary outdated; Marginalia notices it at the next
 generation and drops the summary.</p>
+<h2 id="keyboard-shortcuts">Keyboard shortcuts</h2>
+<p>On a computer (the <a href="../../phone/">phone layout</a> has none) the writing loop works with the keyboard:</p>
+<retype-table copy-text="| Key | |
+|---|---|
+| `+` | Opens the *New Turn Instructions* panel with the cursor in *Instructions*. |
+| `Ctrl+Enter` | Generates from the open panel. `Esc` closes it; the keyboard goes back to the story. |
+| `Ctrl+.` | Stops the generation that runs. |
+| `s` / `r` | **Swipe** / **Regenerate** the last part. |
+| `e` | Opens the editor of the last part. |
+| `Ctrl+S` | Saves the part that is being edited (also while the cursor is in its text). |
+| `/` | Puts the cursor into the command bar (the story tab is shown first). |
+| `Ctrl+Shift+F` | Opens the *Outline* tab and puts the cursor into the search of the branch (`Enter` / `Shift+Enter` go to the next / previous match). |
+| `Ctrl+Shift+H` | Opens the *Search and replace* window of the book. |
+| `a` | **Annotate selection**: makes a note about the text selected in a part. |
+| `Alt+PageDown` / `Alt+PageUp` | Shows the next / previous tab, going through the tabs of all sheets in the order of the layout and round again. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Key</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>+</code></td>
+<td>Opens the <em>New Turn Instructions</em> panel with the cursor in <em>Instructions</em>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Ctrl+Enter</code></td>
+<td>Generates from the open panel. <code translate="no" v-pre>Esc</code> closes it; the keyboard goes back to the story.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Ctrl+.</code></td>
+<td>Stops the generation that runs.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>s</code> / <code translate="no" v-pre>r</code></td>
+<td><strong>Swipe</strong> / <strong>Regenerate</strong> the last part.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>e</code></td>
+<td>Opens the editor of the last part.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Ctrl+S</code></td>
+<td>Saves the part that is being edited (also while the cursor is in its text).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/</code></td>
+<td>Puts the cursor into the command bar (the story tab is shown first).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Ctrl+Shift+F</code></td>
+<td>Opens the <em>Outline</em> tab and puts the cursor into the search of the branch (<code translate="no" v-pre>Enter</code> / <code translate="no" v-pre>Shift+Enter</code> go to the next / previous match).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Ctrl+Shift+H</code></td>
+<td>Opens the <em>Search and replace</em> window of the book.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>a</code></td>
+<td><strong>Annotate selection</strong>: makes a note about the text selected in a part.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Alt+PageDown</code> / <code translate="no" v-pre>Alt+PageUp</code></td>
+<td>Shows the next / previous tab, going through the tabs of all sheets in the order of the layout and round again.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>A key without <code translate="no" v-pre>Ctrl</code>, <code translate="no" v-pre>Alt</code> or <code translate="no" v-pre>Meta</code> (such as <code translate="no" v-pre>+</code>, <code translate="no" v-pre>s</code>, <code translate="no" v-pre>r</code>, <code translate="no" v-pre>e</code>, <code translate="no" v-pre>a</code>, <code translate="no" v-pre>/</code>) works only when no text field has the focus, so it
+never gets in the way of typing. The shortcuts work in the story tab of the open book and not while another window is
+open above it. The buttons show their key in the tooltip, and the menu of the last part shows it after <em>Edit</em>, <em>Regenerate</em> and <em>Swipe</em>. On a Mac <code translate="no" v-pre>Cmd</code> works where a key says <code translate="no" v-pre>Ctrl</code> (unless you gave that <code translate="no" v-pre>Cmd</code> key to another action). You can change every key in
+<a href="../../account/#keyboard-shortcuts">Settings → Keyboard shortcuts</a>.</p>
 <h2 id="deleting-a-part">Deleting a part</h2>
 <p><strong>Delete</strong> removes the part from the story. The parts that followed it stay and continue from the part before it, so
 deleting a part in the middle of the story just takes it out. Deleting the last part makes the part before it the new
 end of the branch.</p>
+<h2 id="redrafting-a-part">Redrafting a part</h2>
+<p><strong>Regenerate</strong> and <strong>Swipe</strong> work on the last part only and write it from scratch. <strong>Redraft</strong> works on any part, also an
+old one in the middle of the story, and keeps what you do not ask to change. Choose <strong>Redraft</strong> in the menu of the part:</p>
+<ol>
+<li>
+<p>Write what should change in <strong>Instructions for the redraft</strong>: <em>add more dialogue between the two</em>, <em>make the fight
+longer</em>, <em>remove the explanation of the map</em>, <em>keep the ending as it is</em>. Empty instructions write the part again with
+the same events.</p>
+</li>
+<li>
+<p>Choose <strong>Redraft</strong>. The text streams into <strong>Redrafted text</strong>; <strong>Stop</strong> ends it early. Choose <strong>Redraft again</strong> for
+another try, with other instructions if you like. <strong>Differences</strong> shows what changed against the part, word by word.
+When the part has open <a href="../annotations/">annotations</a>, <strong>Deal with the open annotations of the part</strong> (checked at first)
+gives them to the model as well, and <strong>Apply</strong> marks them resolved.</p>
+</li>
+<li>
+<p>The redrafted text is a field you can still edit (its corner icon makes it grow to fit the whole text), and <strong>Differences</strong> follows your edits. <strong>Apply</strong> replaces the text of the part with it; <strong>Close</strong> throws it
+away. Nothing in the book changes before <strong>Apply</strong>.</p>
+</li>
+</ol>
+<figure class="content-center">
+    <img src="../../../images/redraft-dialog.png" alt="The redraft window: the instructions, the new text and the differences" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="900" height="792" />
+    <figcaption class="caption">The redraft window: the instructions, the new text and the differences</figcaption>
+</figure>
+<p>The model gets the <a href="../prompts/#redraft-prompt">redraft prompts</a>: the part, your instructions, the story before
+the part (the older story as <a href="../summaries/">summaries</a> where there are valid ones, the rest as text, the newest part first
+when it does not all fit), as much of the story after the part as fits (up to a quarter of the room), the lore the part
+was written with, the point of view, tense and style of the book, and the scene setting, point of view character, present
+characters and instructions of the turn the part came from. The story after the part is there so the new text still leads
+into it: events the following parts rely on should stay.</p>
+<p>The part keeps its place, its summary, its pictures and how it was generated; the text, its words and tokens are replaced
+and the part counts as edited. Applying the redraft is an edit like <strong>Save</strong> in the editor, so <a href="../summaries/">summaries</a>
+that describe the old text become outdated, and Marginalia tells how many. A summary on the part itself is one of them.</p>
+<p>When a summary describes the part (the part has one, or a newer part of the branch does), the window has the checkbox
+<strong>Revalidate the summaries this redraft makes outdated</strong>, unchecked at first. Check it when the summaries still say the
+right thing (the redraft changed the wording, not what happens): <strong>Apply</strong> then works out their hash again and they stay
+valid. Leave it unchecked when the events changed, and make the summaries again.</p>
+<h3 id="redrafting-only-a-passage">Redrafting only a passage</h3>
+<p>To rewrite a few sentences and leave the rest of the part alone, select them in the text of the part and <strong>right click</strong> (a
+long press on a phone): the menu has <strong>Redraft selection</strong>. (The menu ☰ of the part is not offered for this, opening it can
+lose the selection in some browsers.) The window works as above with two differences: it shows the <strong>Selected text</strong>, and the
+redraft is only the text that replaces it. The model gets the whole part with the selection marked, and the story and lore
+around it, so the new passage joins the sentences before and after it. <strong>Differences</strong> compares the selection with the
+redrafted text; <strong>Apply</strong> puts the redrafted text in the place of the selection and keeps the rest of the part, including the
+space or line break at the edges of the selection. With open <a href="../annotations/">annotations</a> the check box offers only the ones
+whose passage overlaps the selection. If the part was changed after you selected the text (in another window), <strong>Apply</strong> refuses
+and you select it again. While the part is edited the selection in the editor is used, and the edit is saved first.</p>
+<h2 id="merging-a-part-into-the-previous-one">Merging a part into the previous one</h2>
+<p>A model that stopped in the middle of a sentence (the response limit, a cut connection) cannot be told to &quot;continue&quot; the
+same text reliably. Write the next part instead (<em>continue from where the last part stopped</em>) and join the two with
+<strong>Merge into previous part</strong> in the menu of the second one. A review opens:</p>
+<ul>
+<li>
+<p><strong>Join the texts with</strong>: an empty line, a line break, a space or nothing. It is preselected from the end of the previous
+text: a paragraph after a text that ended a sentence, a space after one that was cut.</p>
+</li>
+<li>
+<p>The <strong>scene setting</strong>, <strong>POV character</strong>, <strong>present characters</strong> and <strong>instructions</strong> of both turns, combined in fields
+you can edit. What the two turns have in common at the start is kept once (&quot;Write the duel. Keep it short&quot; and &quot;Write the
+duel. Add rain&quot; give the first, and &quot;Add rain&quot; on the next line).</p>
+</li>
+<li>
+<p><strong>Data</strong>: what the two parts keep, value by value (for example the <a href="../../templates/macros/">variables</a> of the story
+and the data of extensions), with whether the value is the same, different or only on one of the parts. The merged part
+keeps the value of the <strong>later part</strong> (it is where the story stands now) unless you choose the value of the previous
+part for it, or leave the value out. Values that are the same are hidden unless you ask for them.</p>
+</li>
+</ul>
+<figure class="content-center">
+    <img src="../../../images/part-merge-dialog.png" alt="The review before a part is merged into the previous one" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="900" height="792" />
+    <figcaption class="caption">The review before a part is merged into the previous one</figcaption>
+</figure>
+<p>The previous part keeps its place, its summary and how it was generated (prompt, model, times); it gets the joined text,
+the joined reasoning and pictures, and its words and tokens are counted again. The part you merged is deleted (it is in
+the <a href="../../trash/">Trash</a>) and what followed it continues from the previous part. Summaries that cover the two parts become
+outdated, as after an edit. The part cannot be merged when it is the first part of the book, or when the part before it has
+other continuations (swipes of the part): delete them or make them a branch first.</p>
 <h2 id="images">Images</h2>
 <p>A part can have pictures: a map, a character portrait, an illustration. Choose <strong>Images</strong> in the part menu to open the
 list of the pictures of the part.</p>
@@ -534,6 +794,17 @@ part that uses it. The file itself stays in the data folder.</p>
 <p>The <strong>Summaries</strong> button in the bottom bar (left of the settings menu ⚙) opens the overview of the summaries of the
 branch, where they can be edited, deleted and merged into meta summaries. The tooltip of the button shows how many
 tokens the summaries in use take in the prompt. See <a href="../summaries/#the-summaries-overview">Summaries</a>.</p>
+<h2 id="how-much-of-the-context-the-story-takes">How much of the context the story takes</h2>
+<p>The settings menu (⚙) has <strong>Branch Tokens</strong>. It shows, before you generate anything, what the story of the active branch
+takes of the prompt: a bar for the story <strong>without summaries</strong> (all the parts) and <strong>with summaries</strong> (the summaries
+and the parts after the newest one), and a table with the parts, the tokens and the share of the <strong>prompt budget</strong>
+(the context of the book&#x27;s model minus the room for the response). Only summaries that still describe the story count;
+the ones that no longer match are named, they are dropped when a part is generated. The lore, the system template and the
+instructions of the turn take room from the same budget. Without a model with a context size the table has no shares.</p>
+<figure class="content-center">
+    <img src="../../../images/branch-tokens.png" alt="Branch Tokens" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="750" height="641" />
+    <figcaption class="caption">Branch Tokens</figcaption>
+</figure>
 <h2 id="book-styles">Book styles</h2>
 <p>The settings menu (⚙) in the bottom bar has <strong>Change Styles For Text</strong>. It switches the text of the parts between the
 normal look of the application and a book-like reading style (the one the <a href="../publishing/">viewer</a> uses). The setting
@@ -562,7 +833,7 @@ while. The command line is only in the story tab of the desktop layout so far.</
 <p>The settings menu (⚙) also has <strong>Search and replace</strong>, which changes a word, a name or a phrase in the whole story at
 once. The window has a <strong>Search for</strong> and a <strong>Replace with</strong> field and these options:</p>
 <figure class="content-center">
-    <img src="../../../images/story-settings-menu.png" alt="The settings menu with Search and replace" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="520" height="330" />
+    <img src="../../../images/story-settings-menu.png" alt="The settings menu with Search and replace" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="455" height="474" />
     <figcaption class="caption">The settings menu with Search and replace</figcaption>
 </figure>
 <figure class="content-center">
@@ -645,6 +916,7 @@ summary that was outdated already stays so.</p>
 </figure>
 <p>In the <a href="../../phone/">phone layout</a> the same window has the fields and buttons below each other, and the table has one
 column that shows the type and id, and below them the match and the replacement.</p>
+<p>The <a href="../summaries/#search-and-replace-in-the-summaries">Summaries overview</a> has the same window for the summaries only.</p>
 <p>The same search and replace can be run from the <a href="../../commands/#commands-that-come-with-marginalia">command line</a>
 with <code translate="no" v-pre>/search-replace-parts</code>; it asks before it replaces.</p>
 <h2 id="importing-text-files">Importing text files</h2>
@@ -689,11 +961,11 @@ tense, style and <a href="../summaries/">summaries</a>. The jailbreak prompt of 
             
                 <nav id="retype-nextprev" class="print:hidden flex mt-14">
                     <div class="w-1/2">
-                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../../user/books/managing-books/">
+                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../../user/books/annotations/">
                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                             <span>
                                 <span class="block text-xs font-normal text-base-text-muted">Previous</span>
-                                <span class="block mt-1">Managing books</span>
+                                <span class="block mt-1">Annotations</span>
                             </span>
                         </a>
                     </div>
@@ -717,7 +989,7 @@ tense, style and <a href="../summaries/">summaries</a>. The jailbreak prompt of 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (60a4afd23).</p></div>
             </footer>
         </div>
     </div>

@@ -117,11 +117,13 @@ public class HelpAssistantServiceImpl implements HelpAssistantService {
             throws Exception {
         Target target = target().orElseThrow(() -> new InferenceException(Type.NOT_AVAILABLE, null, null, null));
         InferenceService service = inferenceServices.forAIOrThrow(target.ai());
-        if (target.metered()) {
-            return service.stream(payload, null, functions, callback);
-        }
-        try (UnmeteredScope _ = UnmeteredScope.open()) {
-            return service.stream(payload, null, functions, callback);
+        try (InferenceSession _ = InferenceSession.open(InferenceSession.HELP)) {
+            if (target.metered()) {
+                return service.stream(payload, null, functions, callback);
+            }
+            try (UnmeteredScope _ = UnmeteredScope.open()) {
+                return service.stream(payload, null, functions, callback);
+            }
         }
     }
 

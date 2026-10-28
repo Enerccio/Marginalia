@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522787704">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846522787704" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846005664026" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846522787704" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -60,7 +60,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.5.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -205,25 +205,22 @@ components are shared with the application and every other plugin.</p>
 </ol>
 <h2 id="recipes">Recipes</h2>
 <h3 id="menu-items-on-a-story-part">Menu items on a story part</h3>
-<p>Decorate <code translate="no" v-pre>ManuscriptStoryPart$ChatMessageCard.createMenuItems</code> (called when the menu of the card is opened for the first
-time, not when the card is created) and add to the <code translate="no" v-pre>hamburgerMenu</code> field. The card&#x27;s <code translate="no" v-pre>message</code> field is the part. Reviewer adds a sub-menu:</p>
-<div id="menu-items-on-a-story-part-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-java"><code v-pre class="language-java">MenuItem reviewMenuItem = hamburgerMenu.addItem(&quot;Review&quot;);
-reviewMenuItem.addComponentAsFirst(VaadinIcon.STAR.create());
-reviewMenuItem.getSubMenu().addItem(&quot;View / Generate Review&quot;, e -&gt; openReviewDialog(message));</code></pre>
-</doc-codeblock></div>
-<p>To update items each time the menu opens, decorate <code translate="no" v-pre>refreshSummaryMenuItems</code>, which the card runs each time the menu is about to open (after
-<code translate="no" v-pre>createMenuItems</code> the first time). It can also run before the menu was ever opened: the items are not created then, so
-check what you read from the menu for <code translate="no" v-pre>null</code>.</p>
-<p>The card replaces its <code translate="no" v-pre>message</code> with the saved copy whenever the part is edited, so read the field again in the click
-listener (<code translate="no" v-pre>context.getReflectiveFieldValue(card, &quot;message&quot;, ...)</code>) rather than capturing it when the menu is built.</p>
+<p>Use the <doc-anchor-trigger to="#menu-items-of-the-story-editor">menu registry</doc-anchor-trigger> below: an item of the menu of a part (☰ on a card) is a <code translate="no" v-pre>StoryMenuItem.card(..)</code>, with its
+sub menus, its state worked out each time the menu opens and a row in the key bindings. It works on the desktop and the phone story tab alike.
+Reviewer registers its <em>Review</em> sub menu this way (<code translate="no" v-pre>ReviewerExtension</code>).</p>
+<p>The older way still works: decorate <code translate="no" v-pre>ManuscriptStoryPart$ChatMessageCard.createMenuItems</code> (called when the menu of the card is opened for the first
+time, not when the card is created, after the registry items were added) and add to the <code translate="no" v-pre>hamburgerMenu</code> field; the card&#x27;s <code translate="no" v-pre>message</code> field is the part.
+Such an item has no shortcut row, no key hint and you have to remove it yourself on unload. To update items each time the menu opens, decorate
+<code translate="no" v-pre>refreshSummaryMenuItems</code>, which the card runs each time the menu is about to open. It can also run before the menu was ever opened: the items are
+not created then, so check what you read from the menu for <code translate="no" v-pre>null</code>. The card replaces its <code translate="no" v-pre>message</code> with the saved copy whenever the part is
+edited, so read the field again in the click listener rather than capturing it when the menu is built.</p>
 <h3 id="the-story-menu-bar">The story menu bar</h3>
 <p>The bottom bar of the story editor has a menu bar with the <strong>Summaries</strong> item and the settings item (⚙). It is built
 by small methods of <code translate="no" v-pre>ManuscriptStoryPart</code> that get the bar as an argument (<code translate="no" v-pre>bar</code>), so decorate one of them on leave:</p>
 <retype-table copy-text="| Method | Add to |
 |---|---|
 | `populateMenuBar(bar)` | The bar itself - a new item next to the summaries and the settings item. The method is empty and runs after the application's items were added. |
-| `createCogsMenuItem(bar)` | The settings menu: the local variable `cogs` is its `MenuItem`, add to `cogs.getSubMenu()`. |">
+| `createCogsMenuItem(bar)` | The settings menu: the local variable `cogs` is its `MenuItem`, add to `cogs.getSubMenu()` (an item of the [registry](#menu-items-of-the-story-editor) is better: it gets a key and no cleanup). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -239,7 +236,7 @@ by small methods of <code translate="no" v-pre>ManuscriptStoryPart</code> that g
 </tr>
 <tr>
 <td><code translate="no" v-pre>createCogsMenuItem(bar)</code></td>
-<td>The settings menu: the local variable <code translate="no" v-pre>cogs</code> is its <code translate="no" v-pre>MenuItem</code>, add to <code translate="no" v-pre>cogs.getSubMenu()</code>.</td>
+<td>The settings menu: the local variable <code translate="no" v-pre>cogs</code> is its <code translate="no" v-pre>MenuItem</code>, add to <code translate="no" v-pre>cogs.getSubMenu()</code> (an item of the <doc-anchor-trigger to="#menu-items-of-the-story-editor">registry</doc-anchor-trigger> is better: it gets a key and no cleanup).</td>
 </tr>
 </tbody>
 </table>
@@ -255,8 +252,8 @@ not when it is built - the story editor loads other books into the same instance
 <p>Instruction Exporter is the small example of the settings menu: it adds <strong>Export instructions</strong> to <code translate="no" v-pre>cogs.getSubMenu()</code> and
 copies the text with <code translate="no" v-pre>navigator.clipboard.writeText</code> (plugins keep their own scripts).</p>
 <h3 id="tools-in-the-summaries-overview">Tools in the summaries overview</h3>
-<p><code translate="no" v-pre>SummariesDialog</code> (the overview of the summaries, opened from the <strong>Summaries</strong> item) has an empty menu bar above its
-grid. Decorate <code translate="no" v-pre>populateMenuBar(bar)</code> on leave and add items to the argument <code translate="no" v-pre>bar</code>. A new dialog (and menu bar) is
+<p><code translate="no" v-pre>SummariesDialog</code> (the overview of the summaries, opened from the <strong>Summaries</strong> item) has a menu bar above its
+grid, with the item <em>Search and Replace</em> of the application in it. Decorate <code translate="no" v-pre>populateMenuBar(bar)</code> on leave and add items to the argument <code translate="no" v-pre>bar</code>. A new dialog (and menu bar) is
 created every time the overview opens, so the decorator runs for each of them. The dialog&#x27;s fields (<code translate="no" v-pre>manuscript</code>,
 <code translate="no" v-pre>treeGrid</code>) are reachable by reflection; to reload the grid after your tool changed the summaries, close and reopen
 the dialog, or call its private <code translate="no" v-pre>refresh()</code> with <code translate="no" v-pre>callReflectiveMethod</code>.</p>
@@ -280,11 +277,15 @@ if (leftBar != null &amp;&amp; book != null &amp;&amp; ComponentUtil.getData(lef
 </doc-codeblock></div>
 <p>The tab dock (and so the plugin&#x27;s component) lives as long as the story part, a redraw does not recreate it.</p>
 <p><code translate="no" v-pre>leftBar</code> is a <code translate="no" v-pre>TabDock</code> (<code translate="no" v-pre>ui.widgets</code>; since 1.3.0, before it was a <code translate="no" v-pre>VTabSheet</code>): on the desktop the user can drag its tabs
-into panels of their own, stacked or side by side, and <code translate="no" v-pre>add</code>/<code translate="no" v-pre>remove</code> find the tab wherever it is now. Give the tab a <strong>stable id</strong> of your own
+into panels of their own, stacked or side by side, and <code translate="no" v-pre>add</code>/<code translate="no" v-pre>remove</code> find the tab wherever it is now. Since 1.5.0 the story
+itself is a tab of this dock (the id <code translate="no" v-pre>story</code>), so the dock is the whole editor and the user may put the story and your tab in
+any arrangement; a tab the saved layout does not know still lands in the first sheet, the sidebar of a new book. A tab that
+is not the selected one of its sheet is hidden and its content disabled (the sheet does that), so do not expect events from your
+component then; <code translate="no" v-pre>leftBar.select(id)</code> shows a tab. Give the tab a <strong>stable id</strong> of your own
 (<code translate="no" v-pre>add(id, caption, content)</code>, not the localized caption): the layout the user made is saved with the book by these ids, and
 a tab added later or after the extension was off lands where the user left it. <code translate="no" v-pre>add(caption, content)</code> uses the caption as
-the id. The ids <code translate="no" v-pre>chapters</code> (the outline) and <code translate="no" v-pre>lorebook</code> (the read only lorebook preview, desktop only) belong to the application; a tab
-with the same id would replace them. Remove the tab with <code translate="no" v-pre>leftBar.remove(view)</code>. The phone drawer has a <code translate="no" v-pre>TabDock</code> too, but with the detaching off.</p>
+the id. The ids <code translate="no" v-pre>chapters</code> (the outline), <code translate="no" v-pre>lorebook</code> (the read only lorebook preview, desktop only) and <code translate="no" v-pre>story</code> (since 1.5.0) belong to the
+application; a tab with the same id would replace them. Remove the tab with <code translate="no" v-pre>leftBar.remove(view)</code>. The phone drawer has a <code translate="no" v-pre>TabDock</code> too, but with the detaching off.</p>
 <h3 id="panels-in-an-existing-layout">Panels in an existing layout</h3>
 <p>Find the layout and insert at a position relative to a known child. Lorebook VCS puts its panel above the lorebook
 header that <code translate="no" v-pre>LorebookView.create()</code> builds:</p>
@@ -319,6 +320,131 @@ sidebarBtn.addClassNames(CssStyles.TEXT_PRIMARY, CssStyles.TEXT_SEMIBOLD);</code
 </doc-codeblock></div>
 <p>If more plugins change the same component, they run in the order they were loaded and the last one wins - append
 or prefix rather than replace where you can.</p>
+<h3 id="keyboard-shortcuts">Keyboard shortcuts</h3>
+<p>Shortcuts work in the desktop layout only (the phone twin of the story has none). Register an action with a default key; it is listed in
+<em>Settings → Keyboard shortcuts</em>, where the user can change or clear the key, and the handler runs when the key is pressed
+in the open story tab (not while a generation runs). The handler gets the component of the story tab.</p>
+<div id="keyboard-shortcuts-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">ShortcutRegistry.register(new ShortcutAction(&quot;myplugin.summarize&quot;,
+        loc -&gt; &quot;Summarize the last part&quot;,      // the name in the table, in the language of the session
+        &quot;Ctrl+Shift+y&quot;,                         // canonical key combination (KeyCombo), null for none
+        storyTab -&gt; summarizeLastPart(storyTab)));</code></pre>
+</doc-codeblock></div>
+<p>Prefix the id with the plugin name. A key without Ctrl/Alt/Meta fires only when no text field has the focus; avoid keys
+the browser keeps (<code translate="no" v-pre>Ctrl+N/T/W</code>) and <code translate="no" v-pre>Alt</code> with a letter (types a character on a Mac). Unregister in <code translate="no" v-pre>onExtensionUnload</code>
+(<code translate="no" v-pre>ShortcutRegistry.unregister(id)</code>); the stored key of the user stays for when the plugin is back.</p>
+<h3 id="menu-items-of-the-story-editor">Menu items of the story editor</h3>
+<p>Three menus of the story editor are filled from the <code translate="no" v-pre>StoryMenuRegistry</code> (<code translate="no" v-pre>ui.menu</code>): the <strong>settings menu</strong> (⚙ at the bottom, <code translate="no" v-pre>StoryMenuItem.tools</code>), the
+<strong>menu of a part</strong> (☰ on a card, <code translate="no" v-pre>StoryMenuItem.card</code>) and the <strong>right click menu of the text of a part</strong> (long press on a phone,
+<code translate="no" v-pre>StoryMenuItem.text</code>). Registering an item instead of decorating a method gives you:</p>
+<ul>
+<li>the item on the <strong>desktop and the phone</strong> story tab with one definition (<code translate="no" v-pre>.phone(false)</code> for desktop only),</li>
+<li>a row in <em>Settings → Keyboard shortcuts</em> (a default key, or none) and the key of the user shown next to the item,</li>
+<li>text, visibility and enabled / ticked state that are <strong>worked out each time the menu opens</strong>, so an item can depend on the part,</li>
+<li><strong>sub menus</strong> whose items come and go,</li>
+<li>no cleanup: the items are removed with <code translate="no" v-pre>unregisterAll(owner)</code> (and a bundle that is unloaded loses the rest by itself).</li>
+</ul>
+<p><strong>1. Get the registry.</strong> The extension class is <code translate="no" v-pre>@Configurable</code>, so inject it like any service:</p>
+<div id="menu-items-of-the-story-editor-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">@Configurable
+public class MyExtension implements MarginaliaExtension {
+    @Autowired
+    private StoryMenuRegistry menuRegistry;
+
+    @Override
+    public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
+        menuRegistry.register(bundle.getSymbolicName(),
+                StoryMenuItem.tools(&quot;myplugin.export&quot;, loc -&gt; &quot;Export my format&quot;,
+                                story -&gt; exportBook(story.getCurrentManuscript()))
+                        .icon(Solid.FILE_EXPORT::create));
+    }
+
+    @Override
+    public void onExtensionUnload(Bundle bundle, OsgiService osgiService, ExtensionService extensionService) {
+        menuRegistry.unregisterAll(bundle.getSymbolicName());
+    }
+}</code></pre>
+</doc-codeblock></div>
+<p>The first argument is the <strong>owner</strong> (use the bundle&#x27;s symbolic name); the key of an item (<code translate="no" v-pre>&quot;myplugin.export&quot;</code>) identifies it, so prefix it with your plugin&#x27;s name.
+Registering a key again replaces the item. Instruction Exporter is the whole of this example.</p>
+<p><strong>2. Choose the menu and the callback.</strong> What the callback gets depends on the menu:</p>
+<retype-table copy-text="| Factory | Menu | Callback |
+|---|---|---|
+| `StoryMenuItem.tools(key, label, action)` | settings menu | `Consumer&lt;StoryEditor&gt;`: `story -&gt; ...` |
+| `StoryMenuItem.card(key, label, action)` | menu of a part | `BiConsumer&lt;StoryEditor, StoryCard&gt;`: `(story, card) -&gt; ...` |
+| `StoryMenuItem.text(key, label, action)` | right click menu of the text | `BiConsumer&lt;StoryEditor, StoryCard&gt;` |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Factory</th>
+<th>Menu</th>
+<th>Callback</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>StoryMenuItem.tools(key, label, action)</code></td>
+<td>settings menu</td>
+<td><code translate="no" v-pre>Consumer&lt;StoryEditor&gt;</code>: <code translate="no" v-pre>story -&gt; ...</code></td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>StoryMenuItem.card(key, label, action)</code></td>
+<td>menu of a part</td>
+<td><code translate="no" v-pre>BiConsumer&lt;StoryEditor, StoryCard&gt;</code>: <code translate="no" v-pre>(story, card) -&gt; ...</code></td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>StoryMenuItem.text(key, label, action)</code></td>
+<td>right click menu of the text</td>
+<td><code translate="no" v-pre>BiConsumer&lt;StoryEditor, StoryCard&gt;</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p><code translate="no" v-pre>label</code> is a <code translate="no" v-pre>Function&lt;Localization, String&gt;</code> (<code translate="no" v-pre>loc -&gt; &quot;My item&quot;</code>, or <code translate="no" v-pre>loc -&gt; loc.getValue(L.X)</code> for text of the application; a plugin cannot add keys to <code translate="no" v-pre>L</code>, use
+<code translate="no" v-pre>Localization.getCurrentLanguage()</code> for your own table), and the overloads with an <code translate="no" v-pre>L</code> key are for the application&#x27;s own items. The label is also the
+name of the action in the key bindings table, so make it say what the action does.</p>
+<p><code translate="no" v-pre>StoryEditor</code> is the story tab (the desktop or the phone one): <code translate="no" v-pre>getCurrentManuscript()</code> (the book it shows <strong>now</strong>, read it when the action runs, the tab loads other
+books into the same instance), <code translate="no" v-pre>openSearchReplaceDialog()</code>, <code translate="no" v-pre>openExportDialog()</code>, <code translate="no" v-pre>toggleBookStyles()</code>... <code translate="no" v-pre>StoryCard</code> is the card of the part the menu is of:
+<code translate="no" v-pre>getMessage()</code> (the <code translate="no" v-pre>ChatMessage</code>, the card replaces it with the saved copy, so read it each time), <code translate="no" v-pre>isEditing()</code>, <code translate="no" v-pre>isLast()</code>, and the actions of the part
+(<code translate="no" v-pre>toggleEdit()</code>, <code translate="no" v-pre>swipe()</code>, <code translate="no" v-pre>branch()</code>, <code translate="no" v-pre>annotatePart()</code>...). The callback runs on the UI thread of the user, in a request, as any click listener.</p>
+<p><strong>3. Describe when it shows.</strong> All of these are optional and are asked again each time the menu opens (and after an item of the settings menu ran):</p>
+<div id="menu-items-of-the-story-editor-code-2" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">StoryMenuItem.card(&quot;myplugin.summarize&quot;, loc -&gt; &quot;Summarize with notes&quot;,
+                (story, card) -&gt; summarize(card.getMessage()))
+        .icon(VaadinIcon.NOTEBOOK::create)                       // a new Icon per menu
+        .defaultKey(&quot;Ctrl+Shift+y&quot;)                              // KeyCombo text, null (the default) for no key
+        .visibleWhen((story, card) -&gt; card.getMessage().getId() != null)
+        .enabledWhen((story, card) -&gt; !card.isEditing())
+        .contextLabel((loc, story, card) -&gt; card.isLast() ? &quot;Summarize (last part)&quot; : &quot;Summarize&quot;)   // the text in the menu
+        .phone(false)                                            // not on the phone</code></pre>
+</doc-codeblock></div>
+<p>A tools item can be a check box: <code translate="no" v-pre>.checkedWhen(story -&gt; story.isShowGeneratedDiff())</code> (the action switches whatever the predicate reads; a ticked item is
+refreshed after the action ran). <code translate="no" v-pre>.actionId(&quot;myplugin.summarize&quot;)</code> gives the item the id of its key binding when it is not <code translate="no" v-pre>menu.&lt;key&gt;</code> (keep it when you
+rename the item and the user has a key stored), and <code translate="no" v-pre>.hintAction((story, card) -&gt; id)</code> shows the key of another action (the <em>Edit</em> item shows the key of saving while the text is edited).</p>
+<p><strong>4. Sub menus.</strong> An item that only holds other items has no callback; its items name it with <code translate="no" v-pre>parent(key)</code> (any depth). Reviewer:</p>
+<div id="menu-items-of-the-story-editor-code-3" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">menuRegistry.register(owner, StoryMenuItem.card(&quot;reviewer.review&quot;, l -&gt; &quot;Review&quot;, null).icon(VaadinIcon.STAR::create));
+menuRegistry.register(owner, StoryMenuItem.card(&quot;reviewer.review.view&quot;, l -&gt; &quot;View / Generate Review&quot;, (story, card) -&gt; openReview(card))
+        .parent(&quot;reviewer.review&quot;));
+menuRegistry.register(owner, StoryMenuItem.card(&quot;reviewer.review.delete&quot;, l -&gt; &quot;Delete Review&quot;, (story, card) -&gt; deleteReview(card))
+        .enabledWhen((story, card) -&gt; card != null &amp;&amp; hasReview(card.getMessage()))      // the state follows the part
+        .parent(&quot;reviewer.review&quot;));</code></pre>
+</doc-codeblock></div>
+<p>A parent must be registered before its items; an item whose parent is missing (or not shown on the phone) is left out. Items appear in the order of registration, after the
+application&#x27;s.</p>
+<p><strong>5. Keys.</strong> Every item with a callback is an action of <em>Settings → Keyboard shortcuts</em> (the id is <code translate="no" v-pre>menu.&lt;key&gt;</code> or the <code translate="no" v-pre>actionId</code> you gave) from the moment it is registered, with
+<code translate="no" v-pre>defaultKey</code> or without. A key of a <code translate="no" v-pre>card</code> or <code translate="no" v-pre>text</code> item acts on the part that is being edited, else the part that holds the text selection, else the last part, and on the last
+part when the item is not visible or enabled for the chosen one (the same predicates decide). A <code translate="no" v-pre>tools</code> item needs no part. Shortcuts work on the desktop only.
+Pick a default that the browser does not keep (<code translate="no" v-pre>Ctrl+N/T/W</code>, <code translate="no" v-pre>Alt</code> with a letter on a Mac) or none.</p>
+<p><strong>6. What happens on unload and reload.</strong> <code translate="no" v-pre>unregisterAll(owner)</code> removes the items from the registry and from the key bindings table. Menus that are open keep the Vaadin items they were
+built with, but an unregistered item is retired: it is hidden the next time its menu is refreshed (a part menu when it opens, the settings menu after any of its items ran or the
+story tab is entered) and it runs nothing. Registering the same key again (a reloaded extension) replaces the item. New menus, and part menus that are opened for the first
+time, have the items registered at that moment; a menu that was built before your extension loaded does not get them until the story is opened again.</p>
+<p>The hooks <code translate="no" v-pre>createCogsMenuItem</code> and <code translate="no" v-pre>createMenuItems</code> stay for plugins that add other things than items (a decorated method can do anything), and what a decorator adds directly is not
+managed by the registry. Test your items without a browser as the application does (<code translate="no" v-pre>StoryMenuRegistryTest</code>): <code translate="no" v-pre>registry.definition(kind, phone, bindings).build(new ContextMenu(), loc, story, () -&gt; card)</code>
+returns a <code translate="no" v-pre>BuiltMenu</code> whose items (<code translate="no" v-pre>get(key)</code>) can be inspected and clicked with stub implementations of <code translate="no" v-pre>StoryEditor</code> and <code translate="no" v-pre>StoryCard</code>.</p>
 <h3 id="settings-panels">Settings panels</h3>
 <p>The <em>Settings</em> screen (<code translate="no" v-pre>UserPart</code>) has an <em>Extension Settings</em> tab with an <code translate="no" v-pre>Accordion</code> in the field
 <code translate="no" v-pre>extensionSettings</code>, empty unless plugins add to it. The bundled plugins use two decorators:</p>
@@ -361,13 +487,68 @@ Charts are the exception: the application&#x27;s <code translate="no" v-pre>Char
 JSON, so a plugin can show a chart without a frontend module of its own.</p>
 </li>
 <li>
-<p><strong>Add localization keys.</strong> <code translate="no" v-pre>Localization</code> knows only the application&#x27;s <code translate="no" v-pre>L</code> keys. The bundled plugins use English
-strings; a plugin that wants translations of its own texts has to bring its own (a <code translate="no" v-pre>ResourceBundle</code> in the bundle,
-chosen by <code translate="no" v-pre>Localization.getCurrentLanguage()</code>). A plugin can add a <em>language</em> for the application&#x27;s texts,
-see <a href="../example/#walkthrough-chinese-localization">Example plugin → Chinese localization</a>.</p>
+<p><strong>Add localization keys.</strong> <code translate="no" v-pre>Localization</code> knows only the application&#x27;s <code translate="no" v-pre>L</code> keys. A plugin translates the texts of
+its own UI with a <code translate="no" v-pre>PluginLocalizationBundle</code> (<doc-anchor-trigger to="#texts-in-several-languages">Texts in several languages</doc-anchor-trigger>). A plugin
+can also add a <em>language</em> for the application&#x27;s texts, see
+<a href="../example/#walkthrough-chinese-localization">Example plugin → Chinese localization</a>.</p>
 </li>
 <li>
 <p><strong>Add routes.</strong> Routes are registered when the servlet starts. Use dialogs and tabs instead.</p>
+</li>
+</ul>
+<h3 id="texts-in-several-languages">Texts in several languages</h3>
+<p>A plugin can&#x27;t add keys to the <code translate="no" v-pre>L</code> enum, so the texts of its UI are the English sentences themselves.
+<code translate="no" v-pre>PluginLocalizationBundle</code> (package <code translate="no" v-pre>extensions</code>) turns one into the text of the language of the current session
+(<code translate="no" v-pre>Localization.getCurrentLanguage()</code>): <code translate="no" v-pre>localized(message)</code> returns the translation, and the English <code translate="no" v-pre>message</code> when the
+language has none, so a language or a text that is missing shows English. The bundled plugins have one subclass each and
+call it through a static field:</p>
+<div id="texts-in-several-languages-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">public class InstructionExporterLocalization extends PluginLocalizationBundle {
+
+    public static final InstructionExporterLocalization T = new InstructionExporterLocalization();
+
+    @Override
+    protected void loadKeys() {
+        ja(&quot;Export instructions&quot;, &quot;指示をエクスポート&quot;);
+        zh(&quot;Export instructions&quot;, &quot;导出指令&quot;);
+        ja(&quot;Failed to export: %s&quot;, &quot;エクスポートに失敗しました: %s&quot;);
+        zh(&quot;Failed to export: %s&quot;, &quot;导出失败：%s&quot;);
+    }
+}</code></pre>
+</doc-codeblock></div>
+<div id="texts-in-several-languages-code-2" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">import static ...InstructionExporterLocalization.T;
+
+Notification.show(T.localized(&quot;Copied to clipboard&quot;));
+Notification.show(T.localized(&quot;Failed to export: %s&quot;).formatted(e.getMessage()));</code></pre>
+</doc-codeblock></div>
+<ul>
+<li>
+<p><code translate="no" v-pre>ja</code> and <code translate="no" v-pre>zh</code> are shortcuts for <code translate="no" v-pre>add(Language, message, translation)</code>; add other languages the same way (the language
+needs a bundle in <code translate="no" v-pre>Localization</code>, see the <a href="../example/#walkthrough-chinese-localization">Chinese localization</a>).</p>
+</li>
+<li>
+<p>A text with values has the <code translate="no" v-pre>String.format</code> placeholders in the key (<code translate="no" v-pre>%s</code>, <code translate="no" v-pre>%d</code>) and the values are put in with
+<code translate="no" v-pre>formatted(...)</code>. When a language needs another order, number the placeholders in the key and in the translation
+(<code translate="no" v-pre>%1$d turns for the messages %2$d-%3$d</code>). Don&#x27;t build a sentence from pieces: a language puts the words in another
+order, write one key for each whole sentence (and one for the singular and the plural).</p>
+</li>
+<li>
+<p>Look the text up when it is shown, not in a field or a constant: the bundle answers for the language of the session
+that asks, and a text kept in a field stays in the language of whoever created it. A lambda that is called when a
+menu is opened (<code translate="no" v-pre>l -&gt; T.localized(&quot;Export instructions&quot;)</code>) is fine.</p>
+</li>
+<li>
+<p>Without a session (startup, a worker thread that got no request attributes) the default language is used, so the
+title that a plugin registers in <code translate="no" v-pre>onExtensionLoad</code> (<code translate="no" v-pre>ToolService.registerProvider(..., &quot;Name provider&quot;, ...)</code>) stays in
+English; the same holds for annotation values (<code translate="no" v-pre>@CommandParameter(descriptionText = ...)</code>), which must be constants.</p>
+</li>
+<li>
+<p>Texts for the model (prompts, the descriptions of functions and commands, the error messages of commands) stay in
+English; only what the user reads is translated.</p>
+</li>
+<li>
+<p>For words the application has a key for (<code translate="no" v-pre>L.LABEL_CANCEL</code>) the plugin can use <code translate="no" v-pre>loc.getValue(...)</code> instead.</p>
 </li>
 </ul>
 <h3 id="telling-the-help-assistant-about-your-ui">Telling the help assistant about your UI</h3>
@@ -529,6 +710,13 @@ CancellationToken token = service.stream(payload, protocol, new InferenceService
 </doc-codeblock></div>
 <ul>
 <li>
+<p><strong>Name the kind of work.</strong> Open an <code translate="no" v-pre>InferenceSession</code> around the call that starts the request, with a kind named like your
+plugin: <code translate="no" v-pre>try (InferenceSession _ = InferenceSession.open(&quot;my-plugin&quot;)) { service.stream(...); }</code> (a second argument tells
+apart runs that do not share a prompt). The service then sends the header <code translate="no" v-pre>X-Session-ID</code> with a hash of the user and
+the kind, which a server or proxy with a prompt cache can use to keep a cache per kind of work; see <a href="../../../user/prompt-cache/">Prompt cache and
+session id</a>. The scope covers only the call itself; a request outside of any scope sends no header.</p>
+</li>
+<li>
 <p><strong>Call <code translate="no" v-pre>controller.continueInference()</code></strong> after each chunk, or the stream stops after the first one.
 <code translate="no" v-pre>terminateInference()</code> ends it early.</p>
 </li>
@@ -648,7 +836,7 @@ uninstalled for good, its data stays in the database (and in backups) - harmless
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (60a4afd23).</p></div>
             </footer>
         </div>
     </div>

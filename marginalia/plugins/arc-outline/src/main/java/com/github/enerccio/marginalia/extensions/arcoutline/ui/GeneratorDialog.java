@@ -1,8 +1,5 @@
 package com.github.enerccio.marginalia.extensions.arcoutline.ui;
 
-import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
-import com.github.enerccio.marginalia.domain.service.tool.ToolSelection;
-import com.github.enerccio.marginalia.ui.widgets.ToolSelectionButton;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
@@ -12,7 +9,10 @@ import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
+import com.github.enerccio.marginalia.domain.service.InferenceSession;
 import com.github.enerccio.marginalia.domain.service.structured.PartialJson;
+import com.github.enerccio.marginalia.domain.service.tool.ToolSelection;
+import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.ArcOutlineSettings;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService.ModelSelection;
@@ -35,7 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.List;
+import static com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineLocalization.T;
 
 /**
  * A dialog that asks the model for something in a JSON schema (an arc, the chapters of an arc). On the left the model,
@@ -207,12 +207,12 @@ public abstract class GeneratorDialog extends Dialog {
             UIUtils.internalServerError(loc, e);
         }
 
-        promptArea = new TextAreaPopoverComponent("Prompt");
+        promptArea = new TextAreaPopoverComponent(T.localized("Prompt"));
         promptArea.setWidthFull();
         promptArea.setValue(prompt);
         promptArea.setMinHeight("160px");
         promptArea.setMaxHeight("40vh");
-        promptArea.setHelperText("Variables: " + variables());
+        promptArea.setHelperText(T.localized("Variables: %s").formatted(variables()));
         promptArea.setPopoverContent(TemplateHints.create(loc, promptArea, promptArea.getPopover(), null, defaultPromptTemplate()));
         promptArea.addValueChangeListener(_ -> promptOrModelChanged());
         modelPicker.addSelectionListener(this::promptOrModelChanged);
@@ -222,7 +222,7 @@ public abstract class GeneratorDialog extends Dialog {
         toolsButton.setValue(settings.getTools());
         toolsButton.addValueChangeListener(this::rememberTools);
 
-        generateButton = new Button("Generate", Solid.WAND_MAGIC_SPARKLES.create(), _ -> {
+        generateButton = new Button(T.localized("Generate"), Solid.WAND_MAGIC_SPARKLES.create(), _ -> {
             if (generating) {
                 stop();
             } else {
@@ -247,7 +247,7 @@ public abstract class GeneratorDialog extends Dialog {
         // the inputs can be many (a text area for each chapter): the left side scrolls as a whole
         left.addClassNames(CssStyles.MIN_HEIGHT_0, CssStyles.OVERFLOW_AUTO);
 
-        reasoningHeading = new Span("Reasoning");
+        reasoningHeading = new Span(T.localized("Reasoning"));
         reasoningHeading.addClassName(ArcOutlineStyles.GENERATION_HEADING);
         reasoningHeading.setVisible(false);
         reasoningMarkdown = new Markdown();
@@ -275,7 +275,7 @@ public abstract class GeneratorDialog extends Dialog {
         panels.addClassName(CssStyles.MIN_HEIGHT_0);
         add(panels);
 
-        exitButton = new Button("Exit", _ -> close());
+        exitButton = new Button(T.localized("Exit"), _ -> close());
         saveButton = new Button(saveLabel, _ -> {
             if (hasResult()) {
                 save(StringUtils.defaultIfBlank(reasoning.toString(), null), output.toString());
@@ -316,11 +316,11 @@ public abstract class GeneratorDialog extends Dialog {
 
     private void generate() {
         if (StringUtils.isBlank(promptArea.getValue())) {
-            Notification.warning("The prompt is empty");
+            Notification.warning(T.localized("The prompt is empty"));
             return;
         }
         if (modelPicker.getAi() == null) {
-            Notification.warning("Choose a model");
+            Notification.warning(T.localized("Choose a model"));
             return;
         }
         try {
@@ -335,7 +335,7 @@ public abstract class GeneratorDialog extends Dialog {
             UI ui = UI.getCurrent();
             generating = true;
             updateControls();
-            try {
+            try (InferenceSession _ = InferenceSession.open("arc-outline")) {
                 running = inference.stream(service.toPayload(prompt), modelPicker.getProtocol(), schema, tools.functions(),
                         callback(ui));
             } catch (Exception e) {
@@ -350,7 +350,7 @@ public abstract class GeneratorDialog extends Dialog {
             Notification.warning(e.getMessage());
         } catch (Exception e) {
             // most likely a prompt that is not a valid template
-            Notification.error("Can't generate: " + StringUtils.defaultIfBlank(e.getMessage(), e.toString()));
+            Notification.error(T.localized("Can't generate: %s").formatted(StringUtils.defaultIfBlank(e.getMessage(), e.toString())));
         }
     }
 
@@ -410,7 +410,7 @@ public abstract class GeneratorDialog extends Dialog {
             if (error != null) {
                 UIUtils.inferenceError(loc, error);
             } else {
-                String problem = StringUtils.isBlank(output) ? "The model did not answer." : accept(output.toString());
+                String problem = StringUtils.isBlank(output) ? T.localized("The model did not answer.") : accept(output.toString());
                 if (problem != null) {
                     showStatus(problem);
                 }
@@ -454,7 +454,7 @@ public abstract class GeneratorDialog extends Dialog {
         exitButton.setEnabled(!generating);
         saveButton.setEnabled(!generating && hasResult());
 
-        generateButton.setText(generating ? "Stop" : "Generate");
+        generateButton.setText(generating ? T.localized("Stop") : T.localized("Generate"));
         generateButton.setIcon((generating ? Solid.STOP : Solid.WAND_MAGIC_SPARKLES).create());
         generateButton.setThemeName(generating ? "error primary" : "primary");
     }

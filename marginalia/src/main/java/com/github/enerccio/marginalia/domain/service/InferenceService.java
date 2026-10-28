@@ -176,7 +176,8 @@ public interface InferenceService {
      * Asks the model once and tells what it answered: the text and the functions it wants called, which are <b>not</b>
      * called. The caller runs the loop - calls the functions, appends the calls and their results to the payload and
      * asks again - which is what an agent runner does to persist every round, count its budgets and stop between the
-     * rounds. Not streaming, the answer arrives at once. Sampling, limits and usage counting are those of
+     * rounds. The answer is delivered whole, at once ({@link InferenceRoundCallback#onRound}); a service that streams it also
+     * reports the pieces as they arrive ({@link InferenceRoundCallback#onChunk}). Sampling, limits and usage counting are those of
      * {@link #stream(List, Protocol, InferenceAsyncCallback)}.
      *
      * @param functions the functions the model may ask for, null or empty for none; only their definitions are used
@@ -185,6 +186,17 @@ public interface InferenceService {
     default CancellationToken round(List<LLMChatMessage> payload, Protocol protocol, FunctionSet functions,
                                     InferenceRoundCallback callback) throws Exception {
         throw new UnsupportedOperationException(getClass().getSimpleName() + " does not support single rounds");
+    }
+
+    /**
+     * As {@link #round(List, Protocol, FunctionSet, InferenceRoundCallback)}; with {@code noFunctionCalls} the model has to answer
+     * in text (the runner does that to an agent that goes round in circles). The conversation still holds the earlier calls.
+     * A service that can forbid calls and keep the definitions (the request prefix stays the same, so the cache of the server
+     * stays hot) overrides this; the default offers no functions at all.
+     */
+    default CancellationToken round(List<LLMChatMessage> payload, Protocol protocol, FunctionSet functions, boolean noFunctionCalls,
+                                    InferenceRoundCallback callback) throws Exception {
+        return round(payload, protocol, noFunctionCalls ? FunctionSet.empty() : functions, callback);
     }
 
     /** How many times the model may call functions in one request before it has to answer. */
@@ -262,6 +274,15 @@ public interface InferenceService {
          */
         default void onRound(String text, String reasoning, List<LLMToolCall> calls, RoundUsage usage) throws Exception {
             onRound(text, calls, usage);
+        }
+
+        /**
+         * A piece of the answer as it arrives, before {@link #onRound}: reasoning or text, in the order the model wrote it. For a
+         * view that shows the answer while it is written; the round is still delivered whole, and what the arguments of a call
+         * look like is not reported. A service that can't stream never calls it. It must not take long and must not fail the
+         * round: an exception is dropped.
+         */
+        default void onChunk(ChunkType chunkType, String text) {
         }
 
     }

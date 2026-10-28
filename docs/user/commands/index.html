@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522787704">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846522787704" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -65,7 +65,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.5.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -364,7 +364,9 @@ changes the book; <strong>No</strong> leaves everything as it was. The question 
 | `/list-lore-entries [lorebook] [filter] [offset] [limit]` | The entries of a lorebook with their settings and a preview; the filter keeps the entries whose name or tag contains it. |
 | `/get-lore-entry &lt;entry&gt; [lorebook] [offset] [length]` | One entry: settings, keys, tags, comment and its text in slices. |
 | `/search-lore &lt;query&gt; [regex] [limit]` | The entries of all the lorebooks of the book whose name, text or comment contain the query, with snippets. |
-| `/preview-lore-activation &lt;text&gt; [limit]`, `/preview-lore-activation &lt;part&gt; &lt;branch&gt; &lt;limit&gt;` | Which entries a generation would use for a text, or for a turn like the one that made a part, and why (no filter, filter found, or not used because it is switched off, a tag of the book decides, or the filter is not in the text), with the lore text and its tokens. The text may be the handle of a part. |">
+| `/preview-lore-activation &lt;text&gt; [limit]`, `/preview-lore-activation &lt;part&gt; &lt;branch&gt; &lt;limit&gt;` | Which entries a generation would use for a text, or for a turn like the one that made a part, and why (no filter, filter found - in the text, or in the content of another entry when the lorebook has a [scan depth](../lorebooks/entries.md#entries-brought-in-by-other-entries) - or not used because it is switched off, a tag of the book decides, or the filter is not in the text), with the lore text and its tokens. The text may be the handle of a part. |
+| `/list-annotations [status [part [offset [limit]]]]` | The [annotations](../books/annotations.md) of the book or of a part: the open ones unless `status` says `resolved`, `dismissed`, `orphaned` or `all`. |
+| `/get-annotation &lt;annotation&gt;` | One annotation in full, with the text around its passage. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -464,7 +466,15 @@ changes the book; <strong>No</strong> leaves everything as it was. The question 
 </tr>
 <tr>
 <td><code translate="no" v-pre>/preview-lore-activation &lt;text&gt; [limit]</code>, <code translate="no" v-pre>/preview-lore-activation &lt;part&gt; &lt;branch&gt; &lt;limit&gt;</code></td>
-<td>Which entries a generation would use for a text, or for a turn like the one that made a part, and why (no filter, filter found, or not used because it is switched off, a tag of the book decides, or the filter is not in the text), with the lore text and its tokens. The text may be the handle of a part.</td>
+<td>Which entries a generation would use for a text, or for a turn like the one that made a part, and why (no filter, filter found - in the text, or in the content of another entry when the lorebook has a <a href="../lorebooks/entries/#entries-brought-in-by-other-entries">scan depth</a> - or not used because it is switched off, a tag of the book decides, or the filter is not in the text), with the lore text and its tokens. The text may be the handle of a part.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/list-annotations [status [part [offset [limit]]]]</code></td>
+<td>The <a href="../books/annotations/">annotations</a> of the book or of a part: the open ones unless <code translate="no" v-pre>status</code> says <code translate="no" v-pre>resolved</code>, <code translate="no" v-pre>dismissed</code>, <code translate="no" v-pre>orphaned</code> or <code translate="no" v-pre>all</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/get-annotation &lt;annotation&gt;</code></td>
+<td>One annotation in full, with the text around its passage.</td>
 </tr>
 </tbody>
 </table>
@@ -509,6 +519,8 @@ describes): the answer lists them and says what to do, <code translate="no" v-pr
 | `/next [scene] [pov] [present] [instructions] [after] [profile]` | Has the model write the next part, like the **New turn** button. Slow, costs tokens; one generation of a book runs at a time, the others wait. `profile` names one of the model profiles of an agent. |
 | `/swipe [part] [scene] [pov] [present] [instructions] [profile]` | Has the model write another version of the last part of a branch. What you leave out is taken from the part. |
 | `/regenerate [part] [scene] [pov] [present] [instructions] [profile]` | Has the model write the last part of a branch again, replacing its text. Asks first. |
+| `/redraft-part &lt;part&gt; [instructions] [prompt] [profile] [apply]` | Has the model write any part again from your instructions (see [Redrafting a part](../books/story-editor.md#redrafting-a-part)) and replaces its text. `prompt` is a redraft prompt to use instead of the book's, `profile` a model profile of an agent, `apply` `false` only returns the text. `DESTRUCTIVE`; asks first. Slow, costs tokens. |
+| `/impersonate [instructions] [outline] [prompt]` | Has the model draft the instructions of the next turn in your place (see [Drafting the instructions](../books/story-editor.md#drafting-the-instructions)) and returns the text; nothing is changed. `instructions` is what the part should be about (empty continues the story where it leads), `outline` a plan of the story for the model, `prompt` an impersonate prompt to use instead of the book's. Only for you at the command bar: an [agent](../agents.md) is not offered it. Slow, costs tokens. |
 | `/set-book-info [name] [description] [pov] [tense] [style] [language]` | Changes the descriptive settings of the book; only the values you give. |
 | `/set-book-prompts [template] [userPrompt] [summaryPrompt] [metaSummaryPrompt]` | Replaces the prompt templates of the book. Each is checked first. `DESTRUCTIVE`: a bad template spoils every later generation. |
 | `/set-book-tags [add] [remove]` | Adds and takes off tags of the book (comma separated). |
@@ -599,6 +611,14 @@ describes): the answer lists them and says what to do, <code translate="no" v-pr
 <td>Has the model write the last part of a branch again, replacing its text. Asks first.</td>
 </tr>
 <tr>
+<td><code translate="no" v-pre>/redraft-part &lt;part&gt; [instructions] [prompt] [profile] [apply]</code></td>
+<td>Has the model write any part again from your instructions (see <a href="../books/story-editor/#redrafting-a-part">Redrafting a part</a>) and replaces its text. <code translate="no" v-pre>prompt</code> is a redraft prompt to use instead of the book&#x27;s, <code translate="no" v-pre>profile</code> a model profile of an agent, <code translate="no" v-pre>apply</code> <code translate="no" v-pre>false</code> only returns the text. <code translate="no" v-pre>DESTRUCTIVE</code>; asks first. Slow, costs tokens.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/impersonate [instructions] [outline] [prompt]</code></td>
+<td>Has the model draft the instructions of the next turn in your place (see <a href="../books/story-editor/#drafting-the-instructions">Drafting the instructions</a>) and returns the text; nothing is changed. <code translate="no" v-pre>instructions</code> is what the part should be about (empty continues the story where it leads), <code translate="no" v-pre>outline</code> a plan of the story for the model, <code translate="no" v-pre>prompt</code> an impersonate prompt to use instead of the book&#x27;s. Only for you at the command bar: an <a href="../agents/">agent</a> is not offered it. Slow, costs tokens.</td>
+</tr>
+<tr>
 <td><code translate="no" v-pre>/set-book-info [name] [description] [pov] [tense] [style] [language]</code></td>
 <td>Changes the descriptive settings of the book; only the values you give.</td>
 </tr>
@@ -650,13 +670,62 @@ describes): the answer lists them and says what to do, <code translate="no" v-pr
 </table>
 </div>
 </retype-table>
-<p>The commands that have the model write (<code translate="no" v-pre>/next</code>, <code translate="no" v-pre>/swipe</code>, <code translate="no" v-pre>/regenerate</code>, the two summaries) take time and show the <strong>Stop</strong> window.</p>
+<h3 id="annotations">Annotations</h3>
+<p>The commands that read <a href="../books/annotations/">annotations</a> (<code translate="no" v-pre>/list-annotations</code>, <code translate="no" v-pre>/get-annotation</code>) answer in JSON like the other reading commands;
+an annotation is given by its <strong>handle</strong>, a part by its handle for the commands that change something. These commands change only the notes,
+never the story, so only the delete asks first. An agent can use all of them; its notes reach your book when you <a href="../books/annotations/#annotations-and-agents">review the result</a>.</p>
+<retype-table copy-text="| Command | What it does |
+|---------|--------------|
+| `/create-annotation &lt;part&gt; &lt;text&gt; [quote [type]]` | Adds a note to a part. `quote` is the words of the passage, copied from the part: the note sits on that passage and follows it when the text is edited. Without a quote, or with one that is not in the text, the note is about the whole part (the answer says so). |
+| `/update-annotation &lt;annotation&gt; &lt;text&gt; [type [sendToPrompt]]` | Changes the note, the type or whether the model gets the note; an empty text or type stays as it is. |
+| `/resolve-annotation &lt;annotation&gt; [status]` | Sets the status: `resolved` (default), `dismissed` or `open`. |
+| `/reattach-annotation &lt;annotation&gt; [quote]` | Moves a note to the passage the quote finds in its part; without a quote the note is about the whole part. |
+| `/delete-annotation &lt;annotation&gt;` | Deletes a note (it can be restored from the trash). Asks first. |
+| `/generate-annotation &lt;part&gt; [profile]` | Has the model review the part like [Annotate with AI](../books/annotations.md#letting-a-model-annotate) and adds everything it finds as notes (source *AI*; a quote that is not in the text makes a note about the whole part). Nothing is asked: the notes are the only change, and they can be resolved, edited or deleted. It reviews with the model of the book; an agent uses its own model when *Write the book with the model of the agent* is on (as the Lore Generator commands do), `profile` is a model profile of an agent. Runs alone, takes time, costs tokens. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Command</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>/create-annotation &lt;part&gt; &lt;text&gt; [quote [type]]</code></td>
+<td>Adds a note to a part. <code translate="no" v-pre>quote</code> is the words of the passage, copied from the part: the note sits on that passage and follows it when the text is edited. Without a quote, or with one that is not in the text, the note is about the whole part (the answer says so).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/update-annotation &lt;annotation&gt; &lt;text&gt; [type [sendToPrompt]]</code></td>
+<td>Changes the note, the type or whether the model gets the note; an empty text or type stays as it is.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/resolve-annotation &lt;annotation&gt; [status]</code></td>
+<td>Sets the status: <code translate="no" v-pre>resolved</code> (default), <code translate="no" v-pre>dismissed</code> or <code translate="no" v-pre>open</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/reattach-annotation &lt;annotation&gt; [quote]</code></td>
+<td>Moves a note to the passage the quote finds in its part; without a quote the note is about the whole part.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/delete-annotation &lt;annotation&gt;</code></td>
+<td>Deletes a note (it can be restored from the trash). Asks first.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/generate-annotation &lt;part&gt; [profile]</code></td>
+<td>Has the model review the part like <a href="../books/annotations/#letting-a-model-annotate">Annotate with AI</a> and adds everything it finds as notes (source <em>AI</em>; a quote that is not in the text makes a note about the whole part). Nothing is asked: the notes are the only change, and they can be resolved, edited or deleted. It reviews with the model of the book; an agent uses its own model when <em>Write the book with the model of the agent</em> is on (as the Lore Generator commands do), <code translate="no" v-pre>profile</code> is a model profile of an agent. Runs alone, takes time, costs tokens.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The commands that have the model write or review (<code translate="no" v-pre>/next</code>, <code translate="no" v-pre>/swipe</code>, <code translate="no" v-pre>/regenerate</code>, <code translate="no" v-pre>/generate-annotation</code>, the two summaries) take time and show the <strong>Stop</strong> window.</p>
 <h2 id="commands-that-come-with-extensions">Commands that come with extensions</h2>
 <p>You see these in the list as long as the extension is loaded; each is described in the documentation of its extension.</p>
 <retype-table copy-text="| Command | Extension | What it does |
 |---|---|---|
 | `/list-lore-templates [&lt;template&gt;]` | [Lore Generator](../extensions/lore-generator.md) | Your saved generation prompts, or the text of one. |
-| `/generate-lore-entry [&lt;prompt&gt; ...]` | [Lore Generator](../extensions/lore-generator.md) | Generates the text of a lore entry with the lore of the lorebook and returns it. Stores nothing. |
+| `/generate-lore-entry [&lt;prompt&gt; ...]` | [Lore Generator](../extensions/lore-generator.md) | Generates the text of a lore entry with the lore of the lorebook, compacts it (unless `compact` is `false`) and returns it. Stores nothing. |
 | `/compact-lore-entry &lt;text&gt; [...]` | [Lore Generator](../extensions/lore-generator.md) | Compacts a generated text into a dense lore entry text and returns it. Stores nothing. |
 | `/list-name-categories [&lt;filter&gt;]`, `/generate-names &lt;category&gt; &lt;count&gt; [...]` | [Name generator](../extensions/name-generator.md) | The categories of made up names, and names of one of them. |
 | `/list-real-name-lists`, `/pick-real-names &lt;list&gt; &lt;count&gt;` | [Name provider](../extensions/name-provider.md) | The lists of real names, and names picked from one of them. |
@@ -686,7 +755,7 @@ describes): the answer lists them and says what to do, <code translate="no" v-pr
 <tr>
 <td><code translate="no" v-pre>/generate-lore-entry [&lt;prompt&gt; ...]</code></td>
 <td><a href="../extensions/lore-generator/">Lore Generator</a></td>
-<td>Generates the text of a lore entry with the lore of the lorebook and returns it. Stores nothing.</td>
+<td>Generates the text of a lore entry with the lore of the lorebook, compacts it (unless <code translate="no" v-pre>compact</code> is <code translate="no" v-pre>false</code>) and returns it. Stores nothing.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>/compact-lore-entry &lt;text&gt; [...]</code></td>
@@ -792,7 +861,7 @@ Character Tracker also change the outline and the characters of the open book; o
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (60a4afd23).</p></div>
             </footer>
         </div>
     </div>

@@ -43,6 +43,10 @@ public class CommandScopesImpl implements CommandScopes {
     @Lazy
     private AgentRunPairService agentRunPairService;
 
+    @Autowired
+    @Lazy
+    private AnnotationService annotationService;
+
     @Override
     public CommandScope session() {
         return new SessionScope();
@@ -106,6 +110,18 @@ public class CommandScopesImpl implements CommandScopes {
                 throw new IllegalArgumentException("The lorebook entry does not exist");
             }
             return entry;
+        }
+
+        @Override
+        public Annotation resolveAnnotation(String uuid) throws Exception {
+            Manuscript book = book();
+            Annotation annotation = uuid == null || book == null ? null : annotationService.findForUser(uuid);
+            ChatMessage part = annotation == null || annotation.getPartId() == null ? null : chatMessageService.find(annotation.getPartId());
+            if (annotation == null || annotation.isDeleted() || part == null || part.isDeleted() || part.getParentScript() == null
+                    || !part.getParentScript().getId().equals(book.getId())) {
+                throw new IllegalArgumentException("The annotation does not exist");
+            }
+            return annotation;
         }
 
         /**

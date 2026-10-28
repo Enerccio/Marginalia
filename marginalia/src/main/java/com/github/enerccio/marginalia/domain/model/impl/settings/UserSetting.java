@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.model.impl.settings;
 
+import com.github.enerccio.marginalia.domain.collections.ThemeMode;
 import com.github.enerccio.marginalia.domain.collections.WebhookFormat;
 import com.github.enerccio.marginalia.domain.model.Setting;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
@@ -57,6 +58,48 @@ public class UserSetting extends Setting {
     @Transient
     private String defaultMetaSummaryPrompt;
 
+    @ExtendedAttribute
+    @Transient
+    private String defaultRedraftSystemPrompt;
+
+    @ExtendedAttribute
+    @Transient
+    private String defaultRedraftPrompt;
+
+    @ExtendedAttribute
+    @Transient
+    private String defaultAnnotateSystemPrompt;
+
+    @ExtendedAttribute
+    @Transient
+    private String defaultAnnotatePrompt;
+
+    @ExtendedAttribute
+    @Transient
+    private String defaultImpersonatePrompt;
+
+    /**
+     * The AI that annotates a part when the author does not choose another one for the run; annotating is analysis, which is
+     * usually not done by the model that writes the prose. Null is the AI of the book.
+     */
+    @ExtendedAttribute
+    @Transient
+    @CleanupReference(value = Policy.WEAK, target = AI.class)
+    private Long defaultAnnotateModel;
+
+    @ExtendedAttribute
+    @Transient
+    @CleanupReference(value = Policy.WEAK, target = Protocol.class)
+    private Long defaultAnnotateProtocol;
+
+    /**
+     * The story shows the notes of a part in a column left of its text instead of in a popover at the passage (a reading
+     * preference of the desktop; the phone has no room for a margin).
+     */
+    @ExtendedAttribute
+    @Transient
+    private Boolean annotationsInMargin;
+
     /**
      * The system prompt of the agents of the user that have none of their own; blank is the one of the application
      * settings, and then {@code Defaults.DEFAULT_AGENT_PROMPT}.
@@ -111,6 +154,13 @@ public class UserSetting extends Setting {
     private String backupStrategyValue;
 
     /**
+     * The color scheme of the UI, {@code null} for the default one ({@link ThemeMode#DARK}).
+     */
+    @ExtendedAttribute
+    @Transient
+    private ThemeMode themeMode;
+
+    /**
      * Code of the language of the UI, {@code null} for the default one.
      */
     @ExtendedAttribute
@@ -132,6 +182,14 @@ public class UserSetting extends Setting {
     @ExtendedAttribute(inject = true, injectPrefix = "workspaceState")
     @Transient
     private JsonObject workspaceState = new JsonObject();
+
+    /**
+     * The keys of the user for the keyboard shortcuts of the story editor: action id to key combination, only the ones
+     * that differ from the default of the action (an empty text is no key), see {@code KeyBindings}.
+     */
+    @ExtendedAttribute(inject = true, injectPrefix = "keyBindings")
+    @Transient
+    private JsonObject keyBindings = new JsonObject();
 
     public Long getDefaultModel() {
         return defaultModel;
@@ -205,6 +263,70 @@ public class UserSetting extends Setting {
         this.defaultMetaSummaryPrompt = defaultMetaSummaryPrompt;
     }
 
+    public String getDefaultAnnotateSystemPrompt() {
+        return defaultAnnotateSystemPrompt;
+    }
+
+    public void setDefaultAnnotateSystemPrompt(String defaultAnnotateSystemPrompt) {
+        this.defaultAnnotateSystemPrompt = defaultAnnotateSystemPrompt;
+    }
+
+    public String getDefaultRedraftSystemPrompt() {
+        return defaultRedraftSystemPrompt;
+    }
+
+    public void setDefaultRedraftSystemPrompt(String defaultRedraftSystemPrompt) {
+        this.defaultRedraftSystemPrompt = defaultRedraftSystemPrompt;
+    }
+
+    public String getDefaultAnnotatePrompt() {
+        return defaultAnnotatePrompt;
+    }
+
+    public void setDefaultAnnotatePrompt(String defaultAnnotatePrompt) {
+        this.defaultAnnotatePrompt = defaultAnnotatePrompt;
+    }
+
+    public String getDefaultImpersonatePrompt() {
+        return defaultImpersonatePrompt;
+    }
+
+    public void setDefaultImpersonatePrompt(String defaultImpersonatePrompt) {
+        this.defaultImpersonatePrompt = defaultImpersonatePrompt;
+    }
+
+    public Long getDefaultAnnotateModel() {
+        return defaultAnnotateModel;
+    }
+
+    public void setDefaultAnnotateModel(Long defaultAnnotateModel) {
+        this.defaultAnnotateModel = defaultAnnotateModel;
+    }
+
+    public Long getDefaultAnnotateProtocol() {
+        return defaultAnnotateProtocol;
+    }
+
+    public void setDefaultAnnotateProtocol(Long defaultAnnotateProtocol) {
+        this.defaultAnnotateProtocol = defaultAnnotateProtocol;
+    }
+
+    public boolean isAnnotationsInMargin() {
+        return annotationsInMargin != null && annotationsInMargin;
+    }
+
+    public void setAnnotationsInMargin(Boolean annotationsInMargin) {
+        this.annotationsInMargin = annotationsInMargin;
+    }
+
+    public String getDefaultRedraftPrompt() {
+        return defaultRedraftPrompt;
+    }
+
+    public void setDefaultRedraftPrompt(String defaultRedraftPrompt) {
+        this.defaultRedraftPrompt = defaultRedraftPrompt;
+    }
+
     public String getDefaultAgentCompactionPrompt() {
         return defaultAgentCompactionPrompt;
     }
@@ -261,6 +383,14 @@ public class UserSetting extends Setting {
         this.backupStrategy = backupStrategy;
     }
 
+    public ThemeMode getThemeMode() {
+        return themeMode == null ? ThemeMode.DARK : themeMode;
+    }
+
+    public void setThemeMode(ThemeMode themeMode) {
+        this.themeMode = themeMode;
+    }
+
     public String getLanguage() {
         return language;
     }
@@ -291,5 +421,13 @@ public class UserSetting extends Setting {
 
     public void setWorkspaceState(JsonObject workspaceState) {
         this.workspaceState = workspaceState == null ? new JsonObject() : workspaceState;
+    }
+
+    public JsonObject getKeyBindings() {
+        return keyBindings;
+    }
+
+    public void setKeyBindings(JsonObject keyBindings) {
+        this.keyBindings = keyBindings == null ? new JsonObject() : keyBindings;
     }
 }

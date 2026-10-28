@@ -2,41 +2,74 @@ package com.github.enerccio.marginalia.domain.service.impl.generation.impl;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.MessagePrompt;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController.State;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.GenerationFailure;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.GenerationOutcome;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
 
 public class CleanupStep extends GenerationStepBase {
+    private static final Logger log = LoggerFactory.getLogger(CleanupStep.class);
 
     @Override
     protected void onStep(GenerationController controller) throws Exception {
+        GenerationFailure failure = controller.getFailure();
+        GenerationOutcome outcome = controller.getState() == State.SUCCESSFUL ? GenerationOutcome.COMPLETED
+                : controller.getCancellationToken().isCancelled() ? GenerationOutcome.CANCELLED : GenerationOutcome.FAILED;
+        controller.getProperties().put(GenerationProperties.OUTCOME, outcome);
+        if (failure != null) {
+            controller.getProperties().put(GenerationProperties.FAILURE, failure);
+        }
         controller.emitEvent(Events.BEFORE_CLEANUP, () -> {
-
-            if (controller.getState() == State.NOT_SUCCESSFUL) {
-                ChatMessage message = controller.getMessage();
-                if (message == null || message.getId() == null) {
-                    // ignore, did not even call new node
-                    controller.getUIListener().onCancelled(null);
-                } else {
-                    message = chatMessageService.find(message);
-                    if (controller.getRequest().getRequestType() == GenerationRequestType.REGENERATE) {
-                        restoreRegenerated(controller, message);
-                    } else {
-                        removeEmptyPart(controller, message);
-                    }
-                }
-            } else if (controller.getState() == State.PARTIAL_SUCCESS) {
-                controller.getUIListener().onCancelled(controller.getMessage());
-                controller.getUIListener().onMetricsUpdated(controller.getMessage());
-            } else {
-                controller.getUIListener().onComplete(controller.getMessage());
-                controller.getUIListener().onMetricsUpdated(controller.getMessage());
+            try {
+                cleanup(controller);
+            } catch (Exception e) {
+                // the end of the generation is still announced
+                log.error("Cleanup of the generation failed", e);
+                controller.getUIListener().onError(e);
             }
-
-            controller.next();
+            controller.emitEvent(Events.AFTER_CLEANUP, controller::next);
         });
+    }
+
+    private void cleanup(GenerationController controller) throws Exception {
+        if (controller.getState() == State.NOT_SUCCESSFUL) {
+            ChatMessage message = controller.getMessage();
+            if (message == null || message.getId() == null) {
+                // ignore, did not even call new node
+                controller.getUIListener().onCancelled(null);
+            } else {
+                message = chatMessageService.find(message);
+                if (controller.getRequest().getRequestType() == GenerationRequestType.REGENERATE) {
+                    restoreRegenerated(controller, message);
+                } else {
+                    removeEmptyPart(controller, message);
+                }
+            }
+        } else if (controller.getState() == State.PARTIAL_SUCCESS) {
+            relocateAnnotations(controller);
+            controller.getUIListener().onCancelled(controller.getMessage());
+            controller.getUIListener().onMetricsUpdated(controller.getMessage());
+        } else {
+            relocateAnnotations(controller);
+            controller.getUIListener().onComplete(controller.getMessage());
+            controller.getUIListener().onMetricsUpdated(controller.getMessage());
+        }
+    }
+
+    /**
+     * A part that was generated again has a text that is not the old one with some edits: the annotations of the part find their
+     * passages by their quotes.
+     */
+    private void relocateAnnotations(GenerationController controller) throws Exception {
+        if (controller.getRequest().getRequestType() == GenerationRequestType.REGENERATE && controller.getMessage() != null) {
+            annotationService.relocate(controller.getManuscript(), controller.getMessage());
+        }
     }
 
     /**
@@ -48,6 +81,9 @@ public class CleanupStep extends GenerationStepBase {
             // replaces every value (attributes included), so nothing of the failed attempt stays in the part
             message.loadFrom(original);
             message = chatMessageService.save(message);
+            MessagePrompt prompt = (MessagePrompt) controller.getProperties().get(GenerationProperties.ORIGINAL_PROMPT);
+            messagePromptService.store(message, prompt == null ? null : prompt.getBuiltPrompt(),
+                    prompt == null ? null : prompt.getBackgroundLore());
             controller.setMessage(message);
         }
         controller.getUIListener().onCancelled(message);

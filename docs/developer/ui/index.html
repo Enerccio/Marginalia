@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522787704">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846522787704" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846005664026" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846522787704" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -67,7 +67,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.5.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -487,7 +487,7 @@ check - the administrator-only services call <code translate="no" v-pre>AdminGua
 <a href="../services/#administration">Services</a>).</p>
 <h3 id="the-agents-tab">The agents tab</h3>
 <p><code translate="no" v-pre>AgentPart</code> (<code translate="no" v-pre>ui.workspace.parts</code>, a <code translate="no" v-pre>WorkspaceComponent</code> like the others) is a table of the agents of the user (a card for each on the phone,
-<code translate="no" v-pre>new AgentPart(workspace, true)</code>): the name, the book and the status of the unfinished run (<code translate="no" v-pre>Localization.getAgentRunStatus</code>), and a row of
+<code translate="no" v-pre>new AgentPart(workspace, true)</code>): the name, the book, the status of the unfinished run (<code translate="no" v-pre>Localization.getAgentRunStatus</code>) and when the newest run started (<code translate="no" v-pre>AgentRunService.findForAgent</code>), with filter fields for the name and the book (every word must be contained, <code translate="no" v-pre>AgentPart.containsWords</code>; a <code translate="no" v-pre>ListDataProvider</code> filter), sortable columns (the phone has the <code translate="no" v-pre>Sort</code> selector, <code translate="no" v-pre>sortBy</code>), and a row of
 buttons whose visibility follows the status of the run (<strong>Start</strong> with <em>Start immediately</em> / <em>Start in console</em>, <strong>Resume</strong>, <strong>Pause</strong>,
 <strong>Pause now</strong>, <strong>Stop</strong>, the console, <strong>Review changes</strong>, <strong>Edit</strong>, <strong>Clone</strong>, <strong>Delete</strong>). They call <code translate="no" v-pre>AgentRunService</code> and <code translate="no" v-pre>AgentRunner</code>; the
 refusals of the service (<code translate="no" v-pre>IllegalStateException</code>, <code translate="no" v-pre>SecurityException</code>, <code translate="no" v-pre>IllegalArgumentException</code>) are shown as a warning with the text of the
@@ -512,7 +512,7 @@ and <code translate="no" v-pre>PhoneManuscriptDialogPart</code> (default: no sta
 | `DesktopWorkspace`, `PhoneWorkspace` | `tab` (`books`, `lorebooks`, `settings`, `protocols`, `models`, `resources`, `trash`) and `parts`, the state of each part under its tab name. The admin panel is not remembered. |
 | `ManuscriptPart`, `PhoneManuscriptPart` | `filters` (`name`, `tags` as tag uuids) and `dialog`, the state of the open book window. |
 | `ManuscriptDialog`, `PhoneManuscriptDialog` | `manuscript` (uuid), `tab` (`info`, `prompt`, `lorebook`, `story`, `tree`, `backup`) and `parts`, the state of the tabs. |
-| `ManuscriptStoryPart`, `PhoneManuscriptStoryPart` | `newTurn`, the `NewTurnForm`: `scene`, `pov`, `present`, `instructions` and `edited`. The desktop part also stores `tabs`, the `TabDock` state: `selected`, the ids of the tab each sidebar panel shows. |
+| `ManuscriptStoryPart`, `PhoneManuscriptStoryPart` | `newTurn`, the `NewTurnForm`: `scene`, `pov`, `present`, `instructions` and `edited`. The desktop part also stores `tabs`, the `TabDock` state: `selected`, the ids of the tab each panel shows. |
 | `LorebookPart`, `LorebookView`, `PhoneLorebookView` and the lorebook tab of the book window | `lorebook` (uuid, not for the view pinned to the lorebook of a book), `rootOnly` (the *Only root lorebooks* box, `LorebookView` only, not when pinned) and `entries`, the uuids of the entries whose details are open. The lorebook tab of the book window (`ManuscriptLorebookPart`, `PhoneManuscriptLorebookPart`) adds `shown`, the uuid of the lorebook it shows when it is not the one of the book (see the lorebook parts above); it is restored before the rest, as the open entries are the ones of that lorebook. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -537,7 +537,7 @@ and <code translate="no" v-pre>PhoneManuscriptDialogPart</code> (default: no sta
 </tr>
 <tr>
 <td><code translate="no" v-pre>ManuscriptStoryPart</code>, <code translate="no" v-pre>PhoneManuscriptStoryPart</code></td>
-<td><code translate="no" v-pre>newTurn</code>, the <code translate="no" v-pre>NewTurnForm</code>: <code translate="no" v-pre>scene</code>, <code translate="no" v-pre>pov</code>, <code translate="no" v-pre>present</code>, <code translate="no" v-pre>instructions</code> and <code translate="no" v-pre>edited</code>. The desktop part also stores <code translate="no" v-pre>tabs</code>, the <code translate="no" v-pre>TabDock</code> state: <code translate="no" v-pre>selected</code>, the ids of the tab each sidebar panel shows.</td>
+<td><code translate="no" v-pre>newTurn</code>, the <code translate="no" v-pre>NewTurnForm</code>: <code translate="no" v-pre>scene</code>, <code translate="no" v-pre>pov</code>, <code translate="no" v-pre>present</code>, <code translate="no" v-pre>instructions</code> and <code translate="no" v-pre>edited</code>. The desktop part also stores <code translate="no" v-pre>tabs</code>, the <code translate="no" v-pre>TabDock</code> state: <code translate="no" v-pre>selected</code>, the ids of the tab each panel shows.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>LorebookPart</code>, <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>PhoneLorebookView</code> and the lorebook tab of the book window</td>
@@ -603,14 +603,17 @@ the user changes the state; a new tab of a dialog needs a name in the <code tran
 </retype-table>
 <p>The dialog holds the book (<code translate="no" v-pre>getManuscript()</code>, <code translate="no" v-pre>refreshManuscript()</code> reloads it, <code translate="no" v-pre>save()</code> saves it) and
 <code translate="no" v-pre>freeze()</code> / <code translate="no" v-pre>unfreeze()</code>, which disable the tabs, the exit button and every part during generation.</p>
-<p><code translate="no" v-pre>ManuscriptStoryPart</code> is the story editor and the largest UI class: the sidebar with one button per part, a
+<p><code translate="no" v-pre>ManuscriptStoryPart</code> is the story editor and the largest UI class: the outline (one button per part), a
 <code translate="no" v-pre>ChatMessageCard</code> per part (Markdown view, edit mode, menu with Edit / Regenerate / Swipe / Branch / View prompt /
 Summary / Delete), the <em>New Turn Instructions</em> popover, starting generations and applying the result, the automatic
 book backups, and the menu bar of the bottom bar (see <doc-anchor-trigger to="#the-story-menu-bar">The story menu bar</doc-anchor-trigger>).</p>
 <p><code translate="no" v-pre>renderStoryContent()</code> redraws only the cards and the outline list: the left tab sheet is created once in <code translate="no" v-pre>create()</code>
 (so the selected tab and the tabs of extensions survive), and the reasonings that were open are reopened on the new
 cards. <code translate="no" v-pre>PhoneManuscriptStoryPart</code> does the same.</p>
-<p>The left bar (<code translate="no" v-pre>leftBar</code>) is a <code translate="no" v-pre>TabDock</code> (<code translate="no" v-pre>ui.widgets</code>), a reusable widget: a row of columns, each a stack of tab sheets, whose
+<p>The whole desktop editor is one <code translate="no" v-pre>TabDock</code> (<code translate="no" v-pre>leftBar</code>, the name is older than the story tab): the outline, the lorebook preview,
+the tabs of extensions and <strong>the story itself</strong> (<code translate="no" v-pre>ManuscriptStoryPart.STORY_TAB</code>, <code translate="no" v-pre>story</code>; its content is <code translate="no" v-pre>centerLayout</code>: the
+scroll panel with the cards and the bottom bar with the menus, the command line and the round button) are its tabs, so the
+user arranges the whole screen. <code translate="no" v-pre>TabDock</code> is a reusable widget: a row of columns, each a stack of tab sheets, whose
 tabs the user can drag out into sheets of their own (a strip between the sheets of a column) or into a column of their own (a
 strip between the columns and at the sides) and back (the drag and drop is Flow&#x27;s <code translate="no" v-pre>DragSource</code>/<code translate="no" v-pre>DropTarget</code>, no JavaScript;
 the strips show while a tab is dragged). The columns and the sheets of a column are separated by <code translate="no" v-pre>SplitLayout</code>s the user can
@@ -622,10 +625,29 @@ outline is <code translate="no" v-pre>ManuscriptStoryPart.CHAPTERS_TAB</code>); 
 (<code translate="no" v-pre>getLayout</code>/<code translate="no" v-pre>setLayout</code>; a layout with <code translate="no" v-pre>groups</code> at the top level, as the dock stored before it had columns, is one column), names tabs only by id and keeps the place of tabs that are not there now, because extensions add
 their tabs late (a tab the layout does not know goes to the first sheet). <code translate="no" v-pre>ManuscriptStoryPart</code> stores the layout in the
 attributes of the manuscript under <code translate="no" v-pre>$desktopManuscriptStoryPartTabsConfig</code> (<code translate="no" v-pre>TABS_CONFIG_ATTRIBUTE</code>): <code translate="no" v-pre>saveTabsConfig()</code> runs
-after a drag, <code translate="no" v-pre>applyTabsConfig()</code> in <code translate="no" v-pre>load()</code> before the story is drawn. The position of the splitter between the dock and the story is saved the same way,
-as a number in the attribute <code translate="no" v-pre>$desktopManuscriptStoryPartSplitPosition</code> (<code translate="no" v-pre>SPLIT_POSITION_ATTRIBUTE</code>): <code translate="no" v-pre>saveSplitPosition()</code> runs after the drag,
-<code translate="no" v-pre>applySplitPosition()</code> in <code translate="no" v-pre>load()</code>. The selected tab of each sheet is not part of the
+after a drag or a resize, <code translate="no" v-pre>applyTabsConfig()</code> in <code translate="no" v-pre>load()</code> before the story is drawn. The selected tab of each sheet is not part of the
 layout but the <code translate="no" v-pre>Restorable</code> state of the dock. <code translate="no" v-pre>PhoneManuscriptStoryPart</code> uses <code translate="no" v-pre>new TabDock(false)</code>, one plain sheet.</p>
+<p><code translate="no" v-pre>StoryDockLayout</code> (<code translate="no" v-pre>ui.dialogs.story</code>) holds the layouts: <code translate="no" v-pre>defaultLayout</code> (the outline and the lorebook in a column of 20 %
+on the left, the story in a column of 80 %), and <code translate="no" v-pre>migrate</code>, which turns what a book stored before the story was a tab into a
+layout that has it. That is a layout without the <code translate="no" v-pre>story</code> id: its columns keep their order and share the width the old
+splitter gave the sidebar (<code translate="no" v-pre>$desktopManuscriptStoryPartSplitPosition</code>, <code translate="no" v-pre>SPLIT_POSITION_ATTRIBUTE</code>, 20 % when the book never
+stored one), and the story gets a column of its own at the right; a book with nothing stored gets the default layout.
+Nothing is written back by <code translate="no" v-pre>load()</code>; the next <code translate="no" v-pre>saveTabsConfig()</code> stores the layout with the story and removes the old
+attribute. <em>Restore default layout</em> (settings menu of the story, <code translate="no" v-pre>restoreDefaultLayout</code>) removes both attributes and applies
+the default layout.</p>
+<p>Two things about <code translate="no" v-pre>TabDock</code> that the story relies on. A <code translate="no" v-pre>TabSheet</code> disables the content of the tabs it does not show
+(<code translate="no" v-pre>Element.isEnabled()</code> is false for it, so the story ignores events from the page while another tab of its sheet is selected;
+what the server changes in it still reaches the page) and keeps it in the page, hidden, so the scroll position survives a switch
+of tabs. Moving the tab to another sheet attaches the content anew, and the scripts that watch the edges for the lazy
+loading are lost, as is the scroll position: <code translate="no" v-pre>StoryLazyLoader.reattached()</code> (called by an attach listener of <code translate="no" v-pre>centerLayout</code>) arms
+them again and has the story scroll to its end before the response goes out (<code translate="no" v-pre>beforeClientResponse</code>), unless a render or a scroll to
+a part of the same request decided where the story is (they clear <code translate="no" v-pre>bottomOnReattach</code>), so entering the story tab from the tree
+still lands on the part that was asked for. And <code translate="no" v-pre>setTabsEnabled(enabled, exceptId)</code> disables the tabs and the contents of all tabs but one (while a generation runs
+the story stays enabled: its stop button; <code translate="no" v-pre>setFrozen</code> calls it) and only touches the contents the sheet does not manage
+itself. <code translate="no" v-pre>TabDock.select(id)</code> selects a tab in whichever sheet it is; <code translate="no" v-pre>ManuscriptStoryPart.showStory()</code> does it for the story,
+and the code that is about to show a part calls it: an entry of the outline, a hit of the search, <code translate="no" v-pre>startGeneration</code>, the next
+<code translate="no" v-pre>onTabEnter</code> when <code translate="no" v-pre>scrollToMessageOnNextRender</code> asked for a part, and <code translate="no" v-pre>ManuscriptDialog.selectStoryPart</code> (what the tree calls
+when the user chooses a branch).</p>
 <p>The tab with the id <code translate="no" v-pre>ManuscriptStoryPart.LOREBOOK_TAB</code> (<code translate="no" v-pre>lorebook</code>) of the left bar is the <code translate="no" v-pre>LorebookPreview</code> (<code translate="no" v-pre>ui.components</code>),
 a read only preview of the lore of the book, desktop only (the phone has the <code translate="no" v-pre>PhoneLorebookView</code>). It is a <code translate="no" v-pre>TreeGrid</code> of
 <code translate="no" v-pre>Row</code>s (a lorebook or one of its entries) over a <code translate="no" v-pre>TreeData</code> it rebuilds in <code translate="no" v-pre>refresh(lorebook)</code>: with the <em>Include sub
@@ -643,8 +665,12 @@ their layout and the methods extensions decorate (<code translate="no" v-pre>ren
 | `StoryHost` | What a story tab needs from its dialog (`refreshManuscript`, `save`, `freeze`, `unfreeze`); `ManuscriptDialog` and `PhoneManuscriptDialog` implement it (through `ManuscriptWindow`). |
 | `StoryCard`, `StoryCards` | The card interface both `ChatMessageCard` classes implement, and the registry of the cards of the branch and the streaming one (opened reasonings, last flags, freezing, autosave; `getOffset` is how many parts of the branch have no card because they are before the first one, `prependAll` puts earlier cards in front; the loader sets the offset after it drops cards at the start). |
 | `LazyBranch`, `StoryLazyLoader`, `ReaderLazyLoader` | Lazy loading of the parts, a window that slides over the branch. `LazyBranch` is the plain logic without UI: the size of the window is `UserSetting.storyPartsLimit` (empty loads everything), a chunk is half of it; `tail` starts the story with the last parts, `head` the reader with the first ones, `loadEarlier` / `loadLater` extend the window by a chunk and `trimLater` / `trimEarlier` drop the parts at the other end, `centerOn(id)` moves it around a part that is not loaded, `moveToTail` back to the end, `refresh` swaps in the instance a card holds now (an edit saves a new one). `StoryLazyLoader` fills the panel of a story tab with the cards of the window and answers `edge-top` / `edge-bottom` of the panel: it adds the chunk, drops the other end (an edited card is saved first; nothing is dropped while a part is generated, because the streaming card is the last one and the branch does not have it) and puts the visible part back in place. `scrollTo(id)` is the outline (moves the window when the part is not loaded), `showTail()` is called before a generation starts, so the new part is added after the last one. `ReaderLazyLoader` does the same for the reader (`Viewer`) with plain parts that carry `data-message-id`. Both put a `LazyLoadIndicator` in the header and footer of the `ScrollPanel` (`setHeader` / `setFooter`) while there is more to load at that edge, so a user who outruns the loading sees it. |
+| `StoryBranchSearch` | The search field of the outline of both story tabs: parses a `FulltextQuery`, finds every occurrence (`SearchHighlighter.count` in the `response` of the branch, which it reads through a `BranchSource`, because the browser's search cannot see parts that are not loaded), numbers them through the branch and keeps the current one (previous / next, Enter / Shift+Enter, status text and progress bar). The cards draw their response through `mark(messageId, text)` (`SearchHighlighter` wraps the matches in `&lt;mark class=&quot;search-match&quot;&gt;`, the current one also `search-match-current`, and leaves the `&lt;mark&gt;` tags of *Highlight Generated Text* alone), so `StoryCard.renderResponse` is the one place the text is set; `StoryLazyLoader.showMatch` moves the window to the part, redraws the card and `JavascriptLibrary.scrollToSearchMatch` scrolls to the mark. `refresh(branch)` is called when the story is drawn again. |
+| `ManuscriptSearchDialog` | The advanced search of the book list (the *Search* button of `ManuscriptPart` and the magnifier of `PhoneManuscriptPart`, which pass the callback that opens a found book after the `AgentLockCheck`). It builds a `ManuscriptSearchCriteria` from the fields (a *to* date becomes the start of the next day, the end is exclusive) and lists the result of `ManuscriptService.searchAdvanced`: `ManuscriptRepository.searchManuscripts(criteria, …)` does name, tags (one `EXISTS` per tag; include all/any, exclude any/all), dates and the number of parts in one JPQL query, then `ChatMessageService.findManuscriptsWithText` keeps the books that have a part with all the words (`_fulltext` `LIKE`s, as in `searchFulltext`), restricted to the active branch (`ChatMessageRepository.findActiveBranchIds`) unless *all branches* is on. |
+| `CloneNameDialog` (`ui.dialogs`) | Static helper, not `@Extendable`: a `TextInputDialog` that asks for the name of a copy (the original's name and *(Copy)*, required) and calls back with it. Used by the clone buttons of `LorebookView`, `ProtocolPart` / `PhoneProtocolPart` and `AIPart` / `PhoneAIPart`, which call `LorebookService.cloneLorebook`, `ProtocolService.cloneProtocol` and `AIService.cloneAI` (the `PhoneLorebookView` has no clone). |
 | `StoryGenerationListener` | The `GenerationListener` of a story tab: creates and fills the cards while a generation streams, redraws the story at its end. The tab reacts through `Callbacks`. |
-| `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics` | The fields of the *New Turn Instructions* popover, the turn details of a part, the metadata lines of a part. |
+| `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics` | The fields of the *New Turn Instructions* popover, the turn details of a part, the metadata lines of a part. `NewTurnForm.setOnImpersonate` shows the *Draft Instructions* button (the story parts set it to open the `ImpersonateDialog`), `setInstructions`, `setPovCharacter` and `setPresentCharacters` put a text into the field as if typed (the Character Tracker plugin gives the two character fields a picker button). |
+| `ImpersonateDialog` (`ui.dialogs.story`) | The window of the *Draft Instructions* button of the new turn form (desktop and phone) and of extensions that know the plan of the story: `ImpersonateDialog.open(book, turn, outline, onUse)`. The guidance (starts as the typed instructions), the read only `outline`, `ImpersonateService.impersonate` streamed into a text field the author may change; `onUse` gets the text. Nothing is stored. |
 | `StoryBackup`, `StorySupport` | The automatic backup after N parts / minutes, the limit of parts to load (`partsLimit`) and the saving of an edited part. The story does not remember a scroll position: it always opens at the bottom. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -668,12 +694,28 @@ their layout and the methods extensions decorate (<code translate="no" v-pre>ren
 <td>Lazy loading of the parts, a window that slides over the branch. <code translate="no" v-pre>LazyBranch</code> is the plain logic without UI: the size of the window is <code translate="no" v-pre>UserSetting.storyPartsLimit</code> (empty loads everything), a chunk is half of it; <code translate="no" v-pre>tail</code> starts the story with the last parts, <code translate="no" v-pre>head</code> the reader with the first ones, <code translate="no" v-pre>loadEarlier</code> / <code translate="no" v-pre>loadLater</code> extend the window by a chunk and <code translate="no" v-pre>trimLater</code> / <code translate="no" v-pre>trimEarlier</code> drop the parts at the other end, <code translate="no" v-pre>centerOn(id)</code> moves it around a part that is not loaded, <code translate="no" v-pre>moveToTail</code> back to the end, <code translate="no" v-pre>refresh</code> swaps in the instance a card holds now (an edit saves a new one). <code translate="no" v-pre>StoryLazyLoader</code> fills the panel of a story tab with the cards of the window and answers <code translate="no" v-pre>edge-top</code> / <code translate="no" v-pre>edge-bottom</code> of the panel: it adds the chunk, drops the other end (an edited card is saved first; nothing is dropped while a part is generated, because the streaming card is the last one and the branch does not have it) and puts the visible part back in place. <code translate="no" v-pre>scrollTo(id)</code> is the outline (moves the window when the part is not loaded), <code translate="no" v-pre>showTail()</code> is called before a generation starts, so the new part is added after the last one. <code translate="no" v-pre>ReaderLazyLoader</code> does the same for the reader (<code translate="no" v-pre>Viewer</code>) with plain parts that carry <code translate="no" v-pre>data-message-id</code>. Both put a <code translate="no" v-pre>LazyLoadIndicator</code> in the header and footer of the <code translate="no" v-pre>ScrollPanel</code> (<code translate="no" v-pre>setHeader</code> / <code translate="no" v-pre>setFooter</code>) while there is more to load at that edge, so a user who outruns the loading sees it.</td>
 </tr>
 <tr>
+<td><code translate="no" v-pre>StoryBranchSearch</code></td>
+<td>The search field of the outline of both story tabs: parses a <code translate="no" v-pre>FulltextQuery</code>, finds every occurrence (<code translate="no" v-pre>SearchHighlighter.count</code> in the <code translate="no" v-pre>response</code> of the branch, which it reads through a <code translate="no" v-pre>BranchSource</code>, because the browser&#x27;s search cannot see parts that are not loaded), numbers them through the branch and keeps the current one (previous / next, Enter / Shift+Enter, status text and progress bar). The cards draw their response through <code translate="no" v-pre>mark(messageId, text)</code> (<code translate="no" v-pre>SearchHighlighter</code> wraps the matches in <code translate="no" v-pre>&lt;mark class=&quot;search-match&quot;&gt;</code>, the current one also <code translate="no" v-pre>search-match-current</code>, and leaves the <code translate="no" v-pre>&lt;mark&gt;</code> tags of <em>Highlight Generated Text</em> alone), so <code translate="no" v-pre>StoryCard.renderResponse</code> is the one place the text is set; <code translate="no" v-pre>StoryLazyLoader.showMatch</code> moves the window to the part, redraws the card and <code translate="no" v-pre>JavascriptLibrary.scrollToSearchMatch</code> scrolls to the mark. <code translate="no" v-pre>refresh(branch)</code> is called when the story is drawn again.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ManuscriptSearchDialog</code></td>
+<td>The advanced search of the book list (the <em>Search</em> button of <code translate="no" v-pre>ManuscriptPart</code> and the magnifier of <code translate="no" v-pre>PhoneManuscriptPart</code>, which pass the callback that opens a found book after the <code translate="no" v-pre>AgentLockCheck</code>). It builds a <code translate="no" v-pre>ManuscriptSearchCriteria</code> from the fields (a <em>to</em> date becomes the start of the next day, the end is exclusive) and lists the result of <code translate="no" v-pre>ManuscriptService.searchAdvanced</code>: <code translate="no" v-pre>ManuscriptRepository.searchManuscripts(criteria, …)</code> does name, tags (one <code translate="no" v-pre>EXISTS</code> per tag; include all/any, exclude any/all), dates and the number of parts in one JPQL query, then <code translate="no" v-pre>ChatMessageService.findManuscriptsWithText</code> keeps the books that have a part with all the words (<code translate="no" v-pre>_fulltext</code> <code translate="no" v-pre>LIKE</code>s, as in <code translate="no" v-pre>searchFulltext</code>), restricted to the active branch (<code translate="no" v-pre>ChatMessageRepository.findActiveBranchIds</code>) unless <em>all branches</em> is on.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>CloneNameDialog</code> (<code translate="no" v-pre>ui.dialogs</code>)</td>
+<td>Static helper, not <code translate="no" v-pre>@Extendable</code>: a <code translate="no" v-pre>TextInputDialog</code> that asks for the name of a copy (the original&#x27;s name and <em>(Copy)</em>, required) and calls back with it. Used by the clone buttons of <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>ProtocolPart</code> / <code translate="no" v-pre>PhoneProtocolPart</code> and <code translate="no" v-pre>AIPart</code> / <code translate="no" v-pre>PhoneAIPart</code>, which call <code translate="no" v-pre>LorebookService.cloneLorebook</code>, <code translate="no" v-pre>ProtocolService.cloneProtocol</code> and <code translate="no" v-pre>AIService.cloneAI</code> (the <code translate="no" v-pre>PhoneLorebookView</code> has no clone).</td>
+</tr>
+<tr>
 <td><code translate="no" v-pre>StoryGenerationListener</code></td>
 <td>The <code translate="no" v-pre>GenerationListener</code> of a story tab: creates and fills the cards while a generation streams, redraws the story at its end. The tab reacts through <code translate="no" v-pre>Callbacks</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>NewTurnForm</code>, <code translate="no" v-pre>TurnDetailsForm</code>, <code translate="no" v-pre>MessageMetrics</code></td>
-<td>The fields of the <em>New Turn Instructions</em> popover, the turn details of a part, the metadata lines of a part.</td>
+<td>The fields of the <em>New Turn Instructions</em> popover, the turn details of a part, the metadata lines of a part. <code translate="no" v-pre>NewTurnForm.setOnImpersonate</code> shows the <em>Draft Instructions</em> button (the story parts set it to open the <code translate="no" v-pre>ImpersonateDialog</code>), <code translate="no" v-pre>setInstructions</code>, <code translate="no" v-pre>setPovCharacter</code> and <code translate="no" v-pre>setPresentCharacters</code> put a text into the field as if typed (the Character Tracker plugin gives the two character fields a picker button).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ImpersonateDialog</code> (<code translate="no" v-pre>ui.dialogs.story</code>)</td>
+<td>The window of the <em>Draft Instructions</em> button of the new turn form (desktop and phone) and of extensions that know the plan of the story: <code translate="no" v-pre>ImpersonateDialog.open(book, turn, outline, onUse)</code>. The guidance (starts as the typed instructions), the read only <code translate="no" v-pre>outline</code>, <code translate="no" v-pre>ImpersonateService.impersonate</code> streamed into a text field the author may change; <code translate="no" v-pre>onUse</code> gets the text. Nothing is stored.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>StoryBackup</code>, <code translate="no" v-pre>StorySupport</code></td>
@@ -693,7 +735,7 @@ to it (see <a href="../plugins/ui-extensions/#the-story-menu-bar">Extending the 
 |---|---|
 | `createMenuBar()` | The bar: calls the three methods below. Stored in the field `menuBar`. |
 | `createSummariesMenuItem(bar)` | The **Summaries** item (field `summariesMenuItem`), which opens `SummariesDialog`. Its tooltip shows the tokens of the summaries in use (`refreshSummariesMenuItem()`, run when the story is loaded, after a summary is deleted and when a summary dialog is closed). |
-| `createCogsMenuItem(bar)` | The settings item (field `cogsMenuItem`, local `cogs`) and its sub menu: `createChangeStylesMenuItem(cogs)`, `createHighlightGeneratedMenuItem(cogs)`, `createSearchReplaceMenuItem(cogs)` (opens `ManuscriptSearchReplaceDialog`), `createImportArchiveMenuItem(cogs)` (an `ArchiveUploadDialog`, then `ArchiveImportRunner.appendParts`) and `createExportMenuItem(cogs)`. The phone tab has the same, without the highlight. |
+| `createCogsMenuItem(bar)` | The settings item (field `cogsMenuItem`, local `cogs`); its sub menu is built from the registry (`MenuKind.TOOLS`), the actions are the public methods of `StoryEditor` (`openSearchReplaceDialog`, `openArchiveImportDialog` (an `ArchiveUploadDialog`, then `ArchiveImportRunner.appendParts`), `openBranchTokensDialog`, `openExportDialog`, `toggleBookStyles`, `setShowGeneratedDiff`, `setAnnotationsInMargin`, `confirmRestoreDefaultLayout`). The phone tab has the same items without the desktop only ones (highlight, margin, restore layout) |
 | `populateMenuBar(bar)` | Empty, runs last: the hook for new items of the bar. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -714,7 +756,7 @@ to it (see <a href="../plugins/ui-extensions/#the-story-menu-bar">Extending the 
 </tr>
 <tr>
 <td><code translate="no" v-pre>createCogsMenuItem(bar)</code></td>
-<td>The settings item (field <code translate="no" v-pre>cogsMenuItem</code>, local <code translate="no" v-pre>cogs</code>) and its sub menu: <code translate="no" v-pre>createChangeStylesMenuItem(cogs)</code>, <code translate="no" v-pre>createHighlightGeneratedMenuItem(cogs)</code>, <code translate="no" v-pre>createSearchReplaceMenuItem(cogs)</code> (opens <code translate="no" v-pre>ManuscriptSearchReplaceDialog</code>), <code translate="no" v-pre>createImportArchiveMenuItem(cogs)</code> (an <code translate="no" v-pre>ArchiveUploadDialog</code>, then <code translate="no" v-pre>ArchiveImportRunner.appendParts</code>) and <code translate="no" v-pre>createExportMenuItem(cogs)</code>. The phone tab has the same, without the highlight.</td>
+<td>The settings item (field <code translate="no" v-pre>cogsMenuItem</code>, local <code translate="no" v-pre>cogs</code>); its sub menu is built from the registry (<code translate="no" v-pre>MenuKind.TOOLS</code>), the actions are the public methods of <code translate="no" v-pre>StoryEditor</code> (<code translate="no" v-pre>openSearchReplaceDialog</code>, <code translate="no" v-pre>openArchiveImportDialog</code> (an <code translate="no" v-pre>ArchiveUploadDialog</code>, then <code translate="no" v-pre>ArchiveImportRunner.appendParts</code>), <code translate="no" v-pre>openBranchTokensDialog</code>, <code translate="no" v-pre>openExportDialog</code>, <code translate="no" v-pre>toggleBookStyles</code>, <code translate="no" v-pre>setShowGeneratedDiff</code>, <code translate="no" v-pre>setAnnotationsInMargin</code>, <code translate="no" v-pre>confirmRestoreDefaultLayout</code>). The phone tab has the same items without the desktop only ones (highlight, margin, restore layout)</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>populateMenuBar(bar)</code></td>
@@ -736,7 +778,7 @@ the summaries generation uses are the top level, the summaries a meta summary st
 (including the summary it replaced, read from <code translate="no" v-pre>replacedSummary</code>, which has no id). Columns: database id (the
 hierarchy column), message id, order in the branch, content, tokens, a checkbox and a delete button. Checkboxes,
 delete buttons and the edit pencil exist only on the top level - the text of the merged summaries is part of the hash
-of their meta summary, so editing them would invalidate it.</p>
+of their meta summary, so editing them one by one would invalidate it (the search and replace works them out again).</p>
 <ul>
 <li>
 <p><strong>Content</strong> (<code translate="no" v-pre>SummaryContent</code>): reasoning (a <code translate="no" v-pre>Details</code> with <code translate="no" v-pre>Markdown</code>, reasoning is mostly markdown), badges (<em>Meta summary</em>, <em>Replaced</em>) and the text as
@@ -754,7 +796,10 @@ button labels).</p>
 <code translate="no" v-pre>SummaryDialog</code> with a meta request (<code translate="no" v-pre>createMetaSummary</code>); it needs at least two.</p>
 </li>
 <li>
-<p>The grid is reloaded after every change (<code translate="no" v-pre>refresh()</code>): editing, deleting, and closing the dialog of a meta summary.</p>
+<p><strong>Search and Replace</strong> (menu bar, <code translate="no" v-pre>openSearchReplaceDialog()</code>): the search and replace of the summaries only, see <code translate="no" v-pre>SearchReplaceDialog</code> below for the dialog; it also changes the summaries a meta summary stands in for and the summary a meta summary replaced, and keeps the hash of the meta summaries valid (<code translate="no" v-pre>ManuscriptReplaceService</code>).</p>
+</li>
+<li>
+<p>The grid is reloaded after every change (<code translate="no" v-pre>refresh()</code>): editing, deleting, replacing, and closing the dialog of a meta summary.</p>
 </li>
 </ul>
 <p><code translate="no" v-pre>SummaryDialog</code> is the dialog of one summary: it generates it (<code translate="no" v-pre>startGeneration</code>, streaming into a read-only text area,
@@ -771,13 +816,17 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 <retype-table copy-text="| Widget | Used for |
 |---|---|
 | `HTabSheet` | The workspace's left-hand tab sheet with a footer area. |
+| `ThemeSwitch` | The button next to the `LanguageSelector` in the workspace footers: toggles `UserSetting.themeMode` (`ThemeMode` DARK / LIGHT, dark when not chosen) and applies it with `Page.setColorScheme`; `ThemeSwitch.apply` is also called by `Main.proceedWithLogin`, so the scheme is set when the workspace opens. Only the current page changes at once. |
+| `RedraftDialog` (`ui.dialogs.story`) | The *Redraft* item of the part menu of `ManuscriptStoryPart` / `PhoneManuscriptStoryPart` (the method `redraft` of the card): the instructions of the author, the redraft streamed by `RedraftService.redraft` into a text field that can still be edited (a `ResizableTextArea`, value change mode `LAZY`), a `WordDiffView` of the changes (worked out again from the text whenever the author edits it, not while the model streams), and *Apply*, which stores the text with `ChatMessageService.updateResponse` and hands the saved part to the card (it draws the response and the metrics again). When `ChatMessageService.isSummarized` says a summary describes the part, the window has the checkbox *Revalidate the summaries this redraft makes outdated* (off at first): *Apply* then passes the summaries of `PartEdit.outdated()` to `SummaryService.revalidate`, so the edit does not leave them outdated. `RedraftDialog.open(book, part, passage, onApplied)` redrafts a selected `RedraftService.Passage` only: the selected text is shown, the diff is against it, and *Apply* (`replacePassage`, which keeps the whitespace at the edges of the passage) puts the text in the passage after checking that the stored text is still the one the passage was selected in. It is offered by the right click menu of the text of a card (`CardAnnotations`, which finds the selection and gives the passage to the card's `redraftSelection`; the menu ☰ is not used because it takes the selection away). Closing the dialog stops a running redraft. Not `@Extendable`. |
+| `BranchTokensDialog` (`ui.dialogs`) | The *Branch Tokens* item of the settings menu of `ManuscriptStoryPart` / `PhoneManuscriptStoryPart`: a stacked bar (`ChartJs`) and a table of `ChatMessageService.getBranchTokens` against `TokenLimits.promptTokens` of the book's model and protocol. Not `@Extendable`. |
 | `LanguageSelector` | The language combo box of the workspace footers: saves the choice in `UserSetting.language`, sets `SessionPoint.language` and reloads every page of the user ([Localization](architecture.md#localization)). |
 | `TagsView` (`ui.components`) | The Tags tab of `UserPart`: a grid of the tags with their relation counts, rename (a name that exists asks to merge) and delete. It acts at once and is not tracked as an unsaved setting. |
 | `LLMInteract` / `LLMSnapshot` (`ui`) | What the help assistant's model can read of the screen, see [Letting the help assistant see the UI](#letting-the-help-assistant-see-the-ui). |
-| `BuildInfoFooter` | The version text (`Marginalia 1.4.0 (93ec118)`) as a `Span` fixed in the bottom left corner (`CssStyles.BUILD_INFO_FOOTER`, 10 px, faded, outside the layout); the tooltip has the full commit id, the commit time and the build time. Added to `Main` after the workspace (the phone layout has it too). The login overlay shows the same text as `LoginI18n.additionalInformation` (`LoginCheckRoute.getLoginI18n`). The values come from `utils.BuildInfo`, see [Building](building.md#building-the-application). |
+| `BuildInfoFooter` | The version text (`Marginalia 1.5.0 (93ec118)`) as a `Span` fixed in the bottom left corner (`CssStyles.BUILD_INFO_FOOTER`, 10 px, faded, outside the layout); the tooltip has the full commit id, the commit time and the build time. Added to `Main` after the workspace (the phone layout has it too). The login overlay shows the same text as `LoginI18n.additionalInformation` (`LoginCheckRoute.getLoginI18n`). The values come from `utils.BuildInfo`, see [Building](building.md#building-the-application). |
 | `HelpAssistantWidget` | The help chat: a round robot `Button` fixed in the bottom right corner (`CssStyles.HELP_FAB`) opening a fixed panel above it (`HELP_PANEL`: header with clear and close, which AI answers, a warning when `Info.metered()`, the messages, an input row whose send button turns into stop). Added to `Main` after the workspace, so the phone layout has it too; hidden unless `HelpAssistantService.isAvailable()` when the page is built, the panel reads `getInfo()` at each opening. Answers stream into a `Markdown` card with `ui.access` + `UIPushGuard.push`; the conversation is `SessionPoint.getHelpChat()` (the widget keeps the list, the callbacks have no session). A request that fails or is refused (limit) takes the question back into the input field and shows the reason in the card. Reasoning chunks are not shown. |
 | `LorebookPreview` | The read only *Lorebook* tab of the desktop story editor: a tree grid of the lorebook (optionally with its sub lorebooks as top level rows) and its entries, opening to the content and the text activation. `create()`, then `refresh(lorebook)`. |
 | `TagMultiComboBox` | Tag selection with lazy search (`TagService.searchTagsForUser`) and creation of new tags. |
+| `LorebookActivationPreviewDialog` (`ui.dialogs`) | The *Preview activation* of `LorebookView` and `PhoneLorebookView`: a text area (lazy value change), an optional book to take the tags from (`TagRelationService.getTagsForObject`) and a grid of `LorebookEntryVerdict`s from `LorebookActivationService.evaluateAll(root, collectLorebooks(root), tags, text, parts)` (`parts`: `recentParts` of the active leaf of the picked book, as many as `partsNeeded` says, none without a book) - the used mark, name, lorebook, order, scan pass and the localized reason (`Localization.getActivationReason`, keys `ENUM_ACTIVATION_REASON_*`) with its detail. The summary counts the used entries and their tokens (`TokenizerService.countTokensApprox` of the raw payload). Read only, nothing is saved, no events: what extensions change in a generation is not shown. |
 | `LorebookMassEditDialog` (`ui.dialogs`) | The *Mass edit* of `LorebookView`: one `Grid&lt;Row&gt;` with the entries of a lorebook and of its subbooks (`LorebookService.getLorebookTree`, the lorebook first, each once), sorted by `LorebookEntry.order`, then by the position of the lorebook in the tree, then by name. A `Row` is an entry with the lorebook it is in and whether that lorebook is locked (`AgentRunService.findLockingRun(Lorebook)`, asked for each lorebook of the tree, as a subbook can be used by another book than the root). The cells change the enabled flag, name, order (the grid is sorted again), tags, filtering mode, filtering, insertion mode, negative tags and note (the fields of the detail row of `LorebookView`) in place through `LorebookEntryService.save`; the lorebook cell and the *Move checked* button call `LorebookEntryService.move`, which refuses (`LorebookLockedException`, shown by `UIUtils.internalServerError` as a warning) both a locked source and, since this dialog, a locked target lorebook. The text is `StringUtils.abbreviate`d to `CONTENT_PREVIEW_LENGTH` and kept on one line by `CssStyles.MASS_EDIT_CONTENT`. Locked rows use `CssStyles.MULTI_TAG_LOCKED` and are never targets. The `onChange` runnable (the view's `refreshEntries`) runs when the dialog is closed after a change. |
 | `MultiTagDialog` (`ui.dialogs`) | Puts one tag on many books, lorebooks or the entries of a lorebook (`Kind.BOOKS`, `Kind.LOREBOOKS`, or the constructor with a `Lorebook`), opened from `ManuscriptPart` and `LorebookView`. A `ComboBox&lt;Tag&gt;` (an unknown typed value is made with `TagService.getOrCreateForUser`) and a grid of rows (check box, name, chips of the tags with the picked one marked, apply / remove buttons); the rows with the picked tag sort first. The tags of all rows come from one `TagRelationService.getTagsForObjects`; apply and remove go through `createRelation` / `removeRelation` with the class of the entity (`Manuscript`, `Lorebook`, `LorebookEntry`), positive relations only. A row is locked when `AgentRunService.findLockingRun` returns a run (an entry is locked with its lorebook); locked rows are grayed out (`CssStyles.MULTI_TAG_LOCKED`), can not be ticked and are skipped when the change is made, which asks the lock again as the run may have started since the list was read. The tag relations themselves are not guarded by the services, so the lock is checked here. |
 | `ManuscriptCloneDialog` (`ui.dialogs`) | The clone button of the book list (`ManuscriptPart`, `PhoneManuscriptPart`): the name of the copy (the book's name and *(Copy)*) and **Only current branch**; **Clone** calls `BackupService.cloneManuscript(source, name, onlyCurrentBranch)` and gives the new book to `setOnClone`, which the book list uses to read itself again. The lorebook is linked, not copied. |
@@ -807,6 +856,18 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 <td>The workspace&#x27;s left-hand tab sheet with a footer area.</td>
 </tr>
 <tr>
+<td><code translate="no" v-pre>ThemeSwitch</code></td>
+<td>The button next to the <code translate="no" v-pre>LanguageSelector</code> in the workspace footers: toggles <code translate="no" v-pre>UserSetting.themeMode</code> (<code translate="no" v-pre>ThemeMode</code> DARK / LIGHT, dark when not chosen) and applies it with <code translate="no" v-pre>Page.setColorScheme</code>; <code translate="no" v-pre>ThemeSwitch.apply</code> is also called by <code translate="no" v-pre>Main.proceedWithLogin</code>, so the scheme is set when the workspace opens. Only the current page changes at once.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>RedraftDialog</code> (<code translate="no" v-pre>ui.dialogs.story</code>)</td>
+<td>The <em>Redraft</em> item of the part menu of <code translate="no" v-pre>ManuscriptStoryPart</code> / <code translate="no" v-pre>PhoneManuscriptStoryPart</code> (the method <code translate="no" v-pre>redraft</code> of the card): the instructions of the author, the redraft streamed by <code translate="no" v-pre>RedraftService.redraft</code> into a text field that can still be edited (a <code translate="no" v-pre>ResizableTextArea</code>, value change mode <code translate="no" v-pre>LAZY</code>), a <code translate="no" v-pre>WordDiffView</code> of the changes (worked out again from the text whenever the author edits it, not while the model streams), and <em>Apply</em>, which stores the text with <code translate="no" v-pre>ChatMessageService.updateResponse</code> and hands the saved part to the card (it draws the response and the metrics again). When <code translate="no" v-pre>ChatMessageService.isSummarized</code> says a summary describes the part, the window has the checkbox <em>Revalidate the summaries this redraft makes outdated</em> (off at first): <em>Apply</em> then passes the summaries of <code translate="no" v-pre>PartEdit.outdated()</code> to <code translate="no" v-pre>SummaryService.revalidate</code>, so the edit does not leave them outdated. <code translate="no" v-pre>RedraftDialog.open(book, part, passage, onApplied)</code> redrafts a selected <code translate="no" v-pre>RedraftService.Passage</code> only: the selected text is shown, the diff is against it, and <em>Apply</em> (<code translate="no" v-pre>replacePassage</code>, which keeps the whitespace at the edges of the passage) puts the text in the passage after checking that the stored text is still the one the passage was selected in. It is offered by the right click menu of the text of a card (<code translate="no" v-pre>CardAnnotations</code>, which finds the selection and gives the passage to the card&#x27;s <code translate="no" v-pre>redraftSelection</code>; the menu ☰ is not used because it takes the selection away). Closing the dialog stops a running redraft. Not <code translate="no" v-pre>@Extendable</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>BranchTokensDialog</code> (<code translate="no" v-pre>ui.dialogs</code>)</td>
+<td>The <em>Branch Tokens</em> item of the settings menu of <code translate="no" v-pre>ManuscriptStoryPart</code> / <code translate="no" v-pre>PhoneManuscriptStoryPart</code>: a stacked bar (<code translate="no" v-pre>ChartJs</code>) and a table of <code translate="no" v-pre>ChatMessageService.getBranchTokens</code> against <code translate="no" v-pre>TokenLimits.promptTokens</code> of the book&#x27;s model and protocol. Not <code translate="no" v-pre>@Extendable</code>.</td>
+</tr>
+<tr>
 <td><code translate="no" v-pre>LanguageSelector</code></td>
 <td>The language combo box of the workspace footers: saves the choice in <code translate="no" v-pre>UserSetting.language</code>, sets <code translate="no" v-pre>SessionPoint.language</code> and reloads every page of the user (<a href="../architecture/#localization">Localization</a>).</td>
 </tr>
@@ -820,7 +881,7 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 </tr>
 <tr>
 <td><code translate="no" v-pre>BuildInfoFooter</code></td>
-<td>The version text (<code translate="no" v-pre>Marginalia 1.4.0 (93ec118)</code>) as a <code translate="no" v-pre>Span</code> fixed in the bottom left corner (<code translate="no" v-pre>CssStyles.BUILD_INFO_FOOTER</code>, 10 px, faded, outside the layout); the tooltip has the full commit id, the commit time and the build time. Added to <code translate="no" v-pre>Main</code> after the workspace (the phone layout has it too). The login overlay shows the same text as <code translate="no" v-pre>LoginI18n.additionalInformation</code> (<code translate="no" v-pre>LoginCheckRoute.getLoginI18n</code>). The values come from <code translate="no" v-pre>utils.BuildInfo</code>, see <a href="../building/#building-the-application">Building</a>.</td>
+<td>The version text (<code translate="no" v-pre>Marginalia 1.5.0 (93ec118)</code>) as a <code translate="no" v-pre>Span</code> fixed in the bottom left corner (<code translate="no" v-pre>CssStyles.BUILD_INFO_FOOTER</code>, 10 px, faded, outside the layout); the tooltip has the full commit id, the commit time and the build time. Added to <code translate="no" v-pre>Main</code> after the workspace (the phone layout has it too). The login overlay shows the same text as <code translate="no" v-pre>LoginI18n.additionalInformation</code> (<code translate="no" v-pre>LoginCheckRoute.getLoginI18n</code>). The values come from <code translate="no" v-pre>utils.BuildInfo</code>, see <a href="../building/#building-the-application">Building</a>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>HelpAssistantWidget</code></td>
@@ -833,6 +894,10 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 <tr>
 <td><code translate="no" v-pre>TagMultiComboBox</code></td>
 <td>Tag selection with lazy search (<code translate="no" v-pre>TagService.searchTagsForUser</code>) and creation of new tags.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>LorebookActivationPreviewDialog</code> (<code translate="no" v-pre>ui.dialogs</code>)</td>
+<td>The <em>Preview activation</em> of <code translate="no" v-pre>LorebookView</code> and <code translate="no" v-pre>PhoneLorebookView</code>: a text area (lazy value change), an optional book to take the tags from (<code translate="no" v-pre>TagRelationService.getTagsForObject</code>) and a grid of <code translate="no" v-pre>LorebookEntryVerdict</code>s from <code translate="no" v-pre>LorebookActivationService.evaluateAll(root, collectLorebooks(root), tags, text, parts)</code> (<code translate="no" v-pre>parts</code>: <code translate="no" v-pre>recentParts</code> of the active leaf of the picked book, as many as <code translate="no" v-pre>partsNeeded</code> says, none without a book) - the used mark, name, lorebook, order, scan pass and the localized reason (<code translate="no" v-pre>Localization.getActivationReason</code>, keys <code translate="no" v-pre>ENUM_ACTIVATION_REASON_*</code>) with its detail. The summary counts the used entries and their tokens (<code translate="no" v-pre>TokenizerService.countTokensApprox</code> of the raw payload). Read only, nothing is saved, no events: what extensions change in a generation is not shown.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>LorebookMassEditDialog</code> (<code translate="no" v-pre>ui.dialogs</code>)</td>
@@ -928,7 +993,7 @@ the result, and Replace works; a warning goes through <code translate="no" v-pre
 runs on a <code translate="no" v-pre>ThreadAccessDialog</code> thread and reports to the progress bar through <code translate="no" v-pre>TaskProgress</code>. The constructor flag <code translate="no" v-pre>phone</code>
 selects the layout (the fields and buttons below each other, one column in the table), so one class serves both
 layouts. <code translate="no" v-pre>ManuscriptSearchReplaceDialog</code> adds the summaries and all branches options and calls <code translate="no" v-pre>ManuscriptReplaceService</code>;
-the story parts of both layouts open it from the settings menu and show the story again when <code translate="no" v-pre>onReplaced</code> fires. <code translate="no" v-pre>LorebookSearchReplaceDialog</code> is the second subclass, for the entries of a lorebook (no extra options, <code translate="no" v-pre>getIdColumnHeader()</code> makes the table show entry names); <code translate="no" v-pre>LorebookView</code> has a button for it after <em>Add Entry</em> and <code translate="no" v-pre>PhoneLorebookView</code> an icon button.</p>
+the story parts of both layouts open it from the settings menu and show the story again when <code translate="no" v-pre>onReplaced</code> fires. The third constructor argument <code translate="no" v-pre>summariesOnly</code> is for the summaries overview (<code translate="no" v-pre>SummariesDialog</code> and <code translate="no" v-pre>PhoneSummariesDialog</code> open it from their menu bar item <em>Search and Replace</em>, <code translate="no" v-pre>openSearchReplaceDialog()</code>, and load the overview again on <code translate="no" v-pre>onReplaced</code>): it has no <em>Search in summaries</em> box and calls the service with <code translate="no" v-pre>Options.summariesOnly</code>, so the story is not searched. <code translate="no" v-pre>LorebookSearchReplaceDialog</code> is the second subclass, for the entries of a lorebook (no extra options, <code translate="no" v-pre>getIdColumnHeader()</code> makes the table show entry names); <code translate="no" v-pre>LorebookView</code> has a button for it after <em>Add Entry</em> and <code translate="no" v-pre>PhoneLorebookView</code> an icon button.</p>
 <figure class="content-center">
     <img src="../../images/search-replace-found.png" alt="The ManuscriptSearchReplaceDialog with a part opened" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1200" height="792" />
     <figcaption class="caption">The ManuscriptSearchReplaceDialog with a part opened</figcaption>
@@ -997,6 +1062,116 @@ with the npm packages <code translate="no" v-pre>treant-js</code> and <code tran
 tree; <code translate="no" v-pre>TreantTree</code> sends the tree as JSON and receives clicks back: <code translate="no" v-pre>node-click</code> (a card was clicked, with the
 <code translate="no" v-pre>data-node-id</code> of the card) and <code translate="no" v-pre>node-goto</code> (an element with <code translate="no" v-pre>data-goto-id</code> inside a card was clicked; the card itself
 is not clicked then). <code translate="no" v-pre>src/main/frontend/graph-connector.js</code> is loaded by <code translate="no" v-pre>GraphView</code> (npm package <code translate="no" v-pre>cytoscape</code>).</p>
+<h3 id="keyboard-shortcuts">Keyboard shortcuts</h3>
+<p>Only the desktop layout has them (<code translate="no" v-pre>ManuscriptStoryPart</code>; its phone twin has none). The code lives in <code translate="no" v-pre>ui.shortcuts</code>:</p>
+<ul>
+<li>
+<p><code translate="no" v-pre>KeyCombo</code> is the canonical text of a key combination (<code translate="no" v-pre>Ctrl+Alt+Shift+Meta+key</code>, the key as the browser&#x27;s
+<code translate="no" v-pre>event.key</code>: lower-case characters, <code translate="no" v-pre>Space</code>, <code translate="no" v-pre>Enter</code>, <code translate="no" v-pre>F5</code>; <code translate="no" v-pre>Shift</code> is dropped for a character that is not a letter or
+digit). The browser script produces it (<code translate="no" v-pre>window.marginaliaKeyCombo</code> in <code translate="no" v-pre>JavascriptLibrary</code>) and <code translate="no" v-pre>KeyCombo.normalize</code>
+must give the same text; keep the two in step. It also knows the keys the browser keeps (<code translate="no" v-pre>isBrowserReserved</code>).</p>
+</li>
+<li>
+<p><code translate="no" v-pre>ShortcutRegistry</code> (static) lists the <code translate="no" v-pre>ShortcutAction</code>s (id, label from the <code translate="no" v-pre>Localization</code>, default key, handler); the
+application registers its story actions (<code translate="no" v-pre>ShortcutActions</code>) in its static initializer, an extension registers its own
+and unregisters them in <code translate="no" v-pre>onExtensionUnload</code>. The application&#x27;s actions have no handler: <code translate="no" v-pre>ManuscriptStoryPart.handleShortcut</code>
+does them, for other ids it calls the handler with the component of the story tab. Besides the writing loop they are the command bar (<code translate="no" v-pre>/</code>), the search of the branch, annotate selection and the next / previous tab (<code translate="no" v-pre>TabDock.selectRelative</code>).</p>
+</li>
+<li>
+<p><code translate="no" v-pre>KeyBindings</code> resolves the key of every action from <code translate="no" v-pre>UserSetting.keyBindings</code> (an injected <code translate="no" v-pre>JsonObject</code>, id to key,
+only what differs from the default, empty text = no key) and builds what is stored (<code translate="no" v-pre>toStored</code> keeps the bindings
+of actions that are not registered now, e.g. of an extension that is not loaded).</p>
+</li>
+<li>
+<p><code translate="no" v-pre>KeyBindingsEditor</code> (a <code translate="no" v-pre>CustomField</code>, so the settings part tracks it like any field) is the table of the tab
+<em>Keyboard shortcuts</em> of <code translate="no" v-pre>UserPart</code>.</p>
+</li>
+</ul>
+<p>In the browser <code translate="no" v-pre>JavascriptLibrary.fireShortcutEvents</code> puts a <code translate="no" v-pre>keydown</code> listener (capture) on the document for the story
+tab and fires <code translate="no" v-pre>marginalia-shortcut</code> (<code translate="no" v-pre>detail</code> = action id) on the tab&#x27;s element, which the story part listens to. The
+keys are the page-wide <code translate="no" v-pre>window.marginaliaKeys</code> (<code translate="no" v-pre>setShortcutKeys</code> replaces them, <code translate="no" v-pre>UserPart.save</code> and the story&#x27;s
+<code translate="no" v-pre>onTabEnter</code> do), so a change of the settings reaches open stories. The script ignores the key when the element is not
+visible (not the open tab), when a dialog is open above the one that holds the story (the book window is a modal dialog
+itself), and for a key without Ctrl/Alt/Meta when an input, textarea or editable element has the focus (the focused
+element is found through shadow roots). Before it fires the event the script sends the change of a focused text field to the server (a Vaadin field syncs its value on <code translate="no" v-pre>change</code>, i.e. on blur), so the action sees what was just typed. On a Mac a combination with <code translate="no" v-pre>Meta</code> that no action has is tried again with <code translate="no" v-pre>Ctrl</code> in its place. <code translate="no" v-pre>recordKeyCombo</code> records the next combination for the table.</p>
+<h3 id="menus-of-the-story-editor">Menus of the story editor</h3>
+<p>The three menus that act on the story are not written item by item in the story tabs, they are built from the <code translate="no" v-pre>StoryMenuRegistry</code>
+(<code translate="no" v-pre>ui.menu</code>, a Spring bean that fills itself in <code translate="no" v-pre>afterPropertiesSet</code>): the settings menu (<code translate="no" v-pre>MenuKind.TOOLS</code>, the cogs of the story), the
+menu of a part (<code translate="no" v-pre>CARD</code>, the hamburger button of a card) and the right click menu of its text (<code translate="no" v-pre>TEXT</code>).</p>
+<ul>
+<li>
+<p><code translate="no" v-pre>StoryMenuItem</code> defines an item: its key (<code translate="no" v-pre>StoryMenuKeys</code> has the ones of the application, a plugin prefixes its own), the label, an optional
+icon, the <strong>callback</strong> (<code translate="no" v-pre>Consumer&lt;StoryEditor&gt;</code> for the tools menu, <code translate="no" v-pre>BiConsumer&lt;StoryEditor, StoryCard&gt;</code> for the other two), an optional
+default key (null = none), the <code translate="no" v-pre>phone</code> flag (default true, <code translate="no" v-pre>false</code> for the items only the desktop shows), <code translate="no" v-pre>visibleWhen</code> / <code translate="no" v-pre>enabledWhen</code> /
+<code translate="no" v-pre>checkedWhen</code> predicates and <code translate="no" v-pre>contextLabel</code> (text that depends on the part: <em>Edit</em> / <em>Save</em>) that are asked each time the menu opens, and a
+<code translate="no" v-pre>parent</code> key that makes the item an item of the sub menu of another one (the parent has no callback, so a sub menu can have items that
+come and go). <code translate="no" v-pre>StoryEditor</code> and <code translate="no" v-pre>StoryCard</code> are the interfaces both the desktop (<code translate="no" v-pre>ManuscriptStoryPart</code>) and the phone
+(<code translate="no" v-pre>PhoneManuscriptStoryPart</code>) tab and their cards implement, so one definition serves both.</p>
+</li>
+<li>
+<p>Every item with a callback is also a <code translate="no" v-pre>ShortcutAction</code> of the key bindings (id <code translate="no" v-pre>menu.&lt;key&gt;</code>, or <code translate="no" v-pre>actionId(..)</code> for the ones the user already has
+a key stored for, such as <code translate="no" v-pre>story.swipe</code>; <em>Annotate selection</em> is only an item of the text menu, <code translate="no" v-pre>story.annotateSelection</code>: opening the menu of a part takes the selection away), registered with its default key,
+also none. So a new item is listed in <em>Settings → Keyboard shortcuts</em> the moment it is registered.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>StoryMenuRegistry.definition(kind, phone, bindings)</code> returns a <code translate="no" v-pre>MenuDefinition</code>: the items of the kind in the order they were registered, and
+the keys (the ones the user changed, else the defaults; <code translate="no" v-pre>null</code> bindings = the phone, which shows no keys). <code translate="no" v-pre>MenuDefinition.build(menu, loc, editor, card)</code> adds the items to a <code translate="no" v-pre>ContextMenu</code> or the sub menu of a menu bar item and wires them; the <code translate="no" v-pre>BuiltMenu</code> it returns finds an item by
+key (<code translate="no" v-pre>get(key)</code>) and <code translate="no" v-pre>refresh(definition)</code> works out text, visibility, enabled and ticked state and the key hint of every item again. The story
+tab refreshes a menu when it opens (the part menus are <code translate="no" v-pre>LazyContextMenu</code>s, filled the first time) and the tools menu after an item ran
+and when the story tab is entered (the user may have changed the keys).</p>
+</li>
+<li>
+<p>A key of a <code translate="no" v-pre>CARD</code> or <code translate="no" v-pre>TEXT</code> item acts on the part that is edited, else the part that holds the text selection (<code translate="no" v-pre>JavascriptLibrary.selectionOwner</code>),
+else the last part, and on the last part when the item does not apply to the chosen one (<code translate="no" v-pre>ManuscriptStoryPart.runMenuItem</code>).</p>
+</li>
+<li>
+<p>The hooks stay for extensions that decorate them (how to register an item and the details: <a href="../plugins/ui-extensions/#menu-items-of-the-story-editor">UI extensions</a>): <code translate="no" v-pre>createCogsMenuItem</code> (local <code translate="no" v-pre>cogs</code>) and the card&#x27;s <code translate="no" v-pre>createMenuItems</code> (field <code translate="no" v-pre>hamburgerMenu</code>)
+run after the registry has filled the menu, and what they add directly is no registry item (no shortcut row, no key hint). Registering the
+item is the way to go for new code. An extension unregisters its items in <code translate="no" v-pre>onExtensionUnload</code>; a bundle that is unloaded loses the rest by its
+symbolic name (<code translate="no" v-pre>OsgiServiceImpl</code>).</p>
+</li>
+</ul>
+<h3 id="annotations-in-the-story">Annotations in the story</h3>
+<p>The marks, the notes and the list share a few classes in <code translate="no" v-pre>ui.dialogs.story</code>; the desktop and the phone card use them the same way.</p>
+<ul>
+<li>
+<p><code translate="no" v-pre>utils.TextMarkup</code> puts <strong>all layers into the text in one go</strong>: the generated text of the diff view (<code translate="no" v-pre>GeneratedTextHighlighter.ranges</code>), the
+matches of the search (<code translate="no" v-pre>StoryBranchSearch.marks</code>) and the annotations (<code translate="no" v-pre>StoryAnnotations.marks</code>) are ranges of the <em>raw</em> source
+text, and <code translate="no" v-pre>TextMarkup.apply</code> cuts the text where a range starts or ends and wraps each piece in the <code translate="no" v-pre>&lt;mark&gt;</code> elements of the ranges that
+cover it (the first range outermost), line by line and outside of the white space and the markdown that opens a line. The layers
+can not be chained (the HTML of one would shift the offsets of the next). <code translate="no" v-pre>renderResponse()</code> of the card collects the ranges and
+sets the content of the <code translate="no" v-pre>Markdown</code>. The sanitizer of the component (DOMPurify) keeps <code translate="no" v-pre>class</code> and <code translate="no" v-pre>data-*</code>, which the marks use:
+<code translate="no" v-pre>data-annotation</code> is the uuid of the annotation.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>StoryAnnotations</code> keeps the annotations of the book (one query, dropped by <code translate="no" v-pre>invalidate()</code> when the story is drawn again or a text changed),
+gives the marks and the counts, and makes the changes (<code translate="no" v-pre>create</code>, <code translate="no" v-pre>update</code>, <code translate="no" v-pre>setStatus</code>, <code translate="no" v-pre>reattach</code>, <code translate="no" v-pre>remove</code>: they go through
+<code translate="no" v-pre>AnnotationService</code>, invalidate, redraw the card of the part through the <code translate="no" v-pre>StoryLazyLoader</code> and tell the listeners, the list).
+A mark is drawn only when the card is not <code translate="no" v-pre>generating</code> (a regeneration streams into the card, the passages are not in the text yet).</p>
+</li>
+<li>
+<p><code translate="no" v-pre>CardAnnotations</code> is what a card does with its part&#x27;s annotations: the badge (the number of open and orphaned ones), the popover
+(<code translate="no" v-pre>Popover</code> whose target is a small absolutely placed anchor in the card; <code translate="no" v-pre>JavascriptLibrary.fireAnnotationClickEvent</code> moves it onto the mark that was
+clicked, in the browser, before it tells the server which annotations cover the point, innermost first), <strong>Annotate part</strong>, <strong>Annotate selection</strong>
+and <strong>Attach to selection</strong>. The selection is the offsets of the editor when the part is edited (<code translate="no" v-pre>getTextAreaSelection</code>, the edit is saved first),
+otherwise the text the browser shows with some text around it (<code translate="no" v-pre>getSelectionContext</code>), found in the source with <code translate="no" v-pre>QuoteFinder</code> (<code translate="no" v-pre>StoryAnnotations.locate</code>).</p>
+</li>
+<li>
+<p><code translate="no" v-pre>AnnotationView</code> is one annotation with its actions, <code translate="no" v-pre>AnnotationDialog</code> asks for a new note, <code translate="no" v-pre>AnnotationsPanel</code> is the tab of the book (<code translate="no" v-pre>ManuscriptStoryPart.ANNOTATIONS_TAB</code>,
+in the default layout of the dock; the phone has it in the drawer), <code translate="no" v-pre>AnnotateDialog</code> runs <a href="../services/"><code translate="no" v-pre>AnnotateService</code></a> and lists the proposals. Opened on a part (<code translate="no" v-pre>open</code>) it annotates that part; opened without one (<code translate="no" v-pre>openRange</code>, from the <em>Annotate a range of parts with AI</em> item of the tools menu, <code translate="no" v-pre>StoryEditor.openAnnotateRangeDialog</code>, which shows the story again afterwards) it needs a range of the parts of the branch (both <em>From part</em> and <em>To part</em>, <code translate="no" v-pre>annotateNext</code>): the parts are annotated one after another, the next one is started from the callback of the one before (inside <code translate="no" v-pre>ui.access</code>, in the request scope copied when the run started), the proposals are <code translate="no" v-pre>Entry</code> records that remember their part, and accepting calls <code translate="no" v-pre>AnnotateService.accept</code> once per part. The service itself still annotates one part per call. <strong>Automatic annotation.</strong> The <em>Automatic annotation</em> item of the tools menu (<code translate="no" v-pre>StoryMenuKeys.AUTO_ANNOTATE</code>, <code translate="no" v-pre>StoryEditor.openAutoAnnotateDialog</code> / <code translate="no" v-pre>isAutoAnnotate</code>, the item is ticked while it is on) opens <code translate="no" v-pre>AutoAnnotateDialog</code>, which stores the settings in the extended attributes <code translate="no" v-pre>autoAnnotate*</code> of <code translate="no" v-pre>Manuscript</code> (the AI and the protocol as uuids). <code translate="no" v-pre>StoryGenerationListener.onComplete</code> calls the new <code translate="no" v-pre>Callbacks.partCompleted(message)</code> (a default method) after the story was drawn again, and both story tabs answer it with <code translate="no" v-pre>new AutoAnnotate(manuscript, reload).run(message)</code>: when the book has it on and the part has a text, <code translate="no" v-pre>AnnotateDialog.openAuto</code> opens the annotation window on the reloaded part with an <code translate="no" v-pre>AnnotateDialog.Auto</code> (instructions, AI, protocol, accept) and starts the run at once. At the end of a run that was not stopped (<code translate="no" v-pre>endRun(true)</code>) and with <code translate="no" v-pre>accept</code>, the dialog calls <code translate="no" v-pre>accept()</code> itself (a closed dialog, <code translate="no" v-pre>isOpened()</code> false, does nothing: a late answer of a model the author stopped by closing the window must not add notes) or, when the model found nothing and there is no note about a part that could not be read, says so and closes. <code translate="no" v-pre>accept()</code> calls <code translate="no" v-pre>onAdded</code>, which only then moves on: it shows the story again and, with <code translate="no" v-pre>autoAnnotateRedraft</code> (and accept), calls <code translate="no" v-pre>RedraftDialog.openAuto(book, part, autoAnnotateAcceptRedraft, ...)</code>, which starts the redraft at once with the open annotations; with <code translate="no" v-pre>apply</code> the dialog applies the text itself when the model finished (<code translate="no" v-pre>completed</code>, not when it was stopped, and not when the dialog was closed). A closed window never calls its callback, so closing ends the run; nothing is redrafted when no note was added. The automatic redraft dialog never offers the summaries&#x27; revalidation box.</p>
+</li>
+<li>
+<p><strong>Notes in the margin</strong> (desktop): the cogs menu item <strong>Annotations in the margin</strong> (an item of the <code translate="no" v-pre>StoryMenuRegistry</code>; <code translate="no" v-pre>ManuscriptStoryPart.setAnnotationsInMargin</code>) stores the
+preference in <code translate="no" v-pre>UserSetting.annotationsInMargin</code> and tells every card (<code translate="no" v-pre>ChatMessageCard.applyAnnotationMargin</code>). The card puts <code translate="no" v-pre>CardAnnotations.getMargin()</code> (a column of
+<code translate="no" v-pre>AnnotationView</code>s of the notes that need a look, in the order of the passages; <code translate="no" v-pre>data-annotation-id</code> is the uuid) before the text; with the mode on the card content has the class
+<code translate="no" v-pre>annotations-in-margin</code>, a two column grid (the margin left, the text and the editor right, the rest spans both), and a click on a mark finds the note in the column
+(<code translate="no" v-pre>flashMarginNote</code>) instead of opening the popover. <code translate="no" v-pre>JavascriptLibrary.linkMarginNotes</code> lights the note and its marks together (<code translate="no" v-pre>annotation-lit</code>). The notes are drawn again with the card
+(<code translate="no" v-pre>CardAnnotations.refresh</code>). The phone has no margin. Not done: aligning each note with the line of its passage.</p>
+</li>
+<li>
+<p>The styles are <code translate="no" v-pre>annotation-*</code> in <code translate="no" v-pre>shared-styles.css</code> (wavy underline in the colour of the source, nested marks lower).</p>
+</li>
+</ul>
 <h3 id="searching-the-story-tree">Searching the story tree</h3>
 <p><code translate="no" v-pre>ManuscriptTreePart</code> has a search bar above the tree: an editable <code translate="no" v-pre>ComboBox</code> (the last 15 searches; typed text is a
 custom value that the part sets as the value) and a button. A search calls <code translate="no" v-pre>ChatMessageService.searchFulltext</code> and
@@ -1087,10 +1262,10 @@ initializer, <code translate="no" v-pre>ThreadCopyRequestAttributes</code>) and 
 |---|---|---|
 | Author's Note | `ManuscriptStoryPart` | `renderStoryContent` |
 | Chapter Marker | `ManuscriptStoryPart`, `ManuscriptStoryPart$ChatMessageCard` | `createSidebarButton`; `autosaveAndSwapToMarkdown` |
-| Instruction Exporter | `ManuscriptStoryPart`, `PhoneManuscriptStoryPart` | `createCogsMenuItem` |
+| Instruction Exporter | none | registers an item in the `StoryMenuRegistry` (settings menu) |
 | Lore Generator | `LorebookView`, `LorebookPart`, `UserPart` | `create` (adds a column to the `grid` field); `refresh` (the same for a workspace tab that was built before the extension was loaded); `refresh`, `save` |
 | Lorebook VCS | `LorebookView` | `create`, `createEntryDetailLayout` |
-| Reviewer | `ManuscriptStoryPart$ChatMessageCard`, `UserPart` | `createMenuItems`, `refreshSummaryMenuItems`; `refresh`, `save` |
+| Reviewer | `UserPart`, `ManuscriptInfoPart`, `PhoneManuscriptInfoPart` | `refresh`, `save`; `create`, `load` (the *Review* sub menu of a part is registered in the `StoryMenuRegistry`) |
 | Side Query | `ManuscriptStoryPart`, `UserPart` | `renderStoryContent`; `refresh`, `save` |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -1114,8 +1289,8 @@ initializer, <code translate="no" v-pre>ThreadCopyRequestAttributes</code>) and 
 </tr>
 <tr>
 <td>Instruction Exporter</td>
-<td><code translate="no" v-pre>ManuscriptStoryPart</code>, <code translate="no" v-pre>PhoneManuscriptStoryPart</code></td>
-<td><code translate="no" v-pre>createCogsMenuItem</code></td>
+<td>none</td>
+<td>registers an item in the <code translate="no" v-pre>StoryMenuRegistry</code> (settings menu)</td>
 </tr>
 <tr>
 <td>Lore Generator</td>
@@ -1129,8 +1304,8 @@ initializer, <code translate="no" v-pre>ThreadCopyRequestAttributes</code>) and 
 </tr>
 <tr>
 <td>Reviewer</td>
-<td><code translate="no" v-pre>ManuscriptStoryPart$ChatMessageCard</code>, <code translate="no" v-pre>UserPart</code></td>
-<td><code translate="no" v-pre>createMenuItems</code>, <code translate="no" v-pre>refreshSummaryMenuItems</code>; <code translate="no" v-pre>refresh</code>, <code translate="no" v-pre>save</code></td>
+<td><code translate="no" v-pre>UserPart</code>, <code translate="no" v-pre>ManuscriptInfoPart</code>, <code translate="no" v-pre>PhoneManuscriptInfoPart</code></td>
+<td><code translate="no" v-pre>refresh</code>, <code translate="no" v-pre>save</code>; <code translate="no" v-pre>create</code>, <code translate="no" v-pre>load</code> (the <em>Review</em> sub menu of a part is registered in the <code translate="no" v-pre>StoryMenuRegistry</code>)</td>
 </tr>
 <tr>
 <td>Side Query</td>
@@ -1343,7 +1518,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (60a4afd23).</p></div>
             </footer>
         </div>
     </div>

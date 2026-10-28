@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846005664026">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522787704">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846005664026" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846522787704" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846005664026" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -65,7 +65,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.5.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -185,7 +185,7 @@ choose which categories the model may use (see <a href="../tools/">Tools for the
 <h2 id="what-the-model-can-do">What the model can do</h2>
 <retype-table copy-text="| Function | What it does |
 |---|---|
-| `list_name_categories` | Lists the categories of names. |
+| `list_name_categories` | Lists the categories of names; with a `filter` only those that have its words in the name. |
 | `generate_names` | Makes up to 100 new names of one category. Optionally with a shortest and longest length. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -198,7 +198,7 @@ choose which categories the model may use (see <a href="../tools/">Tools for the
 <tbody>
 <tr>
 <td><code translate="no" v-pre>list_name_categories</code></td>
-<td>Lists the categories of names.</td>
+<td>Lists the categories of names; with a <code translate="no" v-pre>filter</code> only those that have its words in the name.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>generate_names</code></td>
@@ -217,7 +217,7 @@ pick one of the names, change it or combine two of them; see the hint of the <em
 which can use them in their own prompts (for example for <code translate="no" v-pre>/generate-lore-entry</code> of the <a href="../lore-generator/">Lore Generator</a>):</p>
 <retype-table copy-text="| Command | What it does |
 |---|---|
-| `/list-name-categories [&lt;filter&gt;]` | Lists the categories as a JSON array; with a filter only those whose name starts with it (not case sensitive). |
+| `/list-name-categories [&lt;filter&gt;]` | Lists the categories as a JSON array; with a filter only those whose name has all its words (each at the start of a word, in any order, not case sensitive: `chad male` finds *Africa - Central Africa - Chad - Male* but not *…Female*). |
 | `/generate-names category count [min_length [max_length]]` | Makes up to 100 names of the category and returns them as a JSON array. Different names each time. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -230,7 +230,7 @@ which can use them in their own prompts (for example for <code translate="no" v-
 <tbody>
 <tr>
 <td><code translate="no" v-pre>/list-name-categories [&lt;filter&gt;]</code></td>
-<td>Lists the categories as a JSON array; with a filter only those whose name starts with it (not case sensitive).</td>
+<td>Lists the categories as a JSON array; with a filter only those whose name has all its words (each at the start of a word, in any order, not case sensitive: <code translate="no" v-pre>chad male</code> finds <em>Africa - Central Africa - Chad - Male</em> but not <em>…Female</em>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>/generate-names category count [min_length [max_length]]</code></td>
@@ -260,6 +260,43 @@ Corpora (animals, tarot, Tolkien names, Game of Thrones houses, drugs, hospitals
 languages...) and markov-namegen-lib (Pokemon, dragons, cocktails, banks, Roman place names...).</p>
 </li>
 </ul>
+<h3 id="groups">Groups</h3>
+<p>About 170 entries are <strong>groups</strong> of categories. They put the many small lists of a language together, so you ask for
+<code translate="no" v-pre>German - Male</code> instead of picking among <em>Germany - Germanic - Male</em>, <em>Germany - Biblical - Male</em>, <em>Austria - First names - Male</em>
+and the rest. They are listed like any category, and a group is one item in the <a href="../tools/">tools window</a>. The groups:</p>
+<ul>
+<li>
+<p><strong>By language</strong>, each as <code translate="no" v-pre>- Male</code>, <code translate="no" v-pre>- Female</code> and <code translate="no" v-pre>- Surnames</code> where there are such lists: German, French, Spanish (the
+surnames include Latin America), Italian, Portuguese, Dutch, Scandinavian, Finnic, Baltic, Irish, Scottish, Welsh, Celtic (all
+of them), West, East and South Slavic, Greek, Hungarian, Romanian, Albanian, Caucasian, Turkic, Persian, Arabic, Jewish, Hindu
+(the four alphabetical lists of male names as one), South Asian, Southeast Asian, Malay-Indonesian, Polynesian and the African
+regions (West, East, Southern, North, Central). <code translate="no" v-pre>Chinese</code>, <code translate="no" v-pre>Japanese</code>, <code translate="no" v-pre>Korean</code> and <code translate="no" v-pre>Vietnamese</code> have <code translate="no" v-pre>- Surnames</code>.</p>
+</li>
+<li>
+<p><strong>Any gender</strong>: <code translate="no" v-pre>&lt;Language&gt; - Forenames</code> (<code translate="no" v-pre>German - Forenames</code>, <code translate="no" v-pre>Spanish - Forenames</code>, <code translate="no" v-pre>Celtic - Forenames</code>...) takes the male
+and the female lists of the language and its lists of names for both genders, so a call returns men&#x27;s and women&#x27;s names mixed
+(the shares follow the sizes of the lists, mostly between half and three quarters men). Chinese, Japanese, Korean and Vietnamese
+have it too. Languages where the mix would be lopsided (Turkic, South Asian, West and Southern African, Malay-Indonesian) have only the
+male and female groups.</p>
+</li>
+<li>
+<p><strong>Of the past</strong>: Anglo-Saxon, Medieval Germanic, Medieval English, Ancient Near East.</p>
+</li>
+<li>
+<p><strong>Native American</strong>: <code translate="no" v-pre>Native American - Male</code>, <code translate="no" v-pre>- Female</code> and <code translate="no" v-pre>- Surnames</code> (the northern American categories of the Onomastikon:
+Apache, Sioux, Iroquois, Cherokee, Inuit...) and the same for Central and South America (Aztec, Maya, Inca, Amazonian).</p>
+</li>
+<li>
+<p><strong>Other</strong>: <code translate="no" v-pre>English - Surnames</code> (patronymics, trades, places...), <code translate="no" v-pre>Saints</code>, <code translate="no" v-pre>Deities</code>, <code translate="no" v-pre>Fantasy Creatures</code>, <code translate="no" v-pre>Game of Thrones Houses</code>.</p>
+</li>
+</ul>
+<p>For every name the extension first picks one of the categories of the group at random, and then makes the name with the
+chain of that category (with its usual lengths). A name sounds like one people and language instead of a blend of all of them,
+and one call returns names of several. The lists of the countries, which are split by origin or by letter, are chosen by
+their size (a list of 600 names is chosen more often than one of 10); in the groups of whole languages and countries (Turkic,
+Caucasian, Baltic, Polynesian, the African regions, Native American...) every member has the same chance. The sources of some
+groups are short and partly English translations (<em>Calf-Woman</em>), so the names are rough.
+A group is a line in <code translate="no" v-pre>name-groups.json</code> (the members and how they are chosen), see the <a href="https://github.com/Enerccio/Marginalia/blob/master/marginalia/plugins/name-generator/README.md#groups">plugin README</a>.</p>
 <p>Each category has a chain of the length that suited it best (short lists get short chains, which repeat the originals
 less) and the lengths its names usually have. The lists themselves are not part of Marginalia: only the probabilities
 are, so the original names can&#x27;t be read out of the extension. Some of the sources have licences of their own, see the
@@ -305,7 +342,7 @@ Generator. Without it and the other suites, the Lore Generator has no <em>Tools<
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15b2234f).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (60a4afd23).</p></div>
             </footer>
         </div>
     </div>

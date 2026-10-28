@@ -7,11 +7,9 @@ import com.github.enerccio.marginalia.domain.service.tool.ToolItem;
 import com.github.enerccio.marginalia.domain.service.tool.ToolProvider;
 import com.github.enerccio.marginalia.domain.service.tool.ToolRequest;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
+
+import static com.github.enerccio.marginalia.extensions.nameprovider.NameProviderLocalization.T;
 
 /**
  * The name provider as a tool suite: every list of real names is an item, and the functions the model gets know only the
@@ -49,7 +47,7 @@ public class NameProviderToolProvider implements ToolProvider {
 
     @Override
     public String description() {
-        return "Real names: the most common forenames and surnames of about 100 countries, with the original spelling.";
+        return T.localized("Real names: the most common forenames and surnames of about 100 countries, with the original spelling. Groups (like the Nordic countries) pick a list at random for every name.");
     }
 
     @Override
@@ -71,14 +69,14 @@ public class NameProviderToolProvider implements ToolProvider {
         }
 
         @Override
-        public void listLists(FunctionContinuation<List<String>> done) {
-            done.complete(List.copyOf(categories));
+        public void listLists(FunctionContinuation<List<String>> done, String filter) {
+            done.complete(NameLists.filter(categories, filter));
         }
 
         @Override
         public void pickNames(FunctionContinuation<List<NameEntry>> done, String category, int count) {
             if (category == null || !allowed.contains(category.strip())) {
-                done.fail("Unknown category '" + category + "'. Categories: " + String.join(", ", categories));
+                done.fail(NameLists.unknown("category", category, categories, "list_real_name_lists"));
                 return;
             }
             delegate.pickNames(done, category, count);

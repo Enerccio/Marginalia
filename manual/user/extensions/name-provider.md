@@ -18,7 +18,7 @@ check lists of both, of one of them or of none.
 
 | Function | What it does |
 |---|---|
-| `list_real_name_lists` | Lists the lists of names. |
+| `list_real_name_lists` | Lists the lists of names; with a `filter` only those that have its words in the name. |
 | `pick_real_names` | Picks up to 100 different names of one list at random. Every name is a pair, the romanized name and the original one. |
 
 A list with fewer names than asked for returns all of them. The model is told (see the hint of the *Name provider* suite
@@ -32,7 +32,7 @@ which can use them in their own prompts (for example for `/generate-lore-entry` 
 
 | Command | What it does |
 |---|---|
-| `/list-real-name-lists` | Lists the lists as a JSON array. |
+| `/list-real-name-lists [<filter>]` | Lists the lists as a JSON array; with a filter only those whose name has all its words (each at the start of a word, in any order, not case sensitive). |
 | `/pick-real-names list count` | Picks up to 100 names of the list at random and returns them as a JSON array of pairs, the romanized name and the original one. |
 
 Both only read.
@@ -43,6 +43,14 @@ There are about 180 lists, named `<Country> - Surnames` and `<Country> - Forenam
 106 (`Japan - Surnames`, `Czechia - Forenames`, `Kosovo - Surnames`). Forenames of both genders are in one list. A list has
 from 5 to about 150 names, the most common ones of the country. The names are not made new: a name you get is a name that
 people have.
+
+A few dozen entries are **groups** of lists by language: `<Language> - Forenames` and `<Language> - Surnames` for Spanish
+(18 countries), Portuguese, French, German, English, Arabic, West, East and South Slavic, North Germanic, Nordic, Uralic,
+Baltic, Turkic, Persian, Chinese, South Asian, Southeast Asian, Caucasus, Albanian and Romanian (where there are such lists). They
+are listed like any list and are one item in the [tools window](tools.md). Every name of a group is picked from one of its lists
+chosen at random, each country with the same chance, so a request for 20 names gets names of several countries, never the same name
+twice. Countries where several languages are spoken (Belgium, Luxembourg, Malta, Andorra) are in no group. A group is a
+line in `name-groups.json`, see the [plugin README](https://github.com/Enerccio/Marginalia/blob/master/marginalia/plugins/name-provider/README.md#groups).
 
 The data is the [popular names by country dataset](https://github.com/sigpwned/popular-names-by-country-dataset) (CC0), which
 takes them from Wikipedia's lists of the most common surnames and the most popular given names. The names written in
