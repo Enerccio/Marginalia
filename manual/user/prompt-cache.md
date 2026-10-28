@@ -395,19 +395,25 @@ def text_of(message):
 
 def compare(previous, messages):
     """Says where a prompt first differs from the last one of its session: a server can reuse its cache up to there, and not
-    after it, however much of the rest is the same. `previous` and `messages` are lists of (role, text)."""
+    after it, however much of the rest is the same. `previous` and `messages` are lists of (role, text). The last message is
+    compared with the last one of the other prompt as well: it holds what changes, and when a story grew by a message it is not
+    at the same place."""
     shared = 0
     while shared < min(len(previous), len(messages)) and previous[shared] == messages[shared]:
         shared += 1
     if shared == len(previous) == len(messages):
         return f"the same as the last one ({len(messages)} messages)"
     if shared == len(previous) or shared == len(messages):
-        return (f"{len(messages)} messages, the last one had {len(previous)}: the first {shared} are the same, "
+        said = (f"{len(messages)} messages, the last one had {len(previous)}: the first {shared} are the same, "
                 f"{'new messages follow' if shared == len(previous) else 'the end is cut'}")
-    role, text = messages[shared]
-    same = len(os.path.commonprefix([previous[shared][1], text]))
-    return (f"{len(messages)} messages, the last one had {len(previous)}: the first {shared} are the same, message {shared + 1} "
-            f"({role}) is the same for its first {same} of {len(text)} characters (the last one: {len(previous[shared][1])})")
+    else:
+        role, text = messages[shared]
+        same = len(os.path.commonprefix([previous[shared][1], text]))
+        said = (f"{len(messages)} messages, the last one had {len(previous)}: the first {shared} are the same, message {shared + 1} "
+                f"({role}) is the same for its first {same} of {len(text)} characters (the last one: {len(previous[shared][1])})")
+    last_now, last_before = messages[-1][1], previous[-1][1]
+    return (said + f"; the last message is the same as the last one's last message for its first "
+            f"{len(os.path.commonprefix([last_before, last_now]))} of {len(last_now)} characters (the last one: {len(last_before)})")
 
 
 def upstream_model(model):
@@ -588,7 +594,10 @@ Things to know:
   prompt is the same as the last one of that session, for example `slot_cache: <route>_<session> prompt: 14 messages, the last
   one had 12: the first 11 are the same, message 12 (user) is the same for its first 2150 of 9031 characters`. A server can
   reuse its cache only up to there (a message is about three or four characters per token), so this is the line to read
-  when a second request reads almost everything again: the message it names is the one whose start changed.
+  when a second request reads almost everything again: the message it names is the one whose start changed. The line also
+  compares the last message of the two prompts, which holds what changes (the lore, the part, the task): when the story grew by
+  a part, the old last message is not at the same place any more, and the number of characters the two last messages share is
+  how far the lore, for one, is the same in both.
 - **If nothing happens**, look at the log of the proxy (`docker logs litellm-proxy 2>&1 | grep slot_cache`): with the
   hook at work there is a line for every call, and a request of Marginalia for a route without `slot_cache` is reported
   once (`not used for <route>: no model_info.slot_cache`). No `slot_cache` line at all means the hook did not run: the
