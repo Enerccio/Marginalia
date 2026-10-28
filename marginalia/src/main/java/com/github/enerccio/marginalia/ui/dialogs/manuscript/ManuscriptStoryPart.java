@@ -616,6 +616,28 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     }
 
     /**
+     * Opens the annotation by a model of a range of the parts of the story ({@link AnnotateDialog#openRange}); the story is shown
+     * again when annotations were added.
+     */
+    @PublicAPI(from = "1.5.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    @Override
+    public void openAnnotateRangeDialog() {
+        try {
+            AnnotateDialog.openRange(parent.refreshManuscript(), () -> {
+                try {
+                    load(parent.refreshManuscript());
+                } catch (Exception e) {
+                    UIUtils.internalServerError(loc, e);
+                }
+            });
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
      * Shows the tokens the story of the active branch takes in the next prompt, with and without the summaries.
      */
     @PublicAPI(from = "1.5.0",

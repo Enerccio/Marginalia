@@ -748,7 +748,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_SCAN_FILES, "扫描文件");
         setValue(L.LABEL_DOWNLOAD_AS_ZIP, "下载为 ZIP");
         setValue(L.LABEL_FILE, "文件");
-        setValue(L.LABEL_ANNOTATE_BATCH, "为一段范围内的段落添加批注");
+        setValue(L.LABEL_ANNOTATE_BATCH, "用 AI 为一段范围内的段落添加批注");
         setValue(L.LABEL_ANNOTATE_FROM_PART, "起始段落");
         setValue(L.LABEL_ANNOTATE_TO_PART, "结束段落");
         setValue(L.LABEL_COMMAND_GENERATE_ANNOTATION, "生成批注");

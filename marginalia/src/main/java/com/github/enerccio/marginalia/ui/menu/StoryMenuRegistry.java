@@ -136,6 +136,8 @@ public class StoryMenuRegistry implements InitializingBean {
                 .icon(Solid.EXCHANGE_ALT::create).actionId(ShortcutActions.STORY_SEARCH_REPLACE).defaultKey("Ctrl+Shift+h"));
         application(StoryMenuItem.tools(StoryMenuKeys.IMPORT_ARCHIVE, L.LABEL_IMPORT_FROM_ARCHIVE, StoryEditor::openArchiveImportDialog)
                 .icon(Solid.FILE_IMPORT::create));
+        application(StoryMenuItem.tools(StoryMenuKeys.ANNOTATE_RANGE, L.LABEL_ANNOTATE_BATCH, StoryEditor::openAnnotateRangeDialog)
+                .icon(Solid.COMMENT_DOTS::create));
         application(StoryMenuItem.tools(StoryMenuKeys.BRANCH_TOKENS, L.LABEL_BRANCH_TOKENS, StoryEditor::openBranchTokensDialog)
                 .icon(Solid.CHART_BAR::create));
         application(StoryMenuItem.tools(StoryMenuKeys.EXPORT, L.LABEL_EXPORT_STORY, StoryEditor::openExportDialog)

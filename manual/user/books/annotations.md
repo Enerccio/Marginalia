@@ -115,9 +115,10 @@ checked); uncheck the ones you do not want and choose **Add the selected annotat
 
 ![The notes a model proposes for a part](../../images/annotate-ai-proposals.png)
 
-**A range of parts (batch).** Tick **Annotate a range of parts** (the box is there when the story has more than one part with
-a text) and choose **From part** and **To part** (both start on the part you opened the window on; it does not matter which
-is the earlier). **Annotate** then reviews the parts of the range one after another, with the same instructions, answer
+**A range of parts (batch).** **Annotate with AI** in the menu of a part reviews that part only. To review several, open the
+settings menu (⚙) of the story and choose **Annotate a range of parts with AI** (on a phone too). It is the same window with
+**From part** and **To part** to choose (both are required, **Annotate** waits for them; it does not matter which
+is the earlier; only parts with a text are listed). **Annotate** then reviews the parts of the range one after another, with the same instructions, answer
 format and model, each read with the story around it like a single part. The proposals are listed under the number of
 their part, all checked, and **Add the selected annotations** adds each to its own part. **Stop** stops the part in progress
 and starts no more; what was found until then stays in the list. A part whose answer can't be read or that does

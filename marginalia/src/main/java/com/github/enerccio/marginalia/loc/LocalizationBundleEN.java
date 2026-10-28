@@ -740,7 +740,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_SCAN_FILES, "Scan files");
         setValue(L.LABEL_DOWNLOAD_AS_ZIP, "Download as ZIP");
         setValue(L.LABEL_FILE, "File");
-        setValue(L.LABEL_ANNOTATE_BATCH, "Annotate a range of parts");
+        setValue(L.LABEL_ANNOTATE_BATCH, "Annotate a range of parts with AI");
         setValue(L.LABEL_ANNOTATE_FROM_PART, "From part");
         setValue(L.LABEL_ANNOTATE_TO_PART, "To part");
         setValue(L.LABEL_COMMAND_GENERATE_ANNOTATION, "Generate annotations");
