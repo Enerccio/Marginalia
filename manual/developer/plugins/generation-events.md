@@ -200,6 +200,7 @@ Points worth copying:
   `ManuscriptService.find(...)` - services work in listeners, they run in the user's request scope.
 - **Carry state between events in the properties.** `event.getProperties()` belongs to one generation; keys prefixed
   with the plugin's package don't clash with other plugins.
+- **The prompt of a part is not on the part.** The payload and the lore that were built for a part are a `MessagePrompt` row (`MessagePromptService.getBuiltPrompt(message)`, `getBackgroundLore(message)`), not a field of `ChatMessage` any more. A regeneration keeps the row it replaces in the property `GenerationProperties.ORIGINAL_PROMPT` next to `ORIGINAL_MESSAGE`; cleanup puts it back when generation ends before any text arrived.
 - **Replace, don't mutate.** The listener builds a new list and calls `event.setPayload(...)`. Another listener may
   have set an immutable list, and the new list makes it obvious what the plugin sends.
 - **Don't break the generation.** A failure is logged and the story is generated without the note.
