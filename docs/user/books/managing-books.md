@@ -76,6 +76,19 @@ grayed out: it is locked, so it can not be ticked or changed until the run is pa
 
 ![Tagging books](../../images/multi-tag-books.png)
 
+### Changing the model and protocol of many books
+
+The **Mass changes** menu (next to **Tag books**) has the item **Mass Change Model/Protocol**. It opens a window that puts one
+**Model** and/or one **Protocol** on many books without opening each. Leave a box empty (it shows *Do not replace*) and that
+part of the books stays as it is: pick only a model to change the models and keep the protocols. The table lists all your
+books by name with the model and protocol they have now. Type in the filter under **Name** to narrow the list, tick the
+books to change (the box in the header ticks all the books that are shown) and press **Replace and exit**. Books that the
+filter hides are unticked, so only what you see is changed. A book an agent works on is grayed out: it is locked, so it can
+not be ticked or changed until the run is paused or stopped.
+
+The item **Mass Change Language** of the same menu works the same way for the **Language** of the books: pick the language,
+filter and tick the books, press **Replace and exit**.
+
 ## Creating a book
 
 1. Click **Add Book**.

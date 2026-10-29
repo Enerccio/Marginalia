@@ -86,6 +86,17 @@ public class ModelProtocolPicker extends HorizontalLayout {
     }
 
     /**
+     * Sets the text both boxes show while nothing is chosen.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "placeholder", type = String.class)})
+    public void setPlaceholder(String placeholder) {
+        aiCombo.setPlaceholder(placeholder);
+        protocolCombo.setPlaceholder(placeholder);
+    }
+
+    /**
      * The chosen model, null when there is none.
      */
     @PublicAPI(from = "1.4.0",

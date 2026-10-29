@@ -30,11 +30,13 @@ import com.google.gson.JsonObject;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
+import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.Grid.Column;
 import com.vaadin.flow.component.grid.GridSortOrder;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -104,6 +106,8 @@ public class ManuscriptPart implements ManuscriptSection {
                     @APILocals(name = "addBookButton", type = Button.class),
                     @APILocals(name = "importArchiveButton", type = Button.class),
                     @APILocals(name = "importSillyTavernButton", type = Button.class),
+                    @APILocals(name = "massChangesBar", type = MenuBar.class),
+                    @APILocals(name = "massChangesItem", type = MenuItem.class),
                     @APILocals(name = "toolColumn", type = Grid.Column.class),
                     @APILocals(name = "filterRow", type = HeaderRow.class),
                     @APILocals(name = "refresh", type = Button.class)})
@@ -132,7 +136,11 @@ public class ManuscriptPart implements ManuscriptSection {
         Button importSillyTavernButton = new Button(Solid.COMMENTS.create(), event -> new NewBookAction(this::openManuscript).runFromSillyTavern());
         importSillyTavernButton.setTooltipText(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN));
         searchButton = new Button(loc.getValue(L.LABEL_SEARCH), Solid.SEARCH.create(), event -> openSearchDialog());
-        headerLayout.add(titleSpan, searchButton, tagBooksButton, importArchiveButton, importSillyTavernButton, addBookButton);
+        MenuBar massChangesBar = new MenuBar();
+        MenuItem massChangesItem = massChangesBar.addItem(loc.getValue(L.LABEL_MASS_CHANGES));
+        massChangesItem.getSubMenu().addItem(loc.getValue(L.LABEL_MASS_CHANGE_MODEL_PROTOCOL), _ -> openMassChangeDialog());
+        massChangesItem.getSubMenu().addItem(loc.getValue(L.LABEL_MASS_CHANGE_LANGUAGE), _ -> openMassChangeLanguageDialog());
+        headerLayout.add(titleSpan, searchButton, tagBooksButton, massChangesBar, importArchiveButton, importSillyTavernButton, addBookButton);
         headerLayout.setFlexGrow(1, titleSpan);
         headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
@@ -326,6 +334,31 @@ public class ManuscriptPart implements ManuscriptSection {
             locals = {@APILocals(name = "dialog", type = MultiTagDialog.class)})
     private void openTagDialog() {
         MultiTagDialog dialog = new MultiTagDialog(MultiTagDialog.Kind.BOOKS, this::refreshGrid);
+        dialog.create();
+        dialog.open();
+    }
+
+    /**
+     * Opens the dialog that puts a model and a protocol on many books at once; the list shows the new ones when it is
+     * closed.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = MassChangeModelProtocolDialog.class)})
+    private void openMassChangeDialog() {
+        MassChangeModelProtocolDialog dialog = new MassChangeModelProtocolDialog(this::refreshGrid);
+        dialog.create();
+        dialog.open();
+    }
+
+    /**
+     * Opens the dialog that puts a language on many books at once; the list shows the new ones when it is closed.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = MassChangeLanguageDialog.class)})
+    private void openMassChangeLanguageDialog() {
+        MassChangeLanguageDialog dialog = new MassChangeLanguageDialog(this::refreshGrid);
         dialog.create();
         dialog.open();
     }
