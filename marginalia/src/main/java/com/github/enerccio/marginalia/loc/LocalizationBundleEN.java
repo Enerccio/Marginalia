@@ -793,6 +793,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_COMPARE_CACHE, "Cache");
         setValue(L.LABEL_COMPARE_READ_AGAIN, "Read again");
         setValue(L.LABEL_COMPARE_ALTERNATIVE, "Alternative");
+        setValue(L.LABEL_REDRAFT_ORIGINAL_TEXT, "Original text with annotations");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");

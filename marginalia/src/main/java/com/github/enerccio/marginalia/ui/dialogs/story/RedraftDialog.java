@@ -12,6 +12,7 @@ import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.ui.widgets.WordDiffView;
+import com.github.enerccio.marginalia.utils.TextMarkup;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.UI;
@@ -19,9 +20,11 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.markdown.Markdown;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import org.apache.commons.lang3.StringUtils;
@@ -40,7 +43,9 @@ import java.util.function.Consumer;
  * Opened by {@link #openAuto} (the automatic annotation of a generated part) it starts at once, with the open annotations of the part
  * for the author's instructions, and with {@code apply} it also applies the redraft when the model is done, without asking, and closes.
  * Stopping it or closing it before that applies nothing. The part was only just generated, so no summary describes it and the box to
- * revalidate summaries is not offered.
+ * revalidate summaries is not offered. The redrafted text (with its reasoning and differences) is then one tab and the original text with
+ * the annotations marked in it another, so the author can compare what the model did with what it was asked to deal with, and stop it
+ * or close the window if the redraft is not what is wanted.
  */
 @Configurable(preConstruction = true)
 public class RedraftDialog extends Dialog {
@@ -221,7 +226,19 @@ public class RedraftDialog extends Dialog {
         changesDetails.setWidthFull();
         changesDetails.setVisible(false);
 
-        VerticalLayout content = new VerticalLayout(info, instructions, withAnnotations, revalidateSummaries, start, reasoningDetails, result, changesDetails);
+        VerticalLayout content;
+        if (automatic) {
+            TabSheet tabs = new TabSheet();
+            tabs.setWidthFull();
+            VerticalLayout redrafted = new VerticalLayout(reasoningDetails, result, changesDetails);
+            redrafted.setPadding(false);
+            redrafted.addClassName(CssStyles.GAP_S);
+            tabs.add(loc.getValue(L.LABEL_REDRAFTED_TEXT), redrafted);
+            tabs.add(loc.getValue(L.LABEL_REDRAFT_ORIGINAL_TEXT), originalWithAnnotations());
+            content = new VerticalLayout(info, instructions, withAnnotations, revalidateSummaries, start, tabs);
+        } else {
+            content = new VerticalLayout(info, instructions, withAnnotations, revalidateSummaries, start, reasoningDetails, result, changesDetails);
+        }
         if (passage != null) {
             content.addComponentAtIndex(1, selection);
         }
@@ -242,6 +259,34 @@ public class RedraftDialog extends Dialog {
                 cancellationToken.cancel();
             }
         });
+    }
+
+    /**
+     * The text of the part as it was when the dialog was opened with the passages of its open annotations marked as in the story, and
+     * the notes under it.
+     */
+    private VerticalLayout originalWithAnnotations() {
+        VerticalLayout original = new VerticalLayout();
+        original.setPadding(false);
+        original.addClassName(CssStyles.GAP_S);
+        try {
+            StoryAnnotations annotations = new StoryAnnotations(() -> manuscript, _ -> {
+            });
+            Markdown text = new Markdown(TextMarkup.apply(partText, annotations.marks(part, partText)));
+            text.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
+            original.add(text);
+            List<Annotation> open = openAnnotations();
+            if (!open.isEmpty()) {
+                original.add(new Span(loc.getValue(L.LABEL_ANNOTATIONS)));
+                for (Annotation annotation : open) {
+                    String quote = StringUtils.isBlank(annotation.getQuote()) ? "" : "\u201c" + annotation.getQuote() + "\u201d: ";
+                    original.add(new Div(quote + StringUtils.defaultString(annotation.getText())));
+                }
+            }
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+        return original;
     }
 
     // for the tests

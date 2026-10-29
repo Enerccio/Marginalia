@@ -801,6 +801,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_COMPARE_CACHE, "缓存");
         setValue(L.LABEL_COMPARE_READ_AGAIN, "重新读取");
         setValue(L.LABEL_COMPARE_ALTERNATIVE, "备选");
+        setValue(L.LABEL_REDRAFT_ORIGINAL_TEXT, "原文（含批注）");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");

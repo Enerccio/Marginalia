@@ -196,6 +196,27 @@ class RedraftDialogTest extends MarginaliaTestBase {
     }
 
     @Test
+    void theAutomaticRedraftShowsTheRedraftAndTheAnnotatedOriginalAsTabs() throws Exception {
+        annotationService.create(book, part, 3, 7, "Which sword?", AnnotationSource.AUTHOR, null, null);
+        List<Component> components = components(RedraftDialog.createAuto(book, part, false, saved -> {
+        }));
+
+        com.vaadin.flow.component.tabs.TabSheet tabs = components.stream().filter(com.vaadin.flow.component.tabs.TabSheet.class::isInstance)
+                .map(com.vaadin.flow.component.tabs.TabSheet.class::cast).findFirst().orElseThrow();
+        assertThat(tabs.getTabAt(0).getLabel()).isEqualTo("Redrafted text");
+        assertThat(tabs.getTabAt(1).getLabel()).isEqualTo("Original text with annotations");
+        String original = all(tabs.getComponent(tabs.getTabAt(1))).filter(com.vaadin.flow.component.markdown.Markdown.class::isInstance)
+                .map(c -> ((com.vaadin.flow.component.markdown.Markdown) c).getContent()).findFirst().orElseThrow();
+        assertThat(original).contains("<mark").contains("drew").contains("data-annotation");
+    }
+
+    @Test
+    void theRedraftByTheAuthorHasNoTabs() {
+        assertThat(components(RedraftDialog.create(book, part, saved -> {
+        })).stream().anyMatch(com.vaadin.flow.component.tabs.TabSheet.class::isInstance)).isFalse();
+    }
+
+    @Test
     void theCheckboxOfTheAnnotationsIsThereOnlyForAPartThatHasOpenOnes() throws Exception {
         List<Component> without = components(RedraftDialog.create(book, part, saved -> {
         }));
