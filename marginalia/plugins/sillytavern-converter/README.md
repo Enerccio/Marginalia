@@ -1,4 +1,4 @@
-# SillyTavern Converter
+# Converter (sillytavern-converter)
 
 Rewrite a SillyTavern roleplay chat as a story, turn by turn. Load the chat into the book, read it in a table, let the
 model split it into *turn details* (scene setting, POV character, present characters, instructions) from the chat and the
@@ -6,7 +6,7 @@ lore of the book, and put each of them into the new turn form of the story with 
 
 ## Usage
 
-The sidebar of the story editor (desktop layout) gets an **ST Converter** tab. The text is small and the tab scrolls when the
+The sidebar of the story editor (desktop layout) gets a **Converter** tab. The text is small and the tab scrolls when the
 sidebar is low. At the top of the tab a **Convert to turn details** section, closed until you open it (the chat and the
 turn details get the room), holds:
 
@@ -35,9 +35,21 @@ The wand sends the chat of the range together with the lore of the book (all non
 sub lorebooks, rendered like the story would) and asks for a list of turns that cover the range. The turns replace the
 turns of the earlier runs that touch the range, except those you ticked as reviewed.
 
-![The ST Converter tab with a chat and the range chosen](../../../manual/images/plugin-stconverter-chat.png)
+![The Converter tab with a chat and the range chosen](../../../manual/images/plugin-stconverter-chat.png)
 
 ![The turn details the model prepared](../../../manual/images/plugin-stconverter-turns.png)
+
+## Redrafting a book
+
+The source can also be the parts of another book instead of a chat. While the tab has no source it offers **Upload a chat**,
+**Load a backup** (the JSON of a backup, the archive with the images, or the file stored with a book) and **Pick a book**
+(a book of the user, not the open one). The converter strips the book to the branch it is on (from the first part to the active
+leaf; for a backup the flat `messages` are walked up by `parentUuid` from `activeLeafUuid`, a leaf that is not there or a chain with
+a missing part or a loop is a damaged backup, and a book without a leaf has no parts and loads nothing) and keeps of each part
+only `instructions`, `sceneSetting`, `povCharacter`, `presentCharacters` and the text (`BookSource`, versioned, in
+`BookSourceReader`). That JSON is the resource; the text of the parts is the list on the left, and the turn details are the
+instructions of the parts, so there is no wand and no range. Only one source is kept; removing it (with the cross) deletes the
+resource and forgets the ticks.
 
 ## Storage
 
@@ -46,3 +58,7 @@ book), because a chat with everything SillyTavern keeps in it can be megabytes a
 with every fetch of it. The attributes (`ConverterData`) hold the uuid of the resource, the numbers of the ticked messages,
 the turn details, the model and the prompt; the messages are read from the file when the tab opens. A resource is not in the
 book backups (only images are), so after a restore the chat has to be uploaded again.
+
+For the parts of a book the resource is the stripped JSON (`<book name>.redraft.json`, content type `application/json`) and
+`ConverterData.sourceKind` is `book`. The attributes then hold the ticked part numbers and the ticked turn numbers
+(`reviewedTurns`) but not the turn details, which are made from the resource each time the tab opens.

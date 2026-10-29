@@ -9,6 +9,8 @@ public final class CssStyles {
     // --- Classes with their own rules in shared-styles.css (manuscript-styles and chat-message-markdown: reading-mode-styles.css) ---
     public static final String MARKDOWN_MANUSCRIPT_STYLES = "manuscript-styles";
     public static final String CHAT_MESSAGE = "chat-message";
+    public static final String MASS_DELETE_BOX = "mass-delete-box";
+    public static final String MARKED_FOR_DELETE = "marked-for-delete";
     public static final String CHAT_MESSAGE_MARKDOWN = "chat-message-markdown";
 
     // --- Typography ---

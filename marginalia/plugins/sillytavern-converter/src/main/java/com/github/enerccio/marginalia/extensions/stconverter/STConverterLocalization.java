@@ -3,7 +3,7 @@ package com.github.enerccio.marginalia.extensions.stconverter;
 import com.github.enerccio.marginalia.extensions.PluginLocalizationBundle;
 
 /**
- * Texts of the SillyTavern Converter in the languages besides English; the English text is the key.
+ * Texts of the Converter (formerly SillyTavern Converter) in the languages besides English; the English text is the key.
  */
 public class STConverterLocalization extends PluginLocalizationBundle {
 
@@ -11,8 +11,8 @@ public class STConverterLocalization extends PluginLocalizationBundle {
 
     @Override
     protected void loadKeys() {
-        ja("ST Converter", "STコンバーター");
-        zh("ST Converter", "ST 转换器");
+        ja("Converter", "コンバーター");
+        zh("Converter", "转换器");
 
         ja("From", "開始");
         zh("From", "起始");
@@ -94,9 +94,6 @@ public class STConverterLocalization extends PluginLocalizationBundle {
 
         ja("Instructions", "指示");
         zh("Instructions", "指令");
-
-        ja("Upload a SillyTavern chat (.jsonl, without branches). It is kept with the book.", "SillyTavernのチャット（.jsonl、分岐なし）をアップロードしてください。ブックと一緒に保存されます。");
-        zh("Upload a SillyTavern chat (.jsonl, without branches). It is kept with the book.", "上传 SillyTavern 聊天记录（.jsonl，不含分支）。它将与书籍一起保存。");
 
         ja("Remove the chat and the turn details made of it from the book?", "チャットと、そこから作成したターン詳細をブックから削除しますか？");
         zh("Remove the chat and the turn details made of it from the book?", "要从书籍中移除该聊天记录及据此生成的回合详情吗？");
@@ -223,5 +220,62 @@ public class STConverterLocalization extends PluginLocalizationBundle {
 
         ja("The model's answer has no turn for the messages %d to %d", "モデルの回答に、メッセージ%d〜%dのターンがありません");
         zh("The model's answer has no turn for the messages %d to %d", "模型的回答中没有第 %d 至 %d 条消息对应的回合");
+
+        ja("Upload a chat", "チャットをアップロード");
+        zh("Upload a chat", "上传聊天记录");
+
+        ja("Load a backup", "バックアップを読み込む");
+        zh("Load a backup", "载入备份");
+
+        ja("Pick a book", "ブックを選ぶ");
+        zh("Pick a book", "选择书籍");
+
+        ja("A SillyTavern chat (.jsonl, without branches), to rewrite as a story with the model.", "SillyTavernのチャット（.jsonl、分岐なし）。モデルとともにストーリーとして書き直します。");
+        zh("A SillyTavern chat (.jsonl, without branches), to rewrite as a story with the model.", "SillyTavern 聊天记录（.jsonl，不含分支），与模型一起改写为故事。");
+
+        ja("Or the parts of a book of yours, from a backup file or the book itself: their instructions, and the text to redraft.", "または、バックアップファイルまたはブックそのものから、あなたのブックのパート（その指示と、書き直す本文）。");
+        zh("Or the parts of a book of yours, from a backup file or the book itself: their instructions, and the text to redraft.", "或者你的某本书的各个部分，来自备份文件或书籍本身：它们的指令，以及要重写的文本。");
+
+        ja("Only the instructions and the text are kept with this book. Remove the source to load another.", "このブックには指示と本文だけが保存されます。別のものを読み込むには、まずソースを削除してください。");
+        zh("Only the instructions and the text are kept with this book. Remove the source to load another.", "本书只保存指令和文本。要载入其他来源，请先移除当前来源。");
+
+        ja("%d parts loaded", "%d個のパートを読み込みました");
+        zh("%d parts loaded", "已载入 %d 个部分");
+
+        ja("Not a backup of a book", "ブックのバックアップではありません");
+        zh("Not a backup of a book", "不是书籍备份");
+
+        ja("Book", "ブック");
+        zh("Book", "书籍");
+
+        ja("Load", "読み込む");
+        zh("Load", "载入");
+
+        ja("The parts of the branch the book is on are loaded.", "ブックが現在いるブランチのパートが読み込まれます。");
+        zh("The parts of the branch the book is on are loaded.", "将载入书籍当前所在分支的各个部分。");
+
+        ja("%d parts, %d checked", "%d個のパート、%d個チェック済み");
+        zh("%d parts, %d checked", "%d 个部分，已勾选 %d 个");
+
+        ja("Parts", "パート");
+        zh("Parts", "部分");
+
+        ja("Remove the source", "ソースを削除");
+        zh("Remove the source", "移除来源");
+
+        ja("Remove the source and what you checked of it from the book?", "ソースと、そのチェック内容をこのブックから削除しますか？");
+        zh("Remove the source and what you checked of it from the book?", "要从本书中移除该来源及其勾选记录吗？");
+
+        ja("The book has no parts to load", "読み込めるパートがありません");
+        zh("The book has no parts to load", "该书没有可载入的部分");
+
+        ja("The backup is damaged: the parts do not lead to the first part", "バックアップが壊れています: パートが最初のパートにつながっていません");
+        zh("The backup is damaged: the parts do not lead to the first part", "备份已损坏：各部分无法追溯到第一个部分");
+
+        ja("The stored source of the book can't be read", "保存されているブックのソースを読み取れません");
+        zh("The stored source of the book can't be read", "无法读取已保存的书籍来源");
+
+        ja("The stored source of the book is from a newer version of the plugin", "保存されているブックのソースは、より新しいバージョンのプラグインのものです");
+        zh("The stored source of the book is from a newer version of the plugin", "已保存的书籍来源来自更新版本的插件");
     }
 }

@@ -56,6 +56,16 @@ public interface StoryEditor {
     void openExportDialog();
 
     /**
+     * Turns the mass delete on or off: while it is on the parts have a check box and the selected ones are deleted together.
+     */
+    void toggleMassDelete();
+
+    /**
+     * Whether the mass delete is on.
+     */
+    boolean isMassDelete();
+
+    /**
      * Whether the text of the parts that is still the model's is highlighted (desktop only).
      */
     default boolean isShowGeneratedDiff() {

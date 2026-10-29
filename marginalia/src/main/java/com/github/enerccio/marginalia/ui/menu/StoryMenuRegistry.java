@@ -144,6 +144,8 @@ public class StoryMenuRegistry implements InitializingBean {
                 .icon(Solid.CHART_BAR::create));
         application(StoryMenuItem.tools(StoryMenuKeys.EXPORT, L.LABEL_EXPORT_STORY, StoryEditor::openExportDialog)
                 .icon(Solid.FILE_EXPORT::create));
+        application(StoryMenuItem.tools(StoryMenuKeys.MASS_DELETE, L.LABEL_MASS_DELETE, StoryEditor::toggleMassDelete)
+                .icon(Solid.TRASH::create).checkedWhen(StoryEditor::isMassDelete));
         application(StoryMenuItem.tools(StoryMenuKeys.SAVE_LAYOUT_AS_DEFAULT, L.LABEL_SAVE_LAYOUT_AS_DEFAULT, StoryEditor::saveLayoutAsDefault)
                 .icon(Solid.TABLE_COLUMNS::create).phone(false));
         application(StoryMenuItem.tools(StoryMenuKeys.RESTORE_LAYOUT, L.LABEL_RESTORE_DEFAULT_LAYOUT, StoryEditor::confirmRestoreDefaultLayout)

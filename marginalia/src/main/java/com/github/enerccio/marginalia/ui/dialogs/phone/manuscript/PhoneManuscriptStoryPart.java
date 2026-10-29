@@ -28,6 +28,7 @@ import com.github.enerccio.marginalia.ui.menu.BuiltMenu;
 import com.github.enerccio.marginalia.ui.menu.MenuKind;
 import com.github.enerccio.marginalia.ui.menu.StoryMenuRegistry;
 import com.github.enerccio.marginalia.ui.widgets.LazyContextMenu;
+import com.github.enerccio.marginalia.ui.widgets.MassDeleteBox;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
 import com.github.enerccio.marginalia.utils.MarkdownArchive;
@@ -124,10 +125,12 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     private StoryAnnotations annotations;
     private AnnotationsPanel annotationsPanel;
     private final StoryBackup backup = new StoryBackup();
+    private final StoryMassDelete massDelete;
     private Long scrollToMessageId;
 
     public PhoneManuscriptStoryPart(PhoneManuscriptDialog parent) {
         this.parent = parent;
+        this.massDelete = new StoryMassDelete(parent, this::refreshMassDeleteBoxes, this::reloadStory);
     }
 
     @PublicAPI(from = "1.1.0",
@@ -160,8 +163,10 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
 
         bottomControlsLayout = buildBottomControls();
 
-        centerLayout.add(centerContentPanel, bottomControlsLayout);
+        massDelete.listenTo(centerContentPanel.getElement());
+        centerLayout.add(centerContentPanel, massDelete.getBar(), bottomControlsLayout);
         centerLayout.setFlexGrow(1, centerContentPanel);
+        centerLayout.setFlexGrow(0, massDelete.getBar());
         centerLayout.setFlexGrow(0, bottomControlsLayout);
 
         layout.setContent(centerLayout);
@@ -327,6 +332,49 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
         ArchiveUploadDialog.show(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE), loc.getValue(L.MSG_IMPORT_ARCHIVE_TO_BOOK),
                 (archive, fileName) -> new ArchiveImportRunner().appendParts(parent.refreshManuscript(), MarkdownArchive.read(archive),
                         imported -> load(parent.refreshManuscript())));
+    }
+
+    /**
+     * Turns the mass delete on or off, see {@link StoryMassDelete}.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class))
+    @Override
+    public void toggleMassDelete() {
+        massDelete.toggle();
+    }
+
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = boolean.class))
+    @Override
+    public boolean isMassDelete() {
+        return massDelete.isActive();
+    }
+
+    /**
+     * Shows the check boxes of the cards when the mass delete is on, hides them when it is off.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "card", type = ChatMessageCard.class)})
+    private void refreshMassDeleteBoxes() {
+        for (ChatMessageCard card : cards.values()) {
+            card.showMassDelete(massDelete.isActive(), massDelete.isSelected(card.getMessage().getId()));
+        }
+    }
+
+    /**
+     * Draws the story again from the database, after the mass delete.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    private void reloadStory() {
+        try {
+            load(parent.refreshManuscript());
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     /**
@@ -547,6 +595,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
                     positions.put(branch.get(i).getId(), i + 1);
                 }
                 annotationsPanel.refresh(positions);
+                massDelete.setBranch(branch);
                 // the cards of the last parts only, the earlier ones are added when the user scrolls up
                 lazyLoader.render(branch, support.partsLimit(), scrollToMessageId, openedReasonings);
             } catch (Exception e) {
@@ -768,6 +817,10 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             layout.setDrawerOpened(false);
         }
         menuBar.setEnabled(!frozen);
+        if (frozen) {
+            // the part that is generated has no id to tick yet
+            massDelete.deactivate();
+        }
 
         cards.setFrozen(frozen);
 
@@ -788,6 +841,11 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)})
     @Override
     public void load(Manuscript manuscript) {
+        if (massDelete.isActive() && (manuscript == null || currentManuscript == null
+                || !Objects.equals(manuscript.getId(), currentManuscript.getId()))) {
+            // the parts that were ticked are in another book
+            massDelete.deactivate();
+        }
         this.currentManuscript = manuscript;
         if (manuscript != null && layout != null) {
             applyLanguage(manuscript);
@@ -850,6 +908,10 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
 
         private final Button menuBtn;
         private final Button infoBtn;
+        private final MassDeleteBox massDeleteBox = new MassDeleteBox((checked, shift) -> {
+            massDelete.clicked(this.message.getId(), checked, shift);
+            getClassNames().set(CssStyles.MARKED_FOR_DELETE, checked);
+        });
         private ContextMenu hamburgerMenu;
         private BuiltMenu cardMenu;
         private BuiltMenu textMenu;
@@ -902,7 +964,9 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             createHamburgerMenu();
             createInfoPopover();
 
-            headerBar.add(menuBtn, infoBtn);
+            showMassDelete(massDelete.isActive(), massDelete.isSelected(message.getId()));
+
+            headerBar.add(massDeleteBox, menuBtn, infoBtn);
 
             reasoningMarkdown = new Markdown();
             reasoningMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
@@ -927,6 +991,17 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             messageImages = new MessageImages(message.getImages());
 
             add(headerBar, reasoningDetails, responseMarkdown, messageImages, cardAnnotations.getAnchor());
+        }
+
+        @PublicAPI(from = "1.6.0",
+                returns = @APIReturn(type = void.class),
+                parameters = {@APIParameter(name = "shown", type = boolean.class),
+                        @APIParameter(name = "selected", type = boolean.class)})
+        @Override
+        public void showMassDelete(boolean shown, boolean selected) {
+            massDeleteBox.setVisible(shown && message.getId() != null);
+            massDeleteBox.setChecked(selected);
+            getClassNames().set(CssStyles.MARKED_FOR_DELETE, shown && selected);
         }
 
         @PublicAPI(from = "1.1.0",

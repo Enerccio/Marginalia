@@ -5,10 +5,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.service.CancellationToken;
-import com.github.enerccio.marginalia.domain.service.InferenceService;
-import com.github.enerccio.marginalia.domain.service.InferenceServices;
-import com.github.enerccio.marginalia.domain.service.InferenceSession;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.structured.PartialJson;
 import com.github.enerccio.marginalia.extensions.stconverter.STConverterLog;
 import com.github.enerccio.marginalia.extensions.stconverter.model.ChatLine;
@@ -22,6 +19,7 @@ import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
+import com.github.enerccio.marginalia.ui.widgets.BookLabels;
 import com.github.enerccio.marginalia.ui.widgets.ModelProtocolPicker;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -29,6 +27,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
@@ -51,6 +50,7 @@ import org.springframework.web.context.request.RequestAttributes;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import static com.github.enerccio.marginalia.extensions.stconverter.STConverterLocalization.T;
@@ -62,6 +62,10 @@ import static com.github.enerccio.marginalia.extensions.stconverter.STConverterL
  * <p>
  * The chat is a list of messages (who said what) with a checkbox for the ones the author has gone through; the turn details
  * are a list of what the new turn form of the story takes, also with a checkbox, and a click on one puts it into the form.
+ * <p>
+ * The source can also be the parts of another book (picked from the books of the author, or read from a backup file): the
+ * list is then the text of the parts and the turn details are their instructions, which the book has already, so there is no
+ * wand for it.
  */
 @Configurable(preConstruction = true)
 public class ConverterView extends VerticalLayout {
@@ -86,6 +90,9 @@ public class ConverterView extends VerticalLayout {
 
     @Autowired
     private InferenceServices inferenceServices;
+
+    @Autowired
+    private ManuscriptService manuscriptService;
 
     private final ConverterService service;
     private final Manuscript manuscript;
@@ -376,15 +383,18 @@ public class ConverterView extends VerticalLayout {
         chatGrid.addColumn(Row::number).setHeader("#").setWidth("50px").setFlexGrow(0);
         chatGrid.addComponentColumn(row -> {
             // who said it in bold above the text, the messages of the user marked with »
-            Div name = new Div(new Span((row.line().isUser() ? "» " : "") + row.line().getName()));
-            name.addClassName(CssStyles.TEXT_BOLD);
             Div text = new Div(new Span(row.line().getText()));
             text.addClassNames(CssStyles.PRE_WRAP, CssStyles.WRAP_ANYWHERE);
+            if (StringUtils.isBlank(row.line().getName())) {
+                return new Div(text);
+            }
+            Div name = new Div(new Span((row.line().isUser() ? "» " : "") + row.line().getName()));
+            name.addClassName(CssStyles.TEXT_BOLD);
             return new Div(name, text);
         }).setHeader(T.localized("Message")).setFlexGrow(1);
         chatGrid.setPartNameGenerator(row -> {
             StringBuilder parts = new StringBuilder(STConverterStyles.PART_CLICKABLE);
-            if (row.number() >= from && row.number() <= to) {
+            if (!data.isBookSource() && row.number() >= from && row.number() <= to) {
                 parts.append(' ').append(STConverterStyles.PART_IN_RANGE);
             }
             if (row.line().isReviewed()) {
@@ -396,7 +406,8 @@ public class ConverterView extends VerticalLayout {
             return parts.toString();
         });
         chatGrid.addItemClickListener(e -> {
-            if (!generating) {
+            // the range is for the wand, and the parts of a book have no wand
+            if (!generating && !data.isBookSource()) {
                 clickMessage(e.getItem().number(), e.isShiftKey());
             }
         });
@@ -423,6 +434,8 @@ public class ConverterView extends VerticalLayout {
             });
             delete.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
             delete.setTooltipText(T.localized("Delete the turn details"));
+            // the turn details of a book are its instructions, read from the stored parts each time
+            delete.setVisible(!data.isBookSource());
             return delete;
         }).setWidth("50px").setFlexGrow(0);
         turnGrid.setPartNameGenerator(turn -> STConverterStyles.PART_CLICKABLE
@@ -475,14 +488,18 @@ public class ConverterView extends VerticalLayout {
         if (data.getChat().isEmpty()) {
             chatGrid = null;
             chatSummary = null;
-            InMemoryUploadHandler handler = new InMemoryUploadHandler((metadata, bytes) -> ui.access(() -> upload(bytes, metadata.fileName())));
-            Upload upload = new Upload(handler);
-            upload.setAcceptedFileTypes(".jsonl", ".json", "application/json", "application/x-ndjson");
-            upload.setMaxFiles(1);
-            upload.setMaxFileSize(64 * 1024 * 1024);
-            Span explanation = new Span(T.localized("Upload a SillyTavern chat (.jsonl, without branches). It is kept with the book."));
-            explanation.addClassName(STConverterStyles.HINT);
-            VerticalLayout empty = new VerticalLayout(explanation, upload);
+            Upload chatUpload = upload(Solid.UPLOAD, T.localized("Upload a chat"), (bytes, fileName) -> uploadChat(bytes, fileName),
+                    ".jsonl", ".json", "application/json", "application/x-ndjson");
+            Upload backupUpload = upload(Solid.BOX_ARCHIVE, T.localized("Load a backup"), (bytes, fileName) -> uploadBackup(bytes, fileName),
+                    ".json", ".zip", "application/json", "application/zip");
+            Button bookButton = new Button(T.localized("Pick a book"), Solid.BOOK.create(), e -> openBookPicker());
+            Span chatExplanation = new Span(T.localized("A SillyTavern chat (.jsonl, without branches), to rewrite as a story with the model."));
+            chatExplanation.addClassName(STConverterStyles.HINT);
+            Span bookExplanation = new Span(T.localized("Or the parts of a book of yours, from a backup file or the book itself: their instructions, and the text to redraft."));
+            bookExplanation.addClassName(STConverterStyles.HINT);
+            Span keptExplanation = new Span(T.localized("Only the instructions and the text are kept with this book. Remove the source to load another."));
+            keptExplanation.addClassName(STConverterStyles.HINT);
+            VerticalLayout empty = new VerticalLayout(chatExplanation, chatUpload, bookExplanation, backupUpload, bookButton, keptExplanation);
             empty.setPadding(true);
             chatPanel.add(empty);
             return;
@@ -491,10 +508,11 @@ public class ConverterView extends VerticalLayout {
         chatSummary = new Span();
         chatSummary.addClassNames(CssStyles.TEXT_SECONDARY, STConverterStyles.ELLIPSIS);
         Button next = nextUncheckedButton(this::nextUncheckedMessage);
-        Button remove = new Button(Solid.XMARK.create(), e -> ConfirmDialog.show(
-                T.localized("Remove the chat and the turn details made of it from the book?"), this::removeChat));
+        Button remove = new Button(Solid.XMARK.create(), e -> ConfirmDialog.show(data.isBookSource()
+                ? T.localized("Remove the source and what you checked of it from the book?")
+                : T.localized("Remove the chat and the turn details made of it from the book?"), this::removeChat));
         remove.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
-        remove.setTooltipText(T.localized("Remove the chat"));
+        remove.setTooltipText(data.isBookSource() ? T.localized("Remove the source") : T.localized("Remove the chat"));
         HorizontalLayout buttons = new HorizontalLayout(next, remove);
         buttons.setSpacing(false);
         HorizontalLayout header = new HorizontalLayout(chatSummary, buttons);
@@ -519,25 +537,99 @@ public class ConverterView extends VerticalLayout {
     private void refreshChatSummary() {
         if (chatSummary != null) {
             long reviewed = data.getChat().stream().filter(ChatLine::isReviewed).count();
-            chatSummary.setText(T.localized("%d messages, %d checked").formatted(data.getChat().size(), reviewed));
+            chatSummary.setText((data.isBookSource() ? T.localized("%d parts, %d checked") : T.localized("%d messages, %d checked"))
+                    .formatted(data.getChat().size(), reviewed));
             // the name of the file can be long
-            chatSummary.getElement().setProperty("title", StringUtils.defaultIfBlank(data.getFileName(), T.localized("chat")));
+            chatSummary.getElement().setProperty("title", StringUtils.defaultIfBlank(data.getFileName(), data.isBookSource() ? T.localized("Book") : T.localized("chat")));
         }
     }
 
-    private void upload(byte[] bytes, String fileName) {
+    /** The upload with the button of the given label; the file is handed to the action in the session of the browser. */
+    private Upload upload(Solid icon, String label, java.util.function.BiConsumer<byte[], String> action, String... types) {
+        InMemoryUploadHandler handler = new InMemoryUploadHandler((metadata, bytes) -> ui.access(() -> action.accept(bytes, metadata.fileName())));
+        Upload upload = new Upload(handler);
+        upload.setUploadButton(new Button(label, icon.create()));
+        upload.setAcceptedFileTypes(types);
+        upload.setMaxFiles(1);
+        upload.setMaxFileSize(64 * 1024 * 1024);
+        return upload;
+    }
+
+    private void uploadChat(byte[] bytes, String fileName) {
         try {
             int count = service.importChat(manuscript, data, bytes, fileName);
-            service.save(manuscript, data);
-            lineTokens = null;
-            resetRange();
-            refreshAll();
+            sourceLoaded();
             Notification.success(T.localized("%d messages loaded").formatted(count));
         } catch (IllegalArgumentException e) {
             Notification.warning(StringUtils.defaultIfBlank(e.getMessage(), T.localized("Not a SillyTavern chat")) + " (" + fileName + ")");
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+    }
+
+    private void uploadBackup(byte[] bytes, String fileName) {
+        try {
+            int count = service.importBackup(manuscript, data, bytes);
+            sourceLoaded();
+            Notification.success(T.localized("%d parts loaded").formatted(count));
+        } catch (IllegalArgumentException e) {
+            Notification.warning(StringUtils.defaultIfBlank(e.getMessage(), T.localized("Not a backup of a book")) + " (" + fileName + ")");
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /** Takes the parts of the book the author picks; the books of the author, but not the one that is open. */
+    private void openBookPicker() {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(T.localized("Pick a book"));
+        dialog.setWidth("500px");
+        ComboBox<Manuscript> books = new ComboBox<>(T.localized("Book"));
+        new BookLabels().apply(books);
+        books.setWidthFull();
+        try {
+            books.setItems(manuscriptService.findAllRegularForUser().stream()
+                    .filter(book -> manuscript.getId() == null || !manuscript.getId().equals(book.getId()))
+                    .sorted(Comparator.comparing(book -> StringUtils.defaultString(book.getName()), String.CASE_INSENSITIVE_ORDER))
+                    .toList());
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+        Span hint = new Span(T.localized("The parts of the branch the book is on are loaded."));
+        hint.addClassName(STConverterStyles.HINT);
+        dialog.add(new VerticalLayout(books, hint));
+        Button cancel = new Button(T.localized("Cancel"), e -> dialog.close());
+        Button load = new Button(T.localized("Load"), e -> {
+            Manuscript picked = books.getValue();
+            if (picked == null) {
+                return;
+            }
+            try {
+                int count = service.importBook(manuscript, data, picked);
+                dialog.close();
+                sourceLoaded();
+                Notification.success(T.localized("%d parts loaded").formatted(count));
+            } catch (IllegalArgumentException ex) {
+                Notification.warning(ex.getMessage());
+            } catch (Exception ex) {
+                UIUtils.internalServerError(loc, ex);
+            }
+        });
+        load.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        load.setEnabled(false);
+        books.addValueChangeListener(e -> load.setEnabled(e.getValue() != null));
+        dialog.getFooter().add(cancel, load);
+        dialog.open();
+    }
+
+    /** Saves the source that was just loaded and shows it. */
+    private void sourceLoaded() throws Exception {
+        service.save(manuscript, data);
+        chatCursor = 0;
+        turnCursor = 0;
+        lineTokens = null;
+        resetRange();
+        refreshAll();
     }
 
     private void removeChat() {
@@ -1040,11 +1132,12 @@ public class ConverterView extends VerticalLayout {
         refreshChat();
         refreshTurns();
         boolean loaded = !data.getChat().isEmpty();
-        // the model and the range only matter when there is a chat
-        convertDetails.setVisible(loaded);
-        if (loaded) {
+        // the model and the range only matter when there is a chat, the parts of a book need no wand
+        convertDetails.setVisible(loaded && !data.isBookSource());
+        if (loaded && !data.isBookSource()) {
             rangeChanged();
         }
+        chatTab.setLabel(data.isBookSource() ? T.localized("Parts") : T.localized("Chat"));
         updateControls();
     }
 
