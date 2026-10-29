@@ -27,10 +27,7 @@ import com.github.enerccio.marginalia.ui.shortcuts.KeyBindings;
 import com.github.enerccio.marginalia.ui.shortcuts.ShortcutAction;
 import com.github.enerccio.marginalia.ui.shortcuts.ShortcutActions;
 import com.github.enerccio.marginalia.ui.shortcuts.ShortcutRegistry;
-import com.github.enerccio.marginalia.ui.widgets.LazyContextMenu;
-import com.github.enerccio.marginalia.ui.widgets.Notification;
-import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
-import com.github.enerccio.marginalia.ui.widgets.TabDock;
+import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.GeneratedTextHighlighter;
 import com.github.enerccio.marginalia.utils.MarkdownArchive;
 import com.github.enerccio.marginalia.utils.TextMarkup;
@@ -160,10 +157,12 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     private StoryAnnotations annotations;
     private AnnotationsPanel annotationsPanel;
     private final StoryBackup backup = new StoryBackup();
+    private final StoryMassDelete massDelete;
     private Long scrollToMessageId;
 
     public ManuscriptStoryPart(ManuscriptDialog parent) {
         this.parent = parent;
+        this.massDelete = new StoryMassDelete(parent, this::refreshMassDeleteBoxes, this::reloadStory);
     }
 
     @PublicAPI(from = "1.1.0",
@@ -201,8 +200,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
 
         bottomControlsLayout = buildBottomControls();
 
-        centerLayout.add(centerContentPanel, bottomControlsLayout);
+        massDelete.listenTo(centerContentPanel.getElement());
+        centerLayout.add(centerContentPanel, massDelete.getBar(), bottomControlsLayout);
         centerLayout.setFlexGrow(1, centerContentPanel);
+        centerLayout.setFlexGrow(0, massDelete.getBar());
         centerLayout.setFlexGrow(0, bottomControlsLayout);
 
         // the story is a tab like the others, the user puts it where they want it
@@ -619,6 +620,49 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     }
 
     /**
+     * Turns the mass delete on or off, see {@link StoryMassDelete}.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class))
+    @Override
+    public void toggleMassDelete() {
+        massDelete.toggle();
+    }
+
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = boolean.class))
+    @Override
+    public boolean isMassDelete() {
+        return massDelete.isActive();
+    }
+
+    /**
+     * Shows the check boxes of the cards when the mass delete is on, hides them when it is off.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "card", type = ChatMessageCard.class)})
+    private void refreshMassDeleteBoxes() {
+        for (ChatMessageCard card : cards.values()) {
+            card.showMassDelete(massDelete.isActive(), massDelete.isSelected(card.getMessage().getId()));
+        }
+    }
+
+    /**
+     * Draws the story again from the database, after the mass delete.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    private void reloadStory() {
+        try {
+            load(parent.refreshManuscript());
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
      * Opens the annotation by a model of a range of the parts of the story ({@link AnnotateDialog#openRange}); the story is shown
      * again when annotations were added.
      */
@@ -841,6 +885,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
                     positions.put(branch.get(i).getId(), i + 1);
                 }
                 annotationsPanel.refresh(positions);
+                massDelete.setBranch(branch);
                 // the cards of the last parts only, the earlier ones are added when the user scrolls up
                 lazyLoader.render(branch, support.partsLimit(), scrollToMessageId, openedReasonings);
             } catch (Exception e) {
@@ -1078,6 +1123,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         leftBar.setTabsEnabled(!frozen, STORY_TAB);
         menuBar.setEnabled(!frozen);
         commandBar.setEnabled(!frozen);
+        if (frozen) {
+            // the part that is generated has no id to tick yet
+            massDelete.deactivate();
+        }
 
         cards.setFrozen(frozen);
 
@@ -1099,6 +1148,11 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)})
     @Override
     public void load(Manuscript manuscript) {
+        if (massDelete.isActive() && (manuscript == null || currentManuscript == null
+                || !Objects.equals(manuscript.getId(), currentManuscript.getId()))) {
+            // the parts that were ticked are in another book
+            massDelete.deactivate();
+        }
         this.currentManuscript = manuscript;
         if (manuscript != null && leftBar != null) {
             applyLanguage(manuscript);
@@ -1298,6 +1352,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
 
         private final VerticalLayout contentLayout;
         private Button menuBtn;
+        private final MassDeleteBox massDeleteBox = new MassDeleteBox((checked, shift) -> {
+            massDelete.clicked(this.message.getId(), checked, shift);
+            getClassNames().set(CssStyles.MARKED_FOR_DELETE, checked);
+        });
         private ContextMenu hamburgerMenu;
         private BuiltMenu cardMenu;
         private BuiltMenu textMenu;
@@ -1412,9 +1470,23 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             metaLayout.add(metrics.getLines());
             metaLayout.add(turnDetailsBtn);
 
-            add(contentLayout, metaLayout);
+            showMassDelete(massDelete.isActive(), massDelete.isSelected(message.getId()));
+
+            add(massDeleteBox, contentLayout, metaLayout);
+            setAlignSelf(FlexComponent.Alignment.START, massDeleteBox);
             setFlexGrow(1, contentLayout);
             setFlexGrow(0, metaLayout);
+        }
+
+        @PublicAPI(from = "1.6.0",
+                returns = @APIReturn(type = void.class),
+                parameters = {@APIParameter(name = "shown", type = boolean.class),
+                        @APIParameter(name = "selected", type = boolean.class)})
+        @Override
+        public void showMassDelete(boolean shown, boolean selected) {
+            massDeleteBox.setVisible(shown && message.getId() != null);
+            massDeleteBox.setChecked(selected);
+            getClassNames().set(CssStyles.MARKED_FOR_DELETE, shown && selected);
         }
 
         /**

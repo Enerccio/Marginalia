@@ -1,4 +1,4 @@
-/* Styles of the SillyTavern Converter plugin only. Put into the page by the application while the extension is loaded
+/* Styles of the Converter plugin (sillytavern-converter) only. Put into the page by the application while the extension is loaded
    (STConverterExtension.getCss); the application's shared-styles.css is not used for them. */
 
 /* The whole tab: small text and tight spacing for everything in it (the Lumo variables are read by the fields, the grids

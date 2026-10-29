@@ -108,4 +108,9 @@ public interface StoryCard {
      */
     void confirmDelete();
 
+    /**
+     * Shows or hides the check box of the mass delete and sets whether the part is ticked.
+     */
+    void showMassDelete(boolean shown, boolean selected);
+
 }

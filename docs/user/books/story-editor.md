@@ -264,6 +264,17 @@ open above it. The buttons show their key in the tooltip, and the menu of the la
 deleting a part in the middle of the story just takes it out. Deleting the last part makes the part before it the new
 end of the branch.
 
+### Deleting many parts at once
+
+The settings menu (⚙) has **Mass delete**. Turning it on puts a check box at the left of every part and shows a bar under
+the story with the number of ticked parts and a **Delete** button. Tick the parts you want to get rid of (the ticks are kept
+while you scroll, the story loads only a window of the parts); **Shift + click** on a check box ticks (or clears) all the parts
+between it and the one you clicked before; a ticked part is tinted red. Then press **Delete**: after a confirmation the parts are deleted
+one by one behind a progress bar that can't be stopped. They are deleted as a single part is: the parts that followed a deleted
+part continue from the part before it, and the deleted parts go to the trash. Then the story is shown again and the mass delete
+is off. **Cancel** in the bar, or choosing **Mass delete** again, turns it off without deleting anything. Starting a
+generation also turns it off.
+
 ## Redrafting a part
 
 **Regenerate** and **Swipe** work on the last part only and write it from scratch. **Redraft** works on any part, also an

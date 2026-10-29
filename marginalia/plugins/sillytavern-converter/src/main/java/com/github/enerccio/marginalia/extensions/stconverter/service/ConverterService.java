@@ -12,6 +12,7 @@ import com.github.enerccio.marginalia.extensions.stconverter.STConverterLog;
 import com.github.enerccio.marginalia.extensions.stconverter.model.*;
 import com.github.enerccio.marginalia.utils.SillyTavernChats;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,12 +32,18 @@ public class ConverterService {
     /** The content type of the resource with the chat. */
     static final String CHAT_MIME_TYPE = "application/x-ndjson";
 
+    /** The content type of the resource with the parts of a book. */
+    static final String BOOK_MIME_TYPE = "application/json";
+
     /** The model and the protocol the wand runs with. The protocol is optional. */
     public record ModelSelection(AI ai, Protocol protocol) {
     }
 
     @Autowired
     private ManuscriptService manuscriptService;
+
+    @Autowired
+    private ChatMessageService chatMessageService;
 
     @Autowired
     private AIService aiService;
@@ -87,7 +94,21 @@ public class ConverterService {
                 if (resource == null || resource.isDeleted()) {
                     throw new IllegalStateException("the resource " + data.getResourceUuid() + " is gone");
                 }
-                List<ChatLine> lines = readLines(resourceService.getResourceData(resource), data.getFileName());
+                byte[] file = resourceService.getResourceData(resource);
+                List<ChatLine> lines;
+                if (data.isBookSource()) {
+                    // the turn details are the instructions of the parts, the author's ticks are all the book keeps of them
+                    BookSource source = BookSourceReader.read(file);
+                    lines = BookSourceReader.toLines(source);
+                    List<TurnItem> turns = BookSourceReader.toTurns(source);
+                    Set<Integer> reviewedTurns = new HashSet<>(data.getReviewedTurns());
+                    for (int i = 0; i < turns.size(); i++) {
+                        turns.get(i).setReviewed(reviewedTurns.contains(i + 1));
+                    }
+                    data.setTurns(turns);
+                } else {
+                    lines = readLines(file, data.getFileName());
+                }
                 Set<Integer> reviewed = new HashSet<>(data.getReviewed());
                 for (int i = 0; i < lines.size(); i++) {
                     lines.get(i).setReviewed(reviewed.contains(i + 1));
@@ -96,6 +117,11 @@ public class ConverterService {
             } catch (Exception e) {
                 STConverterLog.get().warn("Can't read the chat of the book: {}", e.getMessage());
                 data.setResourceUuid(null);
+                if (data.isBookSource()) {
+                    // its turn details were read from the resource, they are nothing without it
+                    data.setSourceKind(null);
+                    data.setTurns(new ArrayList<>());
+                }
                 data.setChat(new ArrayList<>());
             }
         }
@@ -119,7 +145,21 @@ public class ConverterService {
             }
         }
         data.setReviewed(reviewed);
-        attrs.add(ConverterData.KEY, gson.toJsonTree(data));
+        List<Integer> reviewedTurns = new ArrayList<>();
+        for (int i = 0; i < data.getTurns().size(); i++) {
+            if (data.getTurns().get(i).isReviewed()) {
+                reviewedTurns.add(i + 1);
+            }
+        }
+        JsonObject stored = gson.toJsonTree(data).getAsJsonObject();
+        if (data.isBookSource()) {
+            // read from the resource when the data is loaded, so the instructions are kept once
+            stored.add("turns", new JsonArray());
+            stored.add("reviewedTurns", gson.toJsonTree(reviewedTurns));
+        } else {
+            stored.remove("reviewedTurns");
+        }
+        attrs.add(ConverterData.KEY, stored);
         manuscriptService.save(current);
     }
 
@@ -143,12 +183,70 @@ public class ConverterService {
             resourceService.link(resource, Manuscript.class, manuscript.getId());
         }
         discardResource(data);
+        data.setSourceKind(null);
         data.setFileName(name);
         data.setResourceUuid(resource.getUuid());
         data.setChat(lines);
         data.setReviewed(new ArrayList<>());
+        data.setReviewedTurns(new ArrayList<>());
         data.setTurns(new ArrayList<>());
         return lines.size();
+    }
+
+    // --- the parts of a book ---
+
+    /**
+     * Takes the parts of another book of the user as the source: the branch the book is on, stripped to the instructions and
+     * the text (see {@link BookSource}) and stored as a resource of the user, linked to the book, replacing the chat or
+     * book that was there with the ticks and turn details made of it.
+     *
+     * @return the number of parts
+     * @throws IllegalArgumentException when the book has no parts
+     */
+    public int importBook(Manuscript manuscript, ConverterData data, Manuscript source) throws Exception {
+        Manuscript book = manuscriptService.find(source);
+        if (book == null) {
+            throw new IllegalArgumentException(T.localized("The book has no parts to load"));
+        }
+        List<BookSource.Part> parts = new ArrayList<>();
+        if (book.getActiveLeaf() != null) {
+            for (ChatMessage message : chatMessageService.getBranchFromLeaf(book.getActiveLeaf())) {
+                parts.add(new BookSource.Part(message.getInstructions(), message.getSceneSetting(), message.getPovCharacter(),
+                        message.getPresentCharacters(), message.getResponse()));
+            }
+        }
+        return adopt(manuscript, data, BookSourceReader.of(book.getName(), BookSource.ORIGIN_BOOK, parts));
+    }
+
+    /**
+     * Takes the parts of a backup file as the source, like {@link #importBook}. The file is the JSON of a backup or the
+     * archive with the images; nothing is restored, the backup is only read.
+     *
+     * @return the number of parts
+     * @throws IllegalArgumentException when the file is not a backup, is damaged, or the book in it has no parts
+     */
+    public int importBackup(Manuscript manuscript, ConverterData data, byte[] file) throws Exception {
+        return adopt(manuscript, data, BookSourceReader.fromBackupFile(file));
+    }
+
+    private int adopt(Manuscript manuscript, ConverterData data, BookSource source) throws Exception {
+        if (source.getParts().isEmpty()) {
+            throw new IllegalArgumentException(T.localized("The book has no parts to load"));
+        }
+        String name = StringUtils.defaultIfBlank(source.getName(), T.localized("Book")) + ".redraft.json";
+        Resource resource = resourceService.upload(name, BookSourceReader.toBytes(source), BOOK_MIME_TYPE);
+        if (manuscript.getId() != null) {
+            resourceService.link(resource, Manuscript.class, manuscript.getId());
+        }
+        discardResource(data);
+        data.setSourceKind(ConverterData.SOURCE_BOOK);
+        data.setFileName(StringUtils.defaultIfBlank(source.getName(), name));
+        data.setResourceUuid(resource.getUuid());
+        data.setChat(BookSourceReader.toLines(source));
+        data.setReviewed(new ArrayList<>());
+        data.setReviewedTurns(new ArrayList<>());
+        data.setTurns(BookSourceReader.toTurns(source));
+        return source.getParts().size();
     }
 
     /**
@@ -157,10 +255,12 @@ public class ConverterService {
      */
     public void removeChat(ConverterData data) throws Exception {
         discardResource(data);
+        data.setSourceKind(null);
         data.setFileName(null);
         data.setResourceUuid(null);
         data.setChat(new ArrayList<>());
         data.setReviewed(new ArrayList<>());
+        data.setReviewedTurns(new ArrayList<>());
         data.setTurns(new ArrayList<>());
     }
 

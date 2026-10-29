@@ -847,6 +847,21 @@ public final class JavascriptLibrary {
             """;
 
     /**
+     * Keeps the browser from selecting the text between two clicks when Shift is held on a check box with the class
+     * {@code boxClass} inside the element (the click still ticks the box). Done once for an element.
+     */
+    public static void noTextSelectionOnShiftClick(Element element, String boxClass) {
+        element.executeJs("""
+                var el = $0;
+                if (el.__noShiftSelection) { return; }
+                el.__noShiftSelection = true;
+                el.addEventListener('mousedown', function (e) {
+                    if (e.shiftKey && e.target.classList && e.target.classList.contains($1)) { e.preventDefault(); }
+                }, true);
+                """, element, boxClass);
+    }
+
+    /**
      * Makes the element fire {@code marginalia-shortcut} ({@code detail}: the id of the action) when the user presses the
      * key of an action. The keys are the page wide map in {@code window.marginaliaKeys} ({@link #setShortcutKeys}), so
      * a change of the settings reaches the open story tabs. The shortcut fires only while the element is visible (the tab is

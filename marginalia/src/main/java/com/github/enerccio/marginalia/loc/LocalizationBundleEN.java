@@ -783,6 +783,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_MINIMIZE, "Minimize");
         setValue(L.LABEL_MOVE_DOCK, "Move the bar of the minimized tabs");
         setValue(L.LABEL_SAVE_LAYOUT_AS_DEFAULT, "Save layout as my default");
+        setValue(L.LABEL_MASS_DELETE, "Mass delete");
+        setValue(L.LABEL_N_SELECTED, "%s selected");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1337,6 +1339,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_ORGANISE_SAME_FOLDER, "Both panes show the same folder, open another one in the other pane.");
         setValue(L.MSG_HELP_BOOKS_NOTICE, "The assistant reads folder names, titles, descriptions and the writing settings of your books, and searches their text; it never reads the text of a story. What it reads is sent to the AI that answers. It cannot change anything.");
         setValue(L.MSG_LAYOUT_SAVED_AS_DEFAULT, "The arrangement of the tabs is saved. Your books that have no arrangement of their own will open with it.");
+        setValue(L.MSG_CONFIRM_MASS_DELETE, "Delete %s selected parts? What follows a deleted part continues from its parent.");
+        setValue(L.MSG_DELETING_PARTS, "Deleting parts");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

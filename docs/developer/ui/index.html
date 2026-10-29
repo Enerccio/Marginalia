@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846616304259">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846618196124">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846616304259" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846618196124" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846616304259" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846618196124" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846616304259" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846616304259" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846618196124" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846618196124" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -641,6 +641,23 @@ as a data URI whose color comes from the id; the tooltip and the aria label are 
 <code translate="no" v-pre>&quot;minimized&quot;:[&quot;id&quot;,...]</code> (only when there are some) and <code translate="no" v-pre>&quot;dock&quot;:&quot;top&quot;</code> (only when not left) to the layout, <code translate="no" v-pre>setLayout</code> reads
 them, so <code translate="no" v-pre>onLayoutChange</code> saves them with the book. <code translate="no" v-pre>add(id, caption, letters, content)</code> gives the letters of the icon, the
 initials of the caption (<code translate="no" v-pre>TabDockIcons.letters</code>) are the default.</p>
+<p><strong>Mass delete.</strong> The settings menu item <code translate="no" v-pre>StoryMenuKeys.MASS_DELETE</code> (<code translate="no" v-pre>StoryEditor.toggleMassDelete</code> / <code translate="no" v-pre>isMassDelete</code>, a check box
+item, also on the phone) turns on the mass delete of <code translate="no" v-pre>StoryMassDelete</code> (<code translate="no" v-pre>ui.dialogs.story</code>, shared by the desktop and the phone
+story tab, one instance per tab). The tab adds its bar (<code translate="no" v-pre>getBar</code>, hidden while off) between the story and the bottom controls, and
+every card has a check box (<code translate="no" v-pre>StoryCard.showMassDelete(shown, selected)</code>; the tab calls it on its cards when the mode changes, a new
+card asks <code translate="no" v-pre>isActive</code> / <code translate="no" v-pre>isSelected</code> in its constructor). The selection is a set of message ids, not cards, because
+<code translate="no" v-pre>StoryLazyLoader</code> drops and makes cards while the user scrolls; <code translate="no" v-pre>renderStoryContent</code> calls <code translate="no" v-pre>setBranch</code>, which keeps the ids of the branch in
+story order and forgets the selected ones that left it. A click with Shift ticks or clears the range between the part and the one
+clicked last (<code translate="no" v-pre>clicked</code>, using that order, so it covers parts that have no card). The box is a <code translate="no" v-pre>MassDeleteBox</code> (<code translate="no" v-pre>ui.widgets</code>), a plain
+<code translate="no" v-pre>&lt;input type=&quot;checkbox&quot;&gt;</code> whose one <code translate="no" v-pre>click</code> event carries both the new <code translate="no" v-pre>checked</code> state and <code translate="no" v-pre>shiftKey</code> (the Vaadin <code translate="no" v-pre>Checkbox</code> sends the
+click and the value change as separate events, so the Shift state reached the server one click late); it also writes <code translate="no" v-pre>checked</code> back
+to its element so a later <code translate="no" v-pre>setChecked</code> is not skipped as unchanged. <code translate="no" v-pre>listenTo(panel)</code> only stops the browser from selecting the text
+between two clicks (<code translate="no" v-pre>JavascriptLibrary.noTextSelectionOnShiftClick</code>).
+<em>Delete</em> asks (<code translate="no" v-pre>ConfirmDialog</code>), then a <code translate="no" v-pre>ProgressBarDialog</code> without Stop soft deletes on its worker thread: it loads the branch
+and calls <code translate="no" v-pre>ChatMessageService.deleteNodeAndMigrateChildren</code> for the selected parts <strong>from the last part back</strong>, passing along the
+book it returns, so a part is always deleted while the entities before it are what the database has (from the first part on, the
+children of a deleted part would be moved to the deleted parent of a later one). After it the mode is off and the tab loads the
+book again. <code translate="no" v-pre>load</code> of another book and a generation (<code translate="no" v-pre>setFrozen(true)</code>) turn it off.</p>
 <p><strong>The default layout of the user.</strong> <em>Save layout as my default</em> (<code translate="no" v-pre>StoryMenuKeys.SAVE_LAYOUT_AS_DEFAULT</code>,
 <code translate="no" v-pre>StoryEditor.saveLayoutAsDefault</code>) stores <code translate="no" v-pre>TabDock.getLayout()</code> in <code translate="no" v-pre>UserSetting.defaultStoryLayout</code> (an extended attribute, no
 migration). <code translate="no" v-pre>applyTabsConfig</code> takes it for a book that has no <code translate="no" v-pre>$desktopManuscriptStoryPartTabsConfig</code> of its own (and does not
@@ -1546,7 +1563,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (8bcec2299).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (fd4c8ea6d).</p></div>
             </footer>
         </div>
     </div>

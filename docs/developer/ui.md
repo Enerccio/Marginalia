@@ -320,6 +320,24 @@ as a data URI whose color comes from the id; the tooltip and the aria label are 
 them, so `onLayoutChange` saves them with the book. `add(id, caption, letters, content)` gives the letters of the icon, the
 initials of the caption (`TabDockIcons.letters`) are the default.
 
+**Mass delete.** The settings menu item `StoryMenuKeys.MASS_DELETE` (`StoryEditor.toggleMassDelete` / `isMassDelete`, a check box
+item, also on the phone) turns on the mass delete of `StoryMassDelete` (`ui.dialogs.story`, shared by the desktop and the phone
+story tab, one instance per tab). The tab adds its bar (`getBar`, hidden while off) between the story and the bottom controls, and
+every card has a check box (`StoryCard.showMassDelete(shown, selected)`; the tab calls it on its cards when the mode changes, a new
+card asks `isActive` / `isSelected` in its constructor). The selection is a set of message ids, not cards, because
+`StoryLazyLoader` drops and makes cards while the user scrolls; `renderStoryContent` calls `setBranch`, which keeps the ids of the branch in
+story order and forgets the selected ones that left it. A click with Shift ticks or clears the range between the part and the one
+clicked last (`clicked`, using that order, so it covers parts that have no card). The box is a `MassDeleteBox` (`ui.widgets`), a plain
+`<input type="checkbox">` whose one `click` event carries both the new `checked` state and `shiftKey` (the Vaadin `Checkbox` sends the
+click and the value change as separate events, so the Shift state reached the server one click late); it also writes `checked` back
+to its element so a later `setChecked` is not skipped as unchanged. `listenTo(panel)` only stops the browser from selecting the text
+between two clicks (`JavascriptLibrary.noTextSelectionOnShiftClick`).
+*Delete* asks (`ConfirmDialog`), then a `ProgressBarDialog` without Stop soft deletes on its worker thread: it loads the branch
+and calls `ChatMessageService.deleteNodeAndMigrateChildren` for the selected parts **from the last part back**, passing along the
+book it returns, so a part is always deleted while the entities before it are what the database has (from the first part on, the
+children of a deleted part would be moved to the deleted parent of a later one). After it the mode is off and the tab loads the
+book again. `load` of another book and a generation (`setFrozen(true)`) turn it off.
+
 **The default layout of the user.** *Save layout as my default* (`StoryMenuKeys.SAVE_LAYOUT_AS_DEFAULT`,
 `StoryEditor.saveLayoutAsDefault`) stores `TabDock.getLayout()` in `UserSetting.defaultStoryLayout` (an extended attribute, no
 migration). `applyTabsConfig` takes it for a book that has no `$desktopManuscriptStoryPartTabsConfig` of its own (and does not

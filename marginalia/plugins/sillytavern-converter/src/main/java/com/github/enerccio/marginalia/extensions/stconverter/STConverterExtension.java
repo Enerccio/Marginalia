@@ -31,8 +31,9 @@ import java.util.WeakHashMap;
 import static com.github.enerccio.marginalia.extensions.stconverter.STConverterLocalization.T;
 
 /**
- * Adds the <i>ST Converter</i> tab to the sidebar of the story editor (desktop layout): the SillyTavern chat of the book and
- * the turn details the model prepared from it.
+ * Adds the <i>Converter</i> tab to the sidebar of the story editor (desktop layout): the source of the book (a SillyTavern chat,
+ * or the parts of another book) and the turn details made of it. The tab id, the attribute and the names of the module are those
+ * of the plugin when it only converted SillyTavern chats, so what is stored with the books and the layouts still fits.
  */
 @Configurable
 public class STConverterExtension implements MarginaliaExtension, ExtensionHasCss {
@@ -77,7 +78,7 @@ public class STConverterExtension implements MarginaliaExtension, ExtensionHasCs
                         return true;
                     };
                     ConverterView view = new ConverterView(converterService, currentManuscript, opener);
-                    leftBar.add(TAB_ID, T.localized("ST Converter"), "ST", view);
+                    leftBar.add(TAB_ID, T.localized("Converter"), "Cv", view);
                     ComponentUtil.setData(leftBar, VIEW_KEY, view);
                     activeTabDocks.add(leftBar);
                 }
@@ -90,7 +91,7 @@ public class STConverterExtension implements MarginaliaExtension, ExtensionHasCs
             );
         } catch (Exception e) {
             // there may be no UI (loading at startup), the extension service logs it and skips the extension
-            throw new IllegalStateException("Failed to load the SillyTavern Converter extension", e);
+            throw new IllegalStateException("Failed to load the Converter extension", e);
         }
     }
 

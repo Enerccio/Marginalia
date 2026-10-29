@@ -243,6 +243,36 @@ class ChatMessageCrudTest extends ExtendableCrudContract<ChatMessage> {
     }
 
     @Test
+    void deletingSeveralPartsFromTheEndOfTheBranchKeepsTheRestLinked() throws Exception {
+        ChatMessage a = chatMessageService.createRoot(manuscript, message("A", 1));
+        ChatMessage b = chatMessageService.addChild(a, message("B", 1));
+        ChatMessage c = chatMessageService.addChild(b, message("C", 1));
+        ChatMessage d = chatMessageService.addChild(c, message("D", 1));
+        ChatMessage e = chatMessageService.addChild(d, message("E", 1));
+        Manuscript m = manuscriptService.find(manuscript.getId());
+        m.setActiveLeaf(e);
+        m = manuscriptService.save(m);
+
+        // the way the mass delete of the story does it: the parts loaded once, deleted from the last one back
+        List<Long> selected = List.of(b.getId(), c.getId(), e.getId());
+        for (ChatMessage part : chatMessageService.getBranchFromLeaf(m.getActiveLeaf()).reversed()) {
+            if (selected.contains(part.getId())) {
+                m = chatMessageService.deleteNodeAndMigrateChildren(part, m, false);
+            }
+        }
+
+        assertThat(reload(b).isDeleted()).isTrue();
+        assertThat(reload(c).isDeleted()).isTrue();
+        assertThat(reload(e).isDeleted()).isTrue();
+        assertThat(reload(d).isDeleted()).isFalse();
+        assertThat(idOf(reload(d).getParent())).isEqualTo(a.getId());
+        Manuscript reloaded = manuscriptService.find(manuscript.getId());
+        assertThat(idOf(reloaded.getActiveLeaf())).isEqualTo(d.getId());
+        assertThat(chatMessageService.getBranchFromLeaf(reloaded.getActiveLeaf())).extracting(BaseEntity::getId)
+                .containsExactly(a.getId(), d.getId());
+    }
+
+    @Test
     void hardDeleteNodeRemovesIt() throws Exception {
         ChatMessage root = chatMessageService.createRoot(manuscript, message("root", 1));
         ChatMessage leaf = chatMessageService.addChild(root, message("leaf", 1));

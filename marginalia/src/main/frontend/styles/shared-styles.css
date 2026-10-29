@@ -104,6 +104,27 @@ vaadin-markdown.agent-report td {
     overflow-wrap: normal;
 }
 
+/* The check box of a part while the mass delete of the story is on */
+.mass-delete-box {
+    margin: var(--lumo-space-m) var(--lumo-space-s);
+    width: var(--lumo-icon-size-s);
+    height: var(--lumo-icon-size-s);
+    flex: none;
+    cursor: pointer;
+    accent-color: var(--lumo-primary-color);
+}
+
+/* A part ticked in the mass delete of the story */
+.chat-message.marked-for-delete {
+    border-color: var(--lumo-error-color-50pct);
+    background-color: var(--lumo-error-color-10pct);
+}
+
+.phone-message.marked-for-delete {
+    border-bottom-color: var(--lumo-error-color-50pct);
+    background-color: var(--lumo-error-color-10pct);
+}
+
 /* A message card of the story */
 .chat-message {
     margin-bottom: 8px;
