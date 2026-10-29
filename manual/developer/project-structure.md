@@ -157,6 +157,7 @@ no state besides their fields.
 | `TurnInput` | The four fields of the instruction panel (scene, POV character, present characters, instructions). |
 | `TokenLimits` | Static helpers for the context, response and prompt budget of a generation (the smaller of protocol and provider limit). |
 | `AILimit`, `AILimits`, `LimitStatus` | The limit of one user on a shared AI (strategy, reset, token limits, hard limit of the generated tokens), the JSON in `AI.limits` that holds them by user uuid, and where a user stands (limit, tokens used in the period, next reset; `block(...)` says what stops a request). See [Limits](domain-model.md#limits-of-the-users-of-a-shared-ai). |
+| `PromptComparison` | Compares two stored built prompts (JSON payloads) like a prefix cache: per-message status, the first difference (message, character), the shared share of the new prompt and a `Verdict` (system message changed, story shifted, last message only...). Pure, no services; used by `PromptComparisonDialog` (*Compare Prompt* in the part menu). |
 | `PromptTokenBreakdown` | Raw token counts of one built prompt: the budget, every section, what was cut and the tokens of each payload message. Filled by the generation steps, stored with the part (`ChatMessage.getTokenBreakdown()`), shown by `TokenUsageDialog`. |
 | `SummaryNode` | A summary and the summaries it merges, for the summaries overview. |
 | `CronSchedule` | Cron expression parsing and next-run computation, used by the database backup schedule. |

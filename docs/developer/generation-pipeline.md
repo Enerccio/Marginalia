@@ -264,7 +264,8 @@ The part gets the `TurnInput`, the model and protocol names, the payload as JSON
 Prompt*), the activated lore (`MessagePrompt.backgroundLore`) and the request time. The token breakdown gets the tokens of every message of the final
 payload (as listeners left it, counted with the provider's tokenizer) and is stored as the part's `tokenBreakdown`
 (shown by *Token Usage*, see [UI](ui.md)). Parts generated before it existed have none, `getTokenBreakdown()` is `null`
-for them. The template variables of the generation are stored: local ones in
+for them. *Compare Prompt* (`PromptComparisonDialog`) compares the stored payload of a part with that of an earlier part of the branch or a swipe
+(`PromptComparison`), to show where a prefix cache ends. The template variables of the generation are stored: local ones in
 the part's `attributes`, global ones in the book's. The part becomes the book's active leaf, both are saved
 and `listener.onNodeCreated(part)` lets the UI show it. The state stays `NOT_SUCCESSFUL` - until text arrives, the
 part is only a placeholder that cleanup removes or restores.

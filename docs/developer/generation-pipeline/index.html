@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846624454882">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846626463451">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846624454882" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846626463451" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846624454882" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846626463451" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846624454882" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846624454882" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846626463451" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846626463451" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -555,7 +555,8 @@ sent).</p>
 Prompt</em>), the activated lore (<code translate="no" v-pre>MessagePrompt.backgroundLore</code>) and the request time. The token breakdown gets the tokens of every message of the final
 payload (as listeners left it, counted with the provider&#x27;s tokenizer) and is stored as the part&#x27;s <code translate="no" v-pre>tokenBreakdown</code>
 (shown by <em>Token Usage</em>, see <a href="../ui/">UI</a>). Parts generated before it existed have none, <code translate="no" v-pre>getTokenBreakdown()</code> is <code translate="no" v-pre>null</code>
-for them. The template variables of the generation are stored: local ones in
+for them. <em>Compare Prompt</em> (<code translate="no" v-pre>PromptComparisonDialog</code>) compares the stored payload of a part with that of an earlier part of the branch or a swipe
+(<code translate="no" v-pre>PromptComparison</code>), to show where a prefix cache ends. The template variables of the generation are stored: local ones in
 the part&#x27;s <code translate="no" v-pre>attributes</code>, global ones in the book&#x27;s. The part becomes the book&#x27;s active leaf, both are saved
 and <code translate="no" v-pre>listener.onNodeCreated(part)</code> lets the UI show it. The state stays <code translate="no" v-pre>NOT_SUCCESSFUL</code> - until text arrives, the
 part is only a placeholder that cleanup removes or restores.</p>
@@ -988,7 +989,7 @@ wait for it to finish. See <a href="../testing/">Testing</a>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (186daa954).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (4b8005956).</p></div>
             </footer>
         </div>
     </div>

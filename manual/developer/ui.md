@@ -204,7 +204,7 @@ sets the lorebook of the pinned view without touching `Manuscript.lorebook`: the
 `PhoneManuscriptTreePart` (stacked search bar), `PhoneManuscriptBackupPart` (one row per backup) and
 `PhoneManuscriptStoryPart`. The story is a single column in an `AppLayout`: the outline is its drawer (slid in by the
 toggle in the navbar, which also holds the summaries/settings menu bar), the new turn button is at the bottom. Its
-`ChatMessageCard` is only the text of the part under a small header line with two icons: the menu (with *Show Prompt*)
+`ChatMessageCard` is only the text of the part under a small header line with two icons: the menu (with *Show Prompt* and *Compare Prompt*)
 and a popover with the metadata of the inference (ids, model, protocol, tokens, words) and the turn details (the
 right-hand column of the desktop card; on both cards the popover is filled by `createDetails` and opened by the server when its button is clicked, and the editing text area exists only while the part is edited, because the text areas of `TurnDetailsForm` measure their height as soon as they are in the page and hundreds of them freeze the browser). Its summaries item opens `PhoneSummariesDialog`, the `SummariesDialog` with a fixed 640 px, taller content column (the grid scrolls sideways anyway, so the summaries stay readable and editable). The fixed navbar and drawer of the
 `AppLayout` are kept inside the dialog by the `phone-story-layout` class.

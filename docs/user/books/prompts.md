@@ -163,7 +163,8 @@ Earlier parts are sent as the model's own answers, so it continues them in the s
 than the [context limit](../protocols.md#limits), the oldest parts are left out first; [summaries](summaries.md)
 keep them in the story in condensed form.
 
-**Show Prompt** in the menu of any part shows the exact prompt that part was written from.
+**Show Prompt** in the menu of any part shows the exact prompt that part was written from. **Compare Prompt** puts it next to
+the prompt of an earlier part and shows where they first differ, which is where a server's [prompt cache](../prompt-cache.md#compare-prompt) ends.
 
 ## Tips
 

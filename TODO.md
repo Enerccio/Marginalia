@@ -535,6 +535,11 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
     Groundwork exists (`PromptTokenBreakdown`, 24a); this is the "why did the model suddenly forget X" tool. It should
     also show where the payload first differs from the previous turn's (providers and llama.cpp reuse the longest
     identical prefix) and why: the active lore set changed, the context window slid, a summary or a note changed.
+    ✅ Partly (1.6.0): *Compare Prompt* in the part menu (`PromptComparisonDialog`, `PromptComparison`) diffs the stored prompt of a
+    part with an earlier part or a swipe, marks the first differing message and says why (system message, story shifted, edited
+    part, last message only). Open: the dry run (building the next payload without sending it), a word diff inside the message
+    (now both texts are shown from the first difference), naming which block of the system message changed (lore / summaries /
+    notes; the system message is one text), a `/compare-prompts` command, and the model, tools and sampler (not in the stored prompt).
 56. ~~**Cache-friendly prompt ordering.**~~ Scratched, not planned. A prefix cache miss is inherent to lore chosen per
     turn: the set of active entries follows the instructions of the turn, and the sliding context window moves the start
     of the story as well. The ordering choice already exists per entry (`BEFORE_USER_PROMPT` puts the lore after the

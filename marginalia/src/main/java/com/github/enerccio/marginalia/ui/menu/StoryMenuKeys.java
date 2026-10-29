@@ -31,6 +31,7 @@ public final class StoryMenuKeys {
     public static final String BRANCH = "card.branch";
     public static final String MERGE = "card.merge";
     public static final String SHOW_PROMPT = "card.showPrompt";
+    public static final String COMPARE_PROMPT = "card.comparePrompt";
     public static final String TOKEN_USAGE = "card.tokenUsage";
     public static final String IMAGES = "card.images";
     public static final String SUMMARY = "card.summary";

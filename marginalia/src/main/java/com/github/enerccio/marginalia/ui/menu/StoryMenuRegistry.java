@@ -176,6 +176,7 @@ public class StoryMenuRegistry implements InitializingBean {
         application(StoryMenuItem.card(StoryMenuKeys.MERGE, L.LABEL_MERGE_INTO_PREVIOUS, (part, card) -> card.mergeIntoPrevious())
                 .visibleWhen((part, card) -> card != null && card.getMessage().getParent() != null));
         application(StoryMenuItem.card(StoryMenuKeys.SHOW_PROMPT, L.LABEL_SHOW_PROMPT, (part, card) -> card.showPrompt()));
+        application(StoryMenuItem.card(StoryMenuKeys.COMPARE_PROMPT, L.LABEL_COMPARE_PROMPT, (part, card) -> card.comparePrompt()));
         application(StoryMenuItem.card(StoryMenuKeys.TOKEN_USAGE, L.LABEL_TOKEN_USAGE, (part, card) -> card.showTokenUsage()));
         application(StoryMenuItem.card(StoryMenuKeys.IMAGES, L.LABEL_IMAGES, (part, card) -> card.openImagesDialog()));
         application(StoryMenuItem.card(StoryMenuKeys.SUMMARY, L.LABEL_GENERATE_SUMMARY, (part, card) -> card.openSummaryDialog())

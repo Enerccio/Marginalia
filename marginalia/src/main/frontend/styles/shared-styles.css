@@ -1002,6 +1002,16 @@ vaadin-dialog-overlay.phone-dialog::part(overlay) {
     font-size: var(--lumo-font-size-s);
 }
 
+/* Prompt comparison (ui.dialogs.PromptComparisonDialog): the message where the prompt first differs from the earlier one, and the ones after it (the cache is not used for them) */
+vaadin-grid::part(prompt-compare-first-difference) {
+    background-color: var(--lumo-error-color-10pct);
+    font-weight: 600;
+}
+
+vaadin-grid::part(prompt-compare-lost) {
+    color: var(--lumo-secondary-text-color);
+}
+
 /* Help assistant (ui.components.HelpAssistantWidget): a round button fixed in the bottom right corner that opens a chat panel above it */
 .help-root {
     display: contents;

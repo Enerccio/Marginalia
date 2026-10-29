@@ -785,6 +785,14 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_SAVE_LAYOUT_AS_DEFAULT, "Save layout as my default");
         setValue(L.LABEL_MASS_DELETE, "Mass delete");
         setValue(L.LABEL_N_SELECTED, "%s selected");
+        setValue(L.LABEL_COMPARE_PROMPT, "Compare Prompt");
+        setValue(L.LABEL_COMPARE_WITH, "Compare with");
+        setValue(L.LABEL_COMPARE_EARLIER_PROMPT, "Earlier prompt");
+        setValue(L.LABEL_COMPARE_THIS_PROMPT, "This prompt");
+        setValue(L.LABEL_COMPARE_CHARACTERS, "characters");
+        setValue(L.LABEL_COMPARE_CACHE, "Cache");
+        setValue(L.LABEL_COMPARE_READ_AGAIN, "Read again");
+        setValue(L.LABEL_COMPARE_ALTERNATIVE, "Alternative");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1341,6 +1349,20 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_LAYOUT_SAVED_AS_DEFAULT, "The arrangement of the tabs is saved. Your books that have no arrangement of their own will open with it.");
         setValue(L.MSG_CONFIRM_MASS_DELETE, "Delete %s selected parts? What follows a deleted part continues from its parent.");
         setValue(L.MSG_DELETING_PARTS, "Deleting parts");
+        setValue(L.MSG_PROMPT_COMPARE_NO_PROMPT, "This part has no stored prompt (the author typed it, or it was generated before prompts were kept).");
+        setValue(L.MSG_PROMPT_COMPARE_NO_CANDIDATE, "No earlier part and no alternative of this part has a stored prompt to compare with.");
+        setValue(L.MSG_PROMPT_COMPARE_UNREADABLE, "The stored prompts cannot be compared (they are not lists of messages).");
+        setValue(L.MSG_PROMPT_COMPARE_NO_DIFFERENCE, "The prompts are the same.");
+        setValue(L.MSG_PROMPT_COMPARE_FIRST_DIFFERENCE, "First difference: message %d, character %d.");
+        setValue(L.MSG_PROMPT_COMPARE_SHARED, "%d%% of this prompt (%d of %d characters, about %d of %d tokens) is the same as the earlier one from the start. A prompt cache covers this much, the rest is read again.");
+        setValue(L.MSG_PROMPT_COMPARE_IDENTICAL, "Both prompts are the same, a prompt cache covers all of it.");
+        setValue(L.MSG_PROMPT_COMPARE_EXTENDED, "This prompt starts with the whole earlier prompt and adds messages after it. The cache is used up to the end of the earlier prompt.");
+        setValue(L.MSG_PROMPT_COMPARE_SHORTENED, "This prompt is the beginning of the earlier one and has fewer messages.");
+        setValue(L.MSG_PROMPT_COMPARE_LAST_MESSAGE, "The first difference is the last message of the earlier prompt, the user message of that turn. It is not repeated in the story, so this is the most a next part or a swipe can reuse. If the cache was not used, the cause is not the prompt (check the server slot, the model and the session id).");
+        setValue(L.MSG_PROMPT_COMPARE_SYSTEM_CHANGED, "The system message differs, so the cache ends at its start and the whole story is read again. It holds the jailbreak, the master template, the lore, the summaries and the notes: one of them changed between the two requests. Use Before User Prompt for lore entries that change from part to part.");
+        setValue(L.MSG_PROMPT_COMPARE_HISTORY_SHIFTED, "A message of the story appears here that was at another place in the earlier prompt: the start of the story moved (the oldest parts no longer fit and were left out, or parts were replaced by summaries). Everything after that point is read again.");
+        setValue(L.MSG_PROMPT_COMPARE_HISTORY_CHANGED, "A message in the middle of the story differs from the earlier prompt: a part was edited, regenerated or replaced by a summary. Everything after it is read again.");
+        setValue(L.MSG_PROMPT_COMPARE_ROLE_CHANGED, "The messages at the first difference have different roles, the structure of the prompt changed.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

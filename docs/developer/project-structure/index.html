@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846624454882">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846626463451">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846624454882" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846626463451" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846624454882" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846626463451" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846624454882" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846626463451" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -543,6 +543,7 @@ no state besides their fields.</p>
 | `TurnInput` | The four fields of the instruction panel (scene, POV character, present characters, instructions). |
 | `TokenLimits` | Static helpers for the context, response and prompt budget of a generation (the smaller of protocol and provider limit). |
 | `AILimit`, `AILimits`, `LimitStatus` | The limit of one user on a shared AI (strategy, reset, token limits, hard limit of the generated tokens), the JSON in `AI.limits` that holds them by user uuid, and where a user stands (limit, tokens used in the period, next reset; `block(...)` says what stops a request). See [Limits](domain-model.md#limits-of-the-users-of-a-shared-ai). |
+| `PromptComparison` | Compares two stored built prompts (JSON payloads) like a prefix cache: per-message status, the first difference (message, character), the shared share of the new prompt and a `Verdict` (system message changed, story shifted, last message only...). Pure, no services; used by `PromptComparisonDialog` (*Compare Prompt* in the part menu). |
 | `PromptTokenBreakdown` | Raw token counts of one built prompt: the budget, every section, what was cut and the tokens of each payload message. Filled by the generation steps, stored with the part (`ChatMessage.getTokenBreakdown()`), shown by `TokenUsageDialog`. |
 | `SummaryNode` | A summary and the summaries it merges, for the summaries overview. |
 | `CronSchedule` | Cron expression parsing and next-run computation, used by the database backup schedule. |">
@@ -566,6 +567,10 @@ no state besides their fields.</p>
 <tr>
 <td><code translate="no" v-pre>AILimit</code>, <code translate="no" v-pre>AILimits</code>, <code translate="no" v-pre>LimitStatus</code></td>
 <td>The limit of one user on a shared AI (strategy, reset, token limits, hard limit of the generated tokens), the JSON in <code translate="no" v-pre>AI.limits</code> that holds them by user uuid, and where a user stands (limit, tokens used in the period, next reset; <code translate="no" v-pre>block(...)</code> says what stops a request). See <a href="../domain-model/#limits-of-the-users-of-a-shared-ai">Limits</a>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>PromptComparison</code></td>
+<td>Compares two stored built prompts (JSON payloads) like a prefix cache: per-message status, the first difference (message, character), the shared share of the new prompt and a <code translate="no" v-pre>Verdict</code> (system message changed, story shifted, last message only...). Pure, no services; used by <code translate="no" v-pre>PromptComparisonDialog</code> (<em>Compare Prompt</em> in the part menu).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>PromptTokenBreakdown</code></td>
@@ -1490,7 +1495,7 @@ ignored by Git), see <a href="../packaging/#building-the-plugins-in-docker">Pack
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (186daa954).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (4b8005956).</p></div>
             </footer>
         </div>
     </div>

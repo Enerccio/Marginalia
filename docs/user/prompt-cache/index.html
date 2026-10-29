@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846624454882">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846626463451">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846624454882" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846626463451" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846624454882" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846626463451" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846624454882" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846624454882" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846626463451" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846626463451" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -279,10 +279,34 @@ story, and do not disturb the cache. Keep what is always true in the lore block.
 to the model), so that the system message stays the same.</p>
 </li>
 <li>
-<p>Compare the prompts of two parts in a row with <strong>Show Prompt</strong> and look for the first line that differs: that is where
-the cache ends.</p>
+<p>Open <strong>Compare Prompt</strong> in the menu of a part to see where the cache ends: it compares the prompt of the part with the
+one of an earlier part (the nearest one by default; the box lists the parts before it and its swipes) and marks the first
+message that differs. See <doc-anchor-trigger to="#compare-prompt">Compare Prompt</doc-anchor-trigger>.</p>
 </li>
 </ul>
+<h3 id="compare-prompt">Compare Prompt</h3>
+<p><strong>Compare Prompt</strong> in the menu of a part (desktop and phone) answers <em>why was the cache not used for this part?</em> It
+lists the messages of the two prompts (the system message, then a user message and a model answer per part, then the
+user message of the turn) with a status for each: the same, changed, added or deleted. The first message that differs is
+highlighted and the ones after it are marked <em>Read again</em>, because a server reads everything after the first difference
+again. Above the table:</p>
+<ul>
+<li>
+<p>where the first difference is (message and character) and how much of the prompt, in characters and about in tokens,
+is the same from the start;</p>
+</li>
+<li>
+<p>a reading of the difference: the <strong>system message</strong> differs (the jailbreak, the template, the lore, the summaries or
+the notes changed between the two requests: the usual cause), a part <strong>in the middle of the story</strong> differs (it was
+edited, regenerated or replaced by a summary), the <strong>start of the story moved</strong> (the oldest parts were left out or
+summarised), or the difference is only the <strong>last message of the earlier prompt</strong>, the user message of that turn, which
+the story does not repeat. That last case is the most a next part or a swipe can reuse; if the server still did not use
+its cache, the prompt is not the cause (check the slot, the model and the session id).</p>
+</li>
+</ul>
+<p>Selecting a message shows the two texts side by side, from just before the first difference. Only the messages are
+compared: the model, the tools of the request and the server slot are not part of the stored prompt. The part needs a
+stored prompt (parts typed by the author and parts generated before the prompts were kept have none).</p>
 <p>The request kinds below matter for what is kept when you switch between them; the prompt decides how much of it is used.</p>
 <h2 id="using-it-one-slot-on-disk-with-llamacpp">Using it: one slot on disk with llama.cpp</h2>
 <p>The value is for you if the server runs out of memory for caches. A local <code translate="no" v-pre>llama-server</code> with enough memory for several
@@ -292,6 +316,11 @@ their prompts again each time.</p>
 <p>The way out is to keep the cache of every kind on disk and swap it into the one slot when a request of that kind
 arrives. <code translate="no" v-pre>llama-server</code> can save a slot to a file and restore it; a proxy in front of it knows which kind a request is
 from the header. The example below is a hook for <a href="https://docs.litellm.ai/">LiteLLM</a>.</p>
+<p><strong>Requirement:</strong> a <code translate="no" v-pre>llama-server</code> from 2026-10-08 or later (llama.cpp PR #26004, <em>preserve context checkpoints across
+slot save/restore</em>). An older one writes and restores the memory of the slot but not its <doc-anchor-trigger to="#why-a-cache-may-not-help">context
+checkpoints</doc-anchor-trigger>, so a model with a sliding window (Gemma, for one) or a hybrid model reads the
+whole prompt again after every restore, however much of it is unchanged. Check the build with <code translate="no" v-pre>llama-server --version</code>;
+a container image with a moving tag (<code translate="no" v-pre>full</code>, <code translate="no" v-pre>server</code>...) is not updated until you pull it.</p>
 <p>Start <code translate="no" v-pre>llama-server</code> with one slot and a folder for the files:</p>
 <div id="using-it-one-slot-on-disk-with-llamacpp-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">llama-server -m model.gguf -c 65536 -np 1 --slot-save-path /var/cache/llama-slots</code></pre>
@@ -743,7 +772,11 @@ itself never fails because of the hook.</p>
 <li><strong>Size.</strong> A file is as big as the memory of the slot holds: for a long story and a large model hundreds of megabytes
 to several gigabytes. There is one file per route, user and kind, and each is overwritten in place, so the folder stays as
 small as that. Check that restoring one is faster than reading the prompt (a fast SSD usually is, by a lot, for a
-long story: a few seconds against a minute of prefill).</li>
+long story: a few seconds against a minute of prefill). A measured example: a 31 B model on an AMD Radeon AI PRO
+R9700 with a prompt of about 9,000 tokens made files of 850-930 MB; a restore took 2-3.5 s and a save 3-10 s (the hook logs both), while reading
+that prompt again took 18-20 s at about 440 tokens per second. A swap costs a save and a restore, so it still wins
+by a wide margin, and the longer the story the more it wins, as a prefill grows with the prompt and a restore only
+with the size of the cache.</li>
 <li><strong>Limits.</strong> Without a limit the folder grows with the number of routes, users and kinds. Set <code translate="no" v-pre>max_files</code> (a number of
 files) and/or <code translate="no" v-pre>max_gib</code> (their total size) in the <code translate="no" v-pre>slot_cache</code> of a route (or <code translate="no" v-pre>LLAMA_CACHE_MAX_FILES</code> and
 <code translate="no" v-pre>LLAMA_CACHE_MAX_GIB</code> in the environment of the proxy for all routes) and the hook deletes the caches <strong>of that route</strong>
@@ -842,7 +875,7 @@ router; the tests use a stand-in that checks the calls the hook makes.</li>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (186daa954).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (4b8005956).</p></div>
             </footer>
         </div>
     </div>
