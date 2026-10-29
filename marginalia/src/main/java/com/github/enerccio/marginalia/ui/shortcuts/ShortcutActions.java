@@ -33,6 +33,21 @@ public final class ShortcutActions {
     /** Shows the previous tab of the story editor. */
     public static final String DOCK_PREVIOUS_TAB = "dock.previousTab";
 
+    /** Copies what is marked in the active pane of the Organise window into the other pane. */
+    public static final String ORGANISE_COPY = "organise.copy";
+    /** Moves what is marked in the active pane of the Organise window into the other pane. */
+    public static final String ORGANISE_MOVE = "organise.move";
+
+    /** Changes the active pane of the Organise window, like Left / Right do. */
+    public static final String ORGANISE_SWITCH_PANE = "organise.switchPane";
+
+    /** Makes a folder in the folder of the active pane of the Organise window. */
+    public static final String ORGANISE_NEW_FOLDER = "organise.newFolder";
+    /** Renames the folder or book under the cursor of the Organise window. */
+    public static final String ORGANISE_RENAME = "organise.rename";
+    /** Deletes the folder or book under the cursor of the Organise window. */
+    public static final String ORGANISE_DELETE = "organise.delete";
+
     private ShortcutActions() {
     }
 }

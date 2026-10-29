@@ -353,4 +353,18 @@ class FolderTransferTest extends AgentTestBase {
         assertThat(manuscriptService.searchRegularManuscripts(new ManuscriptFilterValues().inFolder(scifi, false), Sorter.sorter("name")))
                 .hasSize(1);
     }
+
+    @Test
+    void aCopyReportsEveryBookAndEveryFolderItMakes() throws Exception {
+        book("Leviathan", scifi);
+        Folder expanse = folderService.create("Expanse", scifi);
+        book("Caliban", expanse);
+        book("Abaddon", expanse);
+        Manuscript loose = book("Loose", null);
+        int[] steps = {0};
+
+        folderService.transfer(copy(List.of(loose), List.of(scifi), fantasy, false, Map.of()), () -> steps[0]++);
+
+        assertThat(steps[0]).as("1 loose book, 2 folders, 3 books in them").isEqualTo(6);
+    }
 }

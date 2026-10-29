@@ -47,6 +47,7 @@ public final class CssStyles {
     public static final String FLEX_WRAP = "flex-wrap";
     public static final String ORGANISE_PANE = "organise-pane";
     public static final String ORGANISE_PANE_ACTIVE = "organise-pane-active";
+    public static final String ORGANISE_CURSOR_ROW = "organise-cursor-row";
     public static final String FLEX_SHRINK_0 = "flex-shrink-0";
     public static final String GAP_S = "gap-s";
     public static final String MARGIN_LEFT_AUTO = "margin-left-auto";

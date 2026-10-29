@@ -1424,3 +1424,8 @@ vaadin-dialog-overlay.agent-console-phone .help-message-user {
 .organise-pane-active {
     border-color: var(--lumo-primary-color);
 }
+
+/* the row of a pane the keyboard cursor is on (the whole row, the grid focuses a single cell) */
+.organise-pane vaadin-grid::part(organise-cursor-row) {
+    background-color: var(--lumo-primary-color-10pct);
+}

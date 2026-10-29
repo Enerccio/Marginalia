@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.widgets;
 
+import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.vaadin.flow.component.Focusable;
 import com.vaadin.flow.component.dialog.Dialog;
 
@@ -12,12 +13,13 @@ public final class DialogFocus {
     }
 
     /**
-     * Focuses the component every time the dialog opens.
+     * Focuses the component every time the dialog opens. A focus asked for right when the dialog opens is lost (the overlay is
+     * not rendered yet), so it is retried until the component has it.
      */
     public static void onOpen(Dialog dialog, Focusable<?> target) {
         dialog.addOpenedChangeListener(e -> {
             if (e.isOpened()) {
-                target.focus();
+                JavascriptLibrary.focusAfterRender(target.getElement());
             }
         });
     }

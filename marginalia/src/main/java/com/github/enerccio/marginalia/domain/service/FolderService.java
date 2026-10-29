@@ -87,10 +87,22 @@ public interface FolderService extends ExtendableService<Folder, FolderRepositor
      * <p>
      * A copy of a folder has the settings, tags and description of the folder, and copies of the books in it (and of the
      * folders below it).
+     * <p>
+     * A move is one transaction. A copy is not (it can take long and the database has one writer): the checks are, then every
+     * folder and every book is a step of its own, so when one fails the copies made before it stay, each of them complete.
      *
      * @throws IllegalStateException when the rules are broken
      */
-    Outcome transfer(Transfer transfer) throws Exception;
+    default Outcome transfer(Transfer transfer) throws Exception {
+        return transfer(transfer, () -> {
+        });
+    }
+
+    /**
+     * Like {@link #transfer(Transfer)}, and tells after every step of a copy that is done: a folder made, a book copied (the
+     * progress to show; the steps of a move are not counted).
+     */
+    Outcome transfer(Transfer transfer, Runnable step) throws Exception;
 
     /**
      * The folders of the current user directly in the folder (null is the top level) by name.

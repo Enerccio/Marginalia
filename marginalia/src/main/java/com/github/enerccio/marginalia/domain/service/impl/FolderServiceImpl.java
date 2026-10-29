@@ -12,9 +12,13 @@ import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.*;
+import java.util.concurrent.Callable;
 
 public class FolderServiceImpl extends ExtendableServiceImpl<Folder, FolderRepository> implements FolderService {
 
@@ -35,6 +39,15 @@ public class FolderServiceImpl extends ExtendableServiceImpl<Folder, FolderRepos
     @Autowired
     @Lazy
     private BackupService backupService;
+
+    @Autowired
+    @Qualifier("common")
+    private PlatformTransactionManager transactionManager;
+
+    // the proxy of this service: a call through it has the transaction of the method, a call on this has none
+    @Autowired
+    @Lazy
+    private FolderService self;
 
     /**
      * Checks the rules before the folder is written, whoever saves it.
@@ -319,9 +332,50 @@ public class FolderServiceImpl extends ExtendableServiceImpl<Folder, FolderRepos
         return clashes;
     }
 
+    /**
+     * What the checks of a transfer found: the items and the target as stored, and the choices.
+     */
+    private record Checked(Folder target, List<Folder> folders, List<Manuscript> books, Map<Long, Choice> choices) {
+    }
+
     @Override
-    @CommonTx
-    public Outcome transfer(Transfer transfer) throws Exception {
+    public Outcome transfer(Transfer transfer, Runnable step) throws Exception {
+        if (!transfer.copy()) {
+            // a move is a few bulk updates: all or nothing
+            return inTx(() -> execute(transfer, check(transfer), step));
+        }
+        // A copy reads and writes every book whole and can take long, and the database has one writer: no transaction around it.
+        // Everything is checked first (a transaction of its own, nothing is written), then every folder and every book is a step
+        // with its own transactions, like the clone of one book. A failure leaves the copies made so far, each of them complete.
+        Checked checked = inTx(() -> check(transfer));
+        return execute(transfer, checked, step);
+    }
+
+    private <T> T inTx(Callable<T> work) throws Exception {
+        try {
+            return new TransactionTemplate(transactionManager).execute(_ -> {
+                try {
+                    return work.call();
+                } catch (Exception e) {
+                    // rolls back also for a checked exception
+                    throw new TransferFailure(e);
+                }
+            });
+        } catch (TransferFailure failure) {
+            throw failure.cause;
+        }
+    }
+
+    private static final class TransferFailure extends RuntimeException {
+        private final Exception cause;
+
+        TransferFailure(Exception cause) {
+            super(cause);
+            this.cause = cause;
+        }
+    }
+
+    private Checked check(Transfer transfer) throws Exception {
         Folder target = null;
         if (transfer.target() != null) {
             target = findOwned(transfer.target());
@@ -384,12 +438,20 @@ public class FolderServiceImpl extends ExtendableServiceImpl<Folder, FolderRepos
         for (Manuscript book : books) {
             agentRunService.checkNotLocked(book);
         }
+        return new Checked(target, folders, books, choices);
+    }
 
+    private Outcome execute(Transfer transfer, Checked checked, Runnable step) throws Exception {
+        Folder target = checked.target();
+        List<Folder> folders = checked.folders();
+        List<Manuscript> books = checked.books();
+        Map<Long, Choice> choices = checked.choices();
         int[] counts = new int[3];
         if (!books.isEmpty()) {
             if (transfer.copy()) {
                 for (Manuscript book : books) {
                     backupService.cloneManuscript(book, book.getName(), transfer.onlyCurrentBranch(), target);
+                    step.run();
                 }
             } else {
                 manuscriptService.moveToFolder(books, target);
@@ -407,14 +469,14 @@ public class FolderServiceImpl extends ExtendableServiceImpl<Folder, FolderRepos
                         continue;
                     }
                     case MERGE -> {
-                        mergeInto(folder, same, transfer.copy(), transfer.onlyCurrentBranch(), counts);
+                        mergeInto(folder, same, transfer.copy(), transfer.onlyCurrentBranch(), counts, step);
                         continue;
                     }
                     case RENAME -> name = StringUtils.trim(choice.name());
                 }
             }
             if (transfer.copy()) {
-                copyTree(folder, target, name, transfer.onlyCurrentBranch(), counts);
+                copyTree(folder, target, name, transfer.onlyCurrentBranch(), counts, step);
             } else if (!sameFolder(folder.getParent(), target) || !name.equals(folder.getName())) {
                 counts[0] += countBooks(subtree(folder));
                 folder.setName(name);
@@ -443,11 +505,12 @@ public class FolderServiceImpl extends ExtendableServiceImpl<Folder, FolderRepos
      * Puts what is in the source into the folder of the same name (a move leaves the source empty and deletes it, a copy
      * leaves it alone); the folders of the same name inside merge in turn.
      */
-    private void mergeInto(Folder source, Folder existing, boolean copy, boolean onlyCurrentBranch, int[] counts) throws Exception {
+    private void mergeInto(Folder source, Folder existing, boolean copy, boolean onlyCurrentBranch, int[] counts, Runnable step) throws Exception {
         List<Manuscript> books = manuscriptRepository.findRegularByFolders(List.of(source.getId()), currentUser);
         if (copy) {
             for (Manuscript book : books) {
                 backupService.cloneManuscript(book, book.getName(), onlyCurrentBranch, existing);
+                step.run();
             }
         } else {
             manuscriptRepository.moveFolderContent(List.of(source.getId()), existing, currentUser);
@@ -456,9 +519,9 @@ public class FolderServiceImpl extends ExtendableServiceImpl<Folder, FolderRepos
         for (Folder child : getRepository().findChildren(source, currentUser)) {
             Folder same = getRepository().findChildByName(existing, child.getName(), null, currentUser);
             if (same != null) {
-                mergeInto(child, same, copy, onlyCurrentBranch, counts);
+                mergeInto(child, same, copy, onlyCurrentBranch, counts, step);
             } else if (copy) {
-                copyTree(child, existing, child.getName(), onlyCurrentBranch, counts);
+                copyTree(child, existing, child.getName(), onlyCurrentBranch, counts, step);
             } else {
                 child.setParent(existing);
                 save(child);
@@ -474,7 +537,7 @@ public class FolderServiceImpl extends ExtendableServiceImpl<Folder, FolderRepos
     /**
      * A copy of the folder with its settings, tags, books and the folders below it, as a folder of the parent.
      */
-    private Folder copyTree(Folder source, Folder parent, String name, boolean onlyCurrentBranch, int[] counts) throws Exception {
+    private Folder copyTree(Folder source, Folder parent, String name, boolean onlyCurrentBranch, int[] counts, Runnable step) throws Exception {
         Folder copy = new Folder();
         copy.setName(name);
         copy.setParent(parent);
@@ -492,17 +555,19 @@ public class FolderServiceImpl extends ExtendableServiceImpl<Folder, FolderRepos
         copy.setAnnotateSystemPrompt(source.getAnnotateSystemPrompt());
         copy.setAnnotatePrompt(source.getAnnotatePrompt());
         copy.setImpersonatePrompt(source.getImpersonatePrompt());
-        copy = save(copy);
+        copy = self.save(copy);
         for (Tag tag : tagRelationService.getTagsForObject(source)) {
             tagRelationService.createRelation(tag, copy);
         }
         counts[1]++;
+        step.run();
         for (Manuscript book : manuscriptRepository.findRegularByFolders(List.of(source.getId()), currentUser)) {
             backupService.cloneManuscript(book, book.getName(), onlyCurrentBranch, copy);
+            step.run();
             counts[0]++;
         }
         for (Folder child : getRepository().findChildren(source, currentUser)) {
-            copyTree(child, copy, child.getName(), onlyCurrentBranch, counts);
+            copyTree(child, copy, child.getName(), onlyCurrentBranch, counts, step);
         }
         return copy;
     }

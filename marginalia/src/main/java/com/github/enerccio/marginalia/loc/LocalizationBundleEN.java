@@ -772,6 +772,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_APPLY_TO_ALL, "Apply to all");
         setValue(L.LABEL_ORGANISE, "Organise");
         setValue(L.LABEL_SHOW_FOLDER_IN_LIST, "Show folder in the list");
+        setValue(L.LABEL_SWITCH_PANE, "Switch pane");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1322,6 +1323,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_ORGANISE_DONE, "Done: %d books and %d folders, %d skipped.");
         setValue(L.MSG_ORGANISE_COPY_TO, "Copy %d items to \"%s\"?");
         setValue(L.MSG_FOLDER_CLASH, "A folder named \"%s\" already exists in \"%s\". What should happen?");
+        setValue(L.MSG_ORGANISE_SAME_FOLDER, "Both panes show the same folder, open another one in the other pane.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1414,7 +1416,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_PART_LAST_PROMPT, "The last message from the user: what changes from one request to the next (the story after the part, the part itself, its notes, the task).");
         setValue(L.HELP_MASS_CHANGE_MODEL_PROTOCOL, "Pick the model and/or the protocol to put on the books and check the books. An empty choice means \"do not replace\": that part of the book stays as it is. Books an agent works on are grayed out and can't be changed.");
         setValue(L.HELP_MASS_CHANGE_LANGUAGE, "Pick the language to put on the books and check the books. Books an agent works on are grayed out and can't be changed.");
-        setValue(L.HELP_ORGANISE, "Left / Right: other pane. Enter: open a folder. Backspace: up. Space or Insert: mark. F2 rename, F5 copy, F6 move, F7 new folder, F8 delete.");
+        setValue(L.HELP_ORGANISE, "Left / Right / Tab: other pane. Enter: open a folder. Backspace: up. Space or Insert: mark. The keys of the buttons can be changed in the settings (key bindings).");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

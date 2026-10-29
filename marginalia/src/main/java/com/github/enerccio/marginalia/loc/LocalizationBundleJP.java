@@ -771,6 +771,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_SKIP, "スキップ");
         setValue(L.LABEL_APPLY_TO_ALL, "すべてに適用");
         setValue(L.LABEL_ORGANISE, "整理");
+        setValue(L.LABEL_SWITCH_PANE, "ペインを切り替え");
         setValue(L.LABEL_SHOW_FOLDER_IN_LIST, "一覧にフォルダを表示");
 
         // --- ENUM ---
@@ -1322,6 +1323,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_ORGANISE_DONE, "完了：本 %d 冊、フォルダ %d 個、スキップ %d 個。");
         setValue(L.MSG_ORGANISE_COPY_TO, "%d 個の項目を「%s」にコピーしますか？");
         setValue(L.MSG_FOLDER_CLASH, "「%s」というフォルダが「%s」にすでにあります。どうしますか？");
+        setValue(L.MSG_ORGANISE_SAME_FOLDER, "両方のペインが同じフォルダを表示しています。もう一方のペインで別のフォルダを開いてください。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1414,7 +1416,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_PART_LAST_PROMPT, "ユーザーからの最後のメッセージです。リクエストごとに変わる内容（パートより後の物語、パート自体、その注釈、依頼）を置きます。");
         setValue(L.HELP_MASS_CHANGE_MODEL_PROTOCOL, "本に設定するモデルまたはプロトコルを選び、対象の本にチェックを入れます。空の選択は「置き換えない」で、その設定は本のまま変わりません。エージェントが作業中の本はグレー表示になり、変更できません。");
         setValue(L.HELP_MASS_CHANGE_LANGUAGE, "本に設定する言語を選び、対象の本にチェックを入れます。エージェントが作業中の本はグレー表示になり、変更できません。");
-        setValue(L.HELP_ORGANISE, "左 / 右：もう一方のペイン。Enter：フォルダを開く。Backspace：上へ。Space または Insert：マーク。F2 名前変更、F5 コピー、F6 移動、F7 新しいフォルダ、F8 削除。");
+        setValue(L.HELP_ORGANISE, "左 / 右 / Tab：もう一方のペイン。Enter：フォルダを開く。Backspace：上へ。Space または Insert：マーク。ボタンのキーは設定（キー割り当て）で変更できます。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");
