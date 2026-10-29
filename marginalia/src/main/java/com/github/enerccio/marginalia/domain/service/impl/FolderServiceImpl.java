@@ -153,6 +153,19 @@ public class FolderServiceImpl extends ExtendableServiceImpl<Folder, FolderRepos
 
     @Override
     @CommonTxReadOnly
+    public List<Folder> findChain(Folder folder) throws Exception {
+        List<Folder> chain = new ArrayList<>();
+        Set<Long> seen = new HashSet<>();
+        Folder current = folder == null || folder.getId() == null ? null : getRepository().find(folder.getId());
+        while (current != null && !current.isDeleted() && seen.add(current.getId())) {
+            chain.add(current);
+            current = current.getParent() == null ? null : getRepository().find(current.getParent().getId());
+        }
+        return chain;
+    }
+
+    @Override
+    @CommonTxReadOnly
     public Content describeContent(Folder folder) throws Exception {
         Folder stored = findOwned(folder);
         if (stored == null) {

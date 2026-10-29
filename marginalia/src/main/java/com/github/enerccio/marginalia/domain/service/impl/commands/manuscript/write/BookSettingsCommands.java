@@ -9,7 +9,9 @@ import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import java.util.*;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * {@code /set-book-info [name [description [pov [tense [style [language]]]]]]}, {@code /set-book-prompts [template [userPrompt
@@ -177,10 +179,10 @@ public class BookSettingsCommands extends ManuscriptWriteSupport {
         JsonObject result = new JsonObject();
         result.addProperty("name", manuscript.getName());
         result.addProperty("description", manuscript.getDescription());
-        result.addProperty("language", manuscript.getLanguage() == null ? null : manuscript.getLanguage().getCode());
-        result.addProperty("pov", manuscript.getPov());
-        result.addProperty("tense", manuscript.getTense());
-        result.addProperty("style", manuscript.getStyle());
+        result.addProperty("language", manuscriptService.getLanguage(manuscript).getCode());
+        result.addProperty("pov", manuscriptService.getPov(manuscript));
+        result.addProperty("tense", manuscriptService.getTense(manuscript));
+        result.addProperty("style", manuscriptService.getStyle(manuscript));
         changed();
         answer(context, result);
     }

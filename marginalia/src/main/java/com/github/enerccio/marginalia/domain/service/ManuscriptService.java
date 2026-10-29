@@ -85,6 +85,24 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
      */
     void markOpened(Manuscript manuscript) throws Exception;
 
+    /**
+     * The value of a text setting of the book and where it comes from: the book, else the nearest folder above it that sets
+     * one, else the user settings, else the built-in default. A blank text is not set. Works from any thread (a generation
+     * asks from its own).
+     */
+    EffectiveSetting<String> resolve(Manuscript manuscript, PromptField field) throws Exception;
+
+    /**
+     * The language of the book and where it comes from: the book, else the nearest folder above it that sets one, else
+     * English (the default).
+     */
+    EffectiveSetting<Language> resolveLanguage(Manuscript manuscript) throws Exception;
+
+    /**
+     * {@code resolveLanguage(manuscript).value()}.
+     */
+    Language getLanguage(Manuscript manuscript) throws Exception;
+
     String getMasterTemplate(Manuscript manuscript) throws Exception;
     String getPov(Manuscript manuscript) throws Exception;
     String getTense(Manuscript manuscript) throws Exception;

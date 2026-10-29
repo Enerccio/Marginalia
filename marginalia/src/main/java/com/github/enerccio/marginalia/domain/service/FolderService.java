@@ -66,6 +66,13 @@ public interface FolderService extends ExtendableService<Folder, FolderRepositor
     String getPath(Folder folder) throws Exception;
 
     /**
+     * The folder and the folders above it, the folder itself first, as they are stored now (by id, no current user needed,
+     * so a generation can ask from any thread). It stops at a folder that was deleted. Empty for null: this is the chain
+     * that a book in the folder inherits its settings through.
+     */
+    List<Folder> findChain(Folder folder) throws Exception;
+
+    /**
      * What is below the folder, for the question that asks before everything is deleted.
      */
     Content describeContent(Folder folder) throws Exception;

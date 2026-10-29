@@ -24,7 +24,19 @@ built as a series of commits (one per step of *Order of work*, each leaving the 
   (`GenerateNewMessageStep`, `InferenceStep`), `AutoAnnotateDialog` and `StoryGenerationCommands.activate` held the book for a
   long time; they now use `ManuscriptService.update(book, change)`, which loads by id (no session needed: the callbacks of a
   generation run on threads without one) and saves only the change.
-- ⬜ Resolver + getters through the folder chain (rest of step 1), then steps 2 to 4.
+- ✅ **Resolver** (step 1 complete): `PromptField` (the 12 text settings with the getter of the book, of a folder, of the user
+  settings and the default), `ManuscriptService.resolve(book, field)` → `EffectiveSetting(value, origin BOOK/FOLDER/USER/DEFAULT,
+  folder)`, `resolveLanguage` / `getLanguage`, `FolderService.findChain` (by id, no current user: generation threads have no
+  session). The 12 getters are one-liners. `get-book-info` and the book settings commands report effective values.
+  `SettingsInheritanceTest` (every field, nearest wins, blank skipped, book wins, live change, deleted folder, language) and
+  `FolderSettingsGenerationTest` (the folder style reaches the system prompt the mock model gets).
+  - Not done on purpose, for the UI steps: the 5 UI places that read `manuscript.getLanguage()` for the `lang` attribute and the
+    export (`ExportDialog`, both story parts, `Viewer`) still use the book's own language (English when none); they switch to
+    `getLanguage(book)` with the language combo that gets an *inherit* entry (the form writes English when empty now).
+    `MassChangeLanguageDialog` shows the book's own too.
+  - The chain is read from the database per lookup (a generation asks ~12 times, a few queries each); if it shows, cache the
+    chain per generation in the controller.
+- ⬜ Steps 2 to 4.
 
 ## Decided
 
@@ -168,8 +180,8 @@ set by the tree and story views. Decide per caller when the folder bump exists.
 1. ✅ Entity `Folder` (`ExtendableEntity`: `name`, `parent`, `description`, the prompt fields as `@ExtendedAttribute`s),
    `persistence.xml`, Flyway migration V21 (`folders` table + `manuscripts.folder_id`), repository, `FolderService`(+impl) with
    the beans in `services-config.xml`.
-2. The resolver (see above) and the getters through it. Load the user's folders once per generation and walk the chain in
-   memory; a book has a handful of ancestors at most.
+2. ✅ The resolver (see above) and the getters through it. ⬜ Cache the chain per generation if it shows (a handful of ancestors
+   at most).
 3. ✅ `Manuscript.folder`, `ManuscriptService.moveToFolder`, `FolderService.move/rename/delete` with the rules above.
    ⬜ `ManuscriptFilterValues.folder` (+ "include subfolders") and the `ManuscriptRepository.searchManuscripts` predicate (needs the
    list, step 2); the folder search with its own sorters (the folder rows of the grid), the favorites view.
@@ -181,7 +193,7 @@ set by the tree and story views. Decide per caller when the folder bump exists.
    fixtures once folders have books (a purge of a folder with books beneath it).
 5. Backup / restore: folders go with the books (`BackupServiceImpl`); restore resolves the folder like the AI and the
    lorebook (same uuid, else same name path, else none). A cloned book stays in the folder of the original.
-6. Code that reads the raw field instead of the resolved getter: `BookSettingsCommands` (`pov`, `tense`, `style`),
+6. ✅ (assistant commands) / ⬜ (UI: language, see Status) Code that reads the raw field instead of the resolved getter: `BookSettingsCommands` (`pov`, `tense`, `style`),
    `GetBookInfoCommand` (`customTemplate`) and whatever `grep -rn "manuscript\.get(Pov|Style|...)"` finds in `ui.*` and in
    `plugins/*`. The tools the LLM uses must report the effective value.
 7. Commands for the book assistant (`domain/service/impl/commands/...`): list / navigate folders, search books
@@ -207,12 +219,12 @@ set by the tree and story views. Decide per caller when the folder bump exists.
 
 ## Tests
 
-- Resolver: every field through book / folder / grandparent / `UserSetting` / `Defaults`, blank vs set, a folder
+- ✅ Resolver: every field through book / folder / grandparent / `UserSetting` / `Defaults`, blank vs set, a folder
   changed after the book was created.
 - ✅ Folder rules: unique names, cycle rejected, delete moves children, another user's folder is not found
   (`FolderServiceTest`), `update` keeps the folder and the settings changed since the copy was loaded.
   ⬜ Move / delete blocked by a book an agent works on (needs the agent test base).
-- Generation test (`GenerationTestBase`): the style of a folder reaches the prompt the mock server receives, and a book
+- ✅ Generation test (`GenerationTestBase`): the style of a folder reaches the prompt the mock server receives, and a book
   override wins.
 - ⬜ Backup round trip with folders; ✅ `FlywayMigrationTest` runs the migration (passes with V21); `BundleCompletenessTest`
   when strings are added.
@@ -229,7 +241,7 @@ set by the tree and story views. Decide per caller when the folder bump exists.
 
 ## Order of work
 
-1. ✅ Entity, migration, `Manuscript.folder`, services and tests. ⬜ Resolver refactor with tests. No UI, no behaviour change
+1. ✅ Entity, migration, `Manuscript.folder`, services, resolver and tests. No UI, no behaviour change
    while there are no folders (the refactor alone should keep the whole existing suite green).
 2. List navigation, create / rename / move / delete, combo labels, phone UI.
 3. Folder settings dialog and the "inherited from" display.
