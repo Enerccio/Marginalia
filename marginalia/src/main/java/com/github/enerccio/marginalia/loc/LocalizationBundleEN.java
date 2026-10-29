@@ -758,6 +758,20 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_REPLACE_AND_EXIT, "Replace and exit");
         setValue(L.LABEL_DO_NOT_REPLACE, "Do not replace");
         setValue(L.LABEL_MASS_CHANGE_LANGUAGE, "Mass Change Language");
+        setValue(L.LABEL_FOLDER, "Folder");
+        setValue(L.LABEL_INCLUDE_SUBFOLDERS, "Include subfolders");
+        setValue(L.LABEL_DELETE_FOLDER, "Delete folder");
+        setValue(L.LABEL_FOLDER_MOVE_CONTENT_UP, "Move its content to the folder above");
+        setValue(L.LABEL_FOLDER_DELETE_CONTENT, "Delete everything in it as well");
+        setValue(L.LABEL_MOVE_TO_FOLDER, "Move to folder");
+        setValue(L.LABEL_TOP_LEVEL, "Top level");
+        setValue(L.LABEL_TAG_FOLDERS, "Tag folders");
+        setValue(L.LABEL_FAVORITES, "Favorites");
+        setValue(L.LABEL_MOVE, "Move");
+        setValue(L.LABEL_SKIP, "Skip");
+        setValue(L.LABEL_APPLY_TO_ALL, "Apply to all");
+        setValue(L.LABEL_ORGANISE, "Organise");
+        setValue(L.LABEL_SHOW_FOLDER_IN_LIST, "Show folder in the list");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -998,6 +1012,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_ANNOTATE_NOT_POSSIBLE, "The part cannot be annotated: it has no text, or the book has no model and protocol.");
         setValue(L.ERROR_COMMAND_ANNOTATE_CONTEXT, "The annotation does not fit the context of the model (%d tokens needed, %d available).");
         setValue(L.ERROR_COMMAND_ANNOTATE_UNREADABLE, "The answer of the model could not be read as notes: %s");
+        setValue(L.ERROR_FOLDER_NAME_INVALID, "The name of a folder must not be empty, longer than 255 characters or contain a slash.");
+        setValue(L.ERROR_FOLDER_NAME_TAKEN, "A folder with this name already exists here.");
+        setValue(L.ERROR_FOLDER_CLASH_ON_DELETE, "A folder inside has the same name as a folder in the folder above. Rename one of them first.");
+        setValue(L.ERROR_FOLDER_GONE, "The folder no longer exists.");
+        setValue(L.ERROR_FOLDER_TRANSFER_REFUSED, "This can't be done: a folder can't be put into itself or a folder below it, and a folder name must be free.");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -1297,6 +1316,12 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_MASS_CHANGE_DONE, "The model and the protocol were changed on %d book(s).");
         setValue(L.MSG_MASS_CHANGE_LANGUAGE_PICK_FIRST, "Pick the language to put on the books first.");
         setValue(L.MSG_MASS_CHANGE_LANGUAGE_DONE, "The language was changed on %d book(s).");
+        setValue(L.MSG_DELETE_FOLDER_CONTENT, "The folder \"%s\" contains %d books and %d folders.");
+        setValue(L.MSG_CONFIRM_DELETE_FOLDER_CONTENT, "Really delete %d books and %d folders with everything in them? The books go to the trash.");
+        setValue(L.MSG_ORGANISE_NOTHING_SELECTED, "Nothing is marked or under the cursor.");
+        setValue(L.MSG_ORGANISE_DONE, "Done: %d books and %d folders, %d skipped.");
+        setValue(L.MSG_ORGANISE_COPY_TO, "Copy %d items to \"%s\"?");
+        setValue(L.MSG_FOLDER_CLASH, "A folder named \"%s\" already exists in \"%s\". What should happen?");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1389,6 +1414,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_PART_LAST_PROMPT, "The last message from the user: what changes from one request to the next (the story after the part, the part itself, its notes, the task).");
         setValue(L.HELP_MASS_CHANGE_MODEL_PROTOCOL, "Pick the model and/or the protocol to put on the books and check the books. An empty choice means \"do not replace\": that part of the book stays as it is. Books an agent works on are grayed out and can't be changed.");
         setValue(L.HELP_MASS_CHANGE_LANGUAGE, "Pick the language to put on the books and check the books. Books an agent works on are grayed out and can't be changed.");
+        setValue(L.HELP_ORGANISE, "Left / Right: other pane. Enter: open a folder. Backspace: up. Space or Insert: mark. F2 rename, F5 copy, F6 move, F7 new folder, F8 delete.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

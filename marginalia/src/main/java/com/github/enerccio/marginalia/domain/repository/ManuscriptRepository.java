@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.search.Sorter;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface ManuscriptRepository extends ExtendableRepository<Manuscript> {
 
@@ -45,6 +46,11 @@ public interface ManuscriptRepository extends ExtendableRepository<Manuscript> {
      * working copies of agents are left out, not deleted.
      */
     Map<Long, Long> countRegularByFolders(User user) throws Exception;
+
+    /**
+     * The uuids, out of the given ones, of the books of the user that exist (not deleted, no agent working copies).
+     */
+    Set<String> findExistingRegularUuids(Collection<String> uuids, User user) throws Exception;
 
     /**
      * Puts the books of the user on the folder (null is the top level) with a bulk update: neither the book nor its

@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.domain.service.search.FulltextQuery;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface ChatMessageService extends ExtendableService<ChatMessage, ChatMessageRepository> {
@@ -98,6 +99,18 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
      * isn't a part of the book.
      */
     ChatMessage findLeafFor(Manuscript manuscript, ChatMessage target) throws Exception;
+
+    /**
+     * The size of the active branch of a book (what the list of books shows).
+     */
+    record BranchSize(long words, long tokens) {
+    }
+
+    /**
+     * The size of the active branch of each of the books, with one query for all of them (the rows of a page of the list).
+     * A book without parts has a size of 0, every id is a key.
+     */
+    Map<Long, BranchSize> getActiveBranchSizes(Collection<Long> manuscriptIds) throws Exception;
 
     int getBranchWordCount(ChatMessage leaf) throws Exception;
 

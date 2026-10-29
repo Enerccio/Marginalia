@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.widgets.BookLabels;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
@@ -80,7 +81,7 @@ public class AgentCloneDialog extends Dialog implements LLMInteract {
 
         manuscriptCombo = new ComboBox<>(loc.getValue(L.LABEL_BOOK));
         manuscriptCombo.setRequiredIndicatorVisible(true);
-        manuscriptCombo.setItemLabelGenerator(Manuscript::getName);
+        new BookLabels().apply(manuscriptCombo);
         manuscriptCombo.setWidthFull();
 
         VerticalLayout content = new VerticalLayout(nameField, manuscriptCombo);

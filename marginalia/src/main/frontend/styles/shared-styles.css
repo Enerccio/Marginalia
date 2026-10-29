@@ -1412,3 +1412,15 @@ vaadin-dialog-overlay.agent-console-phone .help-message-user {
     font-family: var(--lumo-font-family-monospace, monospace);
     font-size: var(--lumo-font-size-xs);
 }
+
+/* the two panes of the dialog that copies and moves books and folders: the one with the cursor has a frame */
+.organise-pane {
+    border: 2px solid transparent;
+    border-radius: var(--lumo-border-radius-m);
+    padding: var(--lumo-space-xs);
+    min-width: 0;
+}
+
+.organise-pane-active {
+    border-color: var(--lumo-primary-color);
+}

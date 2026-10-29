@@ -4,8 +4,11 @@ import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.repository.FolderRepository;
 import com.github.enerccio.marginalia.domain.security.model.User;
 
-import java.util.Collection;
-import java.util.List;
+import com.github.enerccio.marginalia.domain.service.search.LikePatterns;
+import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValues;
+import com.github.enerccio.marginalia.domain.service.search.Sorter;
+
+import java.util.*;
 
 public class JpaFolderRepository extends JpaExtendableRepository<Folder> implements FolderRepository {
 
@@ -24,6 +27,40 @@ public class JpaFolderRepository extends JpaExtendableRepository<Folder> impleme
         if (parent != null) {
             query.setParameter("parentId", parent.getId());
         }
+        List<Folder> folders = query.getResultList();
+        for (Folder folder : folders) {
+            hydrate(folder);
+        }
+        return folders;
+    }
+
+    @Override
+    public List<Folder> search(ManuscriptFilterValues filter, List<Sorter> sorters, User user) throws Exception {
+        Map<String, Object> parameters = new HashMap<>();
+        List<String> ands = new ArrayList<>();
+        ands.add("f.deleted = false");
+        ands.add("f.owner.id = :ownerId");
+        parameters.put("ownerId", user.getId());
+        if (filter != null) {
+            FolderScope.add(ands, parameters, filter, "f.parent", null);
+            if (filter.getName() != null) {
+                ands.add("f.name LIKE :name ESCAPE '\\'");
+                parameters.put("name", LikePatterns.fromWildcards(filter.getName()) + "%");
+            }
+            if (filter.getTags() != null) {
+                for (int i = 0; i < filter.getTags().size(); i++) {
+                    ands.add("EXISTS (SELECT 1 FROM TagRelation tr WHERE tr.objectId = f.id AND tr.clazz = :clazz AND tr.negative = false"
+                            + " AND tr.deleted = false AND tr.tag.deleted = false AND tr.tag.value = :tag" + i + ")");
+                    parameters.put("tag" + i, filter.getTags().get(i));
+                }
+                if (!filter.getTags().isEmpty()) {
+                    parameters.put("clazz", Folder.class.getName());
+                }
+            }
+        }
+        String order = sorters == null || sorters.isEmpty() ? " ORDER BY LOWER(f.name), f.id" : Sorter.toOrderBy("f", sorters);
+        var query = getEntityManager().createQuery("SELECT f FROM Folder f WHERE " + String.join(" AND ", ands) + order, Folder.class);
+        parameters.forEach(query::setParameter);
         List<Folder> folders = query.getResultList();
         for (Folder folder : folders) {
             hydrate(folder);

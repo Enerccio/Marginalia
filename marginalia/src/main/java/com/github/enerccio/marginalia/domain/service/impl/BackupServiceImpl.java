@@ -2,10 +2,7 @@ package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.domain.model.ImageAttachment;
-import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
-import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.model.impl.Resource;
+import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookDecision;
@@ -303,6 +300,13 @@ public class BackupServiceImpl implements BackupService {
 
     @Override
     public Manuscript cloneManuscript(Manuscript source, String newName, boolean onlyCurrentBranch) throws Exception {
+        // the copy lies next to the original (and inherits from the same folders)
+        Manuscript stored = source == null || source.getUuid() == null ? null : manuscriptService.findForUser(source.getUuid());
+        return cloneManuscript(source, newName, onlyCurrentBranch, stored == null ? null : stored.getFolder());
+    }
+
+    @Override
+    public Manuscript cloneManuscript(Manuscript source, String newName, boolean onlyCurrentBranch, Folder folder) throws Exception {
         Manuscript stored = source == null || source.getUuid() == null ? null : manuscriptService.findForUser(source.getUuid());
         if (stored == null || stored.isDeleted() || stored.isAgentic()) {
             throw new IllegalArgumentException("The manuscript does not exist");
@@ -325,7 +329,12 @@ public class BackupServiceImpl implements BackupService {
             }
         });
         // the lorebook of the backup is linked by cloneFromBackup, not imported
-        return createFromBackup(backupObj, newName, null);
+        Manuscript clone = createFromBackup(backupObj, newName, null);
+        if (folder != null) {
+            manuscriptService.moveToFolder(List.of(clone), folder);
+            clone = manuscriptService.find(clone.getId());
+        }
+        return clone;
     }
 
     /**

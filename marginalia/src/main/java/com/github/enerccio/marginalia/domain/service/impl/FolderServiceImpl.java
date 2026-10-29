@@ -2,12 +2,12 @@ package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.Tag;
 import com.github.enerccio.marginalia.domain.repository.FolderRepository;
 import com.github.enerccio.marginalia.domain.repository.ManuscriptRepository;
-import com.github.enerccio.marginalia.domain.service.AgentRunService;
-import com.github.enerccio.marginalia.domain.service.FolderService;
-import com.github.enerccio.marginalia.domain.service.ManuscriptService;
-import com.github.enerccio.marginalia.domain.service.TagRelationService;
+import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValues;
+import com.github.enerccio.marginalia.domain.service.search.Sorter;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import org.apache.commons.lang3.StringUtils;
@@ -31,6 +31,10 @@ public class FolderServiceImpl extends ExtendableServiceImpl<Folder, FolderRepos
 
     @Autowired
     private TagRelationService tagRelationService;
+
+    @Autowired
+    @Lazy
+    private BackupService backupService;
 
     /**
      * Checks the rules before the folder is written, whoever saves it.
@@ -82,6 +86,40 @@ public class FolderServiceImpl extends ExtendableServiceImpl<Folder, FolderRepos
     @CommonTxReadOnly
     public Folder findChild(Folder parent, String name) throws Exception {
         return getRepository().findChildByName(parent, StringUtils.trim(name), null, currentUser);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<Folder> search(ManuscriptFilterValues filter, Sorter... sorters) throws Exception {
+        return getRepository().search(resolveScope(filter), List.of(sorters), currentUser);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public ManuscriptFilterValues resolveScope(ManuscriptFilterValues filter) throws Exception {
+        if (filter == null) {
+            return null;
+        }
+        ManuscriptFilterValues resolved = filter.copy();
+        if (!resolved.isScoped()) {
+            return resolved;
+        }
+        if (resolved.getFolder() == null) {
+            // the top level: its own content, or everything
+            resolved.setResolvedScope(resolved.isIncludeSubfolders() ? null : Set.of(), true);
+            return resolved;
+        }
+        Folder stored = findOwned(resolved.getFolder());
+        Set<Long> ids = new HashSet<>();
+        if (stored != null) {
+            if (resolved.isIncludeSubfolders()) {
+                subtree(stored).forEach(folder -> ids.add(folder.getId()));
+            } else {
+                ids.add(stored.getId());
+            }
+        }
+        resolved.setResolvedScope(ids, false);
+        return resolved;
     }
 
     @Override
@@ -149,6 +187,26 @@ public class FolderServiceImpl extends ExtendableServiceImpl<Folder, FolderRepos
         }
         path.add(stored.getName());
         return path.toString();
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public Map<Long, String> getPaths() throws Exception {
+        Map<Long, Folder> byId = new HashMap<>();
+        for (Folder folder : findAllForUser()) {
+            byId.put(folder.getId(), folder);
+        }
+        Map<Long, String> paths = new LinkedHashMap<>();
+        for (Folder folder : byId.values()) {
+            LinkedList<String> names = new LinkedList<>();
+            Set<Long> seen = new HashSet<>();
+            for (Folder above = folder; above != null && seen.add(above.getId());
+                 above = above.getParent() == null ? null : byId.get(above.getParent().getId())) {
+                names.addFirst(above.getName());
+            }
+            paths.put(folder.getId(), String.join(String.valueOf(SEPARATOR), names));
+        }
+        return paths;
     }
 
     @Override
@@ -245,6 +303,208 @@ public class FolderServiceImpl extends ExtendableServiceImpl<Folder, FolderRepos
             tagRelationService.deleteForObject(inside, false);
             super.delete(inside, false);
         }
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<Folder> findClashes(Collection<Folder> folders, Folder target, boolean copy) throws Exception {
+        Folder parent = target == null ? null : findOwned(target);
+        List<Folder> clashes = new ArrayList<>();
+        for (Folder folder : folders) {
+            Folder stored = findOwned(folder);
+            if (stored != null && getRepository().findChildByName(parent, stored.getName(), copy ? null : stored.getId(), currentUser) != null) {
+                clashes.add(stored);
+            }
+        }
+        return clashes;
+    }
+
+    @Override
+    @CommonTx
+    public Outcome transfer(Transfer transfer) throws Exception {
+        Folder target = null;
+        if (transfer.target() != null) {
+            target = findOwned(transfer.target());
+            if (target == null) {
+                throw new IllegalArgumentException("The target folder does not exist");
+            }
+        }
+        List<Folder> folders = new ArrayList<>();
+        for (Folder folder : transfer.folders()) {
+            Folder stored = findOwned(folder);
+            if (stored == null) {
+                throw new IllegalArgumentException("The folder does not exist");
+            }
+            folders.add(stored);
+        }
+        List<Manuscript> books = new ArrayList<>();
+        for (Manuscript book : transfer.books()) {
+            Manuscript stored = book == null || book.getUuid() == null ? null : manuscriptService.findForUser(book.getUuid());
+            if (stored == null || stored.isDeleted()) {
+                throw new IllegalArgumentException("The book does not exist");
+            }
+            books.add(stored);
+        }
+
+        // everything is checked before anything changes
+        Map<Long, Choice> choices = transfer.choices() == null ? Map.of() : transfer.choices();
+        List<Folder> involved = new ArrayList<>();
+        for (Folder folder : folders) {
+            for (Folder above = target; above != null; above = above.getParent()) {
+                if (above.getId().equals(folder.getId())) {
+                    throw new IllegalStateException("A folder can't be put into itself or into a folder below it");
+                }
+            }
+            Folder same = getRepository().findChildByName(target, folder.getName(), transfer.copy() ? null : folder.getId(), currentUser);
+            if (same != null) {
+                Choice choice = choices.get(folder.getId());
+                if (choice == null || choice.resolution() == null) {
+                    throw new IllegalStateException("A folder named " + folder.getName() + " already exists here");
+                }
+                switch (choice.resolution()) {
+                    case SKIP -> {
+                        continue;
+                    }
+                    case MERGE -> {
+                        if (same.getId().equals(folder.getId())) {
+                            throw new IllegalStateException("A folder can't be merged into itself");
+                        }
+                    }
+                    case RENAME -> {
+                        String name = StringUtils.trim(choice.name());
+                        if (StringUtils.isEmpty(name) || getRepository().findChildByName(target, name, null, currentUser) != null) {
+                            throw new IllegalStateException("A folder named " + name + " already exists here");
+                        }
+                    }
+                }
+            }
+            involved.addAll(subtree(folder));
+        }
+        checkNoLockedBook(involved);
+        for (Manuscript book : books) {
+            agentRunService.checkNotLocked(book);
+        }
+
+        int[] counts = new int[3];
+        if (!books.isEmpty()) {
+            if (transfer.copy()) {
+                for (Manuscript book : books) {
+                    backupService.cloneManuscript(book, book.getName(), transfer.onlyCurrentBranch(), target);
+                }
+            } else {
+                manuscriptService.moveToFolder(books, target);
+            }
+            counts[0] += books.size();
+        }
+        for (Folder folder : folders) {
+            String name = folder.getName();
+            Folder same = getRepository().findChildByName(target, name, transfer.copy() ? null : folder.getId(), currentUser);
+            if (same != null) {
+                Choice choice = choices.get(folder.getId());
+                switch (choice.resolution()) {
+                    case SKIP -> {
+                        counts[2]++;
+                        continue;
+                    }
+                    case MERGE -> {
+                        mergeInto(folder, same, transfer.copy(), transfer.onlyCurrentBranch(), counts);
+                        continue;
+                    }
+                    case RENAME -> name = StringUtils.trim(choice.name());
+                }
+            }
+            if (transfer.copy()) {
+                copyTree(folder, target, name, transfer.onlyCurrentBranch(), counts);
+            } else if (!sameFolder(folder.getParent(), target) || !name.equals(folder.getName())) {
+                counts[0] += countBooks(subtree(folder));
+                folder.setName(name);
+                folder.setParent(target);
+                save(folder);
+                counts[1]++;
+            }
+        }
+        return new Outcome(counts[0], counts[1], counts[2]);
+    }
+
+    private static boolean sameFolder(Folder a, Folder b) {
+        return a == null ? b == null : b != null && a.getId().equals(b.getId());
+    }
+
+    private int countBooks(List<Folder> folders) throws Exception {
+        Map<Long, Long> direct = manuscriptRepository.countRegularByFolders(currentUser);
+        long books = 0;
+        for (Folder folder : folders) {
+            books += direct.getOrDefault(folder.getId(), 0L);
+        }
+        return (int) books;
+    }
+
+    /**
+     * Puts what is in the source into the folder of the same name (a move leaves the source empty and deletes it, a copy
+     * leaves it alone); the folders of the same name inside merge in turn.
+     */
+    private void mergeInto(Folder source, Folder existing, boolean copy, boolean onlyCurrentBranch, int[] counts) throws Exception {
+        List<Manuscript> books = manuscriptRepository.findRegularByFolders(List.of(source.getId()), currentUser);
+        if (copy) {
+            for (Manuscript book : books) {
+                backupService.cloneManuscript(book, book.getName(), onlyCurrentBranch, existing);
+            }
+        } else {
+            manuscriptRepository.moveFolderContent(List.of(source.getId()), existing, currentUser);
+        }
+        counts[0] += books.size();
+        for (Folder child : getRepository().findChildren(source, currentUser)) {
+            Folder same = getRepository().findChildByName(existing, child.getName(), null, currentUser);
+            if (same != null) {
+                mergeInto(child, same, copy, onlyCurrentBranch, counts);
+            } else if (copy) {
+                copyTree(child, existing, child.getName(), onlyCurrentBranch, counts);
+            } else {
+                child.setParent(existing);
+                save(child);
+                counts[1]++;
+            }
+        }
+        if (!copy) {
+            tagRelationService.deleteForObject(source, false);
+            super.delete(source, false);
+        }
+    }
+
+    /**
+     * A copy of the folder with its settings, tags, books and the folders below it, as a folder of the parent.
+     */
+    private Folder copyTree(Folder source, Folder parent, String name, boolean onlyCurrentBranch, int[] counts) throws Exception {
+        Folder copy = new Folder();
+        copy.setName(name);
+        copy.setParent(parent);
+        copy.setDescription(source.getDescription());
+        copy.setLanguage(source.getLanguage());
+        copy.setTemplate(source.getTemplate());
+        copy.setPov(source.getPov());
+        copy.setTense(source.getTense());
+        copy.setStyle(source.getStyle());
+        copy.setUserPrompt(source.getUserPrompt());
+        copy.setSummaryPrompt(source.getSummaryPrompt());
+        copy.setMetaSummaryPrompt(source.getMetaSummaryPrompt());
+        copy.setRedraftSystemPrompt(source.getRedraftSystemPrompt());
+        copy.setRedraftPrompt(source.getRedraftPrompt());
+        copy.setAnnotateSystemPrompt(source.getAnnotateSystemPrompt());
+        copy.setAnnotatePrompt(source.getAnnotatePrompt());
+        copy.setImpersonatePrompt(source.getImpersonatePrompt());
+        copy = save(copy);
+        for (Tag tag : tagRelationService.getTagsForObject(source)) {
+            tagRelationService.createRelation(tag, copy);
+        }
+        counts[1]++;
+        for (Manuscript book : manuscriptRepository.findRegularByFolders(List.of(source.getId()), currentUser)) {
+            backupService.cloneManuscript(book, book.getName(), onlyCurrentBranch, copy);
+            counts[0]++;
+        }
+        for (Folder child : getRepository().findChildren(source, currentUser)) {
+            copyTree(child, copy, child.getName(), onlyCurrentBranch, counts);
+        }
+        return copy;
     }
 
     /**

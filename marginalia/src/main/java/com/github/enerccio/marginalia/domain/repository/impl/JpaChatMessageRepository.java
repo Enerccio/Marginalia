@@ -280,6 +280,31 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
     }
 
     @Override
+    public Map<Long, long[]> sumActiveBranches(Collection<Long> manuscriptIds) throws Exception {
+        Map<Long, long[]> sums = new HashMap<>();
+        String sql = """
+                WITH RECURSIVE branch(book, id, parent_id, words, tokens) AS (
+                    SELECT b.id, c.id, c.parent_id, c.wordCount, c.tokenCount
+                    FROM manuscripts b INNER JOIN messages c ON c.id = b.activeLeaf_id
+                    WHERE b.id IN (:ids) AND c.is_deleted = 0
+                    UNION ALL
+                    SELECT r.book, c.id, c.parent_id, c.wordCount, c.tokenCount
+                    FROM branch r INNER JOIN messages c ON c.id = r.parent_id
+                    WHERE c.is_deleted = 0
+                )
+                SELECT book, SUM(words), SUM(tokens) FROM branch GROUP BY book
+                """;
+        for (List<Long> chunk : chunks(manuscriptIds)) {
+            @SuppressWarnings("unchecked")
+            List<Object[]> rows = getEntityManager().createNativeQuery(sql).setParameter("ids", chunk).getResultList();
+            for (Object[] row : rows) {
+                sums.put(((Number) row[0]).longValue(), new long[]{((Number) row[1]).longValue(), ((Number) row[2]).longValue()});
+            }
+        }
+        return sums;
+    }
+
+    @Override
     public Set<Long> findActiveBranchIds(Long manuscriptId) throws Exception {
         List<Long> leaf = getEntityManager().createQuery("SELECT m.activeLeaf.id FROM Manuscript m WHERE m.id = :id AND m.activeLeaf IS NOT NULL", Long.class)
                 .setParameter("id", manuscriptId)

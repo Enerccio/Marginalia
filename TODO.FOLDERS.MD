@@ -36,7 +36,19 @@ built as a series of commits (one per step of *Order of work*, each leaving the 
     `MassChangeLanguageDialog` shows the book's own too.
   - The chain is read from the database per lookup (a generation asks ~12 times, a few queries each); if it shows, cache the
     chain per generation in the controller.
-- ⬜ Steps 2 to 4.
+- ✅ **Step 2, the list** (desktop): breadcrumb, folder rows above the books, *include subfolders*, *Folder* column, counts (folders: books beneath;
+  books: words / tokens of the active branch, one recursive-CTE query per page), new / rename / delete folder (move up or delete all with a
+  second confirmation), *Move to folder* picker for a book, new book / imports in the current folder, clone next to its original, folder
+  tags (*Tag folders*), the mass dialogs and the tag dialog scoped to the current folder (+ checkbox), favorites (star, virtual folder, stored
+  in `UserSetting.favoriteBooks`), `BookLabels` for the three book combos, state in `storeState` / `restoreState`. Tests: `FolderListTest`,
+  `ManuscriptPartFoldersTest`, `BookLabelsTest`, `MultiTagDialogTest`.
+- ✅ `FolderService.transfer` / `findClashes` (copy and move of books and folders, rename / skip / merge, checks before anything changes, locked
+  books refuse): `FolderTransferTest`.
+- 🟡 **Organise dialog**: structure only (two panes, loading, Left/Right, Enter, Backspace, Insert, double click). ⬜ The actions on it (copy / move
+  with the clash questions and *only current branch*, new folder, rename, delete, mass dialogs, show in list, advanced search with *show in
+  folder*), the dialog test of the actions.
+- ⬜ Phone list (navigate, filter, quick move, favorites star). ⬜ Step 3, 4 (folder settings dialog, backup / restore, agents, export, assistant
+  commands, docs). ⬜ `tools/check_dev_docs.py` pages.
 
 ## Decided
 

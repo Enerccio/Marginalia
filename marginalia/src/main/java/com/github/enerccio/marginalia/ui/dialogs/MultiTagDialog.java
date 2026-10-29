@@ -4,15 +4,14 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
-import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
-import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.model.impl.Tag;
+import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValues;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.widgets.BookLabels;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
@@ -56,6 +55,7 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
      */
     public enum Kind {
         BOOKS(Manuscript.class, L.LABEL_TAG_BOOKS),
+        FOLDERS(Folder.class, L.LABEL_TAG_FOLDERS),
         LOREBOOKS(Lorebook.class, L.LABEL_TAG_LOREBOOKS),
         ENTRIES(LorebookEntry.class, L.LABEL_TAG_ENTRIES);
 
@@ -119,6 +119,9 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
     private ManuscriptService manuscriptService;
 
     @Autowired
+    private FolderService folderService;
+
+    @Autowired
     private LorebookService lorebookService;
 
     @Autowired
@@ -131,6 +134,9 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
     // the lorebook whose entries are tagged, null for the books and the lorebooks
     private final Lorebook lorebook;
     private final Runnable onChange;
+    // the folder whose books or folders are listed (and, with the checkbox, those below it), null is the top level
+    private final Folder folder;
+    private Checkbox subfolders;
 
     private ComboBox<Tag> tagBox;
     private Grid<Row> grid;
@@ -145,17 +151,27 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
      * @param onChange told after tags were changed, may be null
      */
     public MultiTagDialog(Kind kind, Runnable onChange) {
-        this(kind, null, onChange);
+        this(kind, null, onChange, null);
+    }
+
+    /**
+     * Tags the books or the folders in the folder (null is the top level), with a checkbox for those in the folders below.
+     *
+     * @param onChange told after tags were changed, may be null
+     */
+    public MultiTagDialog(Kind kind, Runnable onChange, Folder folder) {
+        this(kind, null, onChange, folder);
     }
 
     /**
      * Tags the entries of the lorebook.
      */
     public MultiTagDialog(Lorebook lorebook, Runnable onChange) {
-        this(Kind.ENTRIES, lorebook, onChange);
+        this(Kind.ENTRIES, lorebook, onChange, null);
     }
 
-    private MultiTagDialog(Kind kind, Lorebook lorebook, Runnable onChange) {
+    private MultiTagDialog(Kind kind, Lorebook lorebook, Runnable onChange, Folder folder) {
+        this.folder = folder;
         this.kind = kind;
         this.lorebook = lorebook;
         this.onChange = onChange;
@@ -168,7 +184,7 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
                     @APILocals(name = "footer", type = HorizontalLayout.class),
                     @APILocals(name = "content", type = VerticalLayout.class)})
     public void create() {
-        setHeaderTitle(loc.getValue(kind.title));
+        setHeaderTitle(listsFolder() ? loc.getValue(kind.title) + ": " + scopeName() : loc.getValue(kind.title));
         setWidth("900px");
         setMaxWidth("96%");
         setHeight("80%");
@@ -178,6 +194,13 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
 
         Span hint = new Span(loc.getValue(L.HELP_MULTI_TAG));
         hint.addClassName(CssStyles.HINT_TEXT);
+
+        subfolders = new Checkbox(loc.getValue(L.LABEL_INCLUDE_SUBFOLDERS));
+        subfolders.setVisible(listsFolder());
+        subfolders.addValueChangeListener(event -> {
+            load();
+            updateButtons();
+        });
 
         tagBox = new ComboBox<>(loc.getValue(L.ENUM_DOMAIN_TAG));
         tagBox.setWidthFull();
@@ -229,7 +252,7 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
         footer.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         getFooter().add(footer);
 
-        VerticalLayout content = new VerticalLayout(hint, tagBox, grid);
+        VerticalLayout content = new VerticalLayout(hint, subfolders, tagBox, grid);
         content.setSizeFull();
         content.setPadding(false);
         content.addClassName(CssStyles.MIN_HEIGHT_0);
@@ -243,10 +266,13 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
     /**
      * Reads the items and their tags again. The checks and the picked tag stay.
      */
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.6.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "loaded", type = List.class),
+                    @APILocals(name = "paths", type = Map.class),
                     @APILocals(name = "book", type = Manuscript.class),
+                    @APILocals(name = "bookName", type = String.class),
+                    @APILocals(name = "inside", type = Folder.class),
                     @APILocals(name = "book", type = Lorebook.class),
                     @APILocals(name = "entry", type = LorebookEntry.class),
                     @APILocals(name = "checked", type = Set.class),
@@ -258,8 +284,19 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
             List<Row> loaded = new ArrayList<>();
             switch (kind) {
                 case BOOKS -> {
-                    for (Manuscript book : manuscriptService.findAllRegularForUser()) {
-                        loaded.add(new Row(book, book.getName(), agentRunService.findLockingRun(book) != null));
+                    boolean nested = subfolders != null && subfolders.getValue();
+                    Map<Long, String> paths = nested ? folderService.getPaths() : Map.of();
+                    for (Manuscript book : manuscriptService.findRegularInFolder(folder, nested)) {
+                        // with the folders below listed too, a book is told apart by its folder
+                        String bookName = nested ? BookLabels.label(book, paths) : book.getName();
+                        loaded.add(new Row(book, bookName, agentRunService.findLockingRun(book) != null));
+                    }
+                }
+                case FOLDERS -> {
+                    boolean nested = subfolders != null && subfolders.getValue();
+                    Map<Long, String> paths = nested ? folderService.getPaths() : Map.of();
+                    for (Folder inside : folderService.search(new ManuscriptFilterValues().inFolder(folder, nested))) {
+                        loaded.add(new Row(inside, nested ? paths.getOrDefault(inside.getId(), inside.getName()) : inside.getName(), false));
                     }
                 }
                 case LOREBOOKS -> {
@@ -449,12 +486,30 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
         }
     }
 
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = boolean.class))
+    private boolean listsFolder() {
+        return kind == Kind.BOOKS || kind == Kind.FOLDERS;
+    }
+
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = String.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    private String scopeName() {
+        try {
+            return folder == null ? loc.getValue(L.LABEL_TOP_LEVEL) : folderService.getPath(folder);
+        } catch (Exception e) {
+            return folder.getName();
+        }
+    }
+
     @PublicAPI(from = "1.4.0",
             returns = @APIReturn(type = boolean.class),
             parameters = {@APIParameter(name = "row", type = MultiTagDialog.Row.class)})
     private boolean isLockedNow(Row row) throws Exception {
         return switch (kind) {
             case BOOKS -> agentRunService.findLockingRun((Manuscript) row.entity) != null;
+            case FOLDERS -> false;
             case LOREBOOKS -> agentRunService.findLockingRun((Lorebook) row.entity) != null;
             case ENTRIES -> lorebook != null && agentRunService.findLockingRun(lorebook) != null;
         };
@@ -499,6 +554,12 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
             returns = @APIReturn(type = List.class))
     List<Row> getRows() {
         return rows;
+    }
+
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = Checkbox.class))
+    Checkbox getSubfolders() {
+        return subfolders;
     }
 
     @PublicAPI(from = "1.4.0",

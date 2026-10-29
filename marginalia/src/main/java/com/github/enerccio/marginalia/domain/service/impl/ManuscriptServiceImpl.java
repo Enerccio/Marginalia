@@ -135,6 +135,41 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
 
     @Override
     @CommonTx
+    public List<String> getFavorites() throws Exception {
+        UserSetting setting = settingService.getOrCreate(UserSetting.class);
+        List<String> stored = setting.getFavoriteBooks();
+        if (stored.isEmpty()) {
+            return List.of();
+        }
+        Set<String> existing = getRepository().findExistingRegularUuids(stored, currentUser);
+        List<String> favorites = stored.stream().filter(existing::contains).distinct().toList();
+        if (favorites.size() != stored.size()) {
+            setting.setFavoriteBooks(favorites);
+            settingService.save(setting);
+        }
+        return favorites;
+    }
+
+    @Override
+    @CommonTx
+    public void setFavorite(Manuscript book, boolean favorite) throws Exception {
+        Manuscript stored = book == null || book.getUuid() == null ? null : findForUser(book.getUuid());
+        if (stored == null || stored.isDeleted()) {
+            throw new IllegalArgumentException("The book does not exist");
+        }
+        UserSetting setting = settingService.getOrCreate(UserSetting.class);
+        List<String> favorites = new ArrayList<>(setting.getFavoriteBooks());
+        if (favorite ? !favorites.contains(stored.getUuid()) : favorites.remove(stored.getUuid())) {
+            if (favorite) {
+                favorites.add(stored.getUuid());
+            }
+            setting.setFavoriteBooks(favorites);
+            settingService.save(setting);
+        }
+    }
+
+    @Override
+    @CommonTx
     public void moveToFolder(Collection<Manuscript> books, Folder folder) throws Exception {
         Folder target = checkFolder(folder, currentUser.getId());
         List<Long> ids = new ArrayList<>();
@@ -174,13 +209,13 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @Override
     @CommonTxReadOnly
     public List<Long> searchManuscripts(ManuscriptFilterValues filterValues, Sorter... sorters) throws Exception {
-        return getRepository().searchManuscripts(filterValues, List.of(sorters), currentUser);
+        return getRepository().searchManuscripts(folderService.resolveScope(filterValues), List.of(sorters), currentUser);
     }
 
     @Override
     @CommonTxReadOnly
     public List<Long> searchRegularManuscripts(ManuscriptFilterValues filterValues, Sorter... sorters) throws Exception {
-        return getRepository().searchManuscripts(filterValues, List.of(sorters), currentUser, false);
+        return getRepository().searchManuscripts(folderService.resolveScope(filterValues), List.of(sorters), currentUser, false);
     }
 
     @Override
@@ -197,7 +232,18 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @Override
     @CommonTxReadOnly
     public List<Long> searchAgenticManuscripts(ManuscriptFilterValues filterValues, Sorter... sorters) throws Exception {
-        return getRepository().searchManuscripts(filterValues, List.of(sorters), currentUser, true);
+        return getRepository().searchManuscripts(folderService.resolveScope(filterValues), List.of(sorters), currentUser, true);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<Manuscript> findRegularInFolder(Folder folder, boolean includeSubfolders) throws Exception {
+        ManuscriptFilterValues scope = folderService.resolveScope(new ManuscriptFilterValues().inFolder(folder, includeSubfolders));
+        List<Manuscript> books = new ArrayList<>();
+        for (Long id : getRepository().searchManuscripts(scope, List.of(), currentUser, false)) {
+            books.add(getRepository().find(id));
+        }
+        return books;
     }
 
     @Override

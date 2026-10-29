@@ -374,6 +374,18 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
 
     @Override
     @CommonTxReadOnly
+    public Map<Long, BranchSize> getActiveBranchSizes(Collection<Long> manuscriptIds) throws Exception {
+        Map<Long, long[]> sums = getRepository().sumActiveBranches(manuscriptIds);
+        Map<Long, BranchSize> sizes = new HashMap<>();
+        for (Long id : manuscriptIds) {
+            long[] sum = sums.get(id);
+            sizes.put(id, sum == null ? new BranchSize(0, 0) : new BranchSize(sum[0], sum[1]));
+        }
+        return sizes;
+    }
+
+    @Override
+    @CommonTxReadOnly
     public int getBranchWordCount(ChatMessage leaf) throws Exception {
         if (leaf == null || leaf.getId() == null) {
             return 0;
