@@ -81,6 +81,15 @@ public final class CssStyles {
     public static final String TAB_DOCK_ZONE = "tab-dock-zone";
     public static final String TAB_DOCK_SIDE_ZONE = "tab-dock-side-zone";
     public static final String TAB_DOCK_DRAGGING = "tab-dock-dragging";
+    public static final String TAB_DOCK_BODY = "tab-dock-body";
+    public static final String TAB_DOCK_BAR = "tab-dock-bar";
+    public static final String TAB_DOCK_BAR_ICON = "tab-dock-bar-icon";
+    public static final String TAB_DOCK_BAR_MOVE = "tab-dock-bar-move";
+    public static final String TAB_DOCK_MINIMIZE = "tab-dock-minimize";
+    public static final String TAB_DOCK_AT_LEFT = "tab-dock-at-left";
+    public static final String TAB_DOCK_AT_RIGHT = "tab-dock-at-right";
+    public static final String TAB_DOCK_AT_TOP = "tab-dock-at-top";
+    public static final String TAB_DOCK_AT_BOTTOM = "tab-dock-at-bottom";
     public static final String STORY_SCROLL_PANEL = "story-scroll-panel";
     public static final String READER_SCROLL_PANEL = "reader-scroll-panel";
     public static final String LAZY_LOAD_INDICATOR = "lazy-load-indicator";

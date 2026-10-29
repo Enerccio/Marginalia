@@ -77,7 +77,7 @@ public class STConverterExtension implements MarginaliaExtension, ExtensionHasCs
                         return true;
                     };
                     ConverterView view = new ConverterView(converterService, currentManuscript, opener);
-                    leftBar.add(TAB_ID, T.localized("ST Converter"), view);
+                    leftBar.add(TAB_ID, T.localized("ST Converter"), "ST", view);
                     ComponentUtil.setData(leftBar, VIEW_KEY, view);
                     activeTabDocks.add(leftBar);
                 }

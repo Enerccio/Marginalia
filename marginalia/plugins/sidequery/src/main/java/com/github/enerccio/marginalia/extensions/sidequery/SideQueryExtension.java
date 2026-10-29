@@ -65,7 +65,7 @@ public class SideQueryExtension implements MarginaliaExtension, ExtensionHasCss 
                         }
 
                         SideQueryView sideQueryView = new SideQueryView(currentManuscript, sideQueryService);
-                        leftBar.add("sidequery", T.localized("Side Query"), sideQueryView);
+                        leftBar.add("sidequery", T.localized("Side Query"), "SQ", sideQueryView);
 
                         ComponentUtil.setData(leftBar, SIDE_QUERY_VIEW_KEY, sideQueryView);
                         activeTabSheets.add(leftBar);

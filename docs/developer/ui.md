@@ -303,7 +303,27 @@ outline is `ManuscriptStoryPart.CHAPTERS_TAB`); the layout, `{"columns":[{"size"
 their tabs late (a tab the layout does not know goes to the first sheet). `ManuscriptStoryPart` stores the layout in the
 attributes of the manuscript under `$desktopManuscriptStoryPartTabsConfig` (`TABS_CONFIG_ATTRIBUTE`): `saveTabsConfig()` runs
 after a drag or a resize, `applyTabsConfig()` in `load()` before the story is drawn. The selected tab of each sheet is not part of the
-layout but the `Restorable` state of the dock. `PhoneManuscriptStoryPart` uses `new TabDock(false)`, one plain sheet.
+layout but the `Restorable` state of the dock.
+
+**Minimizing (1.6.0).** A tab of a detachable dock has a minimize button (`makeMinimizable`, in the `Tab` itself). `minimize(id)` adds
+the id to the ordered set `minimized`; the tab keeps its place in `Group.ids` (so `restore(id)` puts it back where it was, and
+a group whose tabs are all minimized is just not shown, like a group whose tabs are not there yet) but `presentEntries` leaves it
+out, so `arrange()` takes its `Tab` out of the `TabSheet` and the content only lives in its `Entry`. `isMinimized(Entry)` is
+`minimizable && minimized.contains(id)`; `setMinimizable(id, false)` (the story) is a set of ids of its own, `fixed`, which also
+works for tabs that are not in the dock yet. `select(id)` of a minimized tab restores it. The dock is `body` (the columns from
+`fill`) and `bar` in a flex container whose direction is the `DockSide` (`LEFT` is `row-reverse`, the bar being after the body in
+the page; the classes `tab-dock-at-*`); `refreshBar` (run by every `arrange`) rebuilds the bar when the minimized tabs or the side
+change: the move button (`setDockSide(side.next())`, one click goes clockwise; a `ContextMenu` or `MenuBar` there would need a
+Vaadin session in the tests) and one icon button per minimized tab (the image is `TabDockIcons.dataUri(letters, id)`, an SVG circle
+as a data URI whose color comes from the id; the tooltip and the aria label are `Restore: <caption>`). `getLayout()` adds
+`"minimized":["id",...]` (only when there are some) and `"dock":"top"` (only when not left) to the layout, `setLayout` reads
+them, so `onLayoutChange` saves them with the book. `add(id, caption, letters, content)` gives the letters of the icon, the
+initials of the caption (`TabDockIcons.letters`) are the default.
+
+**The default layout of the user.** *Save layout as my default* (`StoryMenuKeys.SAVE_LAYOUT_AS_DEFAULT`,
+`StoryEditor.saveLayoutAsDefault`) stores `TabDock.getLayout()` in `UserSetting.defaultStoryLayout` (an extended attribute, no
+migration). `applyTabsConfig` takes it for a book that has no `$desktopManuscriptStoryPartTabsConfig` of its own (and does not
+write it into the book), and so does *Restore default layout*. `PhoneManuscriptStoryPart` uses `new TabDock(false)`, one plain sheet.
 
 `StoryDockLayout` (`ui.dialogs.story`) holds the layouts: `defaultLayout` (the outline and the lorebook in a column of 20 %
 on the left, the story in a column of 80 %), and `migrate`, which turns what a book stored before the story was a tab into a

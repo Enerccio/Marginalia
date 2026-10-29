@@ -471,10 +471,89 @@ vaadin-markdown.agent-report td {
     overflow: hidden;
 }
 
-.tab-dock > * {
+/* The bar of the minimized tabs comes after the body in the page; the side it is at is the direction of the dock */
+.tab-dock-at-left {
+    flex-direction: row-reverse;
+}
+
+.tab-dock-at-right {
+    flex-direction: row;
+}
+
+.tab-dock-at-top {
+    flex-direction: column-reverse;
+}
+
+.tab-dock-at-bottom {
+    flex-direction: column;
+}
+
+.tab-dock-body {
+    display: flex;
     flex: 1 1 0;
     min-width: 0;
     min-height: 0;
+}
+
+.tab-dock-body > * {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 0;
+}
+
+.tab-dock-bar {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--lumo-space-xs);
+    padding: var(--lumo-space-xs);
+    background: var(--lumo-contrast-5pct);
+    overflow: auto;
+}
+
+.tab-dock-at-top > .tab-dock-bar,
+.tab-dock-at-bottom > .tab-dock-bar {
+    flex-direction: row;
+}
+
+.tab-dock-at-left > .tab-dock-bar {
+    border-right: 1px solid var(--lumo-contrast-10pct);
+}
+
+.tab-dock-at-right > .tab-dock-bar {
+    border-left: 1px solid var(--lumo-contrast-10pct);
+}
+
+.tab-dock-at-top > .tab-dock-bar {
+    border-bottom: 1px solid var(--lumo-contrast-10pct);
+}
+
+.tab-dock-at-bottom > .tab-dock-bar {
+    border-top: 1px solid var(--lumo-contrast-10pct);
+}
+
+.tab-dock-bar-icon {
+    flex: 0 0 auto;
+    width: var(--lumo-size-m);
+    height: var(--lumo-size-m);
+    margin: 0;
+    padding: 0;
+}
+
+.tab-dock-bar-icon img {
+    width: var(--lumo-icon-size-l);
+    height: var(--lumo-icon-size-l);
+}
+
+.tab-dock-bar-move {
+    flex: 0 0 auto;
+    color: var(--lumo-secondary-text-color);
+}
+
+.tab-dock-minimize {
+    margin-inline-start: var(--lumo-space-xs);
+    color: var(--lumo-secondary-text-color);
 }
 
 /* What a splitter separates: a sheet with the strips for a new sheet, or a column */

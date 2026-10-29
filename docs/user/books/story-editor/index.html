@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846537761588">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846614666216">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846537761588" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846614666216" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846537761588" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846614666216" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846537761588" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846614666216" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -310,9 +310,24 @@ the extension is back.</p>
 while another one is selected. Whatever shows a part brings the story back: clicking an entry of the outline, a hit of the
 search, choosing a branch in the <a href="../branches-and-story-tree/">story tree</a>, and starting a generation select the <strong>Story</strong> tab
 first. While a generation runs the other tabs are disabled and only the story stays usable, so you can stop it.</p>
-<p>To go back to the arrangement of a new book, choose <strong>Restore default layout</strong> in the settings menu (⚙) of the story and confirm.
-It only moves the tabs back (and forgets the sizes): your texts, the tab each panel shows and the tabs of extensions stay, the
-latter in the first panel.</p>
+<h3 id="minimizing-tabs">Minimizing tabs</h3>
+<p>Every tab but the story has a small <strong>–</strong> button next to its name. It <strong>minimizes</strong> the tab: the tab leaves its panel (a panel
+whose tabs are all minimized disappears for the time being) and a round icon of it, a circle with one or two letters (<strong>Ch</strong> for
+the outline, <strong>Lo</strong> for the lorebook, <strong>An</strong> for the annotations, <strong>SQ</strong> for Side Query, and so on), shows up in a bar at the
+edge of the editor. Hover over the icon to see which tab it is. Nothing is closed, the tab keeps what it was showing. Click the
+icon and the tab comes back to the panel and the place among the tabs where it was, and is shown.</p>
+<p>The bar is there while some tab is minimized. The button at its top (the circling arrows) sends the bar to the next side of
+the editor, clockwise: left, top, right, bottom. The story can&#x27;t be minimized, so there is always something on the screen.</p>
+<p>Which tabs are minimized and where the bar is are saved with the book, together with the arrangement and the sizes.</p>
+<h3 id="the-default-arrangement">The default arrangement</h3>
+<p>A new book opens with the standard arrangement (the outline, the lorebook and the annotations on the left, the story on the
+right). To make your own arrangement the standard one, set the tabs as you like them (panels, sizes, minimized tabs, the side of
+the bar) and choose <strong>Save layout as my default</strong> in the settings menu (⚙) of the story. Every book that has no arrangement of its
+own (a book you have not rearranged) then opens with it; a book you have arranged keeps its arrangement. The default is
+kept in your user settings.</p>
+<p>To go back to the default arrangement, choose <strong>Restore default layout</strong> in the settings menu (⚙) of the story and confirm. This is
+the one you saved, or the standard one when you saved none. It only moves the tabs back (and forgets the sizes and what is
+minimized): your texts, the tab each panel shows and the tabs of extensions stay, the latter in the first panel.</p>
 <h2 id="writing-the-next-part">Writing the next part</h2>
 <ol>
 <li>Click <strong>+</strong> in the bottom right corner. The <em>New Turn Instructions</em> panel opens.</li>
@@ -989,7 +1004,7 @@ tense, style and <a href="../summaries/">summaries</a>. The jailbreak prompt of 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (3d3513b37).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (d08410734).</p></div>
             </footer>
         </div>
     </div>

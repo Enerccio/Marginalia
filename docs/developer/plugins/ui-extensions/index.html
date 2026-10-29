@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846537761588">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846614666216">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846537761588" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846614666216" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846537761588" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846614666216" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846537761588" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846537761588" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846614666216" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846614666216" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -284,7 +284,12 @@ is not the selected one of its sheet is hidden and its content disabled (the she
 component then; <code translate="no" v-pre>leftBar.select(id)</code> shows a tab. Give the tab a <strong>stable id</strong> of your own
 (<code translate="no" v-pre>add(id, caption, content)</code>, not the localized caption): the layout the user made is saved with the book by these ids, and
 a tab added later or after the extension was off lands where the user left it. <code translate="no" v-pre>add(caption, content)</code> uses the caption as
-the id. The ids <code translate="no" v-pre>chapters</code> (the outline), <code translate="no" v-pre>lorebook</code> (the read only lorebook preview, desktop only) and <code translate="no" v-pre>story</code> (since 1.5.0) belong to the
+the id. Since 1.6.0 every tab has a minimize button, and a minimized tab is an icon in the bar of the dock: a circle with one or
+two letters, made by <code translate="no" v-pre>TabDockIcons</code>. <code translate="no" v-pre>add(id, caption, letters, content)</code> gives the letters of your tab (<code translate="no" v-pre>&quot;SQ&quot;</code>); without them
+they are the initials of the caption. A minimized tab stays in the dock (its content is alive, only not in a sheet);
+<code translate="no" v-pre>leftBar.select(id)</code> restores it, <code translate="no" v-pre>isMinimized(id)</code>, <code translate="no" v-pre>minimize(id)</code> and <code translate="no" v-pre>restore(id)</code> do what they say, and
+<code translate="no" v-pre>setMinimizable(id, false)</code> takes the button away from a tab. The ids of the minimized tabs and the side of the bar are in
+<code translate="no" v-pre>getLayout()</code> (<code translate="no" v-pre>minimized</code>, <code translate="no" v-pre>dock</code>), so they are saved with the book like the rest of the arrangement. The ids <code translate="no" v-pre>chapters</code> (the outline), <code translate="no" v-pre>lorebook</code> (the read only lorebook preview, desktop only) and <code translate="no" v-pre>story</code> (since 1.5.0) belong to the
 application; a tab with the same id would replace them. Remove the tab with <code translate="no" v-pre>leftBar.remove(view)</code>. The phone drawer has a <code translate="no" v-pre>TabDock</code> too, but with the detaching off.</p>
 <h3 id="panels-in-an-existing-layout">Panels in an existing layout</h3>
 <p>Find the layout and insert at a position relative to a known child. Lorebook VCS puts its panel above the lorebook
@@ -836,7 +841,7 @@ uninstalled for good, its data stays in the database (and in backups) - harmless
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (3d3513b37).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (d08410734).</p></div>
             </footer>
         </div>
     </div>

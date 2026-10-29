@@ -111,7 +111,12 @@ is not the selected one of its sheet is hidden and its content disabled (the she
 component then; `leftBar.select(id)` shows a tab. Give the tab a **stable id** of your own
 (`add(id, caption, content)`, not the localized caption): the layout the user made is saved with the book by these ids, and
 a tab added later or after the extension was off lands where the user left it. `add(caption, content)` uses the caption as
-the id. The ids `chapters` (the outline), `lorebook` (the read only lorebook preview, desktop only) and `story` (since 1.5.0) belong to the
+the id. Since 1.6.0 every tab has a minimize button, and a minimized tab is an icon in the bar of the dock: a circle with one or
+two letters, made by `TabDockIcons`. `add(id, caption, letters, content)` gives the letters of your tab (`"SQ"`); without them
+they are the initials of the caption. A minimized tab stays in the dock (its content is alive, only not in a sheet);
+`leftBar.select(id)` restores it, `isMinimized(id)`, `minimize(id)` and `restore(id)` do what they say, and
+`setMinimizable(id, false)` takes the button away from a tab. The ids of the minimized tabs and the side of the bar are in
+`getLayout()` (`minimized`, `dock`), so they are saved with the book like the rest of the arrangement. The ids `chapters` (the outline), `lorebook` (the read only lorebook preview, desktop only) and `story` (since 1.5.0) belong to the
 application; a tab with the same id would replace them. Remove the tab with `leftBar.remove(view)`. The phone drawer has a `TabDock` too, but with the detaching off.
 
 ### Panels in an existing layout

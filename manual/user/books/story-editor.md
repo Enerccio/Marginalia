@@ -97,9 +97,30 @@ while another one is selected. Whatever shows a part brings the story back: clic
 search, choosing a branch in the [story tree](branches-and-story-tree.md), and starting a generation select the **Story** tab
 first. While a generation runs the other tabs are disabled and only the story stays usable, so you can stop it.
 
-To go back to the arrangement of a new book, choose **Restore default layout** in the settings menu (⚙) of the story and confirm.
-It only moves the tabs back (and forgets the sizes): your texts, the tab each panel shows and the tabs of extensions stay, the
-latter in the first panel.
+### Minimizing tabs
+
+Every tab but the story has a small **–** button next to its name. It **minimizes** the tab: the tab leaves its panel (a panel
+whose tabs are all minimized disappears for the time being) and a round icon of it, a circle with one or two letters (**Ch** for
+the outline, **Lo** for the lorebook, **An** for the annotations, **SQ** for Side Query, and so on), shows up in a bar at the
+edge of the editor. Hover over the icon to see which tab it is. Nothing is closed, the tab keeps what it was showing. Click the
+icon and the tab comes back to the panel and the place among the tabs where it was, and is shown.
+
+The bar is there while some tab is minimized. The button at its top (the circling arrows) sends the bar to the next side of
+the editor, clockwise: left, top, right, bottom. The story can't be minimized, so there is always something on the screen.
+
+Which tabs are minimized and where the bar is are saved with the book, together with the arrangement and the sizes.
+
+### The default arrangement
+
+A new book opens with the standard arrangement (the outline, the lorebook and the annotations on the left, the story on the
+right). To make your own arrangement the standard one, set the tabs as you like them (panels, sizes, minimized tabs, the side of
+the bar) and choose **Save layout as my default** in the settings menu (⚙) of the story. Every book that has no arrangement of its
+own (a book you have not rearranged) then opens with it; a book you have arranged keeps its arrangement. The default is
+kept in your user settings.
+
+To go back to the default arrangement, choose **Restore default layout** in the settings menu (⚙) of the story and confirm. This is
+the one you saved, or the standard one when you saved none. It only moves the tabs back (and forgets the sizes and what is
+minimized): your texts, the tab each panel shows and the tabs of extensions stay, the latter in the first panel.
 
 ## Writing the next part
 

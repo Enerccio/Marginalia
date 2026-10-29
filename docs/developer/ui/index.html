@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846537761588">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846614666216">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846537761588" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846614666216" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846537761588" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846614666216" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846537761588" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846537761588" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846614666216" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846614666216" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -626,7 +626,25 @@ outline is <code translate="no" v-pre>ManuscriptStoryPart.CHAPTERS_TAB</code>); 
 their tabs late (a tab the layout does not know goes to the first sheet). <code translate="no" v-pre>ManuscriptStoryPart</code> stores the layout in the
 attributes of the manuscript under <code translate="no" v-pre>$desktopManuscriptStoryPartTabsConfig</code> (<code translate="no" v-pre>TABS_CONFIG_ATTRIBUTE</code>): <code translate="no" v-pre>saveTabsConfig()</code> runs
 after a drag or a resize, <code translate="no" v-pre>applyTabsConfig()</code> in <code translate="no" v-pre>load()</code> before the story is drawn. The selected tab of each sheet is not part of the
-layout but the <code translate="no" v-pre>Restorable</code> state of the dock. <code translate="no" v-pre>PhoneManuscriptStoryPart</code> uses <code translate="no" v-pre>new TabDock(false)</code>, one plain sheet.</p>
+layout but the <code translate="no" v-pre>Restorable</code> state of the dock.</p>
+<p><strong>Minimizing (1.6.0).</strong> A tab of a detachable dock has a minimize button (<code translate="no" v-pre>makeMinimizable</code>, in the <code translate="no" v-pre>Tab</code> itself). <code translate="no" v-pre>minimize(id)</code> adds
+the id to the ordered set <code translate="no" v-pre>minimized</code>; the tab keeps its place in <code translate="no" v-pre>Group.ids</code> (so <code translate="no" v-pre>restore(id)</code> puts it back where it was, and
+a group whose tabs are all minimized is just not shown, like a group whose tabs are not there yet) but <code translate="no" v-pre>presentEntries</code> leaves it
+out, so <code translate="no" v-pre>arrange()</code> takes its <code translate="no" v-pre>Tab</code> out of the <code translate="no" v-pre>TabSheet</code> and the content only lives in its <code translate="no" v-pre>Entry</code>. <code translate="no" v-pre>isMinimized(Entry)</code> is
+<code translate="no" v-pre>minimizable &amp;&amp; minimized.contains(id)</code>; <code translate="no" v-pre>setMinimizable(id, false)</code> (the story) is a set of ids of its own, <code translate="no" v-pre>fixed</code>, which also
+works for tabs that are not in the dock yet. <code translate="no" v-pre>select(id)</code> of a minimized tab restores it. The dock is <code translate="no" v-pre>body</code> (the columns from
+<code translate="no" v-pre>fill</code>) and <code translate="no" v-pre>bar</code> in a flex container whose direction is the <code translate="no" v-pre>DockSide</code> (<code translate="no" v-pre>LEFT</code> is <code translate="no" v-pre>row-reverse</code>, the bar being after the body in
+the page; the classes <code translate="no" v-pre>tab-dock-at-*</code>); <code translate="no" v-pre>refreshBar</code> (run by every <code translate="no" v-pre>arrange</code>) rebuilds the bar when the minimized tabs or the side
+change: the move button (<code translate="no" v-pre>setDockSide(side.next())</code>, one click goes clockwise; a <code translate="no" v-pre>ContextMenu</code> or <code translate="no" v-pre>MenuBar</code> there would need a
+Vaadin session in the tests) and one icon button per minimized tab (the image is <code translate="no" v-pre>TabDockIcons.dataUri(letters, id)</code>, an SVG circle
+as a data URI whose color comes from the id; the tooltip and the aria label are <code translate="no" v-pre>Restore: &lt;caption&gt;</code>). <code translate="no" v-pre>getLayout()</code> adds
+<code translate="no" v-pre>&quot;minimized&quot;:[&quot;id&quot;,...]</code> (only when there are some) and <code translate="no" v-pre>&quot;dock&quot;:&quot;top&quot;</code> (only when not left) to the layout, <code translate="no" v-pre>setLayout</code> reads
+them, so <code translate="no" v-pre>onLayoutChange</code> saves them with the book. <code translate="no" v-pre>add(id, caption, letters, content)</code> gives the letters of the icon, the
+initials of the caption (<code translate="no" v-pre>TabDockIcons.letters</code>) are the default.</p>
+<p><strong>The default layout of the user.</strong> <em>Save layout as my default</em> (<code translate="no" v-pre>StoryMenuKeys.SAVE_LAYOUT_AS_DEFAULT</code>,
+<code translate="no" v-pre>StoryEditor.saveLayoutAsDefault</code>) stores <code translate="no" v-pre>TabDock.getLayout()</code> in <code translate="no" v-pre>UserSetting.defaultStoryLayout</code> (an extended attribute, no
+migration). <code translate="no" v-pre>applyTabsConfig</code> takes it for a book that has no <code translate="no" v-pre>$desktopManuscriptStoryPartTabsConfig</code> of its own (and does not
+write it into the book), and so does <em>Restore default layout</em>. <code translate="no" v-pre>PhoneManuscriptStoryPart</code> uses <code translate="no" v-pre>new TabDock(false)</code>, one plain sheet.</p>
 <p><code translate="no" v-pre>StoryDockLayout</code> (<code translate="no" v-pre>ui.dialogs.story</code>) holds the layouts: <code translate="no" v-pre>defaultLayout</code> (the outline and the lorebook in a column of 20 %
 on the left, the story in a column of 80 %), and <code translate="no" v-pre>migrate</code>, which turns what a book stored before the story was a tab into a
 layout that has it. That is a layout without the <code translate="no" v-pre>story</code> id: its columns keep their order and share the width the old
@@ -1528,7 +1546,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (3d3513b37).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (d08410734).</p></div>
             </footer>
         </div>
     </div>

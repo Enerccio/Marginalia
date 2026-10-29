@@ -104,6 +104,14 @@ public class UserSetting extends Setting {
     private Boolean annotationsInMargin;
 
     /**
+     * The arrangement of the tabs of the story editor ({@code TabDock.getLayout()}: columns, sheets, sizes, minimized tabs and
+     * the side of their bar) that books open with when they have none of their own; empty when the user saved none.
+     */
+    @ExtendedAttribute(inject = true, injectPrefix = "defaultStoryLayout")
+    @Transient
+    private JsonObject defaultStoryLayout = new JsonObject();
+
+    /**
      * The system prompt of the agents of the user that have none of their own; blank is the one of the application
      * settings, and then {@code Defaults.DEFAULT_AGENT_PROMPT}.
      */
@@ -346,6 +354,14 @@ public class UserSetting extends Setting {
 
     public void setAnnotationsInMargin(Boolean annotationsInMargin) {
         this.annotationsInMargin = annotationsInMargin;
+    }
+
+    public JsonObject getDefaultStoryLayout() {
+        return defaultStoryLayout;
+    }
+
+    public void setDefaultStoryLayout(JsonObject defaultStoryLayout) {
+        this.defaultStoryLayout = defaultStoryLayout == null ? new JsonObject() : defaultStoryLayout;
     }
 
     public String getDefaultRedraftPrompt() {

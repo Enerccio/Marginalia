@@ -263,7 +263,7 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 
 ## P3 — Nice to have
 
-70. *Icons for tabs, toolbar so tools can be minimized*
+70. ✅ **Icons for tabs, minimizing** — every tab but the story has a minimize button, a minimized tab is a round icon (circle with one or two letters, SVG) in a bar that the user moves to any side of the editor; click restores it where it was. Minimized tabs and the side are saved with the book; *Save layout as my default* (settings menu of the story) stores the arrangement in the user settings for books that have none of their own.
 71. *Redraft book plugin -> loads book from copy or backup, stores only instructions and part content, allow user to check which has been done and copy instructions*
 25. **Writing statistics** — words per day/session, per-book totals, goals. 🧩
 26. **Undo for edits** — (*Discard Changes* in the part menu drops an edit that is not saved yet.) message edits overwrite text in place; keep per-message edit history (branching
