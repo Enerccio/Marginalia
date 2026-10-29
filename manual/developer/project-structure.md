@@ -127,6 +127,7 @@ Application code lives in `com.github.enerccio.marginalia` (paths below are rela
 | `BaseEntity`, `OwnedEntity`, `ExtendableEntity` | Mapped superclasses: id, uuid, soft delete, timestamps; owner; JSON `attributes` for extensions. |
 | `Setting` | Base of settings, single table `settings` with a `DTYPE` discriminator. |
 | `impl/Manuscript` | A book. |
+| `impl/Folder` | A folder of books, nested through `parent`; its settings are inherited by the books below. See [Folders](folders.md). |
 | `impl/ChatMessage` | A story part - a node of the story tree. |
 | `impl/Summary` | A summary of the story up to a part, or a meta summary of summaries. |
 | `impl/Lorebook`, `impl/LorebookEntry` | Lorebooks and their entries. |
@@ -144,7 +145,7 @@ See [Domain model](domain-model.md).
 
 One interface and one JPA implementation (`impl/Jpa*Repository`) per entity, built on `BaseRepository` →
 `OwnedRepository` → `ExtendableRepository` (and `JpaBaseRepository` → ...). The beans are defined in
-`services-config.xml` with the shared `EntityManager`.
+`services-config.xml` with the shared `EntityManager`. `FolderRepository` / `JpaFolderRepository` come with `FolderScope` (the folder clause of the list queries) and `FolderModification` (the *Last modified* of the folders).
 
 ### `domain.components` - plain data and helpers
 
@@ -168,6 +169,7 @@ Interfaces in `domain.service`, implementations in `domain.service.impl`:
 |---|---|
 | `BaseService`, `OwnedService`, `ExtendableService` | Generic CRUD, soft delete, lookups restricted to the current user. |
 | `ManuscriptService`, `ChatMessageService`, `SummaryService` | Books, the story tree (add, branch, swipe, delete a part and re-attach its children, word and token counts), summaries. |
+| `FolderService`, `PromptField`, `EffectiveSetting`, `FolderBookLockedException` | The folders and the settings the books inherit from them, see [Folders](folders.md). `BackupFolders` and `BackupInheritance` (`impl`) are the folder in a backup and the inherited settings in an export; `HelpBookData` with `manual/BookHelpTools` the books tools of the help assistant. |
 | `LorebookService`, `LorebookEntryService` | Lorebooks, entries, import and export (incl. SillyTavern through `SillyTavernEntryConverter`). |
 | `AIService`, `ProtocolService` | Inference providers and protocols. |
 | `TagService`, `TagRelationService`, `SettingService`, `ResourceService` | Tags, settings, files. |
@@ -384,6 +386,7 @@ See [Plugin development](plugins/index.md).
 | The story editor | `ui/dialogs/manuscript/ManuscriptStoryPart.java` |
 | Summaries and meta summaries | `SummaryServiceImpl` (chain, creation, unwinding), `ui/dialogs/manuscript/SummariesDialog.java`, `SummaryDialog.java` |
 | The story tree operations | `ChatMessageServiceImpl` (branch, swipe, delete), `ManuscriptTreePart` (UI) |
+| Folders, or where a setting of a book comes from | [Folders](folders.md), `ManuscriptService.resolve`, `FolderServiceImpl`, `ui/dialogs/OrganiseDialog.java` |
 | An entity or the schema | the entity in `domain/model/impl/`, a new Flyway migration, `persistence.xml` - see [Database & migrations](database.md) |
 | A new service | interface in `domain/service/`, implementation in `impl/`, a bean in `services-config.xml` |
 | The help assistant | `HelpAssistantServiceImpl`, `HelpPrompts` (prompts), `ui/components/HelpAssistantWidget.java`, `ui/LLMInteract.java` (what a part of the UI says and offers), `utils/UiProblems.java` and `bound/ProblemLog.java` (what went wrong), `domain/service/impl/HelpAdminData.java` (the data of the Admin page), `ui/workspace/parts/admin/HelpAssistantPanel.java` (settings) |

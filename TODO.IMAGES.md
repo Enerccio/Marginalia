@@ -9,6 +9,14 @@ so that all of them keep matching. The table of the pictures, with the flow that
 Screenshots that show the photograph from Wikimedia Commons (*Harry Potter.jpg*, CC BY-SA 4.0) must stay listed on
 `manual/credits.md`. If another third-party picture is used, add it there too (author, source, license, changes).
 
+## 1.6.0
+
+The screens of 1.6.0 come from the flow `shoot-folders` (see [`SCREENSHOTS.md`](screenshots/SCREENSHOTS.md)): `books-folders`, `folder-settings`,
+`organise-dialog`, `mass-change-model-protocol`, `mass-change-language`, `book-prompts-inherited`, `story-minimized-tabs`,
+`story-mass-delete`, `help-assistant-books`, `phone-folders`; the pictures that show the changed screens (the book list, the tab
+buttons of the story editor, the Backups tab and the help panel) were retaken with `bin/shoot-all.sh`. Not taken: the question of a name
+clash in *Organise* (rename / skip / merge), the question when a folder with content is deleted, the progress bar of a copy.
+
 ## Taken for 1.5.0, not yet (optional)
 
 Every picture of the manual was retaken for 1.5.0 (the footer got the theme button, the story editor is a dock with the story

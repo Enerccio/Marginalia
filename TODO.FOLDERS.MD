@@ -141,11 +141,12 @@ built as a series of commits (one per step of *Order of work*, each leaving the 
   - ✅ **R8 Chain cache.** Only if profiling shows the per-lookup chain reads; cache per generation in the controller.
     Done: measured, not built. Resolving all 12 settings and the language of a book takes 0.8 ms with no folder, 1.5 ms through 3 folders, 2.0 ms through 6 and 3.4 ms through 10 (warm, SQLite, tests); a generation does a handful of lookups before an LLM call that takes seconds, so the chain reads cost nothing worth a cache (which would also have to be invalidated by every folder edit). Look again only if folders get much deeper or the lookups end up in a loop over many books.
 - ⬜ **Docs and release notes** (last, once the UI is stable):
-  - ⬜ **D1 User manual.** Folders and inheritance page, books page, book settings page; picture added to `TODO.IMAGES.md` and the screenshot flow.
-  - ⬜ **D2 Developer manual.** Settings resolution, data model, services; `python3 tools/check_dev_docs.py -v`, update the flagged pages, then
+  - ✅ **D1 User manual.** Folders and inheritance page, books page, book settings page; picture added to `TODO.IMAGES.md` and the screenshot flow.
+    Done: new `manual/user/books/folders.md` (moving around, folder settings and where a book's settings come from, language, delete, Organise, copying and name clashes, mass changes, favorites, tags); changed `managing-books.md`, `prompts.md` (*Inherited settings*), `backups.md`, `story-editor.md` (minimize, default layout, mass delete), `agents.md`, `phone.md`, `administration/help-assistant.md` (*Your books*), `account.md`, `books/index.md`, `index.md`. Pictures: the flow `screenshots/flows/shoot-folders.mjs`, the rest retaken with `bin/shoot-all.sh`.
+  - ✅ **D2 Developer manual.** Settings resolution, data model, services; `python3 tools/check_dev_docs.py -v`, update the flagged pages, then
     `--stamp <page.md>` each in a commit of its own.
-  - ⬜ **D3 Changelog.** `CHANGELOG.MD`: Changed (settings resolve through folders), the `@PublicAPI` changes plugins can see.
-  - ⬜ **D4 Site.** `tools/retype_build.sh`, commit `docs/` with the manual change.
+  - ✅ **D3 Changelog.** `CHANGELOG.MD`: Changed (settings resolve through folders), the `@PublicAPI` changes plugins can see.
+  - ✅ **D4 Site.** `tools/retype_build.sh`, commit `docs/` with the manual change.
   - ⬜ **D5 Final check.** Full suite once (foreground, `mvn test 2>&1 | tail -40`), `BundleCompletenessTest` for EN / JP / CN keys.
 
 ## Decided

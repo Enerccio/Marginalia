@@ -7,7 +7,8 @@ order: 100
 
 ## The book list
 
-The **Books** tab lists your books. Other users' books are not shown.
+The **Books** tab lists your books. Other users' books are not shown. The list shows one [folder](folders.md) at a time, the
+folders of the current one above its books; at the top level, with no folders made, it is simply all your books.
 
 ![The Books tab](../../images/books.png)
 
@@ -29,7 +30,9 @@ The row below the headers filters the list:
 
 The refresh button at the end of the filter row reloads the list.
 
-Each row has three buttons: the pen opens the book, the clone button makes a copy of it and the trash button deletes it.
+Each row has buttons: the star makes the book a [favorite](folders.md#favorites), the pen opens it, **Move to folder** puts it
+into a [folder](folders.md), the clone button makes a copy of it and the trash button deletes it. The header has **New folder**
+and **Organise** (the window to [move and copy](folders.md#organise) books and folders), and the **Mass changes** menu.
 
 ### Advanced search
 
@@ -67,7 +70,8 @@ check box **Only current branch**, checked by default. The new book is a separat
   the beginning to the end of the [active branch](branches-and-story-tree.md) are copied; without it all the branches
   are.
 
-The clone is not published, even if the original is. The original is not changed.
+The clone is not published, even if the original is. The original is not changed. It is put into the same
+[folder](folders.md) as the original.
 
 ### Tagging many books at once
 
@@ -85,21 +89,30 @@ grayed out: it is locked, so it can not be ticked or changed until the run is pa
 
 The **Mass changes** menu (next to **Tag books**) has the item **Mass Change Model/Protocol**. It opens a window that puts one
 **Model** and/or one **Protocol** on many books without opening each. Leave a box empty (it shows *Do not replace*) and that
-part of the books stays as it is: pick only a model to change the models and keep the protocols. The table lists all your
-books by name with the model and protocol they have now. Type in the filter under **Name** to narrow the list, tick the
+part of the books stays as it is: pick only a model to change the models and keep the protocols. The table lists the books of
+the current [folder](folders.md) by name with the model and protocol they have now; **Include subfolders** adds the books
+below it. Type in the filter under **Name** to narrow the list, tick the
 books to change (the box in the header ticks all the books that are shown) and press **Replace and exit**. Books that the
 filter hides are unticked, so only what you see is changed. A book an agent works on is grayed out: it is locked, so it can
 not be ticked or changed until the run is paused or stopped.
 
+![Changing the model and protocol of many books](../../images/mass-change-model-protocol.png)
+
 The item **Mass Change Language** of the same menu works the same way for the **Language** of the books: pick the language,
-filter and tick the books, press **Replace and exit**.
+filter and tick the books, press **Replace and exit**. The table shows the language each book has now, with what it inherits
+from its folders (see [Language](folders.md#language)).
+
+![Changing the language of many books](../../images/mass-change-language.png)
+
+**Tag books** and the item **Tag folders** work on the books, or on the folders, of the current folder in the same way.
 
 ## Creating a book
 
 1. Click **Add Book**.
 2. Enter the name and confirm.
 
-The new book opens right away. It starts with your **Default Model** and **Default Protocol** from the *Settings* tab
+The new book is put into the [folder](folders.md) the list shows, and so are the books you import from an archive or
+from SillyTavern. It opens right away. It starts with your **Default Model** and **Default Protocol** from the *Settings* tab
 (see [Account & settings](../account.md)), if you have set them; otherwise select them on the *About* tab before
 generating.
 
@@ -143,7 +156,7 @@ To start a book from a backup file, use **Import Backup as New Book** in the *Se
 | **Name** | The name of the book. |
 | **Tags** | Tags for sorting your books and for [lorebook](../lorebooks/entries.md) activation. Type to pick an existing tag or create a new one. |
 | **Description** | What the book is about. Available to the prompt templates as the book description. |
-| **Language** | The language the book is written in (English by default). Used for automatic hyphenation of the text in the book reading style and in the [viewer](publishing.md); it does not change what the model writes. |
+| **Language** | The language the book is written in. Used for automatic hyphenation of the text in the book reading style and in the [viewer](publishing.md); it does not change what the model writes. Empty means *inherit*: the language of the nearest [folder](folders.md#language) above the book that sets one, else English; the box then shows which and from where. |
 | **Model** | The [inference provider](../inference-providers.md) that writes this book. |
 | **Protocols** | The [protocol](../protocols.md) with the generation settings. |
 | **Published** | Lets other users read the book, see [Publishing & viewer](publishing.md). Once checked, the reader link of the book (`<address of Marginalia>/view/<book ID>`) is shown under the checkbox; copy it and send it to the readers. |

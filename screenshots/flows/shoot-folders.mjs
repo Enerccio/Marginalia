@@ -95,9 +95,10 @@ await main(async ({ page }) => {
   await section(page, 'folder-settings', async () => {
     await (await rowButton(page, 'Fan fiction', 'cog')).click();
     await idle(page, 1200);
-    await fill(dialog(page), 'Description', 'Stories in worlds that belong to somebody else.');
     await fill(dialog(page), 'Style', 'Close and unhurried. Long sentences that take their time, concrete details, no summarizing of feelings: show what the character does.');
     await fill(dialog(page), 'Tense', 'Past tense');
+    await fill(dialog(page), 'Description', 'Stories in worlds that belong to somebody else.');
+    await page.evaluate(() => document.querySelectorAll('vaadin-dialog-overlay').forEach(o => { const c = o.shadowRoot && o.shadowRoot.querySelector('[part="content"]'); if (c) c.scrollTop = 0; }));
     await sleep(500);
     await snapDialog(page, 'folder-settings', -1);
     await press(dialog(page), 'Save');
@@ -110,13 +111,13 @@ await main(async ({ page }) => {
   });
 
   await section(page, 'mass-changes', async () => {
-    await press(page, 'Mass changes');
+    await page.locator('vaadin-menu-bar-button').filter({ hasText: 'Mass changes' }).first().click();
     await idle(page, 500);
     await page.getByRole('menuitem', { name: 'Mass Change Model/Protocol' }).click();
     await idle(page, 1500);
     await snapDialog(page, 'mass-change-model-protocol', -1);
     await closeDialog(page);
-    await press(page, 'Mass changes');
+    await page.locator('vaadin-menu-bar-button').filter({ hasText: 'Mass changes' }).first().click();
     await idle(page, 500);
     await page.getByRole('menuitem', { name: 'Mass Change Language' }).click();
     await idle(page, 1500);
@@ -128,13 +129,11 @@ await main(async ({ page }) => {
     await press(page, 'Organise');
     await idle(page, 1800);
     await snapDialog(page, '_organise-open', -1);
-    // the right pane goes into Fan fiction, the cursor stays on the second book of the left pane, which is marked
-    await page.keyboard.press('ArrowRight');
-    await sleep(300);
-    await page.keyboard.press('ArrowDown');
-    await page.keyboard.press('Enter');
+    // the right pane goes into Fan fiction (a double click opens a folder), the second book of the left pane is marked
+    const panes = dialog(page).locator('vaadin-grid');
+    await panes.nth(1).locator('vaadin-grid-cell-content').filter({ hasText: 'Fan fiction' }).first().dblclick();
     await idle(page, 900);
-    await page.keyboard.press('ArrowLeft');
+    await panes.first().locator('vaadin-grid-cell-content').filter({ hasText: SECOND }).first().click();
     await sleep(300);
     await page.keyboard.press('Space');
     await sleep(500);
@@ -160,14 +159,14 @@ await main(async ({ page }) => {
     await sleep(800);
     // two tabs of the sidebar go to the bar at the edge
     for (let i = 0; i < 2; i++) {
-      await page.getByRole('button', { name: 'Minimize', exact: true }).first().click();
+      await page.locator('.tab-dock-minimize:visible').first().click();
       await idle(page, 700);
     }
     await sleep(500);
     await snap(page, 'story-minimized-tabs');
     // and back
     for (let i = 0; i < 2; i++) {
-      await page.locator('[aria-label^="Restore"], [title^="Restore"]').first().click();
+      await page.locator('.tab-dock-bar-icon').first().click();
       await idle(page, 700);
     }
 
@@ -217,6 +216,9 @@ await main(async ({ page }) => {
     try {
       await login(phone.page);
       await sleep(1000);
+      // the workspace was left in the last folder: back to the top level, where the folders and the Favorites are
+      await phone.page.getByRole('button', { name: 'Books', exact: true }).first().click();
+      await idle(phone.page, 900);
       await snap(phone.page, 'phone-folders');
     } finally {
       await phone.browser.close();

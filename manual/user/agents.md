@@ -307,6 +307,11 @@ When the agent has **Write the book with the model of the agent** on (the defaul
 is resumed. So the commands that write with a model (`/next`, `/swipe`, `/regenerate`, `/redraft-part`, `/generate-annotation`, the summaries) and the model commands of extensions (the Lore Generator, the Arc Outline) use the agent's model even when your book is set to another one, or to none;
 a `profile` named in the call still wins. With the setting off they use the model of the book. This is not a change of your book: the review does not list it and applying the result leaves the AI and the protocol of your book as they are.
 
+The copy is put into the [folder](books/folders.md) of your book, so the agent writes with the settings that the folders set (language,
+templates, point of view, tense, style and the prompts), as the book does. The copy is not content of the folder: it is not counted
+there and the work in it does not change the *Last modified* of the folder. The copy follows the book if you move it while the run is paused.
+Applying the result never moves your book.
+
 A paused run keeps its copy and works on it again when you resume it. A run that is *Done*, or that you stopped and kept, keeps it until you
 [take over its result or discard it](#reviewing-the-result). When the run is *Failed*, you discard its result, or its changes are applied, the copy is deleted for good, and the next run
 makes a new one from the book as it is then.
@@ -544,5 +549,11 @@ a paused, stopped or finished run does not lock it.
 The **lorebooks of the book** are locked with it: the lorebook the book uses and its sub-lorebooks. On the Lorebooks tab such a lorebook is
 shown the way it is on a phone, as plain text and without any editing, with a note that says which agent holds it; **Refresh** shows it for
 editing again after you paused or stopped the run. Other lorebooks are not affected.
+
+### Agents and folders
+
+A book in a [folder](books/folders.md) that an agent works on keeps its place and its settings: moving or deleting a folder above it, and
+changing a setting such a folder passes down (language, templates, point of view, tense, style, prompts), is refused with the name of the book
+and the agent. Renaming a folder, or changing its description, is not refused. A paused, stopped or finished run lets go.
 
 ![The lorebook of a book an agent works on](../images/agent-locked-lorebook.png)

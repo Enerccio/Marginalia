@@ -192,6 +192,10 @@ run or a user did. What a command needs to know about the current state it reads
 - from the **scope** of the call, `context.getScope()` (below): the book the command works on, its lorebooks and the way to ask a question,
 - from the session-scoped `SessionPoint` (`getLanguage()`, `getWorkspace()`), through `CommandUtils`.
 
+The commands that report or set the settings of a book (`get-book-info`, the book settings commands) work with the **effective** values, those the
+book gets through its [folders](../folders.md#resolving-a-setting) (`ManuscriptService.getLanguage`, `getPov`, `resolve(...).isCustom()`), not the
+book's own fields.
+
 ### The scope
 
 `CommandContext.getScope()` is a `CommandScope`: what the command works on and who answers its questions. A command takes the book from it
