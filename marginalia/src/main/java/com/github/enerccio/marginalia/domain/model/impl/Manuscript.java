@@ -183,8 +183,19 @@ public class Manuscript extends ExtendableEntity {
         this.protocol = protocol;
     }
 
+    /**
+     * The language of the book as it is shown when nothing else decides: English when the book has none. The language that
+     * a book has with the folders above it is {@code ManuscriptService.getLanguage}.
+     */
     public Language getLanguage() {
         return language != null ? language : Language.ENGLISH;
+    }
+
+    /**
+     * @return the language the book sets itself, null when it does not (the folders above it decide)
+     */
+    public Language getOwnLanguage() {
+        return language;
     }
 
     public void setLanguage(Language language) {

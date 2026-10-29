@@ -1,7 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
-import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.collections.AgentRunPairKind;
+import com.github.enerccio.marginalia.domain.collections.Language;
 import com.github.enerccio.marginalia.domain.collections.SummaryType;
 import com.github.enerccio.marginalia.domain.listener.ExtendableEntityListener;
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
@@ -230,152 +230,100 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     }
 
     @Override
-    @CommonTxReadOnly
+    public EffectiveSetting<String> resolve(Manuscript manuscript, PromptField field) throws Exception {
+        String own = field.ofBook(manuscript);
+        if (StringUtils.isNotBlank(own)) {
+            return new EffectiveSetting<>(own, EffectiveSetting.Origin.BOOK, null);
+        }
+        for (Folder folder : folderService.findChain(manuscript.getFolder())) {
+            String inherited = field.ofFolder(folder);
+            if (StringUtils.isNotBlank(inherited)) {
+                return new EffectiveSetting<>(inherited, EffectiveSetting.Origin.FOLDER, folder);
+            }
+        }
+        String fromUser = field.ofUser(settingService.getOrCreate(UserSetting.class));
+        if (StringUtils.isNotBlank(fromUser)) {
+            return new EffectiveSetting<>(fromUser, EffectiveSetting.Origin.USER, null);
+        }
+        return new EffectiveSetting<>(field.fallback(), EffectiveSetting.Origin.DEFAULT, null);
+    }
+
+    @Override
+    public EffectiveSetting<Language> resolveLanguage(Manuscript manuscript) throws Exception {
+        if (manuscript.getOwnLanguage() != null) {
+            return new EffectiveSetting<>(manuscript.getOwnLanguage(), EffectiveSetting.Origin.BOOK, null);
+        }
+        for (Folder folder : folderService.findChain(manuscript.getFolder())) {
+            if (folder.getLanguage() != null) {
+                return new EffectiveSetting<>(folder.getLanguage(), EffectiveSetting.Origin.FOLDER, folder);
+            }
+        }
+        return new EffectiveSetting<>(Language.ENGLISH, EffectiveSetting.Origin.DEFAULT, null);
+    }
+
+    @Override
+    public Language getLanguage(Manuscript manuscript) throws Exception {
+        return resolveLanguage(manuscript).value();
+    }
+
+    @Override
     public String getMasterTemplate(Manuscript manuscript) throws Exception {
-        if (StringUtils.isNotBlank(manuscript.getTemplate())) {
-            return manuscript.getTemplate();
-        }
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (StringUtils.isNotBlank(userSetting.getMasterTemplate())) {
-            return userSetting.getMasterTemplate();
-        }
-        return Defaults.DEFAULT_MASTER_TEMPLATE;
+        return resolve(manuscript, PromptField.MASTER_TEMPLATE).value();
     }
 
     @Override
-    @CommonTxReadOnly
     public String getPov(Manuscript manuscript) throws Exception {
-        if (StringUtils.isNotBlank(manuscript.getPov())) {
-            return manuscript.getPov();
-        }
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (StringUtils.isNotBlank(userSetting.getDefaultPov())) {
-            return userSetting.getDefaultPov();
-        }
-        return Defaults.DEFAULT_POV;
+        return resolve(manuscript, PromptField.POV).value();
     }
 
     @Override
-    @CommonTxReadOnly
     public String getTense(Manuscript manuscript) throws Exception {
-        if (StringUtils.isNotBlank(manuscript.getTense())) {
-            return manuscript.getTense();
-        }
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (StringUtils.isNotBlank(userSetting.getDefaultTense())) {
-            return userSetting.getDefaultTense();
-        }
-        return Defaults.DEFAULT_TENSE;
+        return resolve(manuscript, PromptField.TENSE).value();
     }
 
     @Override
-    @CommonTxReadOnly
     public String getStyle(Manuscript manuscript) throws Exception {
-        if (StringUtils.isNotBlank(manuscript.getStyle())) {
-            return manuscript.getStyle();
-        }
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (StringUtils.isNotBlank(userSetting.getDefaultStyle())) {
-            return userSetting.getDefaultStyle();
-        }
-        return Defaults.DEFAULT_STYLE;
+        return resolve(manuscript, PromptField.STYLE).value();
     }
 
     @Override
-    @CommonTxReadOnly
     public String getUserPrompt(Manuscript manuscript) throws Exception {
-        if (StringUtils.isNotBlank(manuscript.getUserPrompt())) {
-            return manuscript.getUserPrompt();
-        }
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (StringUtils.isNotBlank(userSetting.getDefaultUserPrompt())) {
-            return userSetting.getDefaultUserPrompt();
-        }
-        return Defaults.DEFAULT_USER_PROMPT;
+        return resolve(manuscript, PromptField.USER_PROMPT).value();
     }
 
     @Override
     public String getSummaryPrompt(Manuscript manuscript) throws Exception {
-        if (StringUtils.isNotBlank(manuscript.getSummaryPrompt())) {
-            return manuscript.getSummaryPrompt();
-        }
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (StringUtils.isNotBlank(userSetting.getDefaultSummaryPrompt())) {
-            return userSetting.getDefaultSummaryPrompt();
-        }
-        return Defaults.DEFAULT_SUMMARY_PROMPT;
+        return resolve(manuscript, PromptField.SUMMARY_PROMPT).value();
     }
 
     @Override
     public String getRedraftSystemPrompt(Manuscript manuscript) throws Exception {
-        if (StringUtils.isNotBlank(manuscript.getRedraftSystemPrompt())) {
-            return manuscript.getRedraftSystemPrompt();
-        }
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (StringUtils.isNotBlank(userSetting.getDefaultRedraftSystemPrompt())) {
-            return userSetting.getDefaultRedraftSystemPrompt();
-        }
-        return Defaults.DEFAULT_REDRAFT_SYSTEM_PROMPT;
+        return resolve(manuscript, PromptField.REDRAFT_SYSTEM_PROMPT).value();
     }
 
     @Override
     public String getAnnotateSystemPrompt(Manuscript manuscript) throws Exception {
-        if (StringUtils.isNotBlank(manuscript.getAnnotateSystemPrompt())) {
-            return manuscript.getAnnotateSystemPrompt();
-        }
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (StringUtils.isNotBlank(userSetting.getDefaultAnnotateSystemPrompt())) {
-            return userSetting.getDefaultAnnotateSystemPrompt();
-        }
-        return Defaults.DEFAULT_ANNOTATE_SYSTEM_PROMPT;
+        return resolve(manuscript, PromptField.ANNOTATE_SYSTEM_PROMPT).value();
     }
 
     @Override
     public String getRedraftPrompt(Manuscript manuscript) throws Exception {
-        if (StringUtils.isNotBlank(manuscript.getRedraftPrompt())) {
-            return manuscript.getRedraftPrompt();
-        }
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (StringUtils.isNotBlank(userSetting.getDefaultRedraftPrompt())) {
-            return userSetting.getDefaultRedraftPrompt();
-        }
-        return Defaults.DEFAULT_REDRAFT_PROMPT;
+        return resolve(manuscript, PromptField.REDRAFT_PROMPT).value();
     }
 
     @Override
     public String getAnnotatePrompt(Manuscript manuscript) throws Exception {
-        if (StringUtils.isNotBlank(manuscript.getAnnotatePrompt())) {
-            return manuscript.getAnnotatePrompt();
-        }
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (StringUtils.isNotBlank(userSetting.getDefaultAnnotatePrompt())) {
-            return userSetting.getDefaultAnnotatePrompt();
-        }
-        return Defaults.DEFAULT_ANNOTATE_PROMPT;
+        return resolve(manuscript, PromptField.ANNOTATE_PROMPT).value();
     }
 
     @Override
     public String getImpersonatePrompt(Manuscript manuscript) throws Exception {
-        if (StringUtils.isNotBlank(manuscript.getImpersonatePrompt())) {
-            return manuscript.getImpersonatePrompt();
-        }
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (StringUtils.isNotBlank(userSetting.getDefaultImpersonatePrompt())) {
-            return userSetting.getDefaultImpersonatePrompt();
-        }
-        return Defaults.DEFAULT_IMPERSONATE_PROMPT;
+        return resolve(manuscript, PromptField.IMPERSONATE_PROMPT).value();
     }
 
     @Override
     public String getMetaSummaryPrompt(Manuscript manuscript) throws Exception {
-        if (StringUtils.isNotBlank(manuscript.getMetaSummaryPrompt())) {
-            return manuscript.getMetaSummaryPrompt();
-        }
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (StringUtils.isNotBlank(userSetting.getDefaultMetaSummaryPrompt())) {
-            return userSetting.getDefaultMetaSummaryPrompt();
-        }
-        return Defaults.DEFAULT_META_SUMMARY;
+        return resolve(manuscript, PromptField.META_SUMMARY_PROMPT).value();
     }
 
     @Override
