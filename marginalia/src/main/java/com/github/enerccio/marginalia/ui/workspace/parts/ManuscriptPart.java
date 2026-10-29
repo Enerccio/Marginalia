@@ -259,12 +259,12 @@ public class ManuscriptPart implements ManuscriptSection {
                 .setWidth(UIConstants.TOOL_COLUMN_SIZE_LARGE)
                 .setSortable(false);
 
-        creationColumn = grid.addColumn(row -> loc.getDateHourFormat().format(row.isFolder() ? row.getFolder().getCreation() : row.getBook().getCreation()))
+        creationColumn = grid.addColumn(row -> row.isFavorites() ? "" : loc.getDateHourFormat().format(row.isFolder() ? row.getFolder().getCreation() : row.getBook().getCreation()))
                 .setHeader(loc.getValue(L.LABEL_CREATED))
                 .setSortProperty("creation")
                 .setSortable(true);
 
-        modificationColumn = grid.addColumn(row -> loc.getDateHourFormat().format(row.isFolder() ? row.getFolder().getModification() : row.getBook().getModification()))
+        modificationColumn = grid.addColumn(row -> row.isFavorites() ? "" : loc.getDateHourFormat().format(row.isFolder() ? row.getFolder().getModification() : row.getBook().getModification()))
                 .setHeader(loc.getValue(L.LABEL_LAST_MODIFIED))
                 .setSortProperty("modification")
                 .setSortable(true);
