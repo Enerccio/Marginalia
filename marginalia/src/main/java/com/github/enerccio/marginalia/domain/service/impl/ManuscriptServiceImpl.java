@@ -632,7 +632,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
             // the entries have no uuid in the backup format, the base and the copy need them
             base.add("lorebooks", lorebookService.marshalLorebooks(originalLorebook, true));
         }
-        return copyFromSnapshot(base);
+        return copyFromSnapshot(base, source.getFolder());
     }
 
     @Override
@@ -641,7 +641,8 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         if (snapshot == null || !snapshot.has("messages") && !snapshot.has("name")) {
             throw new IllegalArgumentException("The snapshot is not the backup of a book");
         }
-        return copyFromSnapshot(snapshot);
+        // the folder is the book's, which a snapshot does not name: the run puts the copy there, see setAgenticCopyFolder
+        return copyFromSnapshot(snapshot, null);
     }
 
     @Override
@@ -665,7 +666,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     /**
      * The working copy of a backup with its lorebooks ({@code lorebooks}); the backup is also the base that is returned.
      */
-    private AgenticCopy copyFromSnapshot(JsonObject base) throws Exception {
+    private AgenticCopy copyFromSnapshot(JsonObject base, Folder folder) throws Exception {
         JsonObject lorebookRef = base.has("lorebook") && base.get("lorebook").isJsonObject() ? base.getAsJsonObject("lorebook") : null;
         JsonArray lorebooks = base.has("lorebooks") && base.get("lorebooks").isJsonArray() ? base.getAsJsonArray("lorebooks") : null;
 
@@ -681,6 +682,8 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         List<UuidPair> pairs = new ArrayList<>();
         Manuscript copy = cloneFromBackup(cloneSource, pairs);
         copy.setAgentic(true);
+        // the copy resolves its settings through the folders of the book it copies
+        copy.setFolder(folder);
         if (lorebookRef != null && lorebooks != null && lorebookRef.has("uuid") && !lorebookRef.get("uuid").isJsonNull()) {
             copy.setLorebook(lorebookService.copyLorebooks(lorebooks, pairs).get(lorebookRef.get("uuid").getAsString()));
         }
@@ -727,6 +730,24 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         stored.setAi(ai);
         stored.setProtocol(protocol);
         saveWithoutEvent(stored);
+    }
+
+    @Override
+    @CommonTx
+    public void setAgenticCopyFolder(Manuscript copy, Folder folder) throws Exception {
+        Manuscript stored = copy == null ? null : find(copy);
+        if (stored == null) {
+            return;
+        }
+        if (!stored.isAgentic()) {
+            throw new IllegalArgumentException("The manuscript " + stored.getUuid() + " is not a working copy of an agent");
+        }
+        Folder target = folder == null ? null : folderService.find(folder.getId());
+        if (Objects.equals(stored.getFolder() == null ? null : stored.getFolder().getId(), target == null ? null : target.getId())) {
+            return;
+        }
+        stored.setFolder(target);
+        saveWithoutModification(stored);
     }
 
     @Override

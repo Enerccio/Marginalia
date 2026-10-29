@@ -778,6 +778,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_INHERITED_FROM_FOLDER, "Inherited from the folder \"%s\"");
         setValue(L.LABEL_INHERITED_FROM_USER, "Inherited from your settings");
         setValue(L.LABEL_INHERITED_DEFAULT, "Built-in default");
+        setValue(L.LABEL_EXPORT_INHERITED_SETTINGS, "Include inherited settings in the export");
+        setValue(L.LABEL_HELP_BOOKS_ACCESS, "Let the assistant look at my books");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1330,6 +1332,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_ORGANISE_COPY_TO, "Copy %d items to \"%s\"?");
         setValue(L.MSG_FOLDER_CLASH, "A folder named \"%s\" already exists in \"%s\". What should happen?");
         setValue(L.MSG_ORGANISE_SAME_FOLDER, "Both panes show the same folder, open another one in the other pane.");
+        setValue(L.MSG_HELP_BOOKS_NOTICE, "The assistant reads folder names, titles, descriptions and the writing settings of your books, and searches their text; it never reads the text of a story. What it reads is sent to the AI that answers. It cannot change anything.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

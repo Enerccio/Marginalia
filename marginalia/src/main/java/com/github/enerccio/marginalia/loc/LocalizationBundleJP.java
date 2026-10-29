@@ -778,6 +778,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_INHERITED_FROM_FOLDER, "フォルダ「%s」から継承");
         setValue(L.LABEL_INHERITED_FROM_USER, "ユーザー設定から継承");
         setValue(L.LABEL_INHERITED_DEFAULT, "組み込みのデフォルト");
+        setValue(L.LABEL_EXPORT_INHERITED_SETTINGS, "継承された設定をエクスポートに含める");
+        setValue(L.LABEL_HELP_BOOKS_ACCESS, "アシスタントに私の本を見せる");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1330,6 +1332,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_ORGANISE_COPY_TO, "%d 個の項目を「%s」にコピーしますか？");
         setValue(L.MSG_FOLDER_CLASH, "「%s」というフォルダが「%s」にすでにあります。どうしますか？");
         setValue(L.MSG_ORGANISE_SAME_FOLDER, "両方のペインが同じフォルダを表示しています。もう一方のペインで別のフォルダを開いてください。");
+        setValue(L.MSG_HELP_BOOKS_NOTICE, "アシスタントは、フォルダ名、タイトル、説明、本の執筆設定を読み、本文を検索しますが、物語の本文を読むことはありません。読み取った内容は回答するAIに送信されます。何も変更できません。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

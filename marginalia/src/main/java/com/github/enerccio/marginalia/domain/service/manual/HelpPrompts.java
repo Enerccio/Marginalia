@@ -58,6 +58,21 @@ public final class HelpPrompts {
             """;
 
     /**
+     * Added to the prompt when the user let the assistant look at their books (the earlier "you cannot read the user's
+     * books" is then true of the text of the stories only).
+     */
+    public static final String BOOKS = """
+
+            The user allowed you to look at their books. list_folder shows a folder (the top level when no path is \
+            given): its subfolders and the books in it, with titles and descriptions; search_books finds books by words \
+            of the title, the description or the text of the story ("where is my book about ...?") and says where it was \
+            found; get_book_settings tells which language, point of view, tense, style and prompts a book writes with \
+            and where each comes from (its own, a folder, the user's settings or the built-in default). You see titles, \
+            descriptions, folder names and these settings, never the text of a story, and you cannot change, move or \
+            create anything: tell the user where to click. Use them only when the question is about the user's books.
+            """;
+
+    /**
      * Added to the prompt (after the one an administrator may have edited) when the assistant may interact with the
      * interface, so that a changed prompt cannot lose the rules of it.
      */

@@ -709,6 +709,10 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
         if (old == null || copy == null) {
             throw new IllegalArgumentException("The run has no working copy to replace");
         }
+        // a copy made of a snapshot knows no folder: it is in the one of the book, as the copy it replaces
+        Manuscript original = stored.getAgent() == null || stored.getAgent().getManuscript() == null ? null
+                : manuscriptService.find(stored.getAgent().getManuscript());
+        manuscriptService.setAgenticCopyFolder(copy, original == null ? null : original.getFolder());
         // the run points at the new copy first, then the old one can be deleted
         getRepository().updateWorkingCopy(stored.getId(), copy);
         pairService.replace(stored, pairs);

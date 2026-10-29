@@ -83,6 +83,18 @@ public interface HelpAssistantService {
     boolean isAvailable() throws Exception;
 
     /**
+     * Whether the current user let the assistant look at their books, see {@link
+     * com.github.enerccio.marginalia.domain.service.manual.BookHelpTools}. Off until they turn it on (the panel of the
+     * assistant): what it reads goes to the AI that answers.
+     */
+    boolean isBooksAllowed() throws Exception;
+
+    /**
+     * Saves the choice of the current user, see {@link #isBooksAllowed()}.
+     */
+    void setBooksAllowed(boolean allowed) throws Exception;
+
+    /**
      * What the current user is told about the assistant: which AI answers and whether their limit applies.
      *
      * @return null when the assistant is not available

@@ -70,6 +70,12 @@ class CleanupServiceTest extends MarginaliaTestBase {
     private SettingService settingService;
 
     @Autowired
+    private FolderService folderService;
+
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
+
+    @Autowired
     private ResourceService resourceService;
 
     @Autowired
@@ -453,6 +459,80 @@ class CleanupServiceTest extends MarginaliaTestBase {
         // the tag itself is shared vocabulary and stays
         assertThat(tagService.find(tag.getId())).isNotNull();
         assertThat(plan.getStats().get(ChatMessage.class).getPurgeable()).isGreaterThanOrEqualTo(3);
+    }
+
+    // ------------------------------------------------------------------------------------------------------------
+    // folders
+    // ------------------------------------------------------------------------------------------------------------
+
+    private Folder folder(String name, Folder parent) throws Exception {
+        return folderService.create(uniqueName(name), parent);
+    }
+
+    private Manuscript bookIn(Folder folder) throws Exception {
+        Manuscript manuscript = new Manuscript();
+        manuscript.setName(uniqueName("book"));
+        manuscript.setFolder(folder);
+        return manuscriptService.save(manuscript);
+    }
+
+    @Test
+    void aFolderDeletedWithItsContentTakesTheSubfoldersTheBooksTheirStoriesAndTheTagLinks() throws Exception {
+        Folder top = folder("top", null);
+        Folder inner = folder("inner", top);
+        Manuscript book = bookIn(inner);
+        ChatMessage root = message(book, null, "root");
+        ChatMessage child = message(book, root, "child");
+        Tag tag = tag("genre");
+        TagRelation folderLink = tagRelationService.createRelation(tag, top);
+        TagRelation bookLink = tagRelationService.createRelation(tag, book);
+        folderService.deleteWithContent(folderService.find(top.getId()));
+
+        CleanupPlan plan = cleanupService.purge();
+
+        assertThat(plan.getPurge()).contains(key(top), key(inner), key(book), key(root), key(child), key(folderLink), key(bookLink));
+        assertThat(folderService.find(top.getId())).isNull();
+        assertThat(folderService.find(inner.getId())).isNull();
+        assertThat(manuscriptService.find(book.getId())).isNull();
+        assertThat(chatMessageService.find(child.getId())).isNull();
+        assertThat(tagRelationService.find(folderLink.getId())).isNull();
+        assertThat(tagService.find(tag.getId())).as("the tag is shared vocabulary").isNotNull();
+    }
+
+    @Test
+    void aFolderDeletedWithItsContentMovedUpIsPurgedAloneAndTheBooksLive() throws Exception {
+        Folder top = folder("top", null);
+        Folder middle = folder("middle", top);
+        Manuscript book = bookIn(middle);
+        Folder sub = folder("sub", middle);
+        folderService.delete(folderService.find(middle.getId()), false);
+
+        CleanupPlan plan = cleanupService.purge();
+
+        assertThat(plan.getPurge()).contains(key(middle)).doesNotContain(key(top), key(sub), key(book));
+        assertThat(folderService.find(middle.getId())).isNull();
+        assertThat(folderService.find(sub.getId())).isNotNull();
+        assertThat(folderService.getPath(folderService.find(sub.getId()).getParent())).isEqualTo(folderService.find(top.getId()).getName());
+        assertThat(folderService.getPath(manuscriptService.find(book.getId()).getFolder())).isEqualTo(folderService.find(top.getId()).getName());
+    }
+
+    @Test
+    void aLiveBookInAPurgedFolderIsOnlyUnlinkedAndTheFoldersBelowGoWithIt() throws Exception {
+        // a folder is never deleted with a live book in it by the services, so the state is made by hand
+        Folder top = folder("top", null);
+        Folder inner = folder("inner", top);
+        Manuscript book = bookIn(inner);
+        jdbc.update("UPDATE folders SET is_deleted = 1 WHERE id = ?", top.getId());
+
+        CleanupPlan plan = cleanupService.purge();
+
+        assertThat(plan.getPurge()).contains(key(top), key(inner)).doesNotContain(key(book));
+        assertThat(folderService.find(top.getId())).isNull();
+        assertThat(folderService.find(inner.getId())).isNull();
+        Manuscript kept = manuscriptService.find(book.getId());
+        assertThat(kept).isNotNull();
+        assertThat(kept.isDeleted()).isFalse();
+        assertThat(kept.getFolder()).as("it is at the top level now").isNull();
     }
 
     @Test

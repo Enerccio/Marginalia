@@ -22,6 +22,18 @@ public class JpaManuscriptRepository extends JpaExtendableRepository<Manuscript>
         return Manuscript.class;
     }
 
+    /**
+     * A change of a book (saved, deleted) is a change of the folders it is in, see {@link FolderModification}. Not for
+     * {@code saveWithoutModification}, nor for opening and moving a book, which leave the book's own modification alone too.
+     */
+    @Override
+    protected void changed(Manuscript book) throws Exception {
+        // the working copy of an agent is no content of the folder
+        if (book.getFolder() != null && !book.isAgentic()) {
+            FolderModification.touch(entityManager, book.getFolder().getId(), new Date());
+        }
+    }
+
     @Override
     public Manuscript findViewable(String uuid, User user) throws Exception {
         List<Manuscript> results = getEntityManager().createQuery(

@@ -30,10 +30,12 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
             return;
         }
         // bulk update: the extended content of the book is not touched, nor is its dirty state
+        Date now = new Date();
         entityManager.createQuery("UPDATE Manuscript m SET m.modification = :now WHERE m.id = :id")
-                .setParameter("now", new Date())
+                .setParameter("now", now)
                 .setParameter("id", book.getId())
                 .executeUpdate();
+        FolderModification.touchOfBook(entityManager, book.getId(), now);
     }
 
     @Override
