@@ -56,7 +56,8 @@ collects the ideas and the decisions before the work starts. All of it ships in 
   focused pane. All three therefore get a scope (a folder + *include subfolders*, or an explicit selection); `MultiTagDialog`
   (`Kind.BOOKS`) is rewritten the same way and gets a folder kind. The two-pane dialog has the advanced book search too
   (`ManuscriptSearchDialog`, with the search in the parts of the story); a hit has *show in folder*, which moves the focused
-  pane there. The search takes a folder scope (+ subfolders).
+  pane there. The search takes a folder scope (+ subfolders). Also have a button to show folder in view that will close the dialog
+  and open the folder in the main View.
 - **Keyboard in the two-pane dialog (decided: yes, if it works):** Left / Right switch the active pane, Up / Down move the
   cursor in it, Enter opens the folder under the cursor, Backspace goes up one level, Space / Insert (and Shift+arrows)
   mark entries, F5 copy, F6 move, F7 new folder, F8 delete, F2 rename, Esc closes. Shown on the buttons like the menus of the story

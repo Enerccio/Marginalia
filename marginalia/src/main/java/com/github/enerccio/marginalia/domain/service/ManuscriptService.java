@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.collections.Language;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
+import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.repository.ManuscriptRepository;
@@ -50,6 +51,15 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
      * Finds manuscript by uuid if current user can view it (owns it or it is published), null otherwise.
      */
     Manuscript findViewable(String uuid) throws Exception;
+
+    /**
+     * Puts the books on the folder (null is the top level). It is not a change of the content, so the books are not saved
+     * and their {@code modification} stays.
+     *
+     * @throws IllegalArgumentException    when the folder or a book is not the user's
+     * @throws ManuscriptLockedException when an agent works on a book
+     */
+    void moveToFolder(Collection<Manuscript> books, Folder folder) throws Exception;
 
     /**
      * Marks manuscript as opened by its owner, used to order recently opened books.
