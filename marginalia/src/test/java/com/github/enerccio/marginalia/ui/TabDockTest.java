@@ -6,12 +6,15 @@ import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart;
+import com.github.enerccio.marginalia.ui.dialogs.story.StoryDockLayout;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dnd.DragStartEvent;
 import com.vaadin.flow.component.dnd.DropEvent;
 import com.vaadin.flow.component.html.Div;
@@ -919,6 +922,327 @@ class TabDockTest extends MarginaliaTestBase {
 
         assertThat(dialog.storeState().getAsJsonObject("parts").getAsJsonObject("story").getAsJsonObject("tabs"))
                 .isEqualTo(json("{\"selected\":[\"extra\"]}"));
+    }
+
+    // ---- minimizing
+
+    private static List<Button> barIcons(TabDock dock) {
+        return descendants(dock, Button.class).stream()
+                .filter(button -> button.getClassNames().contains(CssStyles.TAB_DOCK_BAR_ICON)).collect(Collectors.toList());
+    }
+
+    private static Div bar(TabDock dock) {
+        return divs(dock, CssStyles.TAB_DOCK_BAR).get(0);
+    }
+
+    private static void click(Button button) {
+        ComponentUtil.fireEvent(button, new ClickEvent<>(button));
+    }
+
+    @Test
+    void aMinimizedTabLeavesItsSheetAndShowsInTheBar() throws Exception {
+        login();
+        TabDock dock = dock("a", "b", "c");
+        Div content = new Div();
+        dock.add("b", "B", content);
+
+        assertThat(bar(dock).isVisible()).isFalse();
+        assertThat(dock.minimize("b")).isTrue();
+
+        assertThat(captions(sheets(dock).get(0))).containsExactly("A", "C");
+        assertThat(dock.isMinimized("b")).isTrue();
+        assertThat(bar(dock).isVisible()).isTrue();
+        assertThat(barIcons(dock)).hasSize(1);
+        // the layout keeps its place, and says what is minimized
+        assertThat(dock.getLayout()).isEqualTo(json("{\"columns\":[{\"groups\":[{\"tabs\":[\"a\",\"b\",\"c\"]}]}],\"minimized\":[\"b\"]}"));
+        // the content is alive, not in a sheet
+        assertThat(content.getParent()).isEmpty();
+    }
+
+    @Test
+    void restoringATabPutsItBackWhereItWas() throws Exception {
+        login();
+        TabDock dock = dock("a", "b", "c");
+        List<JsonObject> changes = new java.util.ArrayList<>();
+        dock.minimize("b");
+        dock.setOnLayoutChange(() -> changes.add(dock.getLayout()));
+
+        click(barIcons(dock).get(0));
+
+        assertThat(captions(sheets(dock).get(0))).containsExactly("A", "B", "C");
+        assertThat(sheets(dock).get(0).getSelectedTab().getLabel()).isEqualTo("B");
+        assertThat(dock.isMinimized("b")).isFalse();
+        assertThat(bar(dock).isVisible()).isFalse();
+        assertThat(dock.getLayout()).isEqualTo(layout("\"a\",\"b\",\"c\""));
+        assertThat(changes).hasSize(1);
+    }
+
+    @Test
+    void theMinimizeButtonOfATabMinimizesIt() throws Exception {
+        login();
+        TabDock dock = dock("a", "b");
+        Button minimize = descendants(tab(dock, "B"), Button.class).get(0);
+        assertThat(minimize.getClassNames()).contains(CssStyles.TAB_DOCK_MINIMIZE);
+
+        click(minimize);
+
+        assertThat(captions(sheets(dock).get(0))).containsExactly("A");
+        assertThat(barIcons(dock)).hasSize(1);
+    }
+
+    @Test
+    void aTabThatIsNotMinimizableStays() throws Exception {
+        login();
+        TabDock dock = dock("a", "b");
+        dock.setMinimizable("a", false);
+
+        assertThat(dock.minimize("a")).isFalse();
+        assertThat(descendants(tab(dock, "A"), Button.class).get(0).isVisible()).isFalse();
+        assertThat(descendants(tab(dock, "B"), Button.class).get(0).isVisible()).isTrue();
+        assertThat(captions(sheets(dock).get(0))).containsExactly("A", "B");
+
+        // also for a tab that comes later
+        TabDock later = new TabDock();
+        later.setMinimizable("x", false);
+        later.add("x", "X", new Div());
+        assertThat(later.minimize("x")).isFalse();
+    }
+
+    @Test
+    void aDockThatIsNotDetachableHasNoMinimizing() throws Exception {
+        login();
+        TabDock dock = new TabDock(false);
+        dock.add("a", "A", new Div());
+
+        assertThat(dock.minimize("a")).isFalse();
+        assertThat(descendants(dock, Button.class)).isEmpty();
+    }
+
+    @Test
+    void aSheetWithOnlyMinimizedTabsComesBackWhereItWas() throws Exception {
+        login();
+        TabDock dock = dock("a", "b", "c");
+        dock.setLayout(columns("\"a\"", null, "\"b\"", "\"c\""));
+        assertThat(columnBoxes(dock)).hasSize(2);
+
+        dock.minimize("a");
+        assertThat(columnBoxes(dock)).hasSize(1);
+        assertThat(dock.getLayout().getAsJsonArray("columns")).hasSize(2);
+
+        dock.restore("a");
+        assertThat(columnBoxes(dock)).hasSize(2);
+        assertThat(captions(sheets(dock).get(0))).containsExactly("A");
+        assertThat(captions(sheets(dock).get(1))).containsExactly("B");
+    }
+
+    @Test
+    void theSheetShowsAnotherTabWhenTheSelectedOneIsMinimized() throws Exception {
+        login();
+        TabDock dock = dock("a", "b", "c");
+        dock.select("b");
+
+        dock.minimize("b");
+
+        assertThat(sheets(dock).get(0).getSelectedTab().getLabel()).isIn("A", "C");
+        assertThat(dock.storeState().has("selected")).isTrue();
+        assertThat(dock.storeState().getAsJsonArray("selected").toString()).doesNotContain("\"b\"");
+
+        dock.restore("b");
+        assertThat(sheets(dock).get(0).getSelectedTab().getLabel()).isEqualTo("B");
+    }
+
+    @Test
+    void selectingAMinimizedTabRestoresIt() throws Exception {
+        login();
+        TabDock dock = dock("a", "b");
+        dock.minimize("b");
+
+        assertThat(dock.select("b")).isTrue();
+
+        assertThat(dock.isMinimized("b")).isFalse();
+        assertThat(captions(sheets(dock).get(0))).containsExactly("A", "B");
+        assertThat(sheets(dock).get(0).getSelectedTab().getLabel()).isEqualTo("B");
+    }
+
+    @Test
+    void theNextTabSkipsTheMinimizedOnes() throws Exception {
+        login();
+        TabDock dock = dock("a", "b", "c");
+        dock.select("a");
+        dock.minimize("b");
+
+        dock.selectRelative(1);
+
+        assertThat(sheets(dock).get(0).getSelectedTab().getLabel()).isEqualTo("C");
+    }
+
+    @Test
+    void theBarCanBeMovedToEverySide() throws Exception {
+        login();
+        TabDock dock = dock("a", "b");
+        List<JsonObject> changes = new java.util.ArrayList<>();
+        dock.setOnLayoutChange(() -> changes.add(dock.getLayout()));
+        dock.minimize("b");
+        changes.clear();
+
+        assertThat(dock.getDockSide()).isEqualTo(TabDock.DockSide.LEFT);
+        assertThat(dock.getClassNames()).contains(CssStyles.TAB_DOCK_AT_LEFT);
+
+        dock.setDockSide(TabDock.DockSide.BOTTOM);
+
+        assertThat(dock.getClassNames()).contains(CssStyles.TAB_DOCK_AT_BOTTOM).doesNotContain(CssStyles.TAB_DOCK_AT_LEFT);
+        assertThat(dock.getLayout().get("dock").getAsString()).isEqualTo("bottom");
+        assertThat(changes).hasSize(1);
+        // no change, no event
+        dock.setDockSide(TabDock.DockSide.BOTTOM);
+        assertThat(changes).hasSize(1);
+        for (TabDock.DockSide side : TabDock.DockSide.values()) {
+            dock.setDockSide(side);
+            assertThat(dock.getDockSide()).isEqualTo(side);
+            assertThat(dock.getClassNames().stream().filter(name -> name.startsWith("tab-dock-at-"))).hasSize(1);
+        }
+    }
+
+    @Test
+    void theMoveButtonSendsTheBarToTheNextSideClockwise() throws Exception {
+        login();
+        TabDock dock = dock("a", "b");
+        dock.minimize("b");
+        Button move = descendants(bar(dock), Button.class).stream()
+                .filter(button -> button.getClassNames().contains(CssStyles.TAB_DOCK_BAR_MOVE)).findFirst().orElseThrow();
+
+        List<TabDock.DockSide> sides = new java.util.ArrayList<>();
+        for (int i = 0; i < 4; i++) {
+            click(descendants(bar(dock), Button.class).stream()
+                    .filter(button -> button.getClassNames().contains(CssStyles.TAB_DOCK_BAR_MOVE)).findFirst().orElseThrow());
+            sides.add(dock.getDockSide());
+        }
+
+        assertThat(move).isNotNull();
+        assertThat(sides).containsExactly(TabDock.DockSide.TOP, TabDock.DockSide.RIGHT, TabDock.DockSide.BOTTOM, TabDock.DockSide.LEFT);
+    }
+
+    @Test
+    void theMinimizedTabsAndTheSideAreAppliedWithTheLayout() throws Exception {
+        login();
+        TabDock source = dock("a", "b", "c");
+        source.minimize("c");
+        source.minimize("a");
+        source.setDockSide(TabDock.DockSide.RIGHT);
+        JsonObject saved = source.getLayout();
+        assertThat(saved.getAsJsonArray("minimized").toString()).isEqualTo("[\"c\",\"a\"]");
+
+        TabDock dock = dock("a", "b", "c");
+        dock.setLayout(saved);
+
+        assertThat(captions(sheets(dock).get(0))).containsExactly("B");
+        assertThat(barIcons(dock)).hasSize(2);
+        assertThat(dock.getDockSide()).isEqualTo(TabDock.DockSide.RIGHT);
+        assertThat(dock.getLayout()).isEqualTo(saved);
+
+        // a layout without them restores everything
+        dock.setLayout(layout("\"a\",\"b\",\"c\""));
+        assertThat(captions(sheets(dock).get(0))).containsExactly("A", "B", "C");
+        assertThat(bar(dock).isVisible()).isFalse();
+        assertThat(dock.getDockSide()).isEqualTo(TabDock.DockSide.LEFT);
+    }
+
+    @Test
+    void aTabThatComesLaterIsMinimizedWhenTheLayoutSaysSo() throws Exception {
+        login();
+        TabDock dock = dock("a");
+        dock.setLayout(json("{\"columns\":[{\"groups\":[{\"tabs\":[\"a\",\"extra\"]}]}],\"minimized\":[\"extra\"]}"));
+        assertThat(barIcons(dock)).isEmpty();
+
+        dock.add("extra", "Extra", new Div());
+
+        assertThat(captions(sheets(dock).get(0))).containsExactly("A");
+        assertThat(barIcons(dock)).hasSize(1);
+    }
+
+    @Test
+    void theIconOfATabHasItsDescription() throws Exception {
+        login();
+        TabDock dock = new TabDock();
+        dock.add("a", "A", new Div());
+        dock.add("b", "Side Query", "SQ", new Div());
+        dock.minimize("b");
+
+        Button icon = barIcons(dock).get(0);
+        assertThat(icon.getAriaLabel()).hasValueSatisfying(label -> assertThat(label).endsWith("Side Query"));
+        assertThat(descendants(icon, com.vaadin.flow.component.html.Image.class).get(0).getAlt()).hasValue("Side Query");
+        assertThat(descendants(icon, com.vaadin.flow.component.html.Image.class).get(0).getSrc()).startsWith("data:image/svg+xml;base64,");
+    }
+
+    @Test
+    void storyPartKeepsTheMinimizedTabsInTheManuscript() throws Exception {
+        login();
+        Manuscript manuscript = book();
+        ManuscriptDialog dialog = opened(manuscript);
+        TabDock dock = leftBar(dialog);
+        attached(dock);
+
+        // the story is the one tab that has no button
+        assertThat(descendants(tab(dock, "Story"), Button.class).get(0).isVisible()).isFalse();
+        assertThat(dock.minimize(STORY)).isFalse();
+        dock.minimize(LOREBOOK);
+        dock.setDockSide(TabDock.DockSide.TOP);
+
+        JsonObject stored = manuscriptService.find(manuscript).getAttributes()
+                .getAsJsonObject(ManuscriptStoryPart.TABS_CONFIG_ATTRIBUTE);
+        assertThat(stored.getAsJsonArray("minimized").toString()).isEqualTo("[\"" + LOREBOOK + "\"]");
+        assertThat(stored.get("dock").getAsString()).isEqualTo("top");
+
+        // a dialog opened later has them as they were left
+        TabDock reopened = leftBar(opened(manuscriptService.find(manuscript)));
+        assertThat(reopened.isMinimized(LOREBOOK)).isTrue();
+        assertThat(reopened.getDockSide()).isEqualTo(TabDock.DockSide.TOP);
+    }
+
+    @Test
+    void theDefaultLayoutOfTheUserIsUsedByBooksWithoutOne() throws Exception {
+        login();
+        ManuscriptDialog dialog = opened(book());
+        TabDock dock = leftBar(dialog);
+        attached(dock);
+        dock.minimize(ANNOTATIONS);
+        dock.setDockSide(TabDock.DockSide.RIGHT);
+        JsonObject arranged = dock.getLayout();
+
+        storyPart(dialog).saveLayoutAsDefault();
+
+        // a book that has no arrangement opens with it, and does not store it
+        Manuscript other = book();
+        TabDock otherDock = leftBar(opened(other));
+        assertThat(otherDock.getLayout()).isEqualTo(arranged);
+        assertThat(manuscriptService.find(other).getAttributes().has(ManuscriptStoryPart.TABS_CONFIG_ATTRIBUTE)).isFalse();
+
+        // a book with its own arrangement keeps it
+        Manuscript own = book();
+        own.getAttributes().add(ManuscriptStoryPart.TABS_CONFIG_ATTRIBUTE, StoryDockLayout.defaultLayout(STORY, null, CHAPTERS, LOREBOOK, ANNOTATIONS));
+        own = manuscriptService.save(own);
+        TabDock ownDock = leftBar(opened(own));
+        assertThat(ownDock.isMinimized(ANNOTATIONS)).isFalse();
+        assertThat(ownDock.getDockSide()).isEqualTo(TabDock.DockSide.LEFT);
+    }
+
+    @Test
+    void restoreDefaultLayoutGoesToTheDefaultOfTheUser() throws Exception {
+        login();
+        ManuscriptDialog dialog = opened(book());
+        TabDock dock = leftBar(dialog);
+        attached(dock);
+        dock.minimize(ANNOTATIONS);
+        storyPart(dialog).saveLayoutAsDefault();
+        dock.restore(ANNOTATIONS);
+        dock.minimize(LOREBOOK);
+
+        java.lang.reflect.Method restore = ManuscriptStoryPart.class.getDeclaredMethod("restoreDefaultLayout");
+        restore.setAccessible(true);
+        restore.invoke(storyPart(dialog));
+
+        assertThat(dock.isMinimized(ANNOTATIONS)).isTrue();
+        assertThat(dock.isMinimized(LOREBOOK)).isFalse();
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.widgets;
 
+import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
@@ -10,11 +11,14 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dnd.DragSource;
 import com.vaadin.flow.component.dnd.DropEffect;
 import com.vaadin.flow.component.dnd.DropTarget;
 import com.vaadin.flow.component.dnd.EffectAllowed;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.TabSheet;
@@ -41,6 +45,12 @@ import java.util.function.Consumer;
  * the place of tabs that are not (yet) in the dock and a tab it does not know goes to the first sheet. What the layout
  * does not hold - the selected tab of each sheet - is the {@link Restorable} state.
  * <p>
+ * A tab of a detachable dock has a button that {@linkplain #minimize minimizes} it: the tab leaves its sheet but keeps its
+ * place in the layout and its content (the component stays alive), and an icon of it shows up in a bar at one side of the dock
+ * ({@linkplain #setDockSide the user moves the bar} to any of the four sides). Clicking the icon {@linkplain #restore restores}
+ * the tab where it was. Which tabs are minimized and the side of the bar are a part of the {@linkplain #getLayout() layout}.
+ * A tab can be made {@linkplain #setMinimizable not minimizable} (the story, so that something is always on the screen).
+ * <p>
  * A general widget: it knows nothing of the story, whoever needs detachable tabs can use it (and keep the layout where it
  * likes).
  */
@@ -54,6 +64,42 @@ public class TabDock extends Div implements Restorable {
     private static final String KEY_TABS = "tabs";
     private static final String KEY_SIZE = "size";
     private static final String KEY_SELECTED = "selected";
+    private static final String KEY_MINIMIZED = "minimized";
+    private static final String KEY_DOCK = "dock";
+
+    /**
+     * The side of the dock where the bar with the icons of the minimized tabs is.
+     */
+    public enum DockSide {
+        LEFT(CssStyles.TAB_DOCK_AT_LEFT, "left"),
+        TOP(CssStyles.TAB_DOCK_AT_TOP, "top"),
+        RIGHT(CssStyles.TAB_DOCK_AT_RIGHT, "right"),
+        BOTTOM(CssStyles.TAB_DOCK_AT_BOTTOM, "bottom");
+
+        private final String cssClass;
+        private final String key;
+
+        DockSide(String cssClass, String key) {
+            this.cssClass = cssClass;
+            this.key = key;
+        }
+
+        /**
+         * @return the side clockwise from this one
+         */
+        public DockSide next() {
+            return values()[(ordinal() + 1) % values().length];
+        }
+
+        private static DockSide of(String key) {
+            for (DockSide side : values()) {
+                if (side.key.equals(key)) {
+                    return side;
+                }
+            }
+            return LEFT;
+        }
+    }
 
     @Autowired
     private Localization loc;
@@ -65,11 +111,15 @@ public class TabDock extends Div implements Restorable {
         private final String id;
         private final Component content;
         private final Tab tab;
+        // the letters of the icon in the bar of the minimized tabs, null for the ones of the caption
+        private final String letters;
         private DropTarget<Tab> drop;
+        private Button minimizeButton;
 
-        private Entry(String id, String caption, Component content) {
+        private Entry(String id, String caption, String letters, Component content) {
             this.id = id;
             this.content = content;
+            this.letters = letters;
             this.tab = new Tab(caption);
         }
     }
@@ -101,6 +151,16 @@ public class TabDock extends Div implements Restorable {
     private final List<Column> columns = new ArrayList<>();
     // groups that were dropped from the layout, their sheets still have to give the tabs back
     private final List<Group> retired = new ArrayList<>();
+    // the ids of the minimized tabs in the order they were minimized, tabs that are not (yet) in the dock too
+    private final Set<String> minimized = new LinkedHashSet<>();
+    // the tabs that have no minimize button
+    private final Set<String> fixed = new HashSet<>();
+    private final Div body = new Div();
+    private final Div bar = new Div();
+    private DockSide dockSide = DockSide.LEFT;
+    // what the bar shows now, the bar is built again only when this changes
+    private List<String> shownBar = new ArrayList<>();
+    private DockSide shownSide;
     // the sheets that are shown, by column
     private List<List<Group>> shown = new ArrayList<>();
     private final Set<String> pendingSelection = new HashSet<>();
@@ -125,6 +185,11 @@ public class TabDock extends Div implements Restorable {
     public TabDock(boolean detachable) {
         this.detachable = detachable;
         addClassName(CssStyles.TAB_DOCK);
+        body.addClassName(CssStyles.TAB_DOCK_BODY);
+        bar.addClassName(CssStyles.TAB_DOCK_BAR);
+        bar.setVisible(false);
+        super.add(body, bar);
+        applyDockSide();
     }
 
     @PublicAPI(from = "1.4.0",
@@ -145,29 +210,46 @@ public class TabDock extends Div implements Restorable {
     }
 
     /**
+     * Adds a tab whose icon in the bar of the minimized tabs is made of the letters of its caption, see
+     * {@link #add(String, String, String, Component)}.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = Tab.class),
+            parameters = {@APIParameter(name = "id", type = String.class),
+                    @APIParameter(name = "caption", type = String.class),
+                    @APIParameter(name = "content", type = Component.class)})
+    public Tab add(String id, String caption, Component content) {
+        return add(id, caption, null, content);
+    }
+
+    /**
      * Adds the tab to the sheet the layout puts it into, the first sheet when the layout does not know it. A tab with the
      * same id is replaced.
      *
      * @param id      identifies the tab in the layout, it must not change between sessions (not the localized caption)
      * @param caption text of the tab
+     * @param letters one or two letters of the icon the tab has in the bar of the minimized tabs (a circle with the letters),
+     *                null for the initials of the caption
      * @param content what the tab shows
      */
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.6.0",
             returns = @APIReturn(type = Tab.class),
             parameters = {@APIParameter(name = "id", type = String.class),
                     @APIParameter(name = "caption", type = String.class),
+                    @APIParameter(name = "letters", type = String.class),
                     @APIParameter(name = "content", type = Component.class)},
             locals = {@APILocals(name = "old", type = TabDock.Entry.class),
                     @APILocals(name = "entry", type = TabDock.Entry.class),
                     @APILocals(name = "group", type = TabDock.Group.class)})
-    public Tab add(String id, String caption, Component content) {
+    public Tab add(String id, String caption, String letters, Component content) {
         Entry old = entries.get(id);
         if (old != null) {
             remove(old.content);
         }
-        Entry entry = new Entry(id, caption, content);
+        Entry entry = new Entry(id, caption, letters, content);
         if (detachable) {
             makeDraggable(entry);
+            makeMinimizable(entry);
         }
         entries.put(id, entry);
         applyEnabled(entry);
@@ -186,7 +268,7 @@ public class TabDock extends Div implements Restorable {
 
     /**
      * Shows the tab: it becomes the selected one of its sheet. For the code that is about to show something that lives in
-     * the tab, whichever sheet the user has put it into.
+     * the tab, whichever sheet the user has put it into; a minimized tab is {@linkplain #restore restored}.
      *
      * @return false when there is no tab with this id in the dock
      */
@@ -200,6 +282,9 @@ public class TabDock extends Div implements Restorable {
         Group group = entry == null ? null : groupOf(id);
         if (group == null) {
             return false;
+        }
+        if (isMinimized(entry)) {
+            return restore(id);
         }
         currentId = id;
         if (id.equals(group.selectedId) && group.sheet != null && group.sheet.getSelectedTab() == entry.tab) {
@@ -231,7 +316,7 @@ public class TabDock extends Div implements Restorable {
         for (Group group : allGroups()) {
             for (String id : group.ids) {
                 Entry entry = entries.get(id);
-                if (entry != null && entry.tab.isEnabled()) {
+                if (entry != null && !isMinimized(entry) && entry.tab.isEnabled()) {
                     order.add(id);
                 }
             }
@@ -318,12 +403,21 @@ public class TabDock extends Div implements Restorable {
 
     /**
      * @return which tabs are together in which order: {@code {"columns":[{"groups":[{"tabs":["id", ...]}, ...]}, ...]}},
-     * including the tabs that are not in the dock now
+     * including the tabs that are not in the dock now; with {@code "minimized":["id", ...]} (the minimized tabs, they are in the
+     * sheets too, where they come back to) and {@code "dock":"right"} when there are minimized tabs or the bar is not at the left
      */
     @PublicAPI(from = "1.4.0",
-            returns = @APIReturn(type = JsonObject.class))
+            returns = @APIReturn(type = JsonObject.class),
+            locals = {@APILocals(name = "layout", type = JsonObject.class)})
     public JsonObject getLayout() {
-        return layoutOf(columns);
+        JsonObject layout = layoutOf(columns);
+        if (!minimized.isEmpty()) {
+            layout.add(KEY_MINIMIZED, RestorableState.array(new ArrayList<>(minimized)));
+        }
+        if (dockSide != DockSide.LEFT) {
+            layout.addProperty(KEY_DOCK, dockSide.key);
+        }
+        return layout;
     }
 
     /**
@@ -341,7 +435,9 @@ public class TabDock extends Div implements Restorable {
                     @APILocals(name = "column", type = TabDock.Column.class),
                     @APILocals(name = "id", type = String.class),
                     @APILocals(name = "selected", type = Set.class),
-                    @APILocals(name = "previous", type = List.class)})
+                    @APILocals(name = "previous", type = List.class),
+                    @APILocals(name = "wantedMinimized", type = List.class),
+                    @APILocals(name = "wantedSide", type = TabDock.DockSide.class)})
     public void setLayout(JsonObject layout) {
         if (!detachable) {
             return;
@@ -387,10 +483,25 @@ public class TabDock extends Div implements Restorable {
         columns.addAll(parsed);
         allGroups().forEach(group -> group.ids.stream().filter(selected::contains).findFirst()
                 .ifPresent(id -> group.selectedId = id));
-        if (getLayout().equals(layoutOf(previous))) {
+        List<String> wantedMinimized = new ArrayList<>();
+        for (String id : RestorableState.strings(layout, KEY_MINIMIZED)) {
+            if (!id.isBlank() && !wantedMinimized.contains(id)) {
+                wantedMinimized.add(id);
+            }
+        }
+        DockSide wantedSide = layout != null && layout.has(KEY_DOCK) && layout.get(KEY_DOCK).isJsonPrimitive()
+                ? DockSide.of(layout.get(KEY_DOCK).getAsString()) : DockSide.LEFT;
+        boolean sameBar = wantedMinimized.equals(new ArrayList<>(minimized)) && wantedSide == dockSide;
+        minimized.clear();
+        minimized.addAll(wantedMinimized);
+        dockSide = wantedSide;
+        if (layoutOf(columns).equals(layoutOf(previous))) {
             // the same arrangement: keep the sheets as they are
             columns.clear();
             columns.addAll(previous);
+            if (!sameBar) {
+                arrange();
+            }
             return;
         }
         previous.forEach(column -> retired.addAll(column.groups));
@@ -456,16 +567,23 @@ public class TabDock extends Div implements Restorable {
     @PublicAPI(from = "1.4.0",
             returns = @APIReturn(type = JsonObject.class),
             locals = {@APILocals(name = "state", type = JsonObject.class),
-                    @APILocals(name = "selected", type = List.class)})
+                    @APILocals(name = "selected", type = List.class),
+                    @APILocals(name = "group", type = TabDock.Group.class),
+                    @APILocals(name = "entry", type = TabDock.Entry.class)})
     @Override
     public JsonObject storeState() {
         JsonObject state = new JsonObject();
         List<String> selected = new ArrayList<>();
-        allGroups().forEach(group -> {
-            if (group.selectedId != null && entries.containsKey(group.selectedId)) {
-                selected.add(group.selectedId);
+        for (Group group : allGroups()) {
+            Entry entry = group.selectedId == null ? null : entries.get(group.selectedId);
+            if (entry != null && isMinimized(entry) && group.sheet != null) {
+                // the sheet shows another tab while the selected one is in the bar
+                entry = entryOf(group.sheet.getSelectedTab());
             }
-        });
+            if (entry != null && !isMinimized(entry)) {
+                selected.add(entry.id);
+            }
+        }
         if (selected.size() > 0) {
             state.add(KEY_SELECTED, RestorableState.array(selected));
         }
@@ -491,6 +609,211 @@ public class TabDock extends Div implements Restorable {
             }
         }
         arrange();
+    }
+
+    // ---- minimizing
+
+    /**
+     * Minimizes the tab: it leaves its sheet (a sheet without other tabs is hidden) but keeps its place in the layout and its
+     * content, and an icon of it shows up in the bar of the dock. A dock that is not detachable and a tab that is
+     * {@linkplain #setMinimizable not minimizable} do not minimize.
+     *
+     * @return false when the tab was not minimized
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "id", type = String.class)},
+            locals = {@APILocals(name = "entry", type = TabDock.Entry.class),
+                    @APILocals(name = "layoutBefore", type = JsonObject.class)})
+    public boolean minimize(String id) {
+        Entry entry = entries.get(id);
+        if (entry == null || !isMinimizable(entry) || minimized.contains(id)) {
+            return false;
+        }
+        JsonObject layoutBefore = getLayout();
+        minimized.add(id);
+        if (id.equals(currentId)) {
+            currentId = null;
+        }
+        layoutMoved(layoutBefore);
+        return true;
+    }
+
+    /**
+     * Takes the tab out of the bar and puts it back where it was (its sheet, at its place among the tabs; the sheet comes back
+     * when it was hidden), and shows it.
+     *
+     * @return false when there is no such tab in the dock
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "id", type = String.class)},
+            locals = {@APILocals(name = "entry", type = TabDock.Entry.class),
+                    @APILocals(name = "group", type = TabDock.Group.class),
+                    @APILocals(name = "layoutBefore", type = JsonObject.class)})
+    public boolean restore(String id) {
+        Entry entry = entries.get(id);
+        Group group = entry == null ? null : groupOf(id);
+        if (group == null) {
+            return false;
+        }
+        JsonObject layoutBefore = getLayout();
+        minimized.remove(id);
+        group.selectedId = id;
+        currentId = id;
+        layoutMoved(layoutBefore);
+        return true;
+    }
+
+    /**
+     * @return true when the tab is minimized, it is in the bar and not in a sheet
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "id", type = String.class)},
+            locals = {@APILocals(name = "entry", type = TabDock.Entry.class)})
+    public boolean isMinimized(String id) {
+        Entry entry = entries.get(id);
+        return entry != null && isMinimized(entry);
+    }
+
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "entry", type = TabDock.Entry.class)})
+    private boolean isMinimized(Entry entry) {
+        return isMinimizable(entry) && minimized.contains(entry.id);
+    }
+
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "entry", type = TabDock.Entry.class)})
+    private boolean isMinimizable(Entry entry) {
+        return detachable && !fixed.contains(entry.id);
+    }
+
+    /**
+     * Gives the tab a minimize button or takes it away. The story is not minimizable: when everything else is in the bar, it is
+     * still on the screen. A tab that is minimized when it becomes not minimizable comes back. Works for tabs that are not in the
+     * dock yet.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "id", type = String.class),
+                    @APIParameter(name = "minimizable", type = boolean.class)},
+            locals = {@APILocals(name = "entry", type = TabDock.Entry.class)})
+    public void setMinimizable(String id, boolean minimizable) {
+        if (minimizable) {
+            fixed.remove(id);
+        } else {
+            fixed.add(id);
+        }
+        Entry entry = entries.get(id);
+        if (entry != null && entry.minimizeButton != null) {
+            entry.minimizeButton.setVisible(minimizable);
+        }
+        arrange();
+    }
+
+    /**
+     * @return the side of the dock where the bar of the minimized tabs is
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = DockSide.class))
+    public DockSide getDockSide() {
+        return dockSide;
+    }
+
+    /**
+     * Moves the bar of the minimized tabs to another side of the dock; the layout is saved as for any other change.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "side", type = DockSide.class)},
+            locals = {@APILocals(name = "layoutBefore", type = JsonObject.class)})
+    public void setDockSide(DockSide side) {
+        if (side == null || side == dockSide) {
+            return;
+        }
+        JsonObject layoutBefore = getLayout();
+        dockSide = side;
+        layoutMoved(layoutBefore);
+    }
+
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "entry", type = TabDock.Entry.class)},
+            locals = {@APILocals(name = "button", type = Button.class)})
+    private void makeMinimizable(Entry entry) {
+        Button button = new Button(Solid.MINUS.create());
+        button.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_SMALL);
+        button.addClassName(CssStyles.TAB_DOCK_MINIMIZE);
+        button.setTooltipText(loc.getValue(L.LABEL_MINIMIZE));
+        button.setVisible(!fixed.contains(entry.id));
+        button.addClickListener(event -> minimize(entry.id));
+        entry.minimizeButton = button;
+        entry.tab.add(button);
+    }
+
+    /**
+     * Puts the bar of the dock at its side and fills it with the icons of the minimized tabs (and the button that moves it);
+     * the bar is only there while some tab is minimized. Built again only when what it shows changed.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "ids", type = List.class),
+                    @APILocals(name = "id", type = String.class),
+                    @APILocals(name = "entry", type = TabDock.Entry.class),
+                    @APILocals(name = "move", type = Button.class),
+                    @APILocals(name = "icon", type = Button.class),
+                    @APILocals(name = "description", type = String.class)})
+    private void refreshBar() {
+        applyDockSide();
+        List<String> ids = new ArrayList<>();
+        for (String id : minimized) {
+            Entry entry = entries.get(id);
+            if (entry != null && isMinimized(entry)) {
+                ids.add(id);
+            }
+        }
+        if (ids.equals(shownBar) && dockSide == shownSide) {
+            return;
+        }
+        shownBar = ids;
+        shownSide = dockSide;
+        bar.removeAll();
+        bar.setVisible(!ids.isEmpty());
+        if (ids.isEmpty()) {
+            return;
+        }
+        // one click sends the bar to the next side, clockwise
+        Button move = new Button(Solid.ARROWS_ROTATE.create(), event -> setDockSide(dockSide.next()));
+        move.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_SMALL);
+        move.addClassName(CssStyles.TAB_DOCK_BAR_MOVE);
+        move.setTooltipText(loc.getValue(L.LABEL_MOVE_DOCK));
+        move.setAriaLabel(loc.getValue(L.LABEL_MOVE_DOCK));
+        bar.add(move);
+        for (String id : ids) {
+            Entry entry = entries.get(id);
+            Button icon = new Button(new Image(TabDockIcons.dataUri(
+                    entry.letters != null ? entry.letters : TabDockIcons.letters(entry.tab.getLabel()), id), entry.tab.getLabel()));
+            icon.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+            icon.addClassName(CssStyles.TAB_DOCK_BAR_ICON);
+            // what hovering and screen readers get: what a click does, and to which tab
+            String description = loc.getValue(L.LABEL_RESTORE) + ": " + entry.tab.getLabel();
+            icon.setTooltipText(description);
+            icon.setAriaLabel(description);
+            icon.addClickListener(event -> restore(id));
+            bar.add(icon);
+        }
+    }
+
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "side", type = DockSide.class)})
+    private void applyDockSide() {
+        for (DockSide side : DockSide.values()) {
+            setClassName(side.cssClass, side == dockSide);
+        }
     }
 
     // ---- layout
@@ -591,7 +914,7 @@ public class TabDock extends Div implements Restorable {
         List<Entry> present = new ArrayList<>();
         for (String id : group.ids) {
             Entry entry = entries.get(id);
-            if (entry != null) {
+            if (entry != null && !isMinimized(entry)) {
                 present.add(entry);
             }
         }
@@ -676,7 +999,7 @@ public class TabDock extends Div implements Restorable {
 
             for (Group group : live) {
                 Entry selected = group.selectedId == null ? null : entries.get(group.selectedId);
-                if (group.sheet != null && selected != null && group.ids.contains(selected.id)
+                if (group.sheet != null && selected != null && group.ids.contains(selected.id) && !isMinimized(selected)
                         && group.sheet.getSelectedTab() != selected.tab) {
                     group.sheet.setSelectedTab(selected.tab);
                 }
@@ -684,6 +1007,7 @@ public class TabDock extends Div implements Restorable {
             // the sheets enable and disable the contents as they select them, the state of the dock goes on top
             entries.values().forEach(this::applyEnabled);
             setDropsActive(dragged != null);
+            refreshBar();
         } finally {
             arranging = false;
         }
@@ -730,7 +1054,7 @@ public class TabDock extends Div implements Restorable {
                     @APILocals(name = "cell", type = Div.class),
                     @APILocals(name = "body", type = Div.class)})
     private void fill(List<Column> visibleColumns) {
-        removeAll();
+        body.removeAll();
         List<Component> columnCells = new ArrayList<>();
         for (int c = 0; c < visibleColumns.size(); c++) {
             Column column = visibleColumns.get(c);
@@ -770,7 +1094,7 @@ public class TabDock extends Div implements Restorable {
             columnCells.add(cell);
         }
         if (!columnCells.isEmpty()) {
-            add(chain(columnCells, shares(visibleColumns.stream().map(column -> column.size).toList()),
+            body.add(chain(columnCells, shares(visibleColumns.stream().map(column -> column.size).toList()),
                     SplitLayout.Orientation.HORIZONTAL, sizes -> {
                         for (int i = 0; i < sizes.length; i++) {
                             visibleColumns.get(i).size = sizes[i];

@@ -126,7 +126,7 @@ public class ArcOutlineExtension implements MarginaliaExtension, ExtensionHasCss
                             }
                         };
                         ArcOutlineView view = new ArcOutlineView(currentManuscript, service, target);
-                        leftBar.add("arc-outline", T.localized("Arcs"), view);
+                        leftBar.add("arc-outline", T.localized("Arcs"), "Ar", view);
 
                         ComponentUtil.setData(leftBar, VIEW_KEY, view);
                         activeTabSheets.add(leftBar);

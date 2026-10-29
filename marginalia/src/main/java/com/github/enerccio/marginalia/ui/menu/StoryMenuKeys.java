@@ -17,6 +17,7 @@ public final class StoryMenuKeys {
     public static final String BRANCH_TOKENS = "tools.branchTokens";
     public static final String EXPORT = "tools.export";
     public static final String RESTORE_LAYOUT = "tools.restoreLayout";
+    public static final String SAVE_LAYOUT_AS_DEFAULT = "tools.saveLayoutAsDefault";
 
     // --- CARD ---
     public static final String EDIT = "card.edit";

@@ -780,6 +780,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_INHERITED_DEFAULT, "組み込みのデフォルト");
         setValue(L.LABEL_EXPORT_INHERITED_SETTINGS, "継承された設定をエクスポートに含める");
         setValue(L.LABEL_HELP_BOOKS_ACCESS, "アシスタントに私の本を見せる");
+        setValue(L.LABEL_MINIMIZE, "最小化");
+        setValue(L.LABEL_MOVE_DOCK, "最小化したタブのバーを移動");
+        setValue(L.LABEL_SAVE_LAYOUT_AS_DEFAULT, "このレイアウトを既定として保存");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1333,6 +1336,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_FOLDER_CLASH, "「%s」というフォルダが「%s」にすでにあります。どうしますか？");
         setValue(L.MSG_ORGANISE_SAME_FOLDER, "両方のペインが同じフォルダを表示しています。もう一方のペインで別のフォルダを開いてください。");
         setValue(L.MSG_HELP_BOOKS_NOTICE, "アシスタントは、フォルダ名、タイトル、説明、本の執筆設定を読み、本文を検索しますが、物語の本文を読むことはありません。読み取った内容は回答するAIに送信されます。何も変更できません。");
+        setValue(L.MSG_LAYOUT_SAVED_AS_DEFAULT, "タブの配置を保存しました。独自の配置を持たない本は、この配置で開きます。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

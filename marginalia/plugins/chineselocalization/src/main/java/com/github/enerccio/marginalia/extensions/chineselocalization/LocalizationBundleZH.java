@@ -788,6 +788,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_INHERITED_DEFAULT, "内置默认值");
         setValue(L.LABEL_EXPORT_INHERITED_SETTINGS, "导出时包含继承的设置");
         setValue(L.LABEL_HELP_BOOKS_ACCESS, "允许助手查看我的书");
+        setValue(L.LABEL_MINIMIZE, "最小化");
+        setValue(L.LABEL_MOVE_DOCK, "移动最小化标签页的栏");
+        setValue(L.LABEL_SAVE_LAYOUT_AS_DEFAULT, "将布局保存为我的默认布局");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1341,6 +1344,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_FOLDER_CLASH, "名为“%s”的文件夹已存在于“%s”中。要如何处理？");
         setValue(L.MSG_ORGANISE_SAME_FOLDER, "两个窗格显示的是同一个文件夹，请在另一个窗格中打开其他文件夹。");
         setValue(L.MSG_HELP_BOOKS_NOTICE, "助手会读取您的书的文件夹名称、标题、简介和写作设置，并搜索其正文；它不会读取故事的正文。读取的内容会发送给回答问题的 AI。它不能更改任何内容。");
+        setValue(L.MSG_LAYOUT_SAVED_AS_DEFAULT, "标签页排列已保存。没有自己排列的书将按此排列打开。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

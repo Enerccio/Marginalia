@@ -89,7 +89,7 @@ public class CharacterTrackerExtension implements MarginaliaExtension, Extension
                         }
 
                         CharacterTrackerView view = new CharacterTrackerView(currentManuscript, service);
-                        leftBar.add("character-tracker", T.localized("Characters"), view);
+                        leftBar.add("character-tracker", T.localized("Characters"), "Cr", view);
 
                         ComponentUtil.setData(leftBar, VIEW_KEY, view);
                         activeTabSheets.add(leftBar);

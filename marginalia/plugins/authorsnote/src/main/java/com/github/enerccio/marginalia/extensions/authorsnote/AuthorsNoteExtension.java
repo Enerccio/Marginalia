@@ -67,7 +67,7 @@ public class AuthorsNoteExtension implements MarginaliaExtension {
                         }
 
                         AuthorsNoteView view = new AuthorsNoteView(currentManuscript, authorsNoteService);
-                        leftBar.add("authors-note", T.localized("Author's Note"), view);
+                        leftBar.add("authors-note", T.localized("Author's Note"), "AN", view);
 
                         ComponentUtil.setData(leftBar, AUTHORS_NOTE_VIEW_KEY, view);
                         activeTabSheets.add(leftBar);

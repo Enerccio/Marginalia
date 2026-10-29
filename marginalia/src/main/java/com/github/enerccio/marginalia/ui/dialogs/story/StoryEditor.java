@@ -86,4 +86,11 @@ public interface StoryEditor {
      */
     default void confirmRestoreDefaultLayout() {
     }
+
+    /**
+     * Saves the arrangement of the tabs as the default of the user: the books that have none of their own open with it
+     * (desktop only).
+     */
+    default void saveLayoutAsDefault() {
+    }
 }

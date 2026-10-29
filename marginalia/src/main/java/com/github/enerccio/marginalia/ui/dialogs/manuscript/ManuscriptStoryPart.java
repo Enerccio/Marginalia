@@ -28,6 +28,7 @@ import com.github.enerccio.marginalia.ui.shortcuts.ShortcutAction;
 import com.github.enerccio.marginalia.ui.shortcuts.ShortcutActions;
 import com.github.enerccio.marginalia.ui.shortcuts.ShortcutRegistry;
 import com.github.enerccio.marginalia.ui.widgets.LazyContextMenu;
+import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
 import com.github.enerccio.marginalia.utils.GeneratedTextHighlighter;
@@ -206,6 +207,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
 
         // the story is a tab like the others, the user puts it where they want it
         leftBar.add(STORY_TAB, loc.getValue(L.LABEL_STORY_PART), centerLayout);
+        // the one tab that stays on the screen when all the others are minimized
+        leftBar.setMinimizable(STORY_TAB, false);
         // a tab sheet drops the content of the tabs it does not show from the page: the browser builds the story again
         // when its tab is shown, without the scripts that watch the edges
         centerLayout.addAttachListener(event -> lazyLoader.reattached());
@@ -897,7 +900,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     private void createStoryOutlineTab() {
         VerticalLayout leftMarginLayout = new VerticalLayout();
         leftMarginLayout.setSizeFull();
-        leftBar.add(CHAPTERS_TAB, loc.getValue(L.LABEL_CHAPTERS), leftMarginLayout);
+        leftBar.add(CHAPTERS_TAB, loc.getValue(L.LABEL_CHAPTERS), "Ch", leftMarginLayout);
 
         sidebarHeader = new Span();
         sidebarHeader.addClassName(CssStyles.SIDEBAR_HEADER);
@@ -924,7 +927,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             returns = @APIReturn(type = void.class))
     private void createLorebookTab() {
         lorebookPreview = new LorebookPreview().create();
-        leftBar.add(LOREBOOK_TAB, loc.getValue(L.LABEL_LOREBOOK), lorebookPreview);
+        leftBar.add(LOREBOOK_TAB, loc.getValue(L.LABEL_LOREBOOK), "Lo", lorebookPreview);
     }
 
     /**
@@ -964,7 +967,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
                 }
             }
         });
-        leftBar.add(ANNOTATIONS_TAB, loc.getValue(L.LABEL_ANNOTATIONS), annotationsPanel);
+        leftBar.add(ANNOTATIONS_TAB, loc.getValue(L.LABEL_ANNOTATIONS), "An", annotationsPanel);
     }
 
     /**
@@ -1119,16 +1122,59 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)},
             locals = {@APILocals(name = "config", type = JsonElement.class),
-                    @APILocals(name = "position", type = JsonElement.class)})
+                    @APILocals(name = "position", type = JsonElement.class),
+                    @APILocals(name = "stored", type = JsonObject.class)})
     private void applyTabsConfig(Manuscript manuscript) {
         if (leftBar == null || manuscript == null) {
             return;
         }
         JsonElement config = manuscript.getAttributes().get(TABS_CONFIG_ATTRIBUTE);
         JsonElement position = manuscript.getAttributes().get(SPLIT_POSITION_ATTRIBUTE);
-        leftBar.setLayout(StoryDockLayout.migrate(config != null && config.isJsonObject() ? config.getAsJsonObject() : null,
+        JsonObject stored = config != null && config.isJsonObject() ? config.getAsJsonObject() : null;
+        if (stored == null) {
+            // a book that has no arrangement of its own opens with the one the user saved as their default
+            stored = userDefaultLayout();
+        }
+        leftBar.setLayout(StoryDockLayout.migrate(stored,
                 position != null && position.isJsonPrimitive() && position.getAsJsonPrimitive().isNumber() ? position.getAsDouble() : null,
                 STORY_TAB, CHAPTERS_TAB, LOREBOOK_TAB, ANNOTATIONS_TAB));
+    }
+
+    /**
+     * The arrangement the user saved as their default, null when there is none.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = JsonObject.class),
+            locals = {@APILocals(name = "layout", type = JsonObject.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private JsonObject userDefaultLayout() {
+        try {
+            JsonObject layout = settingService.getOrCreate(UserSetting.class).getDefaultStoryLayout();
+            return layout == null || layout.size() == 0 ? null : layout;
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+            return null;
+        }
+    }
+
+    /**
+     * Saves the current arrangement of the tabs (including the minimized ones) as the default of the user, which the books
+     * that have no arrangement of their own open with.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "setting", type = UserSetting.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    @Override
+    public void saveLayoutAsDefault() {
+        try {
+            UserSetting setting = settingService.getOrCreate(UserSetting.class);
+            setting.setDefaultStoryLayout(leftBar.getLayout());
+            settingService.save(setting);
+            Notification.success(loc.getValue(L.MSG_LAYOUT_SAVED_AS_DEFAULT));
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     /**
