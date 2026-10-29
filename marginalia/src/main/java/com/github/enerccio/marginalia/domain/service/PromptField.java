@@ -5,6 +5,8 @@ import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.function.Function;
 
 /**
@@ -66,6 +68,48 @@ public enum PromptField {
      */
     public String ofUser(UserSetting settings) {
         return user.apply(settings);
+    }
+
+    /**
+     * Sets what the book sets itself; a blank text clears it (the book inherits).
+     */
+    public void setOfBook(Manuscript manuscript, String value) {
+        String text = StringUtils.defaultIfBlank(value, null);
+        switch (this) {
+            case MASTER_TEMPLATE -> manuscript.setTemplate(text);
+            case POV -> manuscript.setPov(text);
+            case TENSE -> manuscript.setTense(text);
+            case STYLE -> manuscript.setStyle(text);
+            case USER_PROMPT -> manuscript.setUserPrompt(text);
+            case SUMMARY_PROMPT -> manuscript.setSummaryPrompt(text);
+            case META_SUMMARY_PROMPT -> manuscript.setMetaSummaryPrompt(text);
+            case REDRAFT_SYSTEM_PROMPT -> manuscript.setRedraftSystemPrompt(text);
+            case REDRAFT_PROMPT -> manuscript.setRedraftPrompt(text);
+            case ANNOTATE_SYSTEM_PROMPT -> manuscript.setAnnotateSystemPrompt(text);
+            case ANNOTATE_PROMPT -> manuscript.setAnnotatePrompt(text);
+            case IMPERSONATE_PROMPT -> manuscript.setImpersonatePrompt(text);
+        }
+    }
+
+    /**
+     * Sets what the folder sets for its books; a blank text clears it (the folder inherits).
+     */
+    public void setOfFolder(Folder folder, String value) {
+        String text = StringUtils.defaultIfBlank(value, null);
+        switch (this) {
+            case MASTER_TEMPLATE -> folder.setTemplate(text);
+            case POV -> folder.setPov(text);
+            case TENSE -> folder.setTense(text);
+            case STYLE -> folder.setStyle(text);
+            case USER_PROMPT -> folder.setUserPrompt(text);
+            case SUMMARY_PROMPT -> folder.setSummaryPrompt(text);
+            case META_SUMMARY_PROMPT -> folder.setMetaSummaryPrompt(text);
+            case REDRAFT_SYSTEM_PROMPT -> folder.setRedraftSystemPrompt(text);
+            case REDRAFT_PROMPT -> folder.setRedraftPrompt(text);
+            case ANNOTATE_SYSTEM_PROMPT -> folder.setAnnotateSystemPrompt(text);
+            case ANNOTATE_PROMPT -> folder.setAnnotatePrompt(text);
+            case IMPERSONATE_PROMPT -> folder.setImpersonatePrompt(text);
+        }
     }
 
     public String fallback() {

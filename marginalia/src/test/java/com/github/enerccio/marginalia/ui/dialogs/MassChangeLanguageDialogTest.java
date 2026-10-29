@@ -1,14 +1,18 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.domain.collections.Language;
+import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.FolderService;
 import com.github.enerccio.marginalia.test.AgentTestBase;
 import com.vaadin.flow.component.UI;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -18,6 +22,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * is done, and the books an agent works on, which nothing can be done with.
  */
 class MassChangeLanguageDialogTest extends AgentTestBase {
+
+    @Autowired
+    private FolderService folderService;
 
     // UI.setCurrent keeps only a weak reference, see WorkspaceStateTest
     private UI ui;
@@ -58,6 +65,23 @@ class MassChangeLanguageDialogTest extends AgentTestBase {
 
     private Language languageOf(Manuscript book) throws Exception {
         return manuscriptService.findForUser(book.getUuid()).getLanguage();
+    }
+
+    @Test
+    void aBookWithoutALanguageShowsTheOneItHasWithItsFolders() throws Exception {
+        Folder czech = folderService.create("Czech", null);
+        folderService.update(czech, new FolderService.Details("Czech", null, Language.CZECH, Map.of()));
+        Manuscript inherits = book("Inherits", null);
+        inherits.setFolder(czech);
+        manuscriptService.save(inherits);
+        Manuscript elsewhere = book("Elsewhere", null);
+
+        MassChangeLanguageDialog inFolder = new MassChangeLanguageDialog(null, czech);
+        inFolder.create();
+        assertThat(row(inFolder, "Inherits").language()).isEqualTo(Language.CZECH);
+
+        assertThat(row(open(null), "Elsewhere").language()).isEqualTo(Language.ENGLISH);
+        assertThat(elsewhere.getOwnLanguage()).isNull();
     }
 
     @Test

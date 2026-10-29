@@ -164,6 +164,7 @@ public class OrganiseDialog extends Dialog {
         actions.add(new Action(ShortcutActions.ORGANISE_NEW_FOLDER, L.LABEL_NEW_FOLDER, this::newFolder, true));
         actions.add(new Action(ShortcutActions.ORGANISE_RENAME, L.LABEL_RENAME, this::rename, true));
         actions.add(new Action(ShortcutActions.ORGANISE_DELETE, L.LABEL_DELETE, this::delete, true));
+        actions.add(new Action(ShortcutActions.ORGANISE_FOLDER_SETTINGS, L.LABEL_FOLDER_SETTINGS, this::folderSettings, true));
         actions.add(new Action(ShortcutActions.ORGANISE_MODEL_PROTOCOL, L.LABEL_MASS_CHANGE_MODEL_PROTOCOL, this::massChangeModelProtocol, true));
         actions.add(new Action(ShortcutActions.ORGANISE_LANGUAGE, L.LABEL_MASS_CHANGE_LANGUAGE, this::massChangeLanguage, true));
         actions.add(new Action(ShortcutActions.ORGANISE_TAG_BOOKS, L.LABEL_TAG_BOOKS, this::tagBooks, true));
@@ -553,6 +554,16 @@ public class OrganiseDialog extends Dialog {
                     .inputMessageLabel(loc.getValue(L.LABEL_NAME)).initialValue(book.getName()).messageRequired().showCancel(true).build().open();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * Opens the settings of the folder under the cursor of the active pane (a book has its own window).
+     */
+    private void folderSettings() {
+        Entry entry = underCursor();
+        if (entry != null && entry.kind() == Kind.FOLDER) {
+            new FolderDialog(entry.folder(), saved -> changed(Kind.FOLDER, saved.getId())).show();
         }
     }
 

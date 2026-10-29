@@ -281,7 +281,12 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         if (StringUtils.isNotBlank(own)) {
             return new EffectiveSetting<>(own, EffectiveSetting.Origin.BOOK, null);
         }
-        for (Folder folder : folderService.findChain(manuscript.getFolder())) {
+        return resolveInherited(manuscript.getFolder(), field);
+    }
+
+    @Override
+    public EffectiveSetting<String> resolveInherited(Folder start, PromptField field) throws Exception {
+        for (Folder folder : folderService.findChain(start)) {
             String inherited = field.ofFolder(folder);
             if (StringUtils.isNotBlank(inherited)) {
                 return new EffectiveSetting<>(inherited, EffectiveSetting.Origin.FOLDER, folder);
@@ -299,7 +304,12 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         if (manuscript.getOwnLanguage() != null) {
             return new EffectiveSetting<>(manuscript.getOwnLanguage(), EffectiveSetting.Origin.BOOK, null);
         }
-        for (Folder folder : folderService.findChain(manuscript.getFolder())) {
+        return resolveInheritedLanguage(manuscript.getFolder());
+    }
+
+    @Override
+    public EffectiveSetting<Language> resolveInheritedLanguage(Folder start) throws Exception {
+        for (Folder folder : folderService.findChain(start)) {
             if (folder.getLanguage() != null) {
                 return new EffectiveSetting<>(folder.getLanguage(), EffectiveSetting.Origin.FOLDER, folder);
             }

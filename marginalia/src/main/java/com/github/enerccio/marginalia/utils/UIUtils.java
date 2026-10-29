@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.utils;
 import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
+import com.github.enerccio.marginalia.domain.service.FolderBookLockedException;
 import com.github.enerccio.marginalia.domain.service.InferenceErrors;
 import com.github.enerccio.marginalia.domain.service.LorebookLockedException;
 import com.github.enerccio.marginalia.domain.service.ManuscriptLockedException;
@@ -103,6 +104,10 @@ public class UIUtils {
 
     public static void internalServerError(Localization loc, Throwable cause) {
         for (Throwable t = cause; t != null && t.getCause() != t; t = t.getCause()) {
+            if (t instanceof FolderBookLockedException locked) {
+                Notification.warning(String.format(loc.getValue(L.ERROR_FOLDER_BOOK_LOCKED), locked.getAgentName(), locked.getBookName()));
+                return;
+            }
             if (t instanceof ManuscriptLockedException locked) {
                 // not a fault: the book is worked on by an agent, the user has to pause or stop it
                 Notification.warning(String.format(loc.getValue(t instanceof LorebookLockedException ? L.ERROR_LOREBOOK_LOCKED : L.ERROR_BOOK_LOCKED),

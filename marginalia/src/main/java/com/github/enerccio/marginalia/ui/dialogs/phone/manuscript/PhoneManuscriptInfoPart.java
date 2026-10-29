@@ -1,7 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.phone.manuscript;
 
 import com.github.enerccio.marginalia.CssStyles;
-import com.github.enerccio.marginalia.domain.collections.Language;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
@@ -15,6 +14,7 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialogPart;
 import com.github.enerccio.marginalia.ui.main.Viewer;
+import com.github.enerccio.marginalia.ui.widgets.InheritedLanguageCombo;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.ui.widgets.TagMultiComboBox;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -62,7 +62,7 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
     private TextField nameField;
     private TagMultiComboBox tags;
     private TextArea descriptionField;
-    private ComboBox<Language> languageCombo;
+    private InheritedLanguageCombo languageCombo;
     private ComboBox<AI> aiCombo;
     private ComboBox<Protocol> protocolCombo;
     private Checkbox publishedCheckbox;
@@ -131,11 +131,7 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
             }
         });
 
-        languageCombo = new ComboBox<>(loc.getValue(L.LABEL_LANGUAGE));
-        languageCombo.setWidthFull();
-        languageCombo.setItems(Language.values());
-        languageCombo.setItemLabelGenerator(Language::getDisplayName);
-        languageCombo.setAllowCustomValue(false);
+        languageCombo = new InheritedLanguageCombo(loc.getValue(L.LABEL_LANGUAGE));
         languageCombo.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 autosave();
@@ -217,7 +213,7 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
             if (StringUtils.isNotBlank(nameField.getValue()))
                 manuscript.setName(nameField.getValue());
             manuscript.setDescription(descriptionField.getValue());
-            manuscript.setLanguage(languageCombo.getValue() != null ? languageCombo.getValue() : Language.ENGLISH);
+            manuscript.setLanguage(languageCombo.getValue());
             manuscript.setAi(aiCombo.getValue());
             manuscript.setProtocol(protocolCombo.getValue());
             manuscript.setPublished(Boolean.TRUE.equals(publishedCheckbox.getValue()));
@@ -281,7 +277,7 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
             nameField.setValue(StringUtils.defaultString(manuscript.getName()));
             publishedCheckbox.setValue(manuscript.isPublished());
             descriptionField.setValue(StringUtils.defaultString(manuscript.getDescription()));
-            languageCombo.setValue(manuscript.getLanguage());
+            languageCombo.load(manuscript.getOwnLanguage(), manuscript.getFolder());
             aiCombo.setValue(manuscript.getAi());
             protocolCombo.setValue(manuscript.getProtocol());
             tags.setForEntity(manuscript);

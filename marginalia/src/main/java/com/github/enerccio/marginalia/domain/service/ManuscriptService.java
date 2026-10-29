@@ -110,10 +110,23 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
     EffectiveSetting<String> resolve(Manuscript manuscript, PromptField field) throws Exception;
 
     /**
+     * What a book filed in the folder (or a folder made in it) inherits for the field and where it comes from: the folder
+     * itself if it sets one, else the nearest one above it, else the user settings, else the built-in default. The top
+     * level (null) has the user settings only. What the settings forms show as the placeholder of an empty field.
+     */
+    EffectiveSetting<String> resolveInherited(Folder folder, PromptField field) throws Exception;
+
+    /**
      * The language of the book and where it comes from: the book, else the nearest folder above it that sets one, else
      * English (the default).
      */
     EffectiveSetting<Language> resolveLanguage(Manuscript manuscript) throws Exception;
+
+    /**
+     * The language a book filed in the folder (or a folder made in it) inherits and where it comes from: the folder itself
+     * if it sets one, else the nearest one above it, else English (the default). The top level (null) has English.
+     */
+    EffectiveSetting<Language> resolveInheritedLanguage(Folder folder) throws Exception;
 
     /**
      * {@code resolveLanguage(manuscript).value()}.

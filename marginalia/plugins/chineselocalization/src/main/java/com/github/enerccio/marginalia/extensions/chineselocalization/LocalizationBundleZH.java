@@ -782,6 +782,10 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_SHOW_FOLDER_IN_LIST, "在列表中显示文件夹");
         setValue(L.LABEL_SWITCH_PANE, "切换窗格");
         setValue(L.LABEL_SHOW_IN_FOLDER, "在文件夹中显示");
+        setValue(L.LABEL_FOLDER_SETTINGS, "文件夹设置");
+        setValue(L.LABEL_INHERITED_FROM_FOLDER, "继承自文件夹“%s”");
+        setValue(L.LABEL_INHERITED_FROM_USER, "继承自您的设置");
+        setValue(L.LABEL_INHERITED_DEFAULT, "内置默认值");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1027,6 +1031,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ERROR_FOLDER_CLASH_ON_DELETE, "其中的某个文件夹与上一级文件夹中的文件夹同名。请先重命名其中一个。");
         setValue(L.ERROR_FOLDER_GONE, "该文件夹已不存在。");
         setValue(L.ERROR_FOLDER_TRANSFER_REFUSED, "无法执行此操作：文件夹不能放入自身或其子文件夹，且文件夹名称必须未被占用。");
+        setValue(L.ERROR_FOLDER_BOOK_LOCKED, "此文件夹中的书“%2$s”被代理“%1$s”锁定。请先暂停或停止其运行。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "无法保存表单。");
@@ -1425,6 +1430,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_MASS_CHANGE_MODEL_PROTOCOL, "选择要应用到书籍的模型和/或协议，并勾选书籍。留空表示“不替换”：书籍的该项设置保持不变。有智能体正在处理的书籍显示为灰色，无法更改。");
         setValue(L.HELP_MASS_CHANGE_LANGUAGE, "选择要应用到书籍的语言，并勾选书籍。有智能体正在处理的书籍显示为灰色，无法更改。");
         setValue(L.HELP_ORGANISE, "左 / 右：切换窗格。Enter：打开文件夹。Backspace：上一级。空格或 Insert：标记。F2 重命名，F5 复制，F6 移动，F7 新建文件夹，F8 删除。");
+        setValue(L.HELP_FOLDER_SETTINGS, "此文件夹及其子文件夹中的书使用这些设置，除非它们有自己的设置。空白项继承自上一级文件夹，然后是您的设置。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

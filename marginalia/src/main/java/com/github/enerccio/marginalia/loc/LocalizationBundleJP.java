@@ -774,6 +774,10 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_SWITCH_PANE, "ペインを切り替え");
         setValue(L.LABEL_SHOW_IN_FOLDER, "フォルダ内で表示");
         setValue(L.LABEL_SHOW_FOLDER_IN_LIST, "一覧にフォルダを表示");
+        setValue(L.LABEL_FOLDER_SETTINGS, "フォルダの設定");
+        setValue(L.LABEL_INHERITED_FROM_FOLDER, "フォルダ「%s」から継承");
+        setValue(L.LABEL_INHERITED_FROM_USER, "ユーザー設定から継承");
+        setValue(L.LABEL_INHERITED_DEFAULT, "組み込みのデフォルト");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1019,6 +1023,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ERROR_FOLDER_CLASH_ON_DELETE, "中にあるフォルダが、上のフォルダ内のフォルダと同じ名前です。先にどちらかの名前を変更してください。");
         setValue(L.ERROR_FOLDER_GONE, "フォルダはもう存在しません。");
         setValue(L.ERROR_FOLDER_TRANSFER_REFUSED, "この操作はできません。フォルダを自分自身やその下のフォルダに入れることはできず、フォルダ名は空いている必要があります。");
+        setValue(L.ERROR_FOLDER_BOOK_LOCKED, "このフォルダ内の本「%2$s」はエージェント「%1$s」によってロックされています。先に実行を一時停止または停止してください。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "フォームを保存できません。");
@@ -1418,6 +1423,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_MASS_CHANGE_MODEL_PROTOCOL, "本に設定するモデルまたはプロトコルを選び、対象の本にチェックを入れます。空の選択は「置き換えない」で、その設定は本のまま変わりません。エージェントが作業中の本はグレー表示になり、変更できません。");
         setValue(L.HELP_MASS_CHANGE_LANGUAGE, "本に設定する言語を選び、対象の本にチェックを入れます。エージェントが作業中の本はグレー表示になり、変更できません。");
         setValue(L.HELP_ORGANISE, "左 / 右 / Tab：もう一方のペイン。Enter：フォルダを開く。Backspace：上へ。Space または Insert：マーク。ボタンのキーは設定（キー割り当て）で変更できます。");
+        setValue(L.HELP_FOLDER_SETTINGS, "このフォルダとその下のフォルダにある本は、独自の設定がない限りこれらの設定を使います。空の項目は上のフォルダ、次にユーザー設定から継承されます。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

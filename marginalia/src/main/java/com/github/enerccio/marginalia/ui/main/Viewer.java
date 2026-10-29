@@ -417,8 +417,6 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
 
         // Always apply reading style
         container.addClassName(CssStyles.MARKDOWN_MANUSCRIPT_STYLES);
-        // lang drives the browser's hyphenation dictionary (see hyphens in shared-styles.css)
-        container.getElement().setAttribute("lang", manuscript.getLanguage().getCode());
 
         // Simple floating back button optimized for phone/touch
         Button backButton = new Button(Solid.ARROW_LEFT.create(), event -> UI.getCurrent().navigate(Viewer.class));
@@ -437,6 +435,9 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
         contentWrapper.setSpacing(true);
 
         try {
+            // lang drives the browser's hyphenation dictionary (see hyphens in shared-styles.css)
+            container.getElement().setAttribute("lang", manuscriptService.getLanguage(manuscript).getCode());
+
             List<ChatMessage> branch = (manuscript.getActiveLeaf() != null)
                     ? chatMessageService.getBranchFromLeaf(manuscript.getActiveLeaf())
                     : Collections.emptyList();
