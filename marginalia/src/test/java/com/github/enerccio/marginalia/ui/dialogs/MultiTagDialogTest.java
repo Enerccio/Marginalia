@@ -1,14 +1,8 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.CssStyles;
-import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
-import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.model.impl.Tag;
-import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
-import com.github.enerccio.marginalia.domain.service.LorebookService;
-import com.github.enerccio.marginalia.domain.service.TagRelationService;
-import com.github.enerccio.marginalia.domain.service.TagService;
+import com.github.enerccio.marginalia.domain.model.impl.*;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.test.AgentTestBase;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Span;
@@ -34,6 +28,9 @@ class MultiTagDialogTest extends AgentTestBase {
 
     @Autowired
     private TagRelationService tagRelationService;
+
+    @Autowired
+    private FolderService folderService;
 
     @Autowired
     private LorebookService lorebookService;
@@ -292,5 +289,43 @@ class MultiTagDialogTest extends AgentTestBase {
         dialog.applyTo(row(dialog, "Alpha"), true);
 
         assertThat(tagsOf(alpha)).isEmpty();
+    }
+
+    @Test
+    void theBooksOfAFolderAreListedAndTheOnesBelowItOnRequest() throws Exception {
+        Folder scifi = folderService.create("Sci-fi", null);
+        Folder expanse = folderService.create("Expanse", scifi);
+        book("Loose");
+        Manuscript leviathan = book("Leviathan");
+        manuscriptService.moveToFolder(List.of(leviathan), scifi);
+        Manuscript caliban = book("Caliban");
+        manuscriptService.moveToFolder(List.of(caliban), expanse);
+
+        MultiTagDialog top = open(new MultiTagDialog(MultiTagDialog.Kind.BOOKS, null, null));
+        assertThat(names(top)).containsExactly("Loose");
+
+        MultiTagDialog inside = open(new MultiTagDialog(MultiTagDialog.Kind.BOOKS, null, scifi));
+        assertThat(names(inside)).containsExactly("Leviathan");
+
+        inside.getSubfolders().setValue(true);
+        assertThat(names(inside)).containsExactly("Sci-fi / Expanse / Caliban", "Sci-fi / Leviathan");
+    }
+
+    @Test
+    void foldersAreTaggedLikeBooks() throws Exception {
+        Folder scifi = folderService.create("Sci-fi", null);
+        Folder expanse = folderService.create("Expanse", scifi);
+        folderService.create("Fantasy", null);
+
+        MultiTagDialog top = open(new MultiTagDialog(MultiTagDialog.Kind.FOLDERS, null, null));
+        assertThat(names(top)).containsExactly("Fantasy", "Sci-fi");
+
+        MultiTagDialog inside = open(new MultiTagDialog(MultiTagDialog.Kind.FOLDERS, null, scifi));
+        assertThat(names(inside)).containsExactly("Expanse");
+        inside.createTag("space");
+        inside.applyTo(row(inside, "Expanse"), true);
+
+        assertThat(tagsOf(expanse)).containsExactly("space");
+        assertThat(tagsOf(scifi)).isEmpty();
     }
 }

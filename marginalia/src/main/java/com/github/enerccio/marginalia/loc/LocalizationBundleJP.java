@@ -758,6 +758,20 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_REPLACE_AND_EXIT, "置き換えて閉じる");
         setValue(L.LABEL_DO_NOT_REPLACE, "置き換えない");
         setValue(L.LABEL_MASS_CHANGE_LANGUAGE, "言語の一括変更");
+        setValue(L.LABEL_FOLDER, "フォルダ");
+        setValue(L.LABEL_INCLUDE_SUBFOLDERS, "サブフォルダを含める");
+        setValue(L.LABEL_DELETE_FOLDER, "フォルダを削除");
+        setValue(L.LABEL_FOLDER_MOVE_CONTENT_UP, "中身を上のフォルダに移動する");
+        setValue(L.LABEL_FOLDER_DELETE_CONTENT, "中身もすべて削除する");
+        setValue(L.LABEL_MOVE_TO_FOLDER, "フォルダに移動");
+        setValue(L.LABEL_TOP_LEVEL, "最上位");
+        setValue(L.LABEL_TAG_FOLDERS, "フォルダにタグを付ける");
+        setValue(L.LABEL_FAVORITES, "お気に入り");
+        setValue(L.LABEL_MOVE, "移動");
+        setValue(L.LABEL_SKIP, "スキップ");
+        setValue(L.LABEL_APPLY_TO_ALL, "すべてに適用");
+        setValue(L.LABEL_ORGANISE, "整理");
+        setValue(L.LABEL_SHOW_FOLDER_IN_LIST, "一覧にフォルダを表示");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -998,6 +1012,11 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_ANNOTATE_NOT_POSSIBLE, "このパートには注釈を付けられません：本文がないか、ブックにモデルとプロトコルがありません。");
         setValue(L.ERROR_COMMAND_ANNOTATE_CONTEXT, "注釈がモデルのコンテキストに収まりません（必要 %d トークン、利用可能 %d）。");
         setValue(L.ERROR_COMMAND_ANNOTATE_UNREADABLE, "モデルの回答をメモとして読み取れませんでした: %s");
+        setValue(L.ERROR_FOLDER_NAME_INVALID, "フォルダ名は空にできず、255 文字を超えたりスラッシュを含めたりすることもできません。");
+        setValue(L.ERROR_FOLDER_NAME_TAKEN, "この名前のフォルダはすでに存在します。");
+        setValue(L.ERROR_FOLDER_CLASH_ON_DELETE, "中にあるフォルダが、上のフォルダ内のフォルダと同じ名前です。先にどちらかの名前を変更してください。");
+        setValue(L.ERROR_FOLDER_GONE, "フォルダはもう存在しません。");
+        setValue(L.ERROR_FOLDER_TRANSFER_REFUSED, "この操作はできません。フォルダを自分自身やその下のフォルダに入れることはできず、フォルダ名は空いている必要があります。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "フォームを保存できません。");
@@ -1297,6 +1316,12 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_MASS_CHANGE_DONE, "%d 冊の本のモデルとプロトコルを変更しました。");
         setValue(L.MSG_MASS_CHANGE_LANGUAGE_PICK_FIRST, "本に設定する言語を先に選択してください。");
         setValue(L.MSG_MASS_CHANGE_LANGUAGE_DONE, "%d 冊の本の言語を変更しました。");
+        setValue(L.MSG_DELETE_FOLDER_CONTENT, "フォルダ「%s」には %d 冊の本と %d 個のフォルダがあります。");
+        setValue(L.MSG_CONFIRM_DELETE_FOLDER_CONTENT, "%d 冊の本と %d 個のフォルダを、中身ごと本当に削除しますか？本はゴミ箱に移動します。");
+        setValue(L.MSG_ORGANISE_NOTHING_SELECTED, "マークされたものも、カーソル位置のものもありません。");
+        setValue(L.MSG_ORGANISE_DONE, "完了：本 %d 冊、フォルダ %d 個、スキップ %d 個。");
+        setValue(L.MSG_ORGANISE_COPY_TO, "%d 個の項目を「%s」にコピーしますか？");
+        setValue(L.MSG_FOLDER_CLASH, "「%s」というフォルダが「%s」にすでにあります。どうしますか？");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1389,6 +1414,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_PART_LAST_PROMPT, "ユーザーからの最後のメッセージです。リクエストごとに変わる内容（パートより後の物語、パート自体、その注釈、依頼）を置きます。");
         setValue(L.HELP_MASS_CHANGE_MODEL_PROTOCOL, "本に設定するモデルまたはプロトコルを選び、対象の本にチェックを入れます。空の選択は「置き換えない」で、その設定は本のまま変わりません。エージェントが作業中の本はグレー表示になり、変更できません。");
         setValue(L.HELP_MASS_CHANGE_LANGUAGE, "本に設定する言語を選び、対象の本にチェックを入れます。エージェントが作業中の本はグレー表示になり、変更できません。");
+        setValue(L.HELP_ORGANISE, "左 / 右：もう一方のペイン。Enter：フォルダを開く。Backspace：上へ。Space または Insert：マーク。F2 名前変更、F5 コピー、F6 移動、F7 新しいフォルダ、F8 削除。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

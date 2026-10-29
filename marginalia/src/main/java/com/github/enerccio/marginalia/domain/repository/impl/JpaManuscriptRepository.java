@@ -75,6 +75,20 @@ public class JpaManuscriptRepository extends JpaExtendableRepository<Manuscript>
     }
 
     @Override
+    public Set<String> findExistingRegularUuids(Collection<String> uuids, User user) throws Exception {
+        Set<String> existing = new HashSet<>();
+        for (List<String> chunk : chunks(uuids)) {
+            existing.addAll(getEntityManager().createQuery(
+                            "SELECT m.uuid FROM Manuscript m WHERE m.deleted = false AND m.agentic = false AND m.owner.id = :ownerId "
+                                    + "AND m.uuid IN :uuids", String.class)
+                    .setParameter("ownerId", user.getId())
+                    .setParameter("uuids", chunk)
+                    .getResultList());
+        }
+        return existing;
+    }
+
+    @Override
     public int moveToFolder(Collection<Long> bookIds, Folder folder, User user) throws Exception {
         int moved = 0;
         for (List<Long> chunk : chunks(bookIds)) {
@@ -147,6 +161,7 @@ public class JpaManuscriptRepository extends JpaExtendableRepository<Manuscript>
                 parameters.put("agentic", agentic);
             }
 
+            FolderScope.add(ands, parameters, filterValues, "m.folder", "m.uuid");
             if (filterValues.getName() != null) {
                 String nameFilter = filterValues.getName();
                 nameFilter = LikePatterns.fromWildcards(nameFilter);

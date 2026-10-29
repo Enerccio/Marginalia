@@ -766,6 +766,20 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_REPLACE_AND_EXIT, "替换并退出");
         setValue(L.LABEL_DO_NOT_REPLACE, "不替换");
         setValue(L.LABEL_MASS_CHANGE_LANGUAGE, "批量更改语言");
+        setValue(L.LABEL_FOLDER, "文件夹");
+        setValue(L.LABEL_INCLUDE_SUBFOLDERS, "包含子文件夹");
+        setValue(L.LABEL_DELETE_FOLDER, "删除文件夹");
+        setValue(L.LABEL_FOLDER_MOVE_CONTENT_UP, "将其内容移到上一级文件夹");
+        setValue(L.LABEL_FOLDER_DELETE_CONTENT, "同时删除其中的全部内容");
+        setValue(L.LABEL_MOVE_TO_FOLDER, "移动到文件夹");
+        setValue(L.LABEL_TOP_LEVEL, "顶层");
+        setValue(L.LABEL_TAG_FOLDERS, "为文件夹添加标签");
+        setValue(L.LABEL_FAVORITES, "收藏");
+        setValue(L.LABEL_MOVE, "移动");
+        setValue(L.LABEL_SKIP, "跳过");
+        setValue(L.LABEL_APPLY_TO_ALL, "应用于全部");
+        setValue(L.LABEL_ORGANISE, "整理");
+        setValue(L.LABEL_SHOW_FOLDER_IN_LIST, "在列表中显示文件夹");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1006,6 +1020,11 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_ANNOTATE_NOT_POSSIBLE, "无法为该段添加批注：它没有文本，或者书没有模型和协议。");
         setValue(L.ERROR_COMMAND_ANNOTATE_CONTEXT, "批注内容超出模型上下文（需要 %d 个令牌，可用 %d 个）。");
         setValue(L.ERROR_COMMAND_ANNOTATE_UNREADABLE, "无法把模型的回答读成备注：%s");
+        setValue(L.ERROR_FOLDER_NAME_INVALID, "文件夹名称不能为空、不能超过 255 个字符，也不能包含斜杠。");
+        setValue(L.ERROR_FOLDER_NAME_TAKEN, "此处已存在同名文件夹。");
+        setValue(L.ERROR_FOLDER_CLASH_ON_DELETE, "其中的某个文件夹与上一级文件夹中的文件夹同名。请先重命名其中一个。");
+        setValue(L.ERROR_FOLDER_GONE, "该文件夹已不存在。");
+        setValue(L.ERROR_FOLDER_TRANSFER_REFUSED, "无法执行此操作：文件夹不能放入自身或其子文件夹，且文件夹名称必须未被占用。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "无法保存表单。");
@@ -1305,6 +1324,12 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_MASS_CHANGE_DONE, "已更改 %d 本书的模型和协议。");
         setValue(L.MSG_MASS_CHANGE_LANGUAGE_PICK_FIRST, "请先选择要应用到书籍的语言。");
         setValue(L.MSG_MASS_CHANGE_LANGUAGE_DONE, "已更改 %d 本书的语言。");
+        setValue(L.MSG_DELETE_FOLDER_CONTENT, "文件夹“%s”包含 %d 本书和 %d 个文件夹。");
+        setValue(L.MSG_CONFIRM_DELETE_FOLDER_CONTENT, "确定要删除 %d 本书和 %d 个文件夹及其全部内容吗？这些书会被移入回收站。");
+        setValue(L.MSG_ORGANISE_NOTHING_SELECTED, "没有标记的项目，光标处也没有项目。");
+        setValue(L.MSG_ORGANISE_DONE, "完成：%d 本书、%d 个文件夹，跳过 %d 个。");
+        setValue(L.MSG_ORGANISE_COPY_TO, "将 %d 个项目复制到“%s”？");
+        setValue(L.MSG_FOLDER_CLASH, "名为“%s”的文件夹已存在于“%s”中。要如何处理？");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1397,6 +1422,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_PART_LAST_PROMPT, "用户的最后一条消息：每次请求都会变化的内容（该段之后的故事、该段本身、其批注、任务）。");
         setValue(L.HELP_MASS_CHANGE_MODEL_PROTOCOL, "选择要应用到书籍的模型和/或协议，并勾选书籍。留空表示“不替换”：书籍的该项设置保持不变。有智能体正在处理的书籍显示为灰色，无法更改。");
         setValue(L.HELP_MASS_CHANGE_LANGUAGE, "选择要应用到书籍的语言，并勾选书籍。有智能体正在处理的书籍显示为灰色，无法更改。");
+        setValue(L.HELP_ORGANISE, "左 / 右：切换窗格。Enter：打开文件夹。Backspace：上一级。空格或 Insert：标记。F2 重命名，F5 复制，F6 移动，F7 新建文件夹，F8 删除。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

@@ -78,6 +78,23 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
      * @throws IllegalArgumentException    when the folder or a book is not the user's
      * @throws ManuscriptLockedException when an agent works on a book
      */
+    /**
+     * The books (no agent working copies) of the current user in the folder (null is the top level), with
+     * {@code includeSubfolders} also those in the folders below it (at the top level that is every book).
+     */
+    List<Manuscript> findRegularInFolder(Folder folder, boolean includeSubfolders) throws Exception;
+
+    /**
+     * The uuids of the books the user marked as favorites, in the order they were marked; a book that is gone is dropped
+     * (and forgotten).
+     */
+    List<String> getFavorites() throws Exception;
+
+    /**
+     * Marks the book as a favorite or takes the mark off. Nothing of the book changes (not its modification either).
+     */
+    void setFavorite(Manuscript book, boolean favorite) throws Exception;
+
     void moveToFolder(Collection<Manuscript> books, Folder folder) throws Exception;
 
     /**

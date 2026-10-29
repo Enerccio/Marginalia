@@ -3,13 +3,16 @@ package com.github.enerccio.marginalia.ui.dialogs;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.collections.Language;
+import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.AgentRunService;
+import com.github.enerccio.marginalia.domain.service.FolderService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.widgets.BookLabels;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
@@ -54,9 +57,9 @@ public class MassChangeLanguageDialog extends Dialog implements LLMInteract {
         private final boolean locked;
         private boolean checked;
 
-        private Row(Manuscript book, boolean locked) {
+        private Row(Manuscript book, String name, boolean locked) {
             this.book = book;
-            this.name = StringUtils.defaultString(book.getName());
+            this.name = name;
             this.language = book.getLanguage();
             this.locked = locked;
         }
@@ -89,9 +92,15 @@ public class MassChangeLanguageDialog extends Dialog implements LLMInteract {
     private ManuscriptService manuscriptService;
 
     @Autowired
+    private FolderService folderService;
+
+    @Autowired
     private AgentRunService agentRunService;
 
     private final Runnable onChange;
+    // the folder whose books are listed, null is the top level
+    private final Folder folder;
+    private Checkbox subfolders;
 
     private ComboBox<Language> languageBox;
     private TextField nameFilter;
@@ -105,7 +114,16 @@ public class MassChangeLanguageDialog extends Dialog implements LLMInteract {
      * @param onChange told after books were changed, may be null
      */
     public MassChangeLanguageDialog(Runnable onChange) {
+        this(onChange, null);
+    }
+
+    /**
+     * @param onChange told after books were changed, may be null
+     * @param folder   the folder whose books are listed (with a checkbox for the ones in the folders below it), null is the top level
+     */
+    public MassChangeLanguageDialog(Runnable onChange, Folder folder) {
         this.onChange = onChange;
+        this.folder = folder;
     }
 
     @PublicAPI(from = "1.6.0",
@@ -118,13 +136,16 @@ public class MassChangeLanguageDialog extends Dialog implements LLMInteract {
                     @APILocals(name = "footer", type = HorizontalLayout.class),
                     @APILocals(name = "content", type = VerticalLayout.class)})
     public void create() {
-        setHeaderTitle(loc.getValue(L.LABEL_MASS_CHANGE_LANGUAGE));
+        setHeaderTitle(loc.getValue(L.LABEL_MASS_CHANGE_LANGUAGE) + ": " + scopeName());
         setWidth("900px");
         setMaxWidth("96%");
         setHeight("80%");
         setModality(ModalityMode.STRICT);
         setCloseOnOutsideClick(false);
         UIUtils.fitPhone(this, true);
+
+        subfolders = new Checkbox(loc.getValue(L.LABEL_INCLUDE_SUBFOLDERS));
+        subfolders.addValueChangeListener(event -> load());
 
         Span hint = new Span(loc.getValue(L.HELP_MASS_CHANGE_LANGUAGE));
         hint.addClassName(CssStyles.HINT_TEXT);
@@ -174,7 +195,7 @@ public class MassChangeLanguageDialog extends Dialog implements LLMInteract {
         footer.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         getFooter().add(footer);
 
-        VerticalLayout content = new VerticalLayout(hint, languageBox, grid);
+        VerticalLayout content = new VerticalLayout(hint, subfolders, languageBox, grid);
         content.setSizeFull();
         content.setPadding(false);
         content.addClassName(CssStyles.MIN_HEIGHT_0);
@@ -184,21 +205,38 @@ public class MassChangeLanguageDialog extends Dialog implements LLMInteract {
         load();
     }
 
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = String.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    private String scopeName() {
+        try {
+            return folder == null ? loc.getValue(L.LABEL_TOP_LEVEL) : folderService.getPath(folder);
+        } catch (Exception e) {
+            return folder.getName();
+        }
+    }
+
     /**
      * Reads the books and their languages again. The checks and the filter stay.
      */
     @PublicAPI(from = "1.6.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "loaded", type = List.class),
+                    @APILocals(name = "paths", type = Map.class),
                     @APILocals(name = "book", type = Manuscript.class),
+                    @APILocals(name = "bookName", type = String.class),
                     @APILocals(name = "checked", type = Set.class),
                     @APILocals(name = "row", type = MassChangeLanguageDialog.Row.class),
                     @APILocals(name = "e", type = Exception.class)})
     public void load() {
         try {
             List<Row> loaded = new ArrayList<>();
-            for (Manuscript book : manuscriptService.findAllRegularForUser()) {
-                loaded.add(new Row(book, agentRunService.findLockingRun(book) != null));
+            boolean nested = subfolders != null && subfolders.getValue();
+            Map<Long, String> paths = nested ? folderService.getPaths() : Map.of();
+            for (Manuscript book : manuscriptService.findRegularInFolder(folder, nested)) {
+                // with the folders below listed too, a book is told apart by its folder
+                String bookName = nested ? BookLabels.label(book, paths) : StringUtils.defaultString(book.getName());
+                loaded.add(new Row(book, bookName, agentRunService.findLockingRun(book) != null));
             }
             Set<Long> checked = new HashSet<>();
             rows.stream().filter(row -> row.checked).forEach(row -> checked.add(row.book.getId()));

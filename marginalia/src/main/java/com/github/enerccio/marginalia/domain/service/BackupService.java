@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service;
 
+import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookDecision;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookImportCandidate;
@@ -63,6 +64,12 @@ public interface BackupService {
      * @throws IllegalArgumentException when the book is not a regular book of the user, or the name is blank
      */
     Manuscript cloneManuscript(Manuscript source, String newName, boolean onlyCurrentBranch) throws Exception;
+
+    /**
+     * Like {@link #cloneManuscript(Manuscript, String, boolean)}, but the clone is put into the given folder (null is the top
+     * level) instead of next to the original.
+     */
+    Manuscript cloneManuscript(Manuscript source, String newName, boolean onlyCurrentBranch, Folder folder) throws Exception;
 
     List<LorebookImportCandidate> analyzeLorebooks(ManuscriptBackup backup) throws Exception;
     List<LorebookImportCandidate> analyzeLorebooks(File backupFile) throws Exception;

@@ -14,6 +14,9 @@ import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Transient;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @DiscriminatorValue("UserSetting")
 public class UserSetting extends Setting {
@@ -182,6 +185,15 @@ public class UserSetting extends Setting {
     @ExtendedAttribute(inject = true, injectPrefix = "workspaceState")
     @Transient
     private JsonObject workspaceState = new JsonObject();
+
+    /**
+     * The uuids of the books the user marked as favorites (the star of the list of books), which the list shows together
+     * in the virtual folder *Favorites*. A book that is gone is dropped when the list is read, see
+     * {@code ManuscriptService.getFavorites}.
+     */
+    @ExtendedAttribute(inject = true, injectPrefix = "favoriteBooks")
+    @Transient
+    private List<String> favoriteBooks = new ArrayList<>();
 
     /**
      * The keys of the user for the keyboard shortcuts of the story editor: action id to key combination, only the ones
@@ -421,6 +433,14 @@ public class UserSetting extends Setting {
 
     public void setWorkspaceState(JsonObject workspaceState) {
         this.workspaceState = workspaceState == null ? new JsonObject() : workspaceState;
+    }
+
+    public List<String> getFavoriteBooks() {
+        return favoriteBooks;
+    }
+
+    public void setFavoriteBooks(List<String> favoriteBooks) {
+        this.favoriteBooks = favoriteBooks == null ? new ArrayList<>() : new ArrayList<>(favoriteBooks);
     }
 
     public JsonObject getKeyBindings() {
