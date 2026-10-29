@@ -753,6 +753,11 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_AUTO_ANNOTATE_ACCEPT_REDRAFT, "確認せずに再執筆を適用する（ウィンドウは閉じます）");
         setValue(L.LABEL_ANNOTATE_SYSTEM_PROMPT, "注釈システムプロンプト");
         setValue(L.LABEL_REDRAFT_SYSTEM_PROMPT, "書き直しシステムプロンプト");
+        setValue(L.LABEL_MASS_CHANGES, "一括変更");
+        setValue(L.LABEL_MASS_CHANGE_MODEL_PROTOCOL, "モデル/プロトコルの一括変更");
+        setValue(L.LABEL_REPLACE_AND_EXIT, "置き換えて閉じる");
+        setValue(L.LABEL_DO_NOT_REPLACE, "置き換えない");
+        setValue(L.LABEL_MASS_CHANGE_LANGUAGE, "言語の一括変更");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1288,6 +1293,10 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_AUTO_ANNOTATE_INFO, "パートが生成されると、注釈ウィンドウが開いてすぐに開始します。ウィンドウを閉じると実行全体が終了し、注釈とそれに続く再執筆は破棄されます。");
         setValue(L.MSG_AUTO_ANNOTATE_MODEL_HINT, "モデルを空にすると、本のモデルで注釈を付けます。");
         setValue(L.MSG_AUTO_ANNOTATE_SAVED, "自動注釈を保存しました。");
+        setValue(L.MSG_MASS_CHANGE_PICK_FIRST, "本に設定するモデルまたはプロトコルを先に選択してください。");
+        setValue(L.MSG_MASS_CHANGE_DONE, "%d 冊の本のモデルとプロトコルを変更しました。");
+        setValue(L.MSG_MASS_CHANGE_LANGUAGE_PICK_FIRST, "本に設定する言語を先に選択してください。");
+        setValue(L.MSG_MASS_CHANGE_LANGUAGE_DONE, "%d 冊の本の言語を変更しました。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1378,6 +1387,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_ACTIVATION_PARTS, "指示と一緒に検索するストーリーの最新パートの数（1以上）。");
         setValue(L.HELP_PART_SYSTEM_PROMPT, "システムメッセージです。パートより前の物語は、この後ろに会話の前のメッセージとして送られます。リクエストごとに変わらない内容をここに置くと、サーバーは既に読んだ内容を再利用できます。");
         setValue(L.HELP_PART_LAST_PROMPT, "ユーザーからの最後のメッセージです。リクエストごとに変わる内容（パートより後の物語、パート自体、その注釈、依頼）を置きます。");
+        setValue(L.HELP_MASS_CHANGE_MODEL_PROTOCOL, "本に設定するモデルまたはプロトコルを選び、対象の本にチェックを入れます。空の選択は「置き換えない」で、その設定は本のまま変わりません。エージェントが作業中の本はグレー表示になり、変更できません。");
+        setValue(L.HELP_MASS_CHANGE_LANGUAGE, "本に設定する言語を選び、対象の本にチェックを入れます。エージェントが作業中の本はグレー表示になり、変更できません。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

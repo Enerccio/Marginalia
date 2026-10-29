@@ -753,6 +753,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_AUTO_ANNOTATE_ACCEPT_REDRAFT, "Apply the redraft without asking (the window closes)");
         setValue(L.LABEL_ANNOTATE_SYSTEM_PROMPT, "Annotate System Prompt");
         setValue(L.LABEL_REDRAFT_SYSTEM_PROMPT, "Redraft System Prompt");
+        setValue(L.LABEL_MASS_CHANGES, "Mass changes");
+        setValue(L.LABEL_MASS_CHANGE_MODEL_PROTOCOL, "Mass Change Model/Protocol");
+        setValue(L.LABEL_REPLACE_AND_EXIT, "Replace and exit");
+        setValue(L.LABEL_DO_NOT_REPLACE, "Do not replace");
+        setValue(L.LABEL_MASS_CHANGE_LANGUAGE, "Mass Change Language");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1288,6 +1293,10 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_AUTO_ANNOTATE_INFO, "When a part has been generated, the annotation window opens and starts at once. Closing a window ends the whole run: the annotations and the redraft that would follow are dropped.");
         setValue(L.MSG_AUTO_ANNOTATE_MODEL_HINT, "Leave the model empty to annotate with the model of the book.");
         setValue(L.MSG_AUTO_ANNOTATE_SAVED, "Automatic annotation saved.");
+        setValue(L.MSG_MASS_CHANGE_PICK_FIRST, "Pick the model or the protocol to put on the books first.");
+        setValue(L.MSG_MASS_CHANGE_DONE, "The model and the protocol were changed on %d book(s).");
+        setValue(L.MSG_MASS_CHANGE_LANGUAGE_PICK_FIRST, "Pick the language to put on the books first.");
+        setValue(L.MSG_MASS_CHANGE_LANGUAGE_DONE, "The language was changed on %d book(s).");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1378,6 +1387,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_ACTIVATION_PARTS, "How many of the newest parts of the story are searched together with the instructions (at least 1).");
         setValue(L.HELP_PART_SYSTEM_PROMPT, "The system message. The story before the part is sent after it as the earlier messages of the conversation, so keep here what stays the same from one request to the next: a server can then reuse what it has already read.");
         setValue(L.HELP_PART_LAST_PROMPT, "The last message from the user: what changes from one request to the next (the story after the part, the part itself, its notes, the task).");
+        setValue(L.HELP_MASS_CHANGE_MODEL_PROTOCOL, "Pick the model and/or the protocol to put on the books and check the books. An empty choice means \"do not replace\": that part of the book stays as it is. Books an agent works on are grayed out and can't be changed.");
+        setValue(L.HELP_MASS_CHANGE_LANGUAGE, "Pick the language to put on the books and check the books. Books an agent works on are grayed out and can't be changed.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

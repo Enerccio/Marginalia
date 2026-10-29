@@ -761,6 +761,11 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_AUTO_ANNOTATE_ACCEPT_REDRAFT, "无需确认直接应用重写（窗口会关闭）");
         setValue(L.LABEL_ANNOTATE_SYSTEM_PROMPT, "批注系统提示词");
         setValue(L.LABEL_REDRAFT_SYSTEM_PROMPT, "重写系统提示词");
+        setValue(L.LABEL_MASS_CHANGES, "批量更改");
+        setValue(L.LABEL_MASS_CHANGE_MODEL_PROTOCOL, "批量更改模型/协议");
+        setValue(L.LABEL_REPLACE_AND_EXIT, "替换并退出");
+        setValue(L.LABEL_DO_NOT_REPLACE, "不替换");
+        setValue(L.LABEL_MASS_CHANGE_LANGUAGE, "批量更改语言");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1296,6 +1301,10 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_AUTO_ANNOTATE_INFO, "段落生成后，批注窗口会打开并立即开始。关闭窗口会结束整个流程：批注以及随后的重写都会被丢弃。");
         setValue(L.MSG_AUTO_ANNOTATE_MODEL_HINT, "模型留空则使用书籍的模型进行批注。");
         setValue(L.MSG_AUTO_ANNOTATE_SAVED, "已保存自动批注设置。");
+        setValue(L.MSG_MASS_CHANGE_PICK_FIRST, "请先选择要应用到书籍的模型或协议。");
+        setValue(L.MSG_MASS_CHANGE_DONE, "已更改 %d 本书的模型和协议。");
+        setValue(L.MSG_MASS_CHANGE_LANGUAGE_PICK_FIRST, "请先选择要应用到书籍的语言。");
+        setValue(L.MSG_MASS_CHANGE_LANGUAGE_DONE, "已更改 %d 本书的语言。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1386,6 +1395,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_ACTIVATION_PARTS, "与指令一同搜索的故事最新段落的数量（至少为 1）。");
         setValue(L.HELP_PART_SYSTEM_PROMPT, "系统消息。该段之前的故事会作为对话中较早的消息发送在它之后，所以请把每次请求都不变的内容放在这里：服务器就可以重用已读过的内容。");
         setValue(L.HELP_PART_LAST_PROMPT, "用户的最后一条消息：每次请求都会变化的内容（该段之后的故事、该段本身、其批注、任务）。");
+        setValue(L.HELP_MASS_CHANGE_MODEL_PROTOCOL, "选择要应用到书籍的模型和/或协议，并勾选书籍。留空表示“不替换”：书籍的该项设置保持不变。有智能体正在处理的书籍显示为灰色，无法更改。");
+        setValue(L.HELP_MASS_CHANGE_LANGUAGE, "选择要应用到书籍的语言，并勾选书籍。有智能体正在处理的书籍显示为灰色，无法更改。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");
