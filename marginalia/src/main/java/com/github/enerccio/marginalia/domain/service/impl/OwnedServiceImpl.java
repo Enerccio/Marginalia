@@ -70,6 +70,15 @@ public class OwnedServiceImpl<T extends OwnedEntity, R extends OwnedRepository<T
         return super.saveWithoutEvent(t);
     }
 
+    @Override
+    @CommonTx
+    public T saveWithoutModification(T t) throws Exception {
+        if (t.getOwner() == null && t.getId() == null) {
+            t.setOwner(userService.find(currentUser.getId()));
+        }
+        return super.saveWithoutModification(t);
+    }
+
     protected T saveWithoutOwner(T t) throws Exception {
         return super.save(t);
     }

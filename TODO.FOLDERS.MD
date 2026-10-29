@@ -109,19 +109,18 @@ getter on `Manuscript`, `Folder` and `UserSetting` for each) and make the getter
 
 ## Modification
 
-Today a book's `modification` is set by `JpaBaseRepository.saveWithoutEvent` on every save of the *manuscript*. Generation
-(`InferenceStep`, `CleanupStep`) and creating a part or switching the active leaf (`ChatMessageServiceImpl`) save the
-manuscript too, so those bump it. `markOpened` is a bulk update and deliberately does not. But
-`ChatMessageServiceImpl.save(ChatMessage)` saves only the message, so editing the text of a part (and probably summaries,
-annotations, part merges...) does not bump the book unless the caller also saves it. Folders would inherit that gap.
+**Done (before the folders):** a book's `modification` follows its parts by itself. `JpaBaseRepository.changed` is called after a
+save (not after `saveWithoutModification`) and before a hard delete; `JpaChatMessageRepository` overrides it and sets the
+`modification` of the part's book with a bulk update (no dirty state, no extended content touched). The bulk statements of that
+repository (re-parenting, soft delete by ids) do the same. `saveWithoutModification` (repository + services) saves an entity
+as it is. Summaries, annotations, prompts of a part and opening a book are auxiliary and do **not** count: only parts change a
+book. Test: `crud/ModificationTest`.
 
-Plan: make it automatic and in one place. A change of a message (save, delete, restore, move) bumps its book
-(`UPDATE manuscripts SET modification = :now WHERE id = :book`, a bulk update so it does not touch dirty checking or the
-extended attributes), and every bump of a book bumps the chain of its folders in the same statement or a second one
-(`WHERE id IN (:ancestorIds)`). Audit first which writes bump and which do not (messages, summaries, annotations, prompts of
-a part, images, tags of the book?), then decide per kind of change which count as "the book changed"; reading, opening and
-the agent's checkpoints should not. Tests: each kind of write moves `modification` of the book and its folders; opening does
-not. Mention it in the changelog (the book list sorts by it).
+**Still to do with the folders:** the same hook one level up. A change of a book (its parts, and a save of the book itself) bumps
+the chain of its folders: `JpaManuscriptRepository.changed` and the bulk update in `touchBook` take the ancestor ids
+(`WHERE id IN (:ancestorIds)`, ancestors from the folder tree in memory or a recursive CTE). Candidates for
+`saveWithoutModification` (navigation, not content): `ChatMessageServiceImpl.swipeAndSwitch` / `branchAndSwitch`, the active leaf
+set by the tree and story views. Decide per caller when the folder bump exists.
 
 ## Open questions
 

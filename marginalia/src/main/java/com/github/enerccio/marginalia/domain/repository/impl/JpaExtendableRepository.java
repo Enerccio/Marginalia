@@ -19,6 +19,14 @@ public abstract class JpaExtendableRepository<T extends ExtendableEntity> extend
     }
 
     @Override
+    public T saveWithoutModification(T entity) throws Exception {
+        listener.serialize(entity);
+        entity = super.saveWithoutModification(entity);
+        listener.deserialize(entity);
+        return entity;
+    }
+
+    @Override
     public T saveWithoutEvent(T entity) throws Exception {
         entity = super.saveWithoutEvent(entity);
         listener.deserialize(entity);
