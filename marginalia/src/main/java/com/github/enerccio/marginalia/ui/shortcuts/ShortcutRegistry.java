@@ -22,6 +22,15 @@ public final class ShortcutRegistry {
         register(new ShortcutAction(ShortcutActions.STORY_SEARCH, loc -> loc.getValue(L.LABEL_SEARCH_THIS_BRANCH), "Ctrl+Shift+f", null));
         register(new ShortcutAction(ShortcutActions.DOCK_NEXT_TAB, loc -> loc.getValue(L.LABEL_NEXT_TAB), "Alt+PageDown", null));
         register(new ShortcutAction(ShortcutActions.DOCK_PREVIOUS_TAB, loc -> loc.getValue(L.LABEL_PREVIOUS_TAB), "Alt+PageUp", null));
+        // no function keys (a Mac keeps them for the media keys, the browsers for themselves: F5 reloads, F7 is caret browsing) and no Alt
+        // with a letter (it types a character on a Mac): plain keys, which the Organise window gets only while no input has the focus
+        register(new ShortcutAction(ShortcutActions.ORGANISE_COPY, loc -> loc.getValue(L.LABEL_ORGANISE) + ": " + loc.getValue(L.LABEL_COPY), "c", null));
+        register(new ShortcutAction(ShortcutActions.ORGANISE_MOVE, loc -> loc.getValue(L.LABEL_ORGANISE) + ": " + loc.getValue(L.LABEL_MOVE), "m", null));
+        register(new ShortcutAction(ShortcutActions.ORGANISE_SWITCH_PANE, loc -> loc.getValue(L.LABEL_ORGANISE) + ": " + loc.getValue(L.LABEL_SWITCH_PANE), "Tab", null));
+        // plain r is the regeneration of a story turn
+        register(new ShortcutAction(ShortcutActions.ORGANISE_NEW_FOLDER, loc -> loc.getValue(L.LABEL_ORGANISE) + ": " + loc.getValue(L.LABEL_NEW_FOLDER), "n", null));
+        register(new ShortcutAction(ShortcutActions.ORGANISE_RENAME, loc -> loc.getValue(L.LABEL_ORGANISE) + ": " + loc.getValue(L.LABEL_RENAME), "Shift+r", null));
+        register(new ShortcutAction(ShortcutActions.ORGANISE_DELETE, loc -> loc.getValue(L.LABEL_ORGANISE) + ": " + loc.getValue(L.LABEL_DELETE), "Delete", null));
     }
 
     private ShortcutRegistry() {

@@ -751,6 +751,74 @@ public final class JavascriptLibrary {
                 """, element);
     }
 
+    // --- two-pane dialog ---
+
+    /**
+     * Fires {@code organise-key} ({@code detail}: {@code ArrowLeft}, {@code ArrowRight}, {@code Enter}, {@code Backspace},
+     * {@code Insert}, {@code Space}, {@code Shift+ArrowUp}, {@code Shift+ArrowDown}) on the grid when the user presses one of the
+     * keys in it; the key combinations of {@code actions} fire it with the id of the action as the {@code detail}. The keys are caught before the grid sees them, so Left / Right do not move the focus between the cells and Enter
+     * does not toggle the checkbox of the row; Up / Down (with or without Shift) are left to the grid, which moves between the
+     * rows. Any other key with Ctrl, Alt or Meta, and a key typed in a field, are left alone. The listener is added once for a
+     * grid, a later call only replaces the actions.
+     *
+     * @param actions JSON object, canonical key combination ({@code KeyCombo}) to the id of the action
+     */
+    public static void fireOrganiseKeys(Element grid, String actions) {
+        grid.executeJs(KEY_COMBO + """
+                var el = $0;
+                el.__organiseActions = JSON.parse($1);
+                if (el.__organiseKeys) { return; }
+                el.__organiseKeys = true;
+                var caught = ['ArrowLeft', 'ArrowRight', 'Enter', 'Backspace', 'Insert', ' '];
+                el.addEventListener('keydown', function (e) {
+                    if (e.isComposing) { return; }
+                    var path = e.composedPath();
+                    for (var i = 0; i < path.length && path[i] !== el; i++) {
+                        var tag = path[i].tagName;
+                        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || path[i].isContentEditable) { return; }
+                    }
+                    var action = e.repeat ? null : el.__organiseActions[window.marginaliaKeyCombo(e)];
+                    if (action) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        el.dispatchEvent(new CustomEvent('organise-key', { detail: action }));
+                        return;
+                    }
+                    if (e.ctrlKey || e.altKey || e.metaKey) { return; }
+                    if (e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+                        el.dispatchEvent(new CustomEvent('organise-key', { detail: 'Shift+' + e.key }));
+                        return;
+                    }
+                    if (e.shiftKey || caught.indexOf(e.key) < 0) { return; }
+                    e.preventDefault();
+                    e.stopPropagation();
+                    el.dispatchEvent(new CustomEvent('organise-key', { detail: e.key === ' ' ? 'Space' : e.key }));
+                }, true);
+                """, grid, actions);
+    }
+
+    /**
+     * Puts the keyboard focus into a cell of the grid (the host element of a {@code vaadin-grid} can't take the focus itself, so
+     * {@code focus()} on it does nothing and the focus would stay in the other pane): the row with the {@code index}. Scrolls to
+     * the row and tries again until the rows are rendered and the cell has the focus.
+     */
+    public static void focusOrganiseGrid(Element grid, int index) {
+        grid.executeJs("""
+                var el = $0;
+                var index = $1;
+                var tries = 0;
+                if (el.scrollToIndex) { el.scrollToIndex(index); }
+                var timer = setInterval(function () {
+                    var rows = (el._getRenderedRows ? el._getRenderedRows() : []).filter(function (r) { return !r.hidden; });
+                    var row = rows.filter(function (r) { return r.index === index; })[0]
+                        || rows.sort(function (a, b) { return a.index - b.index; })[0];
+                    var cell = row ? row.children[0] : null;
+                    if (cell) { cell.focus(); }
+                    if ((cell && el.contains(document.activeElement)) || ++tries > 20) { clearInterval(timer); }
+                }, 30);
+                """, grid, index);
+    }
+
     // --- keyboard shortcuts ---
 
     /**

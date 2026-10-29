@@ -44,11 +44,80 @@ built as a series of commits (one per step of *Order of work*, each leaving the 
   `ManuscriptPartFoldersTest`, `BookLabelsTest`, `MultiTagDialogTest`.
 - ✅ `FolderService.transfer` / `findClashes` (copy and move of books and folders, rename / skip / merge, checks before anything changes, locked
   books refuse): `FolderTransferTest`.
-- 🟡 **Organise dialog**: structure only (two panes, loading, Left/Right, Enter, Backspace, Insert, double click). ⬜ The actions on it (copy / move
-  with the clash questions and *only current branch*, new folder, rename, delete, mass dialogs, show in list, advanced search with *show in
-  folder*), the dialog test of the actions.
-- ⬜ Phone list (navigate, filter, quick move, favorites star). ⬜ Step 3, 4 (folder settings dialog, backup / restore, agents, export, assistant
-  commands, docs). ⬜ `tools/check_dev_docs.py` pages.
+- 🟡 **Organise dialog**: structure only (two panes, loading, Left/Right, Enter, Backspace, Insert, double click). Substeps, each a commit:
+  - ✅ **O1 Keys and marks.** The keys are caught in the browser (`JavascriptLibrary.fireOrganiseKeys`, capture phase, `organise-key`
+    event), so Left / Right switch the pane instead of moving between the grid's cells, and Enter opens the folder (like a double click)
+    instead of toggling the checkbox cell. Up / Down are the grid's own, from row to row, the row under the cursor is highlighted
+    (`ORGANISE_CURSOR_ROW`). Space / Insert mark, Shift+Up / Down mark the row they leave, the entry above (`..`) is never marked.
+    `OrganiseDialogTest` covers the keys through `press(key)`. `Entry` has identity `equals` / `hashCode` (a lazy parent proxy broke the
+    hash). Still open from the old O1: the pre-selection of the main list's selected row (the main grid has no multi-select, `selection()` =
+    marked entries or else the cursor row comes with O2) and the cursor staying on the folder we came from after Backspace.
+  - ✅ **O2 Copy / move (F5 / F6).** Build `FolderService.Transfer` from the active pane's selection and the other pane's folder. Flow: refuse
+    when source and target are the same folder → `findClashes` → one dialog per clash (*rename / skip / merge*, *apply to all*) → for a
+    copy with books ask *only current branch* (default on) once → `transfer` → reload both panes, notify with `Outcome`. A locked book or
+    folder (`AgentLockCheck`) shows the error naming the book. Buttons show their keys.
+    Done: `OrganiseDialog.transfer` (row of buttons showing their keys; the keys are the actions `organise.copy` / `organise.move` of `ShortcutRegistry`, default `c` / `m`, rebindable in the key bindings, caught in `fireOrganiseKeys`; O3 adds its buttons the same way), `FolderClashDialog` (rename with a
+    free `name (2)` suggestion / skip / merge, *apply to all* gives the other renames a free name of their own), the copy confirmation carries *only current
+    branch*; `selection()` = marked entries or else the cursor row (never `..`). A locked book names the agent holding it (the message of
+    `ManuscriptLockedException` / `AgentLockCheck`), not the book. After a transfer both panes reload and keep their cursor row.
+  - ✅ **O3 New folder / rename / delete.** Reuse `FolderActions.create/rename/delete` on the focused pane's folder / entry,
+    refresh the pane (and the other when it showed the changed folder).
+    Done: actions `organise.newFolder` (`n`), `organise.rename` (`Shift+r`, plain `r` is the story's regenerate), `organise.delete` (`Delete`) in the button row and the key bindings. They work on the
+    entry under the cursor (not on the marks); a book is renamed through `ManuscriptService.update` and deleted after a confirmation, both after the `AgentLockCheck`. Both panes load
+    again and the cursor of the active one stays on the made / renamed entry (or on its row number after a delete).
+  - ⬜ **O4 Mass dialogs from the dialog.** Buttons for model / protocol, language and tag books, scoped to the selection or to the folder of the
+    focused pane (+ *include subfolders*). Needs the scope parameter on the three dialogs (see list: scoped to the current folder already; add
+    the explicit-selection variant).
+  - ⬜ **O5 Advanced search.** Button opens `ManuscriptSearchDialog` with a folder scope (+ subfolders); a hit has *show in folder* (moves the
+    focused pane there and marks the book). Scope parameter on the search first.
+  - ⬜ **O6 Show in list.** Button closes the dialog and opens the focused pane's folder in the main `ManuscriptPart` (callback, no
+    cross-class reach into the part).
+  - ⬜ **O7 Persistence and entry point.** Last used target remembered (`storeState`); *Organise* header button opens left = current folder,
+    right = its parent or the last target.
+  - ⬜ **O8 `OrganiseDialogTest`.** Copy, move, clash resolutions (rename / skip / merge, apply to all), locked book, new / rename / delete,
+    selection from keys where the Vaadin testing setup allows it, otherwise through the dialog's methods.
+- ⬜ **Phone list** (`PhoneManuscriptPart`). Substeps:
+  - ⬜ **P1 Navigation.** Breadcrumb, folder rows above the books (same `FolderService` queries as the desktop list), counts, *include subfolders*
+    toggle with the *Folder* column, `storeState` / `restoreState` of the current folder.
+  - ⬜ **P2 Filters.** Name / tag filter on books and folders, scoped as on the desktop.
+  - ⬜ **P3 Quick move.** Row action opening a folder picker (`ManuscriptService.moveToFolder`); no folder editing, no two-pane dialog.
+  - ⬜ **P4 Favorites.** Star toggle in the row, the virtual *Favorites* folder at the top level.
+  - ⬜ **P5 Start in the current folder.** New book / imports on the phone use the current folder.
+  - ⬜ **P6 Tests.** Extend `FolderListTest` or add a phone twin; `PublicAPISignatureTest` for the touched `@Extendable` classes.
+- ⬜ **Step 3, folder settings and "inherited from"**:
+  - ⬜ **S1 Reusable settings form.** Extract the field editors of `ManuscriptPromptPart` / `ManuscriptInfoPart` (template, pov, tense, style, the
+    prompts, language) into a form usable for a `Manuscript` and a `Folder`, each field with the inherited value as placeholder and a label
+    *inherited from X* (`ManuscriptService.resolve` → `EffectiveSetting.origin/folder`).
+  - ⬜ **S2 Folder dialog.** Name, description, tags (`MultiTagDialog.Kind.FOLDERS`) and the S1 form; opened from the list (row button) and from the
+    two-pane dialog. Blocked with the book named when a book beneath is locked; rename is not.
+  - ⬜ **S3 Book dialog.** Same placeholders and origin labels in the book's settings (desktop and phone twins).
+  - ⬜ **S4 Language.** *Inherit* entry in the language combo (empty = inherit), the 5 UI places (`ExportDialog`, both story parts, `Viewer`,
+    `MassChangeLanguageDialog`) switch to `getLanguage(book)`.
+  - ⬜ **S5 Tests and plugin check.** Dialog test (set, clear → inherit, origin label), `PublicAPISignatureTest`, grep the plugins for the old
+    getters and `ManuscriptPart` locals.
+- ⬜ **Step 4, the rest**:
+  - ⬜ **R1 Folder modification bump.** `JpaManuscriptRepository.changed` and `touchBook` bump the ancestor folders (`WHERE id IN (:ancestorIds)`);
+    decide `saveWithoutModification` for `swipeAndSwitch` / `branchAndSwitch` / active leaf. Test in `ModificationTest`.
+  - ⬜ **R2 Branch counts.** One repository query (recursive CTE from `activeLeaf`, sum of `wordCount` / `tokenCount`) if the per-page query
+    of the list is not already it; check it on a long book.
+  - ⬜ **R3 Backup / restore.** Folders go with the books in `BackupServiceImpl`; restore resolves by uuid, else by name path (created with the
+    backup's folder settings), else top level; a clone stays in the folder of the original. Round trip test. Also the folder-specific manuscript
+    copies already in the backup logic: check them against this.
+  - ⬜ **R4 Agents.** `AgentCopyServiceImpl` working copy keeps the folder pointer (or resolves against the original); `AgentMergeServiceImpl` never
+    changes the original's folder. Tests with the agent test base; this also covers *move / delete blocked by an agent's book*.
+  - ⬜ **R5 Export / import of one book.** *Include inherited settings* checkbox (default on) in `ExportDialog`, written as the book's own values;
+    the folder pointer is never exported; archive import starts in the current folder.
+  - ⬜ **R6 Assistant.** Read-only commands: list / navigate folders, search books, effective settings with source. Opt-in checkbox in the
+    popover (`WorkspaceLLMSupport`, `LLMInteract`, `UserSetting`) with the notice that titles and descriptions are sent.
+  - ⬜ **R7 Cleanup.** `CleanupServiceTest` fixture: purge of a folder with books beneath it.
+  - ⬜ **R8 Chain cache.** Only if profiling shows the per-lookup chain reads; cache per generation in the controller.
+- ⬜ **Docs and release notes** (last, once the UI is stable):
+  - ⬜ **D1 User manual.** Folders and inheritance page, books page, book settings page; picture added to `TODO.IMAGES.md` and the screenshot flow.
+  - ⬜ **D2 Developer manual.** Settings resolution, data model, services; `python3 tools/check_dev_docs.py -v`, update the flagged pages, then
+    `--stamp <page.md>` each in a commit of its own.
+  - ⬜ **D3 Changelog.** `CHANGELOG.MD`: Changed (settings resolve through folders), the `@PublicAPI` changes plugins can see.
+  - ⬜ **D4 Site.** `tools/retype_build.sh`, commit `docs/` with the manual change.
+  - ⬜ **D5 Final check.** Full suite once (foreground, `mvn test 2>&1 | tail -40`), `BundleCompletenessTest` for EN / JP / CN keys.
 
 ## Decided
 
