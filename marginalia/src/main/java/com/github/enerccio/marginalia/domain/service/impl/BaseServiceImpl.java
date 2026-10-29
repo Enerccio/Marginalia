@@ -62,6 +62,12 @@ public class BaseServiceImpl<T extends BaseEntity, R extends BaseRepository<T>> 
 
     @Override
     @CommonTx
+    public T saveWithoutModification(T t) throws Exception {
+        return getRepository().saveWithoutModification(t);
+    }
+
+    @Override
+    @CommonTx
     public T delete(T entity, boolean hard) throws Exception {
         return getRepository().delete(entity, hard);
     }

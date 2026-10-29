@@ -14,6 +14,12 @@ public interface BaseService<T extends BaseEntity, R extends BaseRepository<T>> 
     List<Long> findAllIds() throws Exception;
     T save(T t) throws Exception;
     T saveWithoutEvent(T t) throws Exception;
+
+    /**
+     * Like {@link #save} but {@code modification} stays as it is (it is not a change of the content), see
+     * {@link BaseRepository#saveWithoutModification}.
+     */
+    T saveWithoutModification(T t) throws Exception;
     T delete(T entity, boolean hard) throws Exception;
     void evict(T entity) throws Exception;
 

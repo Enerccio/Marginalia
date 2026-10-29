@@ -50,6 +50,13 @@ public class AIServiceImpl extends ExtendableServiceImpl<AI, AIRepository> imple
 
     @Override
     @CommonTx
+    public AI saveWithoutModification(AI ai) throws Exception {
+        checkCanWrite(ai);
+        return super.saveWithoutModification(ai);
+    }
+
+    @Override
+    @CommonTx
     public AI delete(AI ai, boolean hard) throws Exception {
         checkOwner(ai);
         if (!hard && ai.getId() != null) {

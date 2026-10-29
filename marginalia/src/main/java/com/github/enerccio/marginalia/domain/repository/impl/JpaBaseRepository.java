@@ -71,23 +71,42 @@ public abstract class JpaBaseRepository<T extends BaseEntity> implements BaseRep
 
     @Override
     public T saveWithoutEvent(T entity) throws Exception {
+        return write(entity, true);
+    }
+
+    @Override
+    public T saveWithoutModification(T entity) throws Exception {
+        return write(entity, false);
+    }
+
+    private T write(T entity, boolean touch) throws Exception {
         if (entity.getUuid() == null) {
             entity.setUuid(UUID.randomUUID().toString());
         }
         if (entity.getCreation() == null) {
             entity.setCreation(new Date());
         }
-        entity.setModification(new Date());
+        if (touch || entity.getModification() == null) {
+            entity.setModification(new Date());
+        }
 
         if (entity.getId() == null) {
             entityManager.persist(entity);
-            entityManager.flush();
-            return entity;
         } else {
             entity = entityManager.merge(entity);
-            entityManager.flush();
-            return entity;
         }
+        entityManager.flush();
+        if (touch) {
+            changed(entity);
+        }
+        return entity;
+    }
+
+    /**
+     * Called after the entity was saved (not by {@link #saveWithoutModification}) or removed, for the repository whose
+     * entity is a part of another one that has to show the change in its {@code modification}.
+     */
+    protected void changed(T entity) throws Exception {
     }
 
     @Override
@@ -101,6 +120,7 @@ public abstract class JpaBaseRepository<T extends BaseEntity> implements BaseRep
             entity.setDeleted(true);
             return save(entity);
         }
+        changed(entity);
         entityManager.remove(entityManager.contains(entity) ? entity : entityManager.merge(entity));
         return null;
     }

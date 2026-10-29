@@ -16,6 +16,26 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
         return ChatMessage.class;
     }
 
+    /**
+     * A part of a book changed (saved, deleted), so the book did: its {@code modification} follows the parts without the
+     * services having to save the book too.
+     */
+    @Override
+    protected void changed(ChatMessage message) throws Exception {
+        touchBook(message.getParentScript());
+    }
+
+    private void touchBook(Manuscript book) {
+        if (book == null || book.getId() == null) {
+            return;
+        }
+        // bulk update: the extended content of the book is not touched, nor is its dirty state
+        entityManager.createQuery("UPDATE Manuscript m SET m.modification = :now WHERE m.id = :id")
+                .setParameter("now", new Date())
+                .setParameter("id", book.getId())
+                .executeUpdate();
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     public List<ChatMessage> findBranchFromLeaf(ChatMessage leaf) throws Exception {
@@ -105,6 +125,7 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
                 .setParameter("newParent", newParent)
                 .setParameter("targetNode", targetNode)
                 .executeUpdate();
+        touchBook(targetNode.getParentScript());
     }
 
     @Override
@@ -118,6 +139,7 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
                 .setParameter("newParent", newParent)
                 .setParameter("targetNode", targetNode)
                 .executeUpdate();
+        touchBook(targetNode.getParentScript());
     }
 
     @Override
@@ -131,6 +153,7 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
                 .setParameter("newRoot", newRoot)
                 .setParameter("manuscript", manuscript)
                 .executeUpdate();
+        touchBook(manuscript);
     }
 
     @Override
@@ -171,6 +194,12 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
         int deleted = 0;
         Date now = new Date();
         for (List<Long> chunk : chunks(ids)) {
+            entityManager.createQuery(
+                            "UPDATE Manuscript b SET b.modification = :now WHERE b.id IN "
+                                    + "(SELECT m.parentScript.id FROM ChatMessage m WHERE m.id IN :ids AND m.deleted = false)")
+                    .setParameter("now", now)
+                    .setParameter("ids", chunk)
+                    .executeUpdate();
             deleted += entityManager.createQuery(
                             "UPDATE ChatMessage m SET m.deleted = true, m.modification = :now WHERE m.id IN :ids AND m.deleted = false")
                     .setParameter("now", now)

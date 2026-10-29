@@ -76,6 +76,13 @@ public class PermissionServiceImpl extends ExtendableServiceImpl<Permission, Per
 
     @Override
     @CommonTx
+    public Permission saveWithoutModification(Permission permission) throws Exception {
+        adminGuard.requireAdmin();
+        return super.saveWithoutModification(permission);
+    }
+
+    @Override
+    @CommonTx
     public Permission delete(Permission permission, boolean hard) throws Exception {
         adminGuard.requireAdmin();
         return super.delete(permission, hard);
