@@ -17,6 +17,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -353,7 +355,8 @@ class OrganiseDialogTest extends MarginaliaTestBase {
 
     @Test
     void theButtonsShowTheKeysAndTheUserCanChangeThem() throws Exception {
-        assertThat(dialog(null, null).buttons()).containsExactly("Copy (c)", "Move (m)", "New folder (n)", "Rename (Shift+r)", "Delete (Delete)");
+        assertThat(dialog(null, null).buttons()).containsExactly("Copy (c)", "Move (m)", "New folder (n)", "Rename (Shift+r)", "Delete (Delete)",
+                "Mass Change Model/Protocol (p)", "Mass Change Language (l)", "Tag books (t)", "Advanced search (f)", "Show folder in the list (o)");
 
         UserSetting setting = settingService.getOrCreate(UserSetting.class);
         setting.setKeyBindings(KeyBindings.toStored(setting.getKeyBindings(), Map.of(ShortcutActions.ORGANISE_COPY, "F5", ShortcutActions.ORGANISE_MOVE, "")));
@@ -424,6 +427,66 @@ class OrganiseDialogTest extends MarginaliaTestBase {
     }
 
     @Test
+    void aResultOfTheSearchIsShownInItsFolderAndMarked() throws Exception {
+        OrganiseDialog dialog = dialog(null, null);
+        Manuscript caliban = manuscriptService.findRegularInFolder(expanse, false).getFirst();
+
+        dialog.showInFolder(false, caliban);
+
+        assertThat(dialog.leftActive()).isFalse();
+        assertThat(dialog.path(false)).isEqualTo("Sci-fi/Expanse");
+        assertThat(dialog.names(true)).contains("Zeta");
+        assertThat(dialog.marked(false)).containsExactly("Caliban");
+        assertThat(dialog.cursor(false)).isEqualTo("Caliban");
+    }
+
+    @Test
+    void theMassChangesAndTheSearchOpenForTheMarkedBooksOrTheFolder() {
+        OrganiseDialog dialog = dialog(null, scifi);
+        dialog.cursorOn(true, "alpha");
+        dialog.press("Space");
+
+        dialog.press(ShortcutActions.ORGANISE_MODEL_PROTOCOL);
+        dialog.press(ShortcutActions.ORGANISE_LANGUAGE);
+        dialog.press(ShortcutActions.ORGANISE_TAG_BOOKS);
+        dialog.press(ShortcutActions.ORGANISE_SEARCH);
+
+        dialog.press("Space");
+        dialog.press(ShortcutActions.ORGANISE_MODEL_PROTOCOL);
+        dialog.press(ShortcutActions.ORGANISE_LANGUAGE);
+        dialog.press(ShortcutActions.ORGANISE_TAG_BOOKS);
+    }
+
+    @Test
+    void theFolderOfTheActivePaneIsShownInTheList() {
+        OrganiseDialog dialog = dialog(null, scifi);
+        List<Folder> shown = new ArrayList<>();
+        dialog.setOnShowInList(shown::add);
+
+        dialog.press(ShortcutActions.ORGANISE_SHOW_IN_LIST);
+        dialog.press(ShortcutActions.ORGANISE_SWITCH_PANE);
+        dialog.press(ShortcutActions.ORGANISE_SHOW_IN_LIST);
+
+        assertThat(shown).hasSize(2);
+        assertThat(shown.get(0)).as("the top level").isNull();
+        assertThat(shown.get(1).getId()).isEqualTo(scifi.getId());
+    }
+
+    @Test
+    void theFolderOfTheRightPaneIsToldWhenTheWindowIsClosed() {
+        OrganiseDialog dialog = dialog(null, scifi);
+        List<Folder> targets = new ArrayList<>();
+        dialog.setOnTarget(targets::add);
+        dialog.open();
+        dialog.open(false, "Expanse");
+
+        dialog.close();
+
+        assertThat(targets).hasSize(1);
+        assertThat(targets.getFirst().getId()).isEqualTo(expanse.getId());
+    }
+
+    @Test
     void tabSwitchesToTheOtherPaneAndBack() {
         OrganiseDialog dialog = dialog(null, scifi);
         assertThat(dialog.leftActive()).isTrue();
@@ -433,6 +496,6 @@ class OrganiseDialogTest extends MarginaliaTestBase {
 
         dialog.press(ShortcutActions.ORGANISE_SWITCH_PANE);
         assertThat(dialog.leftActive()).isTrue();
-        assertThat(dialog.buttons()).as("a key only, no button").hasSize(5);
+        assertThat(dialog.buttons()).as("a key only, no button").hasSize(10);
     }
 }

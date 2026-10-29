@@ -2,11 +2,11 @@ package com.github.enerccio.marginalia.ui.workspace.phone.parts;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
-import com.github.enerccio.marginalia.domain.repository.ManuscriptRepository;
+import com.github.enerccio.marginalia.domain.service.FolderService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
-import com.github.enerccio.marginalia.domain.service.TagRelationService;
 import com.github.enerccio.marginalia.domain.service.TagService;
 import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValues;
 import com.github.enerccio.marginalia.domain.service.search.Sorter;
@@ -17,14 +17,11 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.RestorableState;
-import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
-import com.github.enerccio.marginalia.ui.dialogs.ManuscriptCloneDialog;
-import com.github.enerccio.marginalia.ui.dialogs.ManuscriptSearchDialog;
-import com.github.enerccio.marginalia.ui.dialogs.ManuscriptWindow;
+import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.dialogs.agent.AgentLockCheck;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
-import com.github.enerccio.marginalia.ui.widgets.BackendTableItem;
-import com.github.enerccio.marginalia.ui.widgets.BackendTableProviderBase;
+import com.github.enerccio.marginalia.ui.widgets.FolderBookProvider;
+import com.github.enerccio.marginalia.ui.widgets.FolderBookRow;
 import com.github.enerccio.marginalia.ui.workspace.ManuscriptSection;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceLLMSupport;
@@ -33,10 +30,13 @@ import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonObject;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -55,7 +55,9 @@ import java.util.stream.Stream;
 /**
  * The book list for phones. Rendered like the reader's book list in the Viewer (stacked filters, sort buttons and one
  * card-like column instead of a multi column grid) with the controls of the desktop book list (add, edit, delete,
- * refresh).
+ * refresh) and its folders: the path of the current folder to go back on, the folders above the books, the favorites
+ * as a folder of the top level, the books of everything below. A folder is only navigated here: no folder is made,
+ * renamed or deleted on the phone; a book is moved to another folder from its row.
  */
 @Configurable
 @Extendable
@@ -76,12 +78,19 @@ public class PhoneManuscriptPart implements ManuscriptSection {
     private TagService tagService;
 
     @Autowired
-    private TagRelationService tagRelationService;
+    private FolderService folderService;
 
     private final Workspace workspace;
-    private Grid<ManuscriptWrapper> grid;
+    private Grid<FolderBookRow> grid;
     private Button addBookButton;
     private Button searchButton;
+    private FlexLayout breadcrumb;
+    private Checkbox includeSubfolders;
+
+    // the folder the list shows, null is the top level
+    private Folder currentFolder;
+    // the list shows the favorite books (the virtual folder at the top level) instead of a folder
+    private boolean inFavorites;
 
     private String currentSortField = SORT_MODIFICATION;
     private Ordering currentSortOrdering = Ordering.DESC;
@@ -111,6 +120,7 @@ public class PhoneManuscriptPart implements ManuscriptSection {
                     @APILocals(name = "importArchiveButton", type = Button.class),
                     @APILocals(name = "importSillyTavernButton", type = Button.class),
                     @APILocals(name = "headerLayout", type = HorizontalLayout.class),
+                    @APILocals(name = "navigationLayout", type = VerticalLayout.class),
                     @APILocals(name = "filtersLayout", type = VerticalLayout.class),
                     @APILocals(name = "nameFilter", type = TextField.class),
                     @APILocals(name = "tagFilter", type = MultiSelectComboBox.class),
@@ -123,15 +133,15 @@ public class PhoneManuscriptPart implements ManuscriptSection {
         mainLayout.setSpacing(true);
 
         Button addBookButton = new Button(loc.getValue(L.LABEL_ADD_BOOK), Solid.PLUS.create(),
-                event -> new NewBookAction(this::openManuscript).run());
+                event -> new NewBookAction(this::openManuscript, currentFolder).run());
         addBookButton.setThemeName("primary");
         this.addBookButton = addBookButton;
 
         Button refreshButton = new Button(Solid.REFRESH.create(), event -> refreshGrid());
 
-        Button importArchiveButton = new Button(Solid.FILE_IMPORT.create(), event -> new NewBookAction(this::openManuscript).runFromArchive());
+        Button importArchiveButton = new Button(Solid.FILE_IMPORT.create(), event -> new NewBookAction(this::openManuscript, currentFolder).runFromArchive());
         importArchiveButton.setTooltipText(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE));
-        Button importSillyTavernButton = new Button(Solid.COMMENTS.create(), event -> new NewBookAction(this::openManuscript).runFromSillyTavern());
+        Button importSillyTavernButton = new Button(Solid.COMMENTS.create(), event -> new NewBookAction(this::openManuscript, currentFolder).runFromSillyTavern());
         importSillyTavernButton.setTooltipText(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN));
 
         searchButton = new Button(Solid.SEARCH.create(), event -> openSearchDialog());
@@ -141,6 +151,20 @@ public class PhoneManuscriptPart implements ManuscriptSection {
         headerLayout.setWidthFull();
         headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         headerLayout.setFlexGrow(1, addBookButton);
+
+        // where the list is: the path of the folder to tap on, and whether the folders below it are listed too
+        breadcrumb = new FlexLayout();
+        breadcrumb.setAlignItems(FlexComponent.Alignment.CENTER);
+        breadcrumb.addClassNames(CssStyles.FLEX_WRAP, CssStyles.GAP_S);
+        includeSubfolders = new Checkbox(loc.getValue(L.LABEL_INCLUDE_SUBFOLDERS));
+        includeSubfolders.addValueChangeListener(_ -> {
+            refreshGrid();
+            notifyStateChanged();
+        });
+        VerticalLayout navigationLayout = new VerticalLayout(breadcrumb, includeSubfolders);
+        navigationLayout.setWidthFull();
+        navigationLayout.setPadding(false);
+        navigationLayout.setSpacing(false);
 
         VerticalLayout filtersLayout = new VerticalLayout();
         filtersLayout.setWidthFull();
@@ -197,7 +221,7 @@ public class PhoneManuscriptPart implements ManuscriptSection {
         grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
         grid.addComponentColumn(this::createItem).setFlexGrow(1);
 
-        mainLayout.add(headerLayout, filtersLayout, grid);
+        mainLayout.add(headerLayout, navigationLayout, filtersLayout, grid);
         mainLayout.setFlexGrow(1, grid);
 
         refreshGrid();
@@ -241,45 +265,65 @@ public class PhoneManuscriptPart implements ManuscriptSection {
         });
     }
 
-    @PublicAPI(from = "1.1.0",
+    /**
+     * A row of the list: a folder (or the favorites) opens when tapped, a book has its buttons.
+     */
+    @PublicAPI(from = "1.6.0",
             returns = @APIReturn(type = Component.class),
-            parameters = {@APIParameter(name = "wrapper", type = PhoneManuscriptPart.ManuscriptWrapper.class)},
-            locals = {@APILocals(name = "textLayout", type = VerticalLayout.class),
+            parameters = {@APIParameter(name = "row", type = FolderBookRow.class)},
+            locals = {@APILocals(name = "manuscript", type = Manuscript.class),
+                    @APILocals(name = "textLayout", type = VerticalLayout.class),
                     @APILocals(name = "nameSpan", type = Span.class),
                     @APILocals(name = "tagsText", type = String.class),
                     @APILocals(name = "tagsSpan", type = Span.class),
+                    @APILocals(name = "pathSpan", type = Span.class),
                     @APILocals(name = "modificationSpan", type = Span.class),
                     @APILocals(name = "editButton", type = Button.class),
                     @APILocals(name = "cloneButton", type = Button.class),
                     @APILocals(name = "deleteButton", type = Button.class),
-                    @APILocals(name = "actions", type = HorizontalLayout.class),
+                    @APILocals(name = "starButton", type = Button.class),
+                    @APILocals(name = "moveButton", type = Button.class),
+                    @APILocals(name = "firstRow", type = HorizontalLayout.class),
+                    @APILocals(name = "secondRow", type = HorizontalLayout.class),
+                    @APILocals(name = "actions", type = VerticalLayout.class),
                     @APILocals(name = "item", type = HorizontalLayout.class)})
-    private Component createItem(ManuscriptWrapper wrapper) {
+    private Component createItem(FolderBookRow row) {
+        if (row.isFavorites() || row.isFolder()) {
+            return createFolderItem(row);
+        }
+        Manuscript manuscript = row.getBook();
         VerticalLayout textLayout = new VerticalLayout();
         textLayout.setPadding(false);
         textLayout.setSpacing(false);
         textLayout.setWidthFull();
         textLayout.addClassName(CssStyles.MIN_WIDTH_0);
 
-        Span nameSpan = new Span(wrapper.getName());
+        Span nameSpan = new Span(row.getName());
         nameSpan.addClassNames(CssStyles.TEXT_BOLD, CssStyles.TEXT_M, CssStyles.WHITE_SPACE_NORMAL, CssStyles.WRAP_ANYWHERE);
         textLayout.add(nameSpan);
 
-        String tagsText = wrapper.getTags();
+        String tagsText = String.join(", ", row.getTags());
         if (StringUtils.isNotBlank(tagsText)) {
             Span tagsSpan = new Span(tagsText);
             tagsSpan.addClassName(CssStyles.HINT_TEXT);
             textLayout.add(tagsSpan);
         }
 
-        Span modificationSpan = new Span(wrapper.getModification());
+        // the folder of the book, while the list is not of one folder
+        if (StringUtils.isNotBlank(row.getPath())) {
+            Span pathSpan = new Span(row.getPath());
+            pathSpan.addClassNames(CssStyles.HINT_TEXT, CssStyles.WRAP_ANYWHERE);
+            textLayout.add(pathSpan);
+        }
+
+        Span modificationSpan = new Span(loc.getDateHourFormat().format(manuscript.getModification()));
         modificationSpan.addClassName(CssStyles.HINT_TEXT);
         textLayout.add(modificationSpan);
 
         Button editButton = new Button(Solid.PENCIL.create(), _ -> {
             try {
-                if (!new AgentLockCheck().refuses(wrapper.getManuscript())) {
-                    openManuscript(wrapper.getManuscript());
+                if (!new AgentLockCheck().refuses(manuscript)) {
+                    openManuscript(manuscript);
                 }
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
@@ -287,7 +331,7 @@ public class PhoneManuscriptPart implements ManuscriptSection {
         });
 
         Button cloneButton = new Button(Solid.CLONE.create(), _ -> {
-            ManuscriptCloneDialog dialog = new ManuscriptCloneDialog(wrapper.getManuscript());
+            ManuscriptCloneDialog dialog = new ManuscriptCloneDialog(manuscript);
             dialog.setOnClone(_ -> refreshGrid());
             dialog.create();
             dialog.open();
@@ -297,7 +341,7 @@ public class PhoneManuscriptPart implements ManuscriptSection {
         Button deleteButton = new Button(Solid.TRASH.create(), _ ->
                 ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
                     try {
-                        manuscriptService.delete(wrapper.getManuscript(), false);
+                        manuscriptService.delete(manuscript, false);
                         refreshGrid();
                     } catch (Exception e) {
                         UIUtils.internalServerError(loc, e);
@@ -305,8 +349,33 @@ public class PhoneManuscriptPart implements ManuscriptSection {
                 }));
         deleteButton.setThemeName("error tertiary");
 
-        HorizontalLayout actions = new HorizontalLayout(editButton, cloneButton, deleteButton);
+        Button starButton = new Button((row.isFavorite() ? VaadinIcon.STAR : VaadinIcon.STAR_O).create(), _ -> {
+            try {
+                manuscriptService.setFavorite(manuscript, !row.isFavorite());
+                refreshGrid();
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        });
+        starButton.setTooltipText(loc.getValue(L.LABEL_FAVORITES));
+
+        // the quick move: pick the folder, nothing else of the folder is edited on the phone
+        Button moveButton = new Button(Solid.FOLDER_OPEN.create(), _ -> {
+            if (!new AgentLockCheck().refuses(manuscript)) {
+                new FolderActions().moveBooks(List.of(manuscript), manuscript.getFolder(), this::refreshGrid);
+            }
+        });
+        moveButton.setTooltipText(loc.getValue(L.LABEL_MOVE_TO_FOLDER));
+
+        // two short rows keep the text wide enough for a phone
+        HorizontalLayout firstRow = new HorizontalLayout(editButton, cloneButton, deleteButton);
+        firstRow.setSpacing(false);
+        HorizontalLayout secondRow = new HorizontalLayout(starButton, moveButton);
+        secondRow.setSpacing(false);
+        VerticalLayout actions = new VerticalLayout(firstRow, secondRow);
+        actions.setPadding(false);
         actions.setSpacing(false);
+        actions.setWidth(null);
         actions.addClassName(CssStyles.FLEX_SHRINK_0);
 
         HorizontalLayout item = new HorizontalLayout(textLayout, actions);
@@ -317,6 +386,123 @@ public class PhoneManuscriptPart implements ManuscriptSection {
         return item;
     }
 
+    /**
+     * The row of a folder or of the favorites: its name and how many books are beneath it, tapping it goes in.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "row", type = FolderBookRow.class)},
+            locals = {@APILocals(name = "textLayout", type = VerticalLayout.class),
+                    @APILocals(name = "nameSpan", type = Span.class),
+                    @APILocals(name = "nameLine", type = HorizontalLayout.class),
+                    @APILocals(name = "booksSpan", type = Span.class),
+                    @APILocals(name = "tagsText", type = String.class),
+                    @APILocals(name = "tagsSpan", type = Span.class),
+                    @APILocals(name = "pathSpan", type = Span.class)})
+    private Component createFolderItem(FolderBookRow row) {
+        VerticalLayout textLayout = new VerticalLayout();
+        textLayout.setPadding(false);
+        textLayout.setSpacing(false);
+        textLayout.setWidthFull();
+        textLayout.addClassNames(CssStyles.MIN_WIDTH_0, CssStyles.CURSOR_POINTER);
+
+        Span nameSpan = new Span(row.getName());
+        nameSpan.addClassNames(CssStyles.TEXT_BOLD, CssStyles.TEXT_M, CssStyles.WHITE_SPACE_NORMAL, CssStyles.WRAP_ANYWHERE);
+        HorizontalLayout nameLine = new HorizontalLayout((row.isFavorites() ? VaadinIcon.STAR : VaadinIcon.FOLDER).create(), nameSpan);
+        nameLine.setPadding(false);
+        nameLine.setSpacing(true);
+        nameLine.setAlignItems(FlexComponent.Alignment.CENTER);
+        textLayout.add(nameLine);
+
+        Span booksSpan = new Span(loc.getValue(L.LABEL_BOOKS) + ": " + row.getBooks());
+        booksSpan.addClassName(CssStyles.HINT_TEXT);
+        textLayout.add(booksSpan);
+
+        String tagsText = String.join(", ", row.getTags());
+        if (StringUtils.isNotBlank(tagsText)) {
+            Span tagsSpan = new Span(tagsText);
+            tagsSpan.addClassName(CssStyles.HINT_TEXT);
+            textLayout.add(tagsSpan);
+        }
+
+        // the folder above it, while the list is not of one folder
+        if (row.isFolder() && StringUtils.isNotBlank(row.getPath())) {
+            Span pathSpan = new Span(row.getPath());
+            pathSpan.addClassNames(CssStyles.HINT_TEXT, CssStyles.WRAP_ANYWHERE);
+            textLayout.add(pathSpan);
+        }
+
+        textLayout.addClickListener(_ -> {
+            if (row.isFavorites()) {
+                openFavorites();
+            } else {
+                openFolder(row.getFolder());
+            }
+        });
+        return textLayout;
+    }
+
+    /**
+     * Goes into the folder (null is the top level); the filters stay.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "folder", type = Folder.class)})
+    private void openFolder(Folder folder) {
+        inFavorites = false;
+        currentFolder = folder;
+        refreshGrid();
+        notifyStateChanged();
+    }
+
+    /**
+     * Shows the favorite books, the virtual folder of the top level.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class))
+    private void openFavorites() {
+        inFavorites = true;
+        currentFolder = null;
+        refreshGrid();
+        notifyStateChanged();
+    }
+
+    /**
+     * The path to the current folder as buttons, the folder itself last.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "top", type = Button.class),
+                    @APILocals(name = "current", type = Span.class),
+                    @APILocals(name = "above", type = Folder.class),
+                    @APILocals(name = "button", type = Button.class)})
+    private void updateBreadcrumb() throws Exception {
+        breadcrumb.removeAll();
+        Button top = new Button(loc.getValue(L.LABEL_BOOKS), VaadinIcon.HOME.create(), _ -> openFolder(null));
+        top.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+        breadcrumb.add(top);
+        if (inFavorites) {
+            breadcrumb.add(new Span("/"));
+            Span current = new Span(loc.getValue(L.LABEL_FAVORITES));
+            current.addClassName(CssStyles.TEXT_BOLD);
+            breadcrumb.add(current);
+            return;
+        }
+        if (currentFolder == null) {
+            return;
+        }
+        for (Folder above : folderService.getAncestors(currentFolder)) {
+            breadcrumb.add(new Span("/"));
+            Button button = new Button(above.getName(), _ -> openFolder(above));
+            button.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+            breadcrumb.add(button);
+        }
+        breadcrumb.add(new Span("/"));
+        Span current = new Span(currentFolder.getName());
+        current.addClassName(CssStyles.TEXT_BOLD);
+        breadcrumb.add(current);
+    }
+
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class))
     @Override
@@ -324,18 +510,58 @@ public class PhoneManuscriptPart implements ManuscriptSection {
         refreshGrid();
     }
 
-    @PublicAPI(from = "1.1.0",
+    @PublicAPI(from = "1.6.0",
             returns = @APIReturn(type = void.class),
-            locals = {@APILocals(name = "ids", type = List.class),
+            locals = {@APILocals(name = "stored", type = Folder.class),
+                    @APILocals(name = "sorter", type = Sorter.class),
+                    @APILocals(name = "favorites", type = List.class),
+                    @APILocals(name = "folders", type = List.class),
+                    @APILocals(name = "ids", type = List.class),
+                    @APILocals(name = "favoritesLabel", type = String.class),
+                    @APILocals(name = "all", type = ManuscriptFilterValues.class),
+                    @APILocals(name = "scope", type = ManuscriptFilterValues.class),
                     @APILocals(name = "e", type = Exception.class)})
     private void refreshGrid() {
-        if (grid == null) {
+        if (grid == null || includeSubfolders == null) {
             return;
         }
         try {
-            List<Long> ids = manuscriptService.searchRegularManuscripts(filterValues,
-                    Sorter.sorter(currentSortField, currentSortOrdering));
-            grid.setItems(new ManuscriptBackendProvider(ids));
+            if (currentFolder != null) {
+                // the folder may have been renamed or deleted since the list was shown
+                Folder stored = folderService.find(currentFolder.getId());
+                currentFolder = stored == null || stored.isDeleted() ? null : stored;
+            }
+            Sorter sorter = Sorter.sorter(currentSortField, currentSortOrdering);
+            List<String> favorites = manuscriptService.getFavorites();
+            if (favorites.isEmpty()) {
+                inFavorites = false;
+            }
+            List<Folder> folders;
+            List<Long> ids;
+            String favoritesLabel = null;
+            if (inFavorites) {
+                // the favorites are a view of books of any folder: the filters work, there is no scope
+                ManuscriptFilterValues all = new ManuscriptFilterValues();
+                all.setName(filterValues.getName());
+                all.setTags(filterValues.getTags());
+                all.setUuids(favorites);
+                folders = List.of();
+                ids = manuscriptService.searchRegularManuscripts(all, sorter);
+            } else {
+                ManuscriptFilterValues scope = filterValues.inFolder(currentFolder, includeSubfolders.getValue());
+                folders = folderService.search(scope, sorter);
+                ids = manuscriptService.searchRegularManuscripts(scope, sorter);
+                boolean filtered = StringUtils.isNotEmpty(filterValues.getName())
+                        || (filterValues.getTags() != null && !filterValues.getTags().isEmpty());
+                if (!favorites.isEmpty() && currentFolder == null && !includeSubfolders.getValue() && !filtered) {
+                    favoritesLabel = loc.getValue(L.LABEL_FAVORITES);
+                }
+            }
+            grid.setItems(new FolderBookProvider(folders, ids, folderService.countBooksByFolder(), folderService.getPaths(),
+                    favorites, favoritesLabel));
+            includeSubfolders.setVisible(!inFavorites);
+            addBookButton.setEnabled(!inFavorites);
+            updateBreadcrumb();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -411,9 +637,9 @@ public class PhoneManuscriptPart implements ManuscriptSection {
     }
 
     /**
-     * The filters of the list and the open book window.
+     * The folder and the filters of the list and the open book window.
      */
-    @PublicAPI(from = "1.3.0",
+    @PublicAPI(from = "1.6.0",
             returns = @APIReturn(type = JsonObject.class),
             locals = {@APILocals(name = "state", type = JsonObject.class),
                     @APILocals(name = "filters", type = JsonObject.class)})
@@ -428,6 +654,15 @@ public class PhoneManuscriptPart implements ManuscriptSection {
             filters.add("tags", RestorableState.array(tagFilterField.getValue().stream().map(Tag::getUuid).sorted().toList()));
         }
         RestorableState.put(state, "filters", filters);
+        if (currentFolder != null) {
+            state.addProperty("folder", currentFolder.getUuid());
+        }
+        if (inFavorites) {
+            state.addProperty("favorites", true);
+        }
+        if (includeSubfolders != null && includeSubfolders.getValue()) {
+            state.addProperty("subfolders", true);
+        }
         if (openDialog != null) {
             RestorableState.put(state, "dialog", openDialog.storeState());
         }
@@ -438,10 +673,12 @@ public class PhoneManuscriptPart implements ManuscriptSection {
      * Sets the stored filters (a tag that no longer exists is skipped) and opens the stored book, unless it no longer
      * exists.
      */
-    @PublicAPI(from = "1.3.0",
+    @PublicAPI(from = "1.6.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "self", type = JsonObject.class)},
-            locals = {@APILocals(name = "filters", type = JsonObject.class),
+            locals = {@APILocals(name = "folderUuid", type = String.class),
+                    @APILocals(name = "folder", type = Folder.class),
+                    @APILocals(name = "filters", type = JsonObject.class),
                     @APILocals(name = "tags", type = Set.class),
                     @APILocals(name = "uuid", type = String.class),
                     @APILocals(name = "tag", type = Tag.class),
@@ -452,6 +689,19 @@ public class PhoneManuscriptPart implements ManuscriptSection {
     @Override
     public void restoreState(JsonObject self) {
         try {
+            String folderUuid = RestorableState.string(self, "folder");
+            Folder folder = folderUuid == null ? null : folderService.findForUser(folderUuid);
+            if (folderUuid != null || includeSubfolders != null) {
+                // a folder that is gone is the top level
+                currentFolder = folder == null || folder.isDeleted() ? null : folder;
+                // the favorites view is dropped by the refresh when there is no favorite any more
+                inFavorites = self.has("favorites") && self.get("favorites").getAsBoolean();
+                if (includeSubfolders != null) {
+                    includeSubfolders.setValue(self.has("subfolders") && self.get("subfolders").getAsBoolean());
+                }
+                refreshGrid();
+            }
+
             JsonObject filters = RestorableState.object(self, "filters");
             if (filters != null && nameFilterField != null) {
                 nameFilterField.setValue(RestorableState.string(filters, "name", ""));
@@ -503,56 +753,6 @@ public class PhoneManuscriptPart implements ManuscriptSection {
             returns = @APIReturn(type = void.class))
     @Override
     public void onTabClosed() throws Exception {
-
-    }
-
-    private class ManuscriptWrapper extends BackendTableItem {
-
-        private final Manuscript manuscript;
-        private List<String> tags;
-
-        public ManuscriptWrapper(Manuscript manuscript) {
-            super(manuscript.getId());
-            this.manuscript = manuscript;
-        }
-
-        public Manuscript getManuscript() {
-            return manuscript;
-        }
-
-        public String getName() {
-            return manuscript.getName();
-        }
-
-        public String getModification() {
-            return loc.getDateHourFormat().format(manuscript.getModification());
-        }
-
-        public String getTags() {
-            if (tags == null) {
-                try {
-                    tags = tagRelationService.getTagsForObject(manuscript).stream().map(Tag::getValue).sorted().toList();
-                } catch (Exception e) {
-                    UIUtils.internalServerError(loc, e);
-                    return loc.getValue(L.LABEL_ERROR);
-                }
-            }
-            return String.join(", ", tags);
-        }
-
-    }
-
-    private class ManuscriptBackendProvider extends BackendTableProviderBase<ManuscriptWrapper, Manuscript, ManuscriptRepository> {
-
-        public ManuscriptBackendProvider(List<Long> ids) {
-            super();
-            setIds(ids);
-        }
-
-        @Override
-        protected ManuscriptWrapper entityToTableItem(Manuscript entity) throws Exception {
-            return new ManuscriptWrapper(entity);
-        }
 
     }
 }

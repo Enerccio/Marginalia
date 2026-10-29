@@ -89,6 +89,9 @@ public class ManuscriptPart implements ManuscriptSection {
 
     // the folder the list shows, null is the top level
     private Folder currentFolder;
+    // the folder the right pane of the Organise window was on when it was closed; only meaningful when organiseTargetKnown (null is the top level)
+    private Folder organiseTarget;
+    private boolean organiseTargetKnown;
     // the list shows the favorite books (the virtual folder at the top level) instead of a folder
     private boolean inFavorites;
     private Button tagBooksButton;
@@ -609,18 +612,43 @@ public class ManuscriptPart implements ManuscriptSection {
      */
     @PublicAPI(from = "1.6.0",
             returns = @APIReturn(type = void.class),
-            locals = {@APILocals(name = "above", type = Folder.class),
+            locals = {@APILocals(name = "target", type = Folder.class),
                     @APILocals(name = "dialog", type = OrganiseDialog.class),
                     @APILocals(name = "e", type = Exception.class)})
     private void openOrganiseDialog() {
         try {
-            Folder above = currentFolder == null ? null : folderService.find(currentFolder.getId()).getParent();
-            OrganiseDialog dialog = new OrganiseDialog(currentFolder, above);
+            Folder target = organiseTarget();
+            OrganiseDialog dialog = new OrganiseDialog(currentFolder, target);
+            dialog.setOnShowInList(this::openFolder);
+            dialog.setOnTarget(folder -> {
+                organiseTarget = folder;
+                organiseTargetKnown = true;
+                notifyStateChanged();
+            });
             dialog.create();
             dialog.open();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+    }
+
+    /**
+     * The folder the right pane of the Organise window starts in: the one it was left on the last time, or the folder above the
+     * current one. Not the current folder itself (nothing can be copied or moved there), and not a folder that is gone.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = Folder.class),
+            locals = {@APILocals(name = "last", type = Folder.class)})
+    private Folder organiseTarget() throws Exception {
+        if (organiseTargetKnown) {
+            Folder last = organiseTarget == null ? null : folderService.find(organiseTarget.getId());
+            boolean gone = organiseTarget != null && (last == null || last.isDeleted());
+            boolean same = organiseTarget == null ? currentFolder == null : currentFolder != null && organiseTarget.getId().equals(currentFolder.getId());
+            if (!gone && !same) {
+                return last;
+            }
+        }
+        return currentFolder == null ? null : folderService.find(currentFolder.getId()).getParent();
     }
 
     /**
@@ -728,6 +756,10 @@ public class ManuscriptPart implements ManuscriptSection {
         if (includeSubfolders != null && includeSubfolders.getValue()) {
             state.addProperty("subfolders", true);
         }
+        if (organiseTargetKnown) {
+            // the top level has no uuid
+            state.addProperty("organiseTarget", organiseTarget == null ? "top" : organiseTarget.getUuid());
+        }
         if (openDialog != null) {
             RestorableState.put(state, "dialog", openDialog.storeState());
         }
@@ -767,6 +799,8 @@ public class ManuscriptPart implements ManuscriptSection {
                 refreshGrid();
             }
 
+            restoreOrganiseTarget(self);
+
             JsonObject filters = RestorableState.object(self, "filters");
             if (filters != null && nameFilter != null) {
                 nameFilter.setValue(RestorableState.string(filters, "name", ""));
@@ -790,6 +824,32 @@ public class ManuscriptPart implements ManuscriptSection {
             }
         } catch (Exception e) {
             log.warn("Could not restore the state of the book list", e);
+        }
+    }
+
+    /**
+     * Takes the folder the right pane of the Organise window was left on from the stored state; one that is gone is forgotten.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "self", type = JsonObject.class)},
+            locals = {@APILocals(name = "uuid", type = String.class),
+                    @APILocals(name = "folder", type = Folder.class)})
+    private void restoreOrganiseTarget(JsonObject self) throws Exception {
+        String uuid = RestorableState.string(self, "organiseTarget");
+        organiseTargetKnown = false;
+        organiseTarget = null;
+        if (uuid == null) {
+            return;
+        }
+        if (uuid.equals("top")) {
+            organiseTargetKnown = true;
+            return;
+        }
+        Folder folder = folderService.findForUser(uuid);
+        if (folder != null && !folder.isDeleted()) {
+            organiseTarget = folder;
+            organiseTargetKnown = true;
         }
     }
 

@@ -65,25 +65,41 @@ built as a series of commits (one per step of *Order of work*, each leaving the 
     Done: actions `organise.newFolder` (`n`), `organise.rename` (`Shift+r`, plain `r` is the story's regenerate), `organise.delete` (`Delete`) in the button row and the key bindings. They work on the
     entry under the cursor (not on the marks); a book is renamed through `ManuscriptService.update` and deleted after a confirmation, both after the `AgentLockCheck`. Both panes load
     again and the cursor of the active one stays on the made / renamed entry (or on its row number after a delete).
-  - ⬜ **O4 Mass dialogs from the dialog.** Buttons for model / protocol, language and tag books, scoped to the selection or to the folder of the
+  - ✅ **O4 Mass dialogs from the dialog.** Buttons for model / protocol, language and tag books, scoped to the selection or to the folder of the
     focused pane (+ *include subfolders*). Needs the scope parameter on the three dialogs (see list: scoped to the current folder already; add
     the explicit-selection variant).
-  - ⬜ **O5 Advanced search.** Button opens `ManuscriptSearchDialog` with a folder scope (+ subfolders); a hit has *show in folder* (moves the
+    Done: buttons / actions `organise.modelProtocol` (`p`), `organise.language` (`l`), `organise.tagBooks` (`t`); scope = the books marked in the active pane (the cursor row doesn't count), otherwise the folder of
+    the active pane. The three dialogs got a constructor with a list of books (listed again by uuid, deleted ones dropped; no *Include subfolders* then). Tagging folders is not offered here.
+  - ✅ **O5 Advanced search.** Button opens `ManuscriptSearchDialog` with a folder scope (+ subfolders); a hit has *show in folder* (moves the
     focused pane there and marks the book). Scope parameter on the search first.
-  - ⬜ **O6 Show in list.** Button closes the dialog and opens the focused pane's folder in the main `ManuscriptPart` (callback, no
+    Done: action `organise.search` (`f`); `ManuscriptSearchDialog(folder, onOpen, onShow)` limits the results to the folder (+ *Include subfolders*) by listing the books with `findRegularInFolder`, the
+    result button *Show in folder* closes the search and `Pane.show(book)` goes to the book's folder, marks it and puts the cursor on it. No open button there (O6 covers the list).
+  - ✅ **O6 Show in list.** Button closes the dialog and opens the focused pane's folder in the main `ManuscriptPart` (callback, no
     cross-class reach into the part).
-  - ⬜ **O7 Persistence and entry point.** Last used target remembered (`storeState`); *Organise* header button opens left = current folder,
+    Done: action `organise.showInList` (`o`, label *Show folder in the list*); `OrganiseDialog.setOnShowInList(Consumer<Folder>)`, `ManuscriptPart` passes `openFolder`.
+  - ✅ **O7 Persistence and entry point.** Last used target remembered (`storeState`); *Organise* header button opens left = current folder,
     right = its parent or the last target.
-  - ⬜ **O8 `OrganiseDialogTest`.** Copy, move, clash resolutions (rename / skip / merge, apply to all), locked book, new / rename / delete,
+    Done: `OrganiseDialog.setOnTarget` reports the folder of the right pane when the window closes; `ManuscriptPart` keeps it (`organiseTarget`, state key `organiseTarget`, `top` for the top level) and uses it for the
+    right pane unless it is the current folder or gone (then the parent).
+  - ✅ **O8 `OrganiseDialogTest`.** Copy, move, clash resolutions (rename / skip / merge, apply to all), locked book, new / rename / delete,
     selection from keys where the Vaadin testing setup allows it, otherwise through the dialog's methods.
-- ⬜ **Phone list** (`PhoneManuscriptPart`). Substeps:
-  - ⬜ **P1 Navigation.** Breadcrumb, folder rows above the books (same `FolderService` queries as the desktop list), counts, *include subfolders*
+    Done: `OrganiseDialogTest` (structure, keys, marks, transfers, new / rename / delete, mass changes, search, show in list, target) and `OrganiseDialogFlowTest` (the questions: clash rename / skip / merge, *apply to all*,
+    cancel, the go-on of a copy with the current-branch box, a locked book). A dialog opened in a test is not in the UI, so the window keeps its last question (`lastQuestion()`) and the test presses its buttons. The
+    name and confirm dialogs of `FolderActions` and the progress bar of a copy are not driven (they are the list's, or need a worker thread).
+- ✅ **Phone list** (`PhoneManuscriptPart`). Substeps:
+  - ✅ **P1 Navigation.** Breadcrumb, folder rows above the books (same `FolderService` queries as the desktop list), counts, *include subfolders*
     toggle with the *Folder* column, `storeState` / `restoreState` of the current folder.
-  - ⬜ **P2 Filters.** Name / tag filter on books and folders, scoped as on the desktop.
-  - ⬜ **P3 Quick move.** Row action opening a folder picker (`ManuscriptService.moveToFolder`); no folder editing, no two-pane dialog.
-  - ⬜ **P4 Favorites.** Star toggle in the row, the virtual *Favorites* folder at the top level.
-  - ⬜ **P5 Start in the current folder.** New book / imports on the phone use the current folder.
-  - ⬜ **P6 Tests.** Extend `FolderListTest` or add a phone twin; `PublicAPISignatureTest` for the touched `@Extendable` classes.
+    Done: breadcrumb (`updateBreadcrumb`), *Include subfolders*, the folder rows above the books in `FolderBookProvider` (the provider of the desktop list; a folder card shows its book count, tapping it goes in), the folder in `storeState` / `restoreState`.
+  - ✅ **P2 Filters.** Name / tag filter on books and folders, scoped as on the desktop.
+    Done: the name / tag filters are scoped to the current folder (+ subfolders) like the desktop ones; the list sorter buttons order the folders and books alike.
+  - ✅ **P3 Quick move.** Row action opening a folder picker (`ManuscriptService.moveToFolder`); no folder editing, no two-pane dialog.
+    Done: a book card has a *Move to folder* button (`FolderActions.moveBooks`, after the `AgentLockCheck`). A folder card has no buttons. The `ListSelectDialog` of the picker had a fixed 200px height that clipped its buttons: fixed (height follows the content).
+  - ✅ **P4 Favorites.** Star toggle in the row, the virtual *Favorites* folder at the top level.
+    Done: a star button on the book card, the virtual *Favorites* folder row at the top level, which disables *Add book* while open.
+  - ✅ **P5 Start in the current folder.** New book / imports on the phone use the current folder.
+    Done: *Add book* and both imports use `NewBookAction(opener, currentFolder)`.
+  - ✅ **P6 Tests.** Extend `FolderListTest` or add a phone twin; `PublicAPISignatureTest` for the touched `@Extendable` classes.
+    Done: `PhoneManuscriptPartFoldersTest` (12 tests: structure, tap in / breadcrumb out, subfolders, filters scoped, state, gone folder, buttons of a book card, favorites, move); `PublicAPISignatureTest` passes. The new book itself and the move picker dialog are not driven (dialogs of a test are not in the UI); the phone layout is not seen in a browser.
 - ⬜ **Step 3, folder settings and "inherited from"**:
   - ⬜ **S1 Reusable settings form.** Extract the field editors of `ManuscriptPromptPart` / `ManuscriptInfoPart` (template, pov, tense, style, the
     prompts, language) into a form usable for a `Manuscript` and a `Folder`, each field with the inherited value as placeholder and a label

@@ -1,12 +1,10 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
+import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
-import com.github.enerccio.marginalia.domain.service.ChatMessageService;
-import com.github.enerccio.marginalia.domain.service.ManuscriptService;
-import com.github.enerccio.marginalia.domain.service.TagRelationService;
-import com.github.enerccio.marginalia.domain.service.TagService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.search.ManuscriptSearchCriteria;
 import com.github.enerccio.marginalia.domain.service.search.ManuscriptSearchCriteria.TagMatch;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
@@ -40,6 +38,9 @@ class ManuscriptSearchDialogTest extends MarginaliaTestBase {
 
     @Autowired
     private TagRelationService tagRelationService;
+
+    @Autowired
+    private FolderService folderService;
 
     // UI.setCurrent keeps only a weak reference, see WorkspaceStateTest
     private UI ui;
@@ -112,6 +113,28 @@ class ManuscriptSearchDialogTest extends MarginaliaTestBase {
         dialog.search();
 
         assertThat(dialog.resultNames()).containsExactlyInAnyOrder(noir.getName(), plain.getName());
+    }
+
+    @Test
+    void aSearchInAFolderFindsItsBooksOnly() throws Exception {
+        Folder scifi = folderService.create("Sci-fi " + suffix, null);
+        Folder expanse = folderService.create("Expanse", scifi);
+        manuscriptService.moveToFolder(List.of(noir), scifi);
+        manuscriptService.moveToFolder(List.of(plain), expanse);
+
+        ManuscriptSearchDialog inFolder = new ManuscriptSearchDialog(scifi, opened::add, opened::add);
+        inFolder.name.setValue(suffix);
+        inFolder.search();
+        assertThat(inFolder.resultNames()).containsExactly(noir.getName());
+
+        inFolder.subfolders.setValue(true);
+        inFolder.search();
+        assertThat(inFolder.resultNames()).containsExactlyInAnyOrder(noir.getName(), plain.getName());
+
+        ManuscriptSearchDialog top = new ManuscriptSearchDialog(null, null, opened::add);
+        top.name.setValue(suffix);
+        top.search();
+        assertThat(top.resultNames()).isEmpty();
     }
 
     @Test

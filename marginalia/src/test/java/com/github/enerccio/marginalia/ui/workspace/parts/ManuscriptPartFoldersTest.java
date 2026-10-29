@@ -188,6 +188,42 @@ class ManuscriptPartFoldersTest extends MarginaliaTestBase {
         assertThat(state.get("subfolders").getAsBoolean()).isTrue();
     }
 
+    private Folder organiseStart() throws Exception {
+        java.lang.reflect.Method method = ManuscriptPart.class.getDeclaredMethod("organiseTarget");
+        method.setAccessible(true);
+        return (Folder) method.invoke(part);
+    }
+
+    @Test
+    void theOrganiseWindowStartsOnTheFolderAboveUntilATargetIsRemembered() throws Exception {
+        part.restoreState(json("{\"folder\":\"" + expanse.getUuid() + "\"}"));
+        assertThat(organiseStart().getId()).isEqualTo(scifi.getId());
+
+        part.restoreState(json("{\"folder\":\"" + expanse.getUuid() + "\",\"organiseTarget\":\"top\"}"));
+        assertThat(organiseStart()).as("the top level was the last target").isNull();
+        assertThat(part.storeState().get("organiseTarget").getAsString()).isEqualTo("top");
+
+        Folder other = folderService.create("Fantasy", null);
+        part.restoreState(json("{\"folder\":\"" + expanse.getUuid() + "\",\"organiseTarget\":\"" + other.getUuid() + "\"}"));
+        assertThat(organiseStart().getId()).isEqualTo(other.getId());
+        assertThat(part.storeState().get("organiseTarget").getAsString()).isEqualTo(other.getUuid());
+    }
+
+    @Test
+    void aRememberedTargetThatIsTheCurrentFolderOrIsGoneIsNotUsed() throws Exception {
+        part.restoreState(json("{\"folder\":\"" + scifi.getUuid() + "\",\"organiseTarget\":\"" + scifi.getUuid() + "\"}"));
+        assertThat(organiseStart()).as("the folder above the current one").isNull();
+
+        Folder gone = folderService.create("Gone", null);
+        part.restoreState(json("{\"folder\":\"" + expanse.getUuid() + "\",\"organiseTarget\":\"" + gone.getUuid() + "\"}"));
+        assertThat(organiseStart().getId()).isEqualTo(gone.getId());
+        folderService.delete(gone, false);
+        assertThat(organiseStart().getId()).isEqualTo(scifi.getId());
+
+        part.restoreState(json("{\"folder\":\"" + expanse.getUuid() + "\",\"organiseTarget\":\"" + gone.getUuid() + "\"}"));
+        assertThat(part.storeState().has("organiseTarget")).as("forgotten on restore").isFalse();
+    }
+
     @Test
     void aFolderThatIsGoneIsTheTopLevel() throws Exception {
         Folder gone = folderService.create("Gone", null);

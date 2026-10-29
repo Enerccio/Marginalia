@@ -780,6 +780,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_APPLY_TO_ALL, "应用于全部");
         setValue(L.LABEL_ORGANISE, "整理");
         setValue(L.LABEL_SHOW_FOLDER_IN_LIST, "在列表中显示文件夹");
+        setValue(L.LABEL_SWITCH_PANE, "切换窗格");
+        setValue(L.LABEL_SHOW_IN_FOLDER, "在文件夹中显示");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
