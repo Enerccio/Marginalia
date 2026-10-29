@@ -27,7 +27,7 @@ Extensions add features to Marginalia without changing the application itself. E
 | [Place provider](place-provider.md) | Real places for the model to look up: cities, seas, bays, rivers, mountains and more with coordinates and countries, what is around a place and the distance of two. |
 | [Reviewer](reviewer.md) | Reviews of story parts written by the model - reader reactions, critique. |
 | [Side Query](side-query.md) | A chat with the model about your book, next to the story. |
-| [SillyTavern Converter](sillytavern-converter.md) | A SillyTavern chat next to the story and turn details the model prepares from it, to rewrite the chat as a story. |
+| [Converter](sillytavern-converter.md) | A SillyTavern chat next to the story and turn details the model prepares from it, to rewrite the chat as a story; or the parts of an older book (from a backup or the book itself) with their instructions, to redraft it. |
 | [Chinese localization](chinese-localization.md) | Simplified Chinese as a language of the user interface. |
 
 ## Installing

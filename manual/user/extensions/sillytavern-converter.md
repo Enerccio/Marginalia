@@ -1,25 +1,32 @@
 ---
-label: SillyTavern Converter
+label: Converter
 order: 70
 ---
 
-# SillyTavern Converter
+# Converter
+
+!!!
+This extension was called *SillyTavern Converter* before 1.6.0. Only the name changed; its files, the data stored with your books and the saved layouts are the same.
+!!!
 
 Rewrite a [SillyTavern](https://github.com/SillyTavern/SillyTavern) roleplay chat as a story, turn by turn: load the
 chat into a book, let the model split it into *turn details* using the chat and the lore of the book, and put each turn
 into the new turn form of the story with one click.
+
+The source does not have to be a chat: the converter can also take the parts of another book of yours (from a backup file or
+the book itself) and give you their instructions one by one, to [redraft a book](#redrafting-a-book).
 
 To make a book out of a chat directly (every message, or every user and assistant pair, a part), see
 [Importing from SillyTavern](../books/managing-books.md#importing-from-sillytavern). The converter is for the other way: you keep the
 chat next to you and write the story again, with the model, from instructions made of the chat.
 
 !!!
-SillyTavern Converter is not available in the [phone layout](../phone.md#extensions).
+The Converter is not available in the [phone layout](../phone.md#extensions).
 !!!
 
-## The ST Converter tab
+## The Converter tab
 
-The left sidebar of the [story editor](../books/story-editor.md) gets an **ST Converter** tab (small text, and the tab scrolls
+The left sidebar of the [story editor](../books/story-editor.md) gets a **Converter** tab (small text, and the tab scrolls
 when the sidebar is low). Above its two lists is the section **Convert to turn details**, closed until you open it so that
 the lists get the room. It holds:
 
@@ -79,7 +86,7 @@ text (the messages of the user are marked with `»`).
   highlighted and the token count follows.
 - The button with the cross above the table removes the chat and the turn details from the book (after asking).
 
-![The ST Converter tab with a chat and the range chosen](../../images/plugin-stconverter-chat.png)
+![The Converter tab with a chat and the range chosen](../../images/plugin-stconverter-chat.png)
 
 ## Turn details
 
@@ -95,14 +102,43 @@ The model is told to cover every message of the range exactly once; numbers outs
 
 ![The turn details the model prepared](../../images/plugin-stconverter-turns.png)
 
+## Redrafting a book
+
+To write a book again, part by part, load the old one as the source. The tab shows **Upload a chat**, **Load a backup** and
+**Pick a book** while it has no source:
+
+- **Pick a book** opens a list of your books (not the one you are in). The parts of the branch the book is on are loaded,
+  from the first part to the one the book is at now.
+- **Load a backup** takes a backup file of a book: the JSON, the `.zip` with the images, or a file you [downloaded from the
+  backups](../books/backups.md) of a book. The backup is only read, nothing is restored. The branch is the one the book was
+  on when the backup was made.
+
+Of every part the converter keeps the instructions, the scene setting, the POV character, the present characters and the text of the part,
+and nothing else (no summaries, lorebook, reasoning, images, other branches or settings), so a long book stays small.
+A book that has no parts loads nothing, and a backup whose parts do not lead back to the first part is refused as damaged.
+
+The tab then has two lists, as with a chat but without the wand (the book already has its instructions, so the **Convert
+to turn details** section is not there):
+
+- **Parts** is the text of each part, with the same checkbox and the arrow to the next unchecked part. Read the old text next
+  to the story you write.
+- **Turn details** has one row per part with its scene setting, POV character, present characters and instructions.
+  **Click a row** to put them into the new turn form of the story, as with a chat, and generate the new part. Tick the
+  turns you have done.
+
+Only one source is kept with a book. To load another, remove the current one with the cross (after asking); this
+also forgets the ticks made on it.
+
 ## Storage
 
 The uploaded file is stored as a [resource](../resources.md) of yours (a chat of SillyTavern can be megabytes, with all
-that SillyTavern adds to the messages), linked to the book. The ticks, the turn details, the model and the prompt are stored in
+that SillyTavern adds to the messages), linked to the book. The parts of a book are stored the same way as a small JSON
+file (`<book name>.redraft.json`) with the instructions and the text; the book keeps only the ticks. The ticks, the turn details, the model and the prompt are stored in
 the attributes of the book, so they are in [book backups](../books/backups.md) and copies.
 
 !!!warning
 The file of the chat is not in book backups, and a copy of a book points to the same file. After a restore the ticks and turn
 details are there, but the converter asks for the chat again (upload the same file; this replaces the turn details
-and the ticks). Removing the chat with the cross deletes the resource.
+and the ticks). The same goes for the parts of a book: load the book or the backup again and tick again. Removing the source
+with the cross deletes the resource.
 !!!

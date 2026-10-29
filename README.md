@@ -158,7 +158,7 @@ built separately with Maven, or in Docker (see the plugins README):
 - [Place provider](marginalia/plugins/place-provider/README.md) - functions and commands to look up real places (about 18 000 notable ones), what is near a place and the distance of two,
 - [Reviewer](marginalia/plugins/reviewer/README.md) - AI reviews of story parts,
 - [Side Query](marginalia/plugins/sidequery/README.md) - ask the model about your book without changing it,
-- [SillyTavern Converter](marginalia/plugins/sillytavern-converter/README.md) - rewrite a SillyTavern chat as a story: the chat next to the story, turn details made of it by the model,
+- [Converter](marginalia/plugins/sillytavern-converter/README.md) - rewrite a SillyTavern chat as a story: the chat next to the story, turn details made of it by the model,
 - [Chinese localization](marginalia/plugins/chineselocalization/README.md) - Simplified Chinese as a language of the interface (the example for adding a language).
 
 The extension API is not frozen in 1.0: extensions are built for one Marginalia version, and Marginalia refuses to start
