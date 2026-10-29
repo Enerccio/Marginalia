@@ -32,7 +32,7 @@ users and between kinds:
 | summary | Summaries. |
 | agent | The requests of an [agent](agents.md); every run has a value of its own, as it grows its own conversation. |
 | help | The help assistant. |
-| plugins | Each plugin has its own: *Reviewer*, *Side Query* (its tab titles have another), *Lore Generator*, *Arc Outline*, *SillyTavern Converter* and *Manga Generator*. |
+| plugins | Each plugin has its own: *Reviewer*, *Side Query* (its tab titles have another), *Lore Generator*, *Arc Outline*, *Converter* and *Manga Generator*. |
 
 Requests that belong to no kind (listing the models, testing the connection, counting tokens) send no header.
 

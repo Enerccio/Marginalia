@@ -1,4 +1,4 @@
-// SillyTavern Converter: the ST Converter tab of the story editor with an uploaded chat (dataset/stchat.mjs), the range chosen and the
+// Converter (sillytavern-converter): the Converter tab of the story editor with an uploaded chat (dataset/stchat.mjs), the range chosen and the
 // turn details that the (fake) model prepared from it.
 // Pictures: plugin-stconverter-chat (the Chat tab, range chosen), plugin-stconverter-turns (the Turn details tab).
 // State: a COPY of 13-db-backup (the chat and the turns are kept with the book, the data is discarded).
@@ -27,8 +27,8 @@ await main(async ({ page }) => {
   await openBook(page);
   await bookTab(page, 'Story');
   await widenSidebar(page, 700);
-  await sideTab(page, 'ST Converter');
-  await page.locator('vaadin-upload input[type=file]').last().setInputFiles(path.join(root, 'dataset/build', CHAT_FILE));
+  await sideTab(page, 'Converter');
+  await page.locator('vaadin-upload input[type=file]').first().setInputFiles(path.join(root, 'dataset/build', CHAT_FILE));
   await idle(page, 3000);
   await page.getByText('Convert to turn details', { exact: false }).first().click();
   await idle(page, 600);

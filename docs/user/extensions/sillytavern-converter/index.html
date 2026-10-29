@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846614666216">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846616304259">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
 
     <!-- Primary Meta Tags -->
-    <title>SillyTavern Converter</title>
-    <meta name="title" content="SillyTavern Converter">
-    <meta name="description" content="Rewrite a SillyTavern roleplay chat as a story, turn by turn: load the chat into a book, let the model split it into turn details using the chat and the lore of the book, and put each turn into the new turn form of the story with one click.">
+    <title>Converter</title>
+    <meta name="title" content="Converter">
+    <meta name="description" content="This extension was called SillyTavern Converter before 1.6.0. Only the name changed; its files, the data stored with your books and the saved layouts are the same.">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://enerccio.github.io/Marginalia/user/extensions/sillytavern-converter/">
@@ -22,33 +22,33 @@
     <!-- Open Graph -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/extensions/sillytavern-converter/">
-    <meta property="og:title" content="SillyTavern Converter">
-    <meta property="og:description" content="Rewrite a SillyTavern roleplay chat as a story, turn by turn: load the chat into a book, let the model split it into turn details using the chat and the lore of the book, and put each turn into the new turn form of the story with one click.">
+    <meta property="og:title" content="Converter">
+    <meta property="og:description" content="This extension was called SillyTavern Converter before 1.6.0. Only the name changed; its files, the data stored with your books and the saved layouts are the same.">
     <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/plugin-stconverter-chat.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="SillyTavern Converter">
+    <meta property="og:image:alt" content="Converter">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/extensions/sillytavern-converter/">
-    <meta name="twitter:title" content="SillyTavern Converter">
-    <meta name="twitter:description" content="Rewrite a SillyTavern roleplay chat as a story, turn by turn: load the chat into a book, let the model split it into turn details using the chat and the lore of the book, and put each turn into the new turn form of the story with one click.">
+    <meta name="twitter:title" content="Converter">
+    <meta name="twitter:description" content="This extension was called SillyTavern Converter before 1.6.0. Only the name changed; its files, the data stored with your books and the saved layouts are the same.">
     <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/plugin-stconverter-chat.png">
-    <meta name="twitter:image:alt" content="SillyTavern Converter">
+    <meta name="twitter:image:alt" content="Converter">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/user/extensions/sillytavern-converter.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846614666216" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846616304259" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846614666216" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846616304259" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846614666216" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846616304259" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -170,10 +170,29 @@
                 <doc-page-actions></doc-page-actions>
 
                 <!-- Page content  -->
-<h1 id="sillytavern-converter">SillyTavern Converter</h1>
+<h1 id="converter">Converter</h1>
+<div class="flex mb-6">
+    <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-primary"></div>
+    <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
+        <div class="flex items-center ml-4 h-7">
+            <svg xmlns="http://www.w3.org/2000/svg" class="block text-callout-primary" width="22" height="22" viewBox="0 0 24 24" role="presentation">
+                <g fill="currentColor"><g>
+                    <path d="M12 1C5.93 1 1 5.93 1 12s4.93 11 11 11 11-4.93 11-11S18.07 1 12 1zm0 20c-4.96 0-9-4.04-9-9s4.04-9 9-9 9 4.04 9 9-4.04 9-9 9z"></path>
+                    <path d="M12 11c-.55 0-1 .45-1 1v4c0 .55.45 1 1 1s1-.45 1-1v-4c0-.55-.45-1-1-1zM12.01 7c-.56 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"></path>
+                    <path fill="none" d="M0 0h24v24H0z"></path>
+                </g></g>
+            </svg>
+        </div>
+        <div class="pr-5 ml-3 w-full">
+<p>This extension was called <em>SillyTavern Converter</em> before 1.6.0. Only the name changed; its files, the data stored with your books and the saved layouts are the same.</p>
+        </div>
+    </div>
+</div>
 <p>Rewrite a <a href="https://github.com/SillyTavern/SillyTavern">SillyTavern</a> roleplay chat as a story, turn by turn: load the
 chat into a book, let the model split it into <em>turn details</em> using the chat and the lore of the book, and put each turn
 into the new turn form of the story with one click.</p>
+<p>The source does not have to be a chat: the converter can also take the parts of another book of yours (from a backup file or
+the book itself) and give you their instructions one by one, to <doc-anchor-trigger to="#redrafting-a-book">redraft a book</doc-anchor-trigger>.</p>
 <p>To make a book out of a chat directly (every message, or every user and assistant pair, a part), see
 <a href="../../books/managing-books/#importing-from-sillytavern">Importing from SillyTavern</a>. The converter is for the other way: you keep the
 chat next to you and write the story again, with the model, from instructions made of the chat.</p>
@@ -190,12 +209,12 @@ chat next to you and write the story again, with the model, from instructions ma
             </svg>
         </div>
         <div class="pr-5 ml-3 w-full">
-<p>SillyTavern Converter is not available in the <a href="../../phone/#extensions">phone layout</a>.</p>
+<p>The Converter is not available in the <a href="../../phone/#extensions">phone layout</a>.</p>
         </div>
     </div>
 </div>
-<h2 id="the-st-converter-tab">The ST Converter tab</h2>
-<p>The left sidebar of the <a href="../../books/story-editor/">story editor</a> gets an <strong>ST Converter</strong> tab (small text, and the tab scrolls
+<h2 id="the-converter-tab">The Converter tab</h2>
+<p>The left sidebar of the <a href="../../books/story-editor/">story editor</a> gets a <strong>Converter</strong> tab (small text, and the tab scrolls
 when the sidebar is low). Above its two lists is the section <strong>Convert to turn details</strong>, closed until you open it so that
 the lists get the room. It holds:</p>
 <retype-table copy-text="| | |
@@ -292,8 +311,8 @@ highlighted and the token count follows.</p>
 </li>
 </ul>
 <figure class="content-center">
-    <img src="../../../images/plugin-stconverter-chat.png" alt="The ST Converter tab with a chat and the range chosen" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
-    <figcaption class="caption">The ST Converter tab with a chat and the range chosen</figcaption>
+    <img src="../../../images/plugin-stconverter-chat.png" alt="The Converter tab with a chat and the range chosen" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">The Converter tab with a chat and the range chosen</figcaption>
 </figure>
 <h2 id="turn-details">Turn details</h2>
 <p>Use the wand and the <strong>Turn details</strong> tab opens with what the model prepared, in the order of the chat. A row is a turn:
@@ -316,9 +335,42 @@ want and generate. (A row&#x27;s checkbox and delete button do not open the form
     <img src="../../../images/plugin-stconverter-turns.png" alt="The turn details the model prepared" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
     <figcaption class="caption">The turn details the model prepared</figcaption>
 </figure>
+<h2 id="redrafting-a-book">Redrafting a book</h2>
+<p>To write a book again, part by part, load the old one as the source. The tab shows <strong>Upload a chat</strong>, <strong>Load a backup</strong> and
+<strong>Pick a book</strong> while it has no source:</p>
+<ul>
+<li>
+<p><strong>Pick a book</strong> opens a list of your books (not the one you are in). The parts of the branch the book is on are loaded,
+from the first part to the one the book is at now.</p>
+</li>
+<li>
+<p><strong>Load a backup</strong> takes a backup file of a book: the JSON, the <code translate="no" v-pre>.zip</code> with the images, or a file you <a href="../../books/backups/">downloaded from the
+backups</a> of a book. The backup is only read, nothing is restored. The branch is the one the book was
+on when the backup was made.</p>
+</li>
+</ul>
+<p>Of every part the converter keeps the instructions, the scene setting, the POV character, the present characters and the text of the part,
+and nothing else (no summaries, lorebook, reasoning, images, other branches or settings), so a long book stays small.
+A book that has no parts loads nothing, and a backup whose parts do not lead back to the first part is refused as damaged.</p>
+<p>The tab then has two lists, as with a chat but without the wand (the book already has its instructions, so the <strong>Convert
+to turn details</strong> section is not there):</p>
+<ul>
+<li>
+<p><strong>Parts</strong> is the text of each part, with the same checkbox and the arrow to the next unchecked part. Read the old text next
+to the story you write.</p>
+</li>
+<li>
+<p><strong>Turn details</strong> has one row per part with its scene setting, POV character, present characters and instructions.
+<strong>Click a row</strong> to put them into the new turn form of the story, as with a chat, and generate the new part. Tick the
+turns you have done.</p>
+</li>
+</ul>
+<p>Only one source is kept with a book. To load another, remove the current one with the cross (after asking); this
+also forgets the ticks made on it.</p>
 <h2 id="storage">Storage</h2>
 <p>The uploaded file is stored as a <a href="../../resources/">resource</a> of yours (a chat of SillyTavern can be megabytes, with all
-that SillyTavern adds to the messages), linked to the book. The ticks, the turn details, the model and the prompt are stored in
+that SillyTavern adds to the messages), linked to the book. The parts of a book are stored the same way as a small JSON
+file (<code translate="no" v-pre>&lt;book name&gt;.redraft.json</code>) with the instructions and the text; the book keeps only the ticks. The ticks, the turn details, the model and the prompt are stored in
 the attributes of the book, so they are in <a href="../../books/backups/">book backups</a> and copies.</p>
 <div class="flex mb-6">
     <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-warning"></div>
@@ -334,7 +386,8 @@ the attributes of the book, so they are in <a href="../../books/backups/">book b
         <div class="pr-5 ml-3 w-full">
 <p>The file of the chat is not in book backups, and a copy of a book points to the same file. After a restore the ticks and turn
 details are there, but the converter asks for the chat again (upload the same file; this replaces the turn details
-and the ticks). Removing the chat with the cross deletes the resource.</p>
+and the ticks). The same goes for the parts of a book: load the book or the backup again and tick again. Removing the source
+with the cross deletes the resource.</p>
         </div>
     </div>
 </div>
@@ -347,20 +400,20 @@ and the ticks). Removing the chat with the cross deletes the resource.</p>
             
                 <nav id="retype-nextprev" class="print:hidden flex mt-14">
                     <div class="w-1/2">
-                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../../user/extensions/side-query/">
+                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../../user/extensions/tools/">
                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                             <span>
                                 <span class="block text-xs font-normal text-base-text-muted">Previous</span>
-                                <span class="block mt-1">Side Query</span>
+                                <span class="block mt-1">Tools for the model</span>
                             </span>
                         </a>
                     </div>
             
                     <div class="w-1/2">
-                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../user/account/">
+                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../user/extensions/side-query/">
                             <span>
                                 <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
-                                <span class="block mt-1">Account &amp; settings</span>
+                                <span class="block mt-1">Side Query</span>
                             </span>
                             <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                         </a>
@@ -375,7 +428,7 @@ and the ticks). Removing the chat with the cross deletes the resource.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (d08410734).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (8bcec2299).</p></div>
             </footer>
         </div>
     </div>
@@ -404,6 +457,6 @@ and the ticks). Removing the chat with the cross deletes the resource.</p>
 
     <div id="retype-overlay-target"></div>
 
-        <script data-cfasync="false">window.__DOCS__ = { "title": "SillyTavern Converter", level: 3, icon: "file", hasPrism: false, hasInstagram: false, hasMermaid: false, hasMath: false, tocDepth: 23, "md": "/user/extensions/sillytavern-converter.md" }</script>
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Converter", level: 3, icon: "file", hasPrism: false, hasInstagram: false, hasMermaid: false, hasMath: false, tocDepth: 23, "md": "/user/extensions/sillytavern-converter.md" }</script>
 </body>
 </html>

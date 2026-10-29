@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846614666216">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846616304259">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846614666216" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846616304259" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846614666216" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846616304259" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846614666216" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846616304259" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -1187,7 +1187,7 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 | Place provider | `extensions.placeprovider` | The extension, the `@LLMFunction` interface and its implementation, `PlaceIndex` (the places read from `places.json`: search, nearby, distance), the records of the answers, `PlaceProviderToolProvider` (the suite for `ToolService`) and `PlaceProviderCommands`. `src/build` holds the two Java programs that download Natural Earth and reduce it to `places.json` (profile `import-places`), see its README. |
 | Reviewer | `extensions.reviewer` | Model (`ReviewerProfile` with a stable uuid), service, dialogs, a settings form and `ManuscriptProfileSelect`, the profile picker of a book's info tab. |
 | Side Query | `extensions.sidequery` | Model, service, a chat panel and a settings form; `SideQueryLog` holds its logger for classes the extension class does not create. |
-| SillyTavern Converter | `extensions.stconverter` | Model (the chat, the turn items and the schema of the answer), service (storage in the attributes of the book, the prompt, the pure functions that read and merge the answer), `ConverterView` (the tab) and its CSS; `STConverterLog` holds the logger. |
+| Converter (`sillytavern-converter`) | `extensions.stconverter` | Model (the chat, the turn items, the schema of the answer, and `BookSource`, the parts of a book to redraft), service (storage in the attributes of the book, the prompt, the pure functions that read and merge the answer, `BookSourceReader` that strips a backup or a book to a `BookSource` resource), `ConverterView` (the tab) and its CSS; `STConverterLog` holds the logger. |
 | Chinese localization | `extensions.chineselocalization` | Activator, extension and one `LocalizationBundle` - a language, no UI code. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -1280,9 +1280,9 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 <td>Model, service, a chat panel and a settings form; <code translate="no" v-pre>SideQueryLog</code> holds its logger for classes the extension class does not create.</td>
 </tr>
 <tr>
-<td>SillyTavern Converter</td>
+<td>Converter (<code translate="no" v-pre>sillytavern-converter</code>)</td>
 <td><code translate="no" v-pre>extensions.stconverter</code></td>
-<td>Model (the chat, the turn items and the schema of the answer), service (storage in the attributes of the book, the prompt, the pure functions that read and merge the answer), <code translate="no" v-pre>ConverterView</code> (the tab) and its CSS; <code translate="no" v-pre>STConverterLog</code> holds the logger.</td>
+<td>Model (the chat, the turn items, the schema of the answer, and <code translate="no" v-pre>BookSource</code>, the parts of a book to redraft), service (storage in the attributes of the book, the prompt, the pure functions that read and merge the answer, <code translate="no" v-pre>BookSourceReader</code> that strips a backup or a book to a <code translate="no" v-pre>BookSource</code> resource), <code translate="no" v-pre>ConverterView</code> (the tab) and its CSS; <code translate="no" v-pre>STConverterLog</code> holds the logger.</td>
 </tr>
 <tr>
 <td>Chinese localization</td>
@@ -1475,7 +1475,7 @@ ignored by Git), see <a href="../packaging/#building-the-plugins-in-docker">Pack
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (d08410734).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (8bcec2299).</p></div>
             </footer>
         </div>
     </div>
