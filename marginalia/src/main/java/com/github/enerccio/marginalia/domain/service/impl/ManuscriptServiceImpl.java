@@ -86,6 +86,10 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @Lazy
     private AgentRunService agentRunService;
 
+    @Autowired
+    @Lazy
+    private FolderService folderService;
+
     /**
      * A book an agent works on can't be changed, see {@link AgentRunService#checkNotLocked}.
      */
@@ -93,7 +97,39 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @CommonTx
     public Manuscript save(Manuscript manuscript) throws Exception {
         agentRunService.checkNotLocked(manuscript);
+        checkFolder(manuscript.getFolder());
         return super.save(manuscript);
+    }
+
+    /**
+     * A book is only put into a folder of its user.
+     */
+    private Folder checkFolder(Folder folder) throws Exception {
+        if (folder == null) {
+            return null;
+        }
+        Folder stored = folderService.find(folder.getId());
+        if (stored == null || stored.isDeleted() || stored.getOwner() == null
+                || !stored.getOwner().getId().equals(currentUser.getId())) {
+            throw new IllegalArgumentException("The folder does not exist");
+        }
+        return stored;
+    }
+
+    @Override
+    @CommonTx
+    public void moveToFolder(Collection<Manuscript> books, Folder folder) throws Exception {
+        Folder target = checkFolder(folder);
+        List<Long> ids = new ArrayList<>();
+        for (Manuscript book : books) {
+            Manuscript stored = book == null ? null : findForUser(book.getUuid());
+            if (stored == null) {
+                throw new IllegalArgumentException("The book does not exist");
+            }
+            agentRunService.checkNotLocked(stored);
+            ids.add(stored.getId());
+        }
+        getRepository().moveToFolder(ids, target, currentUser);
     }
 
     /**

@@ -83,6 +83,14 @@
         <property name="repository" ref="manuscriptRepository" />
     </bean>
 
+    <bean id="folderRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaFolderRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.FolderServiceImpl">
+        <property name="repository" ref="folderRepository" />
+    </bean>
+
     <bean id="tagRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaTagRepository">
         <property name="entityManager" ref="em"/>
     </bean>

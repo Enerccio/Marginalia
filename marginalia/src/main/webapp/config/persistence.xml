@@ -21,6 +21,7 @@
         <class>com.github.enerccio.marginalia.domain.model.impl.ChatMessage</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.Lorebook</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.LorebookEntry</class>
+        <class>com.github.enerccio.marginalia.domain.model.impl.Folder</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.Tag</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.TagRelation</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.Summary</class>

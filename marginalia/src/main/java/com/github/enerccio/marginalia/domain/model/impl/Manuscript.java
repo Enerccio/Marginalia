@@ -3,6 +3,8 @@ package com.github.enerccio.marginalia.domain.model.impl;
 import com.github.enerccio.marginalia.domain.collections.Language;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
+import com.github.enerccio.marginalia.domain.traits.CleanupReference;
+import com.github.enerccio.marginalia.domain.traits.CleanupReference.Policy;
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
 import com.github.enerccio.marginalia.domain.traits.Fulltextable;
 import jakarta.persistence.*;
@@ -24,6 +26,12 @@ public class Manuscript extends ExtendableEntity {
 
     @ManyToOne
     private Lorebook lorebook;
+
+    // null is the top level; a folder is never purged with its books, they are moved out of it first
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "folder_id")
+    @CleanupReference(Policy.WEAK)
+    private Folder folder;
 
     @ManyToOne
     private AI ai;
@@ -237,6 +245,14 @@ public class Manuscript extends ExtendableEntity {
 
     public void setLorebook(Lorebook lorebook) {
         this.lorebook = lorebook;
+    }
+
+    public Folder getFolder() {
+        return folder;
+    }
+
+    public void setFolder(Folder folder) {
+        this.folder = folder;
     }
 
     public boolean isAgentic() {
