@@ -97,20 +97,37 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @CommonTx
     public Manuscript save(Manuscript manuscript) throws Exception {
         agentRunService.checkNotLocked(manuscript);
-        checkFolder(manuscript.getFolder());
+        checkFolder(manuscript);
         return super.save(manuscript);
+    }
+
+    @Override
+    @CommonTx
+    public Manuscript update(Manuscript book, BookChange change) throws Exception {
+        // by id and without the current user, like save: a generation calls this from threads that have no session
+        Manuscript fresh = book == null ? null : find(book.getId());
+        if (fresh == null || fresh.isDeleted()) {
+            throw new IllegalStateException("The book no longer exists");
+        }
+        change.apply(fresh);
+        return save(fresh);
     }
 
     /**
      * A book is only put into a folder of its user.
      */
-    private Folder checkFolder(Folder folder) throws Exception {
+    private void checkFolder(Manuscript manuscript) throws Exception {
+        // the owner of the book, the current user only for a new book: a generation saves from threads that have no session
+        Long ownerId = manuscript.getOwner() != null ? manuscript.getOwner().getId() : currentUser.getId();
+        checkFolder(manuscript.getFolder(), ownerId);
+    }
+
+    private Folder checkFolder(Folder folder, Long ownerId) throws Exception {
         if (folder == null) {
             return null;
         }
         Folder stored = folderService.find(folder.getId());
-        if (stored == null || stored.isDeleted() || stored.getOwner() == null
-                || !stored.getOwner().getId().equals(currentUser.getId())) {
+        if (stored == null || stored.isDeleted() || stored.getOwner() == null || !stored.getOwner().getId().equals(ownerId)) {
             throw new IllegalArgumentException("The folder does not exist");
         }
         return stored;
@@ -119,7 +136,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @Override
     @CommonTx
     public void moveToFolder(Collection<Manuscript> books, Folder folder) throws Exception {
-        Folder target = checkFolder(folder);
+        Folder target = checkFolder(folder, currentUser.getId());
         List<Long> ids = new ArrayList<>();
         for (Manuscript book : books) {
             Manuscript stored = book == null ? null : findForUser(book.getUuid());

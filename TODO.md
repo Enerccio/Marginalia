@@ -263,6 +263,7 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 
 ## P3 — Nice to have
 
+70. *Icons for tabs, toolbar so tools can be minimized*
 25. **Writing statistics** — words per day/session, per-book totals, goals. 🧩
 26. **Undo for edits** — (*Discard Changes* in the part menu drops an edit that is not saved yet.) message edits overwrite text in place; keep per-message edit history (branching
     covers generations but not manual edits). 🧩 (similar to `lorebookvcs`)

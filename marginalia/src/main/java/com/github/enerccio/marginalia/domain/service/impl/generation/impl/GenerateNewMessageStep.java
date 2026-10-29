@@ -69,7 +69,6 @@ public class GenerateNewMessageStep extends GenerationStepBase {
             // persist template variables - local ones follow the branch, global ones belong to the manuscript
             TemplateVariables variables = getTemplateContext(controller).getVariables();
             variables.storeTo(TemplateVariables.Scope.LOCAL, initialNode.getAttributes());
-            variables.storeTo(TemplateVariables.Scope.GLOBAL, manuscript.getAttributes());
 
             ChatMessage node;
 
@@ -104,8 +103,13 @@ public class GenerateNewMessageStep extends GenerationStepBase {
             controller.setMessage(node);
             messagePromptService.store(node, builtPrompt, controller.getPrePromptData().getBackgroundLore());
 
-            manuscript.setActiveLeaf(node);
-            controller.setManuscript(manuscriptService.save(manuscript));
+            // the book is loaded again: only the global variables and the active leaf are written, not what the generation
+            // started with (the user may have changed the settings or moved the book since)
+            ChatMessage created = node;
+            controller.setManuscript(manuscriptService.update(manuscript, book -> {
+                variables.storeTo(TemplateVariables.Scope.GLOBAL, book.getAttributes());
+                book.setActiveLeaf(created);
+            }));
             // state stays NOT_SUCCESSFUL until the first text arrives (InferenceStep), so a failed request doesn't
             // leave an empty part behind
             controller.emitEvent(Events.AFTER_GENERATE_NEW_MESSAGE, () -> {

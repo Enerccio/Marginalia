@@ -190,6 +190,34 @@ class FolderServiceTest extends MarginaliaTestBase {
     }
 
     @Test
+    void updateWritesOnlyWhatItChangesToTheStoredBook() throws Exception {
+        Folder scifi = folder("Sci-fi", null);
+        Manuscript held = book("Held", null);
+        // the copy that was loaded before the book was moved and its settings changed elsewhere
+        Manuscript changed = manuscriptService.find(held.getId());
+        changed.setStyle("lyrical");
+        manuscriptService.save(changed);
+        manuscriptService.moveToFolder(List.of(held), scifi);
+
+        manuscriptService.update(held, stored -> stored.setPov("second person"));
+
+        Manuscript reloaded = reload(held);
+        assertThat(reloaded.getPov()).isEqualTo("second person");
+        assertThat(reloaded.getStyle()).isEqualTo("lyrical");
+        assertThat(reloaded.getFolder().getId()).isEqualTo(scifi.getId());
+    }
+
+    @Test
+    void updateOfABookThatIsGoneFailsWithoutApplyingTheChange() throws Exception {
+        Manuscript gone = book("Gone", null);
+        manuscriptService.delete(gone, false);
+
+        assertThatThrownBy(() -> manuscriptService.update(gone, stored -> {
+            throw new AssertionError("must not be applied");
+        })).isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
     void deleteMovesTheContentUp() throws Exception {
         Folder a = folder("A", null);
         Folder b = folder("B", a);

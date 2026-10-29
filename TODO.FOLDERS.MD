@@ -1,9 +1,30 @@
 # Folders — design notes and plan
 
 Groups of books ("folders", nested) whose prompt settings the books inside inherit: a *Sci-fi* folder decides the tone and
-style guidelines, a *Sci-fi / Expanse* subfolder adds to them, a book overrides what it needs. Nothing is implemented yet; this file
-collects the ideas and the decisions before the work starts. All of it ships in **1.6.0**, built as a series of commits
-(one per step of *Order of work*, each leaving the suite green).
+style guidelines, a *Sci-fi / Expanse* subfolder adds to them, a book overrides what it needs. This file collects the ideas, the decisions and the progress. All of it ships in **1.6.0**,
+built as a series of commits (one per step of *Order of work*, each leaving the suite green). Done items are marked ✅.
+
+## Status
+
+- ✅ **Modification** (see below): a book's `modification` follows its parts, `saveWithoutModification` exists.
+- ✅ **Data layer** (step 1 without the resolver): `Folder` entity, `Manuscript.folder`, migration V21, `FolderRepository`,
+  `FolderService` (create / rename / move / path / ancestors / counts / delete moving the content up / `deleteWithContent`),
+  `ManuscriptService.moveToFolder`, wiring, `FolderCrudTest` + `FolderServiceTest`. Decided while writing it:
+  - every `FolderService.save` runs the rules (name trimmed, not blank, at most 255, no `/`, unique among the siblings
+    case insensitively, the parent is the user's own, no cycle); a save of a folder of another user is *not* rejected (the
+    `OwnedCrudContract` expects the owner to be kept), only the parent is checked;
+  - `Manuscript.folder` is `@CleanupReference(WEAK)` (a purge of a folder never purges books), `Folder.parent` is `OWNED_BY`;
+  - `delete` (move up) fails without moving anything when a folder inside has the name of a folder in the parent; the dialog has
+    to offer the merge / rename for that (the *rename / skip / merge* of the two-pane dialog);
+  - move and delete of a folder are blocked while an agent works on a book beneath it (`checkNotLocked`), rename is not;
+  - `ManuscriptService.moveToFolder` is a bulk update (the book is not saved, `modification` stays), and
+    `ManuscriptService.save` rejects a folder that is not the owner's.
+- ✅ **Stale copies** (decided: no protected `folder`; the save sites refresh the book and write only what they touch). Audit:
+  the book window parts, the mass dialogs, `StoryBackup`, the agent merge and the plugins already did. The generation steps
+  (`GenerateNewMessageStep`, `InferenceStep`), `AutoAnnotateDialog` and `StoryGenerationCommands.activate` held the book for a
+  long time; they now use `ManuscriptService.update(book, change)`, which loads by id (no session needed: the callbacks of a
+  generation run on threads without one) and saves only the change.
+- ⬜ Resolver + getters through the folder chain (rest of step 1), then steps 2 to 4.
 
 ## Decided
 
@@ -144,18 +165,20 @@ set by the tree and story views. Decide per caller when the folder bump exists.
 
 ## Backend
 
-1. Entity `Folder` (`OwnedEntity`/`ExtendableEntity`: `name`, `parent`, the prompt fields as `@ExtendedAttribute`s),
-   `persistence.xml`, Flyway migration (new `folders` table + `manuscripts.folder_id`; the newest is V20, reuse it if it is
-   not committed), repository, `FolderService`(+impl) with the bean in `services-config.xml`.
+1. ✅ Entity `Folder` (`ExtendableEntity`: `name`, `parent`, `description`, the prompt fields as `@ExtendedAttribute`s),
+   `persistence.xml`, Flyway migration V21 (`folders` table + `manuscripts.folder_id`), repository, `FolderService`(+impl) with
+   the beans in `services-config.xml`.
 2. The resolver (see above) and the getters through it. Load the user's folders once per generation and walk the chain in
    memory; a book has a handful of ancestors at most.
-3. `Manuscript.folder` and `ManuscriptFilterValues.folder` (+ "include subfolders"?), `ManuscriptRepository` predicate,
-   `ManuscriptService.move(...)`, `FolderService.move/rename/delete` with the rules above.
+3. ✅ `Manuscript.folder`, `ManuscriptService.moveToFolder`, `FolderService.move/rename/delete` with the rules above.
+   ⬜ `ManuscriptFilterValues.folder` (+ "include subfolders") and the `ManuscriptRepository.searchManuscripts` predicate (needs the
+   list, step 2); the folder search with its own sorters (the folder rows of the grid), the favorites view.
    The branch counts of `ChatMessageServiceImpl` load the whole branch of a book per call (`getBranchFromLeaf`): fine for
    one book, too slow for a page of rows of long books. Add one repository query (recursive CTE up from `activeLeaf`, sum of
    `wordCount` and `tokenCount`, for a list of manuscript ids) and use it for the list; the folder counts come from one
    grouped query plus the folder tree in memory.
-4. Soft delete and `@CleanupReference` (admin Cleanup), ownership through `OwnedService`.
+4. ✅ Soft delete and `@CleanupReference` (admin Cleanup), ownership through `OwnedService`. ⬜ Check `CleanupServiceTest`
+   fixtures once folders have books (a purge of a folder with books beneath it).
 5. Backup / restore: folders go with the books (`BackupServiceImpl`); restore resolves the folder like the AI and the
    lorebook (same uuid, else same name path, else none). A cloned book stays in the folder of the original.
 6. Code that reads the raw field instead of the resolved getter: `BookSettingsCommands` (`pov`, `tense`, `style`),
@@ -186,11 +209,14 @@ set by the tree and story views. Decide per caller when the folder bump exists.
 
 - Resolver: every field through book / folder / grandparent / `UserSetting` / `Defaults`, blank vs set, a folder
   changed after the book was created.
-- Folder rules: unique names, cycle rejected, delete moves children, another user's folder is not found.
+- ✅ Folder rules: unique names, cycle rejected, delete moves children, another user's folder is not found
+  (`FolderServiceTest`), `update` keeps the folder and the settings changed since the copy was loaded.
+  ⬜ Move / delete blocked by a book an agent works on (needs the agent test base).
 - Generation test (`GenerationTestBase`): the style of a folder reaches the prompt the mock server receives, and a book
   override wins.
-- Backup round trip with folders; `FlywayMigrationTest` for the migration; `BundleCompletenessTest`.
-- An `OwnedCrudContract` test for the entity.
+- ⬜ Backup round trip with folders; ✅ `FlywayMigrationTest` runs the migration (passes with V21); `BundleCompletenessTest`
+  when strings are added.
+- ✅ An `OwnedCrudContract` test for the entity (`FolderCrudTest`).
 
 ## Docs
 
@@ -198,13 +224,13 @@ set by the tree and story views. Decide per caller when the folder bump exists.
   the books page, the book settings page.
 - `manual/developer`: generation pipeline / settings resolution, data model; stamp the pages that
   `tools/check_dev_docs.py` flags. Then `tools/retype_build.sh`.
-- `CHANGELOG.MD` under `[Unreleased]`: Added (folders), Changed (settings resolve through folders), the migration number
-  and the `@PublicAPI` changes plugins can see.
+- `CHANGELOG.MD` under `[Unreleased]`: ✅ Added (folders, data layer, V21), ✅ Changed (*Last modified* follows the parts),
+  ✅ Fixed (stale copies); ⬜ Changed (settings resolve through folders) and the `@PublicAPI` changes plugins can see, as they come.
 
 ## Order of work
 
-1. Entity, migration, `Manuscript.folder`, resolver refactor with tests. No UI, no behaviour change while there are no
-   folders (the refactor alone should keep the whole existing suite green).
+1. ✅ Entity, migration, `Manuscript.folder`, services and tests. ⬜ Resolver refactor with tests. No UI, no behaviour change
+   while there are no folders (the refactor alone should keep the whole existing suite green).
 2. List navigation, create / rename / move / delete, combo labels, phone UI.
 3. Folder settings dialog and the "inherited from" display.
 4. Backup, agents, export, assistant commands, docs.
