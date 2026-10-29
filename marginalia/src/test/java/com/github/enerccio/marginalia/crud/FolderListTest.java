@@ -245,4 +245,21 @@ class FolderListTest extends MarginaliaTestBase {
         // the leaf itself is gone, so nothing of the branch is read
         assertThat(chatMessageService.getActiveBranchSizes(List.of(inScifi.getId())).get(inScifi.getId()).words()).isLessThanOrEqualTo(10);
     }
+
+    @Test
+    void theBranchSizeOfALongBookIsOneQuery() throws Exception {
+        int parts = 1500;
+        ChatMessage last = part(inScifi, null, "root", 2, 20);
+        for (int i = 1; i < parts; i++) {
+            last = part(inScifi, last, "part " + i, 2, 20);
+        }
+        Manuscript stored = manuscriptService.find(inScifi.getId());
+        stored.setActiveLeaf(last);
+        manuscriptService.save(stored);
+
+        Map<Long, BranchSize> sizes = chatMessageService.getActiveBranchSizes(List.of(inScifi.getId(), inExpanse.getId()));
+
+        assertThat(sizes.get(inScifi.getId())).isEqualTo(new BranchSize(2L * parts, 20L * parts));
+        assertThat(sizes.get(inExpanse.getId())).isEqualTo(new BranchSize(0, 0));
+    }
 }

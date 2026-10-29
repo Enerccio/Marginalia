@@ -228,6 +228,16 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
     void setAgenticCopyModel(Manuscript copy, AI ai, Protocol protocol) throws Exception;
 
     /**
+     * Puts the working copy of an agent into the folder of the book it is a copy of (null: the top level), which is what the
+     * copy resolves its settings through (language, template, prompts), so it writes as the book does. The copy is a working
+     * copy and not a book of the list, so this changes neither the folder's content nor its modification. Called when the copy
+     * is made and when the run is synced or its copy is replaced, as the book may have been moved while the run was paused.
+     *
+     * @throws IllegalArgumentException when the manuscript is not a working copy of an agent
+     */
+    void setAgenticCopyFolder(Manuscript copy, Folder folder) throws Exception;
+
+    /**
      * Changes the settings of the book that are named in {@code changes} (the others are left as they are) and saves it. The
      * prompt templates are checked first: an invalid one refuses the whole change, a template that uses names that do not
      * exist is saved and reported in the result.

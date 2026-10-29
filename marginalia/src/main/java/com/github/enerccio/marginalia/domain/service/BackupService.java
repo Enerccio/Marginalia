@@ -84,7 +84,21 @@ public interface BackupService {
      *                    times)
      * @return the file, the caller deletes it when it's done with it
      */
-    BackupExport exportBackup(ManuscriptBackup backup, boolean withImages, Runnable imagePacked) throws Exception;
+    default BackupExport exportBackup(ManuscriptBackup backup, boolean withImages, Runnable imagePacked) throws Exception {
+        return exportBackup(backup, withImages, true, imagePacked);
+    }
+
+    /**
+     * Like {@link #exportBackup(ManuscriptBackup, boolean, Runnable)}, with the choice of what the file says about the settings
+     * the book inherits. The file never says which folder the book is in: where a book is filed is a local choice (the stored
+     * backup keeps it, for the restore here).
+     *
+     * @param includeInherited write what the book inherits into the file as the book's own values, where it has none of its own
+     *                         (from the folders it was in when the backup was taken, then from the user settings: language,
+     *                         master template, point of view, tense, style and the prompts), so it reads the same where there
+     *                         are no such folders; the built-in defaults are not written
+     */
+    BackupExport exportBackup(ManuscriptBackup backup, boolean withImages, boolean includeInherited, Runnable imagePacked) throws Exception;
 
     /**
      * @param file          temporary file with the backup

@@ -786,6 +786,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_INHERITED_FROM_FOLDER, "继承自文件夹“%s”");
         setValue(L.LABEL_INHERITED_FROM_USER, "继承自您的设置");
         setValue(L.LABEL_INHERITED_DEFAULT, "内置默认值");
+        setValue(L.LABEL_EXPORT_INHERITED_SETTINGS, "导出时包含继承的设置");
+        setValue(L.LABEL_HELP_BOOKS_ACCESS, "允许助手查看我的书");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1337,6 +1339,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_ORGANISE_DONE, "完成：%d 本书、%d 个文件夹，跳过 %d 个。");
         setValue(L.MSG_ORGANISE_COPY_TO, "将 %d 个项目复制到“%s”？");
         setValue(L.MSG_FOLDER_CLASH, "名为“%s”的文件夹已存在于“%s”中。要如何处理？");
+        setValue(L.MSG_ORGANISE_SAME_FOLDER, "两个窗格显示的是同一个文件夹，请在另一个窗格中打开其他文件夹。");
+        setValue(L.MSG_HELP_BOOKS_NOTICE, "助手会读取您的书的文件夹名称、标题、简介和写作设置，并搜索其正文；它不会读取故事的正文。读取的内容会发送给回答问题的 AI。它不能更改任何内容。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

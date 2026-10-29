@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.model.OwnedEntity;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
 import com.github.enerccio.marginalia.domain.model.impl.settings.AppSettings;
+import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.security.AdminGuard;
 import com.github.enerccio.marginalia.domain.security.model.Permission;
 import com.github.enerccio.marginalia.domain.security.model.User;
@@ -59,6 +60,15 @@ public class HelpAssistantServiceImpl implements HelpAssistantService {
     private DatabaseBackupService databaseBackupService;
 
     @Autowired
+    private FolderService folderService;
+
+    @Autowired
+    private ManuscriptService manuscriptService;
+
+    @Autowired
+    private ChatMessageService chatMessageService;
+
+    @Autowired
     private CleanupService cleanupService;
 
     // not there without the extension system (the tests)
@@ -90,6 +100,20 @@ public class HelpAssistantServiceImpl implements HelpAssistantService {
         app.setHelpPromptAdmin(promptOrNull(settings.adminPrompt(), HelpPrompts.ADMIN));
         app.setHelpPromptUser(promptOrNull(settings.userPrompt(), HelpPrompts.USER));
         settingService.save(app);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public boolean isBooksAllowed() throws Exception {
+        return settingService.getOrCreate(UserSetting.class).isHelpAssistantBooks();
+    }
+
+    @Override
+    @CommonTx
+    public void setBooksAllowed(boolean allowed) throws Exception {
+        UserSetting setting = settingService.getOrCreate(UserSetting.class);
+        setting.setHelpAssistantBooks(allowed);
+        settingService.save(setting);
     }
 
     @Override
@@ -137,9 +161,12 @@ public class HelpAssistantServiceImpl implements HelpAssistantService {
         boolean interactive = uiState != null && helper != null && helper.getHelperInteractions();
         // the data of the Admin page: only for an administrator, and only when an administrator allowed it
         boolean adminData = app.getHelpAdminData() && adminGuard.isAdmin();
+        // the books of the user: only when they turned it on, what is read goes to the AI of the administrator
+        boolean books = isBooksAllowed();
         List<LLMChatMessage> payload = new ArrayList<>();
         payload.add(LLMChatMessage.of(LLMRole.SYSTEM, instructions() + HelpPrompts.PROBLEMS
-                + (interactive ? HelpPrompts.INTERACTIVE : "") + (adminData ? HelpPrompts.ADMIN_DATA : "")));
+                + (interactive ? HelpPrompts.INTERACTIVE : "") + (adminData ? HelpPrompts.ADMIN_DATA : "")
+                + (books ? HelpPrompts.BOOKS : "")));
         payload.addAll(history);
         FunctionRegistry registry = inferenceServices.getFunctionRegistry();
         FunctionSet tools = interactive
@@ -149,6 +176,10 @@ public class HelpAssistantServiceImpl implements HelpAssistantService {
             AdminDataSource data = new HelpAdminData(adminGuard, osgiService, userService, databaseBackupService,
                     cleanupService, ThreadCopyRequestAttributes.create());
             tools = tools.and(registry.bind(AdminHelpTools.class, new AdminHelpToolsImpl(data)));
+        }
+        if (books) {
+            BookDataSource data = new HelpBookData(folderService, manuscriptService, chatMessageService, ThreadCopyRequestAttributes.create());
+            tools = tools.and(registry.bind(BookHelpTools.class, new BookHelpToolsImpl(data)));
         }
         return stream(payload, tools, callback);
     }

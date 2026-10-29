@@ -203,6 +203,23 @@ public class UserSetting extends Setting {
     @Transient
     private JsonObject keyBindings = new JsonObject();
 
+    /**
+     * Whether the help assistant may look at the books of the user (folders, titles, descriptions, the settings they
+     * resolve to, a search of their text), asked in the panel of the assistant. Off until the user turns it on: what it
+     * reads is sent to the AI of the administrator that answers.
+     */
+    @ExtendedAttribute
+    @Transient
+    private Boolean helpAssistantBooks = false;
+
+    public boolean isHelpAssistantBooks() {
+        return helpAssistantBooks != null && helpAssistantBooks;
+    }
+
+    public void setHelpAssistantBooks(Boolean helpAssistantBooks) {
+        this.helpAssistantBooks = helpAssistantBooks;
+    }
+
     public Long getDefaultModel() {
         return defaultModel;
     }

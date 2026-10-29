@@ -78,6 +78,7 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
     private Button takeBackupBtn;
     private Button importBackupBtn;
     private Button refreshBtn;
+    private Checkbox includeInheritedCheckbox;
 
     private Checkbox perManuscriptCheckbox;
     private ComboBox<BackupStrategy> backupStrategyCombo;
@@ -168,7 +169,9 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
 
         refreshBtn = new Button(loc.getValue(L.LABEL_REFRESH), Solid.REFRESH.create(), event -> refreshBackups());
 
-        toolbar.add(takeBackupBtn, importBackupBtn, refreshBtn);
+        includeInheritedCheckbox = new Checkbox(loc.getValue(L.LABEL_EXPORT_INHERITED_SETTINGS), true);
+
+        toolbar.add(takeBackupBtn, importBackupBtn, refreshBtn, includeInheritedCheckbox);
 
         grid = new Grid<>(ManuscriptBackup.class, false);
         grid.setSizeFull();
@@ -336,7 +339,7 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
         Anchor anchor = new Anchor(new InputStreamDownloadHandler((InputStreamDownloadCallback) downloadEvent -> {
             try {
                 // a copy of the stored file, deleted when it's downloaded, so a big backup is never in memory
-                BackupExport export = backupService.exportBackup(backup, false, null);
+                BackupExport export = backupService.exportBackup(backup, false, includeInheritedCheckbox.getValue(), null);
                 return new DownloadResponse(new TempFileInputStream(export.file()), export.fileName(), export.mimeType(), export.file().length());
             } catch (Exception e) {
                 throw new IOException(e);
@@ -389,6 +392,8 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
                     @APILocals(name = "packing", type = ProgressBarDialog.class)})
     private void packWithImages(ManuscriptBackup backup) {
         AtomicReference<BackupExport> packed = new AtomicReference<>();
+        // the worker thread does not read the component
+        boolean inherited = includeInheritedCheckbox.getValue();
         AtomicReference<Exception> failure = new AtomicReference<>();
 
         ProgressBarDialog packing = new ProgressBarDialog(true);
@@ -397,7 +402,7 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
         packing.create();
         packing.setAction(dialog -> {
             try {
-                packed.set(backupService.exportBackup(backup, true, dialog::updateProgress));
+                packed.set(backupService.exportBackup(backup, true, inherited, dialog::updateProgress));
             } catch (Exception e) {
                 failure.set(e);
             }

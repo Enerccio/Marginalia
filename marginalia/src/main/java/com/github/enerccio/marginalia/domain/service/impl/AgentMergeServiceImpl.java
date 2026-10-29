@@ -300,11 +300,13 @@ public class AgentMergeServiceImpl implements AgentMergeService {
         if (original == null || original.isDeleted()) {
             throw new IllegalArgumentException("The book of the agent does not exist");
         }
+        Manuscript copy = (Manuscript) Hibernate.unproxy(stored.getWorkingCopy());
+        // the book may have been moved while the run was paused, the copy writes with the settings of the folders it is in now
+        manuscriptService.setAgenticCopyFolder(copy, original.getFolder());
         JsonObject base = fileSystemService.readBase(stored);
         if (base == null) {
             return SyncReport.EMPTY;
         }
-        Manuscript copy = (Manuscript) Hibernate.unproxy(stored.getWorkingCopy());
         Map<String, String> copyToOriginal = new HashMap<>();
         Map<String, String> originalToCopy = new HashMap<>();
         for (UuidPair pair : pairService.getAll(stored)) {
