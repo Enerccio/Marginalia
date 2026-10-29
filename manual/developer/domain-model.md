@@ -52,6 +52,9 @@ erDiagram
     User ||--o{ Usage : owns
     User ||--o{ Protocol : owns
     User ||--o| UserSetting : has
+    User ||--o{ Folder : owns
+    Folder |o--o{ Folder : "parent / children"
+    Folder |o--o{ Manuscript : contains
 
     Manuscript }o--o| AI : "generates with"
     Manuscript }o--o| Protocol : "generates with"
@@ -69,6 +72,7 @@ erDiagram
     TagRelation }o--|| Manuscript : "objectId + clazz"
     TagRelation }o--|| Lorebook : "objectId + clazz"
     TagRelation }o--|| LorebookEntry : "objectId + clazz"
+    TagRelation }o--|| Folder : "objectId + clazz"
 ```
 
 Every entity except `User` has an owner, so each user has a separate set of books, lorebooks, providers, protocols
@@ -271,17 +275,22 @@ joins on is a real column: relations, `name`, `enabled`, `ordinal`, `published`,
 | `description` | JSON | Description shown in the book list. Also `@Fulltextable`. It used to be a column as well; V9 moved what only the column had into the JSON and dropped the column. |
 | `ai`, `protocol` | FK columns | Inference provider and protocol used for generation. |
 | `lorebook` | FK column | The book's lorebook (with its sub-lorebooks). |
+| `folder` | FK column `folder_id` | The [folder](folders.md) the book is in, null is the top level. `@CleanupReference(WEAK)`: purging the folder unlinks a living book. A working copy of an agent is put in the folder of its original. |
 | `activeLeaf` | FK column | The last part of the branch currently shown and continued. |
 | `published` | column | Readable by everyone at `/view/<uuid>`. |
 | `agentic` | column | The working copy of an agent. The lists of the UI leave these books out (`ManuscriptService.findAllRegularForUser`, `searchRegularManuscripts`); `findAllAgenticForUser` and `searchAgenticManuscripts` return only them, `findAllForUser` and `searchManuscripts` both kinds. |
 | `lastOpened` | column | When the owner last opened the book; orders the book lists. |
-| `template`, `pov`, `tense`, `style`, `userPrompt`, `summaryPrompt`, `metaSummaryPrompt`, `redraftSystemPrompt`, `redraftPrompt`, `annotateSystemPrompt`, `annotatePrompt`, `impersonatePrompt` | JSON | The book's prompt overrides (*Prompts* tab); empty means the user's defaults from `UserSetting`, then `Defaults`. |
-| `language` | JSON | Language of the story (`Language`, English when not set): the `lang` of the story views, which the browser uses for hyphenation and justification, and the language of the exports. |
+| `template`, `pov`, `tense`, `style`, `userPrompt`, `summaryPrompt`, `metaSummaryPrompt`, `redraftSystemPrompt`, `redraftPrompt`, `annotateSystemPrompt`, `annotatePrompt`, `impersonatePrompt` | JSON | The book's prompt overrides (*Prompts* tab); empty means inherited: the folders above the book, then the user's defaults from `UserSetting`, then `Defaults` (see [Folders](folders.md#resolving-a-setting)). |
+| `language` | JSON | Language of the story (`Language`; null is inherited from the folders, English at the end of the chain; `getLanguage()` still says English then and `getOwnLanguage()` null): the `lang` of the story views, which the browser uses for hyphenation and justification, and the language of the exports. |
 | `showBookStyles` | JSON | Story display option. |
 | `autoAnnotate`, `autoAnnotateInstructions`, `autoAnnotateModel`, `autoAnnotateProtocol`, `autoAnnotateAccept`, `autoAnnotateRedraft`, `autoAnnotateAcceptRedraft` | JSON | The automatic annotation of a generated part (Tools menu of the story, `AutoAnnotateDialog`; run by `AutoAnnotate`). The getters of the flags return `false` when unset. The model and the protocol are the **uuids** of an AI and a protocol, not ids (a restored backup can't point at somebody else's model: they are looked up among the ones the user can use, `AutoAnnotate.byUuid`, and an unknown or deleted one means the model of the book). |
 | `backupStrategy`, `backupStrategyValue`, `backupStrategyCurrentValue` | JSON | Per-book backup override and its progress counter. |
 
 Tags of a book are `TagRelation`s (see [Tags](#tags)).
+
+### `Folder`
+
+A group of books, nested through `parent` (a column, `OWNED_BY` for the cleanup), with a `name` (column), a `description` and the same twelve text settings and the language as a book, all extended attributes where null means inherit; tags like a book. Described in [Folders](folders.md). Migration V21.
 
 ### `ChatMessage` (part) and the story tree
 
@@ -564,14 +573,15 @@ values are extended attributes.
 | Class | Owner | Contains |
 |---|---|---|
 | `AppSettings` | none (one per installation) | Data versions (`dbVersion`, `appVersion`), the database backup schedule (`backupScheduleEnabled`, `backupSchedule`, `backupKeep`, `lastScheduledBackup`, `backupScheduleChanged`), the help assistant (`helpAiUuid`, `helpAdminData` (may it read the data of the Admin page for an administrator), and the prompts `helpPromptAdmin` / `helpPromptUser`, null = the default; the uuid, not the id; written only by `HelpAssistantService.saveSettings`). The switches `userAisAllowed` and `helpEnabled` and the settings `helpApplyLimits` and `helpInteractions` are replaced by the permissions `CREATE_AI` and `HELPER` with the attributes `helperApplyLimits` and `helperInteractions` (V15 / app version 5); the fields stay, deprecated, only for `PermissionsMigration`. |
-| `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`, `defaultMetaSummaryPrompt`, `defaultRedraftSystemPrompt`, `defaultRedraftPrompt`, `defaultAnnotateSystemPrompt`, `defaultAnnotatePrompt`, `defaultImpersonatePrompt`), default book backup strategy, how many parts the story and the viewer load at a time (`storyPartsLimit`, empty loads all), the code of the language of the UI (`language`, see [Localization](architecture.md#localization)), where the user left the workspace (`workspaceState`, a JSON object written by the workspace autosave, see [User interface](ui.md#remembering-where-the-user-was)). |
+| `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`, `defaultMetaSummaryPrompt`, `defaultRedraftSystemPrompt`, `defaultRedraftPrompt`, `defaultAnnotateSystemPrompt`, `defaultAnnotatePrompt`, `defaultImpersonatePrompt`), default book backup strategy, how many parts the story and the viewer load at a time (`storyPartsLimit`, empty loads all), the code of the language of the UI (`language`, see [Localization](architecture.md#localization)), where the user left the workspace (`workspaceState`, a JSON object written by the workspace autosave, see [User interface](ui.md#remembering-where-the-user-was)), the favorite books (`favoriteBooks`, uuids), the default arrangement of the story tabs (`defaultStoryLayout`) and whether the help assistant may look at the books (`helpAssistantBooks`, false by default). |
 
 `SettingService.getOrCreate(UserSetting.class)` returns the current user's settings, creating them on first use;
 `getOrCreateApp(AppSettings.class)` the installation's. Extensions keep their settings in the `attributes` of
 `UserSetting` (Reviewer and Side Query profiles do).
 
-The prompt used for a book is resolved in three levels: the book's value (`Manuscript.template`...), else the user's
-default (`UserSetting.masterTemplate`...), else the built-in default (`Defaults`).
+The prompt used for a book is resolved in four levels: the book's value (`Manuscript.template`...), else the nearest
+[folder](folders.md#resolving-a-setting) above it that sets one, else the user's default (`UserSetting.masterTemplate`...), else
+the built-in default (`Defaults`).
 
 ## Users
 
@@ -686,9 +696,9 @@ references between rows and decides what may go. Each reference has a policy (`@
 | Policy | Meaning | Used for |
 |---|---|---|
 | `STRONG` (default) | The referenced row can't be purged while the reference exists. | `Manuscript.ai`, `.protocol`, `.lorebook`, `.activeLeaf` |
-| `OWNED_BY` | The referencing row belongs to the referenced one and is purged with it. | `ChatMessage.parentScript`, `.parent`; `LorebookEntry.lorebook`; `TagRelation.tag`, `.objectId`; every `owner` |
+| `OWNED_BY` | The referencing row belongs to the referenced one and is purged with it. | `ChatMessage.parentScript`, `.parent`; `Folder.parent`; `LorebookEntry.lorebook`; `TagRelation.tag`, `.objectId`; every `owner` |
 | `OWNS` | The referenced row belongs to the referencing one and is purged with it, unless referenced elsewhere. | `ChatMessage.summary` |
-| `WEAK` | The reference doesn't block the purge; it is cleared when the referenced row goes. | `Lorebook.subbooks`, `UserSetting.defaultModel`, `.defaultProtocol` |
+| `WEAK` | The reference doesn't block the purge; it is cleared when the referenced row goes. | `Lorebook.subbooks`, `Manuscript.folder`, `UserSetting.defaultModel`, `.defaultProtocol` |
 
 JPA associations are found automatically from the Hibernate metamodel and default to `STRONG`. Plain id fields
 pointing to other entities ("soft references", including extended attributes) are only seen when annotated with
@@ -741,7 +751,7 @@ counted as purgeable, so a blocked lorebook that is still restorable keeps its e
 
 Book backups (`BackupService`) serialize a book as JSON: its columns, its `extendedContent` as is, its tags, all
 parts (with `extendedContent` and summaries) and references to its provider, protocol and lorebook by uuid and name.
-Restoring or cloning creates new rows (new ids and uuids for the parts) and copies `extendedContent` unchanged, so
+The backup also names the folders the book was in (the optional key `folder`, written by `takeBackup`, read by `BackupFolders`; see [Folders](folders.md#other-places-that-know-about-folders)). Restoring or cloning creates new rows (new ids and uuids for the parts) and copies `extendedContent` unchanged, so
 extended attributes and extension data come back exactly as they were. Linked entities are resolved among the
 current user's own entities, first by uuid, then by name.
 

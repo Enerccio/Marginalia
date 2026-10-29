@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846618196124">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846624414365">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../resources/css/retype.css?v=4.6.0.846618196124" rel="stylesheet">
+    <link href="../resources/css/retype.css?v=4.6.0.846624414365" rel="stylesheet">
 
-    <script data-cfasync="false" src="../resources/js/config.js?v=4.6.0.846618196124" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../resources/js/config.js?v=4.6.0.846624414365" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=4.6.0.846618196124" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=4.6.0.846624414365" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -203,6 +203,7 @@ Before every part Marginalia builds the prompt for the model from:</p>
 | **Template**           | The text with placeholders and macros from which the prompt is built. Every book has its own prompts, with defaults in *Settings*.                                     | [Templates &amp; macros](templates/index.md)                  |
 | **Inference provider** | The connection to a model: API address, API key, model and its limits.                                                                                                 | [Inference providers](inference-providers.md)             |
 | **Protocol**           | Generation settings: temperature, top P, penalties and optional limits. The provider says *which* model writes, the protocol *how*.                                    | [Protocols](protocols.md)                                 |
+| **Folder**             | A place for books, nested as deep as you like. It can also hold settings (language, style, prompts) that the books in it inherit.                                       | [Folders](books/folders.md)                               |
 | **Tag**                | A label on books and lorebooks; tags also decide which lorebook entries a book uses.                                                                                   | [Managing books](books/managing-books.md)                 |
 | **Extension**          | A plugin that adds features, such as chapter markers or AI reviews.                                                                                                    | [Extensions](extensions/index.md)                         |
 | **Command**            | A small action you run by typing `/name` in the command line next to the story menu; extensions add their own.                                                         | [Commands](commands/index.md)                             |
@@ -261,6 +262,11 @@ Before every part Marginalia builds the prompt for the model from:</p>
 <td><strong>Protocol</strong></td>
 <td>Generation settings: temperature, top P, penalties and optional limits. The provider says <em>which</em> model writes, the protocol <em>how</em>.</td>
 <td><a href="protocols/">Protocols</a></td>
+</tr>
+<tr>
+<td><strong>Folder</strong></td>
+<td>A place for books, nested as deep as you like. It can also hold settings (language, style, prompts) that the books in it inherit.</td>
+<td><a href="books/folders/">Folders</a></td>
 </tr>
 <tr>
 <td><strong>Tag</strong></td>
@@ -501,7 +507,7 @@ server it is the <code translate="no" v-pre>./data</code> folder next to <code t
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (fd4c8ea6d).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (31619cd57).</p></div>
             </footer>
         </div>
     </div>

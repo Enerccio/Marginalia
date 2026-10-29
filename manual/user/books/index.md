@@ -46,6 +46,7 @@ While a part is being generated, the other tabs and *Exit* are disabled until th
 ## In this section
 
 - [Managing books](managing-books.md) - the book list, creating, editing and deleting books
+- [Folders](folders.md) - sorting books into folders, settings the books inherit, moving and copying
 - [Story editor](story-editor.md) - writing instructions, generating and editing parts
 - [Branches & story tree](branches-and-story-tree.md) - regenerate, swipe, branch, the tree view
 - [Book prompts](prompts.md) - templates, point of view, tense and style

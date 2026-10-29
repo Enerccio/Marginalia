@@ -162,6 +162,13 @@ it as `AgentRun.workingCopy`. The lists of the UI leave the `agentic` books out 
 `agentic`, so a path that deletes the book of a user does not exist. `FAILED`, a discarded stop and `APPLIED` delete the copy for good (`COPY_ENDING`); a pause, a kept stop and `DONE` keep it,
 `DONE` until the result is applied or discarded (see [Merge and apply](#merge-and-apply)).
 
+The copy is put into the **folder** of the original (`ManuscriptService.setAgenticCopyFolder`, called by `createAgenticCopy`, by
+`AgentRunServiceImpl.replaceWorkingCopy` when a checkpoint is restored and by `AgentMergeServiceImpl.sync` when the book was moved while the run
+was paused), so it resolves the language, templates and prompts through the same [folders](folders.md#resolving-a-setting) as the book. It is
+not content of the folder: `FolderModification`, the counts and the folder lock skip `agentic` books, and a merge (a JSON diff without a
+folder) never moves the original. The reverse holds: a book with a holding run blocks the move or delete of a folder above it and any change
+of what it inherits (`FolderBookLockedException`).
+
 The copy has **new uuids**, so the run records how it relates to the original, in the transaction that makes the copy:
 
 - **The uuid pairs** (`AgentRunPairService`, table `agent_run_pairs`, V17): one `AgentRunPair` row per message, summary, lorebook, lorebook entry and annotation (`AgentRunPairKind.ANNOTATION`, the letter `a` of the handle, `h:a3`) of the copy,

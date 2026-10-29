@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="turbo-root" content="/Marginalia">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846624414365">
+
+    <!-- See retype.com -->
+    <meta name="generator" content="Retype 4.6.0">
+
+    <!-- Primary Meta Tags -->
+    <title>Folders</title>
+    <meta name="title" content="Folders">
+    <meta name="description" content="Folders put books into a tree and let the books in a tree inherit settings. This page follows the feature through the layers: the entity, how a setting is resolved, the services, the lists and windows, and the places that had to learn about folders (backups, agents, the help assistant, cleanup).">
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://enerccio.github.io/Marginalia/developer/folders/">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="https://enerccio.github.io/Marginalia/sitemap.xml">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://enerccio.github.io/Marginalia/developer/folders/">
+    <meta property="og:title" content="Folders">
+    <meta property="og:description" content="Folders put books into a tree and let the books in a tree inherit settings. This page follows the feature through the layers: the entity, how a setting is resolved, the services, the lists and windows, and the places that had to learn about folders (backups, agents, the help assistant, cleanup).">
+    <meta property="og:site_name" content="Marginalia">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/developer/folders/">
+    <meta name="twitter:title" content="Folders">
+    <meta name="twitter:description" content="Folders put books into a tree and let the books in a tree inherit settings. This page follows the feature through the layers: the entity, how a setting is resolved, the services, the lists and windows, and the places that had to learn about folders (backups, agents, the help assistant, cleanup).">
+
+    <!-- Alternate Markdown -->
+    <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/developer/folders.md">
+
+    <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
+
+    <link href="../../resources/css/retype.css?v=4.6.0.846624414365" rel="stylesheet">
+
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846624414365" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846624414365" data-turbo-eval="false" defer></script>
+</head>
+<body>
+    <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
+    <div class="absolute bottom-0 left-0" style="top: 5rem; right: 50%"></div>
+
+    <header id="retype-header" class="sticky top-0 z-30 flex w-full h-16 bg-header-bg border-b border-header-border md:h-20">
+        <div class="container relative flex items-center justify-between pr-6 grow md:justify-start">
+            <!-- Mobile menu button skeleton -->
+            <button v-cloak class="skeleton retype-mobile-menu-button flex items-center justify-center shrink-0 overflow-hidden dark:text-white focus:outline-hidden rounded-full w-10 h-10 ml-3.5 md:hidden"><svg xmlns="http://www.w3.org/2000/svg" class="mb-px shrink-0" width="24" height="24" viewBox="0 0 24 24" role="presentation" style="margin-bottom: 0px;"><g fill="currentColor"><path d="M2 4h20v2H2zM2 11h20v2H2zM2 18h20v2H2z"></path></g></svg></button>
+            <div v-cloak id="retype-sidebar-left-toggle-button"></div>
+    
+            <!-- Logo -->
+            <div class="flex items-center justify-between h-full py-2 md:w-75">
+                <div class="flex items-center px-2 md:px-6">
+                    <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
+                        <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.6.0</span>
+                </div>
+    
+                <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
+            </div>
+    
+            <div class="flex justify-between md:grow">
+                <!-- Top Nav -->
+                <nav id="retype-header-nav" class="hidden md:flex">
+                    <ul class="flex flex-col mb-4 md:pl-16 md:mb-0 md:flex-row md:items-center">
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                    <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                </svg>
+                                <span>GitHub</span>
+                            </a>
+                        </li>
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                        </li>
+    
+                    </ul>
+                </nav>
+    
+                <div v-cloak class="flex justify-end grow">
+                    <div id="retype-mobile-search-button"></div>
+                    <doc-search-desktop></doc-search-desktop>
+    
+                    <doc-theme-switch class="lg:ml-2"></doc-theme-switch>
+                    <doc-history></doc-history>
+                </div>
+            </div>
+        </div>
+    </header>
+
+
+    <div id="retype-container" class="container relative flex bg-white">
+        <!-- Sidebar Skeleton -->
+        <div v-cloak class="fixed flex flex-col shrink-0 duration-300 ease-in-out bg-sidebar-left-bg border-sidebar-left-border sidebar top-20 w-75 border-r h-screen md:sticky transition-transform skeleton">
+        
+            <div class="flex items-center h-16 px-6">
+                <input id="retype-filter-input-mock" class="w-full h-10 pl-8 px-3 py-2 transition-colors duration-200 ease-linear bg-filter-bg border border-filter-border rounded-lg shadow-none md:text-sm hover:border-filter-border-hover focus:outline-hidden focus:border-filter-border-focus placeholder-filter-placeholder" type="text">
+            </div>
+        
+            <div class="pl-6 mt-1 mb-4">
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            </div>
+        
+            <div class="shrink-0 mt-auto bg-transparent dark:border-base-border">
+                <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                    <span class="text-xs whitespace-nowrap">Powered by</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Sidebar component -->
+        <doc-sidebar v-cloak>
+            <template #sidebar-footer>
+                <div class="shrink-0 mt-auto border-t md:bg-transparent md:border-none dark:border-base-border">
+        
+                    <div class="py-3 px-6 md:hidden border-b dark:border-base-border">
+                        <nav>
+                            <ul class="flex flex-wrap justify-center items-center">
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                            <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                        </svg>
+                                        <span>GitHub</span>
+                                    </a>
+                                </li>
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                                </li>
+        
+                            </ul>
+                        </nav>
+                    </div>
+        
+                    <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                        <span class="text-xs whitespace-nowrap">Powered by</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                    </a>
+                </div>
+            </template>
+        </doc-sidebar>
+
+        <div class="grow min-w-0 bg-body-bg">
+            <!-- Render "toolbar" template here on api pages --><!-- Render page content -->
+<div class="flex">
+    <div id="retype-main" class="min-w-0 p-4 grow md:px-16">
+        <main class="relative pb-12 lg:pt-2">
+            <div class="relative retype-markdown" id="retype-content">
+                <!-- Rendered if sidebar right is enabled -->
+                <div id="retype-sidebar-right-toggle"></div>
+                <doc-page-actions></doc-page-actions>
+
+                <!-- Page content  -->
+<h1 id="folders">Folders</h1>
+<p>Folders put books into a tree and let the books in a tree <strong>inherit settings</strong>. This page follows the feature through the
+layers: the entity, how a setting is resolved, the services, the lists and windows, and the places that had to learn about
+folders (backups, agents, the help assistant, cleanup). The user&#x27;s view is in <a href="../../user/books/folders/">Folders</a>.</p>
+<h2 id="the-data">The data</h2>
+<p><code translate="no" v-pre>Folder</code> (<code translate="no" v-pre>domain/model/impl</code>, table <code translate="no" v-pre>folders</code>, an <code translate="no" v-pre>ExtendableEntity</code>, so it has an owner, a <code translate="no" v-pre>uuid</code>, soft delete and the
+extended content) is:</p>
+<retype-table copy-text="| Field | Where | |
+|---|---|---|
+| `name` | column | Unique among the (not deleted) folders of one parent of one user, compared case-insensitively; 1-255 characters, no `/`. The rules are checked by every `save` of `FolderServiceImpl`, not by a constraint (the soft delete and the case rule do not fit SQLite's). |
+| `parent` | column `parent_id`, `@CleanupReference(OWNED_BY)` | Null is the top level. A folder purged by [Cleanup](../user/administration/cleanup.md) takes the folders below it with it. |
+| `description`, `language`, `template`, `pov`, `tense`, `style` and the prompts | `@ExtendedAttribute` | The settings of the books below. Every one is nullable and **null means inherit**: there is no default on a folder. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Field</th>
+<th>Where</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>name</code></td>
+<td>column</td>
+<td>Unique among the (not deleted) folders of one parent of one user, compared case-insensitively; 1-255 characters, no <code translate="no" v-pre>/</code>. The rules are checked by every <code translate="no" v-pre>save</code> of <code translate="no" v-pre>FolderServiceImpl</code>, not by a constraint (the soft delete and the case rule do not fit SQLite&#x27;s).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>parent</code></td>
+<td>column <code translate="no" v-pre>parent_id</code>, <code translate="no" v-pre>@CleanupReference(OWNED_BY)</code></td>
+<td>Null is the top level. A folder purged by <a href="../../user/administration/cleanup/">Cleanup</a> takes the folders below it with it.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>description</code>, <code translate="no" v-pre>language</code>, <code translate="no" v-pre>template</code>, <code translate="no" v-pre>pov</code>, <code translate="no" v-pre>tense</code>, <code translate="no" v-pre>style</code> and the prompts</td>
+<td><code translate="no" v-pre>@ExtendedAttribute</code></td>
+<td>The settings of the books below. Every one is nullable and <strong>null means inherit</strong>: there is no default on a folder.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p><code translate="no" v-pre>Manuscript.folder</code> is a nullable <code translate="no" v-pre>ManyToOne</code> column <code translate="no" v-pre>folder_id</code> (null is the top level), annotated <code translate="no" v-pre>@CleanupReference(WEAK)</code>: a
+purge of the folder unlinks the books that are still alive instead of deleting them. The migration is <code translate="no" v-pre>V21__folders.sql</code>
+(table, sequence, <code translate="no" v-pre>manuscripts.folder_id</code> and the indexes <code translate="no" v-pre>(parent_id, is_deleted)</code>, <code translate="no" v-pre>(userId, is_deleted)</code> and
+<code translate="no" v-pre>(folder_id, is_deleted)</code>). <code translate="no" v-pre>persistence.xml</code> lists the entity, <code translate="no" v-pre>services-config.xml</code> the repository and the service.</p>
+<p>The settings are extended attributes and not columns because nothing queries them in SQL; the price is the usual one, they
+are persisted only by <code translate="no" v-pre>FolderService.save</code>/<code translate="no" v-pre>update</code>. The name is a column because the lists sort and filter on it.</p>
+<p>Two more extended attributes of <code translate="no" v-pre>UserSetting</code> serve the feature: <code translate="no" v-pre>favoriteBooks</code> (the uuids of the favorite books) and
+<code translate="no" v-pre>helpAssistantBooks</code> (the opt-in of the help assistant). <code translate="no" v-pre>UserSetting.defaultStoryLayout</code> is not about folders but arrived with
+the same work (see <a href="../ui/">the story layout</a>).</p>
+<h2 id="resolving-a-setting">Resolving a setting</h2>
+<p>A book&#x27;s setting is the first non-blank of: <strong>the book, the folders above it (nearest first), the <code translate="no" v-pre>UserSetting</code>, the built-in
+default</strong> (<code translate="no" v-pre>Defaults</code>). The code is in three places:</p>
+<ul>
+<li>
+<p><code translate="no" v-pre>PromptField</code> (<code translate="no" v-pre>domain/service</code>) is an enum of the twelve text settings (<code translate="no" v-pre>MASTER_TEMPLATE</code>, <code translate="no" v-pre>POV</code>, <code translate="no" v-pre>TENSE</code>, <code translate="no" v-pre>STYLE</code> and the
+eight prompts). It holds the getters of each level (<code translate="no" v-pre>ofBook</code>, <code translate="no" v-pre>ofFolder</code>, <code translate="no" v-pre>ofUser</code>), the setters (<code translate="no" v-pre>setOfBook</code>, <code translate="no" v-pre>setOfFolder</code>,
+which store a blank as null) and the built-in <code translate="no" v-pre>fallback()</code>. A new inheritable setting is a new constant here plus the field on
+<code translate="no" v-pre>Manuscript</code> and <code translate="no" v-pre>Folder</code>, and nothing else in the resolver.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>EffectiveSetting&lt;T&gt;(value, origin, folder)</code> is what the resolver returns: the value, where it is set (<code translate="no" v-pre>Origin</code> is <code translate="no" v-pre>BOOK</code>,
+<code translate="no" v-pre>FOLDER</code>, <code translate="no" v-pre>USER</code> or <code translate="no" v-pre>DEFAULT</code>) and the folder when it is <code translate="no" v-pre>FOLDER</code>. <code translate="no" v-pre>isCustom()</code> is true for the book and the folders.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>ManuscriptService.resolve(book, field)</code> and <code translate="no" v-pre>resolveLanguage(book)</code> do the lookup; <code translate="no" v-pre>resolveInherited(folder, field)</code> and
+<code translate="no" v-pre>resolveInheritedLanguage(folder)</code> start from a folder (what an empty field would inherit, for the placeholders of the
+dialogs). The old getters (<code translate="no" v-pre>getPov</code>, <code translate="no" v-pre>getStyle</code>, <code translate="no" v-pre>getTemplate</code>...) keep their signatures and return <code translate="no" v-pre>resolve(...).value()</code>; they
+were twelve copies of the same lookup before. <code translate="no" v-pre>getLanguage(book)</code> is the resolved language, <code translate="no" v-pre>Manuscript.getLanguage()</code>
+is still the book&#x27;s own or English, and <code translate="no" v-pre>Manuscript.getOwnLanguage()</code> is null when the book sets none.</p>
+</li>
+</ul>
+<p><code translate="no" v-pre>FolderService.findChain(folder)</code> reads the folder and its ancestors by id (folder first, stopping at a deleted one), with no
+current user, so a generation can resolve from a worker thread. The lookups are done when needed and nothing is copied into
+the book, so moving a book or editing a folder changes the next generation. A resolve of all twelve settings and the language
+costs about 1 ms with no folder and 3 ms through ten folders (measured on the test database), a generation does a handful of
+them before an LLM call, so there is <strong>no cache</strong>; add one per generation only if the chain gets much longer or the lookups end
+up in a loop over many books.</p>
+<p>Everything that used the book&#x27;s fields directly now goes through the resolver: the generation steps, the summaries, redraft,
+annotate and impersonate, the story export (language), the reader, the assistant commands (<code translate="no" v-pre>get-book-info</code> and the book
+settings commands report the effective values) and the help assistant.</p>
+<h2 id="the-services">The services</h2>
+<p><code translate="no" v-pre>FolderService</code> (<code translate="no" v-pre>ExtendableService&lt;Folder, FolderRepository&gt;</code>, see <a href="../services/">Services</a>):</p>
+<retype-table copy-text="| Method | |
+|---|---|
+| `create`, `rename`, `move`, `delete(folder, hard)`, `deleteWithContent` | Delete moves the books and folders directly in the folder to its parent (a clash of names stops it before anything moves); `deleteWithContent` soft-deletes them too. |
+| `update(folder, Details)` | The folder dialog: name, description, language and the prompts of a `Map&lt;PromptField, String&gt;`. It writes to the **stored** folder (what the dialog does not set is kept, not the stale copy of the caller) and refuses a change of a setting while an agent works on a book below (`FolderBookLockedException`); the name and the description are free. |
+| `findChildren`, `findChild`, `search`, `resolveScope` | Lists. `search` takes the same `ManuscriptFilterValues` as the book search (`inFolder`, the name, the tags), sorters on `name`, `creation`, `modification`. `resolveScope` turns &quot;the folder, or everything below it&quot; into the ids the repositories filter by (`FolderScope` adds the clause to the books' query and to the folders'). |
+| `getAncestors`, `getPath`, `getPaths`, `findChain` | Paths are the names joined by `/` (`SEPARATOR`); `getPaths` builds all of them from the tree in memory, for the pickers and the *Folder* column. |
+| `describeContent`, `countBooksByFolder` | The numbers for the delete question and the list. The counts are of the folder and everything below it, and leave out the working copies of agents. |
+| `findClashes`, `transfer(Transfer, step)` | Copy and move of books and folders, see below. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Method</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>create</code>, <code translate="no" v-pre>rename</code>, <code translate="no" v-pre>move</code>, <code translate="no" v-pre>delete(folder, hard)</code>, <code translate="no" v-pre>deleteWithContent</code></td>
+<td>Delete moves the books and folders directly in the folder to its parent (a clash of names stops it before anything moves); <code translate="no" v-pre>deleteWithContent</code> soft-deletes them too.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>update(folder, Details)</code></td>
+<td>The folder dialog: name, description, language and the prompts of a <code translate="no" v-pre>Map&lt;PromptField, String&gt;</code>. It writes to the <strong>stored</strong> folder (what the dialog does not set is kept, not the stale copy of the caller) and refuses a change of a setting while an agent works on a book below (<code translate="no" v-pre>FolderBookLockedException</code>); the name and the description are free.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>findChildren</code>, <code translate="no" v-pre>findChild</code>, <code translate="no" v-pre>search</code>, <code translate="no" v-pre>resolveScope</code></td>
+<td>Lists. <code translate="no" v-pre>search</code> takes the same <code translate="no" v-pre>ManuscriptFilterValues</code> as the book search (<code translate="no" v-pre>inFolder</code>, the name, the tags), sorters on <code translate="no" v-pre>name</code>, <code translate="no" v-pre>creation</code>, <code translate="no" v-pre>modification</code>. <code translate="no" v-pre>resolveScope</code> turns &quot;the folder, or everything below it&quot; into the ids the repositories filter by (<code translate="no" v-pre>FolderScope</code> adds the clause to the books&#x27; query and to the folders&#x27;).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>getAncestors</code>, <code translate="no" v-pre>getPath</code>, <code translate="no" v-pre>getPaths</code>, <code translate="no" v-pre>findChain</code></td>
+<td>Paths are the names joined by <code translate="no" v-pre>/</code> (<code translate="no" v-pre>SEPARATOR</code>); <code translate="no" v-pre>getPaths</code> builds all of them from the tree in memory, for the pickers and the <em>Folder</em> column.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>describeContent</code>, <code translate="no" v-pre>countBooksByFolder</code></td>
+<td>The numbers for the delete question and the list. The counts are of the folder and everything below it, and leave out the working copies of agents.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>findClashes</code>, <code translate="no" v-pre>transfer(Transfer, step)</code></td>
+<td>Copy and move of books and folders, see below.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Errors: <code translate="no" v-pre>IllegalArgumentException</code> for what can never be right (a blank name, a folder that is not the user&#x27;s),
+<code translate="no" v-pre>IllegalStateException</code> for what is wrong now (the name is taken, a folder into itself), <code translate="no" v-pre>ManuscriptLockedException</code> /
+<code translate="no" v-pre>FolderBookLockedException</code> for the agent lock. <code translate="no" v-pre>ManuscriptService.moveToFolder(books, folder)</code> moves books, <code translate="no" v-pre>save</code> checks that the folder
+of a book is its owner&#x27;s, and <code translate="no" v-pre>findRegularInFolder</code>, <code translate="no" v-pre>getFavorites</code> and <code translate="no" v-pre>setFavorite</code> serve the lists.</p>
+<h3 id="transfers">Transfers</h3>
+<p><code translate="no" v-pre>transfer</code> takes a <code translate="no" v-pre>Transfer(books, folders, target, copy, onlyCurrentBranch, choices)</code> and checks <strong>everything first</strong>: the target
+and every item belong to the user, a folder does not go into itself or below itself, every clash has a <code translate="no" v-pre>Choice</code> (<code translate="no" v-pre>RENAME</code>,
+<code translate="no" v-pre>SKIP</code> or <code translate="no" v-pre>MERGE</code>, keyed by the id of the folder; <code translate="no" v-pre>findClashes</code> tells which need one), and no book (also in a moved or copied
+folder) is locked by an agent. Then:</p>
+<ul>
+<li>a <strong>move</strong> is one transaction;</li>
+<li>a <strong>copy</strong> has none. It can take long and the database has one writer, so each folder made and each book cloned
+(<code translate="no" v-pre>BackupService.cloneManuscript(..., folder)</code>) is a step of its own, and the <code translate="no" v-pre>step</code> callback is called after each (the
+progress bar of <code translate="no" v-pre>OrganiseDialog</code>). A failure leaves the copies already made, each complete. This is the pattern of the other long
+tasks: transactions per step, never around the lot.</li>
+</ul>
+<p>The result is an <code translate="no" v-pre>Outcome(books, folders, skipped)</code>.</p>
+<h3 id="the-modification-time">The modification time</h3>
+<p><code translate="no" v-pre>Folder.modification</code> follows the books below it. <code translate="no" v-pre>JpaManuscriptRepository.changed(book)</code> (the hook of
+<code translate="no" v-pre>JpaBaseRepository.write</code>, which the repositories override to tell the owner of an entity; <code translate="no" v-pre>JpaChatMessageRepository.touchBook</code> does
+it for the parts) calls <code translate="no" v-pre>FolderModification.touch</code>, which walks the parent chain and sets the time with one <code translate="no" v-pre>UPDATE ... WHERE id IN</code>.
+It skips agentic working copies. <code translate="no" v-pre>saveWithoutModification</code>, opening a book and moving a book change nothing; the active-leaf
+change (<code translate="no" v-pre>swipeAndSwitch</code>, <code translate="no" v-pre>branchAndSwitch</code>) saves the book as it did, so it counts.</p>
+<h3 id="stale-copies">Stale copies</h3>
+<p>The dialogs keep entities for as long as they are open, and a generation held its book from start to finish, so saving such a copy
+wrote old values over a setting changed in the meantime (or undid a move to a folder). The writers that change one thing now call
+<code translate="no" v-pre>ManuscriptService.update(book, BookChange)</code>, which loads the stored book and applies the change to it. Use it instead of <code translate="no" v-pre>save</code>
+for a change that is yours alone.</p>
+<h2 id="the-lists-and-windows">The lists and windows</h2>
+<p>All the code is in <code translate="no" v-pre>ui</code> (the classes are <code translate="no" v-pre>@Configurable</code>, the windows <code translate="no" v-pre>@Extendable</code> with <code translate="no" v-pre>@PublicAPI</code>, see
+<a href="../plugins/extendable/">Extendable classes</a>):</p>
+<retype-table copy-text="| Class | |
+|---|---|
+| `ManuscriptPart`, `PhoneManuscriptPart` | The lists of books. The grid holds `FolderBookRow`s (a folder or a book with its tags, counts and path) from `FolderBookProvider`, a lazy provider: the folders come first, the books page by page from their ids, and what is dear (tags, branch sizes, book counts) is read for one page at a time with one query each. The current folder and *Include subfolders* are in `storeState` / `restoreState` (`folder` is the uuid). The virtual **Favorites** folder is not an entity: the provider adds a first row made by `FolderBookRow.favorites(label, count)` at the top level, and the list of its books is the books of the favorite uuids (`UserSetting.favoriteBooks`). |
+| `FolderActions` | New, rename, delete and move to a folder, shared by both lists and Organise: it asks what the rules need and reports what the service refused. |
+| `FolderDialog` | The settings of a folder. Unlike the book's dialog it saves with a button (a change may be refused). |
+| `PromptSettingsForm` | The editors of the twelve text settings, shared by the book's *Prompts* tab (desktop and phone) and the folder dialog. It takes the values and the folder the empty ones inherit from (`load`), gives the values back (`values`), shows the inherited value as the placeholder and the origin as the line under the field (`LABEL_INHERITED_FROM_FOLDER`, `_FROM_USER`, `_INHERITED_DEFAULT`) and reports a change only when every template is valid. |
+| `InheritedLanguageCombo` | The language box where empty means inherit; the same placeholder and origin line. |
+| `OrganiseDialog`, `FolderClashDialog` | The two-pane window (the entries are marked with `MassDeleteBox`, the check box of the story's mass delete, whose one click event carries Shift for a range; the list reads itself again when the window closes) and the question of a name clash. The keys of the buttons are `ShortcutActions.ORGANISE_*` actions, registered in `ShortcutRegistry` and caught in the browser by `JavascriptLibrary.fireOrganiseKeys`; the navigation keys are fixed. |
+| `MassChangeModelProtocolDialog`, `MassChangeLanguageDialog`, `MultiTagDialog` | Take a list of books (or a folder, `MultiTagDialog.Kind.FOLDERS`). |
+| `BookLabels` | How a book is named in the combo boxes: `Folder / Sub / Name`. Use it for any new picker of books. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Class</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>ManuscriptPart</code>, <code translate="no" v-pre>PhoneManuscriptPart</code></td>
+<td>The lists of books. The grid holds <code translate="no" v-pre>FolderBookRow</code>s (a folder or a book with its tags, counts and path) from <code translate="no" v-pre>FolderBookProvider</code>, a lazy provider: the folders come first, the books page by page from their ids, and what is dear (tags, branch sizes, book counts) is read for one page at a time with one query each. The current folder and <em>Include subfolders</em> are in <code translate="no" v-pre>storeState</code> / <code translate="no" v-pre>restoreState</code> (<code translate="no" v-pre>folder</code> is the uuid). The virtual <strong>Favorites</strong> folder is not an entity: the provider adds a first row made by <code translate="no" v-pre>FolderBookRow.favorites(label, count)</code> at the top level, and the list of its books is the books of the favorite uuids (<code translate="no" v-pre>UserSetting.favoriteBooks</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>FolderActions</code></td>
+<td>New, rename, delete and move to a folder, shared by both lists and Organise: it asks what the rules need and reports what the service refused.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>FolderDialog</code></td>
+<td>The settings of a folder. Unlike the book&#x27;s dialog it saves with a button (a change may be refused).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>PromptSettingsForm</code></td>
+<td>The editors of the twelve text settings, shared by the book&#x27;s <em>Prompts</em> tab (desktop and phone) and the folder dialog. It takes the values and the folder the empty ones inherit from (<code translate="no" v-pre>load</code>), gives the values back (<code translate="no" v-pre>values</code>), shows the inherited value as the placeholder and the origin as the line under the field (<code translate="no" v-pre>LABEL_INHERITED_FROM_FOLDER</code>, <code translate="no" v-pre>_FROM_USER</code>, <code translate="no" v-pre>_INHERITED_DEFAULT</code>) and reports a change only when every template is valid.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>InheritedLanguageCombo</code></td>
+<td>The language box where empty means inherit; the same placeholder and origin line.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>OrganiseDialog</code>, <code translate="no" v-pre>FolderClashDialog</code></td>
+<td>The two-pane window (the entries are marked with <code translate="no" v-pre>MassDeleteBox</code>, the check box of the story&#x27;s mass delete, whose one click event carries Shift for a range; the list reads itself again when the window closes) and the question of a name clash. The keys of the buttons are <code translate="no" v-pre>ShortcutActions.ORGANISE_*</code> actions, registered in <code translate="no" v-pre>ShortcutRegistry</code> and caught in the browser by <code translate="no" v-pre>JavascriptLibrary.fireOrganiseKeys</code>; the navigation keys are fixed.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>MassChangeModelProtocolDialog</code>, <code translate="no" v-pre>MassChangeLanguageDialog</code>, <code translate="no" v-pre>MultiTagDialog</code></td>
+<td>Take a list of books (or a folder, <code translate="no" v-pre>MultiTagDialog.Kind.FOLDERS</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>BookLabels</code></td>
+<td>How a book is named in the combo boxes: <code translate="no" v-pre>Folder / Sub / Name</code>. Use it for any new picker of books.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Plugins that name a changed method or variable must follow <code translate="no" v-pre>@PublicAPI</code>, see <a href="../plugins/extendable/">Extendable classes</a>.</p>
+<h2 id="other-places-that-know-about-folders">Other places that know about folders</h2>
+<ul>
+<li>
+<p><strong>Backups.</strong> <code translate="no" v-pre>BackupServiceImpl.takeBackup</code> writes the optional key <code translate="no" v-pre>folder</code> (the folder&#x27;s uuid and the <code translate="no" v-pre>path</code> from the top, each
+with name, uuid, description, language and text settings) from <code translate="no" v-pre>findChain</code>; <code translate="no" v-pre>BackupFolders.resolve</code> finds the folder by uuid, else
+by the name path (creating the missing levels with the saved settings), else returns null (the top level, also on any failure).
+<code translate="no" v-pre>createBackup</code>, which the agents&#x27; snapshots and <code translate="no" v-pre>cloneManuscript</code> share, is unchanged and writes no folder.
+<code translate="no" v-pre>exportBackup(backup, withImages, includeInherited, progress)</code> rewrites the stored file on its way out through
+<code translate="no" v-pre>BackupInheritance</code>: it drops <code translate="no" v-pre>folder</code> and, with the option, writes the values the book inherits (from the backup&#x27;s own folder
+path, then the user settings, never the built-in defaults) as the book&#x27;s own. The old three-argument overload exports with the
+option on.</p>
+</li>
+<li>
+<p><strong>Agents.</strong> The working copy (<code translate="no" v-pre>agentic = true</code>) used to have no folder and so ignored the folders&#x27; settings. It is put in the
+folder of the original: <code translate="no" v-pre>createAgenticCopy</code>, <code translate="no" v-pre>replaceWorkingCopy</code> (restore of a checkpoint) and <code translate="no" v-pre>AgentMergeServiceImpl.sync</code>
+call <code translate="no" v-pre>ManuscriptService.setAgenticCopyFolder</code>. A merge is a diff of JSON without a folder, so it never moves the book. The lock is
+<code translate="no" v-pre>AgentRunService.checkNotLocked</code>, applied by the folder service to every book below a folder that would change
+(<code translate="no" v-pre>FolderServiceImpl.checkNoLockedBook</code>); a paused or stopped run does not lock.</p>
+</li>
+<li>
+<p><strong>Help assistant.</strong> <code translate="no" v-pre>HelpAssistantService.isBooksAllowed</code> / <code translate="no" v-pre>setBooksAllowed</code> keep the opt-in. When it is on, <code translate="no" v-pre>ask</code> adds
+<code translate="no" v-pre>HelpPrompts.BOOKS</code> and binds <code translate="no" v-pre>BookHelpTools</code> (<code translate="no" v-pre>list_folder</code>, <code translate="no" v-pre>search_books</code>, <code translate="no" v-pre>get_book_settings</code>) to <code translate="no" v-pre>BookHelpToolsImpl</code> over
+<code translate="no" v-pre>HelpBookData</code> (a <code translate="no" v-pre>BookDataSource</code>), which runs each call in the request of the asking user, because the functions run on worker
+threads. The data is limited (100 entries, 20 matches, shortened descriptions), the text of a story is never returned and the
+prompts are reported only as custom or built-in. See <a href="../services/#the-help-assistant">the help assistant</a>.</p>
+</li>
+<li>
+<p><strong>Cleanup.</strong> <code translate="no" v-pre>Manuscript.folder</code> is <code translate="no" v-pre>WEAK</code> and <code translate="no" v-pre>Folder.parent</code> is <code translate="no" v-pre>OWNED_BY</code>, so a purge of a folder unlinks live books and
+purges the folders below it. <code translate="no" v-pre>CleanupServiceTest</code> has the cases.</p>
+</li>
+<li>
+<p><strong>Trash.</strong> Only books appear in the Trash; a deleted folder does not (its books do, when deleted with it).</p>
+</li>
+</ul>
+<h2 id="adding-to-the-feature">Adding to the feature</h2>
+<ul>
+<li>
+<p><strong>A new inheritable setting:</strong> field on <code translate="no" v-pre>Manuscript</code> and <code translate="no" v-pre>Folder</code> (extended attributes), a constant of <code translate="no" v-pre>PromptField</code>, a row in
+<code translate="no" v-pre>PromptSettingsForm</code>, the setter in <code translate="no" v-pre>FolderService.Details</code> handling, the text in <code translate="no" v-pre>L</code> and the bundles. The backup and the export
+walk <code translate="no" v-pre>PromptField.values()</code>, so they pick it up.</p>
+</li>
+<li>
+<p><strong>A new list or picker of books:</strong> use <code translate="no" v-pre>BookLabels</code> for the names and <code translate="no" v-pre>FolderService.getPaths</code> for the paths.</p>
+</li>
+<li>
+<p><strong>A new action in Organise:</strong> a constant in <code translate="no" v-pre>ShortcutActions</code>, an entry in <code translate="no" v-pre>ShortcutRegistry</code>, a button in the row of
+<code translate="no" v-pre>OrganiseDialog</code> and the key handling in <code translate="no" v-pre>JavascriptLibrary.fireOrganiseKeys</code>.</p>
+</li>
+<li>
+<p><strong>Anything that changes what a book inherits</strong> (moving a folder, a setting) must go through <code translate="no" v-pre>FolderService</code> so the agent lock is checked.</p>
+</li>
+</ul>
+<h2 id="tests">Tests</h2>
+<p><code translate="no" v-pre>FolderCrudTest</code> (the <code translate="no" v-pre>OwnedCrudContract</code>), <code translate="no" v-pre>FolderServiceTest</code>, <code translate="no" v-pre>FolderTransferTest</code>, <code translate="no" v-pre>FolderListTest</code>, <code translate="no" v-pre>FolderSettingsTest</code>,
+<code translate="no" v-pre>SettingsInheritanceTest</code>, <code translate="no" v-pre>ModificationTest</code> (the <code translate="no" v-pre>modification</code> of books and folders), <code translate="no" v-pre>FolderSettingsGenerationTest</code> (the style of a
+folder reaches the request the mock server receives), <code translate="no" v-pre>BackupFoldersTest</code>, <code translate="no" v-pre>BackupExportInheritanceTest</code>, <code translate="no" v-pre>AgentFoldersTest</code>,
+<code translate="no" v-pre>HelpAssistantBooksTest</code>, <code translate="no" v-pre>CleanupServiceTest</code> (purge cases), and the UI tests <code translate="no" v-pre>FolderDialogTest</code>, <code translate="no" v-pre>OrganiseDialogTest</code>,
+<code translate="no" v-pre>OrganiseDialogFlowTest</code>, <code translate="no" v-pre>BookPromptSettingsTest</code>, <code translate="no" v-pre>MassChange*DialogTest</code>, <code translate="no" v-pre>ManuscriptPartFoldersTest</code>,
+<code translate="no" v-pre>PhoneManuscriptPartFoldersTest</code>, <code translate="no" v-pre>BookLabelsTest</code>. See <a href="../testing/">Testing</a>.</p>
+
+                
+                <!-- Required only on API pages -->
+                <doc-toolbar-member-filter-no-results></doc-toolbar-member-filter-no-results>
+            </div>
+            <footer id="retype-content-footer" class="clear-both">
+            
+                <nav id="retype-nextprev" class="print:hidden flex mt-14">
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../developer/domain-model/">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                            <span>
+                                <span class="block text-xs font-normal text-base-text-muted">Previous</span>
+                                <span class="block mt-1">Domain model</span>
+                            </span>
+                        </a>
+                    </div>
+            
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../developer/database/">
+                            <span>
+                                <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
+                                <span class="block mt-1">Database &amp; migrations</span>
+                            </span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                        </a>
+                    </div>
+                </nav>
+            </footer>
+        </main>
+
+        <div id="retype-page-footer" class="print:border-none border-t border-base-border pt-6 mb-8">
+            <footer class="flex flex-wrap items-center justify-between print:justify-center">
+                <div id="retype-footer-links" class="print:hidden">
+                    <ul class="flex flex-wrap items-center text-sm">
+                    </ul>
+                </div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (31619cd57).</p></div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Rendered if sidebar right is enabled -->
+    <!-- Sidebar right skeleton-->
+    <div v-cloak class="fixed top-0 bottom-0 right-0 translate-x-full bg-sidebar-right-bg border-sidebar-right-border lg:sticky lg:border-l lg:shrink-0 lg:pt-6 lg:translate-x-0 sm:w-1/2 lg:w-64 lg:z-0 md:w-104 sidebar-right skeleton">
+        <div class="pl-5">
+            <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+        </div>
+    </div>
+
+    <!-- User should be able to hide sidebar right -->
+    <doc-sidebar-right v-cloak></doc-sidebar-right>
+</div>
+
+        </div>
+    </div>
+
+    <doc-search-mobile></doc-search-mobile>
+    <doc-back-to-top></doc-back-to-top>
+</div>
+
+
+    <div id="retype-overlay-target"></div>
+
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Folders", level: 2, icon: "file", hasPrism: false, hasInstagram: false, hasMermaid: false, hasMath: false, tocDepth: 23, "md": "/developer/folders.md" }</script>
+</body>
+</html>

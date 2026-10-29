@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846618196124">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846624414365">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846618196124" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846624414365" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846618196124" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846624414365" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846618196124" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846618196124" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846624414365" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846624414365" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -323,6 +323,7 @@ fake is the model server.</p>
 | `command` | `CommandServiceTest`, `CommandDispatchTest`, `CommandLineTest`, `CommandHelpTest`, `BuiltInCommandTextsTest`, `ManuscriptReadCommandsTest`, `ManuscriptWriteCommandsTest`, `LorebookReadCommandsTest`, `LorebookWriteCommandsTest`, `GenerationCommandsTest`, `SearchReplaceCommandsTest`, `BackupCommandsTest` | The command registry and dispatch (overloads, parameters, `async`, the scope a command runs in), the line parser and the help, every built-in text, and the read and write commands of the book and the lorebooks (their results, errors and the data severity), the commands that write with the model (on the mock LLM), search and replace, the backup command. The test fixture `HelloWorldCommands` (`test/commands`) is the model of a suite and of an `async` command. |
 | `search`, `manuscript`, `lorebook` (new) | `TextSearchTest`, `ManuscriptReplaceTest`, `LorebookReplaceTest`, `ManuscriptArchiveImportTest`, `LorebookArchiveImportTest`, `LorebookEditServicesTest`, `PartEditServicesTest` | Search and replace over the parts and the entries (the regular expression, the case, the dry run, the outdated summaries), the import of a zip of `.md` files into a book and a lorebook, the services that edit a part or an entry. |
 | `annotation`, `utils` (new) | `AnnotationServiceTest`, `AnnotationGenerationTest`, `AnnotateServiceTest`, `TextAlignmentTest`, `QuoteFinderTest`, `TextMarkupTest`, `AnnotationCleanupTest`, `AnnotationCrudTest` | Annotations: creating and listing, the passages moving with an edit (before, inside, at the edges, deleted and typed back, a typo, a replaced text found by the quote), merge, branch, delete and restore, the backup round trip, the notes marked for the prompt reaching the master template, a regenerated part; the model annotating against the mock LLM in every mode (a retry, an unreadable answer, two stages, quotes not found); the three text utilities. |
+| `crud`, `generation`, `backup`, `domain`, `ui` (folders, 1.6.0) | `FolderCrudTest`, `FolderServiceTest`, `FolderTransferTest`, `FolderListTest`, `FolderSettingsTest`, `SettingsInheritanceTest`, `ModificationTest`, `FolderSettingsGenerationTest`, `BackupFoldersTest`, `BackupExportInheritanceTest`, `AgentFoldersTest`, `HelpAssistantBooksTest`, `FolderDialogTest`, `OrganiseDialogTest`, `OrganiseDialogFlowTest`, `BookPromptSettingsTest`, `MassChangeModelProtocolDialogTest`, `MassChangeLanguageDialogTest`, `ManuscriptPartFoldersTest`, `PhoneManuscriptPartFoldersTest`, `BookLabelsTest`, `StoryMassDeleteTest`, `TabDockIconsTest` | The folders, see [Folders](folders.md#tests): the entity and the service rules (names, cycles, delete, the lock of an agent's book), copy and move with name clashes, the settings of the folders resolved for a book and reaching the prompt of a generation, the modification time of books and folders, the folder in a backup and the inherited settings in an export, the working copy of an agent, the books tools of the help assistant, and the windows (settings, Organise with its keys, the lists on the desktop and the phone). The mass delete of parts and the icons of the minimized tabs are here too. |
 | `cleanup` | `CleanupServiceTest`, `TrashServiceTest`, `SoftDeleteCascadeTest`, `PermanentDeleteTest`, `AgentCleanupTest` | Purging soft-deleted data (also an AI with usage rows), owned data, strong and weak references; the trash: own objects only, administrator sees all, restore refused while a deleted parent is not restored with it, extended content; `SoftDeleteCascadeTest`: a soft delete takes the owned objects with it and a restore brings them back (the purge tests there log in as administrator); `PermanentDeleteTest`: deleting parts and entries for good, children moved to the parent, active leaf, blocked deletes roll back. |
 | `instruct` | `ExtendableMethodVisitorTest`, `RuntimeInstrumentationTest`, `ExtensionVerifierTest`, `PublicAPISignatureTest` | The bytecode instrumentation of `@Extendable` methods and the runtime agent; the verification of extensions against the application; the `@PublicAPI` declarations of the `@Extendable` classes. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -449,6 +450,11 @@ fake is the model server.</p>
 <td><code translate="no" v-pre>annotation</code>, <code translate="no" v-pre>utils</code> (new)</td>
 <td><code translate="no" v-pre>AnnotationServiceTest</code>, <code translate="no" v-pre>AnnotationGenerationTest</code>, <code translate="no" v-pre>AnnotateServiceTest</code>, <code translate="no" v-pre>TextAlignmentTest</code>, <code translate="no" v-pre>QuoteFinderTest</code>, <code translate="no" v-pre>TextMarkupTest</code>, <code translate="no" v-pre>AnnotationCleanupTest</code>, <code translate="no" v-pre>AnnotationCrudTest</code></td>
 <td>Annotations: creating and listing, the passages moving with an edit (before, inside, at the edges, deleted and typed back, a typo, a replaced text found by the quote), merge, branch, delete and restore, the backup round trip, the notes marked for the prompt reaching the master template, a regenerated part; the model annotating against the mock LLM in every mode (a retry, an unreadable answer, two stages, quotes not found); the three text utilities.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>crud</code>, <code translate="no" v-pre>generation</code>, <code translate="no" v-pre>backup</code>, <code translate="no" v-pre>domain</code>, <code translate="no" v-pre>ui</code> (folders, 1.6.0)</td>
+<td><code translate="no" v-pre>FolderCrudTest</code>, <code translate="no" v-pre>FolderServiceTest</code>, <code translate="no" v-pre>FolderTransferTest</code>, <code translate="no" v-pre>FolderListTest</code>, <code translate="no" v-pre>FolderSettingsTest</code>, <code translate="no" v-pre>SettingsInheritanceTest</code>, <code translate="no" v-pre>ModificationTest</code>, <code translate="no" v-pre>FolderSettingsGenerationTest</code>, <code translate="no" v-pre>BackupFoldersTest</code>, <code translate="no" v-pre>BackupExportInheritanceTest</code>, <code translate="no" v-pre>AgentFoldersTest</code>, <code translate="no" v-pre>HelpAssistantBooksTest</code>, <code translate="no" v-pre>FolderDialogTest</code>, <code translate="no" v-pre>OrganiseDialogTest</code>, <code translate="no" v-pre>OrganiseDialogFlowTest</code>, <code translate="no" v-pre>BookPromptSettingsTest</code>, <code translate="no" v-pre>MassChangeModelProtocolDialogTest</code>, <code translate="no" v-pre>MassChangeLanguageDialogTest</code>, <code translate="no" v-pre>ManuscriptPartFoldersTest</code>, <code translate="no" v-pre>PhoneManuscriptPartFoldersTest</code>, <code translate="no" v-pre>BookLabelsTest</code>, <code translate="no" v-pre>StoryMassDeleteTest</code>, <code translate="no" v-pre>TabDockIconsTest</code></td>
+<td>The folders, see <a href="../folders/#tests">Folders</a>: the entity and the service rules (names, cycles, delete, the lock of an agent&#x27;s book), copy and move with name clashes, the settings of the folders resolved for a book and reaching the prompt of a generation, the modification time of books and folders, the folder in a backup and the inherited settings in an export, the working copy of an agent, the books tools of the help assistant, and the windows (settings, Organise with its keys, the lists on the desktop and the phone). The mass delete of parts and the icons of the minimized tabs are here too.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>cleanup</code></td>
@@ -998,7 +1004,7 @@ all migrations and validates the schema against the entities).</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (fd4c8ea6d).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (31619cd57).</p></div>
             </footer>
         </div>
     </div>

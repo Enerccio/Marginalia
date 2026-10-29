@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846618196124">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846624414365">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846618196124" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846624414365" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846618196124" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846624414365" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846618196124" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846624414365" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -179,7 +179,7 @@ when the permissions were introduced got it if the assistant was on at the time;
 panel says which model answers and warns when the user&#x27;s limit applies (see <doc-anchor-trigger to="#who-pays">Who pays</doc-anchor-trigger>). The model looks
 the answers up in the manual (it can search it and read its pages), names the pages it used as links to the
 <a href="https://enerccio.github.io/Marginalia/">published manual</a> (they open in a new tab), and explains: it
-changes nothing and does not see the user&#x27;s books. It can also look at what went wrong when something fails (see
+changes nothing and does not see the user&#x27;s books unless the user allows it (see <doc-anchor-trigger to="#your-books">Your books</doc-anchor-trigger>). It can also look at what went wrong when something fails (see
 <doc-anchor-trigger to="#when-something-goes-wrong">When something goes wrong</doc-anchor-trigger>) and take the user somewhere, if you allow it (see
 <doc-anchor-trigger to="#showing-the-way">Showing the way</doc-anchor-trigger>). The conversation is kept until the user logs out (closing the panel
 or reloading the page keeps it), the broom button clears it.</p>
@@ -269,6 +269,47 @@ them. It never gets the text of a story, a lorebook entry, an API key or a passw
     <img src="../../../images/help-assistant-form.png" alt="The assistant explaining why the form of a new model can not be saved yet" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
     <figcaption class="caption">The assistant explaining why the form of a new model can not be saved yet</figcaption>
 </figure>
+<h2 id="your-books">Your books</h2>
+<p>The panel of the assistant has the check box <strong>Let the assistant look at my books</strong>, off by default and set by each user for
+themselves (it is kept in their settings). A notice under it says what it means: the assistant reads folder names, titles,
+descriptions and the writing settings of the books and searches their text, never reads the text of a story, and what it reads is
+sent to the AI that answers - which is the model you chose above, so say so to the users if it is a service outside your control.</p>
+<figure class="content-center">
+    <img src="../../../images/help-assistant-books.png" alt="The assistant panel with the check box for the books" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="440" height="580" />
+    <figcaption class="caption">The assistant panel with the check box for the books</figcaption>
+</figure>
+<p>When it is on, the model gets three functions, all read-only and only for the books of the user who asks:</p>
+<retype-table copy-text="| Function | |
+|---|---|
+| `list_folder` | The subfolders of a folder, with the number of books beneath each, and its books with title and description. A path like `Sci-fi/Expanse` names the folder, none is the top level. |
+| `search_books` | Finds books by the words of the title or description, or by the text of the story, optionally within a folder (&quot;where is my book about true lovers?&quot;). It says where a match was and in which folder; the text found is not returned. |
+| `get_book_settings` | The language, point of view, tense and style of a book and where each comes from (the book, a folder, the user settings or the built-in default). The prompts are only told as *a custom text* or *the built-in text*, with where they come from. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Function</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>list_folder</code></td>
+<td>The subfolders of a folder, with the number of books beneath each, and its books with title and description. A path like <code translate="no" v-pre>Sci-fi/Expanse</code> names the folder, none is the top level.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>search_books</code></td>
+<td>Finds books by the words of the title or description, or by the text of the story, optionally within a folder (&quot;where is my book about true lovers?&quot;). It says where a match was and in which folder; the text found is not returned.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>get_book_settings</code></td>
+<td>The language, point of view, tense and style of a book and where each comes from (the book, a folder, the user settings or the built-in default). The prompts are only told as <em>a custom text</em> or <em>the built-in text</em>, with where they come from.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>It can not change, move or create anything. The lists are cut (a hundred entries, twenty matches) and the descriptions shortened.</p>
 <h2 id="when-something-goes-wrong">When something goes wrong</h2>
 <p>When a user says that something failed (&quot;I get an error&quot;, &quot;it does not save&quot;, &quot;the model does not answer&quot;), the
 assistant can read what Marginalia showed them: the last errors, the failed requests to the model provider (wrong key, no such model,
@@ -443,7 +484,7 @@ Marginalia (you do not have to keep them in it), and only for the tools that are
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (fd4c8ea6d).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (31619cd57).</p></div>
             </footer>
         </div>
     </div>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846618196124">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846624414365">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846618196124" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846624414365" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846618196124" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846624414365" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846618196124" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846624414365" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -634,6 +634,10 @@ agent does, it does to the copy; your book stays as it was.</p>
 <p>When the agent has <strong>Write the book with the model of the agent</strong> on (the default), the copy also gets the <strong>model of the agent</strong> (the AI and the protocol of its main model profile) in place of the AI and the protocol of your book, every time the run starts or
 is resumed. So the commands that write with a model (<code translate="no" v-pre>/next</code>, <code translate="no" v-pre>/swipe</code>, <code translate="no" v-pre>/regenerate</code>, <code translate="no" v-pre>/redraft-part</code>, <code translate="no" v-pre>/generate-annotation</code>, the summaries) and the model commands of extensions (the Lore Generator, the Arc Outline) use the agent&#x27;s model even when your book is set to another one, or to none;
 a <code translate="no" v-pre>profile</code> named in the call still wins. With the setting off they use the model of the book. This is not a change of your book: the review does not list it and applying the result leaves the AI and the protocol of your book as they are.</p>
+<p>The copy is put into the <a href="../books/folders/">folder</a> of your book, so the agent writes with the settings that the folders set (language,
+templates, point of view, tense, style and the prompts), as the book does. The copy is not content of the folder: it is not counted
+there and the work in it does not change the <em>Last modified</em> of the folder. The copy follows the book if you move it while the run is paused.
+Applying the result never moves your book.</p>
 <p>A paused run keeps its copy and works on it again when you resume it. A run that is <em>Done</em>, or that you stopped and kept, keeps it until you
 <doc-anchor-trigger to="#reviewing-the-result">take over its result or discard it</doc-anchor-trigger>. When the run is <em>Failed</em>, you discard its result, or its changes are applied, the copy is deleted for good, and the next run
 makes a new one from the book as it is then.</p>
@@ -1006,6 +1010,10 @@ a paused, stopped or finished run does not lock it.</p>
 <p>The <strong>lorebooks of the book</strong> are locked with it: the lorebook the book uses and its sub-lorebooks. On the Lorebooks tab such a lorebook is
 shown the way it is on a phone, as plain text and without any editing, with a note that says which agent holds it; <strong>Refresh</strong> shows it for
 editing again after you paused or stopped the run. Other lorebooks are not affected.</p>
+<h3 id="agents-and-folders">Agents and folders</h3>
+<p>A book in a <a href="../books/folders/">folder</a> that an agent works on keeps its place and its settings: moving or deleting a folder above it, and
+changing a setting such a folder passes down (language, templates, point of view, tense, style, prompts), is refused with the name of the book
+and the agent. Renaming a folder, or changing its description, is not refused. A paused, stopped or finished run lets go.</p>
 <figure class="content-center">
     <img src="../../images/agent-locked-lorebook.png" alt="The lorebook of a book an agent works on" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
     <figcaption class="caption">The lorebook of a book an agent works on</figcaption>
@@ -1047,7 +1055,7 @@ editing again after you paused or stopped the run. Other lorebooks are not affec
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (fd4c8ea6d).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (31619cd57).</p></div>
             </footer>
         </div>
     </div>

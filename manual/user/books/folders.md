@@ -126,6 +126,9 @@ shows its key in brackets:
 | **Advanced search** | `f` | The [search](managing-books.md#advanced-search) in the folder of the active pane, optionally with *Include subfolders*. A result has **Show in folder**, which takes the pane there and marks the book. |
 | **Show folder in the list** | `o` | Closes the window and opens the folder of the active pane in the list of books. |
 
+When you close the window the list of books is read again, so what you made, moved, copied, renamed or deleted shows at once (if the folder the
+list was in is gone, it goes to the top level).
+
 The keys are actions of the [keyboard shortcuts](../account.md#keyboard-shortcuts) in *Settings*: change or clear them
 there (there are no function keys by default, a Mac and the browsers keep them). The buttons show the key you have set.
 
@@ -155,7 +158,7 @@ Books never clash: their names may repeat.
 
 The **Mass changes** menu of the list (and the buttons of Organise) change many books at once. **Mass Change
 Model/Protocol** puts one model and/or one protocol on the books, **Mass Change Language** a language, **Tag books**
-and **Tag folders** add or remove a tag. See [Managing books](managing-books.md#tagging-many-at-once). From the list they
+and **Tag folders** add or remove a tag. See [Managing books](managing-books.md#tagging-many-books-at-once). From the list they
 work on the books of the current folder, with their own **Include subfolders**.
 
 ## Favorites

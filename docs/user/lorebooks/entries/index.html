@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846618196124">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846624414365">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846618196124" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846624414365" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846618196124" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846624414365" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846618196124" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846618196124" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846624414365" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846624414365" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -319,7 +319,7 @@ the mages&#x27; guild. Speaks in short, clipped sentences.</p>
 <li>the entry is enabled, and so is its lorebook;</li>
 <li>none of its <strong>negative tags</strong> is a tag of the book;</li>
 <li>it has no <strong>tags</strong>, or at least one of them is a tag of the book;</li>
-<li>it has no <strong>filter</strong>, or the filter matches the instructions for the part.</li>
+<li>it has no <strong>filter</strong>, or the filter matches the instructions for the part (or, with <strong>Activation Context</strong> <em>Instructions and parts of the story</em>, the instructions and the newest parts of the story).</li>
 </ol>
 <p>All conditions must hold. An entry without tags and filter is always active.</p>
 <h3 id="tags">Tags</h3>
@@ -427,8 +427,9 @@ from files can carry them). They then count as tags of each of its entries.</p>
             </svg>
         </div>
         <div class="pr-5 ml-3 w-full">
-            <h5>The filter sees the request, not the story</h5>
-<p>Filters check the instructions for the new part only, not the text of earlier parts. An entry about Varro is
+            <h5>By default the filter sees the request, not the story</h5>
+<p>Unless the entry looks into the story (see <doc-anchor-trigger to="#looking-into-the-story">Looking into the story</doc-anchor-trigger>), a filter checks the instructions for
+the new part only, not the text of earlier parts. An entry about Varro is
 activated when Varro is mentioned in the scene, characters or instructions of the part you are writing - put him
 into <em>Present Characters</em> when he is in the scene.</p>
 <p>The request also contains the text of the user prompt template itself. A filter for a word the template uses
@@ -643,7 +644,7 @@ between books.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (fd4c8ea6d).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (31619cd57).</p></div>
             </footer>
         </div>
     </div>

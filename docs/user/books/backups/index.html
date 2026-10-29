@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846618196124">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846624414365">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846618196124" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846624414365" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846618196124" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846624414365" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846618196124" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846624414365" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -186,6 +186,13 @@ the number of <strong>Messages</strong> (parts) it contains and the number of <s
 <p>Backups can also be taken automatically, see <doc-anchor-trigger to="#automatic-backups">below</doc-anchor-trigger>.</p>
 <p>A backup holds the whole story tree, the summaries and the <a href="../annotations/">annotations</a> of the parts; restoring it, copying a book and importing a
 backup bring the notes back.</p>
+<h2 id="backups-and-folders">Backups and folders</h2>
+<p>A backup remembers the <a href="../folders/">folders</a> its book was in, from the top one down, each with its name, description,
+language and the text settings it sets. <strong>Restore as new book</strong> and <strong>Clone Backup</strong> put the new book into the folder the
+backup names if you still have it; if not, into the folders of the same names (one you have is used as it is, a missing
+one is made with the settings it had). A backup without a folder, or folders that can&#x27;t be made, restores to the top level.
+<strong>Restore</strong> on a book (full or messages only) keeps the book in its folder. The tags of a folder are not in the backup.
+Older backups restore as before.</p>
 <h2 id="pictures-in-a-backup">Pictures in a backup</h2>
 <p>A backup remembers <strong>which pictures</strong> the parts have (and their captions), but <strong>not the picture files</strong>. This keeps
 backups, and the automatic ones, small. The pictures stay in your <a href="../../resources/">Resources</a>. To take the pictures
@@ -281,6 +288,13 @@ large pictures does not use much memory. When it is ready, click <strong>Downloa
 that dialog.</li>
 </ul>
 <p>If a picture can&#x27;t be packed because you deleted it or its file is missing, the dialog tells how many were left out.</p>
+<p>The check box <strong>Include inherited settings in the export</strong> (on by default, next to the export buttons) decides what the file
+says about the settings the book gets from its <a href="../folders/#where-the-settings-of-a-book-come-from">folders</a>. On, the language,
+master template, point of view, tense, style and prompts that the book does not set itself are written into the file as its
+own values, taken from the folders it was in when the backup was taken (the nearest first) and then from your settings, so the
+book reads the same in an installation or an account that has no such folders and settings; built-in defaults are not written.
+Off, the file has only what the book sets itself. The file never says which folder the book is in: where a book is filed is a
+local choice. (The story export, <a href="../export/">Exporting a book</a>, writes the text only and has no settings.)</p>
 <p>The ZIP contains <code translate="no" v-pre>backup.json</code> (the same JSON), <code translate="no" v-pre>resources.json</code> (the list of the pictures) and the pictures. You don&#x27;t
 have to unpack it: both ways of bringing a backup back accept the <code translate="no" v-pre>.zip</code> as well as the <code translate="no" v-pre>.json</code>.</p>
 <p>There are two ways to bring a backup file back:</p>
@@ -396,7 +410,7 @@ the whole <code translate="no" v-pre>.marginalia</code> folder in your own backu
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (fd4c8ea6d).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (31619cd57).</p></div>
             </footer>
         </div>
     </div>

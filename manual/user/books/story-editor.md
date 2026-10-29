@@ -108,6 +108,8 @@ icon and the tab comes back to the panel and the place among the tabs where it w
 The bar is there while some tab is minimized. The button at its top (the circling arrows) sends the bar to the next side of
 the editor, clockwise: left, top, right, bottom. The story can't be minimized, so there is always something on the screen.
 
+![Minimized tabs in the bar at the edge of the editor](../../images/story-minimized-tabs.png)
+
 Which tabs are minimized and where the bar is are saved with the book, together with the arrangement and the sizes.
 
 ### The default arrangement
@@ -279,6 +281,8 @@ one by one behind a progress bar that can't be stopped. They are deleted as a si
 part continue from the part before it, and the deleted parts go to the trash. Then the story is shown again and the mass delete
 is off. **Cancel** in the bar, or choosing **Mass delete** again, turns it off without deleting anything. Starting a
 generation also turns it off.
+
+![Mass delete with some parts ticked](../../images/story-mass-delete.png)
 
 ## Redrafting a part
 

@@ -37,7 +37,7 @@ For each generated part, an entry is **activated** when all of these are true:
 
 1. the entry and its lorebook are enabled;
 2. its **tags** fit the book's tags (if it has any);
-3. its **filter** matches the instructions for the part (if it has one).
+3. its **filter** matches the instructions for the part (if it has one), or, when the entry looks into the story, the newest parts of the story as well.
 
 Activated entries are inserted in their **order** - into the lore block of the system prompt, or right before the
 request for the part. See [Entries & activation](entries.md).

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846618196124">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846624414365">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -13,7 +13,7 @@
     <!-- Primary Meta Tags -->
     <title>Managing books</title>
     <meta name="title" content="Managing books">
-    <meta name="description" content="The Books tab lists your books. Other users' books are not shown.">
+    <meta name="description" content="The Books tab lists your books. Other users' books are not shown. The list shows one folder at a time, the folders of the current one above its books; at the top level, with no folders made, it is simply all your books.">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://enerccio.github.io/Marginalia/user/books/managing-books/">
@@ -23,7 +23,7 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/books/managing-books/">
     <meta property="og:title" content="Managing books">
-    <meta property="og:description" content="The Books tab lists your books. Other users' books are not shown.">
+    <meta property="og:description" content="The Books tab lists your books. Other users' books are not shown. The list shows one folder at a time, the folders of the current one above its books; at the top level, with no folders made, it is simply all your books.">
     <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/books.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -35,7 +35,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/books/managing-books/">
     <meta name="twitter:title" content="Managing books">
-    <meta name="twitter:description" content="The Books tab lists your books. Other users' books are not shown.">
+    <meta name="twitter:description" content="The Books tab lists your books. Other users' books are not shown. The list shows one folder at a time, the folders of the current one above its books; at the top level, with no folders made, it is simply all your books.">
     <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/books.png">
     <meta name="twitter:image:alt" content="Managing books">
 
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846618196124" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846624414365" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846618196124" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846624414365" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846618196124" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846624414365" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -172,7 +172,8 @@
                 <!-- Page content  -->
 <h1 id="managing-books">Managing books</h1>
 <h2 id="the-book-list">The book list</h2>
-<p>The <strong>Books</strong> tab lists your books. Other users&#x27; books are not shown.</p>
+<p>The <strong>Books</strong> tab lists your books. Other users&#x27; books are not shown. The list shows one <a href="../folders/">folder</a> at a time, the
+folders of the current one above its books; at the top level, with no folders made, it is simply all your books.</p>
 <figure class="content-center">
     <img src="../../../images/books.png" alt="The Books tab" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
     <figcaption class="caption">The Books tab</figcaption>
@@ -225,7 +226,9 @@ the list is sorted by all of them in order.</p>
 </li>
 </ul>
 <p>The refresh button at the end of the filter row reloads the list.</p>
-<p>Each row has three buttons: the pen opens the book, the clone button makes a copy of it and the trash button deletes it.</p>
+<p>Each row has buttons: the star makes the book a <a href="../folders/#favorites">favorite</a>, the pen opens it, <strong>Move to folder</strong> puts it
+into a <a href="../folders/">folder</a>, the clone button makes a copy of it and the trash button deletes it. The header has <strong>New folder</strong>
+and <strong>Organise</strong> (the window to <a href="../folders/#organise">move and copy</a> books and folders), and the <strong>Mass changes</strong> menu.</p>
 <h3 id="advanced-search">Advanced search</h3>
 <p><strong>Search</strong> (next to <strong>Tag books</strong>; the magnifier in the header on a phone) opens a window that finds books by more than
 the filter row can. Fill in what you want to check, leave the rest empty, and press <strong>Search</strong> (or Enter in a text field):</p>
@@ -308,7 +311,8 @@ the beginning to the end of the <a href="../branches-and-story-tree/">active bra
 are.</p>
 </li>
 </ul>
-<p>The clone is not published, even if the original is. The original is not changed.</p>
+<p>The clone is not published, even if the original is. The original is not changed. It is put into the same
+<a href="../folders/">folder</a> as the original.</p>
 <h3 id="tagging-many-books-at-once">Tagging many books at once</h3>
 <p><strong>Tag books</strong> (next to <strong>Add Book</strong>) opens a window that puts one tag on many books, or takes it off them, without opening
 each. Pick the <strong>Tag</strong> (or type a new one and press Enter) and the list shows every book with its tags; the books that have
@@ -324,19 +328,31 @@ grayed out: it is locked, so it can not be ticked or changed until the run is pa
 <h3 id="changing-the-model-and-protocol-of-many-books">Changing the model and protocol of many books</h3>
 <p>The <strong>Mass changes</strong> menu (next to <strong>Tag books</strong>) has the item <strong>Mass Change Model/Protocol</strong>. It opens a window that puts one
 <strong>Model</strong> and/or one <strong>Protocol</strong> on many books without opening each. Leave a box empty (it shows <em>Do not replace</em>) and that
-part of the books stays as it is: pick only a model to change the models and keep the protocols. The table lists all your
-books by name with the model and protocol they have now. Type in the filter under <strong>Name</strong> to narrow the list, tick the
+part of the books stays as it is: pick only a model to change the models and keep the protocols. The table lists the books of
+the current <a href="../folders/">folder</a> by name with the model and protocol they have now; <strong>Include subfolders</strong> adds the books
+below it. Type in the filter under <strong>Name</strong> to narrow the list, tick the
 books to change (the box in the header ticks all the books that are shown) and press <strong>Replace and exit</strong>. Books that the
 filter hides are unticked, so only what you see is changed. A book an agent works on is grayed out: it is locked, so it can
 not be ticked or changed until the run is paused or stopped.</p>
+<figure class="content-center">
+    <img src="../../../images/mass-change-model-protocol.png" alt="Changing the model and protocol of many books" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="900" height="720" />
+    <figcaption class="caption">Changing the model and protocol of many books</figcaption>
+</figure>
 <p>The item <strong>Mass Change Language</strong> of the same menu works the same way for the <strong>Language</strong> of the books: pick the language,
-filter and tick the books, press <strong>Replace and exit</strong>.</p>
+filter and tick the books, press <strong>Replace and exit</strong>. The table shows the language each book has now, with what it inherits
+from its folders (see <a href="../folders/#language">Language</a>).</p>
+<figure class="content-center">
+    <img src="../../../images/mass-change-language.png" alt="Changing the language of many books" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="900" height="720" />
+    <figcaption class="caption">Changing the language of many books</figcaption>
+</figure>
+<p><strong>Tag books</strong> and the item <strong>Tag folders</strong> work on the books, or on the folders, of the current folder in the same way.</p>
 <h2 id="creating-a-book">Creating a book</h2>
 <ol>
 <li>Click <strong>Add Book</strong>.</li>
 <li>Enter the name and confirm.</li>
 </ol>
-<p>The new book opens right away. It starts with your <strong>Default Model</strong> and <strong>Default Protocol</strong> from the <em>Settings</em> tab
+<p>The new book is put into the <a href="../folders/">folder</a> the list shows, and so are the books you import from an archive or
+from SillyTavern. It opens right away. It starts with your <strong>Default Model</strong> and <strong>Default Protocol</strong> from the <em>Settings</em> tab
 (see <a href="../../account/">Account &amp; settings</a>), if you have set them; otherwise select them on the <em>About</em> tab before
 generating.</p>
 <p>To start a book from a folder of text files, use the <strong>import</strong> button (file icon, <em>Import from archive</em>) next to
@@ -388,7 +404,7 @@ skipped, and so are swipes that are empty. The reasoning and the model name of a
 | **Name** | The name of the book. |
 | **Tags** | Tags for sorting your books and for [lorebook](../lorebooks/entries.md) activation. Type to pick an existing tag or create a new one. |
 | **Description** | What the book is about. Available to the prompt templates as the book description. |
-| **Language** | The language the book is written in (English by default). Used for automatic hyphenation of the text in the book reading style and in the [viewer](publishing.md); it does not change what the model writes. |
+| **Language** | The language the book is written in. Used for automatic hyphenation of the text in the book reading style and in the [viewer](publishing.md); it does not change what the model writes. Empty means *inherit*: the language of the nearest [folder](folders.md#language) above the book that sets one, else English; the box then shows which and from where. |
 | **Model** | The [inference provider](../inference-providers.md) that writes this book. |
 | **Protocols** | The [protocol](../protocols.md) with the generation settings. |
 | **Published** | Lets other users read the book, see [Publishing &amp; viewer](publishing.md). Once checked, the reader link of the book (`&lt;address of Marginalia&gt;/view/&lt;book ID&gt;`) is shown under the checkbox; copy it and send it to the readers. |">
@@ -415,7 +431,7 @@ skipped, and so are swipes that are empty. The reasoning and the model name of a
 </tr>
 <tr>
 <td><strong>Language</strong></td>
-<td>The language the book is written in (English by default). Used for automatic hyphenation of the text in the book reading style and in the <a href="../publishing/">viewer</a>; it does not change what the model writes.</td>
+<td>The language the book is written in. Used for automatic hyphenation of the text in the book reading style and in the <a href="../publishing/">viewer</a>; it does not change what the model writes. Empty means <em>inherit</em>: the language of the nearest <a href="../folders/#language">folder</a> above the book that sets one, else English; the box then shows which and from where.</td>
 </tr>
 <tr>
 <td><strong>Model</strong></td>
@@ -487,10 +503,10 @@ where they are.</p>
                     </div>
             
                     <div class="w-1/2">
-                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../user/books/annotations/">
+                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../user/books/folders/">
                             <span>
                                 <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
-                                <span class="block mt-1">Annotations</span>
+                                <span class="block mt-1">Folders</span>
                             </span>
                             <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                         </a>
@@ -505,7 +521,7 @@ where they are.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (fd4c8ea6d).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (31619cd57).</p></div>
             </footer>
         </div>
     </div>

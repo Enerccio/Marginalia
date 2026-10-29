@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846618196124">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846624414365">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846618196124" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846624414365" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846618196124" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846624414365" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846618196124" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846624414365" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -206,12 +206,22 @@ to the places they know on the phone, see <doc-anchor-trigger to="#extensions">E
 <p>While the <em>Settings</em> tab has unsaved changes, the drawer is locked as on the desktop: save or discard first.</p>
 <h3 id="books">Books</h3>
 <p>The book list is one column. Above it are the name filter, the tag filter and the sort buttons (<em>Last Modified</em>,
-<em>Created</em>, <em>Name</em>; tap the active one again to reverse the order), then <strong>Add Book</strong>, the magnifier (the <a href="../books/managing-books/#advanced-search">advanced search</a>: tags to include and exclude, dates, number of parts and text) and refresh. Each book has two
-buttons: the pencil opens it, the trash deletes it (into the <a href="../trash/">Trash</a>).</p>
+<em>Created</em>, <em>Name</em>; tap the active one again to reverse the order), then <strong>Add Book</strong>, the magnifier (the <a href="../books/managing-books/#advanced-search">advanced search</a>: tags to include and exclude, dates, number of parts and text) and refresh. Each book has
+buttons: the star makes it a favorite, <strong>Move to folder</strong> puts it into a <a href="../books/folders/">folder</a>, the pencil opens it and the trash deletes it (into the <a href="../trash/">Trash</a>).</p>
 <figure class="content-center">
     <img src="../../images/phone-book-list.png" alt="The book list on a phone" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="402" height="874" />
     <figcaption class="caption">The book list on a phone</figcaption>
 </figure>
+<p>The list shows one <a href="../books/folders/">folder</a> at a time, as on the desktop: the path of the folder you are in as buttons to go back on,
+the check box <strong>Include subfolders</strong>, then the folders above the books (tap one to go in; it shows how many books are beneath it) and, at
+the top level, the virtual <strong>Favorites</strong> folder. The name and tag filters search the current folder, or everything below it with <em>Include
+subfolders</em>. <strong>Add Book</strong> and the imports put the new book into the folder you are in. The folder you are in is remembered.</p>
+<figure class="content-center">
+    <img src="../../images/phone-folders.png" alt="Folders on a phone" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="402" height="874" />
+    <figcaption class="caption">Folders on a phone</figcaption>
+</figure>
+<p>A folder can&#x27;t be made, renamed or deleted on the phone, and there is no <em>Organise</em> window or mass change; do that on a computer. The
+language of a book can be inherited from a folder here too, and the <em>Prompts</em> tab shows where each value comes from.</p>
 <h3 id="lorebooks">Lorebooks</h3>
 <p>The phone shows a <strong>reduced lorebook editor</strong>. You can pick a lorebook, enable or disable it and its entries, and
 edit the <strong>content</strong> of an entry. Everything else is shown as text only: name, order, tags, filtering and insertion
@@ -469,7 +479,7 @@ wider window; your books and settings are the same everywhere.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (fd4c8ea6d).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (31619cd57).</p></div>
             </footer>
         </div>
     </div>

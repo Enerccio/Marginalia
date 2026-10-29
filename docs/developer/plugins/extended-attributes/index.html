@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846618196124">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846624414365">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846618196124" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846624414365" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846618196124" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846624414365" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846618196124" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846618196124" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846624414365" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846624414365" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -176,10 +176,11 @@ entity, loaded with it, and travels with it into backups.</p>
 |---|---|
 | `Manuscript` (book) | Per-book state and settings - Side Query keeps its chat sessions here. |
 | `ChatMessage` (story part) | Data about one part - Reviewer keeps the reviews of the part here. |
+| `Folder` (1.6.0) | A folder of books: its own data goes in its `attributes`. Marginalia keeps the description and the settings the books below inherit in `@ExtendedAttribute` fields, see [Folders](../folders.md#the-data). |
 | `Summary` | Data about a summary. |
 | `Lorebook`, `LorebookEntry` | Lore metadata - Lorebook VCS keeps the revision history in the lorebook. |
 | `AI` (inference provider), `Protocol`, `Tag` | Per-provider or per-protocol options. (Marginalia itself keeps the per-user limits of a shared AI in the `@ExtendedAttribute` field `AI.limits`, see [Domain model](../domain-model.md#limits-of-the-users-of-a-shared-ai).) |
-| `UserSetting` | Per-user plugin settings - Reviewer and Side Query keep theirs here. (Marginalia itself keeps the autosaved state of the workspace in its `@ExtendedAttribute` field `workspaceState`.) |
+| `UserSetting` | Per-user plugin settings - Reviewer and Side Query keep theirs here. (Marginalia itself keeps the autosaved state of the workspace in its `@ExtendedAttribute` field `workspaceState`, the favorite books in `favoriteBooks`, the default arrangement of the story in `defaultStoryLayout` and the opt-in of the help assistant in `helpAssistantBooks`.) |
 | `AppSettings` | Settings for the whole installation (administrators). |
 | `Agent`, `AgentRun`, `AgentMessage` | The agents of 1.4.0, their runs and the messages of a run: the data an extension wants to keep with one of them. Marginalia keeps the settings of the agent itself in `@ExtendedAttribute` fields (the models for sub-agents, the allowed commands, the prompts...), see [Agents](../agents.md). |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -200,6 +201,10 @@ entity, loaded with it, and travels with it into backups.</p>
 <td>Data about one part - Reviewer keeps the reviews of the part here.</td>
 </tr>
 <tr>
+<td><code translate="no" v-pre>Folder</code> (1.6.0)</td>
+<td>A folder of books: its own data goes in its <code translate="no" v-pre>attributes</code>. Marginalia keeps the description and the settings the books below inherit in <code translate="no" v-pre>@ExtendedAttribute</code> fields, see <a href="../../folders/#the-data">Folders</a>.</td>
+</tr>
+<tr>
 <td><code translate="no" v-pre>Summary</code></td>
 <td>Data about a summary.</td>
 </tr>
@@ -213,7 +218,7 @@ entity, loaded with it, and travels with it into backups.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>UserSetting</code></td>
-<td>Per-user plugin settings - Reviewer and Side Query keep theirs here. (Marginalia itself keeps the autosaved state of the workspace in its <code translate="no" v-pre>@ExtendedAttribute</code> field <code translate="no" v-pre>workspaceState</code>.)</td>
+<td>Per-user plugin settings - Reviewer and Side Query keep theirs here. (Marginalia itself keeps the autosaved state of the workspace in its <code translate="no" v-pre>@ExtendedAttribute</code> field <code translate="no" v-pre>workspaceState</code>, the favorite books in <code translate="no" v-pre>favoriteBooks</code>, the default arrangement of the story in <code translate="no" v-pre>defaultStoryLayout</code> and the opt-in of the help assistant in <code translate="no" v-pre>helpAssistantBooks</code>.)</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>AppSettings</code></td>
@@ -520,7 +525,7 @@ data can&#x27;t point a plugin at another user&#x27;s entity.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (fd4c8ea6d).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (31619cd57).</p></div>
             </footer>
         </div>
     </div>

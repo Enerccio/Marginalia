@@ -7,12 +7,27 @@ and the summary and redraft prompts. They decide the voice of the book far more 
 
 ## Defaults and book values
 
-Every field is optional. An empty field uses the default from **Settings → Templates** (see
-[Account & settings](../account.md)), and when that is empty too, the built-in default. The default is shown in grey in
-the empty field.
+Every field is optional. An empty field is inherited: from the nearest [folder](folders.md) above the book that sets it, else
+from the default in **Settings → Templates** (see [Account & settings](../account.md)), and when that is empty too, the
+built-in default. The value it inherits is shown in grey in the empty field.
 
-So set what all your books share in *Settings*, and only what is special to a book on its *Prompts* tab. Changes are
-saved as you type.
+So set what all your books share in *Settings*, what a series shares in its folder, and only what is special to a book on its
+*Prompts* tab. Changes are saved as you type.
+
+### Inherited settings
+
+Under an empty field a line says where its value comes from, so it is clear why the book writes the way it does:
+
+- *Inherited from the folder "Sci-fi"* - a [folder](folders.md#where-the-settings-of-a-book-come-from) sets it (the nearest one
+  above the book is named),
+- *Inherited from your settings* - the value of *Settings → Templates*,
+- *Built-in default* - nothing sets it.
+
+![The Prompts tab of a book in a folder](../../images/book-prompts-inherited.png)
+
+The same fields are in the settings of a folder, with the same lines. A blank text counts as not set. Because the lookup is
+done when the prompt is built, moving the book to another folder, or changing the folder, changes the next part you
+generate.
 
 Each field has a hints popover with **Insert Default Template**, which copies the default into the field as a starting
 point for your own version. The template fields also list the **Available Template Variables** and the

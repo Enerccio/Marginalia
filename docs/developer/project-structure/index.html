@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846618196124">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846624414365">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846618196124" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846624414365" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846618196124" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846624414365" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846618196124" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846624414365" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -454,6 +454,7 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 | `BaseEntity`, `OwnedEntity`, `ExtendableEntity` | Mapped superclasses: id, uuid, soft delete, timestamps; owner; JSON `attributes` for extensions. |
 | `Setting` | Base of settings, single table `settings` with a `DTYPE` discriminator. |
 | `impl/Manuscript` | A book. |
+| `impl/Folder` | A folder of books, nested through `parent`; its settings are inherited by the books below. See [Folders](folders.md). |
 | `impl/ChatMessage` | A story part - a node of the story tree. |
 | `impl/Summary` | A summary of the story up to a part, or a meta summary of summaries. |
 | `impl/Lorebook`, `impl/LorebookEntry` | Lorebooks and their entries. |
@@ -483,6 +484,10 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 <tr>
 <td><code translate="no" v-pre>impl/Manuscript</code></td>
 <td>A book.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>impl/Folder</code></td>
+<td>A folder of books, nested through <code translate="no" v-pre>parent</code>; its settings are inherited by the books below. See <a href="../folders/">Folders</a>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>impl/ChatMessage</code></td>
@@ -529,7 +534,7 @@ See <a href="../domain-model/">Domain model</a>.</p>
 <h3 id="domainrepository---data-access"><code translate="no" v-pre>domain.repository</code> - data access</h3>
 <p>One interface and one JPA implementation (<code translate="no" v-pre>impl/Jpa*Repository</code>) per entity, built on <code translate="no" v-pre>BaseRepository</code> →
 <code translate="no" v-pre>OwnedRepository</code> → <code translate="no" v-pre>ExtendableRepository</code> (and <code translate="no" v-pre>JpaBaseRepository</code> → ...). The beans are defined in
-<code translate="no" v-pre>services-config.xml</code> with the shared <code translate="no" v-pre>EntityManager</code>.</p>
+<code translate="no" v-pre>services-config.xml</code> with the shared <code translate="no" v-pre>EntityManager</code>. <code translate="no" v-pre>FolderRepository</code> / <code translate="no" v-pre>JpaFolderRepository</code> come with <code translate="no" v-pre>FolderScope</code> (the folder clause of the list queries) and <code translate="no" v-pre>FolderModification</code> (the <em>Last modified</em> of the folders).</p>
 <h3 id="domaincomponents---plain-data-and-helpers"><code translate="no" v-pre>domain.components</code> - plain data and helpers</h3>
 <p>Small classes that are neither entities nor services, shared by services, generation steps and the UI. No Spring beans,
 no state besides their fields.</p>
@@ -584,6 +589,7 @@ no state besides their fields.</p>
 |---|---|
 | `BaseService`, `OwnedService`, `ExtendableService` | Generic CRUD, soft delete, lookups restricted to the current user. |
 | `ManuscriptService`, `ChatMessageService`, `SummaryService` | Books, the story tree (add, branch, swipe, delete a part and re-attach its children, word and token counts), summaries. |
+| `FolderService`, `PromptField`, `EffectiveSetting`, `FolderBookLockedException` | The folders and the settings the books inherit from them, see [Folders](folders.md). `BackupFolders` and `BackupInheritance` (`impl`) are the folder in a backup and the inherited settings in an export; `HelpBookData` with `manual/BookHelpTools` the books tools of the help assistant. |
 | `LorebookService`, `LorebookEntryService` | Lorebooks, entries, import and export (incl. SillyTavern through `SillyTavernEntryConverter`). |
 | `AIService`, `ProtocolService` | Inference providers and protocols. |
 | `TagService`, `TagRelationService`, `SettingService`, `ResourceService` | Tags, settings, files. |
@@ -617,6 +623,10 @@ no state besides their fields.</p>
 <tr>
 <td><code translate="no" v-pre>ManuscriptService</code>, <code translate="no" v-pre>ChatMessageService</code>, <code translate="no" v-pre>SummaryService</code></td>
 <td>Books, the story tree (add, branch, swipe, delete a part and re-attach its children, word and token counts), summaries.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>FolderService</code>, <code translate="no" v-pre>PromptField</code>, <code translate="no" v-pre>EffectiveSetting</code>, <code translate="no" v-pre>FolderBookLockedException</code></td>
+<td>The folders and the settings the books inherit from them, see <a href="../folders/">Folders</a>. <code translate="no" v-pre>BackupFolders</code> and <code translate="no" v-pre>BackupInheritance</code> (<code translate="no" v-pre>impl</code>) are the folder in a backup and the inherited settings in an export; <code translate="no" v-pre>HelpBookData</code> with <code translate="no" v-pre>manual/BookHelpTools</code> the books tools of the help assistant.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>LorebookService</code>, <code translate="no" v-pre>LorebookEntryService</code></td>
@@ -1353,6 +1363,7 @@ ignored by Git), see <a href="../packaging/#building-the-plugins-in-docker">Pack
 | The story editor | `ui/dialogs/manuscript/ManuscriptStoryPart.java` |
 | Summaries and meta summaries | `SummaryServiceImpl` (chain, creation, unwinding), `ui/dialogs/manuscript/SummariesDialog.java`, `SummaryDialog.java` |
 | The story tree operations | `ChatMessageServiceImpl` (branch, swipe, delete), `ManuscriptTreePart` (UI) |
+| Folders, or where a setting of a book comes from | [Folders](folders.md), `ManuscriptService.resolve`, `FolderServiceImpl`, `ui/dialogs/OrganiseDialog.java` |
 | An entity or the schema | the entity in `domain/model/impl/`, a new Flyway migration, `persistence.xml` - see [Database &amp; migrations](database.md) |
 | A new service | interface in `domain/service/`, implementation in `impl/`, a bean in `services-config.xml` |
 | The help assistant | `HelpAssistantServiceImpl`, `HelpPrompts` (prompts), `ui/components/HelpAssistantWidget.java`, `ui/LLMInteract.java` (what a part of the UI says and offers), `utils/UiProblems.java` and `bound/ProblemLog.java` (what went wrong), `domain/service/impl/HelpAdminData.java` (the data of the Admin page), `ui/workspace/parts/admin/HelpAssistantPanel.java` (settings) |
@@ -1401,6 +1412,10 @@ ignored by Git), see <a href="../packaging/#building-the-plugins-in-docker">Pack
 <tr>
 <td>The story tree operations</td>
 <td><code translate="no" v-pre>ChatMessageServiceImpl</code> (branch, swipe, delete), <code translate="no" v-pre>ManuscriptTreePart</code> (UI)</td>
+</tr>
+<tr>
+<td>Folders, or where a setting of a book comes from</td>
+<td><a href="../folders/">Folders</a>, <code translate="no" v-pre>ManuscriptService.resolve</code>, <code translate="no" v-pre>FolderServiceImpl</code>, <code translate="no" v-pre>ui/dialogs/OrganiseDialog.java</code></td>
 </tr>
 <tr>
 <td>An entity or the schema</td>
@@ -1475,7 +1490,7 @@ ignored by Git), see <a href="../packaging/#building-the-plugins-in-docker">Pack
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (fd4c8ea6d).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (31619cd57).</p></div>
             </footer>
         </div>
     </div>

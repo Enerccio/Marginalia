@@ -19,6 +19,15 @@ Backups can also be taken automatically, see [below](#automatic-backups).
 A backup holds the whole story tree, the summaries and the [annotations](annotations.md) of the parts; restoring it, copying a book and importing a
 backup bring the notes back.
 
+## Backups and folders
+
+A backup remembers the [folders](folders.md) its book was in, from the top one down, each with its name, description,
+language and the text settings it sets. **Restore as new book** and **Clone Backup** put the new book into the folder the
+backup names if you still have it; if not, into the folders of the same names (one you have is used as it is, a missing
+one is made with the settings it had). A backup without a folder, or folders that can't be made, restores to the top level.
+**Restore** on a book (full or messages only) keeps the book in its folder. The tags of a folder are not in the backup.
+Older backups restore as before.
+
 ## Pictures in a backup
 
 A backup remembers **which pictures** the parts have (and their captions), but **not the picture files**. This keeps
@@ -84,6 +93,14 @@ If the backup uses pictures, Marginalia asks whether to pack them:
   that dialog.
 
 If a picture can't be packed because you deleted it or its file is missing, the dialog tells how many were left out.
+
+The check box **Include inherited settings in the export** (on by default, next to the export buttons) decides what the file
+says about the settings the book gets from its [folders](folders.md#where-the-settings-of-a-book-come-from). On, the language,
+master template, point of view, tense, style and prompts that the book does not set itself are written into the file as its
+own values, taken from the folders it was in when the backup was taken (the nearest first) and then from your settings, so the
+book reads the same in an installation or an account that has no such folders and settings; built-in defaults are not written.
+Off, the file has only what the book sets itself. The file never says which folder the book is in: where a book is filed is a
+local choice. (The story export, [Exporting a book](export.md), writes the text only and has no settings.)
 
 The ZIP contains `backup.json` (the same JSON), `resources.json` (the list of the pictures) and the pictures. You don't
 have to unpack it: both ways of bringing a backup back accept the `.zip` as well as the `.json`.

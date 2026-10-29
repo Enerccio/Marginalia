@@ -12,10 +12,11 @@ All data entities extend `ExtendableEntity` ([Domain model](../domain-model.md))
 |---|---|
 | `Manuscript` (book) | Per-book state and settings - Side Query keeps its chat sessions here. |
 | `ChatMessage` (story part) | Data about one part - Reviewer keeps the reviews of the part here. |
+| `Folder` (1.6.0) | A folder of books: its own data goes in its `attributes`. Marginalia keeps the description and the settings the books below inherit in `@ExtendedAttribute` fields, see [Folders](../folders.md#the-data). |
 | `Summary` | Data about a summary. |
 | `Lorebook`, `LorebookEntry` | Lore metadata - Lorebook VCS keeps the revision history in the lorebook. |
 | `AI` (inference provider), `Protocol`, `Tag` | Per-provider or per-protocol options. (Marginalia itself keeps the per-user limits of a shared AI in the `@ExtendedAttribute` field `AI.limits`, see [Domain model](../domain-model.md#limits-of-the-users-of-a-shared-ai).) |
-| `UserSetting` | Per-user plugin settings - Reviewer and Side Query keep theirs here. (Marginalia itself keeps the autosaved state of the workspace in its `@ExtendedAttribute` field `workspaceState`.) |
+| `UserSetting` | Per-user plugin settings - Reviewer and Side Query keep theirs here. (Marginalia itself keeps the autosaved state of the workspace in its `@ExtendedAttribute` field `workspaceState`, the favorite books in `favoriteBooks`, the default arrangement of the story in `defaultStoryLayout` and the opt-in of the help assistant in `helpAssistantBooks`.) |
 | `AppSettings` | Settings for the whole installation (administrators). |
 | `Agent`, `AgentRun`, `AgentMessage` | The agents of 1.4.0, their runs and the messages of a run: the data an extension wants to keep with one of them. Marginalia keeps the settings of the agent itself in `@ExtendedAttribute` fields (the models for sub-agents, the allowed commands, the prompts...), see [Agents](../agents.md). |
 

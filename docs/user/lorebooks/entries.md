@@ -71,7 +71,7 @@ Before each generated part, Marginalia goes through the entries of the book's lo
 1. the entry is enabled, and so is its lorebook;
 2. none of its **negative tags** is a tag of the book;
 3. it has no **tags**, or at least one of them is a tag of the book;
-4. it has no **filter**, or the filter matches the instructions for the part.
+4. it has no **filter**, or the filter matches the instructions for the part (or, with **Activation Context** *Instructions and parts of the story*, the instructions and the newest parts of the story).
 
 All conditions must hold. An entry without tags and filter is always active.
 
@@ -109,8 +109,9 @@ A filter activates the entry only when the **request for the part** mentions it.
 For example, the regex `\b(varro|captain)\b` matches the whole word *Varro* or *Captain*, and
 `varro.*(harbor|docks)` matches only when Varro and the harbor or the docks are both mentioned, in that order.
 
-!!!warning The filter sees the request, not the story
-Filters check the instructions for the new part only, not the text of earlier parts. An entry about Varro is
+!!!warning By default the filter sees the request, not the story
+Unless the entry looks into the story (see [Looking into the story](#looking-into-the-story)), a filter checks the instructions for
+the new part only, not the text of earlier parts. An entry about Varro is
 activated when Varro is mentioned in the scene, characters or instructions of the part you are writing - put him
 into *Present Characters* when he is in the scene.
 

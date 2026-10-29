@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846618196124">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846624414365">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846618196124" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846624414365" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846618196124" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846624414365" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846618196124" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846624414365" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -467,6 +467,9 @@ run or a user did. What a command needs to know about the current state it reads
 <li>from the <strong>scope</strong> of the call, <code translate="no" v-pre>context.getScope()</code> (below): the book the command works on, its lorebooks and the way to ask a question,</li>
 <li>from the session-scoped <code translate="no" v-pre>SessionPoint</code> (<code translate="no" v-pre>getLanguage()</code>, <code translate="no" v-pre>getWorkspace()</code>), through <code translate="no" v-pre>CommandUtils</code>.</li>
 </ul>
+<p>The commands that report or set the settings of a book (<code translate="no" v-pre>get-book-info</code>, the book settings commands) work with the <strong>effective</strong> values, those the
+book gets through its <a href="../folders/#resolving-a-setting">folders</a> (<code translate="no" v-pre>ManuscriptService.getLanguage</code>, <code translate="no" v-pre>getPov</code>, <code translate="no" v-pre>resolve(...).isCustom()</code>), not the
+book&#x27;s own fields.</p>
 <h3 id="the-scope">The scope</h3>
 <p><code translate="no" v-pre>CommandContext.getScope()</code> is a <code translate="no" v-pre>CommandScope</code>: what the command works on and who answers its questions. A command takes the book from it
 (<code translate="no" v-pre>getManuscript()</code>, read again from the database every time, <code translate="no" v-pre>getLorebook()</code> the root lorebook of the book) and asks with
@@ -696,7 +699,7 @@ change nothing).</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (fd4c8ea6d).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (31619cd57).</p></div>
             </footer>
         </div>
     </div>

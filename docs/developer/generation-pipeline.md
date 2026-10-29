@@ -121,8 +121,10 @@ Events: `BEFORE_PREPARE_GENERATION`, `AFTER_PREPARE_GENERATION`.
 Fills a new `PrePromptData` with the parts of the prompt that don't depend on the story:
 
 - the provider's jailbreak (if *Needs Jailbreak* is on) and its token count,
-- the book's effective prompts - master template, POV, tense, style, user prompt - each resolved book → user settings
-  → `Defaults` by `ManuscriptService`.
+- the book's effective prompts - master template, POV, tense, style, user prompt - each resolved book → the folders above it → user settings
+  → `Defaults` by `ManuscriptService` (`resolve(book, PromptField)`, see [Folders](folders.md#resolving-a-setting)). The step that creates
+  the new part writes the book back with `ManuscriptService.update` (it loads the stored book and sets only the global template variables and the
+  active leaf), so settings changed, or a book moved to a folder, while the generation ran are not overwritten.
 
 After `AFTER_STATIC_TEMPLATE_DATA` (where listeners may replace any of these), it renders the **user prompt** template
 with `UserPromptData` (the four `TurnInput` fields) into `userPromptProcessed` and counts its tokens. The first

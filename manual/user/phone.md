@@ -42,10 +42,20 @@ While the *Settings* tab has unsaved changes, the drawer is locked as on the des
 ### Books
 
 The book list is one column. Above it are the name filter, the tag filter and the sort buttons (*Last Modified*,
-*Created*, *Name*; tap the active one again to reverse the order), then **Add Book**, the magnifier (the [advanced search](books/managing-books.md#advanced-search): tags to include and exclude, dates, number of parts and text) and refresh. Each book has two
-buttons: the pencil opens it, the trash deletes it (into the [Trash](trash.md)).
+*Created*, *Name*; tap the active one again to reverse the order), then **Add Book**, the magnifier (the [advanced search](books/managing-books.md#advanced-search): tags to include and exclude, dates, number of parts and text) and refresh. Each book has
+buttons: the star makes it a favorite, **Move to folder** puts it into a [folder](books/folders.md), the pencil opens it and the trash deletes it (into the [Trash](trash.md)).
 
 ![The book list on a phone](../images/phone-book-list.png)
+
+The list shows one [folder](books/folders.md) at a time, as on the desktop: the path of the folder you are in as buttons to go back on,
+the check box **Include subfolders**, then the folders above the books (tap one to go in; it shows how many books are beneath it) and, at
+the top level, the virtual **Favorites** folder. The name and tag filters search the current folder, or everything below it with *Include
+subfolders*. **Add Book** and the imports put the new book into the folder you are in. The folder you are in is remembered.
+
+![Folders on a phone](../images/phone-folders.png)
+
+A folder can't be made, renamed or deleted on the phone, and there is no *Organise* window or mass change; do that on a computer. The
+language of a book can be inherited from a folder here too, and the *Prompts* tab shows where each value comes from.
 
 ### Lorebooks
 
