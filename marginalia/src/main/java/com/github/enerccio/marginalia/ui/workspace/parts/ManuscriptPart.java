@@ -331,13 +331,14 @@ public class ManuscriptPart implements ManuscriptSection {
     }
 
     /**
-     * The buttons of a folder row: rename and delete (the folder opens from its name).
+     * The buttons of a folder row: rename, settings and delete (the folder opens from its name).
      */
     @PublicAPI(from = "1.6.0",
             returns = @APIReturn(type = Component.class),
             parameters = {@APIParameter(name = "folder", type = Folder.class)},
             locals = {@APILocals(name = "actions", type = HorizontalLayout.class),
                     @APILocals(name = "renameButton", type = Button.class),
+                    @APILocals(name = "settingsButton", type = Button.class),
                     @APILocals(name = "deleteButton", type = Button.class)})
     private Component folderTools(Folder folder) {
         HorizontalLayout actions = new HorizontalLayout();
@@ -346,11 +347,14 @@ public class ManuscriptPart implements ManuscriptSection {
         Button renameButton = new Button(Solid.PENCIL.create(), _ -> new FolderActions().rename(folder, _ -> refreshGrid()));
         renameButton.setTooltipText(loc.getValue(L.LABEL_RENAME));
 
+        Button settingsButton = new Button(Solid.COG.create(), _ -> new FolderDialog(folder, _ -> refreshGrid()).show());
+        settingsButton.setTooltipText(loc.getValue(L.LABEL_FOLDER_SETTINGS));
+
         Button deleteButton = new Button(Solid.TRASH.create(), _ -> new FolderActions().delete(folder, this::refreshGrid));
         deleteButton.setThemeName("error tertiary");
         deleteButton.setTooltipText(loc.getValue(L.LABEL_DELETE_FOLDER));
 
-        actions.add(renameButton, deleteButton);
+        actions.add(renameButton, settingsButton, deleteButton);
         return actions;
     }
 

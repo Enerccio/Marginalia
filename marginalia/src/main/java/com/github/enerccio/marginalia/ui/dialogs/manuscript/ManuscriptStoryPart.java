@@ -730,11 +730,16 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     }
 
     // lang drives the browser's hyphenation dictionary (see hyphens in shared-styles.css)
-    @PublicAPI(from = "1.1.0",
+    @PublicAPI(from = "1.6.0",
             returns = @APIReturn(type = void.class),
-            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)})
+            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)},
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private void applyLanguage(Manuscript manuscript) {
-        leftBar.getElement().setAttribute("lang", manuscript.getLanguage().getCode());
+        try {
+            leftBar.getElement().setAttribute("lang", manuscriptService.getLanguage(manuscript).getCode());
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     @PublicAPI(from = "1.1.0",

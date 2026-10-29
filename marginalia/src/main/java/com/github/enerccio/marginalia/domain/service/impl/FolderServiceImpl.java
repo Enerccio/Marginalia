@@ -157,6 +157,32 @@ public class FolderServiceImpl extends ExtendableServiceImpl<Folder, FolderRepos
 
     @Override
     @CommonTx
+    public Folder update(Folder folder, Details details) throws Exception {
+        Folder stored = findOwned(folder);
+        if (stored == null) {
+            return null;
+        }
+        Map<PromptField, String> changed = new LinkedHashMap<>();
+        for (Map.Entry<PromptField, String> prompt : details.prompts().entrySet()) {
+            String now = StringUtils.defaultIfBlank(prompt.getKey().ofFolder(stored), null);
+            String next = StringUtils.defaultIfBlank(prompt.getValue(), null);
+            if (!Objects.equals(now, next)) {
+                changed.put(prompt.getKey(), next);
+            }
+        }
+        boolean languageChanged = !Objects.equals(stored.getLanguage(), details.language());
+        if (!changed.isEmpty() || languageChanged) {
+            checkNoLockedBook(subtree(stored));
+            changed.forEach((field, value) -> field.setOfFolder(stored, value));
+            stored.setLanguage(details.language());
+        }
+        stored.setName(details.name());
+        stored.setDescription(details.description());
+        return save(stored);
+    }
+
+    @Override
+    @CommonTx
     public Folder move(Folder folder, Folder newParent) throws Exception {
         Folder stored = findOwned(folder);
         if (stored == null) {
@@ -612,7 +638,11 @@ public class FolderServiceImpl extends ExtendableServiceImpl<Folder, FolderRepos
      */
     private void checkNoLockedBook(List<Folder> folders) throws Exception {
         for (Manuscript book : booksIn(folders)) {
-            agentRunService.checkNotLocked(book);
+            try {
+                agentRunService.checkNotLocked(book);
+            } catch (ManuscriptLockedException e) {
+                throw new FolderBookLockedException(e.getAgentName(), book.getName());
+            }
         }
     }
 }

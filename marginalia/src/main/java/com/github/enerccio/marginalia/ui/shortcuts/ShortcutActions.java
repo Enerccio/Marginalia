@@ -47,6 +47,8 @@ public final class ShortcutActions {
     public static final String ORGANISE_RENAME = "organise.rename";
     /** Deletes the folder or book under the cursor of the Organise window. */
     public static final String ORGANISE_DELETE = "organise.delete";
+    /** Opens the settings of the folder under the cursor of the Organise window. */
+    public static final String ORGANISE_FOLDER_SETTINGS = "organise.folderSettings";
 
     /** Opens the mass change of the model and protocol for the marked books of the Organise window (or the folder of the active pane). */
     public static final String ORGANISE_MODEL_PROTOCOL = "organise.modelProtocol";

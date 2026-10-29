@@ -774,6 +774,10 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_SHOW_FOLDER_IN_LIST, "Show folder in the list");
         setValue(L.LABEL_SWITCH_PANE, "Switch pane");
         setValue(L.LABEL_SHOW_IN_FOLDER, "Show in folder");
+        setValue(L.LABEL_FOLDER_SETTINGS, "Folder settings");
+        setValue(L.LABEL_INHERITED_FROM_FOLDER, "Inherited from the folder \"%s\"");
+        setValue(L.LABEL_INHERITED_FROM_USER, "Inherited from your settings");
+        setValue(L.LABEL_INHERITED_DEFAULT, "Built-in default");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1019,6 +1023,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_FOLDER_CLASH_ON_DELETE, "A folder inside has the same name as a folder in the folder above. Rename one of them first.");
         setValue(L.ERROR_FOLDER_GONE, "The folder no longer exists.");
         setValue(L.ERROR_FOLDER_TRANSFER_REFUSED, "This can't be done: a folder can't be put into itself or a folder below it, and a folder name must be free.");
+        setValue(L.ERROR_FOLDER_BOOK_LOCKED, "The book \"%2$s\" in this folder is locked by the agent \"%1$s\". Pause or stop its run first.");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -1418,6 +1423,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_MASS_CHANGE_MODEL_PROTOCOL, "Pick the model and/or the protocol to put on the books and check the books. An empty choice means \"do not replace\": that part of the book stays as it is. Books an agent works on are grayed out and can't be changed.");
         setValue(L.HELP_MASS_CHANGE_LANGUAGE, "Pick the language to put on the books and check the books. Books an agent works on are grayed out and can't be changed.");
         setValue(L.HELP_ORGANISE, "Left / Right / Tab: other pane. Enter: open a folder. Backspace: up. Space or Insert: mark. The keys of the buttons can be changed in the settings (key bindings).");
+        setValue(L.HELP_FOLDER_SETTINGS, "The books in this folder and in the folders below it use these settings unless they set their own. An empty field is inherited from the folder above, then from your settings.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

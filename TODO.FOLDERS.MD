@@ -100,17 +100,22 @@ built as a series of commits (one per step of *Order of work*, each leaving the 
     Done: *Add book* and both imports use `NewBookAction(opener, currentFolder)`.
   - ✅ **P6 Tests.** Extend `FolderListTest` or add a phone twin; `PublicAPISignatureTest` for the touched `@Extendable` classes.
     Done: `PhoneManuscriptPartFoldersTest` (12 tests: structure, tap in / breadcrumb out, subfolders, filters scoped, state, gone folder, buttons of a book card, favorites, move); `PublicAPISignatureTest` passes. The new book itself and the move picker dialog are not driven (dialogs of a test are not in the UI); the phone layout is not seen in a browser.
-- ⬜ **Step 3, folder settings and "inherited from"**:
-  - ⬜ **S1 Reusable settings form.** Extract the field editors of `ManuscriptPromptPart` / `ManuscriptInfoPart` (template, pov, tense, style, the
+- ✅ **Step 3, folder settings and "inherited from"**:
+  - ✅ **S1 Reusable settings form.** Extract the field editors of `ManuscriptPromptPart` / `ManuscriptInfoPart` (template, pov, tense, style, the
     prompts, language) into a form usable for a `Manuscript` and a `Folder`, each field with the inherited value as placeholder and a label
     *inherited from X* (`ManuscriptService.resolve` → `EffectiveSetting.origin/folder`).
-  - ⬜ **S2 Folder dialog.** Name, description, tags (`MultiTagDialog.Kind.FOLDERS`) and the S1 form; opened from the list (row button) and from the
+    Done: `PromptSettingsForm` (ui.widgets) holds the 12 text settings (`PromptField`), the same for a book and a folder, with the placeholder from the new `ManuscriptService.resolveInherited(folder, field)` and the line *Inherited from ...* under an empty field; the validation of the templates moved into it. The language is not in it: it comes with S4 (the combo is in `ManuscriptInfoPart`).
+  - ✅ **S2 Folder dialog.** Name, description, tags (`MultiTagDialog.Kind.FOLDERS`) and the S1 form; opened from the list (row button) and from the
     two-pane dialog. Blocked with the book named when a book beneath is locked; rename is not.
-  - ⬜ **S3 Book dialog.** Same placeholders and origin labels in the book's settings (desktop and phone twins).
-  - ⬜ **S4 Language.** *Inherit* entry in the language combo (empty = inherit), the 5 UI places (`ExportDialog`, both story parts, `Viewer`,
+    Done: `FolderDialog` (saved with a button through `FolderService.update`), opened by the cog button of a folder row of the list and by the *Folder settings* button / key `s` of the Organise window (`ORGANISE_FOLDER_SETTINGS`). The tags are the `TagMultiComboBox` of the book window (saved as picked). A locked book below refuses a changed setting with `FolderBookLockedException` (the message names the book); a name or description change goes through. Desktop only, the phone edits no folders.
+  - ✅ **S3 Book dialog.** Same placeholders and origin labels in the book's settings (desktop and phone twins).
+    Done: `ManuscriptPromptPart` and `PhoneManuscriptPromptPart` use the form; the folder is the one of the book. Tests: `BookPromptSettingsTest`, `FolderDialogTest`, `FolderSettingsTest`. Not seen in a browser; the folder window's layout on a phone is not driven (a phone has no folder rows to open it from).
+  - ✅ **S4 Language.** *Inherit* entry in the language combo (empty = inherit), the 5 UI places (`ExportDialog`, both story parts, `Viewer`,
     `MassChangeLanguageDialog`) switch to `getLanguage(book)`.
-  - ⬜ **S5 Tests and plugin check.** Dialog test (set, clear → inherit, origin label), `PublicAPISignatureTest`, grep the plugins for the old
+    Done: `InheritedLanguageCombo` (a clear button is the *inherit* choice, the placeholder and the line under it say what is inherited and from where) in both info tabs and in the folder window (`FolderService.Details.language`; a changed language is refused while an agent works on a book below, like the prompts); the five places use `ManuscriptService.getLanguage(book)`; a book without a language no longer turns into English when the info tab saves.
+  - ✅ **S5 Tests and plugin check.** Dialog test (set, clear → inherit, origin label), `PublicAPISignatureTest`, grep the plugins for the old
     getters and `ManuscriptPart` locals.
+    Done: `FolderDialogTest`, `BookPromptSettingsTest` (set, clear → inherit, the origin line, desktop and phone), `FolderSettingsTest`, `MassChangeLanguageDialogTest` (a book shows the language of its folder); `PublicAPISignatureTest` passes; the plugins read none of the changed getters or locals (the reviewer reads `protocolCombo` of the info tabs, which is unchanged). The export and the reader are not driven (the language code goes into the file / the page). Full suite run once: green except the key-binding uniqueness test, which found `s` taken by a story menu action, so the key is `i`.
 - ⬜ **Step 4, the rest**:
   - ⬜ **R1 Folder modification bump.** `JpaManuscriptRepository.changed` and `touchBook` bump the ancestor folders (`WHERE id IN (:ancestorIds)`);
     decide `saveWithoutModification` for `swipeAndSwitch` / `branchAndSwitch` / active leaf. Test in `ModificationTest`.

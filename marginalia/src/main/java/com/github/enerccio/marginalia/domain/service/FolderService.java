@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service;
 
+import com.github.enerccio.marginalia.domain.collections.Language;
 import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.FolderRepository;
@@ -133,6 +134,22 @@ public interface FolderService extends ExtendableService<Folder, FolderRepositor
      * Renames the folder, allowed while an agent works on a book in it. Returns null when the folder no longer exists.
      */
     Folder rename(Folder folder, String name) throws Exception;
+
+    /**
+     * What the settings dialog of a folder sets: the name, the description, the language (null: the folder inherits it) and
+     * the text settings (a blank text is not set, the folder inherits it). A prompt missing from the map is left as it is.
+     */
+    record Details(String name, String description, Language language, Map<PromptField, String> prompts) {
+    }
+
+    /**
+     * Writes the details to the stored folder (not to the copy the caller holds, which may be old: what the dialog does
+     * not set is kept). Changing the language or a text setting changes what the books below the folder inherit, so it is refused while an
+     * agent works on one of them; the name and the description are not. Returns null when the folder no longer exists.
+     *
+     * @throws FolderBookLockedException when a setting changes and an agent works on a book in the folder or below it
+     */
+    Folder update(Folder folder, Details details) throws Exception;
 
     /**
      * Puts the folder, with everything in it, into another folder (null is the top level). Returns null when the folder no

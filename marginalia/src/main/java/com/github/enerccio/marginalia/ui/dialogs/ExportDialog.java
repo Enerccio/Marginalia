@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ExporterService;
 import com.github.enerccio.marginalia.domain.service.ExporterService.ExportOptions;
 import com.github.enerccio.marginalia.domain.service.ExporterService.Exporter;
+import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -54,6 +55,9 @@ public class ExportDialog extends Dialog implements LLMInteract {
 
     @Autowired
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private ManuscriptService manuscriptService;
 
     @Autowired
     private User user;
@@ -116,10 +120,12 @@ public class ExportDialog extends Dialog implements LLMInteract {
         getFooter().add(new Button(loc.getValue(L.LABEL_CANCEL), event -> close()), export);
     }
 
-    @PublicAPI(from = "1.1.0",
+    @PublicAPI(from = "1.6.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "exporter", type = ExporterService.Exporter.class),
                     @APILocals(name = "field", type = TextField.class),
+                    @APILocals(name = "languageCode", type = String.class),
+                    @APILocals(name = "e", type = Exception.class),
                     @APILocals(name = "options", type = ExporterService.ExportOptions.class),
                     @APILocals(name = "file", type = String.class),
                     @APILocals(name = "last", type = Integer.class)})
@@ -143,8 +149,15 @@ public class ExportDialog extends Dialog implements LLMInteract {
             return;
         }
 
+        String languageCode;
+        try {
+            languageCode = manuscriptService.getLanguage(manuscript).getCode();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+            return;
+        }
         ExportOptions options = new ExportOptions(bookTitle.getValue().trim(), StringUtils.trimToEmpty(author.getValue()),
-                includeHeaders.getValue(), manuscript.getLanguage().getCode());
+                includeHeaders.getValue(), languageCode);
         String file = fileNameFor(fileName.getValue(), exporter);
         int first = from.getValue() == null ? 1 : from.getValue();
         Integer last = to.getValue();

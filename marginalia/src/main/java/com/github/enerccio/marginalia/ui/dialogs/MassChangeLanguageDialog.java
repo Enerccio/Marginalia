@@ -48,7 +48,7 @@ import java.util.*;
 public class MassChangeLanguageDialog extends Dialog implements LLMInteract {
 
     /**
-     * One book of the list: how it is shown, whether it can be changed, its language now and whether it is checked.
+     * One book of the list: how it is shown, whether it can be changed, its language now (the one it has with its folders) and whether it is checked.
      */
     static final class Row {
         private final Manuscript book;
@@ -57,10 +57,10 @@ public class MassChangeLanguageDialog extends Dialog implements LLMInteract {
         private final boolean locked;
         private boolean checked;
 
-        private Row(Manuscript book, String name, boolean locked) {
+        private Row(Manuscript book, String name, boolean locked, Language language) {
             this.book = book;
             this.name = name;
-            this.language = book.getLanguage();
+            this.language = language;
             this.locked = locked;
         }
 
@@ -276,7 +276,7 @@ public class MassChangeLanguageDialog extends Dialog implements LLMInteract {
             for (Manuscript book : booksInScope(nested)) {
                 // with the folders below listed too, a book is told apart by its folder
                 String bookName = nested ? BookLabels.label(book, paths) : StringUtils.defaultString(book.getName());
-                loaded.add(new Row(book, bookName, agentRunService.findLockingRun(book) != null));
+                loaded.add(new Row(book, bookName, agentRunService.findLockingRun(book) != null, manuscriptService.getLanguage(book)));
             }
             Set<Long> checked = new HashSet<>();
             rows.stream().filter(row -> row.checked).forEach(row -> checked.add(row.book.getId()));
