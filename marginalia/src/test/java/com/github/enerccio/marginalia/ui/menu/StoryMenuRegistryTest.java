@@ -127,7 +127,7 @@ class StoryMenuRegistryTest extends MarginaliaTestBase {
         assertThat(keys(registry.definition(MenuKind.TOOLS, true, null))).containsExactly(
                 StoryMenuKeys.CHANGE_STYLES, StoryMenuKeys.SEARCH_REPLACE, StoryMenuKeys.IMPORT_ARCHIVE, StoryMenuKeys.ANNOTATE_RANGE,
                 StoryMenuKeys.AUTO_ANNOTATE, StoryMenuKeys.BRANCH_TOKENS, StoryMenuKeys.EXPORT, StoryMenuKeys.MASS_DELETE);
-        assertThat(registry.definition(MenuKind.CARD, false, null).getItems()).hasSize(15);
+        assertThat(registry.definition(MenuKind.CARD, false, null).getItems()).hasSize(16);
         assertThat(keys(registry.definition(MenuKind.CARD, false, null))).startsWith(StoryMenuKeys.EDIT, StoryMenuKeys.DISCARD);
         assertThat(keys(registry.definition(MenuKind.TEXT, true, null))).containsExactly(
                 StoryMenuKeys.TEXT_ANNOTATE_SELECTION, StoryMenuKeys.TEXT_REDRAFT_SELECTION, StoryMenuKeys.TEXT_COPY);

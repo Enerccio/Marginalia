@@ -2059,5 +2059,20 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
                 UIUtils.internalServerError(loc, e);
             }
         }
+
+        @PublicAPI(from = "1.6.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "dialog", type = PromptComparisonDialog.class),
+                        @APILocals(name = "e", type = Exception.class)})
+        @Override
+        public void comparePrompt() {
+            try {
+                PromptComparisonDialog dialog = new PromptComparisonDialog(message);
+                dialog.create();
+                dialog.open();
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        }
     }
 }

@@ -793,6 +793,14 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_SAVE_LAYOUT_AS_DEFAULT, "将布局保存为我的默认布局");
         setValue(L.LABEL_MASS_DELETE, "批量删除");
         setValue(L.LABEL_N_SELECTED, "已选择 %s 项");
+        setValue(L.LABEL_COMPARE_PROMPT, "比较提示词");
+        setValue(L.LABEL_COMPARE_WITH, "比较对象");
+        setValue(L.LABEL_COMPARE_EARLIER_PROMPT, "之前的提示词");
+        setValue(L.LABEL_COMPARE_THIS_PROMPT, "此提示词");
+        setValue(L.LABEL_COMPARE_CHARACTERS, "字符");
+        setValue(L.LABEL_COMPARE_CACHE, "缓存");
+        setValue(L.LABEL_COMPARE_READ_AGAIN, "重新读取");
+        setValue(L.LABEL_COMPARE_ALTERNATIVE, "备选");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1349,6 +1357,20 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_LAYOUT_SAVED_AS_DEFAULT, "标签页排列已保存。没有自己排列的书将按此排列打开。");
         setValue(L.MSG_CONFIRM_MASS_DELETE, "删除所选的 %s 个部分吗？被删除部分之后的内容将接在其父部分之后。");
         setValue(L.MSG_DELETING_PARTS, "正在删除部分");
+        setValue(L.MSG_PROMPT_COMPARE_NO_PROMPT, "此部分没有保存的提示词（由作者输入，或在保存提示词之前生成）。");
+        setValue(L.MSG_PROMPT_COMPARE_NO_CANDIDATE, "没有保存了提示词、可供比较的之前部分或备选部分。");
+        setValue(L.MSG_PROMPT_COMPARE_UNREADABLE, "保存的提示词无法比较（它们不是消息列表）。");
+        setValue(L.MSG_PROMPT_COMPARE_NO_DIFFERENCE, "提示词相同。");
+        setValue(L.MSG_PROMPT_COMPARE_FIRST_DIFFERENCE, "第一处不同：第 %d 条消息，第 %d 个字符。");
+        setValue(L.MSG_PROMPT_COMPARE_SHARED, "此提示词的 %d%%（%d / %d 个字符，约 %d / %d 个令牌）从开头起与之前的相同。提示词缓存只能覆盖这么多，其余部分会重新读取。");
+        setValue(L.MSG_PROMPT_COMPARE_IDENTICAL, "两个提示词相同，提示词缓存可覆盖全部内容。");
+        setValue(L.MSG_PROMPT_COMPARE_EXTENDED, "此提示词以完整的之前提示词开头，并在其后添加了消息。缓存可用到之前提示词的末尾。");
+        setValue(L.MSG_PROMPT_COMPARE_SHORTENED, "此提示词是之前提示词的开头部分，消息更少。");
+        setValue(L.MSG_PROMPT_COMPARE_LAST_MESSAGE, "第一处不同是之前提示词的最后一条消息，即该回合的用户消息。它不会在故事中重复，所以这是下一个部分或重新生成所能复用的最大范围。如果缓存仍未被使用，原因不在提示词（请检查服务器槽位、模型和会话 ID）。");
+        setValue(L.MSG_PROMPT_COMPARE_SYSTEM_CHANGED, "系统消息不同，因此缓存在开头就结束，整个故事会重新读取。系统消息包含越狱提示、主模板、设定、摘要和笔记：其中之一在两次请求之间发生了变化。对每个部分都会变化的设定条目请使用“在用户提示之前”。");
+        setValue(L.MSG_PROMPT_COMPARE_HISTORY_SHIFTED, "此处出现的故事消息在之前的提示词中位于别处：故事的起点移动了（最早的部分放不下被舍弃，或部分被摘要替换）。此后的所有内容都会重新读取。");
+        setValue(L.MSG_PROMPT_COMPARE_HISTORY_CHANGED, "故事中间的一条消息与之前的提示词不同：某个部分被编辑、重新生成或被摘要替换。其后的所有内容都会重新读取。");
+        setValue(L.MSG_PROMPT_COMPARE_ROLE_CHANGED, "第一处不同位置的消息角色不同，提示词的结构发生了变化。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

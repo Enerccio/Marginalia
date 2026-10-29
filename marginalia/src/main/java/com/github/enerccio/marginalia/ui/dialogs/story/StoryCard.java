@@ -92,6 +92,11 @@ public interface StoryCard {
 
     void showPrompt();
 
+    /**
+     * Opens the dialog that compares the prompt of the part with an earlier one (why a prompt cache was not reused).
+     */
+    void comparePrompt();
+
     void showTokenUsage();
 
     void openImagesDialog();

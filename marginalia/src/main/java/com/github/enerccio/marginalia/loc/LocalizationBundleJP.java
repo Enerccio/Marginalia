@@ -785,6 +785,14 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_SAVE_LAYOUT_AS_DEFAULT, "このレイアウトを既定として保存");
         setValue(L.LABEL_MASS_DELETE, "一括削除");
         setValue(L.LABEL_N_SELECTED, "%s件選択中");
+        setValue(L.LABEL_COMPARE_PROMPT, "プロンプトを比較");
+        setValue(L.LABEL_COMPARE_WITH, "比較対象");
+        setValue(L.LABEL_COMPARE_EARLIER_PROMPT, "以前のプロンプト");
+        setValue(L.LABEL_COMPARE_THIS_PROMPT, "このプロンプト");
+        setValue(L.LABEL_COMPARE_CHARACTERS, "文字数");
+        setValue(L.LABEL_COMPARE_CACHE, "キャッシュ");
+        setValue(L.LABEL_COMPARE_READ_AGAIN, "再読み込み");
+        setValue(L.LABEL_COMPARE_ALTERNATIVE, "代替");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1341,6 +1349,20 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_LAYOUT_SAVED_AS_DEFAULT, "タブの配置を保存しました。独自の配置を持たない本は、この配置で開きます。");
         setValue(L.MSG_CONFIRM_MASS_DELETE, "選択した%s個のパートを削除しますか？削除したパートの後続は、その親から続きます。");
         setValue(L.MSG_DELETING_PARTS, "パートを削除しています");
+        setValue(L.MSG_PROMPT_COMPARE_NO_PROMPT, "このパートには保存されたプロンプトがありません（作者が入力したか、プロンプトを保存する前に生成されました）。");
+        setValue(L.MSG_PROMPT_COMPARE_NO_CANDIDATE, "比較できる保存済みプロンプトを持つ以前のパートも代替もありません。");
+        setValue(L.MSG_PROMPT_COMPARE_UNREADABLE, "保存されたプロンプトは比較できません（メッセージのリストではありません）。");
+        setValue(L.MSG_PROMPT_COMPARE_NO_DIFFERENCE, "プロンプトは同じです。");
+        setValue(L.MSG_PROMPT_COMPARE_FIRST_DIFFERENCE, "最初の相違: メッセージ %d、%d 文字目。");
+        setValue(L.MSG_PROMPT_COMPARE_SHARED, "このプロンプトの %d%%（%d / %d 文字、約 %d / %d トークン）は先頭から以前のものと同じです。プロンプトキャッシュが使えるのはここまでで、残りは再び読み込まれます。");
+        setValue(L.MSG_PROMPT_COMPARE_IDENTICAL, "両方のプロンプトは同じで、プロンプトキャッシュがすべてをカバーします。");
+        setValue(L.MSG_PROMPT_COMPARE_EXTENDED, "このプロンプトは以前のプロンプト全体で始まり、その後にメッセージが追加されています。キャッシュは以前のプロンプトの終わりまで使われます。");
+        setValue(L.MSG_PROMPT_COMPARE_SHORTENED, "このプロンプトは以前のものの先頭部分で、メッセージ数が少ないです。");
+        setValue(L.MSG_PROMPT_COMPARE_LAST_MESSAGE, "最初の相違は以前のプロンプトの最後のメッセージ、つまりそのターンのユーザーメッセージです。これは物語の中で繰り返されないため、次のパートやスワイプが再利用できる最大限です。それでもキャッシュが使われなかった場合、原因はプロンプトではありません（サーバーのスロット、モデル、セッション ID を確認してください）。");
+        setValue(L.MSG_PROMPT_COMPARE_SYSTEM_CHANGED, "システムメッセージが異なるため、キャッシュは先頭で終わり、物語全体が再び読み込まれます。システムメッセージにはジェイルブレイク、マスターテンプレート、ロア、要約、メモが含まれ、2つのリクエストの間にそのいずれかが変わりました。パートごとに変わるロアエントリには「ユーザープロンプトの前」を使ってください。");
+        setValue(L.MSG_PROMPT_COMPARE_HISTORY_SHIFTED, "以前のプロンプトでは別の位置にあった物語のメッセージがここに現れています。物語の開始位置が動きました（古いパートが収まらず除外されたか、パートが要約に置き換えられました）。この位置以降はすべて再び読み込まれます。");
+        setValue(L.MSG_PROMPT_COMPARE_HISTORY_CHANGED, "物語の途中のメッセージが以前のプロンプトと異なります。パートが編集、再生成、または要約に置き換えられました。この位置以降はすべて再び読み込まれます。");
+        setValue(L.MSG_PROMPT_COMPARE_ROLE_CHANGED, "最初の相違位置のメッセージの役割が異なり、プロンプトの構造が変わりました。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
