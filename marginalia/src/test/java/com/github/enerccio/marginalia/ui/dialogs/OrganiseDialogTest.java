@@ -224,6 +224,20 @@ class OrganiseDialogTest extends MarginaliaTestBase {
     }
 
     @Test
+    void clickingABoxWithShiftMarksTheRangeFromTheBoxClickedBefore() {
+        OrganiseDialog dialog = dialog(null, null);
+        List<String> names = dialog.names(true);
+
+        dialog.clickBox(true, names.get(0), true, false);
+        dialog.clickBox(true, names.get(2), true, true);
+        assertThat(dialog.marked(true)).containsExactlyInAnyOrderElementsOf(names.subList(0, 3));
+
+        // a click with Shift clears the range like the box it was made on
+        dialog.clickBox(true, names.get(1), false, true);
+        assertThat(dialog.marked(true)).containsExactly(names.get(0));
+    }
+
+    @Test
     void theEntryAboveCanNotBeMarked() {
         OrganiseDialog dialog = dialog(null, scifi);
 
