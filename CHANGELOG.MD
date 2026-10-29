@@ -17,6 +17,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **The *Last modified* of a book follows its parts by itself.** Saving, adding, deleting or removing a part (and moving its children) now sets the `modification` of the book, whoever does it, not only the code that also saves the book. Summaries, annotations and prompts of a part do not count, nor does opening a book. New `saveWithoutModification` on `BaseRepository` and `BaseService` (and their implementations): saves the entity as it is, `modification` is kept and the book is not touched; new `JpaBaseRepository.changed` hook that a repository overrides to tell the owner of the entity (`JpaChatMessageRepository` does for the book).
 
+### Fixed
+
+- **A generation, or a window left open, no longer writes old values of a book back.** A generation held the book from its start and saved that copy again when it created the part, and the window *Auto annotate* and the assistant command that makes a part the end of the branch did the same, so a setting changed (or a book moved to a folder) in the meantime was undone. They now load the book again and write only what they change. New `ManuscriptService.update(book, change)` (`BookChange`) does that, and `ManuscriptService.save` checks that the folder of the book is its owner's.
+
 ## [1.5.0] - 2026-10-28
 
 Everything below is new since 1.4.0. Migrations `V19` and `V20`; plugins have to be rebuilt with the application.

@@ -138,14 +138,16 @@ public class AutoAnnotateDialog extends Dialog {
     private void save() {
         try {
             boolean redrafts = accept.getValue() && redraft.getValue();
-            manuscript.setAutoAnnotate(enabled.getValue());
-            manuscript.setAutoAnnotateInstructions(StringUtils.defaultIfBlank(instructions.getValue(), null));
-            manuscript.setAutoAnnotateModel(model.getAi() == null ? null : model.getAi().getUuid());
-            manuscript.setAutoAnnotateProtocol(model.getProtocol() == null ? null : model.getProtocol().getUuid());
-            manuscript.setAutoAnnotateAccept(accept.getValue());
-            manuscript.setAutoAnnotateRedraft(redrafts);
-            manuscript.setAutoAnnotateAcceptRedraft(redrafts && acceptRedraft.getValue());
-            manuscriptService.save(manuscript);
+            // the book is loaded again, the window has had it since it opened
+            manuscriptService.update(manuscript, book -> {
+                book.setAutoAnnotate(enabled.getValue());
+                book.setAutoAnnotateInstructions(StringUtils.defaultIfBlank(instructions.getValue(), null));
+                book.setAutoAnnotateModel(model.getAi() == null ? null : model.getAi().getUuid());
+                book.setAutoAnnotateProtocol(model.getProtocol() == null ? null : model.getProtocol().getUuid());
+                book.setAutoAnnotateAccept(accept.getValue());
+                book.setAutoAnnotateRedraft(redrafts);
+                book.setAutoAnnotateAcceptRedraft(redrafts && acceptRedraft.getValue());
+            });
             Notification.success(loc.getValue(L.MSG_AUTO_ANNOTATE_SAVED));
             close();
             onSaved.run();

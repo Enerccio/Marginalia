@@ -53,6 +53,25 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
     Manuscript findViewable(String uuid) throws Exception;
 
     /**
+     * A change of a book that can throw.
+     */
+    @FunctionalInterface
+    interface BookChange {
+        void apply(Manuscript book) throws Exception;
+    }
+
+    /**
+     * Applies the change to a freshly loaded copy of the book and saves it. The way to change a book that the caller holds
+     * from an earlier time (a generation, an open window): only what the change sets is written, not the old values of the
+     * rest, which someone else may have changed since (the folder, the settings, the active leaf).
+     *
+     * @return the saved book
+     * @throws IllegalStateException when the book no longer exists (nothing is applied)
+     * @throws ManuscriptLockedException when an agent works on the book
+     */
+    Manuscript update(Manuscript book, BookChange change) throws Exception;
+
+    /**
      * Puts the books on the folder (null is the top level). It is not a change of the content, so the books are not saved
      * and their {@code modification} stays.
      *
