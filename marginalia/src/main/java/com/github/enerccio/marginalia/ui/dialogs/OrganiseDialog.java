@@ -18,6 +18,7 @@ import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.dialogs.agent.AgentLockCheck;
 import com.github.enerccio.marginalia.ui.shortcuts.KeyBindings;
 import com.github.enerccio.marginalia.ui.shortcuts.ShortcutActions;
+import com.github.enerccio.marginalia.ui.widgets.MassDeleteBox;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonObject;
@@ -272,6 +273,12 @@ public class OrganiseDialog extends Dialog {
         Pane pane = leftPane ? left : right;
         pane.moveCursor(pane.grid.getListDataView().getItems().filter(entry -> entry.name().equals(name)).findFirst().orElseThrow());
         activate(pane);
+    }
+
+    /** Clicks the box of the entry like the user does, with Shift held or not. */
+    void clickBox(boolean leftPane, String name, boolean checked, boolean shift) {
+        Pane pane = leftPane ? left : right;
+        pane.clicked(pane.grid.getListDataView().getItems().filter(entry -> entry.name().equals(name)).findFirst().orElseThrow(), checked, shift);
     }
 
     /** The name of the entry under the cursor of the pane, null when there is none. */
@@ -738,13 +745,18 @@ public class OrganiseDialog extends Dialog {
         private final VerticalLayout layout;
         // the entry under the cursor, the last one the grid reported focus on
         private Entry cursor;
+        // the marked entries (identity, see Entry) and the boxes that show them, the entry marked or cleared last is where a click with Shift starts
+        private final Set<Entry> marks = new HashSet<>();
+        private final Map<Entry, MassDeleteBox> boxes = new HashMap<>();
+        private Entry anchor;
 
         Pane(Folder folder) {
             this.folder = folder;
 
             grid.setSizeFull();
             grid.addThemeVariants(GridVariant.LUMO_COMPACT);
-            grid.setSelectionMode(Grid.SelectionMode.MULTI);
+            grid.setSelectionMode(Grid.SelectionMode.NONE);
+            grid.addComponentColumn(this::markBox).setFlexGrow(0).setWidth("56px");
             grid.addComponentColumn(entry -> name(entry)).setHeader(loc.getValue(L.LABEL_NAME)).setFlexGrow(3);
             grid.addColumn(entry -> entry.kind() == Kind.FOLDER ? count(entry.folder()) : "")
                     .setHeader(loc.getValue(L.LABEL_BOOKS)).setFlexGrow(0).setWidth("100px");
@@ -758,6 +770,8 @@ public class OrganiseDialog extends Dialog {
 
             // movement: the keys are caught on the grid, so they work in the pane that has the focus
             JavascriptLibrary.fireOrganiseKeys(grid.getElement(), actionKeys());
+            // a click on a box with Shift held must not select text
+            JavascriptLibrary.noTextSelectionOnShiftClick(grid.getElement(), CssStyles.MASS_DELETE_BOX);
             grid.getElement().addEventListener("organise-key", event -> key(event.getEventData().get("event.detail").asString()))
                     .addEventData("event.detail");
 
@@ -781,7 +795,7 @@ public class OrganiseDialog extends Dialog {
                 // the grid moves to the next row after this, the entry it leaves stays marked
                 case "Shift+ArrowUp", "Shift+ArrowDown" -> {
                     if (cursor != null && cursor.kind() != Kind.UP) {
-                        grid.select(cursor);
+                        setMarked(cursor, true);
                     }
                 }
                 // the id of an action of the row of buttons
@@ -800,6 +814,48 @@ public class OrganiseDialog extends Dialog {
                     grid.getListDataView().refreshItem(changed);
                 }
             }
+        }
+
+        /**
+         * The box that marks the entry, none for the entry above.
+         */
+        private com.vaadin.flow.component.Component markBox(Entry entry) {
+            if (entry.kind() == Kind.UP) {
+                return new Span();
+            }
+            MassDeleteBox box = new MassDeleteBox((checked, shift) -> clicked(entry, checked, shift));
+            box.setChecked(marks.contains(entry));
+            boxes.put(entry, box);
+            return box;
+        }
+
+        private void setMarked(Entry entry, boolean on) {
+            if (on ? marks.add(entry) : marks.remove(entry)) {
+                MassDeleteBox box = boxes.get(entry);
+                if (box != null) {
+                    box.setChecked(on);
+                }
+            }
+        }
+
+        /**
+         * The user clicked the box of the entry. With Shift held, all the entries between it and the one marked or cleared before are
+         * marked or cleared like it.
+         */
+        private void clicked(Entry entry, boolean on, boolean shift) {
+            List<Entry> entries = grid.getListDataView().getItems().toList();
+            int from = anchor == null ? -1 : entries.indexOf(anchor);
+            int to = entries.indexOf(entry);
+            if (shift && from >= 0 && to >= 0) {
+                for (Entry between : entries.subList(Math.min(from, to), Math.max(from, to) + 1)) {
+                    if (between.kind() != Kind.UP) {
+                        setMarked(between, on);
+                    }
+                }
+            } else {
+                setMarked(entry, on);
+            }
+            anchor = entry;
         }
 
         private com.vaadin.flow.component.Component name(Entry entry) {
@@ -843,8 +899,10 @@ public class OrganiseDialog extends Dialog {
                 for (Manuscript book : books) {
                     entries.add(new Entry(Kind.BOOK, null, book));
                 }
+                marks.clear();
+                boxes.clear();
+                anchor = null;
                 grid.setItems(entries);
-                grid.deselectAll();
                 // the grid focuses the first row when it gets the focus
                 cursor = entries.isEmpty() ? null : entries.getFirst();
                 path.setText(folder == null ? loc.getValue(L.LABEL_TOP_LEVEL) : folderService.getPath(folder));
@@ -906,16 +964,13 @@ public class OrganiseDialog extends Dialog {
             if (cursor == null || cursor.kind() == Kind.UP) {
                 return;
             }
-            if (grid.getSelectedItems().contains(cursor)) {
-                grid.deselect(cursor);
-            } else {
-                grid.select(cursor);
-            }
+            setMarked(cursor, !marks.contains(cursor));
+            anchor = cursor;
         }
 
         /** The marked entries only. */
         List<Entry> selectionOnlyMarked() {
-            return grid.getListDataView().getItems().filter(entry -> grid.getSelectedItems().contains(entry)).toList();
+            return grid.getListDataView().getItems().filter(marks::contains).toList();
         }
 
         /**
@@ -927,7 +982,7 @@ public class OrganiseDialog extends Dialog {
             List<Entry> entries = grid.getListDataView().getItems().toList();
             for (Entry entry : entries) {
                 if (entry.kind() == Kind.BOOK && entry.book().getId().equals(book.getId())) {
-                    grid.select(entry);
+                    setMarked(entry, true);
                     moveCursor(entry);
                     break;
                 }
@@ -940,7 +995,7 @@ public class OrganiseDialog extends Dialog {
          * is never one of them.
          */
         List<Entry> selection() {
-            List<Entry> marked = grid.getListDataView().getItems().filter(entry -> grid.getSelectedItems().contains(entry)).toList();
+            List<Entry> marked = selectionOnlyMarked();
             if (!marked.isEmpty()) {
                 return marked;
             }
@@ -976,7 +1031,7 @@ public class OrganiseDialog extends Dialog {
 
         // for the tests of the dialog
         Set<String> marked() {
-            return grid.getSelectedItems().stream().map(Entry::name).collect(java.util.stream.Collectors.toSet());
+            return marks.stream().map(Entry::name).collect(java.util.stream.Collectors.toSet());
         }
     }
 }

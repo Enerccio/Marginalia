@@ -32,6 +32,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- **The list of books follows the *Organise* window.** When the window is closed the list is read again (folders and books that were made, moved, copied, renamed or deleted), and if the folder the list was in is gone it goes to the top level. The entries of the panes are marked with the check box of the mass delete (`MassDeleteBox`) instead of the grid's own selection column; **Shift + click** on a box marks or clears the whole range from the box clicked before. Space, Insert and Shift + Up / Down work as before. `ManuscriptPart.openOrganiseDialog` has no new locals (`from` 1.6.0 already).
 - **A generation, or a window left open, no longer writes old values of a book back.** A generation held the book from its start and saved that copy again when it created the part, and the window *Auto annotate* and the assistant command that makes a part the end of the branch did the same, so a setting changed (or a book moved to a folder) in the meantime was undone. They now load the book again and write only what they change. New `ManuscriptService.update(book, change)` (`BookChange`) does that, and `ManuscriptService.save` checks that the folder of the book is its owner's.
 - **The *Move to folder* window no longer clips its buttons.** `ListSelectDialog` had a fixed height of 200px, too little for its title, the combo box and the buttons; its height follows the content now and its width gives way on a phone.
 

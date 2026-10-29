@@ -612,7 +612,8 @@ public class ManuscriptPart implements ManuscriptSection {
     }
 
     /**
-     * Opens the two-pane dialog for the folders: the left pane on the current folder, the right one on the folder above it.
+     * Opens the two-pane dialog for the folders: the left pane on the current folder, the right one on the folder above it. The
+     * list is read again when it is closed.
      */
     @PublicAPI(from = "1.6.0",
             returns = @APIReturn(type = void.class),
@@ -628,6 +629,13 @@ public class ManuscriptPart implements ManuscriptSection {
                 organiseTarget = folder;
                 organiseTargetKnown = true;
                 notifyStateChanged();
+            });
+            // the dialog changed folders and books: the list shows them again, and the top level when the current folder is gone
+            dialog.addOpenedChangeListener(event -> {
+                if (!event.isOpened()) {
+                    refreshGrid();
+                    notifyStateChanged();
+                }
             });
             dialog.create();
             dialog.open();
