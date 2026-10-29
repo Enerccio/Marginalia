@@ -109,8 +109,8 @@ To write a book again, part by part, load the old one as the source. The tab sho
 
 - **Pick a book** opens a list of your books (not the one you are in). The parts of the branch the book is on are loaded,
   from the first part to the one the book is at now.
-- **Load a backup** takes a backup file of a book: the JSON, the `.zip` with the images, or a file you [downloaded from the
-  backups](../books/backups.md) of a book. The backup is only read, nothing is restored. The branch is the one the book was
+- **Load a backup** takes a backup file of a book: the JSON, the `.zip` with the images, or a file you downloaded from the
+  [backups](../books/backups.md) of a book. The backup is only read, nothing is restored. The branch is the one the book was
   on when the backup was made.
 
 Of every part the converter keeps the instructions, the scene setting, the POV character, the present characters and the text of the part,

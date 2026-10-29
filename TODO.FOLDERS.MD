@@ -147,7 +147,7 @@ built as a series of commits (one per step of *Order of work*, each leaving the 
     `--stamp <page.md>` each in a commit of its own.
   - ✅ **D3 Changelog.** `CHANGELOG.MD`: Changed (settings resolve through folders), the `@PublicAPI` changes plugins can see.
   - ✅ **D4 Site.** `tools/retype_build.sh`, commit `docs/` with the manual change.
-  - ⬜ **D5 Final check.** Full suite once (foreground, `mvn test 2>&1 | tail -40`), `BundleCompletenessTest` for EN / JP / CN keys.
+  - ✅ **D5 Final check.** Full suite once (foreground, `mvn test 2>&1 | tail -40`), `BundleCompletenessTest` for EN / JP / CN keys. Done: 3614 tests, one failure (`ManualServiceTest.linksBetweenPagesPointToExistingPages`: a link of the Converter page whose text wrapped over two lines is not rewritten by `ManualParser`, which works line by line); the text is on one line now and the class passes. `BundleCompletenessTest` passed.
 
 ## Decided
 
