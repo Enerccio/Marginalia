@@ -772,6 +772,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_APPLY_TO_ALL, "すべてに適用");
         setValue(L.LABEL_ORGANISE, "整理");
         setValue(L.LABEL_SWITCH_PANE, "ペインを切り替え");
+        setValue(L.LABEL_SHOW_IN_FOLDER, "フォルダ内で表示");
         setValue(L.LABEL_SHOW_FOLDER_IN_LIST, "一覧にフォルダを表示");
 
         // --- ENUM ---

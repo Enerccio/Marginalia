@@ -312,6 +312,19 @@ class MultiTagDialogTest extends AgentTestBase {
     }
 
     @Test
+    void givenBooksAreTaggedAndNoOthers() throws Exception {
+        Manuscript alpha = book("Alpha");
+        book("Bravo");
+
+        MultiTagDialog dialog = open(new MultiTagDialog(null, List.of(alpha)));
+        assertThat(names(dialog)).containsExactly("Alpha");
+
+        dialog.createTag("space");
+        dialog.applyTo(row(dialog, "Alpha"), true);
+        assertThat(tagsOf(alpha)).containsExactly("space");
+    }
+
+    @Test
     void foldersAreTaggedLikeBooks() throws Exception {
         Folder scifi = folderService.create("Sci-fi", null);
         Folder expanse = folderService.create("Expanse", scifi);

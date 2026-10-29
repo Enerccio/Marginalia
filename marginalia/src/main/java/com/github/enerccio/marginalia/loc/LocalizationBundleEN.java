@@ -773,6 +773,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_ORGANISE, "Organise");
         setValue(L.LABEL_SHOW_FOLDER_IN_LIST, "Show folder in the list");
         setValue(L.LABEL_SWITCH_PANE, "Switch pane");
+        setValue(L.LABEL_SHOW_IN_FOLDER, "Show in folder");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");

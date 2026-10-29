@@ -45,11 +45,12 @@ import java.util.function.Consumer;
  * Two panes side by side, each showing a folder with its folders and books, like a two-pane file manager. This is the
  * structure and the transfer: loading the panes, moving about in them (the keyboard included) and copying or moving what is
  * marked (or under the cursor) in the active pane into the folder of the other one, and making, renaming and deleting a folder or a book (the one under
- * the cursor). The other actions are added to it in turn.
+ * the cursor), and the mass changes (model and protocol, language, tags) and the advanced search, which work on the marked books or on the
+ * folder of the active pane. The other actions are added to it in turn.
  * <p>
  * Keys (in a pane): Left / Right (and Tab, a key the user can change) change the pane, Up / Down move the cursor from row to row (the grid does that; Shift marks the
  * entry it leaves), Enter opens the folder under the cursor like a double click, Backspace goes up one level, Space / Insert mark
- * the entry under the cursor. The buttons of the row below (copy, move, new folder, rename, delete) have keys of their own that the user sets in the key bindings of the settings
+ * the entry under the cursor. The buttons of the row below (copy, move, new folder, rename, delete and the mass changes) have keys of their own that the user sets in the key bindings of the settings
  * ({@link ShortcutActions}); the buttons show them. The keys are caught in the browser ({@link JavascriptLibrary#fireOrganiseKeys}) so the grid does not
  * use them to move between its cells.
  */
@@ -113,6 +114,11 @@ public class OrganiseDialog extends Dialog {
     private Pane left;
     private Pane right;
     private Pane active;
+    // shows a folder (null is the top level) in the list of books, null: the button only closes the window
+    private Consumer<Folder> onShowInList;
+    private Consumer<Folder> onTarget;
+    // the last question the window asked (a clash of folder names, the go-on of a copy), for the tests
+    private Dialog lastQuestion;
 
     /**
      * @param left  the folder the left pane starts in, null is the top level
@@ -121,6 +127,22 @@ public class OrganiseDialog extends Dialog {
     public OrganiseDialog(Folder left, Folder right) {
         this.leftStart = left;
         this.rightStart = right;
+    }
+
+    /**
+     * @param onShowInList called with the folder of the active pane (null is the top level) after the window is closed, when the
+     *                     user asks to see it in the list of books
+     */
+    public void setOnShowInList(Consumer<Folder> onShowInList) {
+        this.onShowInList = onShowInList;
+    }
+
+    /**
+     * @param onTarget called with the folder of the right pane (null is the top level) when the window is closed, so that the next one
+     *                 can start there
+     */
+    public void setOnTarget(Consumer<Folder> onTarget) {
+        this.onTarget = onTarget;
     }
 
     public void create() {
@@ -142,6 +164,11 @@ public class OrganiseDialog extends Dialog {
         actions.add(new Action(ShortcutActions.ORGANISE_NEW_FOLDER, L.LABEL_NEW_FOLDER, this::newFolder, true));
         actions.add(new Action(ShortcutActions.ORGANISE_RENAME, L.LABEL_RENAME, this::rename, true));
         actions.add(new Action(ShortcutActions.ORGANISE_DELETE, L.LABEL_DELETE, this::delete, true));
+        actions.add(new Action(ShortcutActions.ORGANISE_MODEL_PROTOCOL, L.LABEL_MASS_CHANGE_MODEL_PROTOCOL, this::massChangeModelProtocol, true));
+        actions.add(new Action(ShortcutActions.ORGANISE_LANGUAGE, L.LABEL_MASS_CHANGE_LANGUAGE, this::massChangeLanguage, true));
+        actions.add(new Action(ShortcutActions.ORGANISE_TAG_BOOKS, L.LABEL_TAG_BOOKS, this::tagBooks, true));
+        actions.add(new Action(ShortcutActions.ORGANISE_SEARCH, L.LABEL_ADVANCED_SEARCH, this::search, true));
+        actions.add(new Action(ShortcutActions.ORGANISE_SHOW_IN_LIST, L.LABEL_SHOW_FOLDER_IN_LIST, this::showInList, true));
         // a key only, like Left / Right
         actions.add(new Action(ShortcutActions.ORGANISE_SWITCH_PANE, L.LABEL_SWITCH_PANE, () -> active.key("ArrowRight"), false));
 
@@ -170,6 +197,7 @@ public class OrganiseDialog extends Dialog {
         }
         footer.add(new Button(loc.getValue(L.LABEL_CLOSE), _ -> close()));
         footer.setWidthFull();
+        footer.setWrap(true);
         footer.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
         getFooter().add(footer);
 
@@ -179,6 +207,8 @@ public class OrganiseDialog extends Dialog {
         addOpenedChangeListener(e -> {
             if (e.isOpened()) {
                 JavascriptLibrary.focusOrganiseGrid(left.grid.getElement(), left.cursorIndex());
+            } else if (onTarget != null) {
+                onTarget.accept(right.folder);
             }
         });
     }
@@ -202,6 +232,10 @@ public class OrganiseDialog extends Dialog {
     }
 
     // for the tests of the dialog
+
+    Dialog lastQuestion() {
+        return lastQuestion;
+    }
 
     List<String> buttons() {
         return actions.stream().filter(Action::button).map(this::buttonLabel).toList();
@@ -362,7 +396,7 @@ public class OrganiseDialog extends Dialog {
             resolveClashes(rest, target, choices, forAll, done);
             return;
         }
-        new FolderClashDialog(folder.getName(), pathOf(target), free, decision -> {
+        FolderClashDialog question = new FolderClashDialog(folder.getName(), pathOf(target), free, decision -> {
             try {
                 choices.put(folder.getId(), decision.choice());
                 resolveClashes(rest, target, choices, decision.forAll() ? decision : null, done);
@@ -370,7 +404,9 @@ public class OrganiseDialog extends Dialog {
                 UIUtils.internalServerError(loc, e);
             }
         }, () -> {
-        }).create();
+        });
+        lastQuestion = question;
+        question.create();
     }
 
     /**
@@ -399,6 +435,7 @@ public class OrganiseDialog extends Dialog {
      */
     private void confirmCopy(int count, Folder target, boolean withBooks, Consumer<Boolean> go) throws Exception {
         Dialog dialog = new Dialog();
+        lastQuestion = dialog;
         dialog.setHeaderTitle(loc.getValue(L.LABEL_COPY));
         dialog.setWidth("460px");
         UIUtils.fitPhone(dialog, false);
@@ -587,6 +624,77 @@ public class OrganiseDialog extends Dialog {
                     && id.equals(kind == Kind.FOLDER ? entry.folder().getId() : entry.book().getId()));
         }
         JavascriptLibrary.focusOrganiseGrid(active.grid.getElement(), active.cursorIndex());
+    }
+
+    /**
+     * The books marked in the active pane, or none: the cursor row doesn't count, it would always narrow a mass change to one
+     * book.
+     */
+    private List<Manuscript> markedBooks() {
+        return active.selectionOnlyMarked().stream().filter(entry -> entry.kind() == Kind.BOOK).map(Entry::book).toList();
+    }
+
+    private void massChangeModelProtocol() {
+        List<Manuscript> books = markedBooks();
+        MassChangeModelProtocolDialog dialog = books.isEmpty() ? new MassChangeModelProtocolDialog(null, active.folder)
+                : new MassChangeModelProtocolDialog(null, books);
+        dialog.create();
+        dialog.open();
+    }
+
+    private void massChangeLanguage() {
+        List<Manuscript> books = markedBooks();
+        MassChangeLanguageDialog dialog = books.isEmpty() ? new MassChangeLanguageDialog(null, active.folder)
+                : new MassChangeLanguageDialog(null, books);
+        dialog.create();
+        dialog.open();
+    }
+
+    private void tagBooks() {
+        List<Manuscript> books = markedBooks();
+        MultiTagDialog dialog = books.isEmpty() ? new MultiTagDialog(MultiTagDialog.Kind.BOOKS, () -> {
+        }, active.folder) : new MultiTagDialog(() -> {
+        }, books);
+        dialog.create();
+        dialog.open();
+    }
+
+    /**
+     * Closes the window and shows the folder of the active pane in the list of books.
+     */
+    private void showInList() {
+        Folder shown = active.folder;
+        close();
+        if (onShowInList != null) {
+            onShowInList.accept(shown);
+        }
+    }
+
+    /**
+     * Opens the advanced search in the folder of the active pane; a result is shown in that pane.
+     */
+    private void search() {
+        Pane pane = active;
+        ManuscriptSearchDialog[] dialog = new ManuscriptSearchDialog[1];
+        dialog[0] = new ManuscriptSearchDialog(pane.folder, null, book -> {
+            dialog[0].close();
+            showInFolder(pane, book);
+        });
+        dialog[0].open();
+    }
+
+    /**
+     * Takes the pane to the folder of the book and marks the book there.
+     */
+    private void showInFolder(Pane pane, Manuscript book) {
+        activate(pane);
+        pane.show(book);
+    }
+
+    // for the tests of the dialog
+
+    void showInFolder(boolean leftPane, Manuscript book) {
+        showInFolder(leftPane ? left : right, book);
     }
 
     private Pane other(Pane pane) {
@@ -792,6 +900,28 @@ public class OrganiseDialog extends Dialog {
             } else {
                 grid.select(cursor);
             }
+        }
+
+        /** The marked entries only. */
+        List<Entry> selectionOnlyMarked() {
+            return grid.getListDataView().getItems().filter(entry -> grid.getSelectedItems().contains(entry)).toList();
+        }
+
+        /**
+         * Goes to the folder of the book, marks it and puts the cursor and the focus on it.
+         */
+        void show(Manuscript book) {
+            folder = book.getFolder();
+            load();
+            List<Entry> entries = grid.getListDataView().getItems().toList();
+            for (Entry entry : entries) {
+                if (entry.kind() == Kind.BOOK && entry.book().getId().equals(book.getId())) {
+                    grid.select(entry);
+                    moveCursor(entry);
+                    break;
+                }
+            }
+            JavascriptLibrary.focusOrganiseGrid(grid.getElement(), cursorIndex());
         }
 
         /**

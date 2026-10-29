@@ -2,8 +2,10 @@ package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
+import com.github.enerccio.marginalia.domain.service.FolderService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.TagRelationService;
 import com.github.enerccio.marginalia.domain.service.TagService;
@@ -16,6 +18,7 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -48,6 +51,8 @@ import java.util.stream.Stream;
  * ones it must not (all or any of them), when it was created and last modified, the number of its parts and the text in
  * it (in the branch the book is at, or in all of them). The books found are listed below with their tags, and can be
  * opened from the list. The search itself is {@link ManuscriptService#searchAdvanced}.
+ * <p>
+ * It can be limited to a folder (with the books below it on request), and then a result can be shown in its folder instead of opened.
  */
 @Configurable(preConstruction = true)
 public class ManuscriptSearchDialog extends Dialog {
@@ -60,12 +65,22 @@ public class ManuscriptSearchDialog extends Dialog {
     private ManuscriptService manuscriptService;
 
     @Autowired
+    private FolderService folderService;
+
+    @Autowired
     private TagService tagService;
 
     @Autowired
     private TagRelationService tagRelationService;
 
+    // null: the book can't be opened from here
     private final Consumer<Manuscript> onOpen;
+    // null: no result can be shown in its folder
+    private final Consumer<Manuscript> onShow;
+    // the search is limited to this folder (and below), when scoped
+    private final Folder folder;
+    private final boolean scoped;
+    final Checkbox subfolders = new Checkbox();
 
     final TextField name = new TextField();
     final MultiSelectComboBox<Tag> includeTags = new MultiSelectComboBox<>();
@@ -88,12 +103,35 @@ public class ManuscriptSearchDialog extends Dialog {
      */
     public ManuscriptSearchDialog(Consumer<Manuscript> onOpen) {
         this.onOpen = onOpen;
+        this.onShow = null;
+        this.folder = null;
+        this.scoped = false;
+        build();
+    }
+
+    /**
+     * Searches the books of a folder only.
+     *
+     * @param folder the folder, null is the top level (with the checkbox ticked: every book)
+     * @param onOpen opens the book chosen in the list of the results, null: a result has no button for it
+     * @param onShow shows the book in its folder, null: a result has no button for it
+     */
+    public ManuscriptSearchDialog(Folder folder, Consumer<Manuscript> onOpen, Consumer<Manuscript> onShow) {
+        this.onOpen = onOpen;
+        this.onShow = onShow;
+        this.folder = folder;
+        this.scoped = true;
+        // opened over the Organise window, which is modal
+        setModality(ModalityMode.STRICT);
         build();
     }
 
     private void build() {
-        setHeaderTitle(loc.getValue(L.LABEL_ADVANCED_SEARCH));
+        setHeaderTitle(loc.getValue(L.LABEL_ADVANCED_SEARCH) + (scoped ? ": " + scopeName() : ""));
         setWidth("min(1000px, 95vw)");
+
+        subfolders.setLabel(loc.getValue(L.LABEL_INCLUDE_SUBFOLDERS));
+        subfolders.setVisible(scoped);
 
         name.setLabel(loc.getValue(L.LABEL_NAME));
         name.setClearButtonVisible(true);
@@ -127,7 +165,7 @@ public class ManuscriptSearchDialog extends Dialog {
 
         FlexLayout rangeRow = row(createdFrom, createdTo, modifiedFrom, modifiedTo, partsFrom, partsTo);
 
-        VerticalLayout form = new VerticalLayout(textRow, tagsRow, rangeRow);
+        VerticalLayout form = new VerticalLayout(subfolders, textRow, tagsRow, rangeRow);
         form.setPadding(false);
         form.setSpacing(false);
         form.addClassName(CssStyles.GAP_S);
@@ -144,7 +182,7 @@ public class ManuscriptSearchDialog extends Dialog {
         results.addColumn(Row::name).setHeader(loc.getValue(L.LABEL_NAME)).setSortable(true)
                 .setComparator(Comparator.comparing(Row::name, String.CASE_INSENSITIVE_ORDER)).setFlexGrow(2);
         results.addColumn(Row::tags).setHeader(loc.getValue(L.LABEL_TAGS)).setFlexGrow(2);
-        results.addComponentColumn(this::openButton).setHeader("").setFlexGrow(0).setAutoWidth(true);
+        results.addComponentColumn(this::tools).setHeader("").setFlexGrow(0).setAutoWidth(true);
         results.setHeight("40vh");
         results.setWidthFull();
         results.setVisible(false);
@@ -226,10 +264,28 @@ public class ManuscriptSearchDialog extends Dialog {
         field.addKeyDownListener(Key.ENTER, e -> search());
     }
 
-    private Button openButton(Row row) {
-        Button open = new Button(Solid.FOLDER_OPEN.create(), e -> onOpen.accept(row.manuscript));
-        open.setTooltipText(loc.getValue(L.LABEL_OPEN));
-        return open;
+    private String scopeName() {
+        try {
+            return folder == null ? loc.getValue(L.LABEL_TOP_LEVEL) : folderService.getPath(folder);
+        } catch (Exception e) {
+            return folder.getName();
+        }
+    }
+
+    private HorizontalLayout tools(Row row) {
+        HorizontalLayout tools = new HorizontalLayout();
+        tools.setSpacing(false);
+        if (onShow != null) {
+            Button show = new Button(Solid.FOLDER.create(), e -> onShow.accept(row.manuscript));
+            show.setTooltipText(loc.getValue(L.LABEL_SHOW_IN_FOLDER));
+            tools.add(show);
+        }
+        if (onOpen != null) {
+            Button open = new Button(Solid.FOLDER_OPEN.create(), e -> onOpen.accept(row.manuscript));
+            open.setTooltipText(loc.getValue(L.LABEL_OPEN));
+            tools.add(open);
+        }
+        return tools;
     }
 
     private void clear() {
@@ -246,6 +302,7 @@ public class ManuscriptSearchDialog extends Dialog {
         partsTo.clear();
         fulltext.clear();
         allBranches.setValue(false);
+        subfolders.setValue(false);
         results.setVisible(false);
         summary.setText("");
     }
@@ -282,7 +339,8 @@ public class ManuscriptSearchDialog extends Dialog {
         try {
             List<Long> ids = manuscriptService.searchAdvanced(criteria(), Sorter.sorter("modification", Ordering.DESC));
             Map<Long, Manuscript> books = new HashMap<>();
-            for (Manuscript book : manuscriptService.findAllRegularForUser()) {
+            for (Manuscript book : scoped ? manuscriptService.findRegularInFolder(folder, subfolders.getValue())
+                    : manuscriptService.findAllRegularForUser()) {
                 books.put(book.getId(), book);
             }
             Map<Long, List<Tag>> tags = tagRelationService.getTagsForObjects(ids, Manuscript.class);

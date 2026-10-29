@@ -48,6 +48,17 @@ public final class ShortcutActions {
     /** Deletes the folder or book under the cursor of the Organise window. */
     public static final String ORGANISE_DELETE = "organise.delete";
 
+    /** Opens the mass change of the model and protocol for the marked books of the Organise window (or the folder of the active pane). */
+    public static final String ORGANISE_MODEL_PROTOCOL = "organise.modelProtocol";
+    /** Opens the mass change of the language for the marked books of the Organise window (or the folder of the active pane). */
+    public static final String ORGANISE_LANGUAGE = "organise.language";
+    /** Opens the tagging of the marked books of the Organise window (or the books of the folder of the active pane). */
+    public static final String ORGANISE_TAG_BOOKS = "organise.tagBooks";
+    /** Opens the advanced search in the folder of the active pane of the Organise window. */
+    public static final String ORGANISE_SEARCH = "organise.search";
+    /** Closes the Organise window and shows the folder of its active pane in the list of books. */
+    public static final String ORGANISE_SHOW_IN_LIST = "organise.showInList";
+
     private ShortcutActions() {
     }
 }

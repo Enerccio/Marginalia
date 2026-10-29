@@ -107,6 +107,21 @@ class MassChangeLanguageDialogTest extends AgentTestBase {
     }
 
     @Test
+    void givenBooksAreListedAndNoOthers() throws Exception {
+        Manuscript alpha = book("Alpha", Language.ENGLISH);
+        Manuscript bravo = book("Bravo", Language.ENGLISH);
+        Manuscript gone = book("Gone", Language.ENGLISH);
+        book("Charlie", Language.ENGLISH);
+        manuscriptService.delete(gone, false);
+
+        MassChangeLanguageDialog dialog = new MassChangeLanguageDialog(null, List.of(alpha, bravo, gone));
+        dialog.create();
+
+        assertThat(names(dialog.getRows())).containsExactly("Alpha", "Bravo");
+        assertThat(dialog.getHeaderTitle()).endsWith("Books (3)");
+    }
+
+    @Test
     void nothingIsDoneWithoutALanguageOrWithoutCheckedBooks() throws Exception {
         Manuscript alpha = book("Alpha", Language.GERMAN);
         AtomicInteger changes = new AtomicInteger();

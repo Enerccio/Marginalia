@@ -136,6 +136,8 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
     private final Runnable onChange;
     // the folder whose books or folders are listed (and, with the checkbox, those below it), null is the top level
     private final Folder folder;
+    // the books listed instead of the folder, null: the folder
+    private final List<Manuscript> chosen;
     private Checkbox subfolders;
 
     private ComboBox<Tag> tagBox;
@@ -151,7 +153,7 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
      * @param onChange told after tags were changed, may be null
      */
     public MultiTagDialog(Kind kind, Runnable onChange) {
-        this(kind, null, onChange, null);
+        this(kind, null, onChange, null, null);
     }
 
     /**
@@ -160,18 +162,28 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
      * @param onChange told after tags were changed, may be null
      */
     public MultiTagDialog(Kind kind, Runnable onChange, Folder folder) {
-        this(kind, null, onChange, folder);
+        this(kind, null, onChange, folder, null);
     }
 
     /**
      * Tags the entries of the lorebook.
      */
     public MultiTagDialog(Lorebook lorebook, Runnable onChange) {
-        this(Kind.ENTRIES, lorebook, onChange, null);
+        this(Kind.ENTRIES, lorebook, onChange, null, null);
     }
 
-    private MultiTagDialog(Kind kind, Lorebook lorebook, Runnable onChange, Folder folder) {
+    /**
+     * Tags the books, and only them.
+     *
+     * @param onChange told after tags were changed, may be null
+     */
+    public MultiTagDialog(Runnable onChange, List<Manuscript> books) {
+        this(Kind.BOOKS, null, onChange, null, List.copyOf(books));
+    }
+
+    private MultiTagDialog(Kind kind, Lorebook lorebook, Runnable onChange, Folder folder, List<Manuscript> chosen) {
         this.folder = folder;
+        this.chosen = chosen;
         this.kind = kind;
         this.lorebook = lorebook;
         this.onChange = onChange;
@@ -196,7 +208,7 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
         hint.addClassName(CssStyles.HINT_TEXT);
 
         subfolders = new Checkbox(loc.getValue(L.LABEL_INCLUDE_SUBFOLDERS));
-        subfolders.setVisible(listsFolder());
+        subfolders.setVisible(listsFolder() && chosen == null);
         subfolders.addValueChangeListener(event -> {
             load();
             updateButtons();
@@ -264,6 +276,29 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
     }
 
     /**
+     * The books the dialog lists: the ones it was given (read again, without those deleted meanwhile) or those in the folder.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = List.class),
+            parameters = {@APIParameter(name = "nested", type = boolean.class)},
+            locals = {@APILocals(name = "books", type = List.class),
+                    @APILocals(name = "book", type = Manuscript.class),
+                    @APILocals(name = "stored", type = Manuscript.class)})
+    private List<Manuscript> booksInScope(boolean nested) throws Exception {
+        if (chosen == null) {
+            return manuscriptService.findRegularInFolder(folder, nested);
+        }
+        List<Manuscript> books = new ArrayList<>();
+        for (Manuscript book : chosen) {
+            Manuscript stored = manuscriptService.findForUser(book.getUuid());
+            if (stored != null && !stored.isDeleted()) {
+                books.add(stored);
+            }
+        }
+        return books;
+    }
+
+    /**
      * Reads the items and their tags again. The checks and the picked tag stay.
      */
     @PublicAPI(from = "1.6.0",
@@ -286,7 +321,7 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
                 case BOOKS -> {
                     boolean nested = subfolders != null && subfolders.getValue();
                     Map<Long, String> paths = nested ? folderService.getPaths() : Map.of();
-                    for (Manuscript book : manuscriptService.findRegularInFolder(folder, nested)) {
+                    for (Manuscript book : booksInScope(nested)) {
                         // with the folders below listed too, a book is told apart by its folder
                         String bookName = nested ? BookLabels.label(book, paths) : book.getName();
                         loaded.add(new Row(book, bookName, agentRunService.findLockingRun(book) != null));
@@ -497,6 +532,9 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
             locals = {@APILocals(name = "e", type = Exception.class)})
     private String scopeName() {
         try {
+            if (chosen != null) {
+                return loc.getValue(L.LABEL_BOOKS) + " (" + chosen.size() + ")";
+            }
             return folder == null ? loc.getValue(L.LABEL_TOP_LEVEL) : folderService.getPath(folder);
         } catch (Exception e) {
             return folder.getName();

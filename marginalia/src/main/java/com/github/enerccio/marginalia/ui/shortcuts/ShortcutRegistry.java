@@ -31,6 +31,11 @@ public final class ShortcutRegistry {
         register(new ShortcutAction(ShortcutActions.ORGANISE_NEW_FOLDER, loc -> loc.getValue(L.LABEL_ORGANISE) + ": " + loc.getValue(L.LABEL_NEW_FOLDER), "n", null));
         register(new ShortcutAction(ShortcutActions.ORGANISE_RENAME, loc -> loc.getValue(L.LABEL_ORGANISE) + ": " + loc.getValue(L.LABEL_RENAME), "Shift+r", null));
         register(new ShortcutAction(ShortcutActions.ORGANISE_DELETE, loc -> loc.getValue(L.LABEL_ORGANISE) + ": " + loc.getValue(L.LABEL_DELETE), "Delete", null));
+        register(new ShortcutAction(ShortcutActions.ORGANISE_MODEL_PROTOCOL, loc -> loc.getValue(L.LABEL_ORGANISE) + ": " + loc.getValue(L.LABEL_MASS_CHANGE_MODEL_PROTOCOL), "p", null));
+        register(new ShortcutAction(ShortcutActions.ORGANISE_LANGUAGE, loc -> loc.getValue(L.LABEL_ORGANISE) + ": " + loc.getValue(L.LABEL_MASS_CHANGE_LANGUAGE), "l", null));
+        register(new ShortcutAction(ShortcutActions.ORGANISE_TAG_BOOKS, loc -> loc.getValue(L.LABEL_ORGANISE) + ": " + loc.getValue(L.LABEL_TAG_BOOKS), "t", null));
+        register(new ShortcutAction(ShortcutActions.ORGANISE_SEARCH, loc -> loc.getValue(L.LABEL_ORGANISE) + ": " + loc.getValue(L.LABEL_ADVANCED_SEARCH), "f", null));
+        register(new ShortcutAction(ShortcutActions.ORGANISE_SHOW_IN_LIST, loc -> loc.getValue(L.LABEL_ORGANISE) + ": " + loc.getValue(L.LABEL_SHOW_FOLDER_IN_LIST), "o", null));
     }
 
     private ShortcutRegistry() {

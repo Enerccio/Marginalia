@@ -109,6 +109,8 @@ public class MassChangeModelProtocolDialog extends Dialog implements LLMInteract
     private final Runnable onChange;
     // the folder whose books are listed, null is the top level
     private final Folder folder;
+    // the books listed instead of the folder, null: the folder
+    private final List<Manuscript> chosen;
     private Checkbox subfolders;
 
     private ModelProtocolPicker picker;
@@ -123,7 +125,7 @@ public class MassChangeModelProtocolDialog extends Dialog implements LLMInteract
      * @param onChange told after books were changed, may be null
      */
     public MassChangeModelProtocolDialog(Runnable onChange) {
-        this(onChange, null);
+        this(onChange, (Folder) null);
     }
 
     /**
@@ -133,6 +135,17 @@ public class MassChangeModelProtocolDialog extends Dialog implements LLMInteract
     public MassChangeModelProtocolDialog(Runnable onChange, Folder folder) {
         this.onChange = onChange;
         this.folder = folder;
+        this.chosen = null;
+    }
+
+    /**
+     * @param onChange told after books were changed, may be null
+     * @param books    the books listed, and only them
+     */
+    public MassChangeModelProtocolDialog(Runnable onChange, List<Manuscript> books) {
+        this.onChange = onChange;
+        this.folder = null;
+        this.chosen = List.copyOf(books);
     }
 
     @PublicAPI(from = "1.6.0",
@@ -154,6 +167,7 @@ public class MassChangeModelProtocolDialog extends Dialog implements LLMInteract
         UIUtils.fitPhone(this, true);
 
         subfolders = new Checkbox(loc.getValue(L.LABEL_INCLUDE_SUBFOLDERS));
+        subfolders.setVisible(chosen == null);
         subfolders.addValueChangeListener(event -> load());
 
         Span hint = new Span(loc.getValue(L.HELP_MASS_CHANGE_MODEL_PROTOCOL));
@@ -216,10 +230,36 @@ public class MassChangeModelProtocolDialog extends Dialog implements LLMInteract
             locals = {@APILocals(name = "e", type = Exception.class)})
     private String scopeName() {
         try {
+            if (chosen != null) {
+                return loc.getValue(L.LABEL_BOOKS) + " (" + chosen.size() + ")";
+            }
             return folder == null ? loc.getValue(L.LABEL_TOP_LEVEL) : folderService.getPath(folder);
         } catch (Exception e) {
             return folder.getName();
         }
+    }
+
+    /**
+     * The books the dialog lists: the ones it was given (read again, without those deleted meanwhile) or those in the folder.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = List.class),
+            parameters = {@APIParameter(name = "nested", type = boolean.class)},
+            locals = {@APILocals(name = "books", type = List.class),
+                    @APILocals(name = "book", type = Manuscript.class),
+                    @APILocals(name = "stored", type = Manuscript.class)})
+    private List<Manuscript> booksInScope(boolean nested) throws Exception {
+        if (chosen == null) {
+            return manuscriptService.findRegularInFolder(folder, nested);
+        }
+        List<Manuscript> books = new ArrayList<>();
+        for (Manuscript book : chosen) {
+            Manuscript stored = manuscriptService.findForUser(book.getUuid());
+            if (stored != null && !stored.isDeleted()) {
+                books.add(stored);
+            }
+        }
+        return books;
     }
 
     /**
@@ -239,7 +279,7 @@ public class MassChangeModelProtocolDialog extends Dialog implements LLMInteract
             List<Row> loaded = new ArrayList<>();
             boolean nested = subfolders != null && subfolders.getValue();
             Map<Long, String> paths = nested ? folderService.getPaths() : Map.of();
-            for (Manuscript book : manuscriptService.findRegularInFolder(folder, nested)) {
+            for (Manuscript book : booksInScope(nested)) {
                 // with the folders below listed too, a book is told apart by its folder
                 String bookName = nested ? BookLabels.label(book, paths) : StringUtils.defaultString(book.getName());
                 loaded.add(new Row(book, bookName, agentRunService.findLockingRun(book) != null));
