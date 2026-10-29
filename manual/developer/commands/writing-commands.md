@@ -8,7 +8,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/command/CommandScope.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/CommandScopes.java
   - marginalia/src/test/java/com/github/enerccio/marginalia/command
-verified: 60a4afd23
+verified: 186daa954
 ---
 
 # Writing commands

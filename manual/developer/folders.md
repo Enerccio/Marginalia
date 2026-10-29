@@ -21,6 +21,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/PromptSettingsForm.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/InheritedLanguageCombo.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/FolderBookProvider.java
+verified: 186daa954
 ---
 
 # Folders
