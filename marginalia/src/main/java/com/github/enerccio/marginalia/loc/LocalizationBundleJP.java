@@ -793,6 +793,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_COMPARE_CACHE, "キャッシュ");
         setValue(L.LABEL_COMPARE_READ_AGAIN, "再読み込み");
         setValue(L.LABEL_COMPARE_ALTERNATIVE, "代替");
+        setValue(L.LABEL_REDRAFT_ORIGINAL_TEXT, "元の文章（注釈付き）");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");

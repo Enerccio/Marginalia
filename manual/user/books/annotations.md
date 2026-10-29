@@ -144,6 +144,8 @@ book review each part right after it was generated, and optionally redraft it. T
 | **Then redraft the part to address the annotations** | Only with the one above. After the notes were added the [redraft](story-editor.md#redrafting-a-part) window opens and starts at once, with **Deal with the open annotations of the part** checked and no instructions of its own. It writes with the model of the book and does not offer to revalidate summaries: the part is new, no summary describes it. |
 | **Apply the redraft without asking** | Only with the redraft. When the model is done the redraft replaces the text of the part, the notes it dealt with are marked resolved and the window closes. Without it the window stays open for you to look at the result. |
 
+The automatic redraft window has two tabs: **Redrafted text** (the text as the model writes it, its reasoning and the differences against the part) and **Original text with annotations** (the part as it was, with the passages of the open notes marked as in the story, and the notes under it). Look at the original to see what the model was asked to deal with, and stop the redraft or close the window if it is not going the way you want; the part keeps its text.
+
 ![The settings of the automatic annotation](../../images/annotate-auto.png)
 
 **Closing a window ends the whole run.** If you close or stop the annotation window, nothing is added and no redraft follows; if you close the

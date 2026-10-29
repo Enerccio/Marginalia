@@ -145,6 +145,34 @@ public final class JavascriptLibrary {
                 """, textArea);
     }
 
+    /**
+     * Keeps the inner textarea of a Vaadin {@code TextArea} as tall as its text. The field measures the text only when
+     * the value or its own size changes, so when the scrollbar of the field appears (the text gets narrower and wraps
+     * into more lines) or the font loads the textarea stays too short and the end of the text cannot be scrolled to
+     * until the field is resized. Re-measures when the width of the scrolling container changes.
+     */
+    public static void keepTextAreaFitted(Element textArea) {
+        textArea.executeJs("""
+                const field = $0;
+                if (field._fitObserver) return;
+                const fit = () => {
+                  field._fitFrame = null;
+                  if (typeof field._updateHeight === 'function') field._updateHeight();
+                };
+                const schedule = () => {
+                  if (!field._fitFrame) field._fitFrame = requestAnimationFrame(fit);
+                };
+                requestAnimationFrame(() => {
+                  const inputField = field._inputField;
+                  if (!inputField) return;
+                  field._fitObserver = new ResizeObserver(schedule);
+                  field._fitObserver.observe(inputField);
+                  if (field.inputElement) field._fitObserver.observe(field.inputElement);
+                  schedule();
+                });
+                """, textArea);
+    }
+
     public static void setScrollLeft(Element element, int pixelsFromLeft) {
         element.executeJs("$0.scrollLeft = $1", element, pixelsFromLeft);
     }
