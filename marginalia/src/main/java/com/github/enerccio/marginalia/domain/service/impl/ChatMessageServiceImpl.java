@@ -45,6 +45,9 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     private MessagePromptService messagePromptService;
 
     @Autowired
+    private MessageRevisionService messageRevisionService;
+
+    @Autowired
     @Lazy
     private AgentRunService agentRunService;
 
@@ -485,9 +488,11 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
             summaryService.softDeleteForMessages(deleted);
             annotationService.softDeleteForParts(deleted);
             messagePromptService.softDeleteForParts(deleted);
+            messageRevisionService.softDeleteForParts(deleted);
         } else if (hard && message != null && message.getId() != null) {
             annotationService.hardDeleteForParts(List.of(message.getId()));
             messagePromptService.hardDeleteForParts(List.of(message.getId()));
+            messageRevisionService.hardDeleteForParts(List.of(message.getId()));
         }
         return super.delete(message, hard);
     }
@@ -532,6 +537,7 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         summaryService.softDeleteForManuscript(manuscript);
         annotationService.softDeleteForManuscript(manuscript);
         messagePromptService.softDeleteForManuscript(manuscript);
+        messageRevisionService.softDeleteForManuscript(manuscript);
         getRepository().softDeleteByManuscript(manuscript);
     }
 
