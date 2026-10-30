@@ -2,7 +2,7 @@
 
 Every version of the text of a part is kept: who wrote it (the author, a model, a plugin, an agent), when, and for a generated
 text the reasoning that came with it. The author can look at the versions, compare any two, go back to one, label the ones
-worth keeping and prune the rest. This file collects the decisions and the order of work. Nothing is built yet.
+worth keeping and prune the rest. This file collects the decisions and the order of work. **All nine steps are done** (see *Status*); what is left is under *Not done*.
 
 ## Status
 
@@ -398,7 +398,18 @@ the history of the merged part and shows as `MERGE` on the surviving one.
 6. ✅ History dialog (desktop), part menu item and badge, settings UI, localization, styles; then the phone layout.
 7. ✅ Search: `_fulltext` on the row, repository queries, *Include versions* in the three searches, tests.
 8. ✅ Backup / restore of the history (option), duplicate book (`DUPLICATE`); the working copy of an agent gets no versions.
-9. Plugin audit, docs (`manual/user` page for the history, `manual/developer` page for the entity / service with `covers`,
-   `python3 tools/check_dev_docs.py`, stamp in its own commit), `tools/retype_build.sh` and regenerate `docs/` (committed),
-   `CHANGELOG.MD` under `[Unreleased]` (Added: part history, migration V22 and the app migration; Changed: plugins that write
-   text should use `storeResponse` with a source).
+9. ✅ Plugin audit (no plugin uses a changed API), docs (user page *Version history* and the pages that mention it, developer page
+   *Version history* with `covers`, the developer pages that describe the touched code), screenshots (`screenshots/flows/shoot-history.mjs`
+   and the retaken `book-about`, `folder-settings`, `settings-defaults`, `permissions-add`, `book-backups`, `book-search-advanced`,
+   `story-tree-search`), `tools/retype_build.sh` and `docs/`, `CHANGELOG.MD`; the developer pages whose changes are all in this
+   feature are stamped.
+
+## Not done
+
+- The agent command that changes the settings of a book (`BookChanges`) does not carry `historyMaxVersions`.
+- `SPLIT` is reserved, nothing splits a part yet.
+- The developer pages `architecture`, `services`, `ui`, `testing`, `project-structure`, `generation-pipeline`, `custom-components`,
+  `commands/command-bar` and some plugin pages are not stamped: they are also behind for changes of earlier commits that did not touch
+  them (mass rename, prompt comparison, the folders in the viewer...). The history is added to `services`, `ui`, `testing`,
+  `plugins/extendable` and `generation-pipeline`.
+- The version history on a phone has one picture (`phone-history`); the other phone screens were not checked in the retake.

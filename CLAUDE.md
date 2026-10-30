@@ -60,6 +60,13 @@ Tests (`src/test/java`) boot the real Spring XML config (minus OSGi/instrumentat
 
 The full suite has about 3,000 tests and takes about 1.5 minutes on an Apple M4 laptop (10 cores) and about 7 minutes on an 8-core / 16-thread Intel desktop with an NVMe disk (the classes are spread over 3 JVMs, `-Dtest.forks=N` changes that; one JVM takes about 2.5 minutes on the M4 and 19 on the desktop; the 3 JVMs peak at 1.8 GB on the M4), so **do not run it as a routine check**: while working run the classes you touched (`-Dtest=...`, with `PublicAPISignatureTest` and `BundleCompletenessTest` when `@Extendable` classes or localization changed) and run the whole suite only when the user asks or once at the end of a large change. When you do run it, run it in the foreground without `-q` (`mvn test 2>&1 | tail -40`) or in the background and wait for the completion notification; check results in `target/surefire-reports/*.txt`. Never poll with an `until ... ps/pgrep` loop: it matches the Maven processes already running on the machine (and itself), never ends and burns the whole timeout. Steps that call an admin-only service (cleanup, database backups, user delete/unlock/clear password, extension install) need `loginAdmin()`, not `login()`.
 
+## Memory (the machine has 16 GB and a developer's IDE on it)
+
+- A full test run is 3 JVMs (about 2.8 GB), the screenshot environment is the application (about 2 GB, Jetty) plus headless Chrome, the fake model and Node, and every Maven build is another JVM. **Run only one heavy thing at a time**: do not build, run the full suite and take screenshots together, and never start a second Maven while one is running (`mvn test`, `mvn install`, `bin/rebuild.sh`).
+- When a heavy thing is done, stop it: `screenshots/bin/stop-app.sh` and `stop-llm.sh` after the screenshots, no background Maven or `node --watch` left behind (`ps -axo pid,rss,etime,command | sort -k2 -nr | head`). Before a heavy step check that memory is free (`vm_stat`: "Pages free" times 16 KB; a few hundred MB free means wait or stop something). Background tasks started with `run_in_background` count too.
+- Run the classes you touched, not the whole suite (see above). Do not start more forks (`-Dtest.forks`) than the default.
+- After a Maven `install` or `package` (plain javac output in `target/`), `mvn test` may skip the AspectJ compile of classes that did not change and leave them unwoven: `@Configurable` fields are then `null` (for example `SearchReplaceCommandsTest`, whose anonymous subclasses are test classes). `touch` the failing test's source, or build the plugins with `mvn clean package -pl <plugin folders>`; do not chase it as a code bug.
+
 ## Other
 
 - When creating new files, automatically add them to git
