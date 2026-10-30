@@ -95,6 +95,14 @@ class ManuscriptSearchDialogTest extends MarginaliaTestBase {
         assertThat(criteria.getMinParts()).isNull();
         assertThat(criteria.getFulltext()).isNull();
         assertThat(criteria.isAllBranches()).isFalse();
+        assertThat(criteria.isIncludeVersions()).as("the versions are searched only when asked for").isFalse();
+    }
+
+    @Test
+    void theVersionsAreAskedForByTheCheckbox() {
+        dialog.includeVersions.setValue(true);
+
+        assertThat(dialog.criteria().isIncludeVersions()).isTrue();
     }
 
     @Test

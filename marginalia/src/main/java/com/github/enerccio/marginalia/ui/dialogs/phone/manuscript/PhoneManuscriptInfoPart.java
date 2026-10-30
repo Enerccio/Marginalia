@@ -14,6 +14,7 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialogPart;
 import com.github.enerccio.marginalia.ui.main.Viewer;
+import com.github.enerccio.marginalia.ui.widgets.HistoryLimitField;
 import com.github.enerccio.marginalia.ui.widgets.InheritedLanguageCombo;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.ui.widgets.TagMultiComboBox;
@@ -63,6 +64,7 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
     private TagMultiComboBox tags;
     private TextArea descriptionField;
     private InheritedLanguageCombo languageCombo;
+    private HistoryLimitField historyLimitField;
     private ComboBox<AI> aiCombo;
     private ComboBox<Protocol> protocolCombo;
     private Checkbox publishedCheckbox;
@@ -98,7 +100,7 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
         statistics.setSpacing(false);
         statistics.addClassName(CssStyles.SUBTLE_BOX);
 
-        mainLayout.add(nameField, tags, descriptionField, languageCombo, aiCombo, protocolCombo, publishedCheckbox, statistics);
+        mainLayout.add(nameField, tags, descriptionField, languageCombo, historyLimitField, aiCombo, protocolCombo, publishedCheckbox, statistics);
         return mainLayout;
     }
 
@@ -133,6 +135,13 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
 
         languageCombo = new InheritedLanguageCombo(loc.getValue(L.LABEL_LANGUAGE));
         languageCombo.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                autosave();
+            }
+        });
+
+        historyLimitField = new HistoryLimitField(loc.getValue(L.LABEL_HISTORY_MAX_VERSIONS));
+        historyLimitField.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 autosave();
             }
@@ -214,6 +223,7 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
                 manuscript.setName(nameField.getValue());
             manuscript.setDescription(descriptionField.getValue());
             manuscript.setLanguage(languageCombo.getValue());
+            manuscript.setHistoryMaxVersions(historyLimitField.getValue());
             manuscript.setAi(aiCombo.getValue());
             manuscript.setProtocol(protocolCombo.getValue());
             manuscript.setPublished(Boolean.TRUE.equals(publishedCheckbox.getValue()));
@@ -278,6 +288,7 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
             publishedCheckbox.setValue(manuscript.isPublished());
             descriptionField.setValue(StringUtils.defaultString(manuscript.getDescription()));
             languageCombo.load(manuscript.getOwnLanguage(), manuscript.getFolder());
+            historyLimitField.load(manuscript.getHistoryMaxVersions(), manuscriptService.resolveInheritedHistoryLimit(manuscript.getFolder()));
             aiCombo.setValue(manuscript.getAi());
             protocolCombo.setValue(manuscript.getProtocol());
             tags.setForEntity(manuscript);

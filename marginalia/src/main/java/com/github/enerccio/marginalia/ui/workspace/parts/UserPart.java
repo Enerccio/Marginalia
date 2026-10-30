@@ -88,6 +88,9 @@ public class UserPart implements WorkspaceComponent {
     private AgentService agentService;
 
     @Autowired
+    private ManuscriptService manuscriptService;
+
+    @Autowired
     private AgentWebhookService agentWebhookService;
 
     @Autowired
@@ -108,6 +111,7 @@ public class UserPart implements WorkspaceComponent {
     private ComboBox<BackupStrategy> backupStrategyCombo;
     private IntegerField backupStrategyValueField;
     private IntegerField storyPartsLimitField;
+    private HistoryLimitField historyLimitField;
     // the message to a URL when an agent needs the user, for users who may use agents
     private TextField agentWebhookUrlField;
     private ComboBox<WebhookFormat> agentWebhookFormatCombo;
@@ -182,6 +186,7 @@ public class UserPart implements WorkspaceComponent {
         defaultsFormLayout.add(defaultAnnotateModelCombo, defaultAnnotateProtocolCombo);
         defaultsFormLayout.add(new HorizontalLayout(backupStrategyCombo, backupStrategyValueField));
         defaultsFormLayout.add(storyPartsLimitField);
+        defaultsFormLayout.add(historyLimitField);
         defaultsFormLayout.add(agentWebhookUrlField, 2);
         defaultsFormLayout.add(agentWebhookFormatCombo, agentWebhookAlwaysBox);
         defaultsFormLayout.add(agentWebhookTestButton, 2);
@@ -379,6 +384,8 @@ public class UserPart implements WorkspaceComponent {
         storyPartsLimitField.setStepButtonsVisible(true);
         storyPartsLimitField.setClearButtonVisible(true);
         storyPartsLimitField.setHelperText(loc.getValue(L.HELP_STORY_PARTS_LIMIT));
+
+        historyLimitField = new HistoryLimitField(loc.getValue(L.LABEL_HISTORY_MAX_VERSIONS));
 
         agentWebhookUrlField = new TextField(loc.getValue(L.LABEL_AGENT_WEBHOOK_URL));
         agentWebhookUrlField.setWidthFull();
@@ -657,6 +664,7 @@ public class UserPart implements WorkspaceComponent {
             updateBackupStrategyValueField(strategy);
 
             storyPartsLimitField.setValue(userSetting.getStoryPartsLimit());
+            historyLimitField.load(userSetting.getHistoryMaxVersions(), manuscriptService.resolvePermissionHistoryLimit());
             masterTemplateField.setValue(StringUtils.defaultString(userSetting.getMasterTemplate()));
             defaultPovField.setValue(StringUtils.defaultString(userSetting.getDefaultPov()));
             defaultTenseField.setValue(StringUtils.defaultString(userSetting.getDefaultTense()));
@@ -830,6 +838,7 @@ public class UserPart implements WorkspaceComponent {
 
             Integer storyPartsLimit = storyPartsLimitField.getValue();
             userSetting.setStoryPartsLimit(storyPartsLimit != null && storyPartsLimit > 0 ? storyPartsLimit : null);
+            userSetting.setHistoryMaxVersions(historyLimitField.getValue());
 
             userSetting.setMasterTemplate(masterTemplate);
             userSetting.setDefaultPov(defaultPov);

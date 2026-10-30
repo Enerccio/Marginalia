@@ -65,6 +65,13 @@ public class MessageRevision extends ExtendableEntity {
     private String response;
 
     /**
+     * The uuid of the version a {@code RESTORE} version is a copy of, null for the others.
+     */
+    @ExtendedAttribute
+    @Transient
+    private String restoredFrom;
+
+    /**
      * The reasoning that came with the text, only for the text a model wrote.
      */
     @ExtendedAttribute
@@ -137,6 +144,14 @@ public class MessageRevision extends ExtendableEntity {
 
     public void setResponse(String response) {
         this.response = response;
+    }
+
+    public String getRestoredFrom() {
+        return restoredFrom;
+    }
+
+    public void setRestoredFrom(String restoredFrom) {
+        this.restoredFrom = restoredFrom;
     }
 
     public String getResponseReasoning() {

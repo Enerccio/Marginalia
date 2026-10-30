@@ -230,14 +230,30 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     @Override
     @CommonTxReadOnly
     public List<FulltextHit> searchFulltext(Manuscript manuscript, String query) throws Exception {
+        return searchFulltext(manuscript, query, false);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<FulltextHit> searchFulltext(Manuscript manuscript, String query, boolean includeVersions) throws Exception {
         FulltextQuery parsed = FulltextQuery.parse(query);
         if (manuscript == null || parsed.isEmpty() || manuscriptService.findForUser(manuscript.getUuid()) == null) {
             return Collections.emptyList();
         }
 
         List<FulltextHit> hits = new ArrayList<>();
+        Set<Long> found = new HashSet<>();
         for (Object[] row : getRepository().findFulltexts(manuscript, parsed.likePatterns())) {
             hits.add(new FulltextHit((Long) row[0], parsed.snippet((String) row[1], SNIPPET_RADIUS)));
+            found.add((Long) row[0]);
+        }
+        if (includeVersions) {
+            // the text of a part found wins, the versions only add the parts that don't have the words any more
+            for (FulltextHit version : messageRevisionService.searchFulltext(manuscript, query)) {
+                if (!found.contains(version.id())) {
+                    hits.add(version);
+                }
+            }
         }
         return hits;
     }
@@ -245,6 +261,12 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     @Override
     @CommonTxReadOnly
     public Set<Long> findManuscriptsWithText(Collection<Long> manuscriptIds, String query, boolean allBranches) throws Exception {
+        return findManuscriptsWithText(manuscriptIds, query, allBranches, false);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public Set<Long> findManuscriptsWithText(Collection<Long> manuscriptIds, String query, boolean allBranches, boolean includeVersions) throws Exception {
         FulltextQuery parsed = FulltextQuery.parse(query);
         if (parsed.isEmpty() || manuscriptIds == null) {
             return Collections.emptySet();
@@ -259,6 +281,10 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         Map<Long, Set<Long>> hits = new HashMap<>();
         for (Object[] row : getRepository().findFulltextHits(own, parsed.likePatterns())) {
             hits.computeIfAbsent((Long) row[1], k -> new HashSet<>()).add((Long) row[0]);
+        }
+        if (includeVersions) {
+            messageRevisionService.findPartsWithText(own, query)
+                    .forEach((book, parts) -> hits.computeIfAbsent(book, k -> new HashSet<>()).addAll(parts));
         }
         if (allBranches) {
             return new HashSet<>(hits.keySet());
@@ -648,13 +674,17 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         String newText = text == null ? "" : text;
         String oldText = stored.getResponse();
         // the text that is replaced is in the history, whoever wrote it
-        messageRevisionService.ensureCurrent(stored);
+        if (origin.isRecorded()) {
+            messageRevisionService.ensureCurrent(stored);
+        }
         stored.setResponse(newText);
         stored.setTokenCount(tokens);
         stored.setWordCount(countWords(newText));
         stored.setEdited(true);
         ChatMessage saved = save(stored);
-        messageRevisionService.record(saved, origin.data(saved));
+        if (origin.isRecorded()) {
+            messageRevisionService.record(saved, origin.data(saved));
+        }
         // the passages of the annotations move with the text
         annotationService.shift(book, saved, oldText, newText);
         return saved;

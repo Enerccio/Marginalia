@@ -79,6 +79,8 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
     private Button importBackupBtn;
     private Button refreshBtn;
     private Checkbox includeInheritedCheckbox;
+    // whether a backup that is taken has the versions of the parts; off, they can be large
+    private Checkbox includeHistoryCheckbox;
 
     private Checkbox perManuscriptCheckbox;
     private ComboBox<BackupStrategy> backupStrategyCombo;
@@ -171,7 +173,9 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
 
         includeInheritedCheckbox = new Checkbox(loc.getValue(L.LABEL_EXPORT_INHERITED_SETTINGS), true);
 
-        toolbar.add(takeBackupBtn, importBackupBtn, refreshBtn, includeInheritedCheckbox);
+        includeHistoryCheckbox = new Checkbox(loc.getValue(L.LABEL_BACKUP_INCLUDE_HISTORY), false);
+
+        toolbar.add(takeBackupBtn, includeHistoryCheckbox, importBackupBtn, refreshBtn, includeInheritedCheckbox);
 
         grid = new Grid<>(ManuscriptBackup.class, false);
         grid.setSizeFull();
@@ -485,7 +489,7 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
     private void takeBackup() {
         try {
             Manuscript manuscript = parent.refreshManuscript();
-            backupService.takeBackup(manuscript);
+            backupService.takeBackup(manuscript, includeHistoryCheckbox.getValue());
             refreshBackups();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);

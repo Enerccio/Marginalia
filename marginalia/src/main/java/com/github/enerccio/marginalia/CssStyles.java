@@ -141,6 +141,7 @@ public final class CssStyles {
     public static final String TOKEN_USAGE_SUMMARY = "token-usage-summary";
     public static final String PROMPT_COMPARE_FIRST_DIFFERENCE = "prompt-compare-first-difference";
     public static final String PROMPT_COMPARE_LOST = "prompt-compare-lost";
+    public static final String HISTORY_ROW_DELETED = "history-row-deleted";
 
     // --- Resizable text area toggle icon ---
     public static final String RESIZABLE_TEXT_AREA_ICON = "resizable-text-area-icon";

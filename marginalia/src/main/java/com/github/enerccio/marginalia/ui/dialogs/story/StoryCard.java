@@ -86,6 +86,16 @@ public interface StoryCard {
      */
     void copySelection();
 
+    /**
+     * Opens the version history of the part, see {@link PartHistoryDialog}. The card shows the text the author chose.
+     */
+    void openHistory();
+
+    /**
+     * How many versions of the part the history has now (not counting the ones in the trash); the menu shows it.
+     */
+    long getHistoryCount();
+
     void branch();
 
     void mergeIntoPrevious();

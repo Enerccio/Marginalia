@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.ManuscriptService.MissingHistory;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookDecision;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookImportCandidate;
 import com.github.enerccio.marginalia.loc.L;
@@ -68,13 +69,18 @@ public class BackupServiceImpl implements BackupService {
 
     @Override
     public ManuscriptBackup takeBackup(Manuscript manuscript) throws Exception {
+        return takeBackup(manuscript, false);
+    }
+
+    @Override
+    public ManuscriptBackup takeBackup(Manuscript manuscript, boolean includeHistory) throws Exception {
         if (manuscript == null) {
             throw new IllegalArgumentException(loc.getValue(L.ERROR_MANUSCRIPT_NULL));
         }
 
         File folder = getManuscriptBackupFolder(manuscript);
 
-        JsonObject backupJson = manuscriptService.createBackup(manuscript);
+        JsonObject backupJson = manuscriptService.createBackup(manuscript, includeHistory);
         if (backupJson == null) {
             return null;
         }
@@ -274,7 +280,7 @@ public class BackupServiceImpl implements BackupService {
                     return null;
                 }
             });
-            return createFromBackup(backupObj, newName, lorebookDecisions);
+            return createFromBackup(backupObj, newName, lorebookDecisions, MissingHistory.FIRST_VERSION);
         }
     }
 
@@ -307,7 +313,7 @@ public class BackupServiceImpl implements BackupService {
                 }
             });
         }
-        return createFromBackup(backupObj, newName, lorebookDecisions);
+        return createFromBackup(backupObj, newName, lorebookDecisions, MissingHistory.FIRST_VERSION);
     }
 
     @Override
@@ -341,7 +347,7 @@ public class BackupServiceImpl implements BackupService {
             }
         });
         // the lorebook of the backup is linked by cloneFromBackup, not imported
-        Manuscript clone = createFromBackup(backupObj, newName, null);
+        Manuscript clone = createFromBackup(backupObj, newName, null, MissingHistory.DUPLICATE);
         if (folder != null) {
             manuscriptService.moveToFolder(List.of(clone), folder);
             clone = manuscriptService.find(clone.getId());
@@ -383,9 +389,10 @@ public class BackupServiceImpl implements BackupService {
         backupObj.add("messages", kept);
     }
 
-    private Manuscript createFromBackup(JsonObject backupObj, String newName, Map<String, LorebookDecision> lorebookDecisions) throws Exception {
+    private Manuscript createFromBackup(JsonObject backupObj, String newName, Map<String, LorebookDecision> lorebookDecisions,
+                                        MissingHistory missingHistory) throws Exception {
         Map<String, Lorebook> lorebooks = importLorebooks(backupObj, lorebookDecisions);
-        Manuscript manuscript = manuscriptService.cloneFromBackup(backupObj);
+        Manuscript manuscript = manuscriptService.cloneFromBackup(backupObj, null, missingHistory);
         manuscript = linkLorebook(manuscript, backupObj, lorebooks, null);
         if (StringUtils.isNotBlank(newName)) {
             manuscript.setName(newName.trim());

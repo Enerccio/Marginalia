@@ -67,6 +67,13 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
     List<FulltextHit> searchFulltext(Manuscript manuscript, String query) throws Exception;
 
     /**
+     * {@link #searchFulltext(Manuscript, String)}, and with {@code includeVersions} the parts whose text does not have the
+     * words but an older version of it has are found too, after the others: their hit
+     * {@link FulltextHit#isVersion() says which version}. The versions in the trash are not searched.
+     */
+    List<FulltextHit> searchFulltext(Manuscript manuscript, String query, boolean includeVersions) throws Exception;
+
+    /**
      * Which of the books have a part with every word of the query, the parts in the branch of the active part only or
      * in all branches. A book of another user is never found.
      *
@@ -74,6 +81,12 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
      * @see FulltextQuery
      */
     Set<Long> findManuscriptsWithText(Collection<Long> manuscriptIds, String query, boolean allBranches) throws Exception;
+
+    /**
+     * {@link #findManuscriptsWithText(Collection, String, boolean)}; with {@code includeVersions} a book is found also
+     * through an older version of one of its parts.
+     */
+    Set<Long> findManuscriptsWithText(Collection<Long> manuscriptIds, String query, boolean allBranches, boolean includeVersions) throws Exception;
 
     /**
      * The id and {@code _fulltext} of the parts of the book that are not deleted, oldest first.

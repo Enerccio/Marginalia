@@ -814,6 +814,32 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_RENAME_STEP, "步长");
         setValue(L.LABEL_RENAME_DIGITS, "位数");
         setValue(L.LABEL_NEW_NAME, "新名称");
+        setValue(L.LABEL_AGENT_MERGE, "智能体合并");
+        setValue(L.LABEL_HISTORY, "历史");
+        setValue(L.LABEL_HISTORY_WITH_COUNT, "历史 (%d)");
+        setValue(L.LABEL_VERSION_HISTORY_OF_PART, "段落的版本历史");
+        setValue(L.LABEL_SAVE_VERSION, "保存版本");
+        setValue(L.LABEL_VERSION_LABEL, "标签");
+        setValue(L.LABEL_EDIT_VERSION_LABEL, "标签…");
+        setValue(L.LABEL_RESTORE_ON_TOP, "恢复为最新");
+        setValue(L.LABEL_ROLL_BACK_TO_HERE, "回滚到此");
+        setValue(L.LABEL_UNDELETE_VERSION, "移出回收站");
+        setValue(L.LABEL_COPY_TEXT, "复制文本");
+        setValue(L.LABEL_SHOW_DELETED_VERSIONS, "显示已删除的版本");
+        setValue(L.LABEL_EMPTY_VERSION_TRASH, "清空回收站");
+        setValue(L.LABEL_CLEAR_HISTORY, "清除历史");
+        setValue(L.LABEL_CLEAR_BOOK_HISTORY, "清除本书的历史");
+        setValue(L.LABEL_EMPTY_BOOK_HISTORY_TRASH, "清空历史回收站");
+        setValue(L.LABEL_KEEP_SAVED_VERSIONS, "保留已保存的版本和首次生成的版本");
+        setValue(L.LABEL_HISTORY_COMPARE_PREVIOUS, "上一个版本");
+        setValue(L.LABEL_HISTORY_COMPARE_CURRENT, "当前文本");
+        setValue(L.LABEL_HISTORY_COMPARE_NONE, "仅文本");
+        setValue(L.LABEL_HISTORY_CURRENT_VERSION, "当前");
+        setValue(L.LABEL_HISTORY_MAX_VERSIONS, "每个段落保留的版本数");
+        setValue(L.LABEL_SOURCE, "来源");
+        setValue(L.LABEL_SEARCH_INCLUDE_VERSIONS, "包含版本");
+        setValue(L.LABEL_SHOW_IN_HISTORY, "在历史中显示");
+        setValue(L.LABEL_BACKUP_INCLUDE_HISTORY, "包含版本历史");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -959,6 +985,17 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_ACTIVATION_REASON_FILTER_NOT_MATCHED, "未使用：未找到过滤词");
         setValue(L.ENUM_ACTIVATION_REASON_EXTENSION_SKIPPED, "未使用：由扩展更改");
         setValue(L.ENUM_ACTIVATION_CONTEXT_INCLUDE_PARTS, "指令和故事段落");
+        setValue(L.ENUM_REVISION_SOURCE_GENERATE, "已生成");
+        setValue(L.ENUM_REVISION_SOURCE_REGENERATE, "已重新生成");
+        setValue(L.ENUM_REVISION_SOURCE_REDRAFT, "已重写");
+        setValue(L.ENUM_REVISION_SOURCE_HUMAN, "作者");
+        setValue(L.ENUM_REVISION_SOURCE_PLUGIN, "扩展");
+        setValue(L.ENUM_REVISION_SOURCE_MERGE, "已合并");
+        setValue(L.ENUM_REVISION_SOURCE_SPLIT, "已拆分");
+        setValue(L.ENUM_REVISION_SOURCE_RESTORE, "已恢复");
+        setValue(L.ENUM_REVISION_SOURCE_SNAPSHOT, "已保存的版本");
+        setValue(L.ENUM_PERMISSION_VERSION_HISTORY, "版本历史");
+        setValue(L.ENUM_DOMAIN_MESSAGE_REVISION, "部分的版本");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -1389,6 +1426,28 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_MASS_RENAME_EMPTY_NAME, "书籍“%s”的新名称将为空。未重命名任何书籍。");
         setValue(L.MSG_MASS_RENAME_NOTHING_CHANGES, "没有名称会改变。");
         setValue(L.MSG_MASS_RENAME_DONE, "已重命名 %d 本书。");
+        setValue(L.MSG_HISTORY_EMPTY, "此段落还没有版本。");
+        setValue(L.MSG_HISTORY_NO_VERSION_SELECTED, "选择一个版本以查看其文本。");
+        setValue(L.MSG_HISTORY_RESTORED, "已将该版本的文本恢复为最新。");
+        setValue(L.MSG_HISTORY_ROLLED_BACK, "已回滚到该版本。");
+        setValue(L.MSG_HISTORY_CONFIRM_ROLL_BACK, "回滚到此版本？较新的 %d 个版本将进入回收站，之后可以移出。");
+        setValue(L.MSG_HISTORY_ALREADY_THE_TEXT, "段落已经是这个文本。");
+        setValue(L.MSG_HISTORY_SAVED_VERSION, "版本已保存。");
+        setValue(L.MSG_HISTORY_OFF, "此书的历史已关闭（上限为 0）。");
+        setValue(L.MSG_HISTORY_CURRENT_CANT_BE_DELETED, "最新版本就是段落的文本，不能删除。");
+        setValue(L.MSG_HISTORY_CONFIRM_DELETE_FOR_GOOD, "永久删除此版本？此操作无法撤销。");
+        setValue(L.MSG_HISTORY_CONFIRM_CLEAR, "永久删除 %d 个版本（%s）？当前版本会保留。此操作无法撤销。");
+        setValue(L.MSG_HISTORY_NOTHING_TO_CLEAR, "没有可清除的内容。");
+        setValue(L.MSG_HISTORY_CLEARED, "已删除 %d 个版本。");
+        setValue(L.MSG_HISTORY_TRASH_EMPTIED, "已永久删除 %d 个版本。");
+        setValue(L.MSG_HISTORY_NO_TRASH, "历史回收站是空的。");
+        setValue(L.MSG_HISTORY_COPY_OF, "%s 版本的副本");
+        setValue(L.MSG_HISTORY_LIMIT_FOLDER, "限制为 %d 个版本（来自文件夹“%s”）。");
+        setValue(L.MSG_HISTORY_LIMIT_USER, "受您的设置限制为 %d 个版本。");
+        setValue(L.MSG_HISTORY_LIMIT_PERMISSION, "受管理员限制为 %d 个版本。");
+        setValue(L.MSG_HISTORY_LIMIT_NONE, "上层没有历史限制。");
+        setValue(L.MSG_HISTORY_CONFIRM_EMPTY_TRASH, "永久删除历史回收站中的所有内容？此操作无法撤销。");
+        setValue(L.MSG_SEARCH_FOUND_IN_VERSION, "在 %s 的版本中找到（%s）");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1484,6 +1543,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_ORGANISE, "左 / 右：切换窗格。Enter：打开文件夹。Backspace：上一级。空格或 Insert：标记。F2 重命名，F5 复制，F6 移动，F7 新建文件夹，F8 删除。");
         setValue(L.HELP_FOLDER_SETTINGS, "此文件夹及其子文件夹中的书使用这些设置，除非它们有自己的设置。空白项继承自上一级文件夹，然后是您的设置。");
         setValue(L.HELP_MASS_RENAME, "选择重命名的方式并勾选书籍，“新名称”一列显示结果。编号按列表顺序对勾选的书籍计数；模式中的 {name} 是当前名称，{n} 是编号。有智能体正在处理的书籍显示为灰色，无法重命名。");
+        setValue(L.HELP_HISTORY_MAX_VERSIONS, "历史为每个段落保留的版本数（回收站中的也计入）。留空：此层级不设限制。0：不保留历史。书、文件夹、您的设置和管理员的上限中最严格的一个生效。首次生成的版本和已保存的版本另外保留。");
+        setValue(L.HELP_VERSION_HISTORY_PERMISSION, "用户书籍的历史为每个段落保留的最大版本数。留空：管理员不设限制。没有此权限的用户为 50；未授予的权限不保留历史。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");
@@ -1601,7 +1662,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_SHOW_PROMPT_LLM, "生成该部分时发送的提示词（与该部分一起保存）：文本片段（offset、length）、令牌数、按段落划分的令牌明细以及添加的背景设定。非生成的部分或在保存提示词之前生成的部分没有它。部分通过句柄（列表中的 \"handle\"，不会随部分的增删而变化，建议使用）或其在分支上的位置（故事的第一个部分为 1）来指定；除非给出分支上某个部分的句柄或 list-branches 中的分支编号，否则使用当前分支。只读。选项按位置传递且均为可选，顺序如所列。");
         setValue(L.DESC_COMMAND_SHOW_PROMPT_RETURN, "包含提示词片段、令牌数和令牌明细的 JSON");
         setValue(L.DESC_COMMAND_SEARCH_PARTS, "在所有分支的部分中搜索词。");
-        setValue(L.DESC_COMMAND_SEARCH_PARTS_LLM, "对所有分支的部分进行全文搜索：查询中的每个词都必须出现在该部分中（短语用双引号，* 匹配任意字符）。每个结果包含部分的位置、不在当前分支时的分支编号以及匹配处周围的片段。只读。选项按位置传递且均为可选，顺序如所列。每一行还有它的 \"handle\"：它不会随增删而变化，修改书的命令使用的就是它。");
+        setValue(L.DESC_COMMAND_SEARCH_PARTS_LLM, "对所有分支的部分进行全文搜索：查询中的每个词都必须出现在该部分中（短语用双引号，* 匹配任意字符）。每个结果包含部分的位置、不在当前分支时的分支编号以及匹配处周围的片段。使用 includeVersions 时也会搜索各部分的旧版本（历史）：仅通过旧版本找到的部分带有 \"version\"（含其 id、时间和来源），片段来自该版本。只读。选项按位置传递且均为可选，顺序如所列。每一行还有它的 \"handle\"：它不会随增删而变化，修改书的命令使用的就是它。");
         setValue(L.DESC_COMMAND_SEARCH_PARTS_RETURN, "包含搜索结果的 JSON：位置、分支、片段");
         setValue(L.DESC_COMMAND_FIND_OCCURRENCES, "统计名称或词在故事中的出现位置。");
         setValue(L.DESC_COMMAND_FIND_OCCURRENCES_LLM, "连贯性检查由代码而非令牌完成：对每个词（名称及其变体）给出出现的部分数和次数，以及前几个部分和片段。除非 allBranches 为 true，否则只搜索当前分支；summaries 为 true 时也搜索摘要。选项依次为：regex（false）、caseSensitive（false）、summaries（false）、allBranches（false）、limit（每个词最多列出的部分数，50）。只读。每一行还有它的 \"handle\"：它不会随增删而变化，修改书的命令使用的就是它。");
@@ -1852,6 +1913,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_GENERATE_ANNOTATION, "让模型审阅故事的一段，并把发现的问题作为批注添加。会消耗令牌。");
         setValue(L.DESC_COMMAND_GENERATE_ANNOTATION_LLM, "让模型像“用 AI 批注”对话框那样审阅段落 `part`（其句柄；可以是任意一段，不只是最后一段）：模型会阅读该段、其前后的故事（较早的部分以摘要形式）、设定资料和书的文风，以及该段已有的备注，找出连贯性错误、与设定的矛盾、薄弱的段落和文风上的失误。每一条发现都会作为批注（来源为 AI）立即添加到模型所引用的文字上；若引文不在文本中，则添加到整段上。故事正文不会被修改。`profile` 是用来代替当前运行模型的智能体模型配置。速度慢，会消耗令牌。返回该段的句柄和新批注（对不同意的批注可使用 resolve-annotation、update-annotation 或 delete-annotation）。");
         setValue(L.DESC_COMMAND_GENERATE_ANNOTATION_RETURN, "JSON 对象：该段的句柄、创建的批注数量以及批注");
+        setValue(L.DESC_COMMAND_INCLUDE_VERSIONS_PARAM, "同时搜索各部分的旧版本（历史）；省略时为 false");
     }
 
     @Override

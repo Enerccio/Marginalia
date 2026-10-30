@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.domain.collections.AgentRunPairKind;
 import com.github.enerccio.marginalia.domain.collections.Language;
+import com.github.enerccio.marginalia.domain.collections.RevisionSource;
 import com.github.enerccio.marginalia.domain.collections.SummaryType;
 import com.github.enerccio.marginalia.domain.listener.ExtendableEntityListener;
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
@@ -9,6 +10,10 @@ import com.github.enerccio.marginalia.domain.model.OwnedEntity;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.repository.ManuscriptRepository;
+import com.github.enerccio.marginalia.domain.security.model.Permission;
+import com.github.enerccio.marginalia.domain.security.model.User;
+import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
+import com.github.enerccio.marginalia.domain.security.service.PermissionService;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
@@ -61,6 +66,10 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     private AnnotationService annotationService;
 
     @Autowired
+    @Lazy
+    private MessageRevisionService messageRevisionService;
+
+    @Autowired
     private MessagePromptService messagePromptService;
 
     @Autowired
@@ -89,6 +98,10 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @Autowired
     @Lazy
     private FolderService folderService;
+
+    @Autowired
+    @Lazy
+    private PermissionService permissionService;
 
     /**
      * A book an agent works on can't be changed, see {@link AgentRunService#checkNotLocked}.
@@ -225,7 +238,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         if (StringUtils.isBlank(criteria.getFulltext()) || ids.isEmpty()) {
             return ids;
         }
-        Set<Long> withText = chatMessageService.findManuscriptsWithText(ids, criteria.getFulltext(), criteria.isAllBranches());
+        Set<Long> withText = chatMessageService.findManuscriptsWithText(ids, criteria.getFulltext(), criteria.isAllBranches(), criteria.isIncludeVersions());
         return ids.stream().filter(withText::contains).toList();
     }
 
@@ -318,6 +331,62 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     }
 
     @Override
+    public EffectiveHistoryLimit resolveHistoryLimit(Manuscript manuscript) throws Exception {
+        EffectiveHistoryLimit inherited = resolveInheritedHistoryLimit(manuscript.getFolder(), manuscript.getOwner());
+        return stricter(manuscript.getHistoryMaxVersions(), EffectiveHistoryLimit.Origin.BOOK, null, inherited);
+    }
+
+    @Override
+    public EffectiveHistoryLimit resolveInheritedHistoryLimit(Folder start) throws Exception {
+        return resolveInheritedHistoryLimit(start, start == null ? currentUser : start.getOwner());
+    }
+
+    private EffectiveHistoryLimit resolveInheritedHistoryLimit(Folder start, User owner) throws Exception {
+        // from the permission to the book, so that the nearer level wins when several set the same
+        EffectiveHistoryLimit limit = permissionHistoryLimit(owner);
+        UserSetting settings = owner == null ? null : settingService.find(UserSetting.class, owner);
+        limit = stricter(settings == null ? null : settings.getHistoryMaxVersions(), EffectiveHistoryLimit.Origin.USER, null, limit);
+        for (Folder folder : folderService.findChain(start).reversed()) {
+            limit = stricter(folder.getHistoryMaxVersions(), EffectiveHistoryLimit.Origin.FOLDER, folder, limit);
+        }
+        return limit;
+    }
+
+    @Override
+    public EffectiveHistoryLimit resolvePermissionHistoryLimit() throws Exception {
+        return permissionHistoryLimit(currentUser);
+    }
+
+    /**
+     * The ceiling of the administrator: no permission at all is the default, one that is not granted keeps no history.
+     */
+    private EffectiveHistoryLimit permissionHistoryLimit(User owner) throws Exception {
+        Permission permission = owner == null ? null : permissionService.getPermission(owner, PermissionType.VERSION_HISTORY);
+        if (permission == null) {
+            return new EffectiveHistoryLimit(EffectiveHistoryLimit.DEFAULT_MAX_VERSIONS, EffectiveHistoryLimit.Origin.PERMISSION, null);
+        }
+        if (!permission.isGranted()) {
+            return new EffectiveHistoryLimit(0, EffectiveHistoryLimit.Origin.PERMISSION, null);
+        }
+        Integer set = permission.getHistoryMaxVersions();
+        return set == null || set < 0 ? new EffectiveHistoryLimit(null, EffectiveHistoryLimit.Origin.NONE, null)
+                : new EffectiveHistoryLimit(set, EffectiveHistoryLimit.Origin.PERMISSION, null);
+    }
+
+    /**
+     * The nearer level replaces the limit when it is smaller or equal (equal: the nearer is the one to change to get more).
+     */
+    private static EffectiveHistoryLimit stricter(Integer set, EffectiveHistoryLimit.Origin origin, Folder folder, EffectiveHistoryLimit farther) {
+        if (set == null || set < 0) {
+            return farther;
+        }
+        if (farther.isUnlimited() || set <= farther.value()) {
+            return new EffectiveHistoryLimit(set, origin, folder);
+        }
+        return farther;
+    }
+
+    @Override
     public Language getLanguage(Manuscript manuscript) throws Exception {
         return resolveLanguage(manuscript).value();
     }
@@ -405,6 +474,12 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @Override
     @CommonTxReadOnly
     public JsonObject createBackup(Manuscript manuscript) throws Exception {
+        return createBackup(manuscript, false);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public JsonObject createBackup(Manuscript manuscript, boolean includeHistory) throws Exception {
         Manuscript m = find(manuscript);
         if (m == null) {
             return null;
@@ -482,6 +557,8 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         ExtendableEntityListener listener = new ExtendableEntityListener();
         Map<Long, JsonArray> annotations = annotationService.marshalForManuscript(m);
         Map<Long, MessagePrompt> prompts = messagePromptService.findAllFor(allMessages);
+        Map<Long, JsonArray> revisions = includeHistory
+                ? messageRevisionService.marshalForParts(allMessages.stream().map(ChatMessage::getId).toList()) : Map.of();
 
         for (ChatMessage msg : allMessages) {
             JsonObject msgObj = new JsonObject();
@@ -541,6 +618,11 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
             JsonArray messageAnnotations = annotations.get(msg.getId());
             if (messageAnnotations != null) {
                 msgObj.add("annotations", messageAnnotations);
+            }
+
+            JsonArray messageRevisions = revisions.get(msg.getId());
+            if (messageRevisions != null) {
+                msgObj.add("revisions", messageRevisions);
             }
 
             messagesArray.add(msgObj);
@@ -759,6 +841,12 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @Override
     @CommonTx
     public Manuscript cloneFromBackup(JsonObject backup, Collection<UuidPair> pairs) throws Exception {
+        return cloneFromBackup(backup, pairs, MissingHistory.NONE);
+    }
+
+    @Override
+    @CommonTx
+    public Manuscript cloneFromBackup(JsonObject backup, Collection<UuidPair> pairs, MissingHistory missing) throws Exception {
         if (backup == null) {
             return null;
         }
@@ -809,7 +897,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
 
         Map<String, ChatMessage> uuidToNodeMap = new HashMap<>();
         if (backup.has("messages") && backup.get("messages").isJsonArray()) {
-            uuidToNodeMap = restoreMessages(backup.getAsJsonArray("messages"), manuscript, pairs);
+            uuidToNodeMap = restoreMessages(backup.getAsJsonArray("messages"), manuscript, pairs, missing);
         }
 
         if (backup.has("activeLeafUuid") && !backup.get("activeLeafUuid").isJsonNull()) {
@@ -896,7 +984,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         // 2. Restore all backed up messages
         Map<String, ChatMessage> uuidToNodeMap = new HashMap<>();
         if (backup.has("messages") && backup.get("messages").isJsonArray()) {
-            uuidToNodeMap = restoreMessages(backup.getAsJsonArray("messages"), m, null);
+            uuidToNodeMap = restoreMessages(backup.getAsJsonArray("messages"), m, null, MissingHistory.FIRST_VERSION);
         }
 
         // Link active leaf
@@ -976,10 +1064,11 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     }
 
     /**
-     * @param pairs where the messages and summaries made are reported with the uuids they were made from (the uuids of the
-     *              backup), null when nobody wants them
+     * @param pairs   where the messages and summaries made are reported with the uuids they were made from (the uuids of the
+     *                backup), null when nobody wants them
+     * @param missing what a part gets of which the backup has no versions
      */
-    private Map<String, ChatMessage> restoreMessages(JsonArray messagesArray, Manuscript manuscript, Collection<UuidPair> pairs) throws Exception {
+    private Map<String, ChatMessage> restoreMessages(JsonArray messagesArray, Manuscript manuscript, Collection<UuidPair> pairs, MissingHistory missing) throws Exception {
         Map<String, ChatMessage> uuidToNodeMap = new HashMap<>();
         if (messagesArray == null) {
             return uuidToNodeMap;
@@ -1042,6 +1131,19 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
 
             if (msgObj.has("annotations") && msgObj.get("annotations").isJsonArray()) {
                 annotationService.restoreForPart(msg, msgObj.getAsJsonArray("annotations"), pairs);
+            }
+
+            // the history the backup has, else the first version of the text; the part was made of its extended content, its
+            // fields are read from it for the versions
+            if (missing != MissingHistory.NONE || msgObj.has("revisions")) {
+                new ExtendableEntityListener().deserialize(msg);
+            }
+            if (msgObj.has("revisions") && msgObj.get("revisions").isJsonArray()) {
+                messageRevisionService.restoreForPart(msg, msgObj.getAsJsonArray("revisions"));
+            } else if (missing == MissingHistory.FIRST_VERSION) {
+                messageRevisionService.recordFirst(msg, null);
+            } else if (missing == MissingHistory.DUPLICATE) {
+                messageRevisionService.recordFirst(msg, RevisionSource.DUPLICATE);
             }
 
             if (msgObj.has("uuid") && !msgObj.get("uuid").isJsonNull()) {

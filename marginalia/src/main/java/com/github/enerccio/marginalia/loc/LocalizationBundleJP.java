@@ -807,6 +807,31 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_RENAME_DIGITS, "桁数");
         setValue(L.LABEL_NEW_NAME, "新しい名前");
         setValue(L.LABEL_AGENT_MERGE, "エージェントの統合");
+        setValue(L.LABEL_HISTORY, "履歴");
+        setValue(L.LABEL_HISTORY_WITH_COUNT, "履歴 (%d)");
+        setValue(L.LABEL_VERSION_HISTORY_OF_PART, "パートのバージョン履歴");
+        setValue(L.LABEL_SAVE_VERSION, "バージョンを保存");
+        setValue(L.LABEL_VERSION_LABEL, "ラベル");
+        setValue(L.LABEL_EDIT_VERSION_LABEL, "ラベル…");
+        setValue(L.LABEL_RESTORE_ON_TOP, "最新として復元");
+        setValue(L.LABEL_ROLL_BACK_TO_HERE, "ここまで戻す");
+        setValue(L.LABEL_UNDELETE_VERSION, "ごみ箱から戻す");
+        setValue(L.LABEL_COPY_TEXT, "テキストをコピー");
+        setValue(L.LABEL_SHOW_DELETED_VERSIONS, "削除したバージョンを表示");
+        setValue(L.LABEL_EMPTY_VERSION_TRASH, "ごみ箱を空にする");
+        setValue(L.LABEL_CLEAR_HISTORY, "履歴を消去");
+        setValue(L.LABEL_CLEAR_BOOK_HISTORY, "本の履歴を消去");
+        setValue(L.LABEL_EMPTY_BOOK_HISTORY_TRASH, "履歴のごみ箱を空にする");
+        setValue(L.LABEL_KEEP_SAVED_VERSIONS, "保存したバージョンと最初の生成を残す");
+        setValue(L.LABEL_HISTORY_COMPARE_PREVIOUS, "前のバージョン");
+        setValue(L.LABEL_HISTORY_COMPARE_CURRENT, "現在のテキスト");
+        setValue(L.LABEL_HISTORY_COMPARE_NONE, "テキストのみ");
+        setValue(L.LABEL_HISTORY_CURRENT_VERSION, "現在");
+        setValue(L.LABEL_HISTORY_MAX_VERSIONS, "パートごとに保持するバージョン数");
+        setValue(L.LABEL_SOURCE, "作成元");
+        setValue(L.LABEL_SEARCH_INCLUDE_VERSIONS, "バージョンを含める");
+        setValue(L.LABEL_SHOW_IN_HISTORY, "履歴で表示");
+        setValue(L.LABEL_BACKUP_INCLUDE_HISTORY, "バージョン履歴を含める");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -961,6 +986,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_REVISION_SOURCE_SPLIT, "分割済み");
         setValue(L.ENUM_REVISION_SOURCE_RESTORE, "復元済み");
         setValue(L.ENUM_REVISION_SOURCE_SNAPSHOT, "保存したバージョン");
+        setValue(L.ENUM_PERMISSION_VERSION_HISTORY, "バージョン履歴");
+        setValue(L.ENUM_DOMAIN_MESSAGE_REVISION, "パートのバージョン");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -1391,6 +1418,28 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_MASS_RENAME_EMPTY_NAME, "本「%s」の新しい名前が空になります。何も変更しませんでした。");
         setValue(L.MSG_MASS_RENAME_NOTHING_CHANGES, "変更される名前はありません。");
         setValue(L.MSG_MASS_RENAME_DONE, "%d 冊の本の名前を変更しました。");
+        setValue(L.MSG_HISTORY_EMPTY, "このパートにはまだバージョンがありません。");
+        setValue(L.MSG_HISTORY_NO_VERSION_SELECTED, "バージョンを選ぶとテキストが表示されます。");
+        setValue(L.MSG_HISTORY_RESTORED, "バージョンのテキストを最新として復元しました。");
+        setValue(L.MSG_HISTORY_ROLLED_BACK, "バージョンまで戻しました。");
+        setValue(L.MSG_HISTORY_CONFIRM_ROLL_BACK, "このバージョンまで戻しますか？新しい %d 件のバージョンはごみ箱に入り、あとで戻せます。");
+        setValue(L.MSG_HISTORY_ALREADY_THE_TEXT, "パートはすでにこのテキストです。");
+        setValue(L.MSG_HISTORY_SAVED_VERSION, "バージョンを保存しました。");
+        setValue(L.MSG_HISTORY_OFF, "この本の履歴はオフです（上限が 0）。");
+        setValue(L.MSG_HISTORY_CURRENT_CANT_BE_DELETED, "最新のバージョンはパートのテキストなので削除できません。");
+        setValue(L.MSG_HISTORY_CONFIRM_DELETE_FOR_GOOD, "このバージョンを完全に削除しますか？元に戻せません。");
+        setValue(L.MSG_HISTORY_CONFIRM_CLEAR, "%d 件のバージョン (%s) を完全に削除しますか？現在のバージョンは残ります。元に戻せません。");
+        setValue(L.MSG_HISTORY_NOTHING_TO_CLEAR, "消去するものはありません。");
+        setValue(L.MSG_HISTORY_CLEARED, "%d 件のバージョンを削除しました。");
+        setValue(L.MSG_HISTORY_TRASH_EMPTIED, "%d 件のバージョンを完全に削除しました。");
+        setValue(L.MSG_HISTORY_NO_TRASH, "履歴のごみ箱は空です。");
+        setValue(L.MSG_HISTORY_COPY_OF, "%s のバージョンのコピー");
+        setValue(L.MSG_HISTORY_LIMIT_FOLDER, "上限は %d 件です（フォルダ「%s」による制限）。");
+        setValue(L.MSG_HISTORY_LIMIT_USER, "あなたの設定により %d 件に制限されています。");
+        setValue(L.MSG_HISTORY_LIMIT_PERMISSION, "管理者により %d 件に制限されています。");
+        setValue(L.MSG_HISTORY_LIMIT_NONE, "上位に履歴の制限はありません。");
+        setValue(L.MSG_HISTORY_CONFIRM_EMPTY_TRASH, "履歴のごみ箱の中身をすべて完全に削除しますか？元に戻せません。");
+        setValue(L.MSG_SEARCH_FOUND_IN_VERSION, "%s のバージョンで見つかりました（%s）");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1486,6 +1535,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_ORGANISE, "左 / 右 / Tab：もう一方のペイン。Enter：フォルダを開く。Backspace：上へ。Space または Insert：マーク。ボタンのキーは設定（キー割り当て）で変更できます。");
         setValue(L.HELP_FOLDER_SETTINGS, "このフォルダとその下のフォルダにある本は、独自の設定がない限りこれらの設定を使います。空の項目は上のフォルダ、次にユーザー設定から継承されます。");
         setValue(L.HELP_MASS_RENAME, "名前の変更方法を選び、対象の本にチェックを入れます。「新しい名前」の列に結果が表示されます。番号付けはチェックした本を一覧の順に数えます。パターンの {name} は現在の名前、{n} は番号です。エージェントが作業中の本はグレー表示になり、名前を変更できません。");
+        setValue(L.HELP_HISTORY_MAX_VERSIONS, "履歴がパートごとに保持するバージョン数（ごみ箱の分も含む）。空欄：この階層では制限しません。0：履歴を残しません。本、フォルダ、設定、管理者の上限のうち最も厳しいものが適用されます。最初の生成と保存したバージョンはこれとは別に残ります。");
+        setValue(L.HELP_VERSION_HISTORY_PERMISSION, "ユーザーの本の履歴がパートごとに保持する最大バージョン数。空欄：管理者による制限なし。この権限がないユーザーは 50 件です。付与されていない権限は履歴を残しません。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");
@@ -1603,7 +1654,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_SHOW_PROMPT_LLM, "パート生成時に送信されたプロンプト（パートと共に保存）：テキストの一部（offset、length）、トークン数、セクション別のトークン内訳、追加された背景ロア。生成されていないパートや、プロンプトが保存される前に生成されたパートにはありません。パートはハンドル（一覧の \"handle\"。パートの追加や削除で変わらないので推奨）またはブランチ上の位置（ストーリーの最初のパートが1）で指定します。ブランチは、その上のパートのハンドルか list-branches の番号を指定しない限り有効なブランチです。読み取り専用。オプションは位置引数で、記載順に指定します。");
         setValue(L.DESC_COMMAND_SHOW_PROMPT_RETURN, "プロンプトの一部、トークン数、トークン内訳を含む JSON");
         setValue(L.DESC_COMMAND_SEARCH_PARTS, "全ブランチのパートから単語を検索します。");
-        setValue(L.DESC_COMMAND_SEARCH_PARTS_LLM, "全ブランチのパートに対する全文検索です。クエリの全ての単語がパートに含まれる必要があります（フレーズは二重引用符、* は任意の文字）。各ヒットにはパートの位置、有効なブランチ上にない場合はブランチ番号、一致箇所周辺のスニペットが含まれます。読み取り専用。オプションは位置引数で、記載順に指定します。各行には \"handle\" もあります。追加や削除で変わらず、本を変更するコマンドが受け取るのはこれです。");
+        setValue(L.DESC_COMMAND_SEARCH_PARTS_LLM, "全ブランチのパートに対する全文検索です。クエリの全ての単語がパートに含まれる必要があります（フレーズは二重引用符、* は任意の文字）。各ヒットにはパートの位置、有効なブランチ上にない場合はブランチ番号、一致箇所周辺のスニペットが含まれます。includeVersions を指定するとパートの古いバージョン（履歴）も検索します。古いバージョンだけで見つかったパートには、その ID・時刻・作成元を持つ \"version\" が付き、スニペットはそのバージョンのものです。読み取り専用。オプションは位置引数で、記載順に指定します。各行には \"handle\" もあります。追加や削除で変わらず、本を変更するコマンドが受け取るのはこれです。");
         setValue(L.DESC_COMMAND_SEARCH_PARTS_RETURN, "ヒットを含む JSON：位置、ブランチ、スニペット");
         setValue(L.DESC_COMMAND_FIND_OCCURRENCES, "ストーリー内で名前や単語がどこに出現するかを数えます。");
         setValue(L.DESC_COMMAND_FIND_OCCURRENCES_LLM, "連続性の確認をトークンではなくコードで行います：各語（名前とその別表記）について、パート数と出現回数、最初の数パートとスニペットを返します。allBranches が true でない限り有効なブランチを検索し、summaries が true なら要約も検索します。オプションは順に regex（false）、caseSensitive（false）、summaries（false）、allBranches（false）、limit（語ごとに一覧するパートの最大数、50）。読み取り専用。各行には \"handle\" もあります。追加や削除で変わらず、本を変更するコマンドが受け取るのはこれです。");
@@ -1854,6 +1905,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_GENERATE_ANNOTATION, "モデルにストーリーのパートを確認させ、その指摘を注釈として追加します。トークンを消費します。");
         setValue(L.DESC_COMMAND_GENERATE_ANNOTATION_LLM, "モデルにパート `part`（そのハンドル。最後のパートに限らず任意のパート）を「AIで注釈」ダイアログと同じように確認させます。モデルはパート、その前後のストーリー（古い部分は要約）、設定資料とブックの文体、パートに既にあるメモを読み、矛盾や設定との食い違い、弱い箇所、文体の乱れを探します。指摘はそれぞれ、モデルが引用した箇所（引用が本文にない場合はパート全体）への注釈（ソースは AI）としてすぐに追加されます。ストーリーの本文は変更されません。`profile` は、実行中のモデルの代わりに使うエージェントのモデルプロファイルです。時間がかかり、トークンを消費します。パートのハンドルと新しい注釈を返します（同意できないものには resolve-annotation、update-annotation、delete-annotation を使ってください）。");
         setValue(L.DESC_COMMAND_GENERATE_ANNOTATION_RETURN, "JSONオブジェクト: パートのハンドル、作成した注釈の数、注釈");
+        setValue(L.DESC_COMMAND_INCLUDE_VERSIONS_PARAM, "パートの古いバージョン（履歴）も検索します。省略時は false");
     }
 
     @Override

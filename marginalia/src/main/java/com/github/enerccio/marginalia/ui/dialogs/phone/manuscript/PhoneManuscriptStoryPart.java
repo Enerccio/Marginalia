@@ -79,6 +79,9 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     private ChatMessageService chatMessageService;
 
     @Autowired
+    private MessageRevisionService messageRevisionService;
+
+    @Autowired
     private MessagePromptService messagePromptService;
 
     @Autowired
@@ -1153,6 +1156,43 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
                 });
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
+            }
+        }
+
+        /**
+         * Opens the version history of the part, see {@link PartHistoryDialog}. A text that was put back replaces the one of the card.
+         */
+        @PublicAPI(from = "1.6.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "e", type = Exception.class)})
+        @Override
+        public void openHistory() {
+            try {
+                currentManuscript = parent.refreshManuscript();
+                PartHistoryDialog.open(currentManuscript, message, saved -> {
+                    message = saved;
+                    annotationsChanged();
+                    renderResponse();
+                    updateMetrics(message);
+                });
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        }
+
+        /**
+         * How many versions of the part the history has, the number the menu item shows.
+         */
+        @PublicAPI(from = "1.6.0",
+                returns = @APIReturn(type = long.class),
+                locals = {@APILocals(name = "e", type = Exception.class)})
+        @Override
+        public long getHistoryCount() {
+            try {
+                return message == null || message.getId() == null ? 0
+                        : messageRevisionService.countFor(List.of(message)).getOrDefault(message.getId(), 0L);
+            } catch (Exception e) {
+                return 0;
             }
         }
 

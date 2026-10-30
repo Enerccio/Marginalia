@@ -12,6 +12,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
 import com.github.enerccio.marginalia.ui.main.Viewer;
+import com.github.enerccio.marginalia.ui.widgets.HistoryLimitField;
 import com.github.enerccio.marginalia.ui.widgets.InheritedLanguageCombo;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.ui.widgets.TagMultiComboBox;
@@ -61,6 +62,7 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
     private TagMultiComboBox tags;
     private TextArea descriptionField;
     private InheritedLanguageCombo languageCombo;
+    private HistoryLimitField historyLimitField;
     private ComboBox<AI> aiCombo;
     private ComboBox<Protocol> protocolCombo;
     private Checkbox publishedCheckbox;
@@ -95,7 +97,7 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
         formLayout.setWidthFull();
         formLayout.add(nameField, tags, descriptionField);
         formLayout.setColspan(descriptionField, 2);
-        formLayout.add(languageCombo, aiCombo, protocolCombo, publishedCheckbox);
+        formLayout.add(languageCombo, historyLimitField, aiCombo, protocolCombo, publishedCheckbox);
         formLayout.setColspan(publishedCheckbox, 2);
 
         FormLayout syntheticFormLayout = new FormLayout();
@@ -139,6 +141,13 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
 
         languageCombo = new InheritedLanguageCombo(loc.getValue(L.LABEL_LANGUAGE));
         languageCombo.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                autosave();
+            }
+        });
+
+        historyLimitField = new HistoryLimitField(loc.getValue(L.LABEL_HISTORY_MAX_VERSIONS));
+        historyLimitField.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 autosave();
             }
@@ -231,6 +240,7 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
                 manuscript.setName(nameField.getValue());
             manuscript.setDescription(descriptionField.getValue());
             manuscript.setLanguage(languageCombo.getValue());
+            manuscript.setHistoryMaxVersions(historyLimitField.getValue());
             manuscript.setAi(aiCombo.getValue());
             manuscript.setProtocol(protocolCombo.getValue());
             manuscript.setPublished(Boolean.TRUE.equals(publishedCheckbox.getValue()));
@@ -297,6 +307,7 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
             publishedCheckbox.setValue(manuscript.isPublished());
             descriptionField.setValue(StringUtils.defaultString(manuscript.getDescription()));
             languageCombo.load(manuscript.getOwnLanguage(), manuscript.getFolder());
+            historyLimitField.load(manuscript.getHistoryMaxVersions(), manuscriptService.resolveInheritedHistoryLimit(manuscript.getFolder()));
             aiCombo.setValue(manuscript.getAi());
             protocolCombo.setValue(manuscript.getProtocol());
             tags.setForEntity(manuscript);

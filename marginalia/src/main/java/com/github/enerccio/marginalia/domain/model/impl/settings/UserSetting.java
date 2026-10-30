@@ -220,12 +220,29 @@ public class UserSetting extends Setting {
     @Transient
     private Boolean helpAssistantBooks = false;
 
+    /**
+     * The most versions of a part the history keeps for the books of the user that set no limit themselves; {@code null} does not limit them here (see
+     * {@code ManuscriptService#resolveHistoryLimit}: the strictest of the book, its folders, the user and the permission wins), zero
+     * keeps no history.
+     */
+    @ExtendedAttribute
+    @Transient
+    private Integer historyMaxVersions;
+
     public boolean isHelpAssistantBooks() {
         return helpAssistantBooks != null && helpAssistantBooks;
     }
 
     public void setHelpAssistantBooks(Boolean helpAssistantBooks) {
         this.helpAssistantBooks = helpAssistantBooks;
+    }
+
+    public Integer getHistoryMaxVersions() {
+        return historyMaxVersions;
+    }
+
+    public void setHistoryMaxVersions(Integer historyMaxVersions) {
+        this.historyMaxVersions = historyMaxVersions;
     }
 
     public Long getDefaultModel() {

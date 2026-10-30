@@ -95,6 +95,7 @@ public class ManuscriptSearchDialog extends Dialog {
     private final IntegerField partsTo = new IntegerField();
     final TextField fulltext = new TextField();
     final Checkbox allBranches = new Checkbox();
+    final Checkbox includeVersions = new Checkbox();
     private final Span summary = new Span();
     private final Grid<Row> results = new Grid<>();
 
@@ -155,11 +156,14 @@ public class ManuscriptSearchDialog extends Dialog {
         fulltext.addKeyDownListener(Key.ENTER, e -> search());
         allBranches.setLabel(loc.getValue(L.LABEL_SEARCH_IN_ALL_BRANCHES));
         allBranches.setValue(false);
+        includeVersions.setLabel(loc.getValue(L.LABEL_SEARCH_INCLUDE_VERSIONS));
+        includeVersions.setValue(false);
         // the fields share rows and wrap when the dialog is narrow
         name.setMinWidth("12em");
         fulltext.setMinWidth("14em");
-        FlexLayout textRow = row(name, fulltext, allBranches);
+        FlexLayout textRow = row(name, fulltext, allBranches, includeVersions);
         textRow.setFlexGrow(0, allBranches);
+        textRow.setFlexGrow(0, includeVersions);
 
         FlexLayout tagsRow = row(group(includeTags, includeMatch), group(excludeTags, excludeMatch));
 
@@ -302,6 +306,7 @@ public class ManuscriptSearchDialog extends Dialog {
         partsTo.clear();
         fulltext.clear();
         allBranches.setValue(false);
+        includeVersions.setValue(false);
         subfolders.setValue(false);
         results.setVisible(false);
         summary.setText("");
@@ -325,6 +330,7 @@ public class ManuscriptSearchDialog extends Dialog {
         criteria.setMaxParts(partsTo.getValue());
         criteria.setFulltext(StringUtils.trimToNull(fulltext.getValue()));
         criteria.setAllBranches(allBranches.getValue());
+        criteria.setIncludeVersions(includeVersions.getValue());
         return criteria;
     }
 
