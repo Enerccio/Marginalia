@@ -21,7 +21,7 @@ covers:
   - marginalia/plugins/name-provider/src/main/java/com/github/enerccio/marginalia/extensions/nameprovider/NameProviderToolProvider.java
   - marginalia/plugins/place-provider/src/main/java/com/github/enerccio/marginalia/extensions/placeprovider/PlaceProviderToolProvider.java
   - marginalia/plugins/place-provider/src/main/java/com/github/enerccio/marginalia/extensions/placeprovider/PlaceProviderExtension.java
-verified: 186daa954
+verified: 496959f4c
 ---
 
 # Sharing data between extensions
