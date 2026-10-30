@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846711458145">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846711894355">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846711458145" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846711894355" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846711458145" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846711894355" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846711458145" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846711894355" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -284,7 +284,7 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 <h3 id="bound---startup-and-sessions"><code translate="no" v-pre>bound</code> - startup and sessions</h3>
 <retype-table copy-text="| File | |
 |---|---|
-| `ApplicationInitializer.java` | Runs registered `Migration`s when the stored `AppSettings` versions are behind (`bound/migration`: `EncryptApiKeysMigration`, `FulltextMigration`, `OriginalResponseMigration`, `PermissionsMigration`, see [Database &amp; migrations](database.md)). |
+| `ApplicationInitializer.java` | Runs registered `Migration`s when the stored `AppSettings` versions are behind (`bound/migration`: `EncryptApiKeysMigration`, `FulltextMigration`, `PartRevisionMigration`, `VersionHistoryPermissionMigration`, `OriginalResponseMigration`, `PermissionsMigration`, see [Database &amp; migrations](database.md)). |
 | `Migration.java` | Interface of data migrations in Java (schema migrations are Flyway SQL). |
 | `SessionManager.java` | The `sessionManager` bean: registry of all HTTP sessions, binds the logged-in user to them, runs code in other users' sessions (`runForUsers`) and closes dead UIs and sessions on its watcher thread. See [Sessions](architecture.md#sessions). |
 | `SessionTrackingListener.java` | `HttpSessionListener` registered by `WebappApplicationInitializer`; forwards session creation and destruction to `SessionManager`. |
@@ -305,7 +305,7 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 <tbody>
 <tr>
 <td><code translate="no" v-pre>ApplicationInitializer.java</code></td>
-<td>Runs registered <code translate="no" v-pre>Migration</code>s when the stored <code translate="no" v-pre>AppSettings</code> versions are behind (<code translate="no" v-pre>bound/migration</code>: <code translate="no" v-pre>EncryptApiKeysMigration</code>, <code translate="no" v-pre>FulltextMigration</code>, <code translate="no" v-pre>OriginalResponseMigration</code>, <code translate="no" v-pre>PermissionsMigration</code>, see <a href="../database/">Database &amp; migrations</a>).</td>
+<td>Runs registered <code translate="no" v-pre>Migration</code>s when the stored <code translate="no" v-pre>AppSettings</code> versions are behind (<code translate="no" v-pre>bound/migration</code>: <code translate="no" v-pre>EncryptApiKeysMigration</code>, <code translate="no" v-pre>FulltextMigration</code>, <code translate="no" v-pre>PartRevisionMigration</code>, <code translate="no" v-pre>VersionHistoryPermissionMigration</code>, <code translate="no" v-pre>OriginalResponseMigration</code>, <code translate="no" v-pre>PermissionsMigration</code>, see <a href="../database/">Database &amp; migrations</a>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>Migration.java</code></td>
@@ -462,6 +462,7 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 | `impl/Protocol`, `impl/ChatCompletionProtocol` | Protocols (generation settings). |
 | `impl/Tag`, `impl/TagRelation` | Tags and their assignment to objects (by class and id, optionally as a negative tag). |
 | `impl/Resource` | Uploaded files stored by hash, used for the image attachments of a part (`ChatMessage.getImages()`); `clazz` + `objectId` loosely note what uses it. Listed in the Resources tab (`ResourcesPart`). |
+| `impl/MessageRevision` | A version of the text of a part (the table `message_revisions`), see [Version history](version-history.md). |
 | `impl/Usage` | What a user used of an AI (prefill and generated tokens, requests, and the tokens since the last reset of their limit); an `OwnedEntity`, one per AI and user, so a shared AI has one for everybody who uses it. |
 | `impl/settings/AppSettings`, `impl/settings/UserSetting` | Installation-wide settings (versions, database backup schedule) and per-user settings. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -518,6 +519,10 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 <td>Uploaded files stored by hash, used for the image attachments of a part (<code translate="no" v-pre>ChatMessage.getImages()</code>); <code translate="no" v-pre>clazz</code> + <code translate="no" v-pre>objectId</code> loosely note what uses it. Listed in the Resources tab (<code translate="no" v-pre>ResourcesPart</code>).</td>
 </tr>
 <tr>
+<td><code translate="no" v-pre>impl/MessageRevision</code></td>
+<td>A version of the text of a part (the table <code translate="no" v-pre>message_revisions</code>), see <a href="../version-history/">Version history</a>.</td>
+</tr>
+<tr>
 <td><code translate="no" v-pre>impl/Usage</code></td>
 <td>What a user used of an AI (prefill and generated tokens, requests, and the tokens since the last reset of their limit); an <code translate="no" v-pre>OwnedEntity</code>, one per AI and user, so a shared AI has one for everybody who uses it.</td>
 </tr>
@@ -544,6 +549,7 @@ no state besides their fields.</p>
 | `TokenLimits` | Static helpers for the context, response and prompt budget of a generation (the smaller of protocol and provider limit). |
 | `AILimit`, `AILimits`, `LimitStatus` | The limit of one user on a shared AI (strategy, reset, token limits, hard limit of the generated tokens), the JSON in `AI.limits` that holds them by user uuid, and where a user stands (limit, tokens used in the period, next reset; `block(...)` says what stops a request). See [Limits](domain-model.md#limits-of-the-users-of-a-shared-ai). |
 | `PromptComparison` | Compares two stored built prompts (JSON payloads) like a prefix cache: per-message status, the first difference (message, character), the shared share of the new prompt and a `Verdict` (system message changed, story shifted, last message only...). Pure, no services; used by `PromptComparisonDialog` (*Compare Prompt* in the part menu). |
+| `RevisionRow`, `RevisionData`, `RevisionOrigin`, `RevisionClearing` | The [version history](version-history.md): a version without its text (what the list reads), the whole data of a version to record, who is writing a text into a part (source, detail, agent, reasoning), what *Clear history* deletes. |
 | `PromptTokenBreakdown` | Raw token counts of one built prompt: the budget, every section, what was cut and the tokens of each payload message. Filled by the generation steps, stored with the part (`ChatMessage.getTokenBreakdown()`), shown by `TokenUsageDialog`. |
 | `SummaryNode` | A summary and the summaries it merges, for the summaries overview. |
 | `CronSchedule` | Cron expression parsing and next-run computation, used by the database backup schedule. |">
@@ -573,6 +579,10 @@ no state besides their fields.</p>
 <td>Compares two stored built prompts (JSON payloads) like a prefix cache: per-message status, the first difference (message, character), the shared share of the new prompt and a <code translate="no" v-pre>Verdict</code> (system message changed, story shifted, last message only...). Pure, no services; used by <code translate="no" v-pre>PromptComparisonDialog</code> (<em>Compare Prompt</em> in the part menu).</td>
 </tr>
 <tr>
+<td><code translate="no" v-pre>RevisionRow</code>, <code translate="no" v-pre>RevisionData</code>, <code translate="no" v-pre>RevisionOrigin</code>, <code translate="no" v-pre>RevisionClearing</code></td>
+<td>The <a href="../version-history/">version history</a>: a version without its text (what the list reads), the whole data of a version to record, who is writing a text into a part (source, detail, agent, reasoning), what <em>Clear history</em> deletes.</td>
+</tr>
+<tr>
 <td><code translate="no" v-pre>PromptTokenBreakdown</code></td>
 <td>Raw token counts of one built prompt: the budget, every section, what was cut and the tokens of each payload message. Filled by the generation steps, stored with the part (<code translate="no" v-pre>ChatMessage.getTokenBreakdown()</code>), shown by <code translate="no" v-pre>TokenUsageDialog</code>.</td>
 </tr>
@@ -594,6 +604,7 @@ no state besides their fields.</p>
 |---|---|
 | `BaseService`, `OwnedService`, `ExtendableService` | Generic CRUD, soft delete, lookups restricted to the current user. |
 | `ManuscriptService`, `ChatMessageService`, `SummaryService` | Books, the story tree (add, branch, swipe, delete a part and re-attach its children, word and token counts), summaries. |
+| `MessageRevisionService`, `EffectiveHistoryLimit` | The versions of the text of a part and the limit of the history, see [Version history](version-history.md). |
 | `FolderService`, `PromptField`, `EffectiveSetting`, `FolderBookLockedException` | The folders and the settings the books inherit from them, see [Folders](folders.md). `BackupFolders` and `BackupInheritance` (`impl`) are the folder in a backup and the inherited settings in an export; `HelpBookData` with `manual/BookHelpTools` the books tools of the help assistant. |
 | `LorebookService`, `LorebookEntryService` | Lorebooks, entries, import and export (incl. SillyTavern through `SillyTavernEntryConverter`). |
 | `AIService`, `ProtocolService` | Inference providers and protocols. |
@@ -628,6 +639,10 @@ no state besides their fields.</p>
 <tr>
 <td><code translate="no" v-pre>ManuscriptService</code>, <code translate="no" v-pre>ChatMessageService</code>, <code translate="no" v-pre>SummaryService</code></td>
 <td>Books, the story tree (add, branch, swipe, delete a part and re-attach its children, word and token counts), summaries.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>MessageRevisionService</code>, <code translate="no" v-pre>EffectiveHistoryLimit</code></td>
+<td>The versions of the text of a part and the limit of the history, see <a href="../version-history/">Version history</a>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>FolderService</code>, <code translate="no" v-pre>PromptField</code>, <code translate="no" v-pre>EffectiveSetting</code>, <code translate="no" v-pre>FolderBookLockedException</code></td>
@@ -877,7 +892,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 <retype-table copy-text="| Package | |
 |---|---|
 | `domain.traits` | Annotations: `@CommonTx`, `@CommonTxReadOnly`, `@NoTx` (transactions), `@Extendable` (instrumented UI classes) with `@PublicAPI`, `@APIReturn`, `@APIParameter`, `@APILocals` (the signature of each of their methods that plugins see), `@LLMSchema` / `@LLMField` (describe a class the model answers with, see `StructuredOutputs`), `@ExtendedAttribute` (fields stored in `attributes`), `@Fulltextable` (fields whose text goes into `_fulltext`), `@CleanupReference(s)` (how references behave during cleanup), `@LocalizedTemplateDescription` (texts of template hints), `@SupportedAI` (provider type of an inference service). `@Command` with `CommandDataSeverity` (what a command does to existing data, see [Commands](commands/index.md#data-severity)). |
-| `domain.collections` | Enums: `AIType`, `ProtocolType`, `ReasoningEffort`, `LimitStrategy`, `ResetStrategy`, `FilteringMode`, `InsertionMode`, `ActivationContext`, `SummaryType`. |
+| `domain.collections` | Enums: `AIType`, `ProtocolType`, `ReasoningEffort`, `LimitStrategy`, `ResetStrategy`, `FilteringMode`, `InsertionMode`, `ActivationContext`, `SummaryType`, `RevisionSource`, `RevisionDetail` (the sources and the named details of a version of a part). |
 | `domain.listener` | `ExtendableEntityListener` - serializes `attributes` and `@ExtendedAttribute` fields to `extendedContent` and back, and collects the `@Fulltextable` fields into `_fulltext`. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -894,7 +909,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 </tr>
 <tr>
 <td><code translate="no" v-pre>domain.collections</code></td>
-<td>Enums: <code translate="no" v-pre>AIType</code>, <code translate="no" v-pre>ProtocolType</code>, <code translate="no" v-pre>ReasoningEffort</code>, <code translate="no" v-pre>LimitStrategy</code>, <code translate="no" v-pre>ResetStrategy</code>, <code translate="no" v-pre>FilteringMode</code>, <code translate="no" v-pre>InsertionMode</code>, <code translate="no" v-pre>ActivationContext</code>, <code translate="no" v-pre>SummaryType</code>.</td>
+<td>Enums: <code translate="no" v-pre>AIType</code>, <code translate="no" v-pre>ProtocolType</code>, <code translate="no" v-pre>ReasoningEffort</code>, <code translate="no" v-pre>LimitStrategy</code>, <code translate="no" v-pre>ResetStrategy</code>, <code translate="no" v-pre>FilteringMode</code>, <code translate="no" v-pre>InsertionMode</code>, <code translate="no" v-pre>ActivationContext</code>, <code translate="no" v-pre>SummaryType</code>, <code translate="no" v-pre>RevisionSource</code>, <code translate="no" v-pre>RevisionDetail</code> (the sources and the named details of a version of a part).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>domain.listener</code></td>
@@ -1495,7 +1510,7 @@ ignored by Git), see <a href="../packaging/#building-the-plugins-in-docker">Pack
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (1318501dc).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (a44fd28b7).</p></div>
             </footer>
         </div>
     </div>

@@ -73,7 +73,7 @@ Application code lives in `com.github.enerccio.marginalia` (paths below are rela
 
 | File | |
 |---|---|
-| `ApplicationInitializer.java` | Runs registered `Migration`s when the stored `AppSettings` versions are behind (`bound/migration`: `EncryptApiKeysMigration`, `FulltextMigration`, `OriginalResponseMigration`, `PermissionsMigration`, see [Database & migrations](database.md)). |
+| `ApplicationInitializer.java` | Runs registered `Migration`s when the stored `AppSettings` versions are behind (`bound/migration`: `EncryptApiKeysMigration`, `FulltextMigration`, `PartRevisionMigration`, `VersionHistoryPermissionMigration`, `OriginalResponseMigration`, `PermissionsMigration`, see [Database & migrations](database.md)). |
 | `Migration.java` | Interface of data migrations in Java (schema migrations are Flyway SQL). |
 | `SessionManager.java` | The `sessionManager` bean: registry of all HTTP sessions, binds the logged-in user to them, runs code in other users' sessions (`runForUsers`) and closes dead UIs and sessions on its watcher thread. See [Sessions](architecture.md#sessions). |
 | `SessionTrackingListener.java` | `HttpSessionListener` registered by `WebappApplicationInitializer`; forwards session creation and destruction to `SessionManager`. |
@@ -121,6 +121,7 @@ Application code lives in `com.github.enerccio.marginalia` (paths below are rela
 | `impl/Protocol`, `impl/ChatCompletionProtocol` | Protocols (generation settings). |
 | `impl/Tag`, `impl/TagRelation` | Tags and their assignment to objects (by class and id, optionally as a negative tag). |
 | `impl/Resource` | Uploaded files stored by hash, used for the image attachments of a part (`ChatMessage.getImages()`); `clazz` + `objectId` loosely note what uses it. Listed in the Resources tab (`ResourcesPart`). |
+| `impl/MessageRevision` | A version of the text of a part (the table `message_revisions`), see [Version history](version-history.md). |
 | `impl/Usage` | What a user used of an AI (prefill and generated tokens, requests, and the tokens since the last reset of their limit); an `OwnedEntity`, one per AI and user, so a shared AI has one for everybody who uses it. |
 | `impl/settings/AppSettings`, `impl/settings/UserSetting` | Installation-wide settings (versions, database backup schedule) and per-user settings. |
 
@@ -144,6 +145,7 @@ no state besides their fields.
 | `TokenLimits` | Static helpers for the context, response and prompt budget of a generation (the smaller of protocol and provider limit). |
 | `AILimit`, `AILimits`, `LimitStatus` | The limit of one user on a shared AI (strategy, reset, token limits, hard limit of the generated tokens), the JSON in `AI.limits` that holds them by user uuid, and where a user stands (limit, tokens used in the period, next reset; `block(...)` says what stops a request). See [Limits](domain-model.md#limits-of-the-users-of-a-shared-ai). |
 | `PromptComparison` | Compares two stored built prompts (JSON payloads) like a prefix cache: per-message status, the first difference (message, character), the shared share of the new prompt and a `Verdict` (system message changed, story shifted, last message only...). Pure, no services; used by `PromptComparisonDialog` (*Compare Prompt* in the part menu). |
+| `RevisionRow`, `RevisionData`, `RevisionOrigin`, `RevisionClearing` | The [version history](version-history.md): a version without its text (what the list reads), the whole data of a version to record, who is writing a text into a part (source, detail, agent, reasoning), what *Clear history* deletes. |
 | `PromptTokenBreakdown` | Raw token counts of one built prompt: the budget, every section, what was cut and the tokens of each payload message. Filled by the generation steps, stored with the part (`ChatMessage.getTokenBreakdown()`), shown by `TokenUsageDialog`. |
 | `SummaryNode` | A summary and the summaries it merges, for the summaries overview. |
 | `CronSchedule` | Cron expression parsing and next-run computation, used by the database backup schedule. |
@@ -156,6 +158,7 @@ Interfaces in `domain.service`, implementations in `domain.service.impl`:
 |---|---|
 | `BaseService`, `OwnedService`, `ExtendableService` | Generic CRUD, soft delete, lookups restricted to the current user. |
 | `ManuscriptService`, `ChatMessageService`, `SummaryService` | Books, the story tree (add, branch, swipe, delete a part and re-attach its children, word and token counts), summaries. |
+| `MessageRevisionService`, `EffectiveHistoryLimit` | The versions of the text of a part and the limit of the history, see [Version history](version-history.md). |
 | `FolderService`, `PromptField`, `EffectiveSetting`, `FolderBookLockedException` | The folders and the settings the books inherit from them, see [Folders](folders.md). `BackupFolders` and `BackupInheritance` (`impl`) are the folder in a backup and the inherited settings in an export; `HelpBookData` with `manual/BookHelpTools` the books tools of the help assistant. |
 | `LorebookService`, `LorebookEntryService` | Lorebooks, entries, import and export (incl. SillyTavern through `SillyTavernEntryConverter`). |
 | `AIService`, `ProtocolService` | Inference providers and protocols. |
@@ -232,7 +235,7 @@ See [Story export](services.md#story-export).
 | Package | |
 |---|---|
 | `domain.traits` | Annotations: `@CommonTx`, `@CommonTxReadOnly`, `@NoTx` (transactions), `@Extendable` (instrumented UI classes) with `@PublicAPI`, `@APIReturn`, `@APIParameter`, `@APILocals` (the signature of each of their methods that plugins see), `@LLMSchema` / `@LLMField` (describe a class the model answers with, see `StructuredOutputs`), `@ExtendedAttribute` (fields stored in `attributes`), `@Fulltextable` (fields whose text goes into `_fulltext`), `@CleanupReference(s)` (how references behave during cleanup), `@LocalizedTemplateDescription` (texts of template hints), `@SupportedAI` (provider type of an inference service). `@Command` with `CommandDataSeverity` (what a command does to existing data, see [Commands](commands/index.md#data-severity)). |
-| `domain.collections` | Enums: `AIType`, `ProtocolType`, `ReasoningEffort`, `LimitStrategy`, `ResetStrategy`, `FilteringMode`, `InsertionMode`, `ActivationContext`, `SummaryType`. |
+| `domain.collections` | Enums: `AIType`, `ProtocolType`, `ReasoningEffort`, `LimitStrategy`, `ResetStrategy`, `FilteringMode`, `InsertionMode`, `ActivationContext`, `SummaryType`, `RevisionSource`, `RevisionDetail` (the sources and the named details of a version of a part). |
 | `domain.listener` | `ExtendableEntityListener` - serializes `attributes` and `@ExtendedAttribute` fields to `extendedContent` and back, and collects the `@Fulltextable` fields into `_fulltext`. |
 
 ### Extensions, localization, helpers

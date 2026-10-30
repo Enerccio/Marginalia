@@ -275,7 +275,7 @@ Methods the bundled plugins use, as examples:
 | `ManuscriptStoryPart$ChatMessageCard` | `createMenuItems()` | fields `hamburgerMenu`, `message` | Add other things to a part's menu; runs when the menu of the part is first opened, after the items of the `StoryMenuRegistry`. Items are better registered there (Reviewer does). |
 | `ManuscriptStoryPart$ChatMessageCard` | `refreshSummaryMenuItems()` | fields `hamburgerMenu`, `message` | Runs each time the menu of the part is about to open, after it reloaded `message` (before the registry refreshes its items). |
 | `ManuscriptStoryPart$ChatMessageCard` | `autosaveAndSwapToMarkdown()` | fields `message`, `this$0` (the outer `ManuscriptStoryPart`) | React to an edited part (Chapter Marker). |
-| `ManuscriptStoryPart$ChatMessageCard` | `openHistory()` / `getHistoryCount()` (from 1.6.0) | field `message` | Open the [version history](../version-history.md) of the part / the number in the label of its menu item. |
+| `ManuscriptStoryPart$ChatMessageCard` | `openHistory()` / `getHistoryCount()` / `comparePrompt()` (from 1.6.0) | field `message` | Open the [version history](../version-history.md) of the part / the number in the label of its menu item. |
 | `UserPart` | `refresh()` / `save()` | fields `extensionSettings`, `userSetting` | Add a settings panel; save its values (Reviewer, Side Query, Lore Generator). |
 | `LorebookView` | `create()` | local `lorebookHeaderLayout`; field `grid` | Add a panel above the lorebook header (Lorebook VCS); add a column to the entry grid (Lore Generator). |
 | `LorebookPart` | `refresh()` | field `lorebookView` | Reach the view of the workspace tab, which was built when the page opened (Lore Generator). |
