@@ -122,7 +122,7 @@ shows its key in brackets:
 | **Rename** | `Shift+r` | Renames the folder or book under the cursor. |
 | **Delete** | `Delete` | Deletes it, as in the list. |
 | **Folder settings** | `i` | The [settings](#folder-settings) of the folder under the cursor. |
-| **Mass Change Model/Protocol**, **Mass Change Language**, **Tag books** | `p`, `l`, `t` | The [mass changes](#mass-changes) for the marked books, or for the books of the folder of the active pane (with their own *Include subfolders*). |
+| **Mass Change Model/Protocol**, **Mass Change Language**, **Mass Rename**, **Tag books** | `p`, `l`, `Shift+n`, `t` | The [mass changes](#mass-changes) for the marked books, or for the books of the folder of the active pane (with their own *Include subfolders*). The panes show the new names after a mass rename. |
 | **Advanced search** | `f` | The [search](managing-books.md#advanced-search) in the folder of the active pane, optionally with *Include subfolders*. A result has **Show in folder**, which takes the pane there and marks the book. |
 | **Show folder in the list** | `o` | Closes the window and opens the folder of the active pane in the list of books. |
 
@@ -157,7 +157,8 @@ Books never clash: their names may repeat.
 ## Mass changes
 
 The **Mass changes** menu of the list (and the buttons of Organise) change many books at once. **Mass Change
-Model/Protocol** puts one model and/or one protocol on the books, **Mass Change Language** a language, **Tag books**
+Model/Protocol** puts one model and/or one protocol on the books, **Mass Change Language** a language, **Mass Rename**
+adds a prefix or a postfix to their names, replaces a text in them or numbers them, **Tag books**
 and **Tag folders** add or remove a tag. See [Managing books](managing-books.md#tagging-many-books-at-once). From the list they
 work on the books of the current folder, with their own **Include subfolders**.
 

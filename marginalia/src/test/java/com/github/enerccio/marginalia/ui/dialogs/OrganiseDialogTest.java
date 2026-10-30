@@ -370,7 +370,7 @@ class OrganiseDialogTest extends MarginaliaTestBase {
     @Test
     void theButtonsShowTheKeysAndTheUserCanChangeThem() throws Exception {
         assertThat(dialog(null, null).buttons()).containsExactly("Copy (c)", "Move (m)", "New folder (n)", "Rename (Shift+r)", "Delete (Delete)",
-                "Folder settings (i)", "Mass Change Model/Protocol (p)", "Mass Change Language (l)", "Tag books (t)", "Advanced search (f)", "Show folder in the list (o)");
+                "Folder settings (i)", "Mass Change Model/Protocol (p)", "Mass Change Language (l)", "Mass Rename (Shift+n)", "Tag books (t)", "Advanced search (f)", "Show folder in the list (o)");
 
         UserSetting setting = settingService.getOrCreate(UserSetting.class);
         setting.setKeyBindings(KeyBindings.toStored(setting.getKeyBindings(), Map.of(ShortcutActions.ORGANISE_COPY, "F5", ShortcutActions.ORGANISE_MOVE, "")));
@@ -462,12 +462,14 @@ class OrganiseDialogTest extends MarginaliaTestBase {
 
         dialog.press(ShortcutActions.ORGANISE_MODEL_PROTOCOL);
         dialog.press(ShortcutActions.ORGANISE_LANGUAGE);
+        dialog.press(ShortcutActions.ORGANISE_MASS_RENAME);
         dialog.press(ShortcutActions.ORGANISE_TAG_BOOKS);
         dialog.press(ShortcutActions.ORGANISE_SEARCH);
 
         dialog.press("Space");
         dialog.press(ShortcutActions.ORGANISE_MODEL_PROTOCOL);
         dialog.press(ShortcutActions.ORGANISE_LANGUAGE);
+        dialog.press(ShortcutActions.ORGANISE_MASS_RENAME);
         dialog.press(ShortcutActions.ORGANISE_TAG_BOOKS);
     }
 
@@ -510,6 +512,6 @@ class OrganiseDialogTest extends MarginaliaTestBase {
 
         dialog.press(ShortcutActions.ORGANISE_SWITCH_PANE);
         assertThat(dialog.leftActive()).isTrue();
-        assertThat(dialog.buttons()).as("a key only, no button").hasSize(11);
+        assertThat(dialog.buttons()).as("a key only, no button").hasSize(12);
     }
 }

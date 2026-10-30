@@ -802,6 +802,18 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_COMPARE_READ_AGAIN, "重新读取");
         setValue(L.LABEL_COMPARE_ALTERNATIVE, "备选");
         setValue(L.LABEL_REDRAFT_ORIGINAL_TEXT, "原文（含批注）");
+        setValue(L.LABEL_MASS_RENAME, "批量重命名");
+        setValue(L.LABEL_RENAME_ADD_PREFIX, "添加前缀");
+        setValue(L.LABEL_RENAME_ADD_POSTFIX, "添加后缀");
+        setValue(L.LABEL_RENAME_FIND_REPLACE, "查找并替换");
+        setValue(L.LABEL_RENAME_NUMBER, "为书籍编号");
+        setValue(L.LABEL_RENAME_TEXT_TO_ADD, "要添加的文本");
+        setValue(L.LABEL_RENAME_FIND, "查找");
+        setValue(L.LABEL_RENAME_PATTERN, "名称模式");
+        setValue(L.LABEL_RENAME_START_AT, "起始编号");
+        setValue(L.LABEL_RENAME_STEP, "步长");
+        setValue(L.LABEL_RENAME_DIGITS, "位数");
+        setValue(L.LABEL_NEW_NAME, "新名称");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1372,6 +1384,11 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_PROMPT_COMPARE_HISTORY_SHIFTED, "此处出现的故事消息在之前的提示词中位于别处：故事的起点移动了（最早的部分放不下被舍弃，或部分被摘要替换）。此后的所有内容都会重新读取。");
         setValue(L.MSG_PROMPT_COMPARE_HISTORY_CHANGED, "故事中间的一条消息与之前的提示词不同：某个部分被编辑、重新生成或被摘要替换。其后的所有内容都会重新读取。");
         setValue(L.MSG_PROMPT_COMPARE_ROLE_CHANGED, "第一处不同位置的消息角色不同，提示词的结构发生了变化。");
+        setValue(L.MSG_MASS_RENAME_FILL_FIRST, "请先填写用于重命名的文本。");
+        setValue(L.MSG_MASS_RENAME_PATTERN_NEEDS_NUMBER, "模式必须包含 {n}，否则所有书籍的名称都会相同。");
+        setValue(L.MSG_MASS_RENAME_EMPTY_NAME, "书籍“%s”的新名称将为空。未重命名任何书籍。");
+        setValue(L.MSG_MASS_RENAME_NOTHING_CHANGES, "没有名称会改变。");
+        setValue(L.MSG_MASS_RENAME_DONE, "已重命名 %d 本书。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1466,6 +1483,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_MASS_CHANGE_LANGUAGE, "选择要应用到书籍的语言，并勾选书籍。有智能体正在处理的书籍显示为灰色，无法更改。");
         setValue(L.HELP_ORGANISE, "左 / 右：切换窗格。Enter：打开文件夹。Backspace：上一级。空格或 Insert：标记。F2 重命名，F5 复制，F6 移动，F7 新建文件夹，F8 删除。");
         setValue(L.HELP_FOLDER_SETTINGS, "此文件夹及其子文件夹中的书使用这些设置，除非它们有自己的设置。空白项继承自上一级文件夹，然后是您的设置。");
+        setValue(L.HELP_MASS_RENAME, "选择重命名的方式并勾选书籍，“新名称”一列显示结果。编号按列表顺序对勾选的书籍计数；模式中的 {name} 是当前名称，{n} 是编号。有智能体正在处理的书籍显示为灰色，无法重命名。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

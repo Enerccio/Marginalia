@@ -34,6 +34,7 @@ public final class ShortcutRegistry {
         register(new ShortcutAction(ShortcutActions.ORGANISE_FOLDER_SETTINGS, loc -> loc.getValue(L.LABEL_ORGANISE) + ": " + loc.getValue(L.LABEL_FOLDER_SETTINGS), "i", null));
         register(new ShortcutAction(ShortcutActions.ORGANISE_MODEL_PROTOCOL, loc -> loc.getValue(L.LABEL_ORGANISE) + ": " + loc.getValue(L.LABEL_MASS_CHANGE_MODEL_PROTOCOL), "p", null));
         register(new ShortcutAction(ShortcutActions.ORGANISE_LANGUAGE, loc -> loc.getValue(L.LABEL_ORGANISE) + ": " + loc.getValue(L.LABEL_MASS_CHANGE_LANGUAGE), "l", null));
+        register(new ShortcutAction(ShortcutActions.ORGANISE_MASS_RENAME, loc -> loc.getValue(L.LABEL_ORGANISE) + ": " + loc.getValue(L.LABEL_MASS_RENAME), "Shift+n", null));
         register(new ShortcutAction(ShortcutActions.ORGANISE_TAG_BOOKS, loc -> loc.getValue(L.LABEL_ORGANISE) + ": " + loc.getValue(L.LABEL_TAG_BOOKS), "t", null));
         register(new ShortcutAction(ShortcutActions.ORGANISE_SEARCH, loc -> loc.getValue(L.LABEL_ORGANISE) + ": " + loc.getValue(L.LABEL_ADVANCED_SEARCH), "f", null));
         register(new ShortcutAction(ShortcutActions.ORGANISE_SHOW_IN_LIST, loc -> loc.getValue(L.LABEL_ORGANISE) + ": " + loc.getValue(L.LABEL_SHOW_FOLDER_IN_LIST), "o", null));

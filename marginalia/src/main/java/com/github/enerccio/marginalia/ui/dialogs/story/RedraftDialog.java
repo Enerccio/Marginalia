@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
@@ -277,16 +278,47 @@ public class RedraftDialog extends Dialog {
             original.add(text);
             List<Annotation> open = openAnnotations();
             if (!open.isEmpty()) {
-                original.add(new Span(loc.getValue(L.LABEL_ANNOTATIONS)));
+                // a popover would open behind the modal window: the notes are here, a click on a mark brings its note into view and
+                // the pointer over a mark or a note lights both
+                VerticalLayout notes = new VerticalLayout();
+                notes.setPadding(false);
+                notes.setSpacing(false);
+                notes.addClassNames(CssStyles.ANNOTATION_MARGIN, CssStyles.GAP_S);
                 for (Annotation annotation : open) {
-                    String quote = StringUtils.isBlank(annotation.getQuote()) ? "" : "\u201c" + annotation.getQuote() + "\u201d: ";
-                    original.add(new Div(quote + StringUtils.defaultString(annotation.getText())));
+                    notes.add(note(annotation));
                 }
+                Div anchor = new Div();
+                anchor.addClassName(CssStyles.ANNOTATION_ANCHOR);
+                original.add(new Span(loc.getValue(L.LABEL_ANNOTATIONS)), notes, anchor);
+                JavascriptLibrary.linkMarginNotes(text.getElement(), notes.getElement());
+                JavascriptLibrary.fireAnnotationClickEvent(text.getElement(), anchor.getElement());
+                text.getElement().addEventListener("annotation-click",
+                        event -> JavascriptLibrary.flashMarginNote(notes.getElement(),
+                                event.getEventData().get("event.detail.ids").asString().split(",")[0]))
+                        .addEventData("event.detail.ids");
             }
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
         return original;
+    }
+
+    /**
+     * The note of an annotation, read only: the words it is about and what it says.
+     */
+    private static Div note(Annotation annotation) {
+        Div note = new Div();
+        note.addClassName(CssStyles.ANNOTATION_VIEW);
+        note.getElement().setAttribute(StoryAnnotations.NOTE_ATTRIBUTE, annotation.getUuid());
+        if (StringUtils.isNotBlank(annotation.getQuote())) {
+            Div quote = new Div("\u201c" + annotation.getQuote() + "\u201d");
+            quote.addClassName(CssStyles.ANNOTATION_QUOTE);
+            note.add(quote);
+        }
+        Div text = new Div(StringUtils.defaultString(annotation.getText()));
+        text.addClassName(CssStyles.ANNOTATION_NOTE);
+        note.add(text);
+        return note;
     }
 
     // for the tests

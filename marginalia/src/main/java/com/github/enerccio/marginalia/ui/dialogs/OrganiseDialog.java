@@ -168,6 +168,7 @@ public class OrganiseDialog extends Dialog {
         actions.add(new Action(ShortcutActions.ORGANISE_FOLDER_SETTINGS, L.LABEL_FOLDER_SETTINGS, this::folderSettings, true));
         actions.add(new Action(ShortcutActions.ORGANISE_MODEL_PROTOCOL, L.LABEL_MASS_CHANGE_MODEL_PROTOCOL, this::massChangeModelProtocol, true));
         actions.add(new Action(ShortcutActions.ORGANISE_LANGUAGE, L.LABEL_MASS_CHANGE_LANGUAGE, this::massChangeLanguage, true));
+        actions.add(new Action(ShortcutActions.ORGANISE_MASS_RENAME, L.LABEL_MASS_RENAME, this::massRename, true));
         actions.add(new Action(ShortcutActions.ORGANISE_TAG_BOOKS, L.LABEL_TAG_BOOKS, this::tagBooks, true));
         actions.add(new Action(ShortcutActions.ORGANISE_SEARCH, L.LABEL_ADVANCED_SEARCH, this::search, true));
         actions.add(new Action(ShortcutActions.ORGANISE_SHOW_IN_LIST, L.LABEL_SHOW_FOLDER_IN_LIST, this::showInList, true));
@@ -664,6 +665,17 @@ public class OrganiseDialog extends Dialog {
         List<Manuscript> books = markedBooks();
         MassChangeLanguageDialog dialog = books.isEmpty() ? new MassChangeLanguageDialog(null, active.folder)
                 : new MassChangeLanguageDialog(null, books);
+        dialog.create();
+        dialog.open();
+    }
+
+    /**
+     * Renames the marked books, or the books of the folder of the active pane; the panes show the new names when it is done.
+     */
+    private void massRename() {
+        List<Manuscript> books = markedBooks();
+        Runnable renamed = () -> changed(Kind.BOOK, null);
+        MassRenameDialog dialog = books.isEmpty() ? new MassRenameDialog(renamed, active.folder) : new MassRenameDialog(renamed, books);
         dialog.create();
         dialog.open();
     }

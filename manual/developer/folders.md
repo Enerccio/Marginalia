@@ -142,7 +142,7 @@ All the code is in `ui` (the classes are `@Configurable`, the windows `@Extendab
 | `PromptSettingsForm` | The editors of the twelve text settings, shared by the book's *Prompts* tab (desktop and phone) and the folder dialog. It takes the values and the folder the empty ones inherit from (`load`), gives the values back (`values`), shows the inherited value as the placeholder and the origin as the line under the field (`LABEL_INHERITED_FROM_FOLDER`, `_FROM_USER`, `_INHERITED_DEFAULT`) and reports a change only when every template is valid. |
 | `InheritedLanguageCombo` | The language box where empty means inherit; the same placeholder and origin line. |
 | `OrganiseDialog`, `FolderClashDialog` | The two-pane window (the entries are marked with `MassDeleteBox`, the check box of the story's mass delete, whose one click event carries Shift for a range; the list reads itself again when the window closes) and the question of a name clash. The keys of the buttons are `ShortcutActions.ORGANISE_*` actions, registered in `ShortcutRegistry` and caught in the browser by `JavascriptLibrary.fireOrganiseKeys`; the navigation keys are fixed. |
-| `MassChangeModelProtocolDialog`, `MassChangeLanguageDialog`, `MultiTagDialog` | Take a list of books (or a folder, `MultiTagDialog.Kind.FOLDERS`). |
+| `MassChangeModelProtocolDialog`, `MassChangeLanguageDialog`, `MassRenameDialog`, `MultiTagDialog` | Take a list of books (or a folder, `MultiTagDialog.Kind.FOLDERS`). |
 | `BookLabels` | How a book is named in the combo boxes: `Folder / Sub / Name`. Use it for any new picker of books. |
 
 Plugins that name a changed method or variable must follow `@PublicAPI`, see [Extendable classes](plugins/extendable.md).
