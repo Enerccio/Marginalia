@@ -67,7 +67,7 @@ worth keeping and prune the rest. This file collects the decisions and the order
   every user, administrators included (it changes no behavior, a user without the row has the same; it makes the setting visible to
   the administrator). Not done (step 6): the settings in the UI, the permission's component in the permissions dialog (**a
   `VERSION_HISTORY` permission added there starts with no number = unlimited: the component has to start it at 50**), and the book
-  settings record (`ManuscriptService.BookChanges`) does not carry the limit yet. `PartHistoryLimitTest` (27 tests),
+  settings record (`ManuscriptService.BookSettings`) does not carry the limit yet (done later: `BookSettings.historyMaxVersions`). `PartHistoryLimitTest` (27 tests),
   `VersionHistoryPermissionMigrationTest` (3).
 
 - ✅ **Step 6:** the interface. `PartHistoryDialog` (one class for the desktop and the phone: on a phone it fills the screen, the
@@ -406,6 +406,8 @@ the history of the merged part and shows as `MERGE` on the surviving one.
 
 ## Not done
 
-- The agent command that changes the settings of a book (`BookChanges`) does not carry `historyMaxVersions`.
-- `SPLIT` is reserved, nothing splits a part yet.
-- The version history on a phone has one picture (`phone-history`); the other phone screens were not checked in the retake.
+- `SPLIT` is reserved, nothing splits a part yet (there is no feature to record it from).
+
+Done after the nine steps: the agent command `set-book-history-limit` and the merge of the limit (`MergeDiff.BOOK_FIELDS`); the
+phone pictures were checked: only `phone-history` shows a changed screen (the other phone pictures show the story with the
+menu closed, the book list and the folders, which did not change).

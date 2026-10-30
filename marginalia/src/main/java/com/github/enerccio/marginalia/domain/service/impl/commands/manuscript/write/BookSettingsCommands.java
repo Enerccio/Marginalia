@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.w
 import com.github.enerccio.marginalia.domain.collections.Language;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
+import com.github.enerccio.marginalia.domain.service.EffectiveHistoryLimit;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
@@ -15,7 +16,7 @@ import java.util.List;
 
 /**
  * {@code /set-book-info [name [description [pov [tense [style [language]]]]]]}, {@code /set-book-prompts [template [userPrompt
- * [summaryPrompt [metaSummaryPrompt]]]]}, {@code /set-book-tags [add [remove]]}: the commands that change the settings of the book. The
+ * [summaryPrompt [metaSummaryPrompt]]]]}, {@code /set-book-tags [add [remove]]}, {@code /set-book-history-limit [maxVersions]}: the commands that change the settings of the book. The
  * prompts are the only one that is destructive: a bad template spoils every later generation.
  */
 public class BookSettingsCommands extends ManuscriptWriteSupport {
@@ -23,6 +24,7 @@ public class BookSettingsCommands extends ManuscriptWriteSupport {
     static final String SET_BOOK_INFO = "set-book-info";
     static final String SET_BOOK_PROMPTS = "set-book-prompts";
     static final String SET_BOOK_TAGS = "set-book-tags";
+    static final String SET_BOOK_HISTORY_LIMIT = "set-book-history-limit";
 
     @Command(commandName = SET_BOOK_INFO, humanName = L.LABEL_COMMAND_SET_BOOK_INFO,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
@@ -166,6 +168,29 @@ public class BookSettingsCommands extends ManuscriptWriteSupport {
         setBookTags(context, context.get("add", String.class), context.get("remove", String.class));
     }
 
+    @Command(commandName = SET_BOOK_HISTORY_LIMIT, humanName = L.LABEL_COMMAND_SET_BOOK_HISTORY_LIMIT,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            description = L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT, llmDescription = L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT_LLM,
+            signature = @CommandParameterSignature,
+            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT_RETURN))
+    public void removeBookHistoryLimit(CommandContext context) throws Exception {
+        setBookHistoryLimit(context, -1);
+    }
+
+    @Command(commandName = SET_BOOK_HISTORY_LIMIT, humanName = L.LABEL_COMMAND_SET_BOOK_HISTORY_LIMIT,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            description = L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT, llmDescription = L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT_LLM,
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "maxVersions", type = Integer.class, min = "0", description = L.DESC_COMMAND_HISTORY_MAX_VERSIONS_PARAM)}),
+            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT_RETURN))
+    public void setBookHistoryLimit(CommandContext context) throws Exception {
+        int maxVersions = context.get("maxVersions", Integer.class);
+        if (maxVersions < 0) {
+            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_HISTORY_LIMIT_NEGATIVE));
+        }
+        setBookHistoryLimit(context, maxVersions);
+    }
+
     private void setBookInfo(CommandContext context, String name, String description, String pov, String tense, String style,
                              String language) throws Exception {
         Book book = new Book(context);
@@ -217,6 +242,19 @@ public class BookSettingsCommands extends ManuscriptWriteSupport {
         JsonArray warnings = new JsonArray();
         saved.warnings().forEach(warnings::add);
         result.add("warnings", warnings);
+        changed();
+        answer(context, result);
+    }
+
+    private void setBookHistoryLimit(CommandContext context, int maxVersions) throws Exception {
+        Book book = new Book(context);
+        Manuscript manuscript = manuscriptService.updateSettings(book.manuscript,
+                new ManuscriptService.BookSettings().historyMaxVersions(maxVersions)).manuscript();
+        EffectiveHistoryLimit effective = manuscriptService.resolveHistoryLimit(manuscript);
+        JsonObject result = new JsonObject();
+        result.addProperty("bookLimit", manuscript.getHistoryMaxVersions());
+        result.addProperty("effectiveLimit", effective.value());
+        result.addProperty("setBy", effective.origin().name());
         changed();
         answer(context, result);
     }

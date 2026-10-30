@@ -119,6 +119,12 @@ version prunes down to it. `clear(part|book, keepSnapshots)` and `previewClear` 
 the newest version, and the exempt ones when `keepSnapshots`; `emptyTrash` deletes the trash. They work on the parts of the
 current user only (`IllegalArgumentException` for another user's book).
 
+The limit of a book is also a setting of the book for the code that changes settings: `ManuscriptService.BookSettings.historyMaxVersions`
+(null leaves it, a negative number takes it away) is what the agent command `set-book-history-limit` calls (`updateSettings`; the
+result says the book's own limit, the one that counts and the level that sets it) and what the merge of an agent's work applies:
+`historyMaxVersions` is one of `MergeDiff.BOOK_FIELDS` (a book field of the review, `AgentMergeServiceImpl.applyBook`, no number = the agent took the limit away), so the limit
+the agent set in the copy reaches the book.
+
 A permission is added by `VersionHistoryPermissionMigration` (app 7 → 8) for every user who has none: granted, 50.
 
 ## Restoring

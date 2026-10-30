@@ -832,6 +832,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_SEARCH_INCLUDE_VERSIONS, "バージョンを含める");
         setValue(L.LABEL_SHOW_IN_HISTORY, "履歴で表示");
         setValue(L.LABEL_BACKUP_INCLUDE_HISTORY, "バージョン履歴を含める");
+        setValue(L.LABEL_COMMAND_SET_BOOK_HISTORY_LIMIT, "保持するバージョン数を設定");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1089,6 +1090,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ERROR_FOLDER_GONE, "フォルダはもう存在しません。");
         setValue(L.ERROR_FOLDER_TRANSFER_REFUSED, "この操作はできません。フォルダを自分自身やその下のフォルダに入れることはできず、フォルダ名は空いている必要があります。");
         setValue(L.ERROR_FOLDER_BOOK_LOCKED, "このフォルダ内の本「%2$s」はエージェント「%1$s」によってロックされています。先に実行を一時停止または停止してください。");
+        setValue(L.ERROR_COMMAND_HISTORY_LIMIT_NEGATIVE, "バージョン数に負の数は指定できません。ブックの上限を解除するには省略してください。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "フォームを保存できません。");
@@ -1906,6 +1908,10 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_GENERATE_ANNOTATION_LLM, "モデルにパート `part`（そのハンドル。最後のパートに限らず任意のパート）を「AIで注釈」ダイアログと同じように確認させます。モデルはパート、その前後のストーリー（古い部分は要約）、設定資料とブックの文体、パートに既にあるメモを読み、矛盾や設定との食い違い、弱い箇所、文体の乱れを探します。指摘はそれぞれ、モデルが引用した箇所（引用が本文にない場合はパート全体）への注釈（ソースは AI）としてすぐに追加されます。ストーリーの本文は変更されません。`profile` は、実行中のモデルの代わりに使うエージェントのモデルプロファイルです。時間がかかり、トークンを消費します。パートのハンドルと新しい注釈を返します（同意できないものには resolve-annotation、update-annotation、delete-annotation を使ってください）。");
         setValue(L.DESC_COMMAND_GENERATE_ANNOTATION_RETURN, "JSONオブジェクト: パートのハンドル、作成した注釈の数、注釈");
         setValue(L.DESC_COMMAND_INCLUDE_VERSIONS_PARAM, "パートの古いバージョン（履歴）も検索します。省略時は false");
+        setValue(L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT, "ブックの履歴が各パートについて保持するバージョン数を設定するか、ブックの上限を解除します。パラメータ：maxVersions。");
+        setValue(L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT_LLM, "このブックのバージョン履歴が1つのパートについて保持するバージョンの最大数を設定します（0にすると以後は履歴を残しません。既存のバージョンは残ります）。maxVersionsを省略すると、ブックの上限を解除します。フォルダ、ユーザー、管理者の上限も適用され、最も厳しいものが優先されるため、ブックでそれらを引き上げることはできません。ブックを変更しますが、バージョンは削除しません。");
+        setValue(L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT_RETURN, "bookLimit（このブックの上限。なければnull）、effectiveLimit（有効な上限。なければnull）、setBy（BOOK、FOLDER、USER、PERMISSION、NONE）を含むJSON");
+        setValue(L.DESC_COMMAND_HISTORY_MAX_VERSIONS_PARAM, "保持するパートごとのバージョンの最大数。0なら履歴を残しません。省略するとブックの上限を解除します");
     }
 
     @Override
