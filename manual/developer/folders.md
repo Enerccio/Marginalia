@@ -21,6 +21,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/PromptSettingsForm.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/InheritedLanguageCombo.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/FolderBookProvider.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/main/Viewer.java
 verified: 186daa954
 ---
 
@@ -137,6 +138,7 @@ All the code is in `ui` (the classes are `@Configurable`, the windows `@Extendab
 | Class | |
 |---|---|
 | `ManuscriptPart`, `PhoneManuscriptPart` | The lists of books. The grid holds `FolderBookRow`s (a folder or a book with its tags, counts and path) from `FolderBookProvider`, a lazy provider: the folders come first, the books page by page from their ids, and what is dear (tags, branch sizes, book counts) is read for one page at a time with one query each. The current folder and *Include subfolders* are in `storeState` / `restoreState` (`folder` is the uuid). The virtual **Favorites** folder is not an entity: the provider adds a first row made by `FolderBookRow.favorites(label, count)` at the top level, and the list of its books is the books of the favorite uuids (`UserSetting.favoriteBooks`). |
+| `Viewer` | The reading route's list (`/view`) is the phone list without the buttons: the same `FolderBookProvider` and rows, breadcrumb, *Include subfolders* and favorites; a tap opens a folder or navigates to the book. Where it was left is **not** in the session or the workspace state but in the browser cookie `marginalia_viewer_folder` (the folder's uuid, `favorites`, or empty for the top level), written by `JavascriptLibrary.rememberViewerFolder` on every move and read back by `readViewerFolder` when the list is built; `restoreLocation` maps a gone or foreign uuid (`findForUser`) to the top level. The cookie is read in the browser, not from the request, because a push transport does not resend cookies after the handshake. The grid stays empty until the cookie arrives, so the list does not flash the top level first. |
 | `FolderActions` | New, rename, delete and move to a folder, shared by both lists and Organise: it asks what the rules need and reports what the service refused. |
 | `FolderDialog` | The settings of a folder. Unlike the book's dialog it saves with a button (a change may be refused). |
 | `PromptSettingsForm` | The editors of the twelve text settings, shared by the book's *Prompts* tab (desktop and phone) and the folder dialog. It takes the values and the folder the empty ones inherit from (`load`), gives the values back (`values`), shows the inherited value as the placeholder and the origin as the line under the field (`LABEL_INHERITED_FROM_FOLDER`, `_FROM_USER`, `_INHERITED_DEFAULT`) and reports a change only when every template is valid. |
@@ -188,4 +190,4 @@ Plugins that name a changed method or variable must follow `@PublicAPI`, see [Ex
 folder reaches the request the mock server receives), `BackupFoldersTest`, `BackupExportInheritanceTest`, `AgentFoldersTest`,
 `HelpAssistantBooksTest`, `CleanupServiceTest` (purge cases), and the UI tests `FolderDialogTest`, `OrganiseDialogTest`,
 `OrganiseDialogFlowTest`, `BookPromptSettingsTest`, `MassChange*DialogTest`, `ManuscriptPartFoldersTest`,
-`PhoneManuscriptPartFoldersTest`, `BookLabelsTest`. See [Testing](testing.md).
+`PhoneManuscriptPartFoldersTest`, `ViewerFoldersTest` (the viewer's list, with a UI that records the cookie writes), `BookLabelsTest`. See [Testing](testing.md).

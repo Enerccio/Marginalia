@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846678768826">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846680782516">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846678768826" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846680782516" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846678768826" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846680782516" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846678768826" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846680782516" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -326,6 +326,7 @@ for a change that is yours alone.</p>
 <retype-table copy-text="| Class | |
 |---|---|
 | `ManuscriptPart`, `PhoneManuscriptPart` | The lists of books. The grid holds `FolderBookRow`s (a folder or a book with its tags, counts and path) from `FolderBookProvider`, a lazy provider: the folders come first, the books page by page from their ids, and what is dear (tags, branch sizes, book counts) is read for one page at a time with one query each. The current folder and *Include subfolders* are in `storeState` / `restoreState` (`folder` is the uuid). The virtual **Favorites** folder is not an entity: the provider adds a first row made by `FolderBookRow.favorites(label, count)` at the top level, and the list of its books is the books of the favorite uuids (`UserSetting.favoriteBooks`). |
+| `Viewer` | The reading route's list (`/view`) is the phone list without the buttons: the same `FolderBookProvider` and rows, breadcrumb, *Include subfolders* and favorites; a tap opens a folder or navigates to the book. Where it was left is **not** in the session or the workspace state but in the browser cookie `marginalia_viewer_folder` (the folder's uuid, `favorites`, or empty for the top level), written by `JavascriptLibrary.rememberViewerFolder` on every move and read back by `readViewerFolder` when the list is built; `restoreLocation` maps a gone or foreign uuid (`findForUser`) to the top level. The cookie is read in the browser, not from the request, because a push transport does not resend cookies after the handshake. The grid stays empty until the cookie arrives, so the list does not flash the top level first. |
 | `FolderActions` | New, rename, delete and move to a folder, shared by both lists and Organise: it asks what the rules need and reports what the service refused. |
 | `FolderDialog` | The settings of a folder. Unlike the book's dialog it saves with a button (a change may be refused). |
 | `PromptSettingsForm` | The editors of the twelve text settings, shared by the book's *Prompts* tab (desktop and phone) and the folder dialog. It takes the values and the folder the empty ones inherit from (`load`), gives the values back (`values`), shows the inherited value as the placeholder and the origin as the line under the field (`LABEL_INHERITED_FROM_FOLDER`, `_FROM_USER`, `_INHERITED_DEFAULT`) and reports a change only when every template is valid. |
@@ -345,6 +346,10 @@ for a change that is yours alone.</p>
 <tr>
 <td><code translate="no" v-pre>ManuscriptPart</code>, <code translate="no" v-pre>PhoneManuscriptPart</code></td>
 <td>The lists of books. The grid holds <code translate="no" v-pre>FolderBookRow</code>s (a folder or a book with its tags, counts and path) from <code translate="no" v-pre>FolderBookProvider</code>, a lazy provider: the folders come first, the books page by page from their ids, and what is dear (tags, branch sizes, book counts) is read for one page at a time with one query each. The current folder and <em>Include subfolders</em> are in <code translate="no" v-pre>storeState</code> / <code translate="no" v-pre>restoreState</code> (<code translate="no" v-pre>folder</code> is the uuid). The virtual <strong>Favorites</strong> folder is not an entity: the provider adds a first row made by <code translate="no" v-pre>FolderBookRow.favorites(label, count)</code> at the top level, and the list of its books is the books of the favorite uuids (<code translate="no" v-pre>UserSetting.favoriteBooks</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Viewer</code></td>
+<td>The reading route&#x27;s list (<code translate="no" v-pre>/view</code>) is the phone list without the buttons: the same <code translate="no" v-pre>FolderBookProvider</code> and rows, breadcrumb, <em>Include subfolders</em> and favorites; a tap opens a folder or navigates to the book. Where it was left is <strong>not</strong> in the session or the workspace state but in the browser cookie <code translate="no" v-pre>marginalia_viewer_folder</code> (the folder&#x27;s uuid, <code translate="no" v-pre>favorites</code>, or empty for the top level), written by <code translate="no" v-pre>JavascriptLibrary.rememberViewerFolder</code> on every move and read back by <code translate="no" v-pre>readViewerFolder</code> when the list is built; <code translate="no" v-pre>restoreLocation</code> maps a gone or foreign uuid (<code translate="no" v-pre>findForUser</code>) to the top level. The cookie is read in the browser, not from the request, because a push transport does not resend cookies after the handshake. The grid stays empty until the cookie arrives, so the list does not flash the top level first.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>FolderActions</code></td>
@@ -437,7 +442,7 @@ walk <code translate="no" v-pre>PromptField.values()</code>, so they pick it up.
 folder reaches the request the mock server receives), <code translate="no" v-pre>BackupFoldersTest</code>, <code translate="no" v-pre>BackupExportInheritanceTest</code>, <code translate="no" v-pre>AgentFoldersTest</code>,
 <code translate="no" v-pre>HelpAssistantBooksTest</code>, <code translate="no" v-pre>CleanupServiceTest</code> (purge cases), and the UI tests <code translate="no" v-pre>FolderDialogTest</code>, <code translate="no" v-pre>OrganiseDialogTest</code>,
 <code translate="no" v-pre>OrganiseDialogFlowTest</code>, <code translate="no" v-pre>BookPromptSettingsTest</code>, <code translate="no" v-pre>MassChange*DialogTest</code>, <code translate="no" v-pre>ManuscriptPartFoldersTest</code>,
-<code translate="no" v-pre>PhoneManuscriptPartFoldersTest</code>, <code translate="no" v-pre>BookLabelsTest</code>. See <a href="../testing/">Testing</a>.</p>
+<code translate="no" v-pre>PhoneManuscriptPartFoldersTest</code>, <code translate="no" v-pre>ViewerFoldersTest</code> (the viewer&#x27;s list, with a UI that records the cookie writes), <code translate="no" v-pre>BookLabelsTest</code>. See <a href="../testing/">Testing</a>.</p>
 
                 
                 <!-- Required only on API pages -->
@@ -475,7 +480,7 @@ folder reaches the request the mock server receives), <code translate="no" v-pre
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (86bbf4cff).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (5f64129e4).</p></div>
             </footer>
         </div>
     </div>

@@ -466,6 +466,31 @@ public final class JavascriptLibrary {
                 """, READER_POSITION_KEY, manuscriptUuid);
     }
 
+    private static final String VIEWER_FOLDER_COOKIE = "marginalia_viewer_folder";
+
+    /**
+     * Keeps where the list of the viewer was left (the uuid of the folder, or a marker for the favorites; empty is the top
+     * level) in a cookie of the browser, for a year. The list reads it back by {@link #readViewerFolder}.
+     */
+    public static void rememberViewerFolder(Page page, String value) {
+        page.executeJs("""
+                document.cookie = $0 + '=' + encodeURIComponent($1) + '; path=/; max-age=31536000; SameSite=Lax'
+                        + (location.protocol === 'https:' ? '; Secure' : '');
+                """, VIEWER_FOLDER_COOKIE, value);
+    }
+
+    /**
+     * What {@link #rememberViewerFolder} stored in this browser; empty text when nothing was or cookies are blocked.
+     */
+    public static PendingJavaScriptResult readViewerFolder(Page page) {
+        return page.executeJs("""
+                const prefix = $0 + '=';
+                const found = document.cookie.split('; ').find(c => c.startsWith(prefix));
+                if (!found) return '';
+                try { return decodeURIComponent(found.substring(prefix.length)); } catch (e) { return ''; }
+                """, VIEWER_FOLDER_COOKIE);
+    }
+
     // --- element events ---
 
     /**

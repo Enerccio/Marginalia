@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846678768826">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846680782516">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846678768826" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846680782516" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846678768826" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846680782516" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846678768826" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846680782516" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -189,6 +189,32 @@ viewer.</p>
 starts with the text) and <strong>Tags</strong> (books with all the selected tags). Sort it by <strong>Last Opened</strong> or <strong>Name</strong>; clicking
 the active sort button again reverses the order.</p>
 <p>Click a book to read it.</p>
+<h3 id="folders-in-the-list">Folders in the list</h3>
+<p>The list shows your <a href="../folders/">folders</a> like the phone list of the workspace does: the folders come first, each with
+the number of books beneath it, then the books of the current folder. Click a folder to go into it. The path above the
+filters (<code translate="no" v-pre>Books / Fan fiction / Harry Potter</code>) shows where you are, and a click on a part of it goes back there.</p>
+<figure class="content-center">
+    <img src="../../../images/viewer-folder.png" alt="The viewer inside a folder" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="402" height="874" />
+    <figcaption class="caption">The viewer inside a folder</figcaption>
+</figure>
+<ul>
+<li>
+<p><strong>Include subfolders</strong> lists every book below the current folder, at any depth, with the folder of each under its name.</p>
+</li>
+<li>
+<p><strong>Favorites</strong>, the folder of the top level that exists while you have a favorite book, lists the favorite books of all
+folders. Favorites are set in the <a href="../folders/#favorites">list of books</a>, not in the viewer.</p>
+</li>
+<li>
+<p>The filters work inside the current folder (or below it with <em>Include subfolders</em>), so to search all your books go to the
+top level and check the box. <strong>Last Opened</strong> orders the folders by their last modification.</p>
+</li>
+<li>
+<p>The viewer opens in the folder where you left it: after reading a book the arrow takes you back to the same folder, and the
+next visit, or a reload, starts there too. The place is kept in a cookie of your browser (<code translate="no" v-pre>marginalia_viewer_folder</code>), the
+server does not store it, so another browser starts at the top level. A folder that was deleted is the top level.</p>
+</li>
+</ul>
 <h2 id="reading">Reading</h2>
 <p>The reading view shows the <a href="../branches-and-story-tree/">active branch</a> of the book from the first to the last part,
 in the book reading style (justified, with hyphenation for the book&#x27;s <a href="../managing-books/#the-about-tab">language</a>). Other branches, the turn instructions and the metadata are not shown. The arrow button in
@@ -267,7 +293,7 @@ can&#x27;t be opened at all.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (86bbf4cff).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (5f64129e4).</p></div>
             </footer>
         </div>
     </div>

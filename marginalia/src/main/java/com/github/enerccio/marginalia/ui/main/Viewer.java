@@ -4,9 +4,9 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.bound.ApplicationPoint;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
+import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
-import com.github.enerccio.marginalia.domain.repository.ManuscriptRepository;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValues;
@@ -18,8 +18,8 @@ import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.components.MessageImages;
 import com.github.enerccio.marginalia.ui.dialogs.story.ReaderLazyLoader;
 import com.github.enerccio.marginalia.ui.dialogs.story.StorySupport;
-import com.github.enerccio.marginalia.ui.widgets.BackendTableItem;
-import com.github.enerccio.marginalia.ui.widgets.BackendTableProviderBase;
+import com.github.enerccio.marginalia.ui.widgets.FolderBookProvider;
+import com.github.enerccio.marginalia.ui.widgets.FolderBookRow;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.AttachEvent;
@@ -27,11 +27,16 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.markdown.Markdown;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -67,6 +72,9 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
     private ManuscriptService manuscriptService;
 
     @Autowired
+    private FolderService folderService;
+
+    @Autowired
     private ChatMessageService chatMessageService;
 
     @Autowired
@@ -86,9 +94,19 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
     private String manuscriptParam;
     private boolean isUserLoggedIn = false;
 
-    private Grid<ManuscriptWrapper> grid;
+    // the value of the cookie of the list when the list shows the favorites; a folder is stored as its uuid
+    private static final String FAVORITES_MARKER = "favorites";
+
+    private Grid<FolderBookRow> grid;
     private TextField nameFilter;
     private MultiSelectComboBox<Tag> tagFilter;
+    private FlexLayout breadcrumb;
+    private Checkbox includeSubfolders;
+
+    // the folder the list shows, null is the top level
+    private Folder currentFolder;
+    // the list shows the favorite books (the virtual folder at the top level) instead of a folder
+    private boolean inFavorites;
 
     private String currentSortField = "lastOpened";
     private Ordering currentSortOrdering = Ordering.DESC;
@@ -227,6 +245,13 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
         filtersLayout.setPadding(false);
         filtersLayout.setSpacing(true);
 
+        // where the list is: the path of the folder to tap on, and whether the folders below it are listed too
+        breadcrumb = new FlexLayout();
+        breadcrumb.setAlignItems(FlexComponent.Alignment.CENTER);
+        breadcrumb.addClassNames(CssStyles.FLEX_WRAP, CssStyles.GAP_S);
+        includeSubfolders = new Checkbox(loc.getValue(L.LABEL_INCLUDE_SUBFOLDERS));
+        includeSubfolders.addValueChangeListener(event -> refreshGrid());
+
         nameFilter = new TextField();
         nameFilter.setPlaceholder(loc.getValue(L.LABEL_NAME));
         nameFilter.setWidthFull();
@@ -294,47 +319,26 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
 
         sortButtonsLayout.add(sortDateBtn, sortNameBtn);
 
-        filtersLayout.add(nameFilter, tagFilter, sortButtonsLayout);
+        filtersLayout.add(breadcrumb, includeSubfolders, nameFilter, tagFilter, sortButtonsLayout);
 
         // Single Column Grid
         grid = new Grid<>();
         grid.setSizeFull();
-
-        grid.addComponentColumn(wrapper -> {
-            VerticalLayout itemLayout = new VerticalLayout();
-            itemLayout.setPadding(false);
-            itemLayout.setSpacing(false);
-            itemLayout.setWidthFull();
-
-            Span nameSpan = new Span(wrapper.getName());
-            nameSpan.addClassNames(CssStyles.TEXT_BOLD, CssStyles.TEXT_M);
-
-            HorizontalLayout subRow = new HorizontalLayout();
-            subRow.setWidthFull();
-            subRow.setSpacing(true);
-            subRow.addClassName(CssStyles.LIST_ITEM_SUBROW);
-
-            String tagsText = wrapper.getTags();
-            if (StringUtils.isNotBlank(tagsText)) {
-                Span tagsSpan = new Span(tagsText);
-                subRow.add(tagsSpan);
-            }
-
-            String modText = wrapper.getLastOpened();
-            if (StringUtils.isNotBlank(modText)) {
-                Span modSpan = new Span(modText);
-                modSpan.addClassName(CssStyles.MARGIN_LEFT_AUTO);
-                subRow.add(modSpan);
-            }
-
-            itemLayout.add(nameSpan, subRow);
-            return itemLayout;
-        }).setFlexGrow(1);
+        // rows grow with their content, so a long title breaks into lines
+        grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
+        grid.addComponentColumn(this::createItem).setFlexGrow(1);
 
         grid.addItemClickListener(event -> {
-            ManuscriptWrapper wrapper = event.getItem();
-            if (wrapper != null && wrapper.getManuscript() != null) {
-                Manuscript manuscript = wrapper.getManuscript();
+            FolderBookRow row = event.getItem();
+            if (row == null) {
+                return;
+            }
+            if (row.isFavorites()) {
+                openFavorites();
+            } else if (row.isFolder()) {
+                openFolder(row.getFolder());
+            } else if (row.getBook() != null) {
+                Manuscript manuscript = row.getBook();
                 try {
                     manuscriptService.markOpened(manuscript);
                 } catch (Exception e) {
@@ -346,30 +350,247 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
 
         mainLayout.add(headerLayout, filtersLayout, grid);
         mainLayout.setFlexGrow(1, grid);
-
-        refreshGrid();
         add(mainLayout);
+
+        // the list opens where it was left, which the browser remembers (a cookie, never the server)
+        JavascriptLibrary.readViewerFolder(UI.getCurrent().getPage()).then(String.class,
+                saved -> {
+                    restoreLocation(saved);
+                    refreshGrid();
+                },
+                error -> refreshGrid());
     }
 
-    @PublicAPI(from = "1.1.0",
+    /**
+     * The row of the list: a folder (or the favorites) with the number of its books, or a book with its tags and when it was
+     * opened last.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "row", type = FolderBookRow.class)},
+            locals = {@APILocals(name = "itemLayout", type = VerticalLayout.class),
+                    @APILocals(name = "nameSpan", type = Span.class),
+                    @APILocals(name = "nameLine", type = HorizontalLayout.class),
+                    @APILocals(name = "subRow", type = HorizontalLayout.class),
+                    @APILocals(name = "booksSpan", type = Span.class),
+                    @APILocals(name = "tagsText", type = String.class),
+                    @APILocals(name = "tagsSpan", type = Span.class),
+                    @APILocals(name = "book", type = Manuscript.class),
+                    @APILocals(name = "date", type = Date.class),
+                    @APILocals(name = "modSpan", type = Span.class),
+                    @APILocals(name = "pathSpan", type = Span.class)})
+    private Component createItem(FolderBookRow row) {
+        VerticalLayout itemLayout = new VerticalLayout();
+        itemLayout.setPadding(false);
+        itemLayout.setSpacing(false);
+        itemLayout.setWidthFull();
+
+        Span nameSpan = new Span(row.getName());
+        nameSpan.addClassNames(CssStyles.TEXT_BOLD, CssStyles.TEXT_M, CssStyles.WHITE_SPACE_NORMAL, CssStyles.WRAP_ANYWHERE);
+        if (row.isFavorites() || row.isFolder()) {
+            HorizontalLayout nameLine = new HorizontalLayout(
+                    (row.isFavorites() ? VaadinIcon.STAR : VaadinIcon.FOLDER).create(), nameSpan);
+            nameLine.setPadding(false);
+            nameLine.setSpacing(true);
+            nameLine.setAlignItems(FlexComponent.Alignment.CENTER);
+            itemLayout.add(nameLine);
+        } else {
+            itemLayout.add(nameSpan);
+        }
+
+        HorizontalLayout subRow = new HorizontalLayout();
+        subRow.setWidthFull();
+        subRow.setSpacing(true);
+        subRow.addClassName(CssStyles.LIST_ITEM_SUBROW);
+
+        if (row.isFavorites() || row.isFolder()) {
+            Span booksSpan = new Span(loc.getValue(L.LABEL_BOOKS) + ": " + row.getBooks());
+            subRow.add(booksSpan);
+        }
+
+        String tagsText = String.join(", ", row.getTags());
+        if (StringUtils.isNotBlank(tagsText)) {
+            Span tagsSpan = new Span(tagsText);
+            subRow.add(tagsSpan);
+        }
+
+        if (!row.isFavorites() && !row.isFolder()) {
+            Manuscript book = row.getBook();
+            Date date = book.getLastOpened() != null ? book.getLastOpened() : book.getModification();
+            if (date != null) {
+                Span modSpan = new Span(loc.getDateHourFormat().format(date));
+                modSpan.addClassName(CssStyles.MARGIN_LEFT_AUTO);
+                subRow.add(modSpan);
+            }
+        }
+        if (subRow.getComponentCount() > 0) {
+            itemLayout.add(subRow);
+        }
+
+        // the folder the row is in, while the list is not of one folder (the subfolders, the favorites)
+        if ((includeSubfolders.getValue() || inFavorites) && StringUtils.isNotBlank(row.getPath())) {
+            Span pathSpan = new Span(row.getPath());
+            pathSpan.addClassNames(CssStyles.HINT_TEXT, CssStyles.WRAP_ANYWHERE);
+            itemLayout.add(pathSpan);
+        }
+        return itemLayout;
+    }
+
+    /**
+     * Goes into the folder (null is the top level); the filters stay. The place is remembered by the browser.
+     */
+    @PublicAPI(from = "1.6.0",
             returns = @APIReturn(type = void.class),
-            locals = {@APILocals(name = "sorters", type = List.class),
+            parameters = {@APIParameter(name = "folder", type = Folder.class)})
+    private void openFolder(Folder folder) {
+        inFavorites = false;
+        currentFolder = folder;
+        refreshGrid();
+        rememberLocation();
+    }
+
+    /**
+     * Shows the favorite books, the virtual folder of the top level.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class))
+    private void openFavorites() {
+        inFavorites = true;
+        currentFolder = null;
+        refreshGrid();
+        rememberLocation();
+    }
+
+    /**
+     * Puts the place of the list into the cookie: the uuid of the folder, the marker of the favorites, empty for the top level.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "value", type = String.class)})
+    private void rememberLocation() {
+        String value = inFavorites ? FAVORITES_MARKER : currentFolder == null ? "" : currentFolder.getUuid();
+        JavascriptLibrary.rememberViewerFolder(UI.getCurrent().getPage(), value);
+    }
+
+    /**
+     * Sets the place of the list from what the cookie held. A folder that is gone, or is not the user's (another user used the
+     * browser before), is the top level.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "saved", type = String.class)},
+            locals = {@APILocals(name = "folder", type = Folder.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void restoreLocation(String saved) {
+        inFavorites = FAVORITES_MARKER.equals(saved);
+        currentFolder = null;
+        if (StringUtils.isBlank(saved) || inFavorites) {
+            return;
+        }
+        try {
+            Folder folder = folderService.findForUser(saved);
+            currentFolder = folder == null || folder.isDeleted() ? null : folder;
+        } catch (Exception e) {
+            log.debug("Could not restore the folder of the viewer", e);
+        }
+    }
+
+    /**
+     * The path to the current folder as buttons, the folder itself last.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "top", type = Button.class),
+                    @APILocals(name = "current", type = Span.class),
+                    @APILocals(name = "above", type = Folder.class),
+                    @APILocals(name = "button", type = Button.class)})
+    private void updateBreadcrumb() throws Exception {
+        breadcrumb.removeAll();
+        Button top = new Button(loc.getValue(L.LABEL_BOOKS), VaadinIcon.HOME.create(), event -> openFolder(null));
+        top.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+        breadcrumb.add(top);
+        if (inFavorites) {
+            breadcrumb.add(new Span("/"));
+            Span current = new Span(loc.getValue(L.LABEL_FAVORITES));
+            current.addClassName(CssStyles.TEXT_BOLD);
+            breadcrumb.add(current);
+            return;
+        }
+        if (currentFolder == null) {
+            return;
+        }
+        for (Folder above : folderService.getAncestors(currentFolder)) {
+            breadcrumb.add(new Span("/"));
+            Button button = new Button(above.getName(), event -> openFolder(above));
+            button.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+            breadcrumb.add(button);
+        }
+        breadcrumb.add(new Span("/"));
+        Span current = new Span(currentFolder.getName());
+        current.addClassName(CssStyles.TEXT_BOLD);
+        breadcrumb.add(current);
+    }
+
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "stored", type = Folder.class),
+                    @APILocals(name = "sorters", type = List.class),
+                    @APILocals(name = "folderSorter", type = Sorter.class),
+                    @APILocals(name = "favorites", type = List.class),
+                    @APILocals(name = "folders", type = List.class),
                     @APILocals(name = "ids", type = List.class),
+                    @APILocals(name = "favoritesLabel", type = String.class),
+                    @APILocals(name = "all", type = ManuscriptFilterValues.class),
+                    @APILocals(name = "scope", type = ManuscriptFilterValues.class),
                     @APILocals(name = "e", type = Exception.class)})
     private void refreshGrid() {
         if (grid == null) {
             return;
         }
         try {
+            if (currentFolder != null) {
+                // the folder may have been renamed or deleted since the list was shown
+                Folder stored = folderService.find(currentFolder.getId());
+                currentFolder = stored == null || stored.isDeleted() ? null : stored;
+            }
             List<Sorter> sorters = new ArrayList<>();
             sorters.add(Sorter.sorter(currentSortField, currentSortOrdering));
             if ("lastOpened".equals(currentSortField)) {
                 // never opened books have no lastOpened, order them by modification
                 sorters.add(Sorter.sorter("modification", currentSortOrdering));
             }
+            // a folder has no last opened time, its last modification is what its books say
+            Sorter folderSorter = Sorter.sorter("name".equals(currentSortField) ? "name" : "modification", currentSortOrdering);
 
-            List<Long> ids = manuscriptService.searchRegularManuscripts(filterValues, sorters.toArray(Sorter[]::new));
-            grid.setItems(new ManuscriptBackendProvider(ids));
+            List<String> favorites = manuscriptService.getFavorites();
+            if (favorites.isEmpty()) {
+                inFavorites = false;
+            }
+            List<Folder> folders;
+            List<Long> ids;
+            String favoritesLabel = null;
+            if (inFavorites) {
+                // the favorites are a view of books of any folder: the filters work, there is no scope
+                ManuscriptFilterValues all = new ManuscriptFilterValues();
+                all.setName(filterValues.getName());
+                all.setTags(filterValues.getTags());
+                all.setUuids(favorites);
+                folders = List.of();
+                ids = manuscriptService.searchRegularManuscripts(all, sorters.toArray(Sorter[]::new));
+            } else {
+                ManuscriptFilterValues scope = filterValues.inFolder(currentFolder, includeSubfolders.getValue());
+                folders = folderService.search(scope, folderSorter);
+                ids = manuscriptService.searchRegularManuscripts(scope, sorters.toArray(Sorter[]::new));
+                boolean filtered = StringUtils.isNotEmpty(filterValues.getName())
+                        || (filterValues.getTags() != null && !filterValues.getTags().isEmpty());
+                if (!favorites.isEmpty() && currentFolder == null && !includeSubfolders.getValue() && !filtered) {
+                    favoritesLabel = loc.getValue(L.LABEL_FAVORITES);
+                }
+            }
+            grid.setItems(new FolderBookProvider(folders, ids, folderService.countBooksByFolder(), folderService.getPaths(),
+                    favorites, favoritesLabel));
+            includeSubfolders.setVisible(!inFavorites);
+            updateBreadcrumb();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -518,55 +739,6 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
             return null;
-        }
-    }
-
-    private class ManuscriptWrapper extends BackendTableItem {
-
-        private final Manuscript manuscript;
-        private List<String> tags;
-
-        public ManuscriptWrapper(Manuscript manuscript) {
-            super(manuscript.getId());
-            this.manuscript = manuscript;
-        }
-
-        public Manuscript getManuscript() {
-            return manuscript;
-        }
-
-        public String getName() {
-            return manuscript.getName();
-        }
-
-        public String getLastOpened() {
-            Date date = manuscript.getLastOpened() != null ? manuscript.getLastOpened() : manuscript.getModification();
-            return date != null ? loc.getDateHourFormat().format(date) : "";
-        }
-
-        public String getTags() {
-            if (tags == null) {
-                try {
-                    tags = tagRelationService.getTagsForObject(manuscript).stream().map(Tag::getValue).sorted().toList();
-                } catch (Exception e) {
-                    UIUtils.internalServerError(loc, e);
-                    return loc.getValue(L.LABEL_ERROR);
-                }
-            }
-            return String.join(", ", tags);
-        }
-    }
-
-    private class ManuscriptBackendProvider extends BackendTableProviderBase<ManuscriptWrapper, Manuscript, ManuscriptRepository> {
-
-        public ManuscriptBackendProvider(List<Long> ids) {
-            super();
-            setIds(ids);
-        }
-
-        @Override
-        protected ManuscriptWrapper entityToTableItem(Manuscript entity) throws Exception {
-            return new ManuscriptWrapper(entity);
         }
     }
 }

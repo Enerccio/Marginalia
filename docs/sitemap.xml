@@ -91,6 +91,9 @@
     <loc>https://enerccio.github.io/Marginalia/developer/architecture/</loc>
   </url>
   <url>
+    <loc>https://enerccio.github.io/Marginalia/user/books/folders/</loc>
+  </url>
+  <url>
     <loc>https://enerccio.github.io/Marginalia/user/books/annotations/</loc>
   </url>
   <url>
@@ -103,9 +106,6 @@
     <loc>https://enerccio.github.io/Marginalia/developer/domain-model/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/user/books/folders/</loc>
-  </url>
-  <url>
     <loc>https://enerccio.github.io/Marginalia/user/books/branches-and-story-tree/</loc>
   </url>
   <url>
@@ -113,6 +113,9 @@
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/plugins/</loc>
+  </url>
+  <url>
+    <loc>https://enerccio.github.io/Marginalia/user/books/publishing/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/building/</loc>
@@ -125,9 +128,6 @@
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/ui/</loc>
-  </url>
-  <url>
-    <loc>https://enerccio.github.io/Marginalia/user/books/publishing/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/credits/</loc>

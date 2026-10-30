@@ -3,7 +3,7 @@
 // assistant that may look at the books. Run on a COPY of 13-db-backup, it is discarded: the folders are made through the real UI
 // (Fan fiction / Harry Potter, Originals, a second book) and the book is moved into the folder with the style.
 // Pictures: books-folders, folder-settings, mass-change-model-protocol, mass-change-language, mass-rename, organise-dialog,
-// book-prompts-inherited, story-minimized-tabs, story-mass-delete, phone-folders, help-assistant-books.
+// book-prompts-inherited, story-minimized-tabs, story-mass-delete, phone-folders, help-assistant-books, viewer-list, viewer-folder.
 import {
     bookTab,
     closeDialog,
@@ -21,7 +21,8 @@ import {
     section,
     sleep,
     snap,
-    snapDialog
+    snapDialog,
+    users
 } from '../lib/shot.mjs';
 import {openStoryMenu} from '../lib/story.mjs';
 
@@ -235,6 +236,34 @@ await main(async ({ page }) => {
       await phone.page.getByRole('button', { name: 'Books', exact: true }).first().click();
       await idle(phone.page, 900);
       await snap(phone.page, 'phone-folders');
+    } finally {
+      await phone.browser.close();
+    }
+  });
+
+  // the viewer (/view) with the folders: the top level, a folder of the book, and the way back from the book
+  await section(page, 'viewer', async () => {
+    const phone = await launch({ phone: true });
+    const p = phone.page;
+    try {
+      await login(p, users.admin, '/view');                  // the viewer has a login of its own
+      await sleep(1200);
+      await snap(p, 'viewer-list');
+      await p.getByText('Fan fiction', { exact: true }).first().click();
+      await idle(p, 900);
+      await p.getByText('Harry Potter', { exact: true }).first().click();
+      await idle(p, 900);
+      await snap(p, 'viewer-folder');
+      // reading a book and returning lands in the same folder (it is kept in a cookie of the browser)
+      await p.getByText(BOOK, { exact: false }).first().click();
+      await idle(p, 2000);
+      await p.locator('vaadin-button:has(vaadin-icon[icon$=":arrow-left"])').first().click();
+      await idle(p, 1200);
+      await p.getByText(BOOK, { exact: false }).first().waitFor();
+      // a new visit starts there as well
+      await login(p, users.admin, '/view');                  // a new page asks for the login of the viewer again
+      await idle(p, 1200);
+      await p.getByText(BOOK, { exact: false }).first().waitFor();
     } finally {
       await phone.browser.close();
     }
