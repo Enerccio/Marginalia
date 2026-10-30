@@ -47,6 +47,7 @@ the filter row can. Fill in what you want to check, leave the rest empty, and pr
 | **Created from / to**, **Modified from / to** | created or last changed in the range; the day of a *to* date is included. |
 | **Number of parts from / to** | with that many parts in all its branches (parts in the trash are not counted). |
 | **Text** | with a part that has every word of the text. Words, `"phrases"` and `*` work as in [the search of the story](story-editor.md#searching-the-story). |
+| **Include versions** | off (the default): only the current text of the parts is searched; on: a book is also found when an earlier version of one of its parts has the words, see [Version history](version-history.md#searching-the-old-text). |
 | **Search in all branches** | off (the default): the text is searched only in the branch the book is at (the story as you see it when you open the book); on: in the parts of all branches. |
 
 A book has to pass every check you filled in. The books found are listed below with their tags, the last changed first;
@@ -69,6 +70,8 @@ check box **Only current branch**, checked by default. The new book is a separat
 - the story with its own copy of the parts, their summaries and pictures. With **Only current branch** only the parts from
   the beginning to the end of the [active branch](branches-and-story-tree.md) are copied; without it all the branches
   are.
+
+The clone starts a [version history](version-history.md#backups-copies-and-the-trash) of its own (one version per part); the history of the original is not copied.
 
 The clone is not published, even if the original is. The original is not changed. It is put into the same
 [folder](folders.md) as the original.
@@ -178,6 +181,7 @@ To start a book from a backup file, use **Import Backup as New Book** in the *Se
 | **Language** | The language the book is written in. Used for automatic hyphenation of the text in the book reading style and in the [viewer](publishing.md); it does not change what the model writes. Empty means *inherit*: the language of the nearest [folder](folders.md#language) above the book that sets one, else English; the box then shows which and from where. |
 | **Model** | The [inference provider](../inference-providers.md) that writes this book. |
 | **Protocols** | The [protocol](../protocols.md) with the generation settings. |
+| **Versions kept per part** | How many earlier versions of the text of a part the [history](version-history.md) keeps. Empty means *inherit*: the grey number in the box is the limit that applies and the line under it says which folder, your settings or the administrator sets it. **0** keeps no history. |
 | **Published** | Lets other users read the book, see [Publishing & viewer](publishing.md). Once checked, the reader link of the book (`<address of Marginalia>/view/<book ID>`) is shown under the checkbox; copy it and send it to the readers. |
 
 Changes are saved as you type.

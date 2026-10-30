@@ -24,6 +24,15 @@ Backups can also be taken automatically, see [below](#automatic-backups).
 A backup holds the whole story tree, the summaries and the [annotations](annotations.md) of the parts; restoring it, copying a book and importing a
 backup bring the notes back.
 
+## The history of the parts
+
+A backup does not hold the [version history](version-history.md) of the parts unless you ask: check **Include version history**
+next to **Take Backup** (it is unchecked at first, because the history can be several times the size of the story).
+Restoring such a backup, as the book or as a copy, brings the versions back with their names, the reasoning of the generated
+ones and the trash of the history; the versions are cut down to the limit of the book they come to. The automatic backups
+never have the history. Restoring a backup without it gives each part one first version, as for a book from before the
+history.
+
 ## Backups and folders
 
 A backup remembers the [folders](folders.md) its book was in, from the top one down, each with its name, description,

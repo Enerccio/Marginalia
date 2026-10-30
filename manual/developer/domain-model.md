@@ -29,6 +29,7 @@ Some entities kept their early names. The UI and this manual use the names on th
 | `Summary` | `summaries` | Summary |
 | `Annotation` | `annotations` | Annotation (a note on a passage of a part) |
 | `MessagePrompt` | `message_prompts` | Prompt of a part (*Show Prompt*) |
+| `MessageRevision` | `message_revisions` | A version of the text of a part (*History*), see [Version history](version-history.md) |
 | `Lorebook`, `LorebookEntry` | `lorebooks`, `entries` | Lorebook, entry |
 | `AI`, `OpenAICompatible`, `ExtensionAI` | `ais`, `ais_openaicompat`, `ais_extension` | Inference provider |
 | `Usage` | `usages` | Tokens sent / generated column of the Inference Providers tab |
@@ -144,7 +145,7 @@ when it is not a hard delete, soft delete those rows first (the `OWNED_BY` / `OW
 | Deleted | Also deleted |
 |---|---|
 | `Manuscript` | all its `ChatMessage`s and their `Summary`s (`ChatMessageService.softDeleteForManuscript`), its `TagRelation`s |
-| `ChatMessage` | its `Summary`, its `Annotation`s and all messages below it (children, their children...) |
+| `ChatMessage` | its `Summary`, its `Annotation`s, its `MessageRevision`s (`MessageRevisionService.softDeleteForParts`) and all messages below it (children, their children...) |
 | `Lorebook` | its `LorebookEntry`s (through `LorebookEntryService.delete`, so with their tag relations), its `TagRelation`s |
 | `LorebookEntry` | its `TagRelation`s (positive and negative) |
 | `AI` | its `Usage`s |

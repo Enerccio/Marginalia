@@ -47,6 +47,8 @@ purge of the folder unlinks the books that are still alive instead of deleting t
 (table, sequence, `manuscripts.folder_id` and the indexes `(parent_id, is_deleted)`, `(userId, is_deleted)` and
 `(folder_id, is_deleted)`). `persistence.xml` lists the entity, `services-config.xml` the repository and the service.
 
+The limit of the [version history](version-history.md#the-limit-and-the-pruning) is a setting of the folder too, `historyMaxVersions` (an `Integer`, null is not set), carried by `FolderService.Details` (its four-argument constructor leaves it null, which clears it) and copied by `copyTree`.
+
 The settings are extended attributes and not columns because nothing queries them in SQL; the price is the usual one, they
 are persisted only by `FolderService.save`/`update`. The name is a column because the lists sort and filter on it.
 

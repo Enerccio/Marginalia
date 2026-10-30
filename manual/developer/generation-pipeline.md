@@ -322,7 +322,10 @@ extensions handle it like any provider failure. The limits are described in the 
 
 ### 8. `CLEANUP` - `CleanupStep`
 
-Always the last step. Depending on the state:
+Always the last step. It also **records the version** of the text in the history of the part (`MessageRevisionService.record`: `GENERATE`
+for a new part, `REGENERATE` for a regenerated one, with "model · protocol" and the reasoning), also for the text that arrived before
+a stop or an error; a generation that produced nothing records nothing. Regenerate calls `ensureCurrent` before it clears the part,
+so the text that is replaced is in the history. See [Version history](version-history.md#recording). Depending on the state:
 
 | State | What happens |
 |---|---|
