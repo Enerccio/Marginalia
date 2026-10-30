@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846712558836">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846712824982">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846712558836" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846712824982" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846712558836" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846712824982" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846712558836" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846712824982" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -807,7 +807,7 @@ The copy is read through the pairs of the run (<code translate="no" v-pre>AgentR
 <code translate="no" v-pre>MergeDiff.translate</code>), becomes the uuid of its original, and an item without a pair gets the key <code translate="no" v-pre>new:&lt;uuid in the copy&gt;</code>. Each item is a map of properties (a part: <code translate="no" v-pre>response</code>, <code translate="no" v-pre>instructions</code>, <code translate="no" v-pre>sceneSetting</code>,
 <code translate="no" v-pre>povCharacter</code>, <code translate="no" v-pre>presentCharacters</code>, <code translate="no" v-pre>summary</code> - one canonical string of the text, type, hash and the links of the summary - and every <code translate="no" v-pre>attributes_*</code> key of the part, the JSON of the value with the uuids translated, which
 holds the template variables of the generation (<code translate="no" v-pre>templateVariables</code>) and the data of the plugins; <code translate="no" v-pre>MergeDiff.messageFields</code>; a lorebook: <code translate="no" v-pre>name</code>, <code translate="no" v-pre>enabled</code>, <code translate="no" v-pre>tags</code>, <code translate="no" v-pre>subbooks</code>; an entry: its fields, tags and the lorebook it is in;
-the book: its settings, <code translate="no" v-pre>tags</code> and every <code translate="no" v-pre>attributes_*</code> key, the data of the plugins) and is compared <strong>field by field</strong>: the field the agent changed (copy differs from base) and the book did not (book equals base) is a change to
+the book: its settings (<code translate="no" v-pre>MergeDiff.BOOK_FIELDS</code>, with the number of versions kept per part), <code translate="no" v-pre>tags</code> and every <code translate="no" v-pre>attributes_*</code> key, the data of the plugins) and is compared <strong>field by field</strong>: the field the agent changed (copy differs from base) and the book did not (book equals base) is a change to
 take over, both changed to different values is a <code translate="no" v-pre>conflict</code>, the same value on both sides is nothing. <code translate="no" v-pre>SET</code> fields (tags, subbooks) are merged by what each side added and removed and never conflict. A key only in the copy is
 <code translate="no" v-pre>ADDED</code>, one only in the base and still in the book is <code translate="no" v-pre>DELETED</code> (a conflict when the book changed it since), the ones the user deleted from the book are <code translate="no" v-pre>problem</code>s (<code translate="no" v-pre>PROBLEM_GONE</code>, <code translate="no" v-pre>PROBLEM_NEEDS_PARENT</code>,
 <code translate="no" v-pre>PROBLEM_NEEDS_LOREBOOK</code>) and can&#x27;t be applied. <code translate="no" v-pre>Item.dependsOn</code> is the item that must be applied first (the new part a new part follows, the new lorebook a new entry is in); <code translate="no" v-pre>MergeDiff.chain</code> and <code translate="no" v-pre>dependents</code> follow it. A book that had no lorebook when the run started (the commands <code translate="no" v-pre>create-lore-entry</code> and <code translate="no" v-pre>create-lorebook</code> make its root in the copy, <code translate="no" v-pre>LorebookWriteSupport.loreToAddTo</code>) gets the root of the copy as its lorebook when the apply made it (<code translate="no" v-pre>Applier.adoptRoot</code>).
@@ -1406,7 +1406,7 @@ older rounds when the context is full (the run pauses instead).</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (c4151e6b2).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (23eb4f0ba).</p></div>
             </footer>
         </div>
     </div>
