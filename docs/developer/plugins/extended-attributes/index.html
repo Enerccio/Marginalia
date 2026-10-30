@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846680803367">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846711417503">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846680803367" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846711417503" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846680803367" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846711417503" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846680803367" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846680803367" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846711417503" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846711417503" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -177,6 +177,7 @@ entity, loaded with it, and travels with it into backups.</p>
 | `Manuscript` (book) | Per-book state and settings - Side Query keeps its chat sessions here. |
 | `ChatMessage` (story part) | Data about one part - Reviewer keeps the reviews of the part here. |
 | `Folder` (1.6.0) | A folder of books: its own data goes in its `attributes`. Marginalia keeps the description and the settings the books below inherit in `@ExtendedAttribute` fields, see [Folders](../folders.md#the-data). |
+| `MessageRevision` (1.6.0) | A version of the text of a part: its `response` and `responseReasoning` are `@ExtendedAttribute` fields (gzipped with the rest), see [Version history](../version-history.md). Marginalia also keeps `historyMaxVersions` (the limit of the history) as an `@ExtendedAttribute` of `Manuscript`, `Folder`, `UserSetting` and `Permission`. |
 | `Summary` | Data about a summary. |
 | `Lorebook`, `LorebookEntry` | Lore metadata - Lorebook VCS keeps the revision history in the lorebook. |
 | `AI` (inference provider), `Protocol`, `Tag` | Per-provider or per-protocol options. (Marginalia itself keeps the per-user limits of a shared AI in the `@ExtendedAttribute` field `AI.limits`, see [Domain model](../domain-model.md#limits-of-the-users-of-a-shared-ai).) |
@@ -203,6 +204,10 @@ entity, loaded with it, and travels with it into backups.</p>
 <tr>
 <td><code translate="no" v-pre>Folder</code> (1.6.0)</td>
 <td>A folder of books: its own data goes in its <code translate="no" v-pre>attributes</code>. Marginalia keeps the description and the settings the books below inherit in <code translate="no" v-pre>@ExtendedAttribute</code> fields, see <a href="../../folders/#the-data">Folders</a>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>MessageRevision</code> (1.6.0)</td>
+<td>A version of the text of a part: its <code translate="no" v-pre>response</code> and <code translate="no" v-pre>responseReasoning</code> are <code translate="no" v-pre>@ExtendedAttribute</code> fields (gzipped with the rest), see <a href="../../version-history/">Version history</a>. Marginalia also keeps <code translate="no" v-pre>historyMaxVersions</code> (the limit of the history) as an <code translate="no" v-pre>@ExtendedAttribute</code> of <code translate="no" v-pre>Manuscript</code>, <code translate="no" v-pre>Folder</code>, <code translate="no" v-pre>UserSetting</code> and <code translate="no" v-pre>Permission</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>Summary</code></td>
@@ -525,7 +530,7 @@ data can&#x27;t point a plugin at another user&#x27;s entity.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (98c370bd4).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (5566cbb72).</p></div>
             </footer>
         </div>
     </div>

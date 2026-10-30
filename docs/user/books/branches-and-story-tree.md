@@ -77,6 +77,10 @@ repeat it. The **x** in the box clears the search.
 
 ![The branch view with a search](../../images/story-tree-search.png)
 
+The check box **Include versions** next to the box also looks into the earlier [versions of the text](version-history.md#searching-the-old-text)
+of the parts; a part that has the words only in an old version is highlighted too, says which version, and has **Show in
+history** next to **Show in story**.
+
 Every part that matches is **highlighted** in orange and shows the text around the match; the line above the tree says
 how many parts were found. Long stretches that would be collapsed are opened when they contain a match. The search
 stays until you clear it or close the book window, and the highlighting is updated when you come back to the tab.

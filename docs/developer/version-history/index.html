@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="turbo-root" content="/Marginalia">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846711417503">
+
+    <!-- See retype.com -->
+    <meta name="generator" content="Retype 4.6.0">
+
+    <!-- Primary Meta Tags -->
+    <title>Version history</title>
+    <meta name="title" content="Version history">
+    <meta name="description" content="Every change of the text of a part (ChatMessage) leaves a version behind: a MessageRevision with the text, who wrote it and when. This page follows the">
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://enerccio.github.io/Marginalia/developer/version-history/">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="https://enerccio.github.io/Marginalia/sitemap.xml">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://enerccio.github.io/Marginalia/developer/version-history/">
+    <meta property="og:title" content="Version history">
+    <meta property="og:description" content="Every change of the text of a part (ChatMessage) leaves a version behind: a MessageRevision with the text, who wrote it and when. This page follows the">
+    <meta property="og:site_name" content="Marginalia">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/developer/version-history/">
+    <meta name="twitter:title" content="Version history">
+    <meta name="twitter:description" content="Every change of the text of a part (ChatMessage) leaves a version behind: a MessageRevision with the text, who wrote it and when. This page follows the">
+
+    <!-- Alternate Markdown -->
+    <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/developer/version-history.md">
+
+    <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
+
+    <link href="../../resources/css/retype.css?v=4.6.0.846711417503" rel="stylesheet">
+
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846711417503" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846711417503" data-turbo-eval="false" defer></script>
+</head>
+<body>
+    <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
+    <div class="absolute bottom-0 left-0" style="top: 5rem; right: 50%"></div>
+
+    <header id="retype-header" class="sticky top-0 z-30 flex w-full h-16 bg-header-bg border-b border-header-border md:h-20">
+        <div class="container relative flex items-center justify-between pr-6 grow md:justify-start">
+            <!-- Mobile menu button skeleton -->
+            <button v-cloak class="skeleton retype-mobile-menu-button flex items-center justify-center shrink-0 overflow-hidden dark:text-white focus:outline-hidden rounded-full w-10 h-10 ml-3.5 md:hidden"><svg xmlns="http://www.w3.org/2000/svg" class="mb-px shrink-0" width="24" height="24" viewBox="0 0 24 24" role="presentation" style="margin-bottom: 0px;"><g fill="currentColor"><path d="M2 4h20v2H2zM2 11h20v2H2zM2 18h20v2H2z"></path></g></svg></button>
+            <div v-cloak id="retype-sidebar-left-toggle-button"></div>
+    
+            <!-- Logo -->
+            <div class="flex items-center justify-between h-full py-2 md:w-75">
+                <div class="flex items-center px-2 md:px-6">
+                    <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
+                        <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.6.0</span>
+                </div>
+    
+                <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
+            </div>
+    
+            <div class="flex justify-between md:grow">
+                <!-- Top Nav -->
+                <nav id="retype-header-nav" class="hidden md:flex">
+                    <ul class="flex flex-col mb-4 md:pl-16 md:mb-0 md:flex-row md:items-center">
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                    <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                </svg>
+                                <span>GitHub</span>
+                            </a>
+                        </li>
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                        </li>
+    
+                    </ul>
+                </nav>
+    
+                <div v-cloak class="flex justify-end grow">
+                    <div id="retype-mobile-search-button"></div>
+                    <doc-search-desktop></doc-search-desktop>
+    
+                    <doc-theme-switch class="lg:ml-2"></doc-theme-switch>
+                    <doc-history></doc-history>
+                </div>
+            </div>
+        </div>
+    </header>
+
+
+    <div id="retype-container" class="container relative flex bg-white">
+        <!-- Sidebar Skeleton -->
+        <div v-cloak class="fixed flex flex-col shrink-0 duration-300 ease-in-out bg-sidebar-left-bg border-sidebar-left-border sidebar top-20 w-75 border-r h-screen md:sticky transition-transform skeleton">
+        
+            <div class="flex items-center h-16 px-6">
+                <input id="retype-filter-input-mock" class="w-full h-10 pl-8 px-3 py-2 transition-colors duration-200 ease-linear bg-filter-bg border border-filter-border rounded-lg shadow-none md:text-sm hover:border-filter-border-hover focus:outline-hidden focus:border-filter-border-focus placeholder-filter-placeholder" type="text">
+            </div>
+        
+            <div class="pl-6 mt-1 mb-4">
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            </div>
+        
+            <div class="shrink-0 mt-auto bg-transparent dark:border-base-border">
+                <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                    <span class="text-xs whitespace-nowrap">Powered by</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Sidebar component -->
+        <doc-sidebar v-cloak>
+            <template #sidebar-footer>
+                <div class="shrink-0 mt-auto border-t md:bg-transparent md:border-none dark:border-base-border">
+        
+                    <div class="py-3 px-6 md:hidden border-b dark:border-base-border">
+                        <nav>
+                            <ul class="flex flex-wrap justify-center items-center">
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                            <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                        </svg>
+                                        <span>GitHub</span>
+                                    </a>
+                                </li>
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                                </li>
+        
+                            </ul>
+                        </nav>
+                    </div>
+        
+                    <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                        <span class="text-xs whitespace-nowrap">Powered by</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                    </a>
+                </div>
+            </template>
+        </doc-sidebar>
+
+        <div class="grow min-w-0 bg-body-bg">
+            <!-- Render "toolbar" template here on api pages --><!-- Render page content -->
+<div class="flex">
+    <div id="retype-main" class="min-w-0 p-4 grow md:px-16">
+        <main class="relative pb-12 lg:pt-2">
+            <div class="relative retype-markdown" id="retype-content">
+                <!-- Rendered if sidebar right is enabled -->
+                <div id="retype-sidebar-right-toggle"></div>
+                <doc-page-actions></doc-page-actions>
+
+                <!-- Page content  -->
+<h1 id="version-history">Version history</h1>
+<p>Every change of the text of a part (<a href="../domain-model/"><code translate="no" v-pre>ChatMessage</code></a>) leaves a <strong>version</strong> behind: a <code translate="no" v-pre>MessageRevision</code> with the
+text, who wrote it and when. This page follows the feature through the layers: the data, the service and the places that
+record, the limit and the pruning, restoring, search, backups and copies, the migrations and the windows. The user&#x27;s view is
+<a href="../../user/books/version-history/">Version history</a>.</p>
+<h2 id="the-data">The data</h2>
+<p><code translate="no" v-pre>MessageRevision</code> (<code translate="no" v-pre>domain/model/impl</code>, table <code translate="no" v-pre>message_revisions</code>, Flyway <code translate="no" v-pre>V22__message_revisions.sql</code>) is an
+<code translate="no" v-pre>ExtendableEntity</code>, so it has an owner, a <code translate="no" v-pre>uuid</code>, a soft delete (<code translate="no" v-pre>is_deleted</code>) and the extended content.</p>
+<retype-table copy-text="| Field | Where | |
+|---|---|---|
+| `message` / `messageId` | column `message_id`, `@CleanupReference(OWNED_BY)` | The part. Nullable, the cleanup nulls it before it purges the part. `messageId` is the same column read-only, for code with no session to load the part. |
+| `source` | column, `RevisionSource` | `GENERATE`, `REGENERATE`, `REDRAFT`, `HUMAN`, `PLUGIN`, `AUTOMATIC`, `MERGE`, `SPLIT` (reserved, nothing splits a part yet), `DUPLICATE`, `RESTORE`, `SNAPSHOT`. `isModel()` says whether the reasoning is kept. |
+| `agent` | column `is_agent` | An agent did it, whatever the source. |
+| `sourceDetail` | column | A short word: &quot;model · protocol&quot; of a generated version, the name of an extension. What the application itself names is a `RevisionDetail` stored as `#NAME` (`RevisionDetail.parse` reads it back) and shown through `Localization.getRevisionDetail`, so it is in the language of the reader; anything else is free text shown as it is. |
+| `label` | column | A version with a label is a saved version, exempt from pruning. |
+| `wordCount`, `tokenCount` | columns | |
+| `response`, `responseReasoning`, `restoredFrom` | `@ExtendedAttribute` | The text and the reasoning of the text (gzipped with the rest of the extended content); the uuid of the version a `RESTORE` is a copy of. `response` is `@Fulltextable`, the reasoning is not. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Field</th>
+<th>Where</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>message</code> / <code translate="no" v-pre>messageId</code></td>
+<td>column <code translate="no" v-pre>message_id</code>, <code translate="no" v-pre>@CleanupReference(OWNED_BY)</code></td>
+<td>The part. Nullable, the cleanup nulls it before it purges the part. <code translate="no" v-pre>messageId</code> is the same column read-only, for code with no session to load the part.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>source</code></td>
+<td>column, <code translate="no" v-pre>RevisionSource</code></td>
+<td><code translate="no" v-pre>GENERATE</code>, <code translate="no" v-pre>REGENERATE</code>, <code translate="no" v-pre>REDRAFT</code>, <code translate="no" v-pre>HUMAN</code>, <code translate="no" v-pre>PLUGIN</code>, <code translate="no" v-pre>AUTOMATIC</code>, <code translate="no" v-pre>MERGE</code>, <code translate="no" v-pre>SPLIT</code> (reserved, nothing splits a part yet), <code translate="no" v-pre>DUPLICATE</code>, <code translate="no" v-pre>RESTORE</code>, <code translate="no" v-pre>SNAPSHOT</code>. <code translate="no" v-pre>isModel()</code> says whether the reasoning is kept.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>agent</code></td>
+<td>column <code translate="no" v-pre>is_agent</code></td>
+<td>An agent did it, whatever the source.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>sourceDetail</code></td>
+<td>column</td>
+<td>A short word: &quot;model · protocol&quot; of a generated version, the name of an extension. What the application itself names is a <code translate="no" v-pre>RevisionDetail</code> stored as <code translate="no" v-pre>#NAME</code> (<code translate="no" v-pre>RevisionDetail.parse</code> reads it back) and shown through <code translate="no" v-pre>Localization.getRevisionDetail</code>, so it is in the language of the reader; anything else is free text shown as it is.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>label</code></td>
+<td>column</td>
+<td>A version with a label is a saved version, exempt from pruning.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>wordCount</code>, <code translate="no" v-pre>tokenCount</code></td>
+<td>columns</td>
+<td> </td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>response</code>, <code translate="no" v-pre>responseReasoning</code>, <code translate="no" v-pre>restoredFrom</code></td>
+<td><code translate="no" v-pre>@ExtendedAttribute</code></td>
+<td>The text and the reasoning of the text (gzipped with the rest of the extended content); the uuid of the version a <code translate="no" v-pre>RESTORE</code> is a copy of. <code translate="no" v-pre>response</code> is <code translate="no" v-pre>@Fulltextable</code>, the reasoning is not.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<ul>
+<li>
+<p><strong>A row is a whole version, the current one too.</strong> The newest version that is not in the trash mirrors the text of the part. The
+part keeps its <code translate="no" v-pre>response</code> (the generation pipeline and every reader use it as before), so there is one more copy of the
+current text; that is what keeps every reader of a part unchanged.</p>
+</li>
+<li>
+<p><strong>No ordinal.</strong> The versions of a part are ordered by <code translate="no" v-pre>creation</code>, then <code translate="no" v-pre>id</code>. Nothing is renumbered when a version is pruned,
+purged or taken out of the trash, and &quot;newer than this version&quot; is <code translate="no" v-pre>creation &gt; c OR (creation = c AND id &gt; i)</code>.</p>
+</li>
+<li>
+<p><strong>The reasoning is kept only for the versions a model wrote</strong> (<code translate="no" v-pre>RevisionSource.isModel()</code>) and for a <code translate="no" v-pre>RESTORE</code> copy of one.</p>
+</li>
+<li>
+<p><strong>A list never reads the text.</strong> An <code translate="no" v-pre>ExtendableEntity</code> inflates its content when it is loaded, so the history list uses a
+projection query (<code translate="no" v-pre>RevisionRow</code>: everything but the text and the reasoning). The text of a version is loaded by id when it
+is shown, compared, restored or searched. The badge of the part menu is one <code translate="no" v-pre>count ... group by message_id</code>
+(<code translate="no" v-pre>MessageRevisionService.countFor</code>) for the parts of the branch.</p>
+</li>
+<li>
+<p>The trash of the history is the plain soft delete of <code translate="no" v-pre>OwnedService.delete</code>: a deleted version still counts toward the limit
+until it is purged, it shows in the user&#x27;s Trash as the type <em>Version of a part</em> (<code translate="no" v-pre>ENUM_DOMAIN_MESSAGE_REVISION</code>), and the
+Cleanup purges it (<code translate="no" v-pre>MessageRevision</code> is in <code translate="no" v-pre>CleanupServiceImpl.OWNED_ON_DELETE</code>, so a purged part takes its versions along).</p>
+</li>
+<li>
+<p>Extended attributes are saved only through the service&#x27;s <code translate="no" v-pre>save</code>: every write goes through <code translate="no" v-pre>MessageRevisionService</code>.</p>
+</li>
+</ul>
+<p><code translate="no" v-pre>persistence.xml</code> lists the entity, <code translate="no" v-pre>services-config.xml</code> the repository and the service. The indexes are
+<code translate="no" v-pre>(message_id, is_deleted, creation)</code> and <code translate="no" v-pre>(userId, is_deleted)</code>.</p>
+<h2 id="recording">Recording</h2>
+<p><code translate="no" v-pre>MessageRevisionService.record(part, source, detail, agent)</code> and <code translate="no" v-pre>record(part, RevisionData)</code> are the <strong>single write path</strong> (the
+second takes the whole version: a redraft has a reasoning of its own while the part keeps the old one). It appends the text as
+the next version, does nothing when the text is the one of the newest version or empty, counts the words and tokens, resolves
+the limit of the book (nothing is recorded when the limit is 0), saves and prunes. It is called <strong>in the transaction of the
+change, after the part is saved</strong>; callers do not call it themselves, they go through <code translate="no" v-pre>ChatMessageService</code>, whose write
+methods take a <code translate="no" v-pre>RevisionOrigin</code> (source, detail, agent, reasoning; <code translate="no" v-pre>AUTHOR</code> is the default of the overloads without one,
+<code translate="no" v-pre>UNRECORDED</code> is for the code that records the version itself, <code translate="no" v-pre>automatic</code>, <code translate="no" v-pre>human</code> and <code translate="no" v-pre>model</code> build the common ones):
+<code translate="no" v-pre>updateResponse</code>, <code translate="no" v-pre>storeResponse</code>, <code translate="no" v-pre>createPart</code>, <code translate="no" v-pre>insertPart</code>, <code translate="no" v-pre>addPart</code>. The service first calls <code translate="no" v-pre>ensureCurrent(part)</code> on the
+state the part had, then changes it, then records.</p>
+<retype-table copy-text="| Site | Source |
+|---|---|
+| a generation completes (`CleanupStep`), also the text that arrived before a stop or an error | `GENERATE` or `REGENERATE`, &quot;model · protocol&quot;, the reasoning of the part. A generation that produced nothing records nothing. |
+| the regenerate step | `ensureCurrent` before it clears the part |
+| `RedraftServiceImpl` (dialog and command) | `REDRAFT` with the reasoning the redraft got |
+| the editor, `storeResponse` | `HUMAN` |
+| manuscript commands (`ManuscriptWriteSupport`), `AgentMergeServiceImpl`, Replace | `AUTOMATIC` with `RevisionDetail.COMMAND`, `AGENT_MERGE`, `REPLACE` (agent flag set for the first two) |
+| archive and SillyTavern import | `HUMAN` with `ARCHIVE_IMPORT` / `SILLYTAVERN_IMPORT`, `GENERATE` for a chat that has a model |
+| a branch (`ChatMessageService` copy) | `DUPLICATE` with `BRANCH` |
+| `mergeIntoPrevious` | `MERGE` on the surviving part; the merged part's history goes with it |
+| restore, snapshot | `RESTORE`, `SNAPSHOT` |
+| streaming chunks | not recorded, only the completed text |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Site</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>a generation completes (<code translate="no" v-pre>CleanupStep</code>), also the text that arrived before a stop or an error</td>
+<td><code translate="no" v-pre>GENERATE</code> or <code translate="no" v-pre>REGENERATE</code>, &quot;model · protocol&quot;, the reasoning of the part. A generation that produced nothing records nothing.</td>
+</tr>
+<tr>
+<td>the regenerate step</td>
+<td><code translate="no" v-pre>ensureCurrent</code> before it clears the part</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>RedraftServiceImpl</code> (dialog and command)</td>
+<td><code translate="no" v-pre>REDRAFT</code> with the reasoning the redraft got</td>
+</tr>
+<tr>
+<td>the editor, <code translate="no" v-pre>storeResponse</code></td>
+<td><code translate="no" v-pre>HUMAN</code></td>
+</tr>
+<tr>
+<td>manuscript commands (<code translate="no" v-pre>ManuscriptWriteSupport</code>), <code translate="no" v-pre>AgentMergeServiceImpl</code>, Replace</td>
+<td><code translate="no" v-pre>AUTOMATIC</code> with <code translate="no" v-pre>RevisionDetail.COMMAND</code>, <code translate="no" v-pre>AGENT_MERGE</code>, <code translate="no" v-pre>REPLACE</code> (agent flag set for the first two)</td>
+</tr>
+<tr>
+<td>archive and SillyTavern import</td>
+<td><code translate="no" v-pre>HUMAN</code> with <code translate="no" v-pre>ARCHIVE_IMPORT</code> / <code translate="no" v-pre>SILLYTAVERN_IMPORT</code>, <code translate="no" v-pre>GENERATE</code> for a chat that has a model</td>
+</tr>
+<tr>
+<td>a branch (<code translate="no" v-pre>ChatMessageService</code> copy)</td>
+<td><code translate="no" v-pre>DUPLICATE</code> with <code translate="no" v-pre>BRANCH</code></td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>mergeIntoPrevious</code></td>
+<td><code translate="no" v-pre>MERGE</code> on the surviving part; the merged part&#x27;s history goes with it</td>
+</tr>
+<tr>
+<td>restore, snapshot</td>
+<td><code translate="no" v-pre>RESTORE</code>, <code translate="no" v-pre>SNAPSHOT</code></td>
+</tr>
+<tr>
+<td>streaming chunks</td>
+<td>not recorded, only the completed text</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p><code translate="no" v-pre>ensureCurrent(part)</code> records the text as <code translate="no" v-pre>PLUGIN</code> when the newest version differs from it: an extension that wrote
+<code translate="no" v-pre>setResponse</code> + <code translate="no" v-pre>save</code> directly, or a part from before the feature. So the history never silently lies; the dialog calls it
+when it opens, and every service write calls it before it replaces the text.</p>
+<h2 id="the-limit-and-the-pruning">The limit and the pruning</h2>
+<p><code translate="no" v-pre>ManuscriptService.resolveHistoryLimit(book)</code> returns an <code translate="no" v-pre>EffectiveHistoryLimit(value, origin, folder)</code>: the <strong>strictest</strong> (smallest)
+value of four levels, each an <code translate="no" v-pre>@ExtendedAttribute historyMaxVersions</code>:</p>
+<ol>
+<li>
+<p>the permission <code translate="no" v-pre>VERSION_HISTORY</code> of the book&#x27;s owner (<code translate="no" v-pre>Permission</code>): a <strong>missing row means granted with 50</strong>
+(<code translate="no" v-pre>EffectiveHistoryLimit.DEFAULT_MAX_VERSIONS</code>), a row that is not granted means 0, a granted row without a number no limit;</p>
+</li>
+<li>
+<p>the user settings (<code translate="no" v-pre>UserSetting</code>);</p>
+</li>
+<li>
+<p>the folders from the book&#x27;s folder up to the root, farthest first (<code translate="no" v-pre>FolderService.findChain</code>, by id, usable on a worker thread);</p>
+</li>
+<li>
+<p>the book (<code translate="no" v-pre>Manuscript</code>).</p>
+</li>
+</ol>
+<p>A nearer level that sets the same value takes the origin (so the dialog says &quot;limited by the folder&quot;). Negative or null is &quot;not set&quot;,
+0 is &quot;no history&quot;. <code translate="no" v-pre>resolveInheritedHistoryLimit(folder)</code> and <code translate="no" v-pre>resolvePermissionHistoryLimit()</code> give what the folder dialog and
+the user settings show as the inherited value (for the current user: the folder a window holds is a lazy proxy without a session, only its
+id is read); <code translate="no" v-pre>HistoryLimitField</code> is the field of the four settings windows (placeholder and
+helper text from the origin).</p>
+<p><code translate="no" v-pre>prune(part, limit)</code> runs after every <code translate="no" v-pre>record</code>: it brings the part down to the limit, <strong>deleting for good first the oldest version in
+the trash, then the oldest one that is not</strong>. The newest version is never removed, and the <strong>exempt</strong> ones are not counted: those
+with a label and the first <code translate="no" v-pre>GENERATE</code> version of the part. Lowering a limit purges nothing by itself; the next recorded
+version prunes down to it. <code translate="no" v-pre>clear(part|book, keepSnapshots)</code> and <code translate="no" v-pre>previewClear</code> (what <code translate="no" v-pre>ClearHistoryDialog</code> shows) delete everything but
+the newest version, and the exempt ones when <code translate="no" v-pre>keepSnapshots</code>; <code translate="no" v-pre>emptyTrash</code> deletes the trash. They work on the parts of the
+current user only (<code translate="no" v-pre>IllegalArgumentException</code> for another user&#x27;s book).</p>
+<p>A permission is added by <code translate="no" v-pre>VersionHistoryPermissionMigration</code> (app 7 → 8) for every user who has none: granted, 50.</p>
+<h2 id="restoring">Restoring</h2>
+<p>Both are in <code translate="no" v-pre>MessageRevisionService</code>, one transaction, and return a <code translate="no" v-pre>PartEdit</code> like a <code translate="no" v-pre>ChatMessageService</code> edit does (so the
+caller can report the summaries the change made outdated):</p>
+<ul>
+<li>
+<p><code translate="no" v-pre>restoreOnTop(book, part, version)</code> appends a <code translate="no" v-pre>RESTORE</code> version, a copy of the text (and the reasoning) with <code translate="no" v-pre>restoredFrom</code>,
+and sets the text of the part;</p>
+</li>
+<li>
+<p><code translate="no" v-pre>rollBackTo(book, part, version)</code> sets the text of the part to the version and soft deletes the versions newer than it
+(<code translate="no" v-pre>softDeleteNewerThan</code>); they can be taken out of the trash (<code translate="no" v-pre>undelete</code>).</p>
+</li>
+</ul>
+<p><code translate="no" v-pre>snapshot(book, part, label)</code> saves the current text as a <code translate="no" v-pre>SNAPSHOT</code> with a label whether or not the newest version has the same
+text; <code translate="no" v-pre>label(version, label)</code> sets, changes or removes the label of any version. <code translate="no" v-pre>snapshot</code> throws <code translate="no" v-pre>IllegalStateException</code> for a
+book that keeps no history.</p>
+<h2 id="search">Search</h2>
+<p>The main searches read <code translate="no" v-pre>messages._fulltext</code> and never see the versions. <em>Include versions</em> is a separate path:</p>
+<ul>
+<li>
+<p><code translate="no" v-pre>MessageRevisionRepository.findFulltexts(book, likePatterns)</code> and <code translate="no" v-pre>findFulltextHits(bookIds, likePatterns)</code> query the same
+<code translate="no" v-pre>FulltextQuery.likePatterns()</code> over <code translate="no" v-pre>message_revisions._fulltext</code>: the versions not in the trash of the parts that are not deleted.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>MessageRevisionService.searchFulltext</code> gives one <code translate="no" v-pre>FulltextHit</code> per part, its newest matching version
+(<code translate="no" v-pre>FulltextHit.version()</code> is the uuid, plus <code translate="no" v-pre>versionTime()</code> and <code translate="no" v-pre>versionSource()</code>); <code translate="no" v-pre>findPartsWithText</code> gives the parts per book.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>ChatMessageService.searchFulltext(book, query, includeVersions)</code> and <code translate="no" v-pre>findManuscriptsWithText(ids, query, allBranches, includeVersions)</code> merge them with the text hits: <strong>the text of a part wins</strong>, the versions add the parts that don&#x27;t have the
+words any more, and the active branch rule of the library search applies to them too.</p>
+</li>
+<li>
+<p>The windows: <code translate="no" v-pre>ManuscriptSearchCriteria.includeVersions</code> and the check box of <code translate="no" v-pre>ManuscriptSearchDialog</code>; the check box of
+<code translate="no" v-pre>ManuscriptTreePart</code> / <code translate="no" v-pre>PhoneManuscriptTreePart</code>, whose version hit has a second link with the goto id
+<code translate="no" v-pre>history:&lt;part id&gt;:&lt;version uuid&gt;</code> that opens <code translate="no" v-pre>PartHistoryDialog.open(..., versionUuid)</code>; the agent command <code translate="no" v-pre>search-parts</code>
+(<code translate="no" v-pre>includeVersions</code>, the hit has a <code translate="no" v-pre>version</code> object).</p>
+</li>
+<li>
+<p>Replace and <code translate="no" v-pre>find-occurrences</code> never look at versions. Every version is full-text indexed, so a long history costs its plain
+text once more in the database (accepted; the limit bounds it).</p>
+</li>
+</ul>
+<h2 id="backups-and-copies">Backups and copies</h2>
+<p>A backup keeps the history only when asked: <code translate="no" v-pre>ManuscriptService.createBackup(book, includeHistory)</code> and
+<code translate="no" v-pre>BackupService.takeBackup(book, includeHistory)</code> (the overloads without the flag, and so the automatic backups, the backup before an
+agent merge and the agents&#x27; working copies, write none). <code translate="no" v-pre>MessageRevisionService.marshalForParts</code> puts <code translate="no" v-pre>revisions</code> under each
+message: <code translate="no" v-pre>uuid, source, agent, detail, label, created (ms), deleted, text, reasoning, restoredFrom, wordCount, tokenCount</code>,
+oldest first, the trash too.</p>
+<p>Restoring goes through <code translate="no" v-pre>ManuscriptServiceImpl.restoreMessages(..., MissingHistory)</code>, which also reads the parts of the backup
+back without events:</p>
+<ul>
+<li>
+<p>a message with <code translate="no" v-pre>revisions</code>: <code translate="no" v-pre>restoreForPart</code> writes the versions with new uuids and the original times (<code translate="no" v-pre>restoredFrom</code> is
+mapped to the new uuids), prunes to the limit of the book they come to (nothing is written when it keeps none) and calls
+<code translate="no" v-pre>ensureCurrent</code>;</p>
+</li>
+<li>
+<p>a message without: by <code translate="no" v-pre>MissingHistory</code>: <code translate="no" v-pre>FIRST_VERSION</code> (restore, import) calls <code translate="no" v-pre>recordFirst(part, null)</code>, which makes what the
+migration made (<code translate="no" v-pre>GENERATE</code> with the reasoning and &quot;model · protocol&quot;, plus <code translate="no" v-pre>HUMAN</code> if the text was edited since, or <code translate="no" v-pre>HUMAN</code>),
+<code translate="no" v-pre>DUPLICATE</code> (<code translate="no" v-pre>BackupServiceImpl.cloneManuscript</code>, a duplicate book) records a <code translate="no" v-pre>DUPLICATE</code> version, <code translate="no" v-pre>NONE</code>
+(<code translate="no" v-pre>cloneFromBackup</code> without the argument, the working copy of an agent) records nothing until the part is changed.</p>
+</li>
+</ul>
+<p>The part is rebuilt from the extended content, so <code translate="no" v-pre>restoreMessages</code> calls <code translate="no" v-pre>ExtendableEntityListener.deserialize</code> on it before
+the versions are made. Published pages, the exports and the database backup (the SQLite file) do not change.</p>
+<h2 id="the-migrations">The migrations</h2>
+<p><code translate="no" v-pre>PartRevisionMigration</code> (app 6 → 7) makes the first versions of the parts that exist: a part with <code translate="no" v-pre>modelUsed</code> gets a <code translate="no" v-pre>GENERATE</code>
+version of <code translate="no" v-pre>originalResponse</code> (with the reasoning and &quot;model · protocol&quot;) and a <code translate="no" v-pre>HUMAN</code> one of the text it has when that is
+another, any other part a <code translate="no" v-pre>HUMAN</code> one; deleted parts too; a part that has versions or no text gets none, so it can be run
+again. It reads in batches of 50 in one session and writes the versions of a part in another (the id generator updates its
+sequence table on a second connection, and SQLite refuses the write of a transaction that already has a read snapshot).
+<code translate="no" v-pre>VersionHistoryPermissionMigration</code> is 7 → 8, see above. Both are registered in <code translate="no" v-pre>container-config.xml</code> (<code translate="no" v-pre>appVersion</code> 8).</p>
+<h2 id="the-windows">The windows</h2>
+<ul>
+<li>
+<p><code translate="no" v-pre>PartHistoryDialog</code> is one class for the desktop and the phone (<code translate="no" v-pre>UIUtils.isPhone()</code>, <code translate="no" v-pre>UIUtils.fitPhone</code>): a grid of
+<code translate="no" v-pre>RevisionRow</code>s (a card column on a phone), the selected version shown as text or as a word diff (<code translate="no" v-pre>WordDiffView</code>) against
+the previous version or the current text, the reasoning in a <code translate="no" v-pre>Details</code>, and the actions <em>Restore on top</em>, <em>Roll back to here</em>
+(with a confirmation that counts the versions that go to the trash), <em>Label…</em>, <em>Delete</em> / <em>Take out of trash</em> /
+<em>Delete permanently</em>, <em>Copy text</em>, <em>Save version</em>, <em>Show deleted versions</em>, <em>Empty trash</em>, <em>Clear history</em> (<code translate="no" v-pre>ClearHistoryDialog</code>
+with the preview and the check box that keeps saved versions). The <code translate="no" v-pre>onChanged</code> callback gets the part after a restore or a
+roll back so the card can draw it and report the outdated summaries. Its package-private fields and <code translate="no" v-pre>create(...)</code> are for
+the tests.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>StoryCard.openHistory()</code> and <code translate="no" v-pre>getHistoryCount()</code> are implemented by the cards of <code translate="no" v-pre>ManuscriptStoryPart</code> and
+<code translate="no" v-pre>PhoneManuscriptStoryPart</code>; <code translate="no" v-pre>StoryMenuRegistry</code> has the card item <code translate="no" v-pre>History (n)</code> (label with the count, hidden while the part is
+edited or not saved) and, in the settings menu, <code translate="no" v-pre>BookHistoryActions</code> (<em>Clear history of the book</em>, <em>Empty trash of the history</em>).</p>
+</li>
+<li>
+<p>The limit is edited with <code translate="no" v-pre>HistoryLimitField</code> in <code translate="no" v-pre>ManuscriptInfoPart</code> / <code translate="no" v-pre>PhoneManuscriptInfoPart</code>, <code translate="no" v-pre>FolderDialog</code> (through
+<code translate="no" v-pre>FolderService.Details.historyMaxVersions</code>) and <code translate="no" v-pre>UserPart</code>; the administrator&#x27;s ceiling with
+<code translate="no" v-pre>VersionHistoryPermissionComponent</code> (<code translate="no" v-pre>PermissionUIFactoryImpl</code>), where a permission that is added starts at 50 and the
+number is disabled while the permission is not granted.</p>
+</li>
+</ul>
+<h2 id="for-extensions">For extensions</h2>
+<ul>
+<li>
+<p>An extension that writes the text of a part should call <code translate="no" v-pre>ChatMessageService.storeResponse(book, part, text, origin)</code> (or the
+other overloads) with <code translate="no" v-pre>new RevisionOrigin(RevisionSource.PLUGIN, &quot;&lt;extension name&gt;&quot;, false, null)</code>. One that writes with
+<code translate="no" v-pre>setResponse</code> + <code translate="no" v-pre>save</code> is recorded as an unknown writer before the next change.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>@Extendable</code> classes gained methods (<code translate="no" v-pre>StoryCard.openHistory</code>, <code translate="no" v-pre>getHistoryCount</code>, the tree parts&#x27; <code translate="no" v-pre>showInHistory</code> and
+<code translate="no" v-pre>versionSnippet</code>); <code translate="no" v-pre>FolderService.Details</code> has a fifth component (the four-argument constructor clears the folder&#x27;s limit).</p>
+</li>
+<li>
+<p>A plugin that saves a backup uses <code translate="no" v-pre>BackupService.takeBackup(book, true)</code> to take the history with it.</p>
+</li>
+</ul>
+<h2 id="tests">Tests</h2>
+<p><code translate="no" v-pre>MessageRevisionCrudTest</code> (<code translate="no" v-pre>crud</code>), <code translate="no" v-pre>MessageRevisionServiceTest</code>, <code translate="no" v-pre>PartHistoryRecordingTest</code>, <code translate="no" v-pre>PartHistoryActionsTest</code>,
+<code translate="no" v-pre>PartHistoryLimitTest</code>, <code translate="no" v-pre>PartHistoryBackupTest</code>, <code translate="no" v-pre>VersionSearchTest</code> and <code translate="no" v-pre>PartRevisionMigrationTest</code> (<code translate="no" v-pre>revision</code>),
+<code translate="no" v-pre>VersionHistoryPermissionMigrationTest</code> (<code translate="no" v-pre>db</code>), <code translate="no" v-pre>RevisionLocalizationTest</code> (<code translate="no" v-pre>loc</code>), and in <code translate="no" v-pre>ui</code>: <code translate="no" v-pre>PartHistoryDialogTest</code>,
+<code translate="no" v-pre>HistoryLimitSettingsTest</code>, <code translate="no" v-pre>BranchSearchTest</code>, <code translate="no" v-pre>ManuscriptSearchDialogTest</code>, <code translate="no" v-pre>StoryMenuRegistryTest</code>.</p>
+
+                
+                <!-- Required only on API pages -->
+                <doc-toolbar-member-filter-no-results></doc-toolbar-member-filter-no-results>
+            </div>
+            <footer id="retype-content-footer" class="clear-both">
+            
+                <nav id="retype-nextprev" class="print:hidden flex mt-14">
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../developer/folders/">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                            <span>
+                                <span class="block text-xs font-normal text-base-text-muted">Previous</span>
+                                <span class="block mt-1">Folders</span>
+                            </span>
+                        </a>
+                    </div>
+            
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../developer/database/">
+                            <span>
+                                <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
+                                <span class="block mt-1">Database &amp; migrations</span>
+                            </span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                        </a>
+                    </div>
+                </nav>
+            </footer>
+        </main>
+
+        <div id="retype-page-footer" class="print:border-none border-t border-base-border pt-6 mb-8">
+            <footer class="flex flex-wrap items-center justify-between print:justify-center">
+                <div id="retype-footer-links" class="print:hidden">
+                    <ul class="flex flex-wrap items-center text-sm">
+                    </ul>
+                </div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (5566cbb72).</p></div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Rendered if sidebar right is enabled -->
+    <!-- Sidebar right skeleton-->
+    <div v-cloak class="fixed top-0 bottom-0 right-0 translate-x-full bg-sidebar-right-bg border-sidebar-right-border lg:sticky lg:border-l lg:shrink-0 lg:pt-6 lg:translate-x-0 sm:w-1/2 lg:w-64 lg:z-0 md:w-104 sidebar-right skeleton">
+        <div class="pl-5">
+            <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+        </div>
+    </div>
+
+    <!-- User should be able to hide sidebar right -->
+    <doc-sidebar-right v-cloak></doc-sidebar-right>
+</div>
+
+        </div>
+    </div>
+
+    <doc-search-mobile></doc-search-mobile>
+    <doc-back-to-top></doc-back-to-top>
+</div>
+
+
+    <div id="retype-overlay-target"></div>
+
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Version history", level: 2, icon: "file", hasPrism: false, hasInstagram: false, hasMermaid: false, hasMath: false, tocDepth: 23, "md": "/developer/version-history.md" }</script>
+</body>
+</html>

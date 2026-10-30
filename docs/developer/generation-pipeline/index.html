@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846680803367">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846711417503">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846680803367" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846711417503" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846680803367" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846711417503" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846680803367" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846680803367" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846711417503" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846711417503" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -603,7 +603,10 @@ the <code translate="no" v-pre>ThreadCopyRequestAttributes</code> of the thread 
 <code translate="no" v-pre>InferenceException</code> (<code translate="no" v-pre>NOT_AVAILABLE</code>, <code translate="no" v-pre>LIMIT_REACHED</code>) in the caller&#x27;s thread and nothing is sent, so the steps, summaries and
 extensions handle it like any provider failure. The limits are described in the <a href="../domain-model/#limits-of-the-users-of-a-shared-ai">domain model</a>.</p>
 <h3 id="8-cleanup---cleanupstep">8. <code translate="no" v-pre>CLEANUP</code> - <code translate="no" v-pre>CleanupStep</code></h3>
-<p>Always the last step. Depending on the state:</p>
+<p>Always the last step. It also <strong>records the version</strong> of the text in the history of the part (<code translate="no" v-pre>MessageRevisionService.record</code>: <code translate="no" v-pre>GENERATE</code>
+for a new part, <code translate="no" v-pre>REGENERATE</code> for a regenerated one, with &quot;model · protocol&quot; and the reasoning), also for the text that arrived before
+a stop or an error; a generation that produced nothing records nothing. Regenerate calls <code translate="no" v-pre>ensureCurrent</code> before it clears the part,
+so the text that is replaced is in the history. See <a href="../version-history/#recording">Version history</a>. Depending on the state:</p>
 <retype-table copy-text="| State | What happens |
 |---|---|
 | `SUCCESSFUL` | `onComplete(part)`. |
@@ -989,7 +992,7 @@ wait for it to finish. See <a href="../testing/">Testing</a>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (98c370bd4).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (5566cbb72).</p></div>
             </footer>
         </div>
     </div>

@@ -43,6 +43,7 @@ While a part is being generated, the other tabs and *Exit* are disabled until th
 - [Folders](folders.md) - sorting books into folders, settings the books inherit, moving and copying
 - [Story editor](story-editor.md) - writing instructions, generating and editing parts
 - [Branches & story tree](branches-and-story-tree.md) - regenerate, swipe, branch, the tree view
+- [Version history](version-history.md) - the earlier versions of a part: compare, restore, name, search
 - [Book prompts](prompts.md) - templates, point of view, tense and style
 - [Summaries](summaries.md) - keeping long books within the model's context
 - [Exporting a book](export.md) - the story as text, Markdown, HTML, Word, PDF or EPUB

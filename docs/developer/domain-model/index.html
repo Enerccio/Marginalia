@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846680803367">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846711417503">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846680803367" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846711417503" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846680803367" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846711417503" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846680803367" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846680803367" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846711417503" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846711417503" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -179,6 +179,7 @@ delete, extended attributes and cleanup. Entities are in <code translate="no" v-
 | `Summary` | `summaries` | Summary |
 | `Annotation` | `annotations` | Annotation (a note on a passage of a part) |
 | `MessagePrompt` | `message_prompts` | Prompt of a part (*Show Prompt*) |
+| `MessageRevision` | `message_revisions` | A version of the text of a part (*History*), see [Version history](version-history.md) |
 | `Lorebook`, `LorebookEntry` | `lorebooks`, `entries` | Lorebook, entry |
 | `AI`, `OpenAICompatible`, `ExtensionAI` | `ais`, `ais_openaicompat`, `ais_extension` | Inference provider |
 | `Usage` | `usages` | Tokens sent / generated column of the Inference Providers tab |
@@ -224,6 +225,11 @@ delete, extended attributes and cleanup. Entities are in <code translate="no" v-
 <td><code translate="no" v-pre>MessagePrompt</code></td>
 <td><code translate="no" v-pre>message_prompts</code></td>
 <td>Prompt of a part (<em>Show Prompt</em>)</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>MessageRevision</code></td>
+<td><code translate="no" v-pre>message_revisions</code></td>
+<td>A version of the text of a part (<em>History</em>), see <a href="../version-history/">Version history</a></td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>Lorebook</code>, <code translate="no" v-pre>LorebookEntry</code></td>
@@ -407,7 +413,7 @@ when it is not a hard delete, soft delete those rows first (the <code translate=
 <retype-table copy-text="| Deleted | Also deleted |
 |---|---|
 | `Manuscript` | all its `ChatMessage`s and their `Summary`s (`ChatMessageService.softDeleteForManuscript`), its `TagRelation`s |
-| `ChatMessage` | its `Summary`, its `Annotation`s and all messages below it (children, their children...) |
+| `ChatMessage` | its `Summary`, its `Annotation`s, its `MessageRevision`s (`MessageRevisionService.softDeleteForParts`) and all messages below it (children, their children...) |
 | `Lorebook` | its `LorebookEntry`s (through `LorebookEntryService.delete`, so with their tag relations), its `TagRelation`s |
 | `LorebookEntry` | its `TagRelation`s (positive and negative) |
 | `AI` | its `Usage`s |
@@ -427,7 +433,7 @@ when it is not a hard delete, soft delete those rows first (the <code translate=
 </tr>
 <tr>
 <td><code translate="no" v-pre>ChatMessage</code></td>
-<td>its <code translate="no" v-pre>Summary</code>, its <code translate="no" v-pre>Annotation</code>s and all messages below it (children, their children...)</td>
+<td>its <code translate="no" v-pre>Summary</code>, its <code translate="no" v-pre>Annotation</code>s, its <code translate="no" v-pre>MessageRevision</code>s (<code translate="no" v-pre>MessageRevisionService.softDeleteForParts</code>) and all messages below it (children, their children...)</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>Lorebook</code></td>
@@ -1959,7 +1965,7 @@ define both beans in <code translate="no" v-pre>services-config.xml</code>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (98c370bd4).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (5566cbb72).</p></div>
             </footer>
         </div>
     </div>

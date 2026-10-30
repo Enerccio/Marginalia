@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846680803367">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846711417503">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846680803367" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846711417503" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846680803367" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846711417503" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846680803367" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846711417503" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -799,7 +799,7 @@ transcript points at nothing and is never given again), <code translate="no" v-p
 <code translate="no" v-pre>CheckpointToolsImpl</code>: <code translate="no" v-pre>checkpoint</code>, <code translate="no" v-pre>checkpoint_list</code>, <code translate="no" v-pre>checkpoint_diff</code> and <code translate="no" v-pre>checkpoint_delete</code> are done at once; <code translate="no" v-pre>checkpoint_diff</code> is <code translate="no" v-pre>CheckpointService.diff(run, id, path)</code> (a <code translate="no" v-pre>Difference</code> of the checkpoint, the book as a <code translate="no" v-pre>MergePlan</code> made by <code translate="no" v-pre>MergeDiff.between</code>, the files of the workspace and, for one changed text file, a <code translate="no" v-pre>TextDiff.Result</code>), written down by <code translate="no" v-pre>CheckpointText.difference</code>. The book is compared as two plain snapshots (the checkpoint&#x27;s <code translate="no" v-pre>manuscript.json</code> and <code translate="no" v-pre>snapshotAgenticCopy</code> now) with the items keyed by the uuid of the original, and for an item the agent made by its handle (<code translate="no" v-pre>keysOf</code> from the pairs of each side), so a restore, which makes a new copy with new uuids, does not show everything as deleted and added; the workspace is compared by size and the CRC-32 the ZIP entry already holds, nothing is unpacked. With a <code translate="no" v-pre>path</code> only the workspace is compared; <code translate="no" v-pre>checkpoint_restore</code> only notes the id, and the worker restores after the round (<code translate="no" v-pre>restoreForAgent</code>), makes the tools again (the
 scope of the commands holds the copy) and tells the agent what came back (<code translate="no" v-pre>Defaults.AGENT_RESTORED</code>, the files removed, the checkpoint of the state before). The console tab is <code translate="no" v-pre>AgentCheckpointBrowser</code>.</p>
 <h2 id="merge-and-apply">Merge and apply</h2>
-<p>What a run changed is taken over by <code translate="no" v-pre>AgentMergeService</code> (<code translate="no" v-pre>AgentMergeServiceImpl</code>), for a run that is <code translate="no" v-pre>DONE</code> or <code translate="no" v-pre>STOPPED_KEPT</code> (it has its copy). <code translate="no" v-pre>plan(run)</code> returns a <code translate="no" v-pre>MergePlan</code>, <code translate="no" v-pre>apply(run, MergeSelection)</code> applies what
+<p>What a run changed is taken over by <code translate="no" v-pre>AgentMergeService</code> (<code translate="no" v-pre>AgentMergeServiceImpl</code>), for a run that is <code translate="no" v-pre>DONE</code> or <code translate="no" v-pre>STOPPED_KEPT</code> (it has its copy). The text it writes into a part is a <code translate="no" v-pre>AUTOMATIC</code> version of the <a href="../version-history/#recording">history</a> with the detail <code translate="no" v-pre>AGENT_MERGE</code> and the agent flag. <code translate="no" v-pre>plan(run)</code> returns a <code translate="no" v-pre>MergePlan</code>, <code translate="no" v-pre>apply(run, MergeSelection)</code> applies what
 the user picked. The book is never restored from a backup (that would change the uuid of every part): the items are changed one by one, in place.</p>
 <p><strong>The comparison</strong> is <code translate="no" v-pre>MergeDiff</code> (<code translate="no" v-pre>domain.service.agent</code>), plain code on JSON without the database. Its three inputs are snapshots in the format of <code translate="no" v-pre>ManuscriptService.createBackup</code> plus the lorebooks with the uuids of
 their entries: the <strong>base</strong> (<code translate="no" v-pre>AgentVirtualFileSystemService.readBase</code>, the book as the run started), the <strong>copy</strong> (<code translate="no" v-pre>ManuscriptService.snapshotAgenticCopy</code>) and the <strong>book now</strong> (<code translate="no" v-pre>createBackup</code> + <code translate="no" v-pre>marshalLorebooks(root, true)</code>).
@@ -1406,7 +1406,7 @@ older rounds when the context is full (the run pauses instead).</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (98c370bd4).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (5566cbb72).</p></div>
             </footer>
         </div>
     </div>

@@ -74,6 +74,7 @@ the details.
 | [Database & migrations](database.md) | SQLite, Flyway migrations, adding an entity or a column. |
 | [Services](services.md) | Service and repository layer, transactions, the current user. |
 | [Folders](folders.md) | Folders of books and the settings they pass down: data, resolution, services, windows, backups, agents. |
+| [Version history](version-history.md) | The versions of the text of a part: data, recording, limit and pruning, restoring, search, backups, migrations, windows. |
 | [Generation pipeline](generation-pipeline.md) | How a story part is generated, step by step. |
 | [Agents](agents.md) | How agents work inside: runs and their states, the runner, the tools, references, the files, the screens. |
 | [Templating & macros](templating.md) | Prompt templates, template data, the macro translator. |

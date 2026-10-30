@@ -231,7 +231,7 @@ parts as a tree, with the numbers of the branches). All are `NON_DESTRUCTIVE`, s
   scope's book is found) or as a *position* (depth on a branch, the first part is 1); a branch is the handle of one of its parts
   (the branch through it to its end, `StoryTree.leafOf`) or its *number*: the ends of the branches (parts without children)
   ordered by creation, the oldest is 1. Positions and numbers move when parts are added or deleted, so the commands that write
-  accept handles only. `list-branches` gives the numbers and `list-swipes`, `search-parts` and `find-occurrences` say the branch that
+  accept handles only. `list-branches` gives the numbers and `list-swipes`, `search-parts` (with `includeVersions` it also searches the [earlier versions](../version-history.md#search) of the parts, and a hit found through one has a `version` object) and `find-occurrences` say the branch that
   shows a part that is not on the active branch. Without a branch the active branch (`getBranchFromLeaf`, the root first) is used; the other
   branches need the whole tree (`ChatMessageService.getAllMessages`, one query), so a command loads it only when asked for one.
   A form with a single `String` that could be a text or a part (`count-tokens`, `preview-lore-activation`) takes the handle in the text:

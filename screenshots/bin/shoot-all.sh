@@ -46,6 +46,8 @@ run plugin-anthropic.mjs                          # installs the Anthropic plugi
 on 13-db-backup
 run shoot-folders.mjs                             # folders made through the UI, the book moved into one, the phone list, the assistant with books: a copy, discarded
 on 13-db-backup
+run shoot-history.mjs                             # changes the last part (edits, a redraft), names a version: a copy, discarded
+on 13-db-backup
 run shoot-books-extra.mjs                        # imports a lorebook with subbooks and a book from a zip: a copy, discarded
 on 22-arcoutline
 run shoot-agents.mjs                             # four agents with runs (the fake model answers from its queue), three more books: a copy, discarded

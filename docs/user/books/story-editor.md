@@ -193,6 +193,7 @@ Every part has a menu (☰) in its top right corner:
 | **Regenerate** | Writes the last part again, replacing its text. Only on the last part. |
 | **Swipe** | Writes another version of the last part and keeps the old one as a separate branch. Only on the last part. See [Branches & story tree](branches-and-story-tree.md#trying-another-version-of-the-last-part). |
 | **Redraft** | Lets the model write this part again from your instructions, on any part, see [below](#redrafting-a-part). Not while the text is edited. |
+| **History (n)** | The [versions of the text](version-history.md) of the part, with the number of versions: compare them, put one back, name one. Not while the text is edited. |
 | **Annotate part** | Makes a [note](annotations.md#making-an-annotation) about the whole part. To annotate words, select them and right click (**Annotate selection**). |
 | **Annotate with AI** | Lets a model [review the part](annotations.md#letting-a-model-annotate) and propose notes. Not while the text is edited. For several parts at once use **Annotate a range of parts with AI** in the settings menu (⚙), and for every new part **Automatic annotation** (see [Annotations](annotations.md#annotating-every-new-part-automatically)). |
 | **Branch Story** | Starts a new branch from this part, see [Branches & story tree](branches-and-story-tree.md#branching-from-an-earlier-part). |
@@ -345,7 +346,7 @@ same text reliably. Write the next part instead (*continue from where the last p
 The previous part keeps its place, its summary and how it was generated (prompt, model, times); it gets the joined text,
 the joined reasoning and pictures, and its words and tokens are counted again. The part you merged is deleted (it is in
 the [Trash](../trash.md)) and what followed it continues from the previous part. Summaries that cover the two parts become
-outdated, as after an edit. The part cannot be merged when it is the first part of the book, or when the part before it has
+outdated, as after an edit. The [history](version-history.md#backups-copies-and-the-trash) of the part that was merged is removed, and the surviving part has the joined text as a **Merged** version. The part cannot be merged when it is the first part of the book, or when the part before it has
 other continuations (swipes of the part): delete them or make them a branch first.
 
 ## Images
@@ -428,6 +429,8 @@ Next to the menu below the story there is a **command line**: type `/` to see th
 while. The command line is only in the story tab of the desktop layout so far.
 
 ## Search and replace
+
+The settings menu (⚙) also has **Clear history of the book** and **Empty trash of the history**, see [Version history](version-history.md#deleting-versions).
 
 The settings menu (⚙) also has **Search and replace**, which changes a word, a name or a phrase in the whole story at
 once. The window has a **Search for** and a **Replace with** field and these options:

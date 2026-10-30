@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846680803367">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846711417503">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846680803367" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846711417503" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846680803367" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846711417503" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846680803367" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846711417503" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -179,6 +179,7 @@ administrators <a href="../../inference-providers/#shared-providers">share</a>).
 | **Create own models** | Adding [inference providers](../inference-providers.md): without it the user can only use the providers the administrators share, the providers they already have keep working and can still be edited. | |
 | **Help assistant** | Asking the [help assistant](help-assistant.md), the chat that answers from the manual. | **Apply limits** and **Allow navigating the interface**, see [Settings of a permission](#settings-of-a-permission). |
 | **Agents** | (Experimental, see [Agents](../agents.md)) The [Agents](../agents.md) tab: creating agents, cloning them and running them on a book. | **Most agents**, **Concurrent runs**, **Requests to the model at once**, **Token budget of a run** and the quotas of copies and files, see [Settings of a permission](#settings-of-a-permission). |
+| **Version history** | The most [versions of a part](../books/version-history.md#how-many-versions-are-kept) the history of the user's books keeps. Every user has it with 50 (a user without the row too); a permission that is not granted means no history for that user. | **Versions kept per part**, a ceiling the folders, the books and the user cannot raise. An empty number sets no limit here. A permission you add starts at 50. |
 | **Notifications** | The [message to a URL](../agents.md#when-you-are-not-there) the server sends when an agent needs the user and no screen is open. The server calls an address the user typed, so it is a permission of its own: without it the fields are not in the user's settings and nothing is sent. | **Allow addresses on this machine and in private networks**, see [Settings of a permission](#settings-of-a-permission). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -204,6 +205,11 @@ administrators <a href="../../inference-providers/#shared-providers">share</a>).
 <td><strong>Agents</strong></td>
 <td>(Experimental, see <a href="../../agents/">Agents</a>) The <a href="../../agents/">Agents</a> tab: creating agents, cloning them and running them on a book.</td>
 <td><strong>Most agents</strong>, <strong>Concurrent runs</strong>, <strong>Requests to the model at once</strong>, <strong>Token budget of a run</strong> and the quotas of copies and files, see <doc-anchor-trigger to="#settings-of-a-permission">Settings of a permission</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td><strong>Version history</strong></td>
+<td>The most <a href="../../books/version-history/#how-many-versions-are-kept">versions of a part</a> the history of the user&#x27;s books keeps. Every user has it with 50 (a user without the row too); a permission that is not granted means no history for that user.</td>
+<td><strong>Versions kept per part</strong>, a ceiling the folders, the books and the user cannot raise. An empty number sets no limit here. A permission you add starts at 50.</td>
 </tr>
 <tr>
 <td><strong>Notifications</strong></td>
@@ -442,7 +448,7 @@ changes for them until you change it; users you add from now on start with no pe
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (98c370bd4).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (5566cbb72).</p></div>
             </footer>
         </div>
     </div>

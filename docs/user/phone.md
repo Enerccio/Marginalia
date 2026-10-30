@@ -107,8 +107,13 @@ The story tab is one column of parts. The differences from the [story editor](bo
   ![Search and replace of the story on a phone](../images/phone-search-replace.png)
 
 - A part is only its text under one small line with two icons. The first is the part's **menu** (edit, regenerate,
-  swipe, branch, show prompt, images, summary, delete); the second opens a **popup** with what the desktop shows in the
+  swipe, branch, history, show prompt, images, summary, delete); the second opens a **popup** with what the desktop shows in the
   column on the right of a part: the ids, model, protocol, tokens, words and the turn details.
+- **History** in the menu of a part opens the [version history](books/version-history.md) as a full screen page: the versions are
+  cards above the selected version, with the same actions as on the desktop.
+
+  ![The version history of a part on a phone](../images/phone-history.png)
+
 - The [summaries](books/summaries.md) overview keeps a fixed width and scrolls sideways.
 
 ## What is missing

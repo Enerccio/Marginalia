@@ -13,6 +13,7 @@ All data entities extend `ExtendableEntity` ([Domain model](../domain-model.md))
 | `Manuscript` (book) | Per-book state and settings - Side Query keeps its chat sessions here. |
 | `ChatMessage` (story part) | Data about one part - Reviewer keeps the reviews of the part here. |
 | `Folder` (1.6.0) | A folder of books: its own data goes in its `attributes`. Marginalia keeps the description and the settings the books below inherit in `@ExtendedAttribute` fields, see [Folders](../folders.md#the-data). |
+| `MessageRevision` (1.6.0) | A version of the text of a part: its `response` and `responseReasoning` are `@ExtendedAttribute` fields (gzipped with the rest), see [Version history](../version-history.md). Marginalia also keeps `historyMaxVersions` (the limit of the history) as an `@ExtendedAttribute` of `Manuscript`, `Folder`, `UserSetting` and `Permission`. |
 | `Summary` | Data about a summary. |
 | `Lorebook`, `LorebookEntry` | Lore metadata - Lorebook VCS keeps the revision history in the lorebook. |
 | `AI` (inference provider), `Protocol`, `Tag` | Per-provider or per-protocol options. (Marginalia itself keeps the per-user limits of a shared AI in the `@ExtendedAttribute` field `AI.limits`, see [Domain model](../domain-model.md#limits-of-the-users-of-a-shared-ai).) |

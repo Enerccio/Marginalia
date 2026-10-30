@@ -488,7 +488,7 @@ scope of the commands holds the copy) and tells the agent what came back (`Defau
 
 ## Merge and apply
 
-What a run changed is taken over by `AgentMergeService` (`AgentMergeServiceImpl`), for a run that is `DONE` or `STOPPED_KEPT` (it has its copy). `plan(run)` returns a `MergePlan`, `apply(run, MergeSelection)` applies what
+What a run changed is taken over by `AgentMergeService` (`AgentMergeServiceImpl`), for a run that is `DONE` or `STOPPED_KEPT` (it has its copy). The text it writes into a part is a `AUTOMATIC` version of the [history](version-history.md#recording) with the detail `AGENT_MERGE` and the agent flag. `plan(run)` returns a `MergePlan`, `apply(run, MergeSelection)` applies what
 the user picked. The book is never restored from a backup (that would change the uuid of every part): the items are changed one by one, in place.
 
 **The comparison** is `MergeDiff` (`domain.service.agent`), plain code on JSON without the database. Its three inputs are snapshots in the format of `ManuscriptService.createBackup` plus the lorebooks with the uuids of

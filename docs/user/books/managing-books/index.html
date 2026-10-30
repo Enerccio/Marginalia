@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846680803367">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846711417503">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846680803367" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846711417503" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846680803367" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846711417503" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846680803367" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846711417503" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -240,6 +240,7 @@ the filter row can. Fill in what you want to check, leave the rest empty, and pr
 | **Created from / to**, **Modified from / to** | created or last changed in the range; the day of a *to* date is included. |
 | **Number of parts from / to** | with that many parts in all its branches (parts in the trash are not counted). |
 | **Text** | with a part that has every word of the text. Words, `&quot;phrases&quot;` and `*` work as in [the search of the story](story-editor.md#searching-the-story). |
+| **Include versions** | off (the default): only the current text of the parts is searched; on: a book is also found when an earlier version of one of its parts has the words, see [Version history](version-history.md#searching-the-old-text). |
 | **Search in all branches** | off (the default): the text is searched only in the branch the book is at (the story as you see it when you open the book); on: in the parts of all branches. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -273,6 +274,10 @@ the filter row can. Fill in what you want to check, leave the rest empty, and pr
 <tr>
 <td><strong>Text</strong></td>
 <td>with a part that has every word of the text. Words, <code translate="no" v-pre>&quot;phrases&quot;</code> and <code translate="no" v-pre>*</code> work as in <a href="../story-editor/#searching-the-story">the search of the story</a>.</td>
+</tr>
+<tr>
+<td><strong>Include versions</strong></td>
+<td>off (the default): only the current text of the parts is searched; on: a book is also found when an earlier version of one of its parts has the words, see <a href="../version-history/#searching-the-old-text">Version history</a>.</td>
 </tr>
 <tr>
 <td><strong>Search in all branches</strong></td>
@@ -311,6 +316,7 @@ the beginning to the end of the <a href="../branches-and-story-tree/">active bra
 are.</p>
 </li>
 </ul>
+<p>The clone starts a <a href="../version-history/#backups-copies-and-the-trash">version history</a> of its own (one version per part); the history of the original is not copied.</p>
 <p>The clone is not published, even if the original is. The original is not changed. It is put into the same
 <a href="../folders/">folder</a> as the original.</p>
 <h3 id="tagging-many-books-at-once">Tagging many books at once</h3>
@@ -453,6 +459,7 @@ skipped, and so are swipes that are empty. The reasoning and the model name of a
 | **Language** | The language the book is written in. Used for automatic hyphenation of the text in the book reading style and in the [viewer](publishing.md); it does not change what the model writes. Empty means *inherit*: the language of the nearest [folder](folders.md#language) above the book that sets one, else English; the box then shows which and from where. |
 | **Model** | The [inference provider](../inference-providers.md) that writes this book. |
 | **Protocols** | The [protocol](../protocols.md) with the generation settings. |
+| **Versions kept per part** | How many earlier versions of the text of a part the [history](version-history.md) keeps. Empty means *inherit*: the grey number in the box is the limit that applies and the line under it says which folder, your settings or the administrator sets it. **0** keeps no history. |
 | **Published** | Lets other users read the book, see [Publishing &amp; viewer](publishing.md). Once checked, the reader link of the book (`&lt;address of Marginalia&gt;/view/&lt;book ID&gt;`) is shown under the checkbox; copy it and send it to the readers. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -486,6 +493,10 @@ skipped, and so are swipes that are empty. The reasoning and the model name of a
 <tr>
 <td><strong>Protocols</strong></td>
 <td>The <a href="../../protocols/">protocol</a> with the generation settings.</td>
+</tr>
+<tr>
+<td><strong>Versions kept per part</strong></td>
+<td>How many earlier versions of the text of a part the <a href="../version-history/">history</a> keeps. Empty means <em>inherit</em>: the grey number in the box is the limit that applies and the line under it says which folder, your settings or the administrator sets it. <strong>0</strong> keeps no history.</td>
 </tr>
 <tr>
 <td><strong>Published</strong></td>
@@ -567,7 +578,7 @@ where they are.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (98c370bd4).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (5566cbb72).</p></div>
             </footer>
         </div>
     </div>

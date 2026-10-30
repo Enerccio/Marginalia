@@ -45,6 +45,8 @@ The cog of a folder opens its settings (the **Organise** window has the same but
 - **Name**, **Description** and **Tags**.
 - **Language**, and the same fields as the [Prompts](prompts.md) tab of a book: master template, point of view, tense,
   style and the prompts.
+- **Versions kept per part**: how many earlier versions of a part the [history](version-history.md#how-many-versions-are-kept)
+  keeps for the books in the folder and the folders below it. Of all the limits above a book the strictest applies.
 
 Everything is optional. An empty field is *inherited*, and says so: the grey text in the field is the value it inherits,
 and the line under it tells where that comes from. Press **Save** to save the folder; the name and description can be

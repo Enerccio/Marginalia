@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846680803367">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846711417503">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846680803367" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846711417503" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846680803367" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846711417503" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846680803367" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846711417503" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -558,7 +558,7 @@ parameter is a <code translate="no" v-pre>String</code> that <code translate="no
 scope&#x27;s book is found) or as a <em>position</em> (depth on a branch, the first part is 1); a branch is the handle of one of its parts
 (the branch through it to its end, <code translate="no" v-pre>StoryTree.leafOf</code>) or its <em>number</em>: the ends of the branches (parts without children)
 ordered by creation, the oldest is 1. Positions and numbers move when parts are added or deleted, so the commands that write
-accept handles only. <code translate="no" v-pre>list-branches</code> gives the numbers and <code translate="no" v-pre>list-swipes</code>, <code translate="no" v-pre>search-parts</code> and <code translate="no" v-pre>find-occurrences</code> say the branch that
+accept handles only. <code translate="no" v-pre>list-branches</code> gives the numbers and <code translate="no" v-pre>list-swipes</code>, <code translate="no" v-pre>search-parts</code> (with <code translate="no" v-pre>includeVersions</code> it also searches the <a href="../version-history/#search">earlier versions</a> of the parts, and a hit found through one has a <code translate="no" v-pre>version</code> object) and <code translate="no" v-pre>find-occurrences</code> say the branch that
 shows a part that is not on the active branch. Without a branch the active branch (<code translate="no" v-pre>getBranchFromLeaf</code>, the root first) is used; the other
 branches need the whole tree (<code translate="no" v-pre>ChatMessageService.getAllMessages</code>, one query), so a command loads it only when asked for one.
 A form with a single <code translate="no" v-pre>String</code> that could be a text or a part (<code translate="no" v-pre>count-tokens</code>, <code translate="no" v-pre>preview-lore-activation</code>) takes the handle in the text:
@@ -699,7 +699,7 @@ change nothing).</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (98c370bd4).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (5566cbb72).</p></div>
             </footer>
         </div>
     </div>

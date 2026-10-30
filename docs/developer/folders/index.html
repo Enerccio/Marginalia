@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846680803367">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846711417503">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846680803367" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846711417503" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846680803367" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846711417503" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846680803367" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846711417503" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -209,6 +209,7 @@ extended content) is:</p>
 purge of the folder unlinks the books that are still alive instead of deleting them. The migration is <code translate="no" v-pre>V21__folders.sql</code>
 (table, sequence, <code translate="no" v-pre>manuscripts.folder_id</code> and the indexes <code translate="no" v-pre>(parent_id, is_deleted)</code>, <code translate="no" v-pre>(userId, is_deleted)</code> and
 <code translate="no" v-pre>(folder_id, is_deleted)</code>). <code translate="no" v-pre>persistence.xml</code> lists the entity, <code translate="no" v-pre>services-config.xml</code> the repository and the service.</p>
+<p>The limit of the <a href="../version-history/#the-limit-and-the-pruning">version history</a> is a setting of the folder too, <code translate="no" v-pre>historyMaxVersions</code> (an <code translate="no" v-pre>Integer</code>, null is not set), carried by <code translate="no" v-pre>FolderService.Details</code> (its four-argument constructor leaves it null, which clears it) and copied by <code translate="no" v-pre>copyTree</code>.</p>
 <p>The settings are extended attributes and not columns because nothing queries them in SQL; the price is the usual one, they
 are persisted only by <code translate="no" v-pre>FolderService.save</code>/<code translate="no" v-pre>update</code>. The name is a column because the lists sort and filter on it.</p>
 <p>Two more extended attributes of <code translate="no" v-pre>UserSetting</code> serve the feature: <code translate="no" v-pre>favoriteBooks</code> (the uuids of the favorite books) and
@@ -462,10 +463,10 @@ folder reaches the request the mock server receives), <code translate="no" v-pre
                     </div>
             
                     <div class="w-1/2">
-                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../developer/database/">
+                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../developer/version-history/">
                             <span>
                                 <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
-                                <span class="block mt-1">Database &amp; migrations</span>
+                                <span class="block mt-1">Version history</span>
                             </span>
                             <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                         </a>
@@ -480,7 +481,7 @@ folder reaches the request the mock server receives), <code translate="no" v-pre
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (98c370bd4).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (5566cbb72).</p></div>
             </footer>
         </div>
     </div>
