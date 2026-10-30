@@ -408,8 +408,4 @@ the history of the merged part and shows as `MERGE` on the surviving one.
 
 - The agent command that changes the settings of a book (`BookChanges`) does not carry `historyMaxVersions`.
 - `SPLIT` is reserved, nothing splits a part yet.
-- The developer pages `architecture`, `services`, `ui`, `testing`, `project-structure`, `generation-pipeline`, `custom-components`,
-  `commands/command-bar` and some plugin pages are not stamped: they are also behind for changes of earlier commits that did not touch
-  them (mass rename, prompt comparison, the folders in the viewer...). The history is added to `services`, `ui`, `testing`,
-  `plugins/extendable` and `generation-pipeline`.
 - The version history on a phone has one picture (`phone-history`); the other phone screens were not checked in the retake.
