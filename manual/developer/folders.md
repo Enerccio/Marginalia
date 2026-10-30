@@ -22,7 +22,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/InheritedLanguageCombo.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/FolderBookProvider.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/main/Viewer.java
-verified: 496959f4c
+verified: 218e7ac2e
 ---
 
 # Folders
