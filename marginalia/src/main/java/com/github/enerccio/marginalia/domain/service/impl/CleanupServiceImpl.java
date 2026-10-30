@@ -41,7 +41,8 @@ public class CleanupServiceImpl implements CleanupService, TrashService {
     private static final int CHUNK_SIZE = 500;
     private static final List<Class<?>> PERMANENTLY_DELETABLE = List.of(ChatMessage.class, LorebookEntry.class);
     // what goes with a permanently deleted object
-    private static final Set<Class<?>> OWNED_ON_DELETE = Set.of(Summary.class, TagRelation.class, Annotation.class, MessagePrompt.class);
+    private static final Set<Class<?>> OWNED_ON_DELETE = Set.of(Summary.class, TagRelation.class, Annotation.class, MessagePrompt.class,
+            MessageRevision.class);
     private static final int REMOVE_BATCH_SIZE = 200;
     private static final int MAX_REASONS = 5;
     private static final String[] LABEL_METHODS = {"getName", "getLogin", "getValue"};

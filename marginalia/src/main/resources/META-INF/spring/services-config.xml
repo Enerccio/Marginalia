@@ -157,6 +157,14 @@
         <property name="repository" ref="messagePromptRepository" />
     </bean>
 
+    <bean id="messageRevisionRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaMessageRevisionRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.MessageRevisionServiceImpl">
+        <property name="repository" ref="messageRevisionRepository" />
+    </bean>
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.RedraftServiceImpl" />
     <bean class="com.github.enerccio.marginalia.domain.service.impl.ImpersonateServiceImpl" />
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AnnotateServiceImpl" />

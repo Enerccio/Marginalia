@@ -27,6 +27,7 @@
         <class>com.github.enerccio.marginalia.domain.model.impl.Summary</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.Annotation</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.MessagePrompt</class>
+        <class>com.github.enerccio.marginalia.domain.model.impl.MessageRevision</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.Usage</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.Agent</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.AgentRun</class>
