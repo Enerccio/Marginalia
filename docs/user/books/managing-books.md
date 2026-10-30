@@ -110,6 +110,8 @@ The item **Mass Rename** renames the checked books at once. Pick how:
 | **Find and replace** | Replaces every occurrence of **Find** in the name with **Replace with** (empty removes it). The text is taken as it is, not as a pattern; **Case sensitive** is off by default. |
 | **Number the books** | Gives the books numbers: the **Name pattern** is the new name, with `{name}` for the current name and `{n}` for the number, for example `{name} {n}`, `{n}. {name}` or `Chapter {n}`. The first checked book gets **Start at**, each next one the **Step** more, and **Digits** pads the number with zeros (`007`). |
 
+![Numbering the books of all folders](../../images/mass-rename.png)
+
 The column **New name** shows what each checked book would get while you type, so check it before you press **Rename**. A
 numbering counts the checked books in the order of the list (by name). Spaces at the start and the end of the new name are
 removed. Nothing is renamed, and the window stays open, when a text is missing, when the pattern has no `{n}`, when no name

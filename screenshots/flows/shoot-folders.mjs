@@ -2,7 +2,7 @@
 // inherits from its folders, the minimized tabs and the mass delete of the story, the phone list with folders, and the help
 // assistant that may look at the books. Run on a COPY of 13-db-backup, it is discarded: the folders are made through the real UI
 // (Fan fiction / Harry Potter, Originals, a second book) and the book is moved into the folder with the style.
-// Pictures: books-folders, folder-settings, mass-change-model-protocol, mass-change-language, organise-dialog,
+// Pictures: books-folders, folder-settings, mass-change-model-protocol, mass-change-language, mass-rename, organise-dialog,
 // book-prompts-inherited, story-minimized-tabs, story-mass-delete, phone-folders, help-assistant-books.
 import {
     bookTab,
@@ -122,6 +122,21 @@ await main(async ({ page }) => {
     await page.getByRole('menuitem', { name: 'Mass Change Language' }).click();
     await idle(page, 1500);
     await snapDialog(page, 'mass-change-language', -1);
+    await closeDialog(page);
+    // the rename: numbering the books of every folder, with the names they would get
+    await page.locator('vaadin-menu-bar-button').filter({ hasText: 'Mass changes' }).first().click();
+    await idle(page, 500);
+    await page.getByRole('menuitem', { name: 'Mass Rename' }).click();
+    await idle(page, 1500);
+    await dialog(page).getByText('Include subfolders', { exact: true }).click();
+    await idle(page, 900);
+    await dialog(page).getByText('Number the books', { exact: true }).click();
+    await idle(page, 500);
+    await fill(dialog(page), 'Name pattern', '{n}. {name}');
+    await fill(dialog(page), 'Digits', '2');
+    await dialog(page).locator('vaadin-grid vaadin-checkbox').first().click();
+    await idle(page, 1200);
+    await snapDialog(page, 'mass-rename', -1);
     await closeDialog(page);
   });
 
