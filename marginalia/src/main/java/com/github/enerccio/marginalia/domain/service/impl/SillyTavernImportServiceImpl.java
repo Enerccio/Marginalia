@@ -1,5 +1,8 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.domain.collections.RevisionDetail;
+import com.github.enerccio.marginalia.domain.collections.RevisionSource;
+import com.github.enerccio.marginalia.domain.components.RevisionOrigin;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ArchiveImportService.ImportResult;
@@ -42,7 +45,9 @@ public class SillyTavernImportServiceImpl implements SillyTavernImportService {
             part.setInstructions(node.instructions());
             part.setResponseReasoning(node.alternative().reasoning());
             part.setModelUsed(node.alternative().model());
-            ChatMessage saved = chatMessageService.addPart(manuscript, node.parent() == null ? null : stored.get(node.parent()), part);
+            ChatMessage saved = chatMessageService.addPart(manuscript, node.parent() == null ? null : stored.get(node.parent()), part,
+                    node.alternative().model() == null ? RevisionOrigin.human(RevisionDetail.SILLYTAVERN_IMPORT, false)
+                            : RevisionOrigin.model(RevisionSource.GENERATE, node.alternative().model(), false, node.alternative().reasoning()));
             stored.put(node, saved);
             last = saved;
             imported++;

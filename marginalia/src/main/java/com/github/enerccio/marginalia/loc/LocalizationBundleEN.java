@@ -806,6 +806,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_RENAME_STEP, "Step");
         setValue(L.LABEL_RENAME_DIGITS, "Digits");
         setValue(L.LABEL_NEW_NAME, "New name");
+        setValue(L.LABEL_AGENT_MERGE, "Agent merge");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -951,6 +952,15 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_ACTIVATION_REASON_FILTER_NOT_MATCHED, "Not used: filter not found");
         setValue(L.ENUM_ACTIVATION_REASON_EXTENSION_SKIPPED, "Not used: changed by an extension");
         setValue(L.ENUM_ACTIVATION_CONTEXT_INCLUDE_PARTS, "Instructions and parts of the story");
+        setValue(L.ENUM_REVISION_SOURCE_GENERATE, "Generated");
+        setValue(L.ENUM_REVISION_SOURCE_REGENERATE, "Regenerated");
+        setValue(L.ENUM_REVISION_SOURCE_REDRAFT, "Redrafted");
+        setValue(L.ENUM_REVISION_SOURCE_HUMAN, "Author");
+        setValue(L.ENUM_REVISION_SOURCE_PLUGIN, "Extension");
+        setValue(L.ENUM_REVISION_SOURCE_MERGE, "Merged");
+        setValue(L.ENUM_REVISION_SOURCE_SPLIT, "Split");
+        setValue(L.ENUM_REVISION_SOURCE_RESTORE, "Restored");
+        setValue(L.ENUM_REVISION_SOURCE_SNAPSHOT, "Saved version");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");

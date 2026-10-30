@@ -24,6 +24,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.DefaultSingletonBeanRegistry;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.lang.reflect.Proxy;
@@ -76,6 +77,8 @@ class ViewerFoldersTest extends MarginaliaTestBase {
     @Autowired
     private ConfigurableListableBeanFactory beanFactory;
 
+    private boolean registeredOsgiService;
+
     @Autowired
     private FolderService folderService;
 
@@ -107,6 +110,7 @@ class ViewerFoldersTest extends MarginaliaTestBase {
         if (!beanFactory.containsBean("osgiService")) {
             beanFactory.registerSingleton("osgiService", Proxy.newProxyInstance(OsgiService.class.getClassLoader(),
                     new Class<?>[]{OsgiService.class}, (proxy, method, args) -> null));
+            registeredOsgiService = true;
         }
         viewer = new NoLoginViewer();
         ReflectionTestUtils.invokeMethod(viewer, "renderGridView");
@@ -118,6 +122,11 @@ class ViewerFoldersTest extends MarginaliaTestBase {
     @AfterEach
     void tearDown() {
         UI.setCurrent(null);
+        // the context is shared with the other tests of the JVM, which would get the stub that answers null to everything
+        if (registeredOsgiService) {
+            ((DefaultSingletonBeanRegistry) beanFactory).destroySingleton("osgiService");
+            registeredOsgiService = false;
+        }
     }
 
     private Manuscript book(String name, Folder folder) throws Exception {

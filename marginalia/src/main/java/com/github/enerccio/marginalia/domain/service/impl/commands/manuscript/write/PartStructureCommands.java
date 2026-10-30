@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.write;
 
+import com.github.enerccio.marginalia.domain.collections.RevisionDetail;
+import com.github.enerccio.marginalia.domain.components.RevisionOrigin;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -160,7 +162,7 @@ public class PartStructureCommands extends ManuscriptWriteSupport {
         ChatMessage parent = parentHandle != null ? part(book, parentHandle) : book.manuscript.getActiveLeaf();
         TurnInput input = instructions == null && scene == null && pov == null && present == null ? null
                 : new TurnInput(scene, pov, present, instructions);
-        ChatMessage created = chatMessageService.createPart(book.manuscript, parent, text, input);
+        ChatMessage created = chatMessageService.createPart(book.manuscript, parent, text, input, RevisionOrigin.automatic(RevisionDetail.COMMAND, true));
         answerWith(context, created, null);
     }
 
@@ -176,7 +178,8 @@ public class PartStructureCommands extends ManuscriptWriteSupport {
         ChatMessage anchor = part(book, handle);
         Book.Located at = book.locate(handle, null);
         Set<Long> outdated = outdatedHeads(at.path());
-        ChatMessage created = chatMessageService.insertPart(book.manuscript, before ? anchor.getParent() : anchor, text, null);
+        ChatMessage created = chatMessageService.insertPart(book.manuscript, before ? anchor.getParent() : anchor, text, null,
+                RevisionOrigin.automatic(RevisionDetail.COMMAND, true));
 
         Book fresh = new Book(context);
         Book.Located now = fresh.locate(created.getUuid(), null);

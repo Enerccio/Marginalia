@@ -2,6 +2,8 @@ package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
+import com.github.enerccio.marginalia.domain.collections.RevisionSource;
+import com.github.enerccio.marginalia.domain.components.RevisionOrigin;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -96,6 +98,8 @@ public class RedraftDialog extends Dialog {
     private CancellationToken cancellationToken;
     private boolean generating;
     private boolean hasRedraft;
+    // the reasoning the model wrote the text of the field with, it goes to the history of the part
+    private String redraftReasoning;
 
     /**
      * @param onApplied gets the part with the redrafted text, after it was stored
@@ -405,6 +409,7 @@ public class RedraftDialog extends Dialog {
         };
 
         result.setValue("");
+        redraftReasoning = null;
         reasoningMarkdown.setContent("");
         reasoningDetails.setVisible(false);
         changesDetails.setVisible(false);
@@ -432,6 +437,7 @@ public class RedraftDialog extends Dialog {
     }
 
     private void show(String reasoning, String text) {
+        redraftReasoning = StringUtils.defaultIfEmpty(reasoning, null);
         if (StringUtils.isNotBlank(reasoning)) {
             reasoningMarkdown.setContent(reasoning);
             reasoningDetails.setVisible(true);
@@ -469,6 +475,18 @@ public class RedraftDialog extends Dialog {
         changesDetails.setVisible(text != null);
     }
 
+    /**
+     * The model and the protocol of the book, which the redraft is made with: "model · protocol" for the history of the part.
+     */
+    private String modelAndProtocol() {
+        try {
+            return (manuscript.getAi() == null ? "" : manuscript.getAi().getName()) + " · "
+                    + (manuscript.getProtocol() == null ? "" : manuscript.getProtocol().getName());
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
     private void apply() {
         String text = result.getValue();
         if (StringUtils.isBlank(text)) {
@@ -484,7 +502,8 @@ public class RedraftDialog extends Dialog {
                 }
                 text = replacePassage(partText, passage, text);
             }
-            ChatMessageService.PartEdit edit = chatMessageService.updateResponse(manuscript, part, text);
+            ChatMessageService.PartEdit edit = chatMessageService.updateResponse(manuscript, part, text,
+                    RevisionOrigin.model(RevisionSource.REDRAFT, modelAndProtocol(), false, redraftReasoning));
             // the notes the redraft was asked to deal with are dealt with
             for (Annotation annotation : addressed) {
                 annotationService.setStatus(manuscript, annotation, AnnotationStatus.RESOLVED);

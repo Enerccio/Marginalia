@@ -46,6 +46,8 @@ public class LocalizationImpl implements Localization, InitializingBean {
     private final Map<LorebookMatch, L> lorebookMatches = new HashMap<>();
     private final Map<LorebookDecision, L> lorebookDecisions = new HashMap<>();
     private final Map<PermissionType, L> permissionTypes = new HashMap<>();
+    private final Map<RevisionSource, L> revisionSources = new EnumMap<>(RevisionSource.class);
+    private final Map<RevisionDetail, L> revisionDetails = new EnumMap<>(RevisionDetail.class);
     private final Map<AgentRunStatus, L> agentRunStatuses = new HashMap<>();
     private final Map<DestructiveCommandMode, L> destructiveModes = new HashMap<>();
     private final Map<Class<?>, L> domainObjects = new HashMap<>();
@@ -111,6 +113,25 @@ public class LocalizationImpl implements Localization, InitializingBean {
         permissionTypes.put(PermissionType.CREATE_AI, L.ENUM_PERMISSION_CREATE_AI);
         permissionTypes.put(PermissionType.AGENTS, L.ENUM_PERMISSION_AGENTS);
         permissionTypes.put(PermissionType.NOTIFICATIONS, L.ENUM_PERMISSION_NOTIFICATIONS);
+
+        revisionSources.put(RevisionSource.GENERATE, L.ENUM_REVISION_SOURCE_GENERATE);
+        revisionSources.put(RevisionSource.REGENERATE, L.ENUM_REVISION_SOURCE_REGENERATE);
+        revisionSources.put(RevisionSource.REDRAFT, L.ENUM_REVISION_SOURCE_REDRAFT);
+        revisionSources.put(RevisionSource.HUMAN, L.ENUM_REVISION_SOURCE_HUMAN);
+        revisionSources.put(RevisionSource.PLUGIN, L.ENUM_REVISION_SOURCE_PLUGIN);
+        revisionSources.put(RevisionSource.AUTOMATIC, L.LABEL_AUTOMATIC);
+        revisionSources.put(RevisionSource.MERGE, L.ENUM_REVISION_SOURCE_MERGE);
+        revisionSources.put(RevisionSource.SPLIT, L.ENUM_REVISION_SOURCE_SPLIT);
+        revisionSources.put(RevisionSource.DUPLICATE, L.LABEL_COPY);
+        revisionSources.put(RevisionSource.RESTORE, L.ENUM_REVISION_SOURCE_RESTORE);
+        revisionSources.put(RevisionSource.SNAPSHOT, L.ENUM_REVISION_SOURCE_SNAPSHOT);
+
+        revisionDetails.put(RevisionDetail.COMMAND, L.LABEL_COMMAND);
+        revisionDetails.put(RevisionDetail.AGENT_MERGE, L.LABEL_AGENT_MERGE);
+        revisionDetails.put(RevisionDetail.REPLACE, L.LABEL_REPLACE);
+        revisionDetails.put(RevisionDetail.BRANCH, L.LABEL_BRANCH);
+        revisionDetails.put(RevisionDetail.ARCHIVE_IMPORT, L.LABEL_IMPORT_FROM_ARCHIVE);
+        revisionDetails.put(RevisionDetail.SILLYTAVERN_IMPORT, L.LABEL_IMPORT_FROM_SILLYTAVERN);
 
         agentRunStatuses.put(AgentRunStatus.RUNNING, L.ENUM_AGENT_RUN_RUNNING);
         agentRunStatuses.put(AgentRunStatus.IDLE, L.ENUM_AGENT_RUN_IDLE);
@@ -358,6 +379,16 @@ public class LocalizationImpl implements Localization, InitializingBean {
     @Override
     public L getPermissionType(PermissionType type) {
         return permissionTypes.get(type);
+    }
+
+    @Override
+    public L getRevisionSource(RevisionSource source) {
+        return revisionSources.get(source);
+    }
+
+    @Override
+    public L getRevisionDetail(RevisionDetail detail) {
+        return revisionDetails.get(detail);
     }
 
     @Override

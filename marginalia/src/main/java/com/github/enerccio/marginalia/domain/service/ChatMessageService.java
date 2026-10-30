@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.components.BranchTokens;
 import com.github.enerccio.marginalia.domain.components.PartMerge;
+import com.github.enerccio.marginalia.domain.components.RevisionOrigin;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -149,6 +150,12 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
     PartEdit updateResponse(Manuscript manuscript, ChatMessage message, String text) throws Exception;
 
     /**
+     * As {@link #updateResponse(Manuscript, ChatMessage, String)} for a writer that is not the author typing: the version of the
+     * history the edit makes has the source, the detail, the agent flag and the reasoning of the origin.
+     */
+    PartEdit updateResponse(Manuscript manuscript, ChatMessage message, String text, RevisionOrigin origin) throws Exception;
+
+    /**
      * Whether a summary describes the text of the part, so that an edit of the part can make it outdated: the part has a summary
      * itself, or a newer part of its branch has one that goes down to it.
      *
@@ -166,6 +173,13 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
     ChatMessage storeResponse(Manuscript manuscript, ChatMessage message, String text) throws Exception;
 
     /**
+     * As {@link #storeResponse(Manuscript, ChatMessage, String)} for a writer that is not the author typing, see
+     * {@link #updateResponse(Manuscript, ChatMessage, String, RevisionOrigin)}. Extensions that write the text of a part
+     * should use this one with their own origin ({@code RevisionSource.PLUGIN} and the name of the extension).
+     */
+    ChatMessage storeResponse(Manuscript manuscript, ChatMessage message, String text, RevisionOrigin origin) throws Exception;
+
+    /**
      * Adds a part the author (or an agent) wrote as a child of {@code parent}, or as the first part of an empty book when
      * the parent is null: counts its tokens and words and makes it the active leaf of the book, which is saved. The part is
      * not flagged as edited, nobody changed a text of the model.
@@ -177,6 +191,12 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
     ChatMessage createPart(Manuscript manuscript, ChatMessage parent, String text, TurnInput input) throws Exception;
 
     /**
+     * As {@link #createPart(Manuscript, ChatMessage, String, TurnInput)}, the first version of the history of the part has the
+     * source, the detail, the agent flag and the reasoning of the origin (the author typing by default).
+     */
+    ChatMessage createPart(Manuscript manuscript, ChatMessage parent, String text, TurnInput input, RevisionOrigin origin) throws Exception;
+
+    /**
      * Stores a prepared part as a child of {@code parent}, or as one more first part of the book when the parent is null (the
      * book may have parts already): counts the tokens and words of its text, nothing else of it is changed, and the active leaf
      * of the book stays where it is. For the imports that build a whole tree of parts.
@@ -186,6 +206,12 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
      * @throws IllegalArgumentException when the parent is not a part of the manuscript, or the manuscript is not the user's
      */
     ChatMessage addPart(Manuscript manuscript, ChatMessage parent, ChatMessage part) throws Exception;
+
+    /**
+     * As {@link #addPart(Manuscript, ChatMessage, ChatMessage)}, the first version of the history of the part has the source,
+     * the detail, the agent flag and the reasoning of the origin (the author typing by default).
+     */
+    ChatMessage addPart(Manuscript manuscript, ChatMessage parent, ChatMessage part, RevisionOrigin origin) throws Exception;
 
     /**
      * Inserts a part into the story, between a part and what follows it: the new part becomes the only child of {@code after},
@@ -202,6 +228,12 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
      * @throws IllegalArgumentException when {@code after} is not a part of the manuscript or the manuscript is not the user's
      */
     ChatMessage insertPart(Manuscript manuscript, ChatMessage after, String text, TurnInput input) throws Exception;
+
+    /**
+     * As {@link #insertPart(Manuscript, ChatMessage, String, TurnInput)}, with the origin of the first version of the history of
+     * the part, see {@link #createPart(Manuscript, ChatMessage, String, TurnInput, RevisionOrigin)}.
+     */
+    ChatMessage insertPart(Manuscript manuscript, ChatMessage after, String text, TurnInput input, RevisionOrigin origin) throws Exception;
 
     /**
      * What merging a part into the part before it would do, for the review of the author: the two parts, the prompt fields

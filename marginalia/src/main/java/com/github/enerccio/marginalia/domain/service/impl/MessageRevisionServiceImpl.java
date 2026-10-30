@@ -68,6 +68,15 @@ public class MessageRevisionServiceImpl extends ExtendableServiceImpl<MessageRev
     }
 
     @Override
+    @CommonTx
+    public void ensureCurrent(ChatMessage part) throws Exception {
+        if (part == null || part.getId() == null || StringUtils.isEmpty(part.getResponse())) {
+            return;
+        }
+        record(part, RevisionData.of(part, RevisionSource.PLUGIN, null, false));
+    }
+
+    @Override
     @CommonTxReadOnly
     public MessageRevision findLatest(ChatMessage part) throws Exception {
         MessageRevision latest = getRepository().findLatest(part);

@@ -35,7 +35,7 @@
     </bean>
 
     <bean name="applicationInitializer" class="com.github.enerccio.marginalia.bound.ApplicationInitializer">
-        <property name="appVersion" value="6" />
+        <property name="appVersion" value="7" />
         <property name="dbVersion" value="1" />
         <property name="migrations">
             <list>
@@ -44,6 +44,7 @@
                 <bean class="com.github.enerccio.marginalia.bound.migration.OriginalResponseMigration" />
                 <bean class="com.github.enerccio.marginalia.bound.migration.PermissionsMigration" />
                 <bean class="com.github.enerccio.marginalia.bound.migration.ExtendedContentMigration" />
+                <bean class="com.github.enerccio.marginalia.bound.migration.PartRevisionMigration" />
             </list>
         </property>
     </bean>

@@ -1,8 +1,8 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
-import com.github.enerccio.marginalia.domain.components.BranchTokens;
-import com.github.enerccio.marginalia.domain.components.PartMerge;
-import com.github.enerccio.marginalia.domain.components.TurnInput;
+import com.github.enerccio.marginalia.domain.collections.RevisionDetail;
+import com.github.enerccio.marginalia.domain.collections.RevisionSource;
+import com.github.enerccio.marginalia.domain.components.*;
 import com.github.enerccio.marginalia.domain.model.ImageAttachment;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -179,6 +179,9 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         clone.loadFrom(branched);
         clone.setSummary(summaryService.copySummary(branched.getSummary()));
         ChatMessage saved = save(clone);
+        // a branch does not share the history of the part, it starts its own with the text it was made with
+        messageRevisionService.record(saved, new RevisionData(RevisionSource.DUPLICATE, RevisionDetail.BRANCH.code(), false, saved.getResponse(),
+                saved.getResponseReasoning(), null, saved.getWordCount(), saved.getTokenCount()));
         annotationService.copyForBranch(branched, saved);
         messagePromptService.copy(branched, saved);
         return saved;
@@ -575,11 +578,16 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
 
     @Override
     public PartEdit updateResponse(Manuscript manuscript, ChatMessage message, String text) throws Exception {
-        long tokens = counted(manuscript, text);
-        return inTx(false, () -> updateResponse(manuscript, message, text, tokens));
+        return updateResponse(manuscript, message, text, RevisionOrigin.AUTHOR);
     }
 
-    private PartEdit updateResponse(Manuscript manuscript, ChatMessage message, String text, long tokens) throws Exception {
+    @Override
+    public PartEdit updateResponse(Manuscript manuscript, ChatMessage message, String text, RevisionOrigin origin) throws Exception {
+        long tokens = counted(manuscript, text);
+        return inTx(false, () -> updateResponse(manuscript, message, text, tokens, origin));
+    }
+
+    private PartEdit updateResponse(Manuscript manuscript, ChatMessage message, String text, long tokens, RevisionOrigin origin) throws Exception {
         Manuscript book = ownBook(manuscript);
         ChatMessage stored = ownPart(book, message);
         String newText = text == null ? "" : text;
@@ -589,7 +597,7 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         List<ChatMessage> newestFirst = leaf == null ? List.of() : new ArrayList<>(getBranchFromLeaf(leaf).reversed());
         Set<Long> outdatedBefore = outdatedHeads(newestFirst);
 
-        ChatMessage saved = storeResponse(book, stored, newText, tokens);
+        ChatMessage saved = storeResponse(book, stored, newText, tokens, origin);
 
         List<SummaryBlock> outdated = new ArrayList<>();
         for (SummaryBlock block : summaryService.collectBlocks(newestFirst)) {
@@ -625,20 +633,28 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
 
     @Override
     public ChatMessage storeResponse(Manuscript manuscript, ChatMessage message, String text) throws Exception {
-        long tokens = counted(manuscript, text);
-        return inTx(false, () -> storeResponse(manuscript, message, text, tokens));
+        return storeResponse(manuscript, message, text, RevisionOrigin.AUTHOR);
     }
 
-    private ChatMessage storeResponse(Manuscript manuscript, ChatMessage message, String text, long tokens) throws Exception {
+    @Override
+    public ChatMessage storeResponse(Manuscript manuscript, ChatMessage message, String text, RevisionOrigin origin) throws Exception {
+        long tokens = counted(manuscript, text);
+        return inTx(false, () -> storeResponse(manuscript, message, text, tokens, origin));
+    }
+
+    private ChatMessage storeResponse(Manuscript manuscript, ChatMessage message, String text, long tokens, RevisionOrigin origin) throws Exception {
         Manuscript book = ownBook(manuscript);
         ChatMessage stored = ownPart(book, message);
         String newText = text == null ? "" : text;
         String oldText = stored.getResponse();
+        // the text that is replaced is in the history, whoever wrote it
+        messageRevisionService.ensureCurrent(stored);
         stored.setResponse(newText);
         stored.setTokenCount(tokens);
         stored.setWordCount(countWords(newText));
         stored.setEdited(true);
         ChatMessage saved = save(stored);
+        messageRevisionService.record(saved, origin.data(saved));
         // the passages of the annotations move with the text
         annotationService.shift(book, saved, oldText, newText);
         return saved;
@@ -667,6 +683,7 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         ChatMessage later = ownPart(book, part);
         ChatMessage previous = mergeTarget(book, later);
         PartMerge.Join joined = join == null ? PartMerge.Join.suggest(previous.getResponse(), later.getResponse()) : join;
+        messageRevisionService.ensureCurrent(previous);
 
         String text = PartMerge.join(previous.getResponse(), later.getResponse(), joined);
         // where the text of the later part starts in the joined one
@@ -696,6 +713,7 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         previous.setAttributes(PartMerge.mergeAttributes(previous.getAttributes(), later.getAttributes(),
                 fromPrevious == null ? Set.of() : fromPrevious, dropped == null ? Set.of() : dropped));
         ChatMessage saved = save(previous);
+        messageRevisionService.record(saved, RevisionOrigin.MERGED.data(saved));
         annotationService.moveToPrevious(book, later, saved, laterOffset);
 
         // what follows the part follows the previous one now, the active leaf moves to it when the part was the leaf
@@ -730,11 +748,16 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
 
     @Override
     public ChatMessage createPart(Manuscript manuscript, ChatMessage parent, String text, TurnInput input) throws Exception {
-        long tokens = counted(manuscript, text);
-        return inTx(false, () -> createPart(manuscript, parent, text, input, tokens));
+        return createPart(manuscript, parent, text, input, RevisionOrigin.AUTHOR);
     }
 
-    private ChatMessage createPart(Manuscript manuscript, ChatMessage parent, String text, TurnInput input, long tokens) throws Exception {
+    @Override
+    public ChatMessage createPart(Manuscript manuscript, ChatMessage parent, String text, TurnInput input, RevisionOrigin origin) throws Exception {
+        long tokens = counted(manuscript, text);
+        return inTx(false, () -> createPart(manuscript, parent, text, input, tokens, origin));
+    }
+
+    private ChatMessage createPart(Manuscript manuscript, ChatMessage parent, String text, TurnInput input, long tokens, RevisionOrigin origin) throws Exception {
         Manuscript book = ownBook(manuscript);
         ChatMessage above = parent == null ? null : ownPart(book, parent);
         if (above == null && hasAnyMessages(book)) {
@@ -742,6 +765,7 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         }
         ChatMessage created = newPart(text, input, tokens);
         ChatMessage saved = above == null ? createRoot(book, created) : addChild(above, created);
+        messageRevisionService.record(saved, origin.data(saved));
         book.setActiveLeaf(saved);
         manuscriptService.save(book);
         return saved;
@@ -749,34 +773,47 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
 
     @Override
     public ChatMessage addPart(Manuscript manuscript, ChatMessage parent, ChatMessage part) throws Exception {
-        long tokens = counted(manuscript, part.getResponse());
-        return inTx(false, () -> addPart(manuscript, parent, part, tokens));
+        return addPart(manuscript, parent, part, RevisionOrigin.AUTHOR);
     }
 
-    private ChatMessage addPart(Manuscript manuscript, ChatMessage parent, ChatMessage part, long tokens) throws Exception {
+    @Override
+    public ChatMessage addPart(Manuscript manuscript, ChatMessage parent, ChatMessage part, RevisionOrigin origin) throws Exception {
+        long tokens = counted(manuscript, part.getResponse());
+        return inTx(false, () -> addPart(manuscript, parent, part, tokens, origin));
+    }
+
+    private ChatMessage addPart(Manuscript manuscript, ChatMessage parent, ChatMessage part, long tokens, RevisionOrigin origin) throws Exception {
         Manuscript book = ownBook(manuscript);
         ChatMessage above = parent == null ? null : ownPart(book, parent);
         String text = part.getResponse() == null ? "" : part.getResponse();
         part.setResponse(text);
         part.setTokenCount(tokens);
         part.setWordCount(countWords(text));
-        return above == null ? createRoot(book, part) : addChild(above, part);
+        ChatMessage saved = above == null ? createRoot(book, part) : addChild(above, part);
+        messageRevisionService.record(saved, origin.data(saved));
+        return saved;
     }
 
     @Override
     public ChatMessage insertPart(Manuscript manuscript, ChatMessage after, String text, TurnInput input) throws Exception {
-        long tokens = counted(manuscript, text);
-        return inTx(false, () -> insertPart(manuscript, after, text, input, tokens));
+        return insertPart(manuscript, after, text, input, RevisionOrigin.AUTHOR);
     }
 
-    private ChatMessage insertPart(Manuscript manuscript, ChatMessage after, String text, TurnInput input, long tokens) throws Exception {
+    @Override
+    public ChatMessage insertPart(Manuscript manuscript, ChatMessage after, String text, TurnInput input, RevisionOrigin origin) throws Exception {
+        long tokens = counted(manuscript, text);
+        return inTx(false, () -> insertPart(manuscript, after, text, input, tokens, origin));
+    }
+
+    private ChatMessage insertPart(Manuscript manuscript, ChatMessage after, String text, TurnInput input, long tokens, RevisionOrigin origin) throws Exception {
         Manuscript book = ownBook(manuscript);
         ChatMessage above = after == null ? null : ownPart(book, after);
         if (!hasAnyMessages(book)) {
-            return createPart(book, null, text, input, tokens);
+            return createPart(book, null, text, input, tokens, origin);
         }
         ChatMessage created = newPart(text, input, tokens);
         ChatMessage saved = above == null ? createRoot(book, created) : addChild(above, created);
+        messageRevisionService.record(saved, origin.data(saved));
         // what followed the part follows the new one now, the new part is saved first so that it is not moved under itself
         if (above == null) {
             getRepository().reparentRootsUnder(book, saved);
