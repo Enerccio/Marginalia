@@ -338,7 +338,8 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
 
     @Override
     public EffectiveHistoryLimit resolveInheritedHistoryLimit(Folder start) throws Exception {
-        return resolveInheritedHistoryLimit(start, start == null ? currentUser : start.getOwner());
+        // the folder of a book that a window holds is a lazy proxy without a session: its owner is not read, the windows are the user's own
+        return resolveInheritedHistoryLimit(start, currentUser);
     }
 
     private EffectiveHistoryLimit resolveInheritedHistoryLimit(Folder start, User owner) throws Exception {

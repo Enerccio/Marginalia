@@ -223,6 +223,19 @@ class PartHistoryLimitTest extends MarginaliaTestBase {
     }
 
     @Test
+    void theFolderOfABookTheWindowHoldsIsALazyProxyWithoutASession() throws Exception {
+        Folder top = folder("Window top", null, 9);
+        fileInto(top);
+
+        // what the About tab does: the folder comes with the book that was loaded, the session is gone
+        Folder held = manuscriptService.find(book.getId()).getFolder();
+        EffectiveHistoryLimit limit = manuscriptService.resolveInheritedHistoryLimit(held);
+
+        assertThat(limit.value()).isEqualTo(9);
+        assertThat(limit.origin()).isEqualTo(Origin.FOLDER);
+    }
+
+    @Test
     void aCopiedFolderKeepsTheLimit() throws Exception {
         Folder source = folder("Original", null, 11);
 

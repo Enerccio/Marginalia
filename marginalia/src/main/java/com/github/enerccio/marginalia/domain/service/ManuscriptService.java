@@ -138,8 +138,8 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
 
     /**
      * The limit a book filed in the folder (or a folder made in it) inherits, see {@link #resolveHistoryLimit}: the folder itself and
-     * the ones above it, then the user and the permission of the owner of the folder. The top level (null) has the settings of the
-     * current user and their permission only.
+     * the ones above it, then the settings and the permission of the current user (the windows that ask are the user's own, and the folder
+     * of a book they hold is a lazy proxy without a session: only its id is read). The top level (null) has the user and their permission only.
      */
     EffectiveHistoryLimit resolveInheritedHistoryLimit(Folder folder) throws Exception;
 
