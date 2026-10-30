@@ -794,6 +794,18 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_COMPARE_READ_AGAIN, "Read again");
         setValue(L.LABEL_COMPARE_ALTERNATIVE, "Alternative");
         setValue(L.LABEL_REDRAFT_ORIGINAL_TEXT, "Original text with annotations");
+        setValue(L.LABEL_MASS_RENAME, "Mass Rename");
+        setValue(L.LABEL_RENAME_ADD_PREFIX, "Add prefix");
+        setValue(L.LABEL_RENAME_ADD_POSTFIX, "Add postfix");
+        setValue(L.LABEL_RENAME_FIND_REPLACE, "Find and replace");
+        setValue(L.LABEL_RENAME_NUMBER, "Number the books");
+        setValue(L.LABEL_RENAME_TEXT_TO_ADD, "Text to add");
+        setValue(L.LABEL_RENAME_FIND, "Find");
+        setValue(L.LABEL_RENAME_PATTERN, "Name pattern");
+        setValue(L.LABEL_RENAME_START_AT, "Start at");
+        setValue(L.LABEL_RENAME_STEP, "Step");
+        setValue(L.LABEL_RENAME_DIGITS, "Digits");
+        setValue(L.LABEL_NEW_NAME, "New name");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1364,6 +1376,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_PROMPT_COMPARE_HISTORY_SHIFTED, "A message of the story appears here that was at another place in the earlier prompt: the start of the story moved (the oldest parts no longer fit and were left out, or parts were replaced by summaries). Everything after that point is read again.");
         setValue(L.MSG_PROMPT_COMPARE_HISTORY_CHANGED, "A message in the middle of the story differs from the earlier prompt: a part was edited, regenerated or replaced by a summary. Everything after it is read again.");
         setValue(L.MSG_PROMPT_COMPARE_ROLE_CHANGED, "The messages at the first difference have different roles, the structure of the prompt changed.");
+        setValue(L.MSG_MASS_RENAME_FILL_FIRST, "Fill in the text for the rename first.");
+        setValue(L.MSG_MASS_RENAME_PATTERN_NEEDS_NUMBER, "The pattern must contain {n}, or all the books get the same name.");
+        setValue(L.MSG_MASS_RENAME_EMPTY_NAME, "The new name of the book \"%s\" would be empty. Nothing was renamed.");
+        setValue(L.MSG_MASS_RENAME_NOTHING_CHANGES, "None of the names would change.");
+        setValue(L.MSG_MASS_RENAME_DONE, "%d book(s) were renamed.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1458,6 +1475,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_MASS_CHANGE_LANGUAGE, "Pick the language to put on the books and check the books. Books an agent works on are grayed out and can't be changed.");
         setValue(L.HELP_ORGANISE, "Left / Right / Tab: other pane. Enter: open a folder. Backspace: up. Space or Insert: mark. The keys of the buttons can be changed in the settings (key bindings).");
         setValue(L.HELP_FOLDER_SETTINGS, "The books in this folder and in the folders below it use these settings unless they set their own. An empty field is inherited from the folder above, then from your settings.");
+        setValue(L.HELP_MASS_RENAME, "Pick how to rename the books and check the books: the column New name shows the result. A numbering counts the checked books in the order of the list; in the pattern {name} is the current name and {n} the number. Books an agent works on are grayed out and can't be renamed.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

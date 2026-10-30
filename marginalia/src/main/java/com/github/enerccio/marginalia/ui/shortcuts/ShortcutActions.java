@@ -54,6 +54,8 @@ public final class ShortcutActions {
     public static final String ORGANISE_MODEL_PROTOCOL = "organise.modelProtocol";
     /** Opens the mass change of the language for the marked books of the Organise window (or the folder of the active pane). */
     public static final String ORGANISE_LANGUAGE = "organise.language";
+    /** Opens the mass rename of the marked books of the Organise window (or the books of the folder of the active pane). */
+    public static final String ORGANISE_MASS_RENAME = "organise.massRename";
     /** Opens the tagging of the marked books of the Organise window (or the books of the folder of the active pane). */
     public static final String ORGANISE_TAG_BOOKS = "organise.tagBooks";
     /** Opens the advanced search in the folder of the active pane of the Organise window. */

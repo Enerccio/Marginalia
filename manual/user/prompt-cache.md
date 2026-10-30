@@ -585,14 +585,19 @@ itself never fails because of the hook.
 
 Things to know:
 
-- **Size.** A file is as big as the memory of the slot holds: for a long story and a large model hundreds of megabytes
-  to several gigabytes. There is one file per route, user and kind, and each is overwritten in place, so the folder stays as
-  small as that. Check that restoring one is faster than reading the prompt (a fast SSD usually is, by a lot, for a
-  long story: a few seconds against a minute of prefill). A measured example: a 31 B model on an AMD Radeon AI PRO
-  R9700 with a prompt of about 9,000 tokens made files of 850-930 MB; a restore took 2-3.5 s and a save 3-10 s (the hook logs both), while reading
-  that prompt again took 18-20 s at about 440 tokens per second. A swap costs a save and a restore, so it still wins
-  by a wide margin, and the longer the story the more it wins, as a prefill grows with the prompt and a restore only
-  with the size of the cache.
+- **Size.** A file holds the memory of the slot **and its context checkpoints**, so it is as big as both together: for a
+  long story and a large model hundreds of megabytes to several gigabytes. A measured example: a 31 B model with a
+  prompt of 18,000 tokens made files of 1.3 to 11 GB, the largest with about 18 checkpoints of about 450 MB each besides
+  about 1.5 GB of cache. A server keeps up to 32 checkpoints by default, and every swap writes and reads all of them.
+  `--ctx-checkpoints N` of `llama-server` caps that, which makes the files smaller and the swaps shorter (the newest
+  checkpoint is the one that is used most, as the next prompt differs from the last one at the start of its last user
+  message, so a few are enough unless you edit or swipe far back in the story). There is one file per route, user and
+  kind, and each is overwritten in place, so the folder stays as small as that.
+- **Speed.** Check that a swap is faster than reading the prompt (the hook logs the size and the time of every save and
+  restore). The example above, on an NVMe disk with an AMD Radeon AI PRO R9700: a save of 11 GB took 6 s and a restore
+  of 7.6 GB for 20,000 tokens 8 s, about 14 s for a swap, while reading a prompt of that length again takes about 45 s
+  at 440 tokens per second, and a prefill grows with the prompt. Without checkpoints the same files were about 1 GB and
+  a swap took 5 s.
 - **Limits.** Without a limit the folder grows with the number of routes, users and kinds. Set `max_files` (a number of
   files) and/or `max_gib` (their total size) in the `slot_cache` of a route (or `LLAMA_CACHE_MAX_FILES` and
   `LLAMA_CACHE_MAX_GIB` in the environment of the proxy for all routes) and the hook deletes the caches **of that route**

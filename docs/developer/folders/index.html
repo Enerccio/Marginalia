@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846628125021">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846676491137">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846628125021" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846676491137" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846628125021" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846676491137" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846628125021" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846676491137" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -331,7 +331,7 @@ for a change that is yours alone.</p>
 | `PromptSettingsForm` | The editors of the twelve text settings, shared by the book's *Prompts* tab (desktop and phone) and the folder dialog. It takes the values and the folder the empty ones inherit from (`load`), gives the values back (`values`), shows the inherited value as the placeholder and the origin as the line under the field (`LABEL_INHERITED_FROM_FOLDER`, `_FROM_USER`, `_INHERITED_DEFAULT`) and reports a change only when every template is valid. |
 | `InheritedLanguageCombo` | The language box where empty means inherit; the same placeholder and origin line. |
 | `OrganiseDialog`, `FolderClashDialog` | The two-pane window (the entries are marked with `MassDeleteBox`, the check box of the story's mass delete, whose one click event carries Shift for a range; the list reads itself again when the window closes) and the question of a name clash. The keys of the buttons are `ShortcutActions.ORGANISE_*` actions, registered in `ShortcutRegistry` and caught in the browser by `JavascriptLibrary.fireOrganiseKeys`; the navigation keys are fixed. |
-| `MassChangeModelProtocolDialog`, `MassChangeLanguageDialog`, `MultiTagDialog` | Take a list of books (or a folder, `MultiTagDialog.Kind.FOLDERS`). |
+| `MassChangeModelProtocolDialog`, `MassChangeLanguageDialog`, `MassRenameDialog`, `MultiTagDialog` | Take a list of books (or a folder, `MultiTagDialog.Kind.FOLDERS`). |
 | `BookLabels` | How a book is named in the combo boxes: `Folder / Sub / Name`. Use it for any new picker of books. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -367,7 +367,7 @@ for a change that is yours alone.</p>
 <td>The two-pane window (the entries are marked with <code translate="no" v-pre>MassDeleteBox</code>, the check box of the story&#x27;s mass delete, whose one click event carries Shift for a range; the list reads itself again when the window closes) and the question of a name clash. The keys of the buttons are <code translate="no" v-pre>ShortcutActions.ORGANISE_*</code> actions, registered in <code translate="no" v-pre>ShortcutRegistry</code> and caught in the browser by <code translate="no" v-pre>JavascriptLibrary.fireOrganiseKeys</code>; the navigation keys are fixed.</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>MassChangeModelProtocolDialog</code>, <code translate="no" v-pre>MassChangeLanguageDialog</code>, <code translate="no" v-pre>MultiTagDialog</code></td>
+<td><code translate="no" v-pre>MassChangeModelProtocolDialog</code>, <code translate="no" v-pre>MassChangeLanguageDialog</code>, <code translate="no" v-pre>MassRenameDialog</code>, <code translate="no" v-pre>MultiTagDialog</code></td>
 <td>Take a list of books (or a folder, <code translate="no" v-pre>MultiTagDialog.Kind.FOLDERS</code>).</td>
 </tr>
 <tr>
@@ -475,7 +475,7 @@ folder reaches the request the mock server receives), <code translate="no" v-pre
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (3dffd96c1).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (b47fac05e).</p></div>
             </footer>
         </div>
     </div>

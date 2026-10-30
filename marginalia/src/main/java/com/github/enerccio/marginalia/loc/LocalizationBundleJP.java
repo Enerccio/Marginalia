@@ -794,6 +794,18 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_COMPARE_READ_AGAIN, "再読み込み");
         setValue(L.LABEL_COMPARE_ALTERNATIVE, "代替");
         setValue(L.LABEL_REDRAFT_ORIGINAL_TEXT, "元の文章（注釈付き）");
+        setValue(L.LABEL_MASS_RENAME, "名前の一括変更");
+        setValue(L.LABEL_RENAME_ADD_PREFIX, "先頭に追加");
+        setValue(L.LABEL_RENAME_ADD_POSTFIX, "末尾に追加");
+        setValue(L.LABEL_RENAME_FIND_REPLACE, "検索して置換");
+        setValue(L.LABEL_RENAME_NUMBER, "本に番号を付ける");
+        setValue(L.LABEL_RENAME_TEXT_TO_ADD, "追加するテキスト");
+        setValue(L.LABEL_RENAME_FIND, "検索");
+        setValue(L.LABEL_RENAME_PATTERN, "名前のパターン");
+        setValue(L.LABEL_RENAME_START_AT, "開始番号");
+        setValue(L.LABEL_RENAME_STEP, "増分");
+        setValue(L.LABEL_RENAME_DIGITS, "桁数");
+        setValue(L.LABEL_NEW_NAME, "新しい名前");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1364,6 +1376,11 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_PROMPT_COMPARE_HISTORY_SHIFTED, "以前のプロンプトでは別の位置にあった物語のメッセージがここに現れています。物語の開始位置が動きました（古いパートが収まらず除外されたか、パートが要約に置き換えられました）。この位置以降はすべて再び読み込まれます。");
         setValue(L.MSG_PROMPT_COMPARE_HISTORY_CHANGED, "物語の途中のメッセージが以前のプロンプトと異なります。パートが編集、再生成、または要約に置き換えられました。この位置以降はすべて再び読み込まれます。");
         setValue(L.MSG_PROMPT_COMPARE_ROLE_CHANGED, "最初の相違位置のメッセージの役割が異なり、プロンプトの構造が変わりました。");
+        setValue(L.MSG_MASS_RENAME_FILL_FIRST, "名前の変更に使うテキストを先に入力してください。");
+        setValue(L.MSG_MASS_RENAME_PATTERN_NEEDS_NUMBER, "パターンには {n} を含めてください。含まないとすべての本が同じ名前になります。");
+        setValue(L.MSG_MASS_RENAME_EMPTY_NAME, "本「%s」の新しい名前が空になります。何も変更しませんでした。");
+        setValue(L.MSG_MASS_RENAME_NOTHING_CHANGES, "変更される名前はありません。");
+        setValue(L.MSG_MASS_RENAME_DONE, "%d 冊の本の名前を変更しました。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1458,6 +1475,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_MASS_CHANGE_LANGUAGE, "本に設定する言語を選び、対象の本にチェックを入れます。エージェントが作業中の本はグレー表示になり、変更できません。");
         setValue(L.HELP_ORGANISE, "左 / 右 / Tab：もう一方のペイン。Enter：フォルダを開く。Backspace：上へ。Space または Insert：マーク。ボタンのキーは設定（キー割り当て）で変更できます。");
         setValue(L.HELP_FOLDER_SETTINGS, "このフォルダとその下のフォルダにある本は、独自の設定がない限りこれらの設定を使います。空の項目は上のフォルダ、次にユーザー設定から継承されます。");
+        setValue(L.HELP_MASS_RENAME, "名前の変更方法を選び、対象の本にチェックを入れます。「新しい名前」の列に結果が表示されます。番号付けはチェックした本を一覧の順に数えます。パターンの {name} は現在の名前、{n} は番号です。エージェントが作業中の本はグレー表示になり、名前を変更できません。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

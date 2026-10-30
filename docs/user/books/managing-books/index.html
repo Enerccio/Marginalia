@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846628125021">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846676491137">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846628125021" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846676491137" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846628125021" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846676491137" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846628125021" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846676491137" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -345,6 +345,48 @@ from its folders (see <a href="../folders/#language">Language</a>).</p>
     <img src="../../../images/mass-change-language.png" alt="Changing the language of many books" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="900" height="720" />
     <figcaption class="caption">Changing the language of many books</figcaption>
 </figure>
+<h3 id="renaming-many-books">Renaming many books</h3>
+<p>The item <strong>Mass Rename</strong> renames the checked books at once. Pick how:</p>
+<retype-table copy-text="| Way | What it does |
+|---|---|
+| **Add prefix** | Puts the **Text to add** before the name. |
+| **Add postfix** | Puts the **Text to add** after the name. |
+| **Find and replace** | Replaces every occurrence of **Find** in the name with **Replace with** (empty removes it). The text is taken as it is, not as a pattern; **Case sensitive** is off by default. |
+| **Number the books** | Gives the books numbers: the **Name pattern** is the new name, with `{name}` for the current name and `{n}` for the number, for example `{name} {n}`, `{n}. {name}` or `Chapter {n}`. The first checked book gets **Start at**, each next one the **Step** more, and **Digits** pads the number with zeros (`007`). |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Way</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Add prefix</strong></td>
+<td>Puts the <strong>Text to add</strong> before the name.</td>
+</tr>
+<tr>
+<td><strong>Add postfix</strong></td>
+<td>Puts the <strong>Text to add</strong> after the name.</td>
+</tr>
+<tr>
+<td><strong>Find and replace</strong></td>
+<td>Replaces every occurrence of <strong>Find</strong> in the name with <strong>Replace with</strong> (empty removes it). The text is taken as it is, not as a pattern; <strong>Case sensitive</strong> is off by default.</td>
+</tr>
+<tr>
+<td><strong>Number the books</strong></td>
+<td>Gives the books numbers: the <strong>Name pattern</strong> is the new name, with <code translate="no" v-pre>{name}</code> for the current name and <code translate="no" v-pre>{n}</code> for the number, for example <code translate="no" v-pre>{name} {n}</code>, <code translate="no" v-pre>{n}. {name}</code> or <code translate="no" v-pre>Chapter {n}</code>. The first checked book gets <strong>Start at</strong>, each next one the <strong>Step</strong> more, and <strong>Digits</strong> pads the number with zeros (<code translate="no" v-pre>007</code>).</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The column <strong>New name</strong> shows what each checked book would get while you type, so check it before you press <strong>Rename</strong>. A
+numbering counts the checked books in the order of the list (by name). Spaces at the start and the end of the new name are
+removed. Nothing is renamed, and the window stays open, when a text is missing, when the pattern has no <code translate="no" v-pre>{n}</code>, when no name
+would change, or when a name would end up empty. Filtering, <strong>Include subfolders</strong> and locked books work as in the other mass
+changes.</p>
 <p><strong>Tag books</strong> and the item <strong>Tag folders</strong> work on the books, or on the folders, of the current folder in the same way.</p>
 <h2 id="creating-a-book">Creating a book</h2>
 <ol>
@@ -521,7 +563,7 @@ where they are.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (3dffd96c1).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (b47fac05e).</p></div>
             </footer>
         </div>
     </div>

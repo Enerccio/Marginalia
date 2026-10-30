@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846628125021">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846676491137">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846628125021" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846676491137" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846628125021" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846676491137" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846628125021" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846676491137" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -351,7 +351,7 @@ shows its key in brackets:</p>
 | **Rename** | `Shift+r` | Renames the folder or book under the cursor. |
 | **Delete** | `Delete` | Deletes it, as in the list. |
 | **Folder settings** | `i` | The [settings](#folder-settings) of the folder under the cursor. |
-| **Mass Change Model/Protocol**, **Mass Change Language**, **Tag books** | `p`, `l`, `t` | The [mass changes](#mass-changes) for the marked books, or for the books of the folder of the active pane (with their own *Include subfolders*). |
+| **Mass Change Model/Protocol**, **Mass Change Language**, **Mass Rename**, **Tag books** | `p`, `l`, `Shift+n`, `t` | The [mass changes](#mass-changes) for the marked books, or for the books of the folder of the active pane (with their own *Include subfolders*). The panes show the new names after a mass rename. |
 | **Advanced search** | `f` | The [search](managing-books.md#advanced-search) in the folder of the active pane, optionally with *Include subfolders*. A result has **Show in folder**, which takes the pane there and marks the book. |
 | **Show folder in the list** | `o` | Closes the window and opens the folder of the active pane in the list of books. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -395,9 +395,9 @@ shows its key in brackets:</p>
 <td>The <doc-anchor-trigger to="#folder-settings">settings</doc-anchor-trigger> of the folder under the cursor.</td>
 </tr>
 <tr>
-<td><strong>Mass Change Model/Protocol</strong>, <strong>Mass Change Language</strong>, <strong>Tag books</strong></td>
-<td><code translate="no" v-pre>p</code>, <code translate="no" v-pre>l</code>, <code translate="no" v-pre>t</code></td>
-<td>The <doc-anchor-trigger to="#mass-changes">mass changes</doc-anchor-trigger> for the marked books, or for the books of the folder of the active pane (with their own <em>Include subfolders</em>).</td>
+<td><strong>Mass Change Model/Protocol</strong>, <strong>Mass Change Language</strong>, <strong>Mass Rename</strong>, <strong>Tag books</strong></td>
+<td><code translate="no" v-pre>p</code>, <code translate="no" v-pre>l</code>, <code translate="no" v-pre>Shift+n</code>, <code translate="no" v-pre>t</code></td>
+<td>The <doc-anchor-trigger to="#mass-changes">mass changes</doc-anchor-trigger> for the marked books, or for the books of the folder of the active pane (with their own <em>Include subfolders</em>). The panes show the new names after a mass rename.</td>
 </tr>
 <tr>
 <td><strong>Advanced search</strong></td>
@@ -459,7 +459,8 @@ for the rest:</p>
 <p>Books never clash: their names may repeat.</p>
 <h2 id="mass-changes">Mass changes</h2>
 <p>The <strong>Mass changes</strong> menu of the list (and the buttons of Organise) change many books at once. <strong>Mass Change
-Model/Protocol</strong> puts one model and/or one protocol on the books, <strong>Mass Change Language</strong> a language, <strong>Tag books</strong>
+Model/Protocol</strong> puts one model and/or one protocol on the books, <strong>Mass Change Language</strong> a language, <strong>Mass Rename</strong>
+adds a prefix or a postfix to their names, replaces a text in them or numbers them, <strong>Tag books</strong>
 and <strong>Tag folders</strong> add or remove a tag. See <a href="../managing-books/#tagging-many-books-at-once">Managing books</a>. From the list they
 work on the books of the current folder, with their own <strong>Include subfolders</strong>.</p>
 <h2 id="favorites">Favorites</h2>
@@ -523,7 +524,7 @@ books and folders.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (3dffd96c1).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (b47fac05e).</p></div>
             </footer>
         </div>
     </div>

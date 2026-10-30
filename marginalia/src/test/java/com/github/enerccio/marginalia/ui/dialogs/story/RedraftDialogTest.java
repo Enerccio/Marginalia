@@ -208,6 +208,9 @@ class RedraftDialogTest extends MarginaliaTestBase {
         String original = all(tabs.getComponent(tabs.getTabAt(1))).filter(com.vaadin.flow.component.markdown.Markdown.class::isInstance)
                 .map(c -> ((com.vaadin.flow.component.markdown.Markdown) c).getContent()).findFirst().orElseThrow();
         assertThat(original).contains("<mark").contains("drew").contains("data-annotation");
+        // the note a click on the mark brings into view
+        assertThat(all(tabs.getComponent(tabs.getTabAt(1))).anyMatch(c -> c.getElement().hasAttribute("data-annotation-id")
+                && c.getElement().getTextRecursively().contains("Which sword?"))).isTrue();
     }
 
     @Test

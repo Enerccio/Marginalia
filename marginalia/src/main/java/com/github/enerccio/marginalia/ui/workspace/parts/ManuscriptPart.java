@@ -173,6 +173,7 @@ public class ManuscriptPart implements ManuscriptSection {
         MenuItem massChangesItem = massChangesBar.addItem(loc.getValue(L.LABEL_MASS_CHANGES));
         massChangesItem.getSubMenu().addItem(loc.getValue(L.LABEL_MASS_CHANGE_MODEL_PROTOCOL), _ -> openMassChangeDialog());
         massChangesItem.getSubMenu().addItem(loc.getValue(L.LABEL_MASS_CHANGE_LANGUAGE), _ -> openMassChangeLanguageDialog());
+        massChangesItem.getSubMenu().addItem(loc.getValue(L.LABEL_MASS_RENAME), _ -> openMassRenameDialog());
         massChangesItem.getSubMenu().addItem(loc.getValue(L.LABEL_TAG_FOLDERS), _ -> openTagFoldersDialog());
         headerLayout.add(titleSpan, searchButton, organiseButton, tagBooksButton, massChangesBar, importArchiveButton, importSillyTavernButton,
                 newFolderButton, addBookButton);
@@ -696,6 +697,18 @@ public class ManuscriptPart implements ManuscriptSection {
             locals = {@APILocals(name = "dialog", type = MassChangeLanguageDialog.class)})
     private void openMassChangeLanguageDialog() {
         MassChangeLanguageDialog dialog = new MassChangeLanguageDialog(this::refreshGrid, currentFolder);
+        dialog.create();
+        dialog.open();
+    }
+
+    /**
+     * Opens the dialog that renames many books at once; the list shows the new names when it is closed.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = MassRenameDialog.class)})
+    private void openMassRenameDialog() {
+        MassRenameDialog dialog = new MassRenameDialog(this::refreshGrid, currentFolder);
         dialog.create();
         dialog.open();
     }
