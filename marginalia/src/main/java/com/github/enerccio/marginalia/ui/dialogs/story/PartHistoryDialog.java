@@ -175,7 +175,11 @@ public class PartHistoryDialog extends Dialog {
         content.setPadding(false);
         content.setSizeFull();
         content.addClassNames(CssStyles.GAP_S, CssStyles.MIN_HEIGHT_0);
-        content.setFlexGrow(1, body);
+        if (phone) {
+            content.addClassName(CssStyles.OVERFLOW_AUTO);
+        } else {
+            content.setFlexGrow(1, body);
+        }
         add(content);
 
         Button close = new Button(loc.getValue(L.LABEL_CLOSE), _ -> close());
@@ -194,15 +198,17 @@ public class PartHistoryDialog extends Dialog {
         return body;
     }
 
+    /**
+     * The phone: the page scrolls as a whole, the list has a height of its own and the text of the version room enough to read.
+     */
     private VerticalLayout vertical() {
         grid.setWidthFull();
-        grid.setHeight("38%");
+        grid.setHeight("17em");
+        grid.setMinHeight("17em");
         detail.setWidthFull();
-        detail.setHeight("62%");
         VerticalLayout body = new VerticalLayout(grid, detail);
-        body.setSizeFull();
+        body.setWidthFull();
         body.setPadding(false);
-        body.addClassName(CssStyles.MIN_HEIGHT_0);
         return body;
     }
 
@@ -229,6 +235,9 @@ public class PartHistoryDialog extends Dialog {
         Div text = new Div(plain, diff);
         text.addClassNames(CssStyles.OVERFLOW_AUTO, CssStyles.MIN_HEIGHT_0, CssStyles.BORDERED_PANEL);
         text.setWidthFull();
+        if (phone) {
+            text.setMinHeight("16em");
+        }
 
         reasoning.addClassNames(CssStyles.PRE_WRAP, CssStyles.OVERFLOW_AUTO, CssStyles.WRAP_ANYWHERE);
         reasoningDetails.setSummaryText(loc.getValue(L.LABEL_REASONING));
