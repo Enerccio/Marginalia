@@ -34,11 +34,11 @@ public enum RevisionSource {
      */
     MERGE(false),
     /**
-     * The part was cut in two.
+     * The part was cut in two (reserved: there is no way to split a part yet).
      */
     SPLIT(false),
     /**
-     * The part was made by duplicating a book.
+     * The part is a copy: a branch of a part, or a part of a duplicated book.
      */
     DUPLICATE(false),
     /**

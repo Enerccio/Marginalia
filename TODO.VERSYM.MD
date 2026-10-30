@@ -13,6 +13,34 @@ worth keeping and prune the rest. This file collects the decisions and the order
   `ChatMessageServiceImpl`; `MessageRevisionCrudTest`, `MessageRevisionServiceTest`. `record` does not prune yet, and nothing
   calls it yet (step 2). The trash of the history is the plain soft delete of `OwnedService.delete`.
 
+- ✅ **Step 2:** every site of *Where it is recorded* records. `RevisionOrigin` (source, detail, agent, reasoning; `AUTHOR`,
+  `MERGED`, `automatic`, `human`, `model`) is what the writers of a text pass to `ChatMessageService`: new overloads
+  `updateResponse`, `storeResponse`, `createPart`, `insertPart` and `addPart` take it, the old ones are the author. Done
+  by the service in the transaction of the change: `ensureCurrent(old state)` first, then the change, then `record`.
+  `MessageRevisionService.ensureCurrent(part)` is built already (a text that was not recorded becomes an anonymous `PLUGIN`
+  version before it is replaced). Generation records in `CleanupStep` (`GENERATE` or `REGENERATE`, "model · protocol",
+  reasoning of the part; also for text that arrived before a stop or an error), the regenerate step calls `ensureCurrent`
+  before it clears the part. The redraft dialog passes `REDRAFT` with the reasoning it got from the model, the redraft command
+  too (agent); manuscript commands pass `automatic(RevisionDetail.COMMAND, true)`; agent merge `AGENT_MERGE`; Replace `REPLACE`;
+  the archive import `human(ARCHIVE_IMPORT)`; the SillyTavern import `GENERATE` with the model and reasoning of the chat when it
+  has a model, else `human(SILLYTAVERN_IMPORT)`; a branch is `DUPLICATE` with the detail `BRANCH`. **The details the application
+  names are codes, not English:** `RevisionDetail` (`COMMAND`, `AGENT_MERGE`, `REPLACE`, `BRANCH`, `ARCHIVE_IMPORT`,
+  `SILLYTAVERN_IMPORT`) is stored as `#NAME` in `sourceDetail` and shown through `Localization.getRevisionDetail` (existing keys
+  `LABEL_COMMAND`, `LABEL_REPLACE`, `LABEL_BRANCH`, `LABEL_IMPORT_FROM_ARCHIVE`, `LABEL_IMPORT_FROM_SILLYTAVERN`, new
+  `LABEL_AGENT_MERGE`); anything else in `sourceDetail` is free text (model · protocol, the name of an extension) shown as it is.
+  The sources have `Localization.getRevisionSource` (new `ENUM_REVISION_SOURCE_*` keys in `L`, EN, JP and the Chinese bundle;
+  `LABEL_AUTOMATIC` and `LABEL_COPY` are reused). `RevisionLocalizationTest`. Not done: `SPLIT` (there is no
+  split of a part yet), `DUPLICATE` for *duplicate book* and backup restore (step 7), the impersonate text (it is the
+  author's text once they save it). `PartHistoryRecordingTest` (13 tests) and the full suite (3685) pass.
+
+- ✅ **Step 3:** `PartRevisionMigration` (app version 6 → 7, `appVersion` 7 in `container-config.xml`), written like
+  `ExtendedContentMigration` (a batch read in one session, the versions of each part written in another transaction, rows persisted
+  first, retried on a lock). A part with a `modelUsed` gets `GENERATE` (text = `originalResponse`, its reasoning, "model · protocol";
+  words / tokens of the part when the text is the part's, else counted / 0) and `HUMAN` after it (dated by the `modification` of the
+  part) when the text differs; any other part gets `HUMAN`; blank parts, parts with versions already, none; deleted parts' versions
+  are deleted too. Not done on purpose: the limits (a part gets two rows at most; the `VERSION_HISTORY` permission is step 5,
+  the permissions are created there, by their own migration step). `PartRevisionMigrationTest` (9 tests).
+
 ## Decisions (settled in discussion)
 
 - **New entity `MessageRevision`**, apart from `ChatMessage`. Not an extended attribute of the part (the parts of a branch
@@ -294,8 +322,8 @@ the history of the merged part and shows as `MERGE` on the surviving one.
 
 1. ✅ Entity, V22, repository, service core (`record`, `list` projection, `get`, `countFor`, deletes), wiring, `persistence.xml`,
    cleanup integration, `MessageRevisionCrudTest`, `MessageRevisionServiceTest` (record / delete / copy).
-2. Hook `record` into all the sites of *Where it is recorded*; generation tests.
-3. `PartRevisionMigration` (app 6 → 7) + test.
+2. ✅ Hook `record` into all the sites of *Where it is recorded*; generation tests.
+3. ✅ `PartRevisionMigration` (app 6 → 7) + test.
 4. Restore (both ways), snapshot / label, trash, `ensureCurrent`.
 5. Pruning: `PermissionType.VERSION_HISTORY` (+ the migration creating it with 50 for every user), the resolver, book / folder / user / permission settings, cap enforcement, Clear history, Empty trash.
 6. History dialog (desktop), part menu item and badge, settings UI, localization, styles; then the phone layout.

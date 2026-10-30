@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.domain.collections.*;
+import com.github.enerccio.marginalia.domain.components.RevisionOrigin;
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.model.impl.*;
@@ -31,6 +32,9 @@ public class AgentMergeServiceImpl implements AgentMergeService {
 
     private static final Logger log = LoggerFactory.getLogger(AgentMergeServiceImpl.class);
 
+    // the versions of a part an agent's work makes when it is merged into the book
+    private static final RevisionOrigin MERGE_ORIGIN = RevisionOrigin.automatic(RevisionDetail.AGENT_MERGE, true);
+
     private static final Set<AgentRunStatus> REVIEWABLE = Set.of(AgentRunStatus.DONE, AgentRunStatus.STOPPED_KEPT);
 
     @Autowired
@@ -56,6 +60,10 @@ public class AgentMergeServiceImpl implements AgentMergeService {
     @Autowired
     @Lazy
     private MessagePromptService messagePromptService;
+
+    @Autowired
+    @Lazy
+    private MessageRevisionService messageRevisionService;
 
     @Autowired
     @Lazy
@@ -895,6 +903,7 @@ public class AgentMergeServiceImpl implements AgentMergeService {
             ChatMessage saved = parent == null ? chatMessageService.createRoot(targetBook, created)
                     : chatMessageService.addChild(messageOf(targetOf(parent.getUuid())), created);
             messagePromptService.copy(source, saved);
+            messageRevisionService.record(saved, MERGE_ORIGIN.data(saved));
             made(AgentRunPairKind.MESSAGE, item.sourceUuid(), saved.getUuid());
             if (text != null && !text.equals(source.getResponse())) {
                 storeResponse(saved, source, text);
@@ -994,14 +1003,17 @@ public class AgentMergeServiceImpl implements AgentMergeService {
          */
         private ChatMessage storeResponse(ChatMessage message, ChatMessage source, String text) throws Exception {
             if (!text.equals(source.getResponse())) {
-                return chatMessageService.storeResponse(targetBook, message, text);
+                return chatMessageService.storeResponse(targetBook, message, text, MERGE_ORIGIN);
             }
             String before = message.getResponse();
+            // the text that is replaced is in the history
+            messageRevisionService.ensureCurrent(message);
             message.setResponse(text);
             message.setTokenCount(source.getTokenCount());
             message.setWordCount(source.getWordCount());
             message.setEdited(true);
             ChatMessage saved = chatMessageService.save(message);
+            messageRevisionService.record(saved, MERGE_ORIGIN.data(saved));
             annotationService.shift(targetBook, saved, before, text);
             return saved;
         }

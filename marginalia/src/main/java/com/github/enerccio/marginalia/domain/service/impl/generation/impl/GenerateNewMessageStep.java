@@ -38,6 +38,8 @@ public class GenerateNewMessageStep extends GenerationStepBase {
                 }
                 case REGENERATE -> {
                     initialNode = chatMessageService.find(controller.getRequest().getNode());
+                    // the text that is about to be cleared is in the history
+                    messageRevisionService.ensureCurrent(initialNode);
                     // the part is cleared below, keep a full copy so cleanup can restore it if no text arrives
                     controller.getProperties().put(GenerationProperties.ORIGINAL_MESSAGE, ChatMessage.copyOf(initialNode));
                     MessagePrompt originalPrompt = messagePromptService.findFor(initialNode);

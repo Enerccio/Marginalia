@@ -806,6 +806,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_RENAME_STEP, "増分");
         setValue(L.LABEL_RENAME_DIGITS, "桁数");
         setValue(L.LABEL_NEW_NAME, "新しい名前");
+        setValue(L.LABEL_AGENT_MERGE, "エージェントの統合");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -951,6 +952,15 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_ACTIVATION_REASON_FILTER_NOT_MATCHED, "未使用: フィルターが一致しない");
         setValue(L.ENUM_ACTIVATION_REASON_EXTENSION_SKIPPED, "未使用: 拡張機能が変更");
         setValue(L.ENUM_ACTIVATION_CONTEXT_INCLUDE_PARTS, "指示とストーリーのパート");
+        setValue(L.ENUM_REVISION_SOURCE_GENERATE, "生成済み");
+        setValue(L.ENUM_REVISION_SOURCE_REGENERATE, "再生成済み");
+        setValue(L.ENUM_REVISION_SOURCE_REDRAFT, "書き直し済み");
+        setValue(L.ENUM_REVISION_SOURCE_HUMAN, "著者");
+        setValue(L.ENUM_REVISION_SOURCE_PLUGIN, "拡張機能");
+        setValue(L.ENUM_REVISION_SOURCE_MERGE, "統合済み");
+        setValue(L.ENUM_REVISION_SOURCE_SPLIT, "分割済み");
+        setValue(L.ENUM_REVISION_SOURCE_RESTORE, "復元済み");
+        setValue(L.ENUM_REVISION_SOURCE_SNAPSHOT, "保存したバージョン");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");

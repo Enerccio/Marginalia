@@ -1,6 +1,10 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.write;
 
+import com.github.enerccio.marginalia.domain.collections.RevisionSource;
+import com.github.enerccio.marginalia.domain.components.RevisionOrigin;
+import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
+import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
@@ -13,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * {@code /redraft-part part [instructions [prompt [profile [apply]]]]}: has the model write a part of the story again (see
@@ -113,6 +118,8 @@ public class RedraftCommands extends ManuscriptWriteSupport {
         }
 
         CompletableFuture<String> done = new CompletableFuture<>();
+        // the reasoning the model wrote the text with, it goes to the history of the part
+        AtomicReference<String> reasoningOfText = new AtomicReference<>();
         RedraftService.Callback callback = new RedraftService.Callback() {
             @Override
             public void onProgress(String reasoning, String text) {
@@ -121,6 +128,7 @@ public class RedraftCommands extends ManuscriptWriteSupport {
 
             @Override
             public void onFinished(String reasoning, String text) {
+                reasoningOfText.set(reasoning);
                 done.complete(text);
             }
 
@@ -160,7 +168,12 @@ public class RedraftCommands extends ManuscriptWriteSupport {
         Book.Located at = book.locate(message.getUuid(), null);
         JsonObject result;
         if (apply) {
-            ChatMessageService.PartEdit edit = chatMessageService.updateResponse(book.manuscript, message, text);
+            AI usedAi = options.ai() != null ? options.ai() : book.manuscript.getAi();
+            Protocol usedProtocol = options.protocol() != null ? options.protocol() : book.manuscript.getProtocol();
+            RevisionOrigin origin = RevisionOrigin.model(RevisionSource.REDRAFT,
+                    (usedAi == null ? "" : usedAi.getName()) + " · " + (usedProtocol == null ? "" : usedProtocol.getName()), true,
+                    reasoningOfText.get());
+            ChatMessageService.PartEdit edit = chatMessageService.updateResponse(book.manuscript, message, text, origin);
             result = describe(edit.message(), at.position());
             reportOutdated(result, at.path(), edit.outdated());
             result.addProperty("text", preview(text, 300));

@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.write;
 
+import com.github.enerccio.marginalia.domain.collections.RevisionDetail;
+import com.github.enerccio.marginalia.domain.components.RevisionOrigin;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
@@ -224,7 +226,8 @@ public class PartEditCommands extends ManuscriptWriteSupport {
         Book.Located at = book.locate(message.getUuid(), null);
         JsonObject result;
         if ("response".equals(field)) {
-            ChatMessageService.PartEdit edit = chatMessageService.updateResponse(book.manuscript, message, text);
+            ChatMessageService.PartEdit edit = chatMessageService.updateResponse(book.manuscript, message, text,
+                    RevisionOrigin.automatic(RevisionDetail.COMMAND, true));
             result = describe(edit.message(), at.position());
             reportOutdated(result, at.path(), edit.outdated());
         } else {

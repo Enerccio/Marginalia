@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl.generation.impl;
 
+import com.github.enerccio.marginalia.domain.collections.RevisionSource;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.MessagePrompt;
@@ -7,6 +8,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController.State;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.GenerationFailure;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.GenerationOutcome;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,13 +54,34 @@ public class CleanupStep extends GenerationStepBase {
                 }
             }
         } else if (controller.getState() == State.PARTIAL_SUCCESS) {
+            recordVersion(controller);
             relocateAnnotations(controller);
             controller.getUIListener().onCancelled(controller.getMessage());
             controller.getUIListener().onMetricsUpdated(controller.getMessage());
         } else {
+            recordVersion(controller);
             relocateAnnotations(controller);
             controller.getUIListener().onComplete(controller.getMessage());
             controller.getUIListener().onMetricsUpdated(controller.getMessage());
+        }
+    }
+
+    /**
+     * The text the model wrote (all of it, or what arrived before it was stopped or failed) is a version of the part, with the
+     * reasoning it came with. The history never stops a generation from ending, a failure is logged.
+     */
+    private void recordVersion(GenerationController controller) {
+        try {
+            ChatMessage message = controller.getMessage();
+            if (message == null || message.getId() == null) {
+                return;
+            }
+            RevisionSource source = controller.getRequest().getRequestType() == GenerationRequestType.REGENERATE
+                    ? RevisionSource.REGENERATE : RevisionSource.GENERATE;
+            String detail = StringUtils.defaultString(message.getModelUsed()) + " · " + StringUtils.defaultString(message.getProtocolUsed());
+            messageRevisionService.record(message, source, detail, false);
+        } catch (Exception e) {
+            log.error("Could not record the version of the generated part", e);
         }
     }
 

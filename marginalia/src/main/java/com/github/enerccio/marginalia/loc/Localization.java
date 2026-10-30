@@ -54,6 +54,10 @@ public interface Localization {
     L getLorebookDecision(LorebookDecision t);
     L getPermissionType(PermissionType t);
 
+    L getRevisionSource(RevisionSource t);
+
+    L getRevisionDetail(RevisionDetail t);
+
     L getAgentRunStatus(AgentRunStatus t);
 
     L getDestructiveCommandMode(DestructiveCommandMode t);

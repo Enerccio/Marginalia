@@ -42,6 +42,14 @@ public interface MessageRevisionService extends ExtendableService<MessageRevisio
     MessageRevision record(ChatMessage part, RevisionData data) throws Exception;
 
     /**
+     * Makes sure the text the part has now is the one of its newest version: when it is not (a writer that does not record,
+     * a part from before the history, a restored backup), the text is recorded as a version of an unknown writer
+     * ({@link RevisionSource#PLUGIN} without a detail). Called before a change of the text, so that the text that is replaced
+     * is in the history. Does nothing for a part without text, or one that is not saved.
+     */
+    void ensureCurrent(ChatMessage part) throws Exception;
+
+    /**
      * The newest version of the part that is not in the trash, null when it has none.
      */
     MessageRevision findLatest(ChatMessage part) throws Exception;

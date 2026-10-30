@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.domain.collections.RevisionDetail;
+import com.github.enerccio.marginalia.domain.components.RevisionOrigin;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
@@ -39,7 +41,7 @@ public class ArchiveImportServiceImpl implements ArchiveImportService {
             if (stopped.getAsBoolean()) {
                 break;
             }
-            last = chatMessageService.createPart(manuscript, last, item.text(), null);
+            last = chatMessageService.createPart(manuscript, last, item.text(), null, RevisionOrigin.human(RevisionDetail.ARCHIVE_IMPORT, false));
             imported++;
             onStored.run();
         }
