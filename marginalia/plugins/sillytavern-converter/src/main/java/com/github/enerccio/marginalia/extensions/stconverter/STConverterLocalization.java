@@ -56,6 +56,9 @@ public class STConverterLocalization extends PluginLocalizationBundle {
         ja("Click a message to start a range, Shift+click to extend it.", "メッセージをクリックすると範囲を開始し、Shiftを押しながらクリックすると範囲を広げます。");
         zh("Click a message to start a range, Shift+click to extend it.", "点击一条消息开始选择范围，按住 Shift 点击可扩展范围。");
 
+        ja("Tap a message to start a range, tap another to end it.", "メッセージをタップすると範囲を開始し、別のメッセージをタップすると範囲を終了します。");
+        zh("Tap a message to start a range, tap another to end it.", "点按一条消息开始选择范围，再点按另一条消息结束范围。");
+
         ja("Convert to turn details", "ターン詳細に変換");
         zh("Convert to turn details", "转换为回合详情");
 

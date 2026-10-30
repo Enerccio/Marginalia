@@ -13,6 +13,8 @@ import java.nio.charset.StandardCharsets;
 public final class STConverterStyles {
 
     public static final String ROOT = "stc-root";
+    /** The tab in the drawer of the story on a phone. */
+    public static final String PHONE = "stc-phone";
     public static final String BAR = "stc-bar";
     public static final String TABS = "stc-tabs";
     public static final String LISTS = "stc-lists";

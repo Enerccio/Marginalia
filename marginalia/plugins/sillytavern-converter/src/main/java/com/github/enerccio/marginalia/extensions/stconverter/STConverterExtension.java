@@ -19,6 +19,7 @@ import com.github.enerccio.marginalia.ui.widgets.TabDock;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonObject;
 import com.vaadin.flow.component.ComponentUtil;
+import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.popover.Popover;
 import org.apache.commons.lang3.StringUtils;
 import org.osgi.framework.Bundle;
@@ -31,7 +32,7 @@ import java.util.WeakHashMap;
 import static com.github.enerccio.marginalia.extensions.stconverter.STConverterLocalization.T;
 
 /**
- * Adds the <i>Converter</i> tab to the sidebar of the story editor (desktop layout): the source of the book (a SillyTavern chat,
+ * Adds the <i>Converter</i> tab to the sidebar of the story editor (the drawer of the story in the phone layout): the source of the book (a SillyTavern chat,
  * or the parts of another book) and the turn details made of it. The tab id, the attribute and the names of the module are those
  * of the plugin when it only converted SillyTavern chats, so what is stored with the books and the layouts still fits.
  */
@@ -67,6 +68,7 @@ public class STConverterExtension implements MarginaliaExtension, ExtensionHasCs
                         return;
                     }
                     // the story part loads other books into the same instance, the turn is put into the form of the part as it is then
+                    boolean phone = isPhone(instrumented);
                     ConverterView.TurnOpener opener = turn -> {
                         NewTurnForm form = context.getReflectiveFieldValue(instrumented, "newTurnForm", NewTurnForm.class);
                         Popover popover = context.getReflectiveFieldValue(instrumented, "newTurnPopover", Popover.class);
@@ -74,10 +76,17 @@ public class STConverterExtension implements MarginaliaExtension, ExtensionHasCs
                             return false;
                         }
                         form.restoreState(toFormState(turn));
+                        if (phone) {
+                            // the drawer covers the story and the button the form opens from
+                            AppLayout layout = leftBar.findAncestor(AppLayout.class);
+                            if (layout != null) {
+                                layout.setDrawerOpened(false);
+                            }
+                        }
                         popover.setOpened(true);
                         return true;
                     };
-                    ConverterView view = new ConverterView(converterService, currentManuscript, opener);
+                    ConverterView view = new ConverterView(converterService, currentManuscript, opener, phone);
                     leftBar.add(TAB_ID, T.localized("Converter"), "Cv", view);
                     ComponentUtil.setData(leftBar, VIEW_KEY, view);
                     activeTabDocks.add(leftBar);
@@ -89,10 +98,23 @@ public class STConverterExtension implements MarginaliaExtension, ExtensionHasCs
                     "com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart",
                     "renderStoryContent"
             );
+            // the drawer of the story in the phone dialog has the same left bar, new turn form and popover
+            extensionService.registerDecorator(
+                    storyPartDecorator,
+                    "com.github.enerccio.marginalia.ui.dialogs.phone.manuscript.PhoneManuscriptStoryPart",
+                    "renderStoryContent"
+            );
         } catch (Exception e) {
             // there may be no UI (loading at startup), the extension service logs it and skips the extension
             throw new IllegalStateException("Failed to load the Converter extension", e);
         }
+    }
+
+    /**
+     * @param storyPart the instrumented story part: the desktop one or its phone twin
+     */
+    static boolean isPhone(Object storyPart) {
+        return storyPart.getClass().getName().contains(".phone.");
     }
 
     /**

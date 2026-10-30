@@ -6,7 +6,7 @@ lore of the book, and put each of them into the new turn form of the story with 
 
 ## Usage
 
-The sidebar of the story editor (desktop layout) gets a **Converter** tab. The text is small and the tab scrolls when the
+The sidebar of the story editor (the drawer of the story in the phone layout) gets a **Converter** tab. The text is small and the tab scrolls when the
 sidebar is low. At the top of the tab a **Convert to turn details** section, closed until you open it (the chat and the
 turn details get the room), holds:
 
