@@ -74,7 +74,6 @@ await main(async ({ page }) => {
   await section(page, 'viewer', async () => {
     await login(page, users.admin, '/view');                // the viewer has a login of its own
     await sleep(1200);
-    await snap(page, 'viewer-list');
     await page.getByText('Harry Potter and Half Blood Prince - FDM', { exact: false }).first().click();
     await idle(page, 2000);
     await snap(page, 'viewer-reading');

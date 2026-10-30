@@ -26,6 +26,23 @@ the active sort button again reverses the order.
 
 Click a book to read it.
 
+### Folders in the list
+
+The list shows your [folders](folders.md) like the phone list of the workspace does: the folders come first, each with
+the number of books beneath it, then the books of the current folder. Click a folder to go into it. The path above the
+filters (`Books / Fan fiction / Harry Potter`) shows where you are, and a click on a part of it goes back there.
+
+![The viewer inside a folder](../../images/viewer-folder.png)
+
+- **Include subfolders** lists every book below the current folder, at any depth, with the folder of each under its name.
+- **Favorites**, the folder of the top level that exists while you have a favorite book, lists the favorite books of all
+  folders. Favorites are set in the [list of books](folders.md#favorites), not in the viewer.
+- The filters work inside the current folder (or below it with *Include subfolders*), so to search all your books go to the
+  top level and check the box. **Last Opened** orders the folders by their last modification.
+- The viewer opens in the folder where you left it: after reading a book the arrow takes you back to the same folder, and the
+  next visit, or a reload, starts there too. The place is kept in a cookie of your browser (`marginalia_viewer_folder`), the
+  server does not store it, so another browser starts at the top level. A folder that was deleted is the top level.
+
 ## Reading
 
 The reading view shows the [active branch](branches-and-story-tree.md) of the book from the first to the last part,
