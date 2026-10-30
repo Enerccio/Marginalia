@@ -840,6 +840,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_SEARCH_INCLUDE_VERSIONS, "包含版本");
         setValue(L.LABEL_SHOW_IN_HISTORY, "在历史中显示");
         setValue(L.LABEL_BACKUP_INCLUDE_HISTORY, "包含版本历史");
+        setValue(L.LABEL_COMMAND_SET_BOOK_HISTORY_LIMIT, "设置保留的版本数");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1097,6 +1098,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ERROR_FOLDER_GONE, "该文件夹已不存在。");
         setValue(L.ERROR_FOLDER_TRANSFER_REFUSED, "无法执行此操作：文件夹不能放入自身或其子文件夹，且文件夹名称必须未被占用。");
         setValue(L.ERROR_FOLDER_BOOK_LOCKED, "此文件夹中的书“%2$s”被代理“%1$s”锁定。请先暂停或停止其运行。");
+        setValue(L.ERROR_COMMAND_HISTORY_LIMIT_NEGATIVE, "版本数不能为负数；省略则取消本书的限制。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "无法保存表单。");
@@ -1914,6 +1916,10 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_GENERATE_ANNOTATION_LLM, "让模型像“用 AI 批注”对话框那样审阅段落 `part`（其句柄；可以是任意一段，不只是最后一段）：模型会阅读该段、其前后的故事（较早的部分以摘要形式）、设定资料和书的文风，以及该段已有的备注，找出连贯性错误、与设定的矛盾、薄弱的段落和文风上的失误。每一条发现都会作为批注（来源为 AI）立即添加到模型所引用的文字上；若引文不在文本中，则添加到整段上。故事正文不会被修改。`profile` 是用来代替当前运行模型的智能体模型配置。速度慢，会消耗令牌。返回该段的句柄和新批注（对不同意的批注可使用 resolve-annotation、update-annotation 或 delete-annotation）。");
         setValue(L.DESC_COMMAND_GENERATE_ANNOTATION_RETURN, "JSON 对象：该段的句柄、创建的批注数量以及批注");
         setValue(L.DESC_COMMAND_INCLUDE_VERSIONS_PARAM, "同时搜索各部分的旧版本（历史）；省略时为 false");
+        setValue(L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT, "设置书的历史为每个部分保留的版本数，或取消书的限制。参数：maxVersions。");
+        setValue(L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT_LLM, "设置本书的版本历史为每个部分最多保留的版本数（0 表示此后不再保留历史；已有的版本会保留）。省略 maxVersions 时取消本书的限制。文件夹、用户和管理员的限制仍然适用，以最严格的为准，因此书不能放宽它们。会更改书，但不会删除任何版本。");
+        setValue(L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT_RETURN, "包含 bookLimit（本书的限制，没有则为 null）、effectiveLimit（实际生效的限制，没有则为 null）和 setBy（BOOK、FOLDER、USER、PERMISSION 或 NONE）的 JSON");
+        setValue(L.DESC_COMMAND_HISTORY_MAX_VERSIONS_PARAM, "每个部分最多保留的版本数；0 表示不保留历史。省略则取消本书的限制");
     }
 
     @Override

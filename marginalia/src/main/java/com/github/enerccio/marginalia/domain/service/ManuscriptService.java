@@ -289,6 +289,7 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
         private String userPrompt;
         private String summaryPrompt;
         private String metaSummaryPrompt;
+        private Integer historyMaxVersions;
 
         public String name() {
             return name;
@@ -377,6 +378,19 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
 
         public BookSettings metaSummaryPrompt(String metaSummaryPrompt) {
             this.metaSummaryPrompt = metaSummaryPrompt;
+            return this;
+        }
+
+        /**
+         * The most versions of a part the book keeps; a negative number takes the limit of the book away (the levels above
+         * it still apply), null leaves it as it is.
+         */
+        public Integer historyMaxVersions() {
+            return historyMaxVersions;
+        }
+
+        public BookSettings historyMaxVersions(Integer historyMaxVersions) {
+            this.historyMaxVersions = historyMaxVersions;
             return this;
         }
     }

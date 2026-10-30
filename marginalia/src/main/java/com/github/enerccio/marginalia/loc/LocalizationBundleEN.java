@@ -832,6 +832,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_SEARCH_INCLUDE_VERSIONS, "Include versions");
         setValue(L.LABEL_SHOW_IN_HISTORY, "Show in history");
         setValue(L.LABEL_BACKUP_INCLUDE_HISTORY, "Include version history");
+        setValue(L.LABEL_COMMAND_SET_BOOK_HISTORY_LIMIT, "Set the number of versions kept");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1089,6 +1090,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_FOLDER_GONE, "The folder no longer exists.");
         setValue(L.ERROR_FOLDER_TRANSFER_REFUSED, "This can't be done: a folder can't be put into itself or a folder below it, and a folder name must be free.");
         setValue(L.ERROR_FOLDER_BOOK_LOCKED, "The book \"%2$s\" in this folder is locked by the agent \"%1$s\". Pause or stop its run first.");
+        setValue(L.ERROR_COMMAND_HISTORY_LIMIT_NEGATIVE, "The number of versions can't be negative; leave it out to take the limit of the book away.");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -1906,6 +1908,10 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_GENERATE_ANNOTATION_LLM, "Has the model review the part `part` (its handle; any part, not only the last one) like the Annotate with AI dialog does: it reads the part, the story before it (older story as summaries) and after it, the lore and the style of the book, and the notes the part already has, and finds continuity errors, contradictions with the lore, weak passages and slips of style. Every finding becomes an annotation (source AI) on the passage the model quoted, or on the whole part when the quote is not in the text, and is added at once. The text of the story is not changed. `profile` is a model profile of the agent to review with instead of the model of the run. Slow, costs tokens. Returns the handle of the part and the new annotations (use resolve-annotation, update-annotation or delete-annotation on the ones you disagree with).");
         setValue(L.DESC_COMMAND_GENERATE_ANNOTATION_RETURN, "JSON object: the handle of the part, the number of the created annotations and the annotations");
         setValue(L.DESC_COMMAND_INCLUDE_VERSIONS_PARAM, "Search also the older versions of the parts (their history); false when omitted");
+        setValue(L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT, "Sets how many versions of each part the history of the book keeps, or takes the limit of the book away. Parameter: maxVersions.");
+        setValue(L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT_LLM, "Sets the most versions of a part that the version history of this book keeps (0 keeps no history from now on; the versions that exist stay). Without maxVersions the limit of the book is taken away. The limits of the folders, of the user and of the administrator still apply and the strictest one wins, so the book cannot raise them. Changes the book; deletes no version.");
+        setValue(L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT_RETURN, "JSON with bookLimit (the limit of this book, null when it has none), effectiveLimit (the limit that counts, null when there is none) and setBy (BOOK, FOLDER, USER, PERMISSION or NONE)");
+        setValue(L.DESC_COMMAND_HISTORY_MAX_VERSIONS_PARAM, "The most versions of a part to keep; 0 keeps no history. Leave it out to take the limit of the book away");
 
     }
 

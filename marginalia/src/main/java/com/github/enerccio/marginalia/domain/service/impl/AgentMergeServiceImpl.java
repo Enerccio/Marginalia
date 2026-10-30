@@ -615,6 +615,8 @@ public class AgentMergeServiceImpl implements AgentMergeService {
                     case "userPrompt" -> settings.userPrompt(text);
                     case "summaryPrompt" -> settings.summaryPrompt(text);
                     case "metaSummaryPrompt" -> settings.metaSummaryPrompt(text);
+                    // no number: the agent took the limit of the book away
+                    case "historyMaxVersions" -> settings.historyMaxVersions(StringUtils.isBlank(text) ? -1 : Integer.valueOf(text.strip()));
                     case MergeDiff.TAGS -> tags = item;
                     default -> {
                         attributes.put(field.name(), text);

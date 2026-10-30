@@ -187,6 +187,7 @@ describes): the answer lists them and says what to do, `/revalidate-summaries` i
 | `/set-book-info [name] [description] [pov] [tense] [style] [language]` | Changes the descriptive settings of the book; only the values you give. |
 | `/set-book-prompts [template] [userPrompt] [summaryPrompt] [metaSummaryPrompt]` | Replaces the prompt templates of the book. Each is checked first. `DESTRUCTIVE`: a bad template spoils every later generation. |
 | `/set-book-tags [add] [remove]` | Adds and takes off tags of the book (comma separated). |
+| `/set-book-history-limit [maxVersions]` | Sets how many versions of a part the [history](../books/version-history.md#how-many-versions-are-kept) of the book keeps (`0` keeps none from now on); without a number the book sets no limit. The limits of the folders, the user and the administrator still apply. Deletes no version. |
 | `/create-lore-entry <name> <payload> [lorebook] [comment] [enabled] [order] [keys] [filteringMode] [insertionMode] [tags]` | Adds an entry to a lorebook (the root when none is given; a book that has no lorebook gets one, named like the book). `keys` is a list of keywords separated by commas; `filteringMode` is `KEYWORDS_OR` (default), `KEYWORDS_AND`, `TEXT` or `REGEX`. A problem of the template or of the regular expression is saved and reported. |
 | `/update-lore-entry <entry> [name] [payload] [comment] [enabled] [order] [keys] [filteringMode] [insertionMode]` | Changes the fields you give. |
 | `/delete-lore-entry <entry>` | Deletes an entry. Asks first. |

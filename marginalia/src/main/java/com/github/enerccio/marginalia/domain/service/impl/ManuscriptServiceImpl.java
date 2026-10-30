@@ -681,6 +681,9 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         if (changes.metaSummaryPrompt() != null) {
             book.setMetaSummaryPrompt(changes.metaSummaryPrompt());
         }
+        if (changes.historyMaxVersions() != null) {
+            book.setHistoryMaxVersions(changes.historyMaxVersions() < 0 ? null : changes.historyMaxVersions());
+        }
         return new SettingsSaved(save(book), warnings);
     }
 

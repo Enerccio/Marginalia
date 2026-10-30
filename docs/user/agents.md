@@ -334,7 +334,7 @@ everything the agent changed, compared with your book **as it is now**, one line
 
 ![Reviewing the result of a run](../images/agent-review.png)
 
-- **Book:** its name, description, language, point of view, tense, style and templates, its tags, and the data an extension keeps in the book (an arc outline, the character tracker).
+- **Book:** its name, description, language, point of view, tense, style, templates, the number of versions kept per part, its tags, and the data an extension keeps in the book (an arc outline, the character tracker).
 - **Part:** a part whose text, instructions, scene setting, point-of-view character, present characters or summary the agent changed, a part it wrote, a part it deleted. The variables a generation keeps with a part (and the data of extensions) are taken over with it, as the field **Data**.
 - **Lorebook** and **Entry:** a lorebook or an entry the agent made, changed (also moved, renamed, or with other tags, or other subbooks) or deleted.
 - **Annotation:** a [note](books/annotations.md#annotations-and-agents) on a passage of a part that the agent made, changed (the note, type, status) or deleted.
