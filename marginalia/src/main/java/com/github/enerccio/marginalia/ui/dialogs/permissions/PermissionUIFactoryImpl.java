@@ -10,6 +10,7 @@ public class PermissionUIFactoryImpl implements PermissionUIFactory {
             case HELPER -> new HelperPermissionComponent();
             case AGENTS -> new AgentsPermissionComponent();
             case NOTIFICATIONS -> new NotificationsPermissionComponent();
+            case VERSION_HISTORY -> new VersionHistoryPermissionComponent();
             default -> null;
         };
     }

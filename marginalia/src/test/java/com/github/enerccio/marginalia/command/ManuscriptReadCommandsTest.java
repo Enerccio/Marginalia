@@ -253,6 +253,27 @@ class ManuscriptReadCommandsTest extends GenerationTestBase {
     }
 
     @Test
+    void searchesTheOlderVersionsOnlyWhenAskedTo() throws Exception {
+        chatMessageService.updateResponse(manuscript, second, "Nothing to see.");
+
+        assertThat(run("/search-parts slept").getAsJsonArray("hits")).isEmpty();
+        assertThat(run("/search-parts slept 50 false").getAsJsonArray("hits")).isEmpty();
+
+        JsonObject result = run("/search-parts slept 50 true");
+        assertThat(result.get("found").getAsInt()).isEqualTo(1);
+        JsonObject hit = result.getAsJsonArray("hits").get(0).getAsJsonObject();
+        assertThat(hit.get("handle").getAsString()).isEqualTo(second.getUuid());
+        assertThat(hit.get("snippet").getAsString()).contains("slept");
+        JsonObject version = hit.getAsJsonObject("version");
+        assertThat(version.get("id").getAsString()).isNotBlank();
+        assertThat(version.get("time").getAsString()).isNotBlank();
+        // the part was made by the test code through the service, which records it as the plugin API
+        assertThat(version.get("source").getAsString()).isEqualTo("PLUGIN");
+        // a part found by its text has no version
+        assertThat(run("/search-parts John 50 true").getAsJsonArray("hits").get(0).getAsJsonObject().has("version")).isFalse();
+    }
+
+    @Test
     void countsOccurrencesOnTheActiveBranchOrOnAll() throws Exception {
         JsonObject active = run("/find-occurrences John").getAsJsonArray("terms").get(0).getAsJsonObject();
         assertThat(active.get("parts").getAsInt()).isEqualTo(2);

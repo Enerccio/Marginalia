@@ -16,6 +16,8 @@ public final class StoryMenuKeys {
     public static final String AUTO_ANNOTATE = "tools.autoAnnotate";
     public static final String BRANCH_TOKENS = "tools.branchTokens";
     public static final String EXPORT = "tools.export";
+    public static final String CLEAR_BOOK_HISTORY = "tools.clearBookHistory";
+    public static final String EMPTY_HISTORY_TRASH = "tools.emptyHistoryTrash";
     public static final String MASS_DELETE = "tools.massDelete";
     public static final String RESTORE_LAYOUT = "tools.restoreLayout";
     public static final String SAVE_LAYOUT_AS_DEFAULT = "tools.saveLayoutAsDefault";
@@ -26,6 +28,7 @@ public final class StoryMenuKeys {
     public static final String REGENERATE = "card.regenerate";
     public static final String SWIPE = "card.swipe";
     public static final String REDRAFT = "card.redraft";
+    public static final String HISTORY = "card.history";
     public static final String ANNOTATE_PART = "card.annotatePart";
     public static final String ANNOTATE_WITH_AI = "card.annotateWithAi";
     public static final String BRANCH = "card.branch";

@@ -85,6 +85,15 @@ public class Folder extends ExtendableEntity {
     @Transient
     private String impersonatePrompt;
 
+    /**
+     * The most versions of a part the history keeps for the books in the folder and the folders below it; {@code null} does not limit them here (see
+     * {@code ManuscriptService#resolveHistoryLimit}: the strictest of the book, its folders, the user and the permission wins), zero
+     * keeps no history.
+     */
+    @ExtendedAttribute
+    @Transient
+    private Integer historyMaxVersions;
+
     public String getName() {
         return name;
     }
@@ -214,5 +223,13 @@ public class Folder extends ExtendableEntity {
 
     public void setImpersonatePrompt(String impersonatePrompt) {
         this.impersonatePrompt = impersonatePrompt;
+    }
+
+    public Integer getHistoryMaxVersions() {
+        return historyMaxVersions;
+    }
+
+    public void setHistoryMaxVersions(Integer historyMaxVersions) {
+        this.historyMaxVersions = historyMaxVersions;
     }
 }

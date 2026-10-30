@@ -178,6 +178,7 @@ public class FolderServiceImpl extends ExtendableServiceImpl<Folder, FolderRepos
         }
         stored.setName(details.name());
         stored.setDescription(details.description());
+        stored.setHistoryMaxVersions(details.historyMaxVersions() == null || details.historyMaxVersions() < 0 ? null : details.historyMaxVersions());
         return save(stored);
     }
 
@@ -581,6 +582,7 @@ public class FolderServiceImpl extends ExtendableServiceImpl<Folder, FolderRepos
         copy.setAnnotateSystemPrompt(source.getAnnotateSystemPrompt());
         copy.setAnnotatePrompt(source.getAnnotatePrompt());
         copy.setImpersonatePrompt(source.getImpersonatePrompt());
+        copy.setHistoryMaxVersions(source.getHistoryMaxVersions());
         copy = self.save(copy);
         for (Tag tag : tagRelationService.getTagsForObject(source)) {
             tagRelationService.createRelation(tag, copy);

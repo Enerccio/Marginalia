@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.TreantTree;
+import com.github.enerccio.marginalia.ui.dialogs.story.PartHistoryDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -17,6 +18,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -60,6 +62,11 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
     // the search shown in the tree: query (null: none) and the parts found with the text around the match
     private String lastQuery;
     private final Map<Long, String> hitSnippets = new HashMap<>();
+    // the parts found only through an older version of their text, with the version
+    private final Map<Long, FulltextHit> versionHits = new HashMap<>();
+    // whether the older versions of the parts are searched too; asked for each search, never remembered
+    private final Checkbox includeVersions = new Checkbox();
+    private static final String HISTORY_LINK = "history:";
 
     public ManuscriptTreePart(ManuscriptDialog parent) {
         this.parent = parent;
@@ -118,10 +125,17 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
             }
         });
 
+        includeVersions.setLabel(loc.getValue(L.LABEL_SEARCH_INCLUDE_VERSIONS));
+        includeVersions.addValueChangeListener(event -> {
+            if (lastQuery != null) {
+                search(lastQuery);
+            }
+        });
+
         searchStatus = new Span();
         searchStatus.addClassName(CssStyles.TEXT_SECONDARY);
 
-        HorizontalLayout bar = new HorizontalLayout(searchBox, searchButton, searchStatus);
+        HorizontalLayout bar = new HorizontalLayout(searchBox, searchButton, includeVersions, searchStatus);
         bar.setAlignItems(FlexComponent.Alignment.CENTER);
         bar.setWidthFull();
         bar.addClassName(CssStyles.TREE_TOOLBAR);
@@ -142,13 +156,17 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
         String query = StringUtils.trimToNull(text);
         lastQuery = query;
         hitSnippets.clear();
+        versionHits.clear();
         try {
             if (query == null) {
                 searchStatus.setText("");
             } else {
                 Manuscript current = parent.refreshManuscript();
-                for (FulltextHit hit : chatMessageService.searchFulltext(current, query)) {
-                    hitSnippets.put(hit.id(), hit.snippet());
+                for (FulltextHit hit : chatMessageService.searchFulltext(current, query, includeVersions.getValue())) {
+                    hitSnippets.put(hit.id(), hit.isVersion() ? versionSnippet(hit) : hit.snippet());
+                    if (hit.isVersion()) {
+                        versionHits.put(hit.id(), hit);
+                    }
                 }
                 searchStatus.setText(hitSnippets.isEmpty()
                         ? loc.getValue(L.MSG_SEARCH_NO_RESULTS)
@@ -160,6 +178,18 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
         }
         manuscript = parent.getManuscript();
         renderTree();
+    }
+
+    /**
+     * The text of a part found through an older version: which version it is, then the text around the match.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "hit", type = FulltextHit.class)})
+    private String versionSnippet(FulltextHit hit) {
+        return String.format(loc.getValue(L.MSG_SEARCH_FOUND_IN_VERSION),
+                loc.getDateHourFormat().format(hit.versionTime()), loc.getValue(loc.getRevisionSource(hit.versionSource())))
+                + ": " + hit.snippet();
     }
 
     @PublicAPI(from = "1.1.0",
@@ -185,6 +215,8 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
     private void clearSearch() {
         lastQuery = null;
         hitSnippets.clear();
+        versionHits.clear();
+        includeVersions.clear();
         if (searchBox != null) {
             updatingSearchBox = true;
             try {
@@ -626,6 +658,12 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
                       <a class="tree-node-goto" href="#" data-goto-id="%s">%s</a>
                       """.formatted(HtmlUtils.htmlEscape(hitSnippets.get(msg.getId())), msg.getId(),
                     HtmlUtils.htmlEscape(loc.getValue(L.LABEL_SHOW_IN_STORY)));
+            if (versionHits.containsKey(msg.getId())) {
+                hitHtml += """
+                           <a class="tree-node-goto" href="#" data-goto-id="%s%s:%s">%s</a>
+                           """.formatted(HISTORY_LINK, msg.getId(), HtmlUtils.htmlEscape(versionHits.get(msg.getId()).version()),
+                        HtmlUtils.htmlEscape(loc.getValue(L.LABEL_SHOW_IN_HISTORY)));
+            }
         }
 
         return """
@@ -652,6 +690,10 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
                     @APILocals(name = "activeLeaf", type = ChatMessage.class),
                     @APILocals(name = "e", type = Exception.class)})
     private void onNodeGoto(TreantTree.NodeGotoEvent event) {
+        if (event.getNodeId() != null && event.getNodeId().startsWith(HISTORY_LINK)) {
+            showInHistory(event.getNodeId().substring(HISTORY_LINK.length()));
+            return;
+        }
         try {
             long messageId = Long.parseLong(event.getNodeId());
             Manuscript current = parent.refreshManuscript();
@@ -677,6 +719,43 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
             parent.showMessage(target.getId());
         } catch (NumberFormatException e) {
             // not a part of the story
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * "Show in history" of a part found through an older version: opens the history of the part on that version.
+     *
+     * @param link the id of the part and the uuid of the version, as the link has them
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "link", type = String.class)},
+            locals = {@APILocals(name = "current", type = Manuscript.class),
+                    @APILocals(name = "target", type = ChatMessage.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void showInHistory(String link) {
+        try {
+            int separator = link.indexOf(':');
+            long messageId = Long.parseLong(link.substring(0, separator));
+            Manuscript current = parent.refreshManuscript();
+            // the ids come from the client, resolve the part only among the messages of this manuscript
+            ChatMessage target = current == null ? null : chatMessageService.getAllMessages(current).stream()
+                    .filter(m -> m.getId() == messageId)
+                    .findFirst()
+                    .orElse(null);
+            if (target == null) {
+                return;
+            }
+            PartHistoryDialog.open(current, target, saved -> {
+                // a version put back changes what is found
+                if (lastQuery != null) {
+                    search(lastQuery);
+                }
+            }, link.substring(separator + 1));
+        } catch (NumberFormatException | IndexOutOfBoundsException e) {
+            // not a link of a part
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }

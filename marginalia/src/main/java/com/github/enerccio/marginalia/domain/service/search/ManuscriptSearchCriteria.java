@@ -33,6 +33,8 @@ public class ManuscriptSearchCriteria {
     private String fulltext;
     private boolean allBranches;
 
+    private boolean includeVersions;
+
     /**
      * Text the name of the book contains (ignoring case, {@code *} is a wildcard).
      */
@@ -164,5 +166,17 @@ public class ManuscriptSearchCriteria {
 
     public void setAllBranches(boolean allBranches) {
         this.allBranches = allBranches;
+    }
+
+    /**
+     * Whether the {@link #getFulltext() text} is searched also in the older versions of the parts (their history), not only
+     * in the text the parts have now.
+     */
+    public boolean isIncludeVersions() {
+        return includeVersions;
+    }
+
+    public void setIncludeVersions(boolean includeVersions) {
+        this.includeVersions = includeVersions;
     }
 }

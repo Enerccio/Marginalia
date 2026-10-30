@@ -32,4 +32,12 @@ public enum PermissionType {
      */
     NOTIFICATIONS,
 
+    /**
+     * The version history of the parts of the user's books: how many versions of a part are kept ({@code historyMaxVersions}
+     * of the permission, the ceiling over what a book, a folder or the user set). <b>Unlike the other types a user without
+     * the permission has it</b>, with the default of {@code EffectiveHistoryLimit#DEFAULT_MAX_VERSIONS}; a permission that is
+     * not granted keeps no history.
+     */
+    VERSION_HISTORY,
+
 }

@@ -138,8 +138,14 @@ public interface FolderService extends ExtendableService<Folder, FolderRepositor
     /**
      * What the settings dialog of a folder sets: the name, the description, the language (null: the folder inherits it) and
      * the text settings (a blank text is not set, the folder inherits it). A prompt missing from the map is left as it is.
+     * {@code historyMaxVersions} is the most versions of a part the history of the books in the folder keeps (null: the folder sets no
+     * limit).
      */
-    record Details(String name, String description, Language language, Map<PromptField, String> prompts) {
+    record Details(String name, String description, Language language, Map<PromptField, String> prompts, Integer historyMaxVersions) {
+
+        public Details(String name, String description, Language language, Map<PromptField, String> prompts) {
+            this(name, description, language, prompts, null);
+        }
     }
 
     /**

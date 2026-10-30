@@ -17,6 +17,12 @@ public record RevisionOrigin(RevisionSource source, String detail, boolean agent
     public static final RevisionOrigin AUTHOR = new RevisionOrigin(RevisionSource.HUMAN, null, false, null);
 
     /**
+     * For the code that records the version itself (a restore, a roll back): the change of the text records nothing, and does not
+     * look for a text that was not recorded either.
+     */
+    public static final RevisionOrigin UNRECORDED = new RevisionOrigin(null, null, false, null);
+
+    /**
      * The next part was merged into the part.
      */
     public static final RevisionOrigin MERGED = new RevisionOrigin(RevisionSource.MERGE, null, false, null);
@@ -45,6 +51,10 @@ public record RevisionOrigin(RevisionSource source, String detail, boolean agent
     /**
      * The version for the text the part has now.
      */
+    public boolean isRecorded() {
+        return source != null;
+    }
+
     public RevisionData data(ChatMessage part) {
         return new RevisionData(source, detail, agent, part.getResponse(), reasoning, null, part.getWordCount(), part.getTokenCount());
     }

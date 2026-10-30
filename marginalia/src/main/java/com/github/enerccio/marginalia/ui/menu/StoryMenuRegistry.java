@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.menu;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.ui.dialogs.story.BookHistoryActions;
 import com.github.enerccio.marginalia.ui.dialogs.story.StoryCard;
 import com.github.enerccio.marginalia.ui.dialogs.story.StoryEditor;
 import com.github.enerccio.marginalia.ui.shortcuts.KeyBindings;
@@ -144,6 +145,12 @@ public class StoryMenuRegistry implements InitializingBean {
                 .icon(Solid.CHART_BAR::create));
         application(StoryMenuItem.tools(StoryMenuKeys.EXPORT, L.LABEL_EXPORT_STORY, StoryEditor::openExportDialog)
                 .icon(Solid.FILE_EXPORT::create));
+        application(StoryMenuItem.tools(StoryMenuKeys.CLEAR_BOOK_HISTORY, L.LABEL_CLEAR_BOOK_HISTORY,
+                        part -> new BookHistoryActions(part.getCurrentManuscript()).clear())
+                .icon(Solid.HISTORY::create));
+        application(StoryMenuItem.tools(StoryMenuKeys.EMPTY_HISTORY_TRASH, L.LABEL_EMPTY_BOOK_HISTORY_TRASH,
+                        part -> new BookHistoryActions(part.getCurrentManuscript()).emptyTrash())
+                .icon(Solid.TRASH_RESTORE::create));
         application(StoryMenuItem.tools(StoryMenuKeys.MASS_DELETE, L.LABEL_MASS_DELETE, StoryEditor::toggleMassDelete)
                 .icon(Solid.TRASH::create).checkedWhen(StoryEditor::isMassDelete));
         application(StoryMenuItem.tools(StoryMenuKeys.SAVE_LAYOUT_AS_DEFAULT, L.LABEL_SAVE_LAYOUT_AS_DEFAULT, StoryEditor::saveLayoutAsDefault)
@@ -168,6 +175,10 @@ public class StoryMenuRegistry implements InitializingBean {
         // the text that is redrafted is the saved one
         application(StoryMenuItem.card(StoryMenuKeys.REDRAFT, L.LABEL_REDRAFT, (part, card) -> card.redraft())
                 .visibleWhen((part, card) -> card != null && !card.isEditing() && StringUtils.isNotBlank(card.getMessage().getResponse())));
+        application(StoryMenuItem.card(StoryMenuKeys.HISTORY, L.LABEL_HISTORY, (part, card) -> card.openHistory())
+                .contextLabel((loc, part, card) -> card == null || card.getHistoryCount() == 0 ? loc.getValue(L.LABEL_HISTORY)
+                        : String.format(loc.getValue(L.LABEL_HISTORY_WITH_COUNT), card.getHistoryCount()))
+                .visibleWhen((part, card) -> card != null && !card.isEditing() && card.getMessage().getId() != null));
         application(StoryMenuItem.card(StoryMenuKeys.ANNOTATE_PART, L.LABEL_ANNOTATE_PART, (part, card) -> card.annotatePart())
                 .visibleWhen((part, card) -> card != null && card.getMessage().getId() != null));
         application(StoryMenuItem.card(StoryMenuKeys.ANNOTATE_WITH_AI, L.LABEL_ANNOTATE_WITH_AI, (part, card) -> card.annotateWithAi())

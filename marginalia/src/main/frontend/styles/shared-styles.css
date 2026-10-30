@@ -1012,6 +1012,12 @@ vaadin-grid::part(prompt-compare-lost) {
     color: var(--lumo-secondary-text-color);
 }
 
+/* Version history of a part (ui.dialogs.story.PartHistoryDialog): a version in the trash */
+vaadin-grid::part(history-row-deleted) {
+    color: var(--lumo-secondary-text-color);
+    font-style: italic;
+}
+
 /* Help assistant (ui.components.HelpAssistantWidget): a round button fixed in the bottom right corner that opens a chat panel above it */
 .help-root {
     display: contents;

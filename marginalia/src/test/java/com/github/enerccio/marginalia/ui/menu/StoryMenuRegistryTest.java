@@ -61,6 +61,7 @@ class StoryMenuRegistryTest extends MarginaliaTestBase {
                     case "getMessage" -> message;
                     case "isEditing" -> editing;
                     case "isLast" -> last;
+                    case "getHistoryCount" -> 0L;
                     default -> {
                         calls.add(method.getName());
                         yield method.getReturnType() == boolean.class ? Boolean.FALSE : null;
@@ -123,11 +124,13 @@ class StoryMenuRegistryTest extends MarginaliaTestBase {
         assertThat(keys(registry.definition(MenuKind.TOOLS, false, null))).containsExactly(
                 StoryMenuKeys.CHANGE_STYLES, StoryMenuKeys.HIGHLIGHT_GENERATED, StoryMenuKeys.ANNOTATIONS_IN_MARGIN,
                 StoryMenuKeys.SEARCH_REPLACE, StoryMenuKeys.IMPORT_ARCHIVE, StoryMenuKeys.ANNOTATE_RANGE, StoryMenuKeys.AUTO_ANNOTATE,
-                StoryMenuKeys.BRANCH_TOKENS, StoryMenuKeys.EXPORT, StoryMenuKeys.MASS_DELETE, StoryMenuKeys.SAVE_LAYOUT_AS_DEFAULT, StoryMenuKeys.RESTORE_LAYOUT);
+                StoryMenuKeys.BRANCH_TOKENS, StoryMenuKeys.EXPORT, StoryMenuKeys.CLEAR_BOOK_HISTORY, StoryMenuKeys.EMPTY_HISTORY_TRASH,
+                StoryMenuKeys.MASS_DELETE, StoryMenuKeys.SAVE_LAYOUT_AS_DEFAULT, StoryMenuKeys.RESTORE_LAYOUT);
         assertThat(keys(registry.definition(MenuKind.TOOLS, true, null))).containsExactly(
                 StoryMenuKeys.CHANGE_STYLES, StoryMenuKeys.SEARCH_REPLACE, StoryMenuKeys.IMPORT_ARCHIVE, StoryMenuKeys.ANNOTATE_RANGE,
-                StoryMenuKeys.AUTO_ANNOTATE, StoryMenuKeys.BRANCH_TOKENS, StoryMenuKeys.EXPORT, StoryMenuKeys.MASS_DELETE);
-        assertThat(registry.definition(MenuKind.CARD, false, null).getItems()).hasSize(16);
+                StoryMenuKeys.AUTO_ANNOTATE, StoryMenuKeys.BRANCH_TOKENS, StoryMenuKeys.EXPORT, StoryMenuKeys.CLEAR_BOOK_HISTORY,
+                StoryMenuKeys.EMPTY_HISTORY_TRASH, StoryMenuKeys.MASS_DELETE);
+        assertThat(registry.definition(MenuKind.CARD, false, null).getItems()).hasSize(17);
         assertThat(keys(registry.definition(MenuKind.CARD, false, null))).startsWith(StoryMenuKeys.EDIT, StoryMenuKeys.DISCARD);
         assertThat(keys(registry.definition(MenuKind.TEXT, true, null))).containsExactly(
                 StoryMenuKeys.TEXT_ANNOTATE_SELECTION, StoryMenuKeys.TEXT_REDRAFT_SELECTION, StoryMenuKeys.TEXT_COPY);
@@ -175,11 +178,13 @@ class StoryMenuRegistryTest extends MarginaliaTestBase {
         ChatMessage message = message("Some text.", true);
         boolean[] editing = {false};
         boolean[] last = {false};
+        long[] history = {0};
         StoryCard card = (StoryCard) Proxy.newProxyInstance(StoryCard.class.getClassLoader(), new Class<?>[]{StoryCard.class},
                 (proxy, method, args) -> switch (method.getName()) {
                     case "getMessage" -> message;
                     case "isEditing" -> editing[0];
                     case "isLast" -> last[0];
+                    case "getHistoryCount" -> history[0];
                     default -> {
                         calls.add(method.getName());
                         yield null;
@@ -189,6 +194,12 @@ class StoryMenuRegistryTest extends MarginaliaTestBase {
         BuiltMenu built = definition.build(menu, loc, editor(new AtomicReference<>(false), calls), () -> card);
 
         assertThat(textOf(built.get(StoryMenuKeys.EDIT))).isEqualTo(loc.getValue(L.LABEL_EDIT));
+        assertThat(textOf(built.get(StoryMenuKeys.HISTORY))).as("no count while the part has no versions").isEqualTo(loc.getValue(L.LABEL_HISTORY));
+        history[0] = 3;
+        built.refresh();
+        assertThat(textOf(built.get(StoryMenuKeys.HISTORY))).isEqualTo(String.format(loc.getValue(L.LABEL_HISTORY_WITH_COUNT), 3));
+        history[0] = 0;
+        built.refresh();
         assertThat(keyOf(built.get(StoryMenuKeys.EDIT))).isEqualTo("e");
         assertThat(built.get(StoryMenuKeys.REGENERATE).isVisible()).isFalse();
         assertThat(built.get(StoryMenuKeys.DISCARD).isVisible()).isFalse();

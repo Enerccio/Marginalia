@@ -129,6 +129,15 @@ public class Permission extends ExtendableEntity {
     @ExtendedAttribute
     private Boolean notificationsAllowLocal = false;
 
+    /**
+     * {@link PermissionType#VERSION_HISTORY}: the most versions of a part the history of the user's books keeps; the ceiling
+     * the administrator sets, none is no limit from this level (the books, folders and user settings may still limit). The
+     * application default ({@code EffectiveHistoryLimit#DEFAULT_MAX_VERSIONS}) when the user has no permission at all.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Integer historyMaxVersions;
+
     public PermissionType getPermissionType() {
         return permissionType;
     }
@@ -239,6 +248,14 @@ public class Permission extends ExtendableEntity {
 
     public void setNotificationsAllowLocal(boolean notificationsAllowLocal) {
         this.notificationsAllowLocal = notificationsAllowLocal;
+    }
+
+    public Integer getHistoryMaxVersions() {
+        return historyMaxVersions;
+    }
+
+    public void setHistoryMaxVersions(Integer historyMaxVersions) {
+        this.historyMaxVersions = historyMaxVersions;
     }
 
     public Long getAgentsRunTokenBudget() {

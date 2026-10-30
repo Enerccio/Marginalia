@@ -807,6 +807,31 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_RENAME_DIGITS, "Digits");
         setValue(L.LABEL_NEW_NAME, "New name");
         setValue(L.LABEL_AGENT_MERGE, "Agent merge");
+        setValue(L.LABEL_HISTORY, "History");
+        setValue(L.LABEL_HISTORY_WITH_COUNT, "History (%d)");
+        setValue(L.LABEL_VERSION_HISTORY_OF_PART, "Version history of the part");
+        setValue(L.LABEL_SAVE_VERSION, "Save version");
+        setValue(L.LABEL_VERSION_LABEL, "Label");
+        setValue(L.LABEL_EDIT_VERSION_LABEL, "Label…");
+        setValue(L.LABEL_RESTORE_ON_TOP, "Restore on top");
+        setValue(L.LABEL_ROLL_BACK_TO_HERE, "Roll back to here");
+        setValue(L.LABEL_UNDELETE_VERSION, "Take out of trash");
+        setValue(L.LABEL_COPY_TEXT, "Copy text");
+        setValue(L.LABEL_SHOW_DELETED_VERSIONS, "Show deleted versions");
+        setValue(L.LABEL_EMPTY_VERSION_TRASH, "Empty trash");
+        setValue(L.LABEL_CLEAR_HISTORY, "Clear history");
+        setValue(L.LABEL_CLEAR_BOOK_HISTORY, "Clear history of the book");
+        setValue(L.LABEL_EMPTY_BOOK_HISTORY_TRASH, "Empty trash of the history");
+        setValue(L.LABEL_KEEP_SAVED_VERSIONS, "Keep saved versions and the first generated version");
+        setValue(L.LABEL_HISTORY_COMPARE_PREVIOUS, "Previous version");
+        setValue(L.LABEL_HISTORY_COMPARE_CURRENT, "Current text");
+        setValue(L.LABEL_HISTORY_COMPARE_NONE, "Text only");
+        setValue(L.LABEL_HISTORY_CURRENT_VERSION, "Current");
+        setValue(L.LABEL_HISTORY_MAX_VERSIONS, "Versions kept per part");
+        setValue(L.LABEL_SOURCE, "Source");
+        setValue(L.LABEL_SEARCH_INCLUDE_VERSIONS, "Include versions");
+        setValue(L.LABEL_SHOW_IN_HISTORY, "Show in history");
+        setValue(L.LABEL_BACKUP_INCLUDE_HISTORY, "Include version history");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -961,6 +986,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_REVISION_SOURCE_SPLIT, "Split");
         setValue(L.ENUM_REVISION_SOURCE_RESTORE, "Restored");
         setValue(L.ENUM_REVISION_SOURCE_SNAPSHOT, "Saved version");
+        setValue(L.ENUM_PERMISSION_VERSION_HISTORY, "Version history");
+        setValue(L.ENUM_DOMAIN_MESSAGE_REVISION, "Version of a part");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -1391,6 +1418,28 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_MASS_RENAME_EMPTY_NAME, "The new name of the book \"%s\" would be empty. Nothing was renamed.");
         setValue(L.MSG_MASS_RENAME_NOTHING_CHANGES, "None of the names would change.");
         setValue(L.MSG_MASS_RENAME_DONE, "%d book(s) were renamed.");
+        setValue(L.MSG_HISTORY_EMPTY, "This part has no versions yet.");
+        setValue(L.MSG_HISTORY_NO_VERSION_SELECTED, "Select a version to see its text.");
+        setValue(L.MSG_HISTORY_RESTORED, "The text of the version was put back on top.");
+        setValue(L.MSG_HISTORY_ROLLED_BACK, "Went back to the version.");
+        setValue(L.MSG_HISTORY_CONFIRM_ROLL_BACK, "Go back to this version? The %d newer versions go to the trash, where they can be taken out again.");
+        setValue(L.MSG_HISTORY_ALREADY_THE_TEXT, "The part has this text already.");
+        setValue(L.MSG_HISTORY_SAVED_VERSION, "The version was saved.");
+        setValue(L.MSG_HISTORY_OFF, "The history of this book is switched off (the limit is 0).");
+        setValue(L.MSG_HISTORY_CURRENT_CANT_BE_DELETED, "The newest version is the text of the part, it can't be deleted.");
+        setValue(L.MSG_HISTORY_CONFIRM_DELETE_FOR_GOOD, "Delete this version for good? This cannot be undone.");
+        setValue(L.MSG_HISTORY_CONFIRM_CLEAR, "Delete %d versions (%s) for good? The current version stays. This cannot be undone.");
+        setValue(L.MSG_HISTORY_NOTHING_TO_CLEAR, "There is nothing to clear.");
+        setValue(L.MSG_HISTORY_CLEARED, "%d versions were deleted.");
+        setValue(L.MSG_HISTORY_TRASH_EMPTIED, "%d versions were deleted for good.");
+        setValue(L.MSG_HISTORY_NO_TRASH, "The trash of the history is empty.");
+        setValue(L.MSG_HISTORY_COPY_OF, "Copy of the version of %s");
+        setValue(L.MSG_HISTORY_LIMIT_FOLDER, "Limited to %d versions by the folder \"%s\".");
+        setValue(L.MSG_HISTORY_LIMIT_USER, "Limited to %d versions by your settings.");
+        setValue(L.MSG_HISTORY_LIMIT_PERMISSION, "Limited to %d versions by the administrator.");
+        setValue(L.MSG_HISTORY_LIMIT_NONE, "Nothing above limits the history.");
+        setValue(L.MSG_HISTORY_CONFIRM_EMPTY_TRASH, "Delete everything in the trash of the history for good? This cannot be undone.");
+        setValue(L.MSG_SEARCH_FOUND_IN_VERSION, "Found in the version of %s (%s)");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1486,6 +1535,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_ORGANISE, "Left / Right / Tab: other pane. Enter: open a folder. Backspace: up. Space or Insert: mark. The keys of the buttons can be changed in the settings (key bindings).");
         setValue(L.HELP_FOLDER_SETTINGS, "The books in this folder and in the folders below it use these settings unless they set their own. An empty field is inherited from the folder above, then from your settings.");
         setValue(L.HELP_MASS_RENAME, "Pick how to rename the books and check the books: the column New name shows the result. A numbering counts the checked books in the order of the list; in the pattern {name} is the current name and {n} the number. Books an agent works on are grayed out and can't be renamed.");
+        setValue(L.HELP_HISTORY_MAX_VERSIONS, "How many versions of a part the history keeps (the ones in the trash count). Empty: this level sets no limit. 0 keeps no history. The strictest of the book, its folders, your settings and the limit of the administrator applies. The first generated version and the saved ones are kept besides.");
+        setValue(L.HELP_VERSION_HISTORY_PERMISSION, "The most versions of a part the history of the user's books keeps. Empty: no limit from the administrator. A user without this permission has 50; a permission that is not granted keeps no history.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");
@@ -1603,7 +1654,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_SHOW_PROMPT_LLM, "The prompt as it was sent when the part was generated, stored with it: a slice of its text (offset, length), the tokens it had, the breakdown of the tokens by section and the background lore that was added. Parts that were not generated, or were generated before the prompt was stored, have none. A part is given by its handle (the \"handle\" of the lists; it does not change when parts are added or deleted, so prefer it) or by its position on a branch (the first part of the story is 1); the branch is the active one unless the handle of a part of it or a branch number from list-branches is given. Reads only. Options are positional and optional, in the order listed.");
         setValue(L.DESC_COMMAND_SHOW_PROMPT_RETURN, "JSON with a slice of the prompt, its tokens and the token breakdown");
         setValue(L.DESC_COMMAND_SEARCH_PARTS, "Searches the parts of all branches for words.");
-        setValue(L.DESC_COMMAND_SEARCH_PARTS_LLM, "Full-text search over the parts of all branches: every word of the query must be in the part (a phrase in double quotes, * matches any characters). Each hit has the position of the part, the branch number when it is not on the active branch, and a snippet around the match. Reads only. Options are positional and optional, in the order listed. Every row also has its \"handle\": it does not change when things are added or deleted, and it is what the commands that change the book take.");
+        setValue(L.DESC_COMMAND_SEARCH_PARTS_LLM, "Full-text search over the parts of all branches: every word of the query must be in the part (a phrase in double quotes, * matches any characters). Each hit has the position of the part, the branch number when it is not on the active branch, and a snippet around the match. With includeVersions the older versions of the parts (their history) are searched too: a part found only through one has a \"version\" with its id, time and source, and the snippet is from that version. Reads only. Options are positional and optional, in the order listed. Every row also has its \"handle\": it does not change when things are added or deleted, and it is what the commands that change the book take.");
         setValue(L.DESC_COMMAND_SEARCH_PARTS_RETURN, "JSON with the hits: position, branch and snippet");
         setValue(L.DESC_COMMAND_FIND_OCCURRENCES, "Counts where names or words occur in the story.");
         setValue(L.DESC_COMMAND_FIND_OCCURRENCES_LLM, "Continuity check done in code, not in tokens: for each term (a name and its variants) how many parts and occurrences it has and the first parts with a snippet. Searches the active branch unless allBranches is true, and the summaries too when summaries is true. Options in this order: regex (false), caseSensitive (false), summaries (false), allBranches (false), limit (the most parts listed per term, 50). Reads only. Every row also has its \"handle\": it does not change when things are added or deleted, and it is what the commands that change the book take.");
@@ -1854,6 +1905,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_GENERATE_ANNOTATION, "Has the model review a part of the story and adds its findings as annotations. Costs tokens.");
         setValue(L.DESC_COMMAND_GENERATE_ANNOTATION_LLM, "Has the model review the part `part` (its handle; any part, not only the last one) like the Annotate with AI dialog does: it reads the part, the story before it (older story as summaries) and after it, the lore and the style of the book, and the notes the part already has, and finds continuity errors, contradictions with the lore, weak passages and slips of style. Every finding becomes an annotation (source AI) on the passage the model quoted, or on the whole part when the quote is not in the text, and is added at once. The text of the story is not changed. `profile` is a model profile of the agent to review with instead of the model of the run. Slow, costs tokens. Returns the handle of the part and the new annotations (use resolve-annotation, update-annotation or delete-annotation on the ones you disagree with).");
         setValue(L.DESC_COMMAND_GENERATE_ANNOTATION_RETURN, "JSON object: the handle of the part, the number of the created annotations and the annotations");
+        setValue(L.DESC_COMMAND_INCLUDE_VERSIONS_PARAM, "Search also the older versions of the parts (their history); false when omitted");
 
     }
 

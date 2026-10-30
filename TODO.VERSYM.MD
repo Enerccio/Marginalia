@@ -41,6 +41,50 @@ worth keeping and prune the rest. This file collects the decisions and the order
   are deleted too. Not done on purpose: the limits (a part gets two rows at most; the `VERSION_HISTORY` permission is step 5,
   the permissions are created there, by their own migration step). `PartRevisionMigrationTest` (9 tests).
 
+- ✅ **Step 4:** in `MessageRevisionService`: `snapshot(book, part, label)` (a `SNAPSHOT` version with a label, always added, the
+  reasoning of the newest version when it has the same text; a blank label, no text or a part of another book is refused),
+  `label(revision, label)` (any version, blank takes it away), `restoreOnTop` and `rollBackTo` (both return the `PartEdit` of the
+  change, so the dialog can warn about outdated summaries; both give the part the reasoning the version had when it had one; a
+  version in the trash can be the target), `trash` (refuses the newest version that is not in the trash: it is the text of the part),
+  `undelete`, `purge` (only a version in the trash), `emptyTrash(part)` and `emptyTrash(book)` (the trash of a deleted part is not
+  touched). A `RESTORE` version names its source in the extended attribute `restoredFrom` (the uuid of the version), not in the
+  detail, so the interface can say "the version of <time>" in the user's language. `RevisionOrigin.UNRECORDED` lets a restore or a
+  roll back change the text through `updateResponse` without a version being recorded for it (the service records it itself).
+  Roll back first calls `ensureCurrent`, so a text nobody recorded is in the trash with the versions it follows, not lost.
+  Rolling back to the newest version and restoring the text the part has do nothing. `PartHistoryActionsTest` (20 tests).
+
+- ✅ **Step 5:** the limit. `PermissionType.VERSION_HISTORY` with `Permission.historyMaxVersions`, the extended attribute
+  `historyMaxVersions` on `Manuscript`, `Folder` and `UserSetting` (a copied folder keeps it), and
+  `ManuscriptService.resolveHistoryLimit(book)` / `resolveInheritedHistoryLimit(folder)` returning `EffectiveHistoryLimit(value, origin
+  BOOK / FOLDER / USER / PERMISSION / NONE, folder)`: the smallest of the levels that set one, the nearest wins a tie, `null` value =
+  unlimited (`NONE`), a negative number is not set, no permission row = 50 (`DEFAULT_MAX_VERSIONS`), a permission that is not granted
+  = 0. It reads the owner of the book, so it works on a generation thread. `MessageRevisionServiceImpl.append` resolves the limit
+  per version: zero records nothing (and `snapshot` refuses), otherwise it prunes after the save: the trash first, oldest first, then
+  the oldest live ones; the newest version, the first `GENERATE` one and the labeled ones are never removed and not counted.
+  *Clear history*: `previewClear` / `clear` for a part and a book (`RevisionClearing(versions, bytes)`, `keepSnapshots` keeps the
+  labeled ones and the first generated one; the current version always stays; parts of another user are untouched).
+  *Empty trash* was done in step 4. App migration 7 → 8 `VersionHistoryPermissionMigration` creates the permission (granted, 50) for
+  every user, administrators included (it changes no behavior, a user without the row has the same; it makes the setting visible to
+  the administrator). Not done (step 6): the settings in the UI, the permission's component in the permissions dialog (**a
+  `VERSION_HISTORY` permission added there starts with no number = unlimited: the component has to start it at 50**), and the book
+  settings record (`ManuscriptService.BookChanges`) does not carry the limit yet. `PartHistoryLimitTest` (27 tests),
+  `VersionHistoryPermissionMigrationTest` (3).
+
+- ✅ **Step 6:** the interface. `PartHistoryDialog` (one class for the desktop and the phone: on a phone it fills the screen, the
+  list is above the version as cards and nothing needs hover): the versions newest first (time, source with the agent mark, words,
+  label, *Current* / label / *Deleted* badges), the selected one as the difference to the previous version, to the current text, or as
+  it is (`WordDiffView`), its reasoning, the note of a `RESTORE` copy; *Restore on top*, *Roll back to here* (asks, with the number of
+  versions that go to the trash), *Label…*, *Delete* / *Take out of trash* / *Delete permanently*, *Copy text*, *Save version*, *Show
+  deleted versions*, *Empty trash*, *Clear history* (`ClearHistoryDialog`: the number and size of what goes, *keep saved
+  versions*). The card menu has *History (n)* (`StoryMenuKeys.HISTORY`, `StoryCard.openHistory` / `getHistoryCount`, desktop and phone),
+  the Tools menu *Clear history of the book* and *Empty trash of the history* (`BookHistoryActions`). The limit is set in the
+  book (Info tab, desktop and phone), the folder dialog (`FolderService.Details.historyMaxVersions`) and the user settings through
+  `HistoryLimitField` (placeholder and helper show the limit the levels above set and which level it is; the user box sees the
+  administrator's through `ManuscriptService.resolvePermissionHistoryLimit`), and the administrator's permission has its component
+  (`VersionHistoryPermissionComponent`, a permission added in the dialog starts with 50). L keys in `L`, EN, JP and the Chinese
+  bundle, one CSS rule (`history-row-deleted`). Not done: the agent command that changes book settings does not carry the limit.
+  `PartHistoryDialogTest` (13), `HistoryLimitSettingsTest` (8), `StoryMenuRegistryTest` updated.
+
 ## Decisions (settled in discussion)
 
 - **New entity `MessageRevision`**, apart from `ChatMessage`. Not an extended attribute of the part (the parts of a branch
@@ -320,16 +364,40 @@ the history of the merged part and shows as `MERGE` on the surviving one.
 
 ## Order of work
 
+- ✅ **Step 7:** `MessageRevisionRepository.findFulltexts` / `findFulltextHits` (live versions of parts that are not deleted, same
+  `FulltextQuery.likePatterns()` as the part queries), `MessageRevisionService.searchFulltext` (one hit per part: its newest
+  matching version) and `findPartsWithText`. `ChatMessageService.searchFulltext(book, query, includeVersions)` and
+  `findManuscriptsWithText(ids, query, allBranches, includeVersions)`: the text of a part wins, the versions add the parts that
+  don't have the words any more, in the library search also respecting the active branch. `FulltextHit` got `version` (uuid),
+  `versionTime`, `versionSource` (the two-argument constructor stays). UI: *Include versions* checkbox (off, never remembered) in
+  the library search (`ManuscriptSearchCriteria.includeVersions`) and in the search of the tree (desktop and phone); a version
+  hit says "Found in the version of <date> (<source>)" and has a second link *Show in history* (goto id `history:<part id>:<version uuid>`)
+  that opens `PartHistoryDialog.open(..., versionUuid)` on that version. Agent: `/search-parts query [limit] [includeVersions]`,
+  the hit has a `version` object (id = uuid, time, source). Replace and `find-occurrences` never look at versions.
+  Tests: `VersionSearchTest`, plus cases in `ManuscriptReadCommandsTest`, `BranchSearchTest`, `ManuscriptSearchDialogTest`,
+  `PartHistoryDialogTest`.
+
+- ✅ **Step 8:** `ManuscriptService.createBackup(book, includeHistory)` writes `revisions` under each message (`MessageRevisionService.marshalForParts`:
+  uuid, source, agent, detail, label, created in milliseconds, deleted, text, reasoning, restoredFrom, counts; oldest first, the trash too);
+  `BackupService.takeBackup(book, includeHistory)` (the old one has none, so the automatic backups, the backup before an agent merge
+  and the `take-backup` command don't); a *Include version history* checkbox (off) next to *Take backup* on the Backup tab (desktop and
+  phone). `restoreMessages` gets `MissingHistory`: a part with `revisions` gets them back (`restoreForPart`: new uuids, `restoredFrom`
+  remapped, original times, pruned to the limit of the book it comes to, nothing when that book keeps none, the text of the part
+  made the newest version when it differs); a part without gets `FIRST_VERSION` (restore as the book, as a copy, import: made like the
+  migration, `recordFirst(part, null)`: GENERATE with the reasoning and "model · protocol" for a part a model wrote, plus HUMAN when
+  edited since, else HUMAN), `DUPLICATE` (`cloneManuscript`, a `DUPLICATE` version of the text) or `NONE` (`cloneFromBackup` without
+  the argument: the working copy of an agent, whose parts get their first version when changed, `ensureCurrent`). The
+  published pages, exports and the SQLite backup are not touched. `PartHistoryBackupTest`.
+
 1. ✅ Entity, V22, repository, service core (`record`, `list` projection, `get`, `countFor`, deletes), wiring, `persistence.xml`,
    cleanup integration, `MessageRevisionCrudTest`, `MessageRevisionServiceTest` (record / delete / copy).
 2. ✅ Hook `record` into all the sites of *Where it is recorded*; generation tests.
 3. ✅ `PartRevisionMigration` (app 6 → 7) + test.
-4. Restore (both ways), snapshot / label, trash, `ensureCurrent`.
-5. Pruning: `PermissionType.VERSION_HISTORY` (+ the migration creating it with 50 for every user), the resolver, book / folder / user / permission settings, cap enforcement, Clear history, Empty trash.
-6. History dialog (desktop), part menu item and badge, settings UI, localization, styles; then the phone layout.
-7. Search: `_fulltext` on the row, repository queries, *Include versions* in the three searches, tests. (Can move earlier, it only
-   needs step 1.)
-8. Backup / restore of the history (option), `AgentCopyServiceImpl` / duplicate book behaviour.
+4. ✅ Restore (both ways), snapshot / label, trash, `ensureCurrent`.
+5. ✅ Pruning: `PermissionType.VERSION_HISTORY` (+ the migration creating it with 50 for every user), the resolver, book / folder / user / permission settings, cap enforcement, Clear history, Empty trash.
+6. ✅ History dialog (desktop), part menu item and badge, settings UI, localization, styles; then the phone layout.
+7. ✅ Search: `_fulltext` on the row, repository queries, *Include versions* in the three searches, tests.
+8. ✅ Backup / restore of the history (option), duplicate book (`DUPLICATE`); the working copy of an agent gets no versions.
 9. Plugin audit, docs (`manual/user` page for the history, `manual/developer` page for the entity / service with `covers`,
    `python3 tools/check_dev_docs.py`, stamp in its own commit), `tools/retype_build.sh` and regenerate `docs/` (committed),
    `CHANGELOG.MD` under `[Unreleased]` (Added: part history, migration V22 and the app migration; Changed: plugins that write

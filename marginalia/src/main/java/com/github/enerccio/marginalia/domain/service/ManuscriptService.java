@@ -129,6 +129,28 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
     EffectiveSetting<Language> resolveInheritedLanguage(Folder folder) throws Exception;
 
     /**
+     * How many versions of a part the history of the book keeps and where the limit comes from: the smallest of what the book,
+     * the folders above it (all of them), the settings of its owner and the owner's {@code VERSION_HISTORY} permission set (an
+     * owner without the permission has the default of {@link EffectiveHistoryLimit#DEFAULT_MAX_VERSIONS}, one whose permission is
+     * not granted has none). A level that sets nothing, or a negative number, does not limit. Works from any thread.
+     */
+    EffectiveHistoryLimit resolveHistoryLimit(Manuscript manuscript) throws Exception;
+
+    /**
+     * The limit a book filed in the folder (or a folder made in it) inherits, see {@link #resolveHistoryLimit}: the folder itself and
+     * the ones above it, then the user and the permission of the owner of the folder. The top level (null) has the settings of the
+     * current user and their permission only.
+     */
+    EffectiveHistoryLimit resolveInheritedHistoryLimit(Folder folder) throws Exception;
+
+    /**
+     * What the administrator's {@code VERSION_HISTORY} permission allows the current user, the level above the user settings: the
+     * number of the permission, the default for a user without one, no history for one that is not granted, no limit for a
+     * granted one without a number.
+     */
+    EffectiveHistoryLimit resolvePermissionHistoryLimit() throws Exception;
+
+    /**
      * {@code resolveLanguage(manuscript).value()}.
      */
     Language getLanguage(Manuscript manuscript) throws Exception;
@@ -359,7 +381,27 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
         }
     }
 
+    /**
+     * What a part of a restored or copied book gets when the backup has no history of it.
+     */
+    enum MissingHistory {
+        /** Nothing: the working copy of an agent, whose parts get their first version when they are changed. */
+        NONE,
+        /** A first version made as the migration of existing parts did, see {@code MessageRevisionService#recordFirst}. */
+        FIRST_VERSION,
+        /** A {@code DUPLICATE} version of the text: the book was duplicated. */
+        DUPLICATE
+    }
+
+    /**
+     * The backup of the book without the history of its parts.
+     */
     JsonObject createBackup(Manuscript manuscript) throws Exception;
+
+    /**
+     * The backup of the book; with {@code includeHistory} each part has its versions ({@code revisions}, the ones in the trash too).
+     */
+    JsonObject createBackup(Manuscript manuscript, boolean includeHistory) throws Exception;
     Manuscript cloneFromBackup(JsonObject backup) throws Exception;
 
     /**
@@ -369,5 +411,10 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
      * @param pairs where to add the pairs, null when nobody wants them
      */
     Manuscript cloneFromBackup(JsonObject backup, Collection<UuidPair> pairs) throws Exception;
+
+    /**
+     * As {@link #cloneFromBackup(JsonObject, Collection)}; the parts the backup has versions of get them, the others what {@code missing} says.
+     */
+    Manuscript cloneFromBackup(JsonObject backup, Collection<UuidPair> pairs, MissingHistory missing) throws Exception;
     Manuscript restoreBackup(Manuscript manuscript, boolean onlyRestoreMessages, JsonObject backup) throws Exception;
 }

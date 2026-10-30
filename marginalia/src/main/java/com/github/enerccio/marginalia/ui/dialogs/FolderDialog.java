@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.ui.dialogs;
 import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.service.FolderService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptLockedException;
+import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.*;
@@ -38,12 +39,16 @@ public class FolderDialog extends Dialog {
     @Autowired
     private FolderService folderService;
 
+    @Autowired
+    private ManuscriptService manuscriptService;
+
     private final Folder folder;
     private final Consumer<Folder> done;
 
     private TextField nameField;
     private TextArea descriptionField;
     private InheritedLanguageCombo languageCombo;
+    private HistoryLimitField historyLimitField;
     private PromptSettingsForm form;
 
     /**
@@ -98,12 +103,19 @@ public class FolderDialog extends Dialog {
         languageCombo = new InheritedLanguageCombo(loc.getValue(L.LABEL_LANGUAGE));
         languageCombo.load(stored.getLanguage(), stored.getParent());
 
+        historyLimitField = new HistoryLimitField(loc.getValue(L.LABEL_HISTORY_MAX_VERSIONS));
+        try {
+            historyLimitField.load(stored.getHistoryMaxVersions(), manuscriptService.resolveInheritedHistoryLimit(stored.getParent()));
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+
         Span help = new Span(loc.getValue(L.HELP_FOLDER_SETTINGS));
 
         form = new PromptSettingsForm("200px", null).create();
         form.load(field -> field.ofFolder(stored), stored.getParent());
 
-        VerticalLayout content = new VerticalLayout(nameField, descriptionField, tags, help, languageCombo, form.formLayout());
+        VerticalLayout content = new VerticalLayout(nameField, descriptionField, tags, help, languageCombo, historyLimitField, form.formLayout());
         content.setPadding(false);
         add(content);
 
@@ -130,7 +142,7 @@ public class FolderDialog extends Dialog {
             return;
         }
         try {
-            Folder saved = folderService.update(folder, new FolderService.Details(nameField.getValue(), descriptionField.getValue(), languageCombo.getValue(), form.values()));
+            Folder saved = folderService.update(folder, new FolderService.Details(nameField.getValue(), descriptionField.getValue(), languageCombo.getValue(), form.values(), historyLimitField.getValue()));
             if (saved == null) {
                 Notification.warning(loc.getValue(L.ERROR_FOLDER_GONE));
                 return;

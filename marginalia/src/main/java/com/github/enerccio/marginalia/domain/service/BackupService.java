@@ -13,7 +13,17 @@ import java.util.Map;
 
 public interface BackupService {
 
+    /**
+     * Takes a backup of the book without the history of its parts.
+     */
     ManuscriptBackup takeBackup(Manuscript manuscript) throws Exception;
+
+    /**
+     * Takes a backup of the book; with {@code includeHistory} it has the versions of each part (the ones in the trash too), and
+     * so a restore of it, as the book or as a copy, brings the history back. A backup without it gives the parts one first version.
+     * The history can be large: an automatic backup does not have it.
+     */
+    ManuscriptBackup takeBackup(Manuscript manuscript, boolean includeHistory) throws Exception;
     List<ManuscriptBackup> getBackups(Manuscript manuscript) throws Exception;
     Manuscript applyBackup(Manuscript manuscript, ManuscriptBackup backup, boolean messagesOnly,
                            Map<String, LorebookDecision> lorebookDecisions) throws Exception;
