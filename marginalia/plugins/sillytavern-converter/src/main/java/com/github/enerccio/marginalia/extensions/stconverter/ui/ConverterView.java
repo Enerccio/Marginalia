@@ -66,6 +66,10 @@ import static com.github.enerccio.marginalia.extensions.stconverter.STConverterL
  * The source can also be the parts of another book (picked from the books of the author, or read from a backup file): the
  * list is then the text of the parts and the turn details are their instructions, which the book has already, so there is no
  * wand for it.
+ * <p>
+ * On a phone (the drawer of the story) the tab is the same, narrower: the range is chosen with two taps (a tap starts it, the
+ * next one ends it) because there is no Shift key, and the turn details have no column of their own for the numbers of the
+ * messages.
  */
 @Configurable(preConstruction = true)
 public class ConverterView extends VerticalLayout {
@@ -97,6 +101,7 @@ public class ConverterView extends VerticalLayout {
     private final ConverterService service;
     private final Manuscript manuscript;
     private final TurnOpener opener;
+    private final boolean phone;
     private final UI ui = UI.getCurrent();
     private final NumberFormat numbers = NumberFormat.getIntegerInstance();
 
@@ -131,6 +136,8 @@ public class ConverterView extends VerticalLayout {
     private int from = 1;
     private int to = 1;
     private int anchor = 1;
+    /** On a phone: the next tap ends the range that the last one started. */
+    private boolean endTap;
     private boolean adjusting;
     /** The number (from 1) of the message the author was at last (checked, clicked or jumped to), 0 for none; the same for the turns. */
     private int chatCursor;
@@ -165,16 +172,23 @@ public class ConverterView extends VerticalLayout {
     /** How often a block is sent when the answer of the model can't be used. */
     private static final int MAX_ATTEMPTS = 3;
 
-    public ConverterView(ConverterService service, Manuscript manuscript, TurnOpener opener) {
+    /**
+     * @param phone the tab is in the drawer of the story on a phone
+     */
+    public ConverterView(ConverterService service, Manuscript manuscript, TurnOpener opener, boolean phone) {
         this.service = service;
         this.manuscript = manuscript;
         this.opener = opener;
+        this.phone = phone;
 
         setSizeFull();
         setPadding(false);
         setSpacing(false);
         // small text, tight spacing, and the whole tab scrolls
         addClassName(STConverterStyles.ROOT);
+        if (phone) {
+            addClassName(STConverterStyles.PHONE);
+        }
 
         try {
             data = service.load(manuscript);
@@ -301,7 +315,8 @@ public class ConverterView extends VerticalLayout {
         autoBar.setAlignItems(FlexComponent.Alignment.END);
         autoBar.setVisible(false);
 
-        hint = new Span(T.localized("Click a message to start a range, Shift+click to extend it."));
+        hint = new Span(phone ? T.localized("Tap a message to start a range, tap another to end it.")
+                : T.localized("Click a message to start a range, Shift+click to extend it."));
         hint.addClassName(STConverterStyles.HINT);
         status = new Span();
         status.addClassName(CssStyles.NOTICE_WARNING);
@@ -379,8 +394,8 @@ public class ConverterView extends VerticalLayout {
             persist();
             chatGrid.getDataProvider().refreshItem(row);
             refreshChatSummary();
-        })).setHeader("✓").setWidth("45px").setFlexGrow(0);
-        chatGrid.addColumn(Row::number).setHeader("#").setWidth("50px").setFlexGrow(0);
+        })).setHeader("✓").setWidth(phone ? "40px" : "45px").setFlexGrow(0);
+        chatGrid.addColumn(Row::number).setHeader("#").setWidth(phone ? "42px" : "50px").setFlexGrow(0);
         chatGrid.addComponentColumn(row -> {
             // who said it in bold above the text, the messages of the user marked with »
             Div text = new Div(new Span(row.line().getText()));
@@ -408,7 +423,7 @@ public class ConverterView extends VerticalLayout {
         chatGrid.addItemClickListener(e -> {
             // the range is for the wand, and the parts of a book have no wand
             if (!generating && !data.isBookSource()) {
-                clickMessage(e.getItem().number(), e.isShiftKey());
+                clickMessage(e.getItem().number(), phone ? endTap : e.isShiftKey());
             }
         });
     }
@@ -423,9 +438,12 @@ public class ConverterView extends VerticalLayout {
             persist();
             turnGrid.getDataProvider().refreshItem(turn);
             refreshTurnSummary();
-        })).setHeader("✓").setWidth("45px").setFlexGrow(0);
-        turnGrid.addColumn(TurnItem::messages).setHeader(T.localized("Msgs")).setWidth("65px").setFlexGrow(0);
-        turnGrid.addComponentColumn(ConverterView::turnContent).setHeader(T.localized("Turn")).setFlexGrow(1);
+        })).setHeader("✓").setWidth(phone ? "40px" : "45px").setFlexGrow(0);
+        if (!phone) {
+            turnGrid.addColumn(TurnItem::messages).setHeader(T.localized("Msgs")).setWidth("65px").setFlexGrow(0);
+        }
+        // the narrow tab has no room for a column of the numbers, they are the first line of the turn
+        turnGrid.addComponentColumn(turn -> turnContent(turn, phone)).setHeader(T.localized("Turn")).setFlexGrow(1);
         turnGrid.addComponentColumn(turn -> {
             Button delete = new Button(Solid.TRASH.create(), e -> {
                 data.getTurns().remove(turn);
@@ -437,7 +455,7 @@ public class ConverterView extends VerticalLayout {
             // the turn details of a book are its instructions, read from the stored parts each time
             delete.setVisible(!data.isBookSource());
             return delete;
-        }).setWidth("50px").setFlexGrow(0);
+        }).setWidth(phone ? "44px" : "50px").setFlexGrow(0);
         turnGrid.setPartNameGenerator(turn -> STConverterStyles.PART_CLICKABLE
                 + (turn.isReviewed() ? " " + STConverterStyles.PART_REVIEWED : "")
                 + (data.getTurns().indexOf(turn) + 1 == turnCursor ? " " + STConverterStyles.PART_CURRENT : ""));
@@ -450,8 +468,11 @@ public class ConverterView extends VerticalLayout {
     }
 
     /** The four fields of a turn in one element, each under a bold line with its name (the fields without text are left out). */
-    private static Div turnContent(TurnItem turn) {
+    private static Div turnContent(TurnItem turn, boolean withMessages) {
         Div content = new Div();
+        if (withMessages) {
+            addField(content, T.localized("Msgs"), turn.messages());
+        }
         addField(content, T.localized("Scene setting"), turn.getSceneSetting());
         addField(content, T.localized("POV character"), turn.getPovCharacter());
         addField(content, T.localized("Present characters"), turn.getPresentCharacters());
@@ -583,7 +604,7 @@ public class ConverterView extends VerticalLayout {
     private void openBookPicker() {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(T.localized("Pick a book"));
-        dialog.setWidth("500px");
+        dialog.setWidth("min(500px, 95vw)");
         ComboBox<Manuscript> books = new ComboBox<>(T.localized("Book"));
         new BookLabels().apply(books);
         books.setWidthFull();
@@ -704,6 +725,7 @@ public class ConverterView extends VerticalLayout {
         from = 1;
         to = Math.max(1, data.getChat().size());
         anchor = from;
+        endTap = false;
         applyAlign();
     }
 
@@ -718,6 +740,8 @@ public class ConverterView extends VerticalLayout {
 
     private void clickMessage(int number, boolean extend) {
         chatCursor = number;
+        // on a phone the tap that starts a range is followed by the one that ends it
+        endTap = phone && !extend;
         if (extend) {
             from = Math.min(anchor, number);
             to = Math.max(anchor, number);
@@ -740,6 +764,7 @@ public class ConverterView extends VerticalLayout {
         from = Math.max(1, Math.min(typedFrom, Math.max(1, size)));
         to = Math.max(from, Math.min(typedTo, Math.max(1, size)));
         anchor = from;
+        endTap = false;
         applyAlign();
         rangeChanged();
     }
@@ -1103,7 +1128,7 @@ public class ConverterView extends VerticalLayout {
     private void openPromptDialog() {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(T.localized("Prompt of the wand"));
-        dialog.setWidth("800px");
+        dialog.setWidth("min(800px, 95vw)");
         TextArea area = new TextArea();
         area.setWidthFull();
         area.setMinHeight("360px");

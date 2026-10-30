@@ -16,7 +16,7 @@ To make a book out of a chat directly (every message, or every user and assistan
 chat next to you and write the story again, with the model, from instructions made of the chat.
 
 !!!
-The Converter is not available in the [phone layout](../phone.md#extensions).
+The Converter works in the [phone layout](../phone.md#extensions) too, see [On a phone](#on-a-phone).
 !!!
 
 ## The Converter tab
@@ -123,6 +123,17 @@ to turn details** section is not there):
 
 Only one source is kept with a book. To load another, remove the current one with the cross (after asking); this
 also forgets the ticks made on it.
+
+## On a phone
+
+In the phone layout the **Converter** tab is in the drawer of the story, next to the outline and the other tabs of extensions (open the
+drawer with the button at the top left of the story). Everything above works the same, with these differences:
+
+- There is no Shift key, so the **range is chosen with two taps**: tap a message to start the range, tap another to end it (the range is
+  from the one to the other, in whichever order); the next tap starts a new range. You can also type **From** and **To** or use **All**.
+- The turn details have no column for the numbers of the messages: they are the first line of each turn (**Msgs**).
+- **Tap a turn** and the drawer closes and the new turn form of the story opens with the four fields in it.
+- The tab is easier to use in landscape mode; the dialogs (the prompt of the wand, the choice of a book) fit the screen.
 
 ## Storage
 

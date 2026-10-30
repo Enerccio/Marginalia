@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846677011325">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846678768826">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846677011325" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846678768826" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846677011325" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846678768826" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846677011325" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846678768826" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -209,7 +209,7 @@ chat next to you and write the story again, with the model, from instructions ma
             </svg>
         </div>
         <div class="pr-5 ml-3 w-full">
-<p>The Converter is not available in the <a href="../../phone/#extensions">phone layout</a>.</p>
+<p>The Converter works in the <a href="../../phone/#extensions">phone layout</a> too, see <doc-anchor-trigger to="#on-a-phone">On a phone</doc-anchor-trigger>.</p>
         </div>
     </div>
 </div>
@@ -367,6 +367,24 @@ turns you have done.</p>
 </ul>
 <p>Only one source is kept with a book. To load another, remove the current one with the cross (after asking); this
 also forgets the ticks made on it.</p>
+<h2 id="on-a-phone">On a phone</h2>
+<p>In the phone layout the <strong>Converter</strong> tab is in the drawer of the story, next to the outline and the other tabs of extensions (open the
+drawer with the button at the top left of the story). Everything above works the same, with these differences:</p>
+<ul>
+<li>
+<p>There is no Shift key, so the <strong>range is chosen with two taps</strong>: tap a message to start the range, tap another to end it (the range is
+from the one to the other, in whichever order); the next tap starts a new range. You can also type <strong>From</strong> and <strong>To</strong> or use <strong>All</strong>.</p>
+</li>
+<li>
+<p>The turn details have no column for the numbers of the messages: they are the first line of each turn (<strong>Msgs</strong>).</p>
+</li>
+<li>
+<p><strong>Tap a turn</strong> and the drawer closes and the new turn form of the story opens with the four fields in it.</p>
+</li>
+<li>
+<p>The tab is easier to use in landscape mode; the dialogs (the prompt of the wand, the choice of a book) fit the screen.</p>
+</li>
+</ul>
 <h2 id="storage">Storage</h2>
 <p>The uploaded file is stored as a <a href="../../resources/">resource</a> of yours (a chat of SillyTavern can be megabytes, with all
 that SillyTavern adds to the messages), linked to the book. The parts of a book are stored the same way as a small JSON
@@ -428,7 +446,7 @@ with the cross deletes the resource.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (b18995f06).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (86bbf4cff).</p></div>
             </footer>
         </div>
     </div>

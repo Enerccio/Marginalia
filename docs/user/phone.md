@@ -138,6 +138,7 @@ Marginalia:
 | [Author's Note](extensions/authors-note.md) | Works. The note is in the outline drawer of the story. |
 | [Chapter Marker](extensions/chapter-marker.md) | Works. Chapter titles are in the outline drawer. |
 | [Character Tracker](extensions/character-tracker.md) | Works. The Characters tab is in the outline drawer. |
+| [Converter](extensions/sillytavern-converter.md) | Works. The Converter tab is in the outline drawer; the range of the chat is chosen with two taps, see [On a phone](extensions/sillytavern-converter.md#on-a-phone). |
 | [Instruction Exporter](extensions/instruction-exporter.md) | Works. **Export instructions** is in the settings menu of the story. |
 | [Manga Generator](extensions/manga-generator.md) | Works. **Manga Generator** is in the settings menu of the story; its window is large, so landscape is easier. |
 | [Reviewer](extensions/reviewer.md) | Works. Its items are in the menu of a part, its settings in *Settings → Extension Settings*. |

@@ -293,7 +293,7 @@ On a phone the book opens in `PhoneManuscriptDialog`, whose tabs are separate cl
 (`createSidebarButton`, `renderStoryContent`, `populateMenuBar`, `createCogsMenuItem`, `createMenuItems`,
 `refreshSummaryMenuItems`, `autosaveAndSwapToMarkdown`; fields `sidebarList`, `leftBar`, `currentManuscript`,
 `hamburgerMenu`, `message`, `this$0`), so a plugin supports the phone by registering the same decorator a second time
-under the other class name. The Reviewer, Chapter Marker and Author's Note do; Side Query, Lore Generator and Lorebook VCS don't.
+under the other class name. The Reviewer, Chapter Marker, Author's Note, Arc Outline, Character Tracker and Converter do (the Converter also closes the drawer, an `AppLayout` found with `leftBar.findAncestor`, before it opens `newTurnPopover`); Side Query, Lore Generator and Lorebook VCS don't.
 Two differences: the card has no right-hand column (the metadata is in a popover), and `leftBar` is the tab sheet in
 the drawer of the story (a `TabDock` that does not detach, like the desktop one); on both, `leftBar` is created once and not rebuilt by `renderStoryContent()` (check for your
 tab first, as Author's Note does). Reach the outer part through `this$0` as an `Object`, since its type depends on the dialog.
