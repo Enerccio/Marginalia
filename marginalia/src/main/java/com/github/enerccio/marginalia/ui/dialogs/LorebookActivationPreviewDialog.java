@@ -169,8 +169,12 @@ public class LorebookActivationPreviewDialog extends Dialog {
             List<String> parts = bookBox.getValue() == null ? List.of()
                     : activationService.recentParts(bookBox.getValue().getActiveLeaf(),
                     activationService.partsNeeded(activationService.orderedEntries(books)), false);
+            // the part the next turn of the picked book creates, for the entries limited to some parts
+            Integer position = bookBox.getValue() == null
+                    || !activationService.positionNeeded(activationService.orderedEntries(books)) ? null
+                    : activationService.turnPosition(bookBox.getValue().getActiveLeaf(), false);
             List<LorebookEntryVerdict> verdicts = activationService.evaluateAll(root, books, tags,
-                    StringUtils.defaultString(textField.getValue()), parts);
+                    StringUtils.defaultString(textField.getValue()), parts, position);
             grid.setItems(verdicts);
 
             long used = 0;

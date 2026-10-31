@@ -288,6 +288,12 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             detailsLayout.add(infoSpan(L.LABEL_ACTIVATION_CONTEXT,
                     loc.getValue(loc.getActivationContext(entry.getActivationContext())) + " (" + entry.getActivationParts() + ")"));
         }
+        if (entry.getFromMessage() != null) {
+            detailsLayout.add(infoSpan(L.LABEL_FROM_MESSAGE, String.valueOf(entry.getFromMessage())));
+        }
+        if (entry.getToMessage() != null) {
+            detailsLayout.add(infoSpan(L.LABEL_TO_MESSAGE, String.valueOf(entry.getToMessage())));
+        }
         if (entry.isPreventRecursion()) {
             detailsLayout.add(infoSpan(L.LABEL_PREVENT_RECURSION, "✓"));
         }

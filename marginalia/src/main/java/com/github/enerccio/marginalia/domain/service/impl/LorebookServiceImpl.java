@@ -780,6 +780,8 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
         entryObj.addProperty("preventRecursion", entry.isPreventRecursion());
         entryObj.addProperty("activationContext", entry.getActivationContext().name());
         entryObj.addProperty("activationParts", entry.getActivationParts());
+        entryObj.addProperty("fromMessage", entry.getFromMessage());
+        entryObj.addProperty("toMessage", entry.getToMessage());
         addAttributes(entryObj, entry);
         entryObj.add("tags", toJsonArray(tagRelationService.getTagsForObject(entry)));
         entryObj.add("negativeTags", toJsonArray(tagRelationService.getTagsForObject(entry, true)));
@@ -850,6 +852,12 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             }
             if (entryObj.has("activationParts") && !entryObj.get("activationParts").isJsonNull()) {
                 entry.setActivationParts(entryObj.get("activationParts").getAsInt());
+            }
+            if (entryObj.has("fromMessage") && !entryObj.get("fromMessage").isJsonNull()) {
+                entry.setFromMessage(entryObj.get("fromMessage").getAsInt());
+            }
+            if (entryObj.has("toMessage") && !entryObj.get("toMessage").isJsonNull()) {
+                entry.setToMessage(entryObj.get("toMessage").getAsInt());
             }
 
             entry = lorebookEntryService.save(entry);

@@ -1037,6 +1037,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_STATISTIC_RANGE_ALL_TIME, "全期間");
         setValue(L.ENUM_STATISTIC_RANGE_CUSTOM, "期間を指定");
         setValue(L.ENUM_STATISTIC_SIDE_AUTHOR, "自分");
+        setValue(L.ENUM_ACTIVATION_REASON_OUT_OF_RANGE, "未使用: ターンがパートの範囲外");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -1602,6 +1603,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_HISTORY_MAX_VERSIONS, "履歴がパートごとに保持するバージョン数（ごみ箱の分も含む）。空欄：この階層では制限しません。0：履歴を残しません。本、フォルダ、設定、管理者の上限のうち最も厳しいものが適用されます。最初の生成と保存したバージョンはこれとは別に残ります。");
         setValue(L.HELP_VERSION_HISTORY_PERMISSION, "ユーザーの本の履歴がパートごとに保持する最大バージョン数。空欄：管理者による制限なし。この権限がないユーザーは 50 件です。付与されていない権限は履歴を残しません。");
         setValue(L.HELP_DAILY_GOAL, "統計カレンダーの目標（すべての本の合計）：1日に自分で書く単語数（生成分は含まない）と編集する分数。設定した目標をすべて達成した日が目標達成の連続日数に数えられます。空欄は目標なし。");
+        setValue(L.HELP_ACTIVATION_RANGE, "エントリーは、この番号からこの番号までのパートを作成するターンでのみ使用されます（ストーリーのアウトラインの番号、両端を含み、最初のパートは1）。空欄は制限なし。スワイプや再生成は置き換えるパートとして数えます。ブックなしでプレビューするターンには番号がなく、範囲は確認されません。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

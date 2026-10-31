@@ -1045,6 +1045,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_STATISTIC_RANGE_ALL_TIME, "全部时间");
         setValue(L.ENUM_STATISTIC_RANGE_CUSTOM, "自定义");
         setValue(L.ENUM_STATISTIC_SIDE_AUTHOR, "我");
+        setValue(L.ENUM_ACTIVATION_REASON_OUT_OF_RANGE, "未使用：回合不在其段落范围内");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -1610,6 +1611,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_HISTORY_MAX_VERSIONS, "历史为每个段落保留的版本数（回收站中的也计入）。留空：此层级不设限制。0：不保留历史。书、文件夹、您的设置和管理员的上限中最严格的一个生效。首次生成的版本和已保存的版本另外保留。");
         setValue(L.HELP_VERSION_HISTORY_PERMISSION, "用户书籍的历史为每个段落保留的最大版本数。留空：管理员不设限制。没有此权限的用户为 50；未授予的权限不保留历史。");
         setValue(L.HELP_DAILY_GOAL, "统计日历的目标（所有书籍合计）：每天亲手写的字数（不含生成的）和编辑的分钟数。达到所有已设目标的日子计入目标连续天数。留空表示没有目标。");
+        setValue(L.HELP_ACTIVATION_RANGE, "条目仅用于创建从此编号到此编号的段落的回合（故事大纲中的编号，含两端，第一个段落为 1）。留空表示不限制。重新滑动或重新生成按其替换的段落计算。未选择书籍的预览回合没有编号，不检查范围。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

@@ -1037,6 +1037,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_STATISTIC_RANGE_ALL_TIME, "All time");
         setValue(L.ENUM_STATISTIC_RANGE_CUSTOM, "Custom");
         setValue(L.ENUM_STATISTIC_SIDE_AUTHOR, "Me");
+        setValue(L.ENUM_ACTIVATION_REASON_OUT_OF_RANGE, "Not used: the turn is outside its range of parts");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -1602,6 +1603,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_HISTORY_MAX_VERSIONS, "How many versions of a part the history keeps (the ones in the trash count). Empty: this level sets no limit. 0 keeps no history. The strictest of the book, its folders, your settings and the limit of the administrator applies. The first generated version and the saved ones are kept besides.");
         setValue(L.HELP_VERSION_HISTORY_PERMISSION, "The most versions of a part the history of the user's books keeps. Empty: no limit from the administrator. A user without this permission has 50; a permission that is not granted keeps no history.");
         setValue(L.HELP_DAILY_GOAL, "The goals of the calendar of the statistics, over all the books: the words you write yourself (not the generated ones) and the minutes you edit on a day. A day that reaches every goal that is set counts for the goal streak. Empty is no goal.");
+        setValue(L.HELP_ACTIVATION_RANGE, "The entry is used only for the turns that create a part from this number to this one (the numbers of the outline of the story, both included, the first part is 1). Leave a field empty for no limit. A swipe or a regeneration counts as the part it replaces. A turn that is previewed without a book has no number, the range is not checked.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

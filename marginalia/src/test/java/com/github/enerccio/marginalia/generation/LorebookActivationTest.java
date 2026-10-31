@@ -5,11 +5,7 @@ import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
-import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
-import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
-import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.model.impl.Tag;
+import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.LorebookActivationService.Reason;
 import com.github.enerccio.marginalia.domain.service.LorebookActivationService.Verdict;
@@ -27,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -1202,5 +1199,182 @@ class LorebookActivationTest extends GenerationTestBase {
 
         assertThat(preview.stream().filter(v -> v.verdict().activated()).map(v -> v.entry().getName()).toList())
                 .isEqualTo(lore.activated()).containsExactly("dragon");
+    }
+
+    // ------------------------------------------------------------------------------------------------------------
+    // range of parts: the entry is used only for the turns that create a part inside it
+    // ------------------------------------------------------------------------------------------------------------
+
+    private LorebookEntry inParts(Lorebook book, String name, Integer from, Integer to) throws Exception {
+        return entry(book, name, e -> {
+            e.setFromMessage(from);
+            e.setToMessage(to);
+        });
+    }
+
+    @Test
+    void entryWithoutRangeIsUsedForEveryPart() throws Exception {
+        Lorebook book = lorebook("world");
+        LorebookEntry plain = entry(book, "plain");
+
+        assertThat(plain.hasMessageRange()).isFalse();
+        assertThat(activate(withStory(book(book), "one", "two", "three")).activated()).containsExactly("plain");
+    }
+
+    @Test
+    void entryIsUsedOnlyFromItsFirstPart() throws Exception {
+        Lorebook book = lorebook("world");
+        inParts(book, "late", 3, null);
+
+        // the turn creates the third part when two exist
+        assertThat(activate(withStory(book(book), "one")).activated()).isEmpty();
+        assertThat(activate(withStory(book(book), "one", "two")).activated()).containsExactly("late");
+        assertThat(activate(withStory(book(book), "one", "two", "three")).activated()).containsExactly("late");
+    }
+
+    @Test
+    void entryIsUsedOnlyUpToItsLastPart() throws Exception {
+        Lorebook book = lorebook("world");
+        inParts(book, "early", null, 2);
+
+        assertThat(activate(book(book)).activated()).containsExactly("early");
+        assertThat(activate(withStory(book(book), "one")).activated()).containsExactly("early");
+        assertThat(activate(withStory(book(book), "one", "two")).activated()).isEmpty();
+    }
+
+    @Test
+    void entryWithBothLimitsIsUsedInsideThemOnly() throws Exception {
+        Lorebook book = lorebook("world");
+        inParts(book, "middle", 2, 3);
+
+        assertThat(activate(book(book)).activated()).isEmpty();
+        assertThat(activate(withStory(book(book), "one")).activated()).containsExactly("middle");
+        assertThat(activate(withStory(book(book), "one", "two")).activated()).containsExactly("middle");
+        assertThat(activate(withStory(book(book), "one", "two", "three")).activated()).isEmpty();
+    }
+
+    @Test
+    void entryWithTheSameLimitIsUsedForThatPartOnly() throws Exception {
+        Lorebook book = lorebook("world");
+        inParts(book, "second", 2, 2);
+
+        assertThat(activate(book(book)).activated()).isEmpty();
+        assertThat(activate(withStory(book(book), "one")).activated()).containsExactly("second");
+        assertThat(activate(withStory(book(book), "one", "two")).activated()).isEmpty();
+    }
+
+    @Test
+    void entryWithTheLimitsTheWrongWayRoundIsNeverUsed() throws Exception {
+        Lorebook book = lorebook("world");
+        inParts(book, "never", 4, 2);
+
+        for (int parts = 0; parts < 6; parts++) {
+            String[] story = new String[parts];
+            Arrays.fill(story, "text");
+            assertThat(activate(withStory(book(book), story)).activated()).as("%d parts", parts).isEmpty();
+        }
+    }
+
+    @Test
+    void rangeOfPartsLimitsConstantEntriesAndEntriesWithAFilter() throws Exception {
+        Lorebook book = lorebook("world");
+        entry(book, "constant", e -> e.setFromMessage(2));
+        entry(book, "dragon", e -> {
+            e.setFiltering("dragon");
+            e.setFromMessage(2);
+        });
+
+        assertThat(activate(book(book), "A dragon appears.").activated()).isEmpty();
+        assertThat(activate(withStory(book(book), "one"), "A dragon appears.").activated())
+                .containsExactlyInAnyOrder("constant", "dragon");
+    }
+
+    @Test
+    void entryOutOfItsRangeIsNotFoundByTheContentOfOtherEntries() throws Exception {
+        Lorebook book = scanning(1);
+        entry(book, "source", e -> e.setPayload("A dragon lives here."));
+        entry(book, "dragon", e -> {
+            e.setFiltering("dragon");
+            e.setFromMessage(5);
+        });
+
+        assertThat(activate(book(book)).activated()).containsExactly("source");
+    }
+
+    @Test
+    void turnPositionIsTheNumberOfThePartTheTurnCreates() throws Exception {
+        Manuscript manuscript = withStory(book(lorebook("world")), "one", "", "three");
+        ChatMessage leaf = manuscriptService.find(manuscript.getId()).getActiveLeaf();
+
+        // the parts without a text count too, like in the outline
+        assertThat(activationService.turnPosition(leaf, false)).isEqualTo(4);
+        assertThat(activationService.turnPosition(leaf, true)).isEqualTo(3);
+        assertThat(activationService.turnPosition(null, false)).isEqualTo(1);
+        assertThat(activationService.turnPosition(null, true)).isEqualTo(1);
+    }
+
+    @Test
+    void positionIsNeededOnlyByEnabledEntriesWithARange() throws Exception {
+        Lorebook book = lorebook("world");
+        entry(book, "plain");
+        LorebookEntry limited = inParts(book, "limited", 2, null);
+        List<LorebookEntry> entries = lorebookEntryService.getEntriesForLorebook(book);
+        assertThat(activationService.positionNeeded(entries)).isTrue();
+        assertThat(activationService.positionNeeded(entries.stream().filter(e -> e.getName().equals("plain")).toList())).isFalse();
+
+        limited.setEnabled(false);
+        lorebookEntryService.save(limited);
+        assertThat(activationService.positionNeeded(lorebookEntryService.getEntriesForLorebook(book))).isFalse();
+    }
+
+    @Test
+    void rangeOfPartsGivesItsOwnReasonAndIsNotCheckedWithoutAPosition() throws Exception {
+        Lorebook book = lorebook("world");
+        LorebookEntry limited = inParts(book, "limited", 3, 5);
+        LorebookEntry saved = lorebookEntryService.getEntriesForLorebook(book).stream()
+                .filter(e -> e.getName().equals("limited")).findFirst().orElseThrow();
+
+        Verdict out = activationService.evaluate(saved, List.of(), "text", List.of(), 2);
+        assertThat(out.reason()).isEqualTo(Reason.OUT_OF_RANGE);
+        assertThat(out.detail()).isEqualTo("3..5");
+        assertThat(out.activated()).isFalse();
+        assertThat(activationService.evaluate(saved, List.of(), "text", List.of(), 3).reason()).isEqualTo(Reason.CONSTANT);
+        assertThat(activationService.evaluate(saved, List.of(), "text", List.of(), 5).reason()).isEqualTo(Reason.CONSTANT);
+        assertThat(activationService.evaluate(saved, List.of(), "text", List.of(), 6).reason()).isEqualTo(Reason.OUT_OF_RANGE);
+        assertThat(activationService.evaluate(saved, List.of(), "text", List.of(), null).reason()).isEqualTo(Reason.CONSTANT);
+        assertThat(activationService.evaluate(saved, List.of(), "text").reason()).isEqualTo(Reason.CONSTANT);
+        assertThat(limited.getFromMessage()).isEqualTo(3);
+    }
+
+    @Test
+    void limitsBelowOneAreNoLimit() {
+        LorebookEntry entry = new LorebookEntry();
+        entry.setFromMessage(0);
+        entry.setToMessage(-3);
+
+        assertThat(entry.getFromMessage()).isNull();
+        assertThat(entry.getToMessage()).isNull();
+        assertThat(entry.hasMessageRange()).isFalse();
+        assertThat(entry.inMessageRange(1)).isTrue();
+    }
+
+    @Test
+    void previewOfARangeAgreesWithTheGeneration() throws Exception {
+        Lorebook book = lorebook("world");
+        inParts(book, "late", 3, null);
+        inParts(book, "early", null, 2);
+        Manuscript manuscript = withStory(book(book), "one", "two");
+        ChatMessage leaf = manuscriptService.find(manuscript.getId()).getActiveLeaf();
+        Lore lore = activate(manuscript, "Anna walks on.");
+
+        Lorebook root = lorebookService.find(book.getId());
+        List<Lorebook> books = activationService.collectLorebooks(root);
+        int position = activationService.turnPosition(leaf, false);
+        List<LorebookEntryVerdict> preview = activationService.evaluateAll(root, books, List.of(), "Anna walks on.", List.of(), position);
+
+        assertThat(preview.stream().filter(v -> v.verdict().activated()).map(v -> v.entry().getName()).toList())
+                .isEqualTo(lore.activated()).containsExactly("late");
+        assertThat(preview.stream().filter(v -> v.entry().getName().equals("early")).findFirst().orElseThrow().verdict().reason())
+                .isEqualTo(Reason.OUT_OF_RANGE);
     }
 }
