@@ -265,7 +265,17 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 
 27. ✅ **Icons for tabs, minimizing** — every tab but the story has a minimize button, a minimized tab is a round icon (circle with one or two letters, SVG) in a bar that the user moves to any side of the editor; click restores it where it was. Minimized tabs and the side are saved with the book; *Save layout as my default* (settings menu of the story) stores the arrangement in the user settings for books that have none of their own.
 28. ✅ **Redraft a book** — done in the `sillytavern-converter` plugin, not as a core feature: the source of its tab can be the parts of another book (picked from the user's books, or read from a backup file: the JSON, the archive with the images, or the file stored with a book). The branch the book is on (`activeLeafUuid` up the `parentUuid` chain, or `ChatMessageService.getBranchFromLeaf` for a live book) is stripped to instructions, scene setting, POV, present characters and text (`BookSource`, a versioned JSON stored as a resource); the list shows the text, the turn details are the instructions of the parts, a click puts them into the new turn form, both lists have the ticks. No wand. One source at a time (remove it to load another). Not done: choosing another branch than the active one, an automated test of the tab or of the service with the book (the stripping has unit tests in `BookSourceReaderTest`).
-29. **Writing statistics** — words per day/session, per-book totals, goals. 🧩
+29. ✅ **Writing statistics** — done in core (not a plugin), migration `V23`, design notes in `TODO.USAGE.MD`. Per book and day (the author's and the
+    agents' side apart): tokens, words written / generated / removed, parts, edits (`ManuscriptStatistic`), the time as recorded stretches of the clock
+    combined by a union so that parallel work counts once (`ActivityInterval`, `ActivityTracker`), and the size of the book at the end of each day, whole and
+    of the branch (`ManuscriptSize`). The rows hold the book by uuid and outlive it. The history of existing books is rebuilt at the first start
+    (`StatisticsBackfillMigration`, shown marked `~`; the time cannot be rebuilt). *Statistics* in the settings menu of the story and in the book list (desktop
+    and phone, `StatisticsDialog`, `GlobalStatisticsDialog` and the phone twins): ranges, All / Me / Agents, a grid by day, charts, a list and a chart by book,
+    a *Calendar* tab with streaks and the daily goals (words written, minutes of editing; set in the user settings). Commands `get-book-statistics` and
+    `get-statistics` (agents may use them). Plugins that ask a model about a book open `UsageContext`. Not done: the privacy side (the user's own *Clear
+    statistics* / *Forget* a book, an administrator action to clear the history of a user or of everybody, keep only the last N months, a switch to turn
+    recording off per user and per instance, losing the name of a purged book in the rows); the per-book backup does not carry the statistics (the database
+    backup does); compacting `activity_intervals` if the *All time* union gets slow; a goal per book; the price of the tokens (see 65).
 30. ✅ **Undo for edits** — done in 1.6.0 as the *version history of a part* (`MessageRevision`, migration `V22`; *History (n)* in the part menu, desktop and
     phone): every text of a part is kept with who wrote it (model with reasoning, author, mass action, agent, extension, merge, restore), versions can be compared
     word by word, restored on top or rolled back to, named (a named version is never removed), trashed and deleted; the number kept per part is a setting of the
@@ -312,8 +322,8 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 36. **Text-to-speech read-aloud** in the Viewer. 🧩
 37. **Health and metrics endpoint.** ✅ `GET /health` (`HealthServlet`, no login): 200 when the context runs and the database
     answers, else 503; the Dockerfile `HEALTHCHECK` uses it. ✅ Tokens per provider and user are counted since 1.2.0 (`Usage`,
-    Inference Providers tab and *Usage per user* in the administration). Missing: other metrics (tokens per book,
-    requests per time, a Prometheus endpoint).
+    Inference Providers tab and *Usage per user* in the administration). Tokens per book and day are counted
+    since 1.6.0 (the *Statistics* windows, 29). Missing: other metrics (requests per time, a Prometheus endpoint).
 38. ✅ **Configuration via environment variables** — `MARGINALIA_DATA`, `MARGINALIA_DEFAULT_LANGUAGE`,
     `MARGINALIA_ALLOW_PERSISTENT_LOGIN`, `MARGINALIA_PERSISTENT_LOGIN_TTL`, `MARGINALIA_TRUSTED_PROXIES` (or the same as
     `-Dmarginalia.*`), over `configuration.properties`; documented in the Docker server page and `architecture.md`. Not done:
@@ -553,8 +563,9 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
 64. **Per-turn sampler override.** Quick preset switch for one turn (dialogue: higher temperature; action: lower)
     without editing the protocol, remembered as a per-book list of named presets.
 65. **Cost and budget ledger.** Partly done in 1.2.0: tokens per provider and user, and per-user limits (unlimited / token
-    limit / not available, daily, weekly or monthly reset) on shared providers. Open: price per million tokens on the
-    provider, tokens per book/month, a soft cap for the own providers that warns or blocks, and the cost of the current
+    limit / not available, daily, weekly or monthly reset) on shared providers. Tokens per book and day are in the
+    *Statistics* windows (29, since 1.6.0). Open: price per million tokens on the
+    provider, tokens per book/month as money, a soft cap for the own providers that warns or blocks, and the cost of the current
     book in its info tab.
 
 ### Reading, publishing, exporting
