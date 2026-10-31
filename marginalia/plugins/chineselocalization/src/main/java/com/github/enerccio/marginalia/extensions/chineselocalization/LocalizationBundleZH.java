@@ -1493,6 +1493,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_STATISTICS_TIMES_OVERLAP, "各书籍的时间会重叠：上方的合计是实际时间，而不是各行之和。");
         setValue(L.MSG_STATISTICS_GROUPED_WEEK, "按周汇总");
         setValue(L.MSG_STATISTICS_GROUPED_MONTH, "按月汇总");
+        setValue(L.MSG_STATISTICS_TIME_SINCE, "时间从 %s 开始记录；此前的日期不显示时间。");
+        setValue(L.MSG_STATISTICS_RECONSTRUCTED, "其中 %d 天是根据段落的历史重建的（标有 ~）：这是估计值，令牌数只是下限。");
+        setValue(L.MSG_STATISTICS_RECONSTRUCTED_DAY, "根据段落历史重建的估计值");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

@@ -14,20 +14,35 @@ import java.util.List;
  * @param books  the books that have anything in the range, one line each (also the deleted ones); only for a report of all the books
  * @param sizes  the size on every day of the range
  * @param growth the growth of the size over the range, summed over the books
+ * @param timeSince the first day the time is recorded from ({@code UserSetting#statisticsSince}), null when the time of every day is known;
+ *                  the days before it have counts rebuilt from the history of the parts, but no time
  */
 public record StatisticReport(StatisticFilter filter, StatisticCounts total, ActivityTimes times, List<DayLine> days,
-                              List<BookLine> books, List<SizeSeries.Point> sizes, SizeGrowth growth) {
+                              List<BookLine> books, List<SizeSeries.Point> sizes, SizeGrowth growth, LocalDate timeSince) {
 
     /**
      * One day of the range: the counts and the time of the day, the size and growth are in {@link #sizes} (same day).
+     *
+     * @param reconstructed the counts or the size of the day were rebuilt from the history of the parts, so they are an estimate
      */
-    public record DayLine(LocalDate day, StatisticCounts counts, ActivityTimes times) {
+    public record DayLine(LocalDate day, StatisticCounts counts, ActivityTimes times, boolean reconstructed) {
     }
 
     /**
      * One book: its counts, its own time (the times of books overlap, so the lines are not parts of the total) and its growth.
      */
     public record BookLine(BookStatistic book, ActivityTimes times, SizeGrowth growth) {
+    }
+
+    /**
+     * Whether the time of the day was recorded.
+     */
+    public boolean timeKnown(LocalDate day) {
+        return timeSince == null || !day.isBefore(timeSince);
+    }
+
+    public long reconstructedDays() {
+        return days.stream().filter(DayLine::reconstructed).count();
     }
 
     public boolean isEmpty() {

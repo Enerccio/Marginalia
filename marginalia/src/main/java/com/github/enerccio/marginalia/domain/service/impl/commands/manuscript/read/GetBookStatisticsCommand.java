@@ -72,6 +72,7 @@ public class GetBookStatisticsCommand extends ManuscriptReadSupport {
         StatisticJson.times(total, report.times());
         StatisticJson.growth(total, report.growth());
         result.add("total", total);
+        StatisticJson.quality(result, report);
 
         Map<LocalDate, SizeSeries.Point> sizes = new java.util.HashMap<>();
         report.sizes().forEach(point -> sizes.put(point.day(), point));
@@ -81,6 +82,9 @@ public class GetBookStatisticsCommand extends ManuscriptReadSupport {
             row.addProperty("day", line.day().toString());
             StatisticJson.counts(row, line.counts());
             StatisticJson.times(row, line.times());
+            if (line.reconstructed()) {
+                row.addProperty("rebuilt", true);
+            }
             SizeSeries.Point size = sizes.get(line.day());
             if (size != null && size.present()) {
                 row.addProperty("sizeWords", size.bookWords());

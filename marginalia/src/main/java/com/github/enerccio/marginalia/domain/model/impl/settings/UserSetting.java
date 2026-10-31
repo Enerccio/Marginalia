@@ -31,6 +31,14 @@ public class UserSetting extends Setting {
     @CleanupReference(value = Policy.WEAK, target = Protocol.class)
     private Long defaultProtocol;
 
+    /**
+     * The first day (ISO date) the time of the writing statistics is recorded from; the days before it have counts rebuilt from the
+     * history of the parts but no time. Set once by {@code StatisticsBackfillMigration}; null: the time of every day is known.
+     */
+    @ExtendedAttribute
+    @Transient
+    private String statisticsSince;
+
     // templates
 
     @ExtendedAttribute
@@ -243,6 +251,14 @@ public class UserSetting extends Setting {
 
     public void setHistoryMaxVersions(Integer historyMaxVersions) {
         this.historyMaxVersions = historyMaxVersions;
+    }
+
+    public String getStatisticsSince() {
+        return statisticsSince;
+    }
+
+    public void setStatisticsSince(String statisticsSince) {
+        this.statisticsSince = statisticsSince;
     }
 
     public Long getDefaultModel() {
