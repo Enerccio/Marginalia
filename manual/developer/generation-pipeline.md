@@ -316,6 +316,22 @@ arrived with `countTokensApprox`. It is recorded once, when the stream completes
 after some text arrived; a request that fails before any text is not counted. The stream threads have no request, so the service takes
 the `ThreadCopyRequestAttributes` of the thread that called `stream` and records inside it (`currentUser` resolves).
 
+The same request is counted for the **book** it was made for (the tokens column of the [writing statistics](domain-model.md#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize)):
+the caller opens a `UsageContext` (a thread-local scope like `UnmeteredScope`, `try (UsageContext _ = UsageContext.open(book)) { service.stream(...); }`)
+around the call that starts the request; `OpenAICompatibleInferenceService` reads `UsageContext.current()` once in that thread, keeps the id of the
+book in its `Request` and opens it again around `UsageService.record` in the stream threads. `UsageServiceImpl.record` then adds the tokens
+(`StatisticCounts.tokens`, one request) to the day's row of the book through `ManuscriptStatisticService.count`, whoever the user is: the row is
+the owner's of the book, and a thread without a user counts for the book too. A call without a context counts for the AI only. The generation
+(`InferenceStep`), summaries, impersonate, redraft, annotate (all its stages) and the agent runs (the working copy, see the agents note
+of the statistics) open it; an unmetered request counts for nobody. An extension AI does what the Anthropic and Google plugins do: reads
+`UsageContext.current()` in the thread that starts the request and reopens it around its `UsageService.record`; a plugin that asks a model for
+a book opens the scope around its call.
+
+The same context decides the **generation time** of the book (the `GENERATE` stretches of the `ActivityTracker`): `OpenAICompatibleInferenceService`
+registers the request with `ActivityTracker.generate(book)` when a metered request has a book, from before it is sent to the end of its answer, the stop or the failure (a
+request with function calls registers each round on its own: the time the functions take between the rounds is not the model's, and the tracker keeps the stretch open
+for 2 s so the next round of an agent joins it). An extension AI has no hook for it yet.
+
 Before a request is built, `stream` asks `AILimitService.check(ai, promptTokens, reservedTokens)` (with our estimate of the payload and the response size the request reserves): a user with the AI not available or over their token limit gets an
 `InferenceException` (`NOT_AVAILABLE`, `LIMIT_REACHED`) in the caller's thread and nothing is sent, so the steps, summaries and
 extensions handle it like any provider failure. The limits are described in the [domain model](domain-model.md#limits-of-the-users-of-a-shared-ai).

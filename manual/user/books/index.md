@@ -35,6 +35,9 @@ Opening a book shows its window with these tabs:
 | **Branch view** | The story tree with all branches. See [Branches & story tree](branches-and-story-tree.md). |
 | **Backups** | Backups of the book. See [Book backups](backups.md). |
 
+What happened to a book day by day (words, time, tokens, size) and the calendar of the days you wrote are in its **Statistics** window, see
+[Writing statistics](statistics.md).
+
 The story can be taken out of Marginalia as a file from the settings menu of the *Story* tab, see
 [Exporting a book](export.md).
 

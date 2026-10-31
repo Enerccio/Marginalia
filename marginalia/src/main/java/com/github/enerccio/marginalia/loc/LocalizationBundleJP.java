@@ -863,6 +863,16 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_GROWTH_WORDS, "増減（単語）");
         setValue(L.LABEL_GROWTH_TOKENS, "増減（トークン）");
         setValue(L.LABEL_COMMAND_GET_BOOK_STATISTICS, "本の統計");
+        setValue(L.LABEL_STATISTICS_CALENDAR, "カレンダー");
+        setValue(L.LABEL_STREAK_CURRENT, "現在の連続日数");
+        setValue(L.LABEL_STREAK_LONGEST, "最長の連続日数");
+        setValue(L.LABEL_STREAK_GOAL_CURRENT, "目標達成の連続日数");
+        setValue(L.LABEL_STREAK_GOAL_LONGEST, "目標達成の最長連続日数");
+        setValue(L.LABEL_DAYS_WORKED, "作業した日数");
+        setValue(L.LABEL_DAILY_GOAL_WORDS, "1日の目標：書く単語数");
+        setValue(L.LABEL_DAILY_GOAL_MINUTES, "1日の目標：編集時間（分）");
+        setValue(L.LABEL_LESS, "少");
+        setValue(L.LABEL_MORE, "多");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1488,6 +1498,12 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_STATISTICS_TIME_SINCE, "時間は %s から記録されています。それ以前の日には時間が表示されません。");
         setValue(L.MSG_STATISTICS_RECONSTRUCTED, "%d 日分はパートの履歴から再構築されたものです（~ 印）。推定値で、トークン数は下限です。");
         setValue(L.MSG_STATISTICS_RECONSTRUCTED_DAY, "パートの履歴から再構築した推定値");
+        setValue(L.MSG_STATISTICS_CALENDAR_NOTE, "単語を書いた、編集した、パートを作成した、または編集に時間を使った日が「作業した日」です。エージェントの作業や本を開くだけでは数えません。");
+        setValue(L.MSG_STATISTICS_CALENDAR_NONE, "%s – 記録なし");
+        setValue(L.MSG_STATISTICS_CALENDAR_DAY, "%s – 書いた単語 %s、編集 %s");
+        setValue(L.MSG_STATISTICS_CALENDAR_LAST, "、最終作業 %s");
+        setValue(L.MSG_GOAL_PROGRESS_WORDS, "今日：%s / %s 単語");
+        setValue(L.MSG_GOAL_PROGRESS_MINUTES, "今日：編集 %s / %s 分");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1585,6 +1601,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_MASS_RENAME, "名前の変更方法を選び、対象の本にチェックを入れます。「新しい名前」の列に結果が表示されます。番号付けはチェックした本を一覧の順に数えます。パターンの {name} は現在の名前、{n} は番号です。エージェントが作業中の本はグレー表示になり、名前を変更できません。");
         setValue(L.HELP_HISTORY_MAX_VERSIONS, "履歴がパートごとに保持するバージョン数（ごみ箱の分も含む）。空欄：この階層では制限しません。0：履歴を残しません。本、フォルダ、設定、管理者の上限のうち最も厳しいものが適用されます。最初の生成と保存したバージョンはこれとは別に残ります。");
         setValue(L.HELP_VERSION_HISTORY_PERMISSION, "ユーザーの本の履歴がパートごとに保持する最大バージョン数。空欄：管理者による制限なし。この権限がないユーザーは 50 件です。付与されていない権限は履歴を残しません。");
+        setValue(L.HELP_DAILY_GOAL, "統計カレンダーの目標（すべての本の合計）：1日に自分で書く単語数（生成分は含まない）と編集する分数。設定した目標をすべて達成した日が目標達成の連続日数に数えられます。空欄は目標なし。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

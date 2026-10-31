@@ -871,6 +871,16 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_GROWTH_WORDS, "增长（字数）");
         setValue(L.LABEL_GROWTH_TOKENS, "增长（令牌）");
         setValue(L.LABEL_COMMAND_GET_BOOK_STATISTICS, "书籍统计");
+        setValue(L.LABEL_STATISTICS_CALENDAR, "日历");
+        setValue(L.LABEL_STREAK_CURRENT, "当前连续天数");
+        setValue(L.LABEL_STREAK_LONGEST, "最长连续天数");
+        setValue(L.LABEL_STREAK_GOAL_CURRENT, "达成目标的连续天数");
+        setValue(L.LABEL_STREAK_GOAL_LONGEST, "达成目标的最长连续天数");
+        setValue(L.LABEL_DAYS_WORKED, "工作天数");
+        setValue(L.LABEL_DAILY_GOAL_WORDS, "每日目标：手写字数");
+        setValue(L.LABEL_DAILY_GOAL_MINUTES, "每日目标：编辑分钟数");
+        setValue(L.LABEL_LESS, "少");
+        setValue(L.LABEL_MORE, "多");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1496,6 +1506,12 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_STATISTICS_TIME_SINCE, "时间从 %s 开始记录；此前的日期不显示时间。");
         setValue(L.MSG_STATISTICS_RECONSTRUCTED, "其中 %d 天是根据段落的历史重建的（标有 ~）：这是估计值，令牌数只是下限。");
         setValue(L.MSG_STATISTICS_RECONSTRUCTED_DAY, "根据段落历史重建的估计值");
+        setValue(L.MSG_STATISTICS_CALENDAR_NOTE, "写了字、编辑、新建段落或花时间编辑的日子算作工作日；智能体的工作和仅仅打开书籍不计入。");
+        setValue(L.MSG_STATISTICS_CALENDAR_NONE, "%s – 无记录");
+        setValue(L.MSG_STATISTICS_CALENDAR_DAY, "%s – 手写 %s 字，编辑 %s");
+        setValue(L.MSG_STATISTICS_CALENDAR_LAST, "，最后活动于 %s");
+        setValue(L.MSG_GOAL_PROGRESS_WORDS, "今天：%s / %s 字");
+        setValue(L.MSG_GOAL_PROGRESS_MINUTES, "今天：编辑 %s / %s 分钟");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1593,6 +1609,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_MASS_RENAME, "选择重命名的方式并勾选书籍，“新名称”一列显示结果。编号按列表顺序对勾选的书籍计数；模式中的 {name} 是当前名称，{n} 是编号。有智能体正在处理的书籍显示为灰色，无法重命名。");
         setValue(L.HELP_HISTORY_MAX_VERSIONS, "历史为每个段落保留的版本数（回收站中的也计入）。留空：此层级不设限制。0：不保留历史。书、文件夹、您的设置和管理员的上限中最严格的一个生效。首次生成的版本和已保存的版本另外保留。");
         setValue(L.HELP_VERSION_HISTORY_PERMISSION, "用户书籍的历史为每个段落保留的最大版本数。留空：管理员不设限制。没有此权限的用户为 50；未授予的权限不保留历史。");
+        setValue(L.HELP_DAILY_GOAL, "统计日历的目标（所有书籍合计）：每天亲手写的字数（不含生成的）和编辑的分钟数。达到所有已设目标的日子计入目标连续天数。留空表示没有目标。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

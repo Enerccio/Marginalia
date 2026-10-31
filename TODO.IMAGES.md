@@ -11,6 +11,10 @@ Screenshots that show the photograph from Wikimedia Commons (*Harry Potter.jpg*,
 
 ## 1.6.0
 
+The writing statistics come from `shoot-statistics` (the dataset gets a year of history from `bin/seed-statistics.py` first): `statistics-book`,
+`statistics-time`, `statistics-calendar`, `statistics-global`, `statistics-global-calendar`, `phone-statistics`, `settings-daily-goal`;
+`settings-defaults` was retaken for the two goal fields.
+
 The screens of 1.6.0 come from the flow `shoot-folders` (see [`SCREENSHOTS.md`](screenshots/SCREENSHOTS.md)): `books-folders`, `folder-settings`,
 `organise-dialog`, `mass-change-model-protocol`, `mass-change-language`, `book-prompts-inherited`, `story-minimized-tabs`,
 `story-mass-delete`, `help-assistant-books`, `phone-folders`; the version history comes from `shoot-history` (`history-part-menu`, `history-dialog`,

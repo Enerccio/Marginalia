@@ -5,7 +5,9 @@ import com.github.enerccio.marginalia.domain.collections.StatisticSide;
 import com.github.enerccio.marginalia.domain.components.StatisticCounts;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
+import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.ManuscriptSizeService;
+import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptStatisticService;
 import com.github.enerccio.marginalia.domain.service.impl.ManuscriptSizeServiceImpl;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
@@ -44,6 +46,9 @@ class StatisticsViewTest extends MarginaliaTestBase {
 
     @Autowired
     private ManuscriptSizeService sizeService;
+
+    @Autowired
+    private SettingService settingService;
 
     // UI.setCurrent keeps a weak reference only
     private UI ui;
@@ -223,7 +228,7 @@ class StatisticsViewTest extends MarginaliaTestBase {
             range.setValue(next);
             for (StatisticSide who : StatisticSide.values()) {
                 side.setValue(who);
-                for (int i = 0; i < 7; i++) {
+                for (int i = 0; i < view.tabs().getTabCount(); i++) {
                     view.tabs().setSelectedIndex(i);
                     assertThat(view.tabs().getSelectedIndex()).isEqualTo(i);
                 }
@@ -239,4 +244,57 @@ class StatisticsViewTest extends MarginaliaTestBase {
         assertThat(StatisticsView.formatTime(24 * 3_600_000L)).isEqualTo("24:00");
     }
 
+    private static List<Div> squares(Component calendar) {
+        return find(calendar, Div.class).stream().filter(d -> d.getClassNames().contains("activity-calendar-day")).toList();
+    }
+
+    @Test
+    void theCalendarTabShowsTodayAsWorkedOnAndTheStreak() {
+        StatisticsDialog dialog = new StatisticsDialog(book);
+        dialog.create();
+        ActivityCalendarView calendar = view(dialog).calendar();
+
+        calendar.load();
+
+        List<Div> days = squares(calendar.calendar());
+        assertThat(days).isNotEmpty();
+        Div today = days.getLast();
+        assertThat(today.getClassNames()).contains("activity-calendar-today", "activity-calendar-level-4");
+        assertThat(today.getElement().getAttribute("title")).contains("120");
+        assertThat(days.subList(0, days.size() - 1)).allMatch(d -> d.getClassNames().contains("activity-calendar-level-0"));
+        assertThat(textOf(calendar.summary())).contains("1");
+        assertThat(calendar.goal().isVisible()).as("a book has no goal").isFalse();
+    }
+
+    @Test
+    void theCalendarOfAllTheBooksShowsTheProgressOfTheGoal() throws Exception {
+        UserSetting setting = settingService.getOrCreate(UserSetting.class);
+        setting.setDailyGoalWords(300);
+        setting.setDailyGoalMinutes(60);
+        settingService.save(setting);
+        GlobalStatisticsDialog dialog = new GlobalStatisticsDialog(_ -> {
+        });
+        dialog.create();
+        ActivityCalendarView calendar = view(dialog).calendar();
+
+        calendar.load();
+
+        assertThat(calendar.goal().isVisible()).isTrue();
+        assertThat(textOf(calendar.goal())).contains("150").contains("300").contains("60");
+        assertThat(find(calendar.goal(), com.vaadin.flow.component.progressbar.ProgressBar.class)).hasSize(2);
+        assertThat(find(calendar.goal(), com.vaadin.flow.component.progressbar.ProgressBar.class).getFirst().getValue()).isEqualTo(0.5);
+        assertThat(textOf(calendar.summary())).contains("Goal streak");
+    }
+
+    @Test
+    void thePhoneCalendarReachesBackFewerWeeks() {
+        PhoneStatisticsDialog phone = new PhoneStatisticsDialog(book);
+        phone.create();
+        StatisticsDialog desktop = new StatisticsDialog(book);
+        desktop.create();
+        view(phone).calendar().load();
+        view(desktop).calendar().load();
+
+        assertThat(squares(view(phone).calendar().calendar()).size()).isLessThan(squares(view(desktop).calendar().calendar()).size());
+    }
 }

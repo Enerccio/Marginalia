@@ -9,6 +9,8 @@ import com.github.enerccio.marginalia.domain.components.StatisticCounts;
 import com.github.enerccio.marginalia.domain.components.StatisticFilter;
 import com.github.enerccio.marginalia.domain.components.StatisticReport;
 import com.github.enerccio.marginalia.domain.components.StatisticReport.BookLine;
+import com.github.enerccio.marginalia.domain.components.WritingActivity;
+import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.ManuscriptSizeServiceImpl;
@@ -51,6 +53,9 @@ class StatisticReportServiceTest extends MarginaliaTestBase {
 
     @Autowired
     private ManuscriptService manuscriptService;
+
+    @Autowired
+    private SettingService settingService;
 
     private Manuscript book;
     private Manuscript other;
@@ -225,4 +230,89 @@ class StatisticReportServiceTest extends MarginaliaTestBase {
         assertThat(report.sizes()).hasSize(1);
     }
 
+    // ---- the days worked on (the calendar and the streaks)
+
+    @Test
+    void theActivityHasTheDaysTheAuthorWorkedOnAndNotTheAgentsOrTheOpenTime() throws Exception {
+        statisticService.count(book, StatisticCounts.wordsWritten(100));
+        setDay(DAY.minusDays(1));
+        statisticService.count(book, true, StatisticCounts.wordsWritten(900).plus(StatisticCounts.partsCreated(4)));
+        setDay(DAY.minusDays(2));
+        statisticService.count(other, StatisticCounts.wordsGenerated(300));
+        setDay(DAY.minusDays(3));
+        stretch(book, ActivityKind.OPEN, false, DAY.minusDays(3), 9, 0, 60);
+        stretch(book, ActivityKind.EDIT, false, DAY.minusDays(4), 9, 0, 20);
+        setDay(DAY);
+
+        WritingActivity activity = reportService.activity(null);
+
+        assertThat(activity.today()).isEqualTo(DAY);
+        assertThat(activity.days().keySet()).containsExactly(DAY.minusDays(4), DAY);
+        assertThat(activity.day(DAY).wordsWritten()).isEqualTo(100);
+        assertThat(activity.day(DAY.minusDays(4)).editMillis()).isEqualTo(20 * MINUTE);
+        assertThat(activity.currentStreak()).isEqualTo(1);
+    }
+
+    @Test
+    void theActivityOfABookIsThatBooksAndTheEditingTimesAreTheirUnion() throws Exception {
+        statisticService.count(book, StatisticCounts.edits(1));
+        statisticService.count(other, StatisticCounts.wordsWritten(40));
+        stretch(other, ActivityKind.EDIT, false, DAY, 9, 0, 30);
+        stretch(other, ActivityKind.EDIT, false, DAY, 9, 20, 30);
+        stretch(book, ActivityKind.EDIT, false, DAY.minusDays(1), 10, 0, 15);
+
+        WritingActivity ofBook = reportService.activity(book.getUuid());
+        WritingActivity all = reportService.activity(null);
+
+        assertThat(ofBook.days().keySet()).containsExactly(DAY.minusDays(1), DAY);
+        assertThat(ofBook.day(DAY).wordsWritten()).isZero();
+        assertThat(ofBook.day(DAY).editMillis()).isZero();
+        assertThat(all.day(DAY).wordsWritten()).isEqualTo(40);
+        assertThat(all.day(DAY).editMillis()).as("the stretches overlap").isEqualTo(50 * MINUTE);
+        assertThat(all.currentStreak()).isEqualTo(2);
+    }
+
+    @Test
+    void theLastActivityOfADayIsTheLaterOfTheLastChangeAndTheEndOfTheLastStretch() throws Exception {
+        statisticService.count(book, StatisticCounts.wordsWritten(10));
+        stretch(book, ActivityKind.EDIT, false, DAY.minusDays(1), 22, 10, 30);
+
+        WritingActivity activity = reportService.activity(null);
+
+        assertThat(activity.day(DAY).lastActivity()).isNotNull();
+        assertThat(activity.day(DAY.minusDays(1)).lastActivity()).isEqualTo(Date.from(at(DAY.minusDays(1), 22, 40)));
+    }
+
+    @Test
+    void theGoalIsTheUsersAndOnlyForAllTheBooks() throws Exception {
+        UserSetting setting = settingService.getOrCreate(UserSetting.class);
+        setting.setDailyGoalWords(80);
+        setting.setDailyGoalMinutes(null);
+        settingService.save(setting);
+        statisticService.count(book, StatisticCounts.wordsWritten(100));
+
+        WritingActivity all = reportService.activity(null);
+        WritingActivity ofBook = reportService.activity(book.getUuid());
+
+        assertThat(all.goal().words()).isEqualTo(80);
+        assertThat(all.goal().minutes()).isZero();
+        assertThat(all.currentGoalStreak()).isEqualTo(1);
+        assertThat(ofBook.goal().isSet()).isFalse();
+        assertThat(ofBook.currentGoalStreak()).isZero();
+    }
+
+    @Test
+    void aRebuiltDayIsFlaggedInTheActivity() throws Exception {
+        statisticService.count(book, StatisticCounts.wordsWritten(10));
+        statisticService.findRange(filter(DAY, DAY, StatisticSide.AUTHOR)).forEach(row -> {
+            row.setReconstructed(true);
+            try {
+                statisticService.save(row);
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
+        });
+
+        assertThat(reportService.activity(null).day(DAY).reconstructed()).isTrue();
+    }
 }
