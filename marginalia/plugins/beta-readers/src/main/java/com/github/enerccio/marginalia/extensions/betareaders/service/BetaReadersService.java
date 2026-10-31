@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.extensions.betareaders.service;
 
 import com.github.enerccio.marginalia.domain.model.impl.AI;
+import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
@@ -11,10 +12,13 @@ import com.github.enerccio.marginalia.extensions.betareaders.model.BetaReadersSe
 import com.github.enerccio.marginalia.extensions.betareaders.model.BetaReadersTemplateData;
 import com.github.enerccio.marginalia.extensions.betareaders.model.BookData;
 import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersStore.Available;
+import com.github.enerccio.marginalia.extensions.betareaders.service.PartsTracker.StoryPart;
+import com.github.enerccio.marginalia.extensions.betareaders.service.PartsTracker.Summaries;
 import com.google.gson.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,6 +42,12 @@ public class BetaReadersService {
 
     @Autowired
     private TemplateService templateService;
+
+    @Autowired
+    private ChatMessageService chatMessageService;
+
+    @Autowired
+    private SummaryService summaryService;
 
     /**
      * The settings of the user. The first time there are none, the defaults (the starter personas and the built-in mediums) are stored,
@@ -130,6 +140,48 @@ public class BetaReadersService {
         BetaReadersTemplateData data = new BetaReadersTemplateData();
         data.setMedium(medium);
         return templateService.processTemplate(template, "betaReadersPrompt", data);
+    }
+
+    /**
+     * The story as the personas can read it now.
+     *
+     * @param parts     the parts of the active branch (the empty ones are left to the tracker), first to last, numbered from 1
+     * @param summaries the summaries that stand for the first parts; none unless asked for
+     */
+    public record Story(List<StoryPart> parts, Summaries summaries) {
+    }
+
+    /**
+     * The active branch of the book as it is stored now.
+     *
+     * @param maxNumber     the last part the personas may read (the spoiler limit), 0 for no limit; the summaries are gathered from
+     *                      the story up to it, so none tells what comes after
+     * @param withSummaries whether the summaries are gathered (the first message of a chat needs them, the count of new parts does
+     *                      not)
+     */
+    public Story loadStory(Manuscript manuscript, int maxNumber, boolean withSummaries) throws Exception {
+        Manuscript current = manuscriptService.find(manuscript);
+        ChatMessage leaf = current != null && current.getActiveLeaf() != null ? chatMessageService.find(current.getActiveLeaf()) : null;
+        List<ChatMessage> branch = leaf != null ? chatMessageService.getBranchFromLeaf(leaf) : List.of();
+
+        List<StoryPart> parts = new ArrayList<>();
+        for (int i = 0; i < branch.size(); i++) {
+            parts.add(new StoryPart(String.valueOf(branch.get(i).getId()), i + 1, branch.get(i).getResponse()));
+        }
+        if (!withSummaries) {
+            return new Story(parts, Summaries.NONE);
+        }
+
+        // the summaries of the story as a generation gathers them: oldest first, a meta summary in place of the ones it merged; one
+        // whose story was changed since it was made is left out
+        List<ChatMessage> readable = maxNumber > 0 && maxNumber < branch.size() ? branch.subList(0, maxNumber) : branch;
+        List<SummaryService.SummaryBlock> blocks = summaryService.collectBlocks(new ArrayList<>(readable.reversed())).stream()
+                .filter(SummaryService.SummaryBlock::isValid).toList();
+        if (blocks.isEmpty()) {
+            return new Story(parts, Summaries.NONE);
+        }
+        List<String> texts = blocks.reversed().stream().map(block -> block.summary().getSummary()).toList();
+        return new Story(parts, new Summaries(texts, String.valueOf(blocks.getFirst().head().getId())));
     }
 
     /**

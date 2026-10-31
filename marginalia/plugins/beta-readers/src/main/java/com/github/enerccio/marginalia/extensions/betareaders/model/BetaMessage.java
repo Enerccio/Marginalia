@@ -26,6 +26,12 @@ public class BetaMessage {
     /** USER: the parts the message sent. What a chat has sent is the union of these. */
     private List<SentPart> sentParts = new ArrayList<>();
 
+    /**
+     * USER: the parts the chat had been sent that were not in the story any more when this message was sent (the branch was changed);
+     * they are not counted as sent from this message on.
+     */
+    private List<String> goneParts = new ArrayList<>();
+
     /** JOIN, LEAVE: the persona (uuid and the name it had). */
     private String personaUuid;
     private String personaName;
@@ -127,6 +133,14 @@ public class BetaMessage {
         this.sentParts = sentParts;
     }
 
+    public List<String> getGoneParts() {
+        return goneParts;
+    }
+
+    public void setGoneParts(List<String> goneParts) {
+        this.goneParts = goneParts;
+    }
+
     public String getPersonaUuid() {
         return personaUuid;
     }
@@ -175,6 +189,7 @@ public class BetaMessage {
         text = text == null ? "" : text;
         context = context == null ? "" : context;
         sentParts = sentParts == null ? new ArrayList<>() : sentParts;
+        goneParts = goneParts == null ? new ArrayList<>() : goneParts;
         reasoning = reasoning == null ? "" : reasoning;
         rawText = rawText == null ? "" : rawText;
         spoken = spoken == null ? new ArrayList<>() : spoken;
