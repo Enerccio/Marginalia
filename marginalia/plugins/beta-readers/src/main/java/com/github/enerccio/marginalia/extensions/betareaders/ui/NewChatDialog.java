@@ -4,7 +4,6 @@ import com.github.enerccio.marginalia.extensions.InheritedSetting.Choice;
 import com.github.enerccio.marginalia.extensions.betareaders.model.BetaChat;
 import com.github.enerccio.marginalia.extensions.betareaders.model.ChatKind;
 import com.github.enerccio.marginalia.extensions.betareaders.model.Medium;
-import com.github.enerccio.marginalia.extensions.betareaders.model.ReplyFormat;
 import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersStore.Available;
 import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersStore.Scope;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
@@ -13,13 +12,11 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.CheckboxGroup;
 import com.vaadin.flow.component.checkbox.CheckboxGroupVariant;
-import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
-import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextField;
 
 import java.util.List;
@@ -35,12 +32,6 @@ import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersL
  */
 public class NewChatDialog extends Dialog {
 
-    /**
-     * What the chat gets when it chooses nothing, as the text shown in the empty field ("Inherited: ...").
-     */
-    public record Inherited(String medium, String ai, String protocol) {
-    }
-
     private static final int TITLE_LENGTH = 40;
 
     private final Consumer<BetaChat> onCreate;
@@ -49,10 +40,7 @@ public class NewChatDialog extends Dialog {
     final TextField title = new TextField(T.localized("Title"));
     final RadioButtonGroup<Available> singlePersona = new RadioButtonGroup<>(T.localized("Persona"));
     final CheckboxGroup<Available> groupPersonas = new CheckboxGroup<>(T.localized("Personas"));
-    final ComboBox<Medium> medium = new ComboBox<>(T.localized("Medium"));
-    final ComboBox<Choice> ai = new ComboBox<>(T.localized("Model"));
-    final ComboBox<Choice> protocol = new ComboBox<>(T.localized("Protocol"));
-    final Select<ReplyFormat> format = new Select<>();
+    final ChatOptionsForm options;
     final Button create = new Button(T.localized("Create"));
 
     /**
@@ -60,7 +48,7 @@ public class NewChatDialog extends Dialog {
      * @param onCreate told with the new chat, which has copies of the personas chosen
      */
     public NewChatDialog(List<Available> personas, List<Medium> mediums, List<Choice> ais, List<Choice> protocols,
-                         Inherited inherited, Consumer<BetaChat> onCreate) {
+                         ChatOptionsForm.Inherited inherited, Consumer<BetaChat> onCreate) {
         this.onCreate = onCreate;
         setHeaderTitle(T.localized("New chat"));
         setWidth("460px");
@@ -87,34 +75,9 @@ public class NewChatDialog extends Dialog {
         groupPersonas.setItemLabelGenerator(NewChatDialog::label);
         groupPersonas.addThemeVariants(CheckboxGroupVariant.LUMO_VERTICAL);
 
-        medium.setItems(mediums);
-        medium.setItemLabelGenerator(Medium::getName);
-        medium.setClearButtonVisible(true);
-        medium.setWidthFull();
-        medium.setPlaceholder(inheritedText(inherited.medium()));
-
-        ai.setItems(ais);
-        ai.setItemLabelGenerator(Choice::label);
-        ai.setClearButtonVisible(true);
-        ai.setWidthFull();
-        ai.setPlaceholder(inheritedText(inherited.ai()));
-
-        protocol.setItems(protocols);
-        protocol.setItemLabelGenerator(Choice::label);
-        protocol.setClearButtonVisible(true);
-        protocol.setWidthFull();
-        protocol.setPlaceholder(inheritedText(inherited.protocol()));
-
-        format.setLabel(T.localized("Reply format"));
-        format.setItems(ReplyFormat.AUTO, ReplyFormat.JSON, ReplyFormat.TEXT);
-        format.setItemLabelGenerator(NewChatDialog::label);
-        format.setValue(ReplyFormat.AUTO);
-        format.setWidthFull();
-        format.setHelperText(T.localized("Automatic asks for JSON when the model can follow a schema, free text otherwise"));
+        options = new ChatOptionsForm(mediums, ais, protocols, inherited);
 
         // what a chat may choose for itself is out of the way: most chats inherit all of it
-        VerticalLayout options = new VerticalLayout(medium, ai, protocol, format);
-        options.setPadding(false);
         Details optionsSection = new Details(T.localized("Medium, model and format"), options);
 
         VerticalLayout content = new VerticalLayout(kind, kindHint, title, singlePersona, groupPersonas, optionsSection);
@@ -135,21 +98,9 @@ public class NewChatDialog extends Dialog {
         groupPersonas.setVisible(!single);
     }
 
-    private static String inheritedText(String value) {
-        return T.localized("Inherited: %s").formatted(value == null || value.isBlank() ? T.localized("none") : value);
-    }
-
     private static String label(Available available) {
         String name = available.persona().getName();
         return available.scope() == Scope.BOOK ? name + " (" + T.localized("this book") + ")" : name;
-    }
-
-    private static String label(ReplyFormat format) {
-        return switch (format) {
-            case AUTO -> T.localized("Automatic");
-            case JSON -> T.localized("JSON");
-            case TEXT -> T.localized("Free text");
-        };
     }
 
     /**
@@ -177,10 +128,10 @@ public class NewChatDialog extends Dialog {
             name = defaultTitle(personas.stream().map(available -> available.persona().getName()).toList());
         }
         BetaChat chat = new BetaChat(name, kind.getValue());
-        chat.setFormat(format.getValue() == null ? ReplyFormat.AUTO : format.getValue());
-        chat.setMedium(medium.getValue() == null ? null : medium.getValue().getId());
-        chat.setAi(ai.getValue() == null ? null : ai.getValue().id());
-        chat.setProtocol(protocol.getValue() == null ? null : protocol.getValue().id());
+        chat.setFormat(options.replyFormat());
+        chat.setMedium(options.mediumId());
+        chat.setAi(options.aiId());
+        chat.setProtocol(options.protocolId());
         personas.forEach(available -> chat.addPersona(available.persona()));
         close();
         onCreate.accept(chat);

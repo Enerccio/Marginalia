@@ -164,8 +164,16 @@ Build before every step: `mvn install -DskipTests` in `marginalia/` (the plugin 
   is written. The fake model of the screenshots answers the personas (`betaReaders` in `dataset/plugins.mjs`, `betaRule`); the flow
   `plugin-betareaders.mjs` sends three messages and checks the reply, the parts sent, the context counter and that the conversation is kept.
   Tests: `BetaMessageCardTest`. Not done: the wait for the first token has no indicator.
-- 7c: regenerate the last reply, edit a user message, delete messages, add / remove a persona (the dialog that asks for the
-  "prompt" and inserts the line), *Update from the library*.
+- 7c (done): the cards have buttons (`BetaMessageCard.Actions`): edit and delete on your message, delete on every message of a turn and on a line
+  (joined, left, medium), *Regenerate* under the last turn, *Ask again* under a question without a reply (not after a joined / left / medium
+  line); the buttons are hidden while a reply is written. The personas section of the panel (it scrolls) has *Update from the library* (the
+  description and icon of the copy, the name stays; `BetaReadersService.refreshPersona` takes the persona by uuid, else by name), *Send away* and
+  *Bring in a persona* (`PresenceDialog`: which persona, and a note for the group). `ChatEdits.changeMedium` and the new line kind `MEDIUM`
+  (the prompt says "[From now on the text is read as: ...]"); *Chat settings* in the menu of the tab (`ChatSettingsDialog`, the fields shared with
+  `NewChatDialog` in `ChatOptionsForm`). The messages of a chat are a `CopyOnWriteArrayList`, so the panel can draw them while a reply is added on
+  another thread. Tests: `ChatEditsTest`, `BetaMessageCardTest`, `PresenceDialogTest`; the flow `plugin-betareaders.mjs` edits, deletes,
+  regenerates, brings a persona in, sends one away, updates one, changes the medium and checks the request the model got (the join and leave lines,
+  the roster of the personas that are there).
 
 **Step 8 - the spoiler limit and the context options.** The limit (a part of the active branch) in the tab, the range of parts of the
 first message, the display of what the personas have read; the phone layout checked.
@@ -182,7 +190,7 @@ below ticked.
 - [x] Inherited settings (`InheritedSettingRegistry`): single-persona prompt, group prompt, medium (a choice), the AI and the
   protocol (two choices listing the AIs and the protocols of the user, stored by uuid; an AI or protocol that is gone counts as not
   set and the book's is used); `userValue` from the settings panel, `fallback` the built-in default.
-- [ ] Medium: what the text stands for (book, movie, TV series, manga/comic, audio drama, stage play, game / visual novel...). Each
+- [x] Medium: what the text stands for (book, movie, TV series, manga/comic, audio drama, stage play, game / visual novel...). Each
   medium has a name and a prompt fragment that goes into both prompts (`{{medium}}`); a small library with defaults that the user
   can edit and extend. A chat can override it; changing it in a chat leaves a line in the history ("now read as: manga").
 
@@ -190,12 +198,12 @@ below ticked.
 
 - [x] Persona: name, icon, description (the name and the title, like "Athena - The Analytical Archivist", are part of the name and
   the description). Without an icon: a circle with the first letters of the name, as the `TabDock` tabs have.
-- [ ] A chat stores a copy of its personas; *Update from the library* in the chat (optional) takes the current definition.
+- [x] A chat stores a copy of its personas; *Update from the library* in the chat (optional) takes the current definition.
 - [x] Storage of the library (user settings) and of book-local personas (attributes of the book).
 - [x] Editor: create, edit, copy, delete, reorder personas.
 - [x] Ready-made starter personas the user can copy (the library starts with six; *Add the starter personas* adds the missing ones).
 - [ ] Generate a persona from a short description with the model.
-- [ ] Global per user (done, the library) + create persona in book (the same window with the book as its list, step 7a)
+- [x] Global per user (done, the library) + create persona in book (the same window with the book as its list, step 7a)
 - [x] Small icon (saved as same as character-tracker; uploading it is the persona dialog of step 2)
 
 ## Chat
@@ -203,32 +211,32 @@ below ticked.
 (The logic of most of these is done in steps 3-6; an item is ticked when a user can do it, which is the UI of step 7.)
 
 - [x] Chat tabs: new chat (1v1 with one persona, or group chat with chosen personas), rename, close and delete; stored with the book.
-- [ ] Per tab: the AI and the protocol to use instead of the inherited ones (empty: inherited, shown as the placeholder with where it
+- [x] Per tab: the AI and the protocol to use instead of the inherited ones (empty: inherited, shown as the placeholder with where it
   comes from, like the fields of the settings dialogs); changing it takes effect with the next message. (Choosing it when the chat is
   started is done in 7a; changing it afterwards, in 7c.)
 - [x] Chat panel with streaming answers and a stop button.
-- [ ] **Regenerate the last reply** (button): drops the last turn and asks again; the roster is built again and the parts sent by the
+- [x] **Regenerate the last reply** (button): drops the last turn and asks again; the roster is built again and the parts sent by the
   message before it stay sent.
-- [ ] **Edit a user message** in the history, and **delete messages** (a user message, or one message of a turn: the turn keeps the
+- [x] **Edit a user message** in the history, and **delete messages** (a user message, or one message of a turn: the turn keeps the
   rest and is sent back to the model as the JSON without the deleted one). What was sent with a deleted or edited message is
   recomputed from the messages that are left (see *New parts*).
 - [x] The reasoning of a turn as collapsed details above its messages; the messages of the turn below it, each with the icon and
   the name of its speaker, the narrator without an icon.
-- [ ] Choose the personas that take part; address one by name; let the others answer in turn.
+- [x] Choose the personas that take part; address one by name; let the others answer in turn.
 - [ ] What the personas know about the book: lorebook, summaries, a range of parts, the part the user is reading.
 - [ ] Spoiler limit: a persona reads only up to a chosen part.
-- [ ] History of the conversations, saved with the book; clear and delete.
+- [x] History of the conversations, saved with the book; clear and delete.
 - [x] Token budget of the context, shown to the user.
-- [ ] Option to use json schema or freefall
+- [x] Option to use json schema or freefall
 - [x] Json schema output. Preliminary structure (the `speaker` is restricted to the names present plus `Narrator`, built per request):
   `{"reasoning": "...", "messages": [{"speaker": "Athena", "parts": [{"type": "action" | "speech", "text": "..."}]}, ...]}`
   - the narrator describes the scene, the personas speak and act (body expressions), the parts of a message are interleaved.
 - [x] Reading a reply while it streams (`PartialJson`): show the messages that are finished, hide the one being written, ignore the
   rest of a broken reply but keep what was read; a reply that is not JSON at all is shown as text.
 - [x] The roster in the last user message (not saved): names and descriptions of the personas present, and who may speak.
-- [ ] Prompt should encourage interaction between personas
-- [ ] A group chat is an interleaved chat between the defined personas, a 1v1 chat is a chat with the one persona (the 1v1 prompt).
-- [ ] If the user adds / removes a persona (group chat only), it is done via a special button interaction that prompts the user for a
+- [x] Prompt should encourage interaction between personas
+- [x] A group chat is an interleaved chat between the defined personas, a 1v1 chat is a chat with the one persona (the 1v1 prompt).
+- [x] If the user adds / removes a persona (group chat only), it is done via a special button interaction that prompts the user for a
   "prompt" and inserts an interleaved user message telling the model that the persona joined / left (a saved line of the history);
   the persona is added to (or removed from) the roster of the last user message, and the chat stores a copy of it.
 
@@ -242,14 +250,14 @@ below ticked.
   history and is not marked.
 - [x] The first message of a chat has nothing sent yet: with the box checked it sends the context (summaries, then parts after the
   newest summary, within the token budget, like the Reviewer's *With summaries*), up to the spoiler limit.
-- [ ] Switching the branch: compare with the common part of both branches; parts of the other branch count as changed.
+- [x] Switching the branch: compare with the common part of both branches; parts of the other branch count as changed.
 - [x] A line in the chat where parts were sent ("parts 41-43 sent"), so it is visible what the personas have read.
 - [ ] If the history and the new parts do not fit the token limit, the context is built again (summaries and the latest parts) and the
   history is trimmed.
 
 ## Plugin basics
 
-- [ ] Localization (`BetaReadersLocalization`, ja/zh entries).
+- [x] Localization (`BetaReadersLocalization`, ja/zh entries).
 - [ ] README, user manual page (`manual/user/extensions/beta-readers.md`), developer notes if needed.
 - [ ] Entry in the plugin list of `marginalia/plugins/README.md`, `CHANGELOG.MD` entry when it does something.
-- [ ] Tests for the service (prompt building, storage of personas, the new-parts diff).
+- [x] Tests for the service (prompt building, storage of personas, the new-parts diff).

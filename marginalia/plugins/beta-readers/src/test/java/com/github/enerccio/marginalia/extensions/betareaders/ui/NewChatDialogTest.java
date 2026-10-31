@@ -49,7 +49,7 @@ class NewChatDialogTest {
     private NewChatDialog dialog() {
         return new NewChatDialog(List.of(athena, vesper, mara), List.of(new Medium("manga", "Manga", "p")),
                 List.of(new Choice("ai-1", "Big model")), List.of(new Choice("pr-1", "Cold")),
-                new NewChatDialog.Inherited("Book", "Model of the book", null), created::add);
+                new ChatOptionsForm.Inherited("Book", "Model of the book", null), created::add);
     }
 
     private static void create(NewChatDialog dialog) {
@@ -126,9 +126,9 @@ class NewChatDialogTest {
         assertNull(chat.getAi());
         assertNull(chat.getProtocol());
         assertEquals(ReplyFormat.AUTO, chat.getFormat());
-        assertEquals("Inherited: Book", dialog.medium.getPlaceholder());
-        assertEquals("Inherited: Model of the book", dialog.ai.getPlaceholder());
-        assertEquals("Inherited: none", dialog.protocol.getPlaceholder());
+        assertEquals("Inherited: Book", dialog.options.medium.getPlaceholder());
+        assertEquals("Inherited: Model of the book", dialog.options.ai.getPlaceholder());
+        assertEquals("Inherited: none", dialog.options.protocol.getPlaceholder());
     }
 
     @Test
@@ -136,10 +136,10 @@ class NewChatDialogTest {
         NewChatDialog dialog = dialog();
         dialog.groupPersonas.select(athena);
         dialog.title.setValue("  Chapter 3  ");
-        dialog.medium.setValue(new Medium("manga", "Manga", "p"));
-        dialog.ai.setValue(new Choice("ai-1", "Big model"));
-        dialog.protocol.setValue(new Choice("pr-1", "Cold"));
-        dialog.format.setValue(ReplyFormat.TEXT);
+        dialog.options.medium.setValue(new Medium("manga", "Manga", "p"));
+        dialog.options.ai.setValue(new Choice("ai-1", "Big model"));
+        dialog.options.protocol.setValue(new Choice("pr-1", "Cold"));
+        dialog.options.format.setValue(ReplyFormat.TEXT);
 
         create(dialog);
 

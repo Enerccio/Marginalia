@@ -88,3 +88,27 @@
     font-style: italic;
     color: var(--lumo-secondary-text-color);
 }
+
+/* The buttons at the end of a message or of a persona, out of the way while the model writes */
+.beta-readers-actions {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--lumo-space-xs);
+    margin-left: auto;
+}
+
+.beta-readers-busy .beta-readers-actions {
+    display: none;
+}
+
+.beta-readers-headline {
+    display: flex;
+    align-items: center;
+    gap: var(--lumo-space-s);
+}
+
+.beta-readers-personas {
+    max-height: 14rem;
+    overflow-y: auto;
+}

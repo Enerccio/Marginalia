@@ -16,6 +16,7 @@ import com.github.enerccio.marginalia.extensions.betareaders.model.BetaReadersTe
 import com.github.enerccio.marginalia.extensions.betareaders.model.BookData;
 import com.github.enerccio.marginalia.extensions.betareaders.model.ChatKind;
 import com.github.enerccio.marginalia.extensions.betareaders.model.Medium;
+import com.github.enerccio.marginalia.extensions.betareaders.model.Persona;
 import com.github.enerccio.marginalia.extensions.betareaders.model.ReplyFormat;
 import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersStore.Available;
 import com.github.enerccio.marginalia.extensions.betareaders.service.PartsTracker.Plan;
@@ -293,6 +294,34 @@ public class BetaReadersService {
     static Medium findMedium(BetaReadersSettings settings, String id) {
         return java.util.stream.Stream.concat(settings.getMediums().stream(), BetaReadersDefaults.builtInMediums().stream())
                 .filter(medium -> medium.getId().equals(id)).findFirst().orElse(null);
+    }
+
+    /**
+     * Takes the current definition of a persona of the chat from the book or the library (the one with its uuid, else the one with its
+     * name; the one of the book wins) into the chat's copy.
+     *
+     * @return whether there is such a persona in the book or the library
+     */
+    public boolean refreshPersona(Manuscript manuscript, BetaChat chat, String uuid) throws Exception {
+        Persona copy = chat.getPersonas().stream().map(member -> member.getPersona()).filter(persona -> persona.getUuid().equals(uuid))
+                .findFirst().orElse(null);
+        if (copy == null) {
+            return false;
+        }
+        List<Available> available = available(manuscript);
+        Persona source = available.stream().map(Available::persona).filter(persona -> persona.getUuid().equals(uuid)).findFirst()
+                .orElseGet(() -> available.stream().map(Available::persona)
+                        .filter(persona -> BetaReadersStore.nameKey(persona.getName()).equals(BetaReadersStore.nameKey(copy.getName())))
+                        .findFirst().orElse(null));
+        if (source == null) {
+            return false;
+        }
+        // a persona found by its name is another one with the same name: the copy keeps its identity
+        Persona fresh = source.copy();
+        fresh.setUuid(uuid);
+        ChatEdits.refresh(chat, fresh);
+        saveChat(manuscript, chat);
+        return true;
     }
 
     /**

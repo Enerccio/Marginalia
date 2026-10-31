@@ -112,6 +112,45 @@ public final class ChatEdits {
         chat.getMessages().add(BetaMessage.left(leaving, note));
     }
 
+    /**
+     * Changes the medium of the chat; the history gets a line that says so, because what was said before was said about the old one.
+     * Nothing happens when the medium stays the same.
+     *
+     * @param id           the id of the medium the chat chooses; null or blank for the inherited one
+     * @param effectiveName the name of the medium the chat reads the text as after the change (the inherited one when {@code id} is empty)
+     * @return whether the medium was changed
+     */
+    public static boolean changeMedium(BetaChat chat, String id, String effectiveName) {
+        String now = id == null || id.isBlank() ? null : id;
+        if (java.util.Objects.equals(now, chat.getMedium())) {
+            return false;
+        }
+        chat.setMedium(now);
+        if (!chat.getMessages().isEmpty()) {
+            BetaMessage line = BetaMessage.user(effectiveName == null ? "" : effectiveName);
+            line.setKind(MessageKind.MEDIUM);
+            chat.getMessages().add(line);
+        }
+        return true;
+    }
+
+    /**
+     * Takes the current definition of a persona (its description and icon) into the copy the chat keeps. The name stays: the messages
+     * the persona said are in the history under it.
+     *
+     * @return whether the chat has a copy of the persona
+     */
+    public static boolean refresh(BetaChat chat, Persona source) {
+        for (var member : chat.getPersonas()) {
+            if (member.getPersona().getUuid().equals(source.getUuid())) {
+                member.getPersona().setDescription(source.getDescription());
+                member.getPersona().setIcon(source.getIcon());
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static void requireGroup(BetaChat chat) {
         if (chat.getKind() != ChatKind.GROUP) {
             throw new IllegalStateException("Personas join and leave a group chat only");

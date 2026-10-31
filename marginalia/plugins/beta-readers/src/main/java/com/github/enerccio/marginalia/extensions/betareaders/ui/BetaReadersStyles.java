@@ -23,6 +23,8 @@ public final class BetaReadersStyles {
     public static final String TOP = "beta-readers-top";
     /** A persona of a chat in the panel of the chat: its icon and its text. */
     public static final String PERSONA = "beta-readers-persona";
+    /** The list of the personas of a chat: it scrolls, so a long list leaves room for the conversation. */
+    public static final String PERSONAS = "beta-readers-personas";
     public static final String PERSONA_LEFT = "beta-readers-persona-left";
     /** A message of the user. */
     public static final String USER = "beta-readers-user";
@@ -35,6 +37,12 @@ public final class BetaReadersStyles {
     /** The space where the icon of a speaker would be, so the narrator lines up with the personas. */
     public static final String NO_ICON = "beta-readers-no-icon";
     public static final String ACTION = "beta-readers-action";
+    /** A row of small buttons (edit, delete...) at the end of a message; hidden while a reply is being written. */
+    public static final String ACTIONS = "beta-readers-actions";
+    /** Put on the panel of a chat while a reply is being written. */
+    public static final String BUSY = "beta-readers-busy";
+    /** A line with a name at the start and buttons at the end. */
+    public static final String HEADLINE = "beta-readers-headline";
     public static final String TEXT = "beta-readers-text";
 
     private static final String RESOURCE = "/betareaders.css";

@@ -1,6 +1,6 @@
 // Beta Readers: the tab of the chats in the story sidebar (empty, the new chat window, two chats, the menu, rename, close and reopen,
 // the personas of the book, delete). It makes chats, so run it on a copy of the state (22-arcoutline) that is thrown away.
-import {bookTab, dialog, idle, login, main, menuItem, openBook, press, sleep, snap, snapDialog, field} from '../lib/shot.mjs';
+import {bookTab, dialog, idle, login, main, menuItem, openBook, pick, press, sleep, snap, snapDialog, field} from '../lib/shot.mjs';
 import {sideTab, widenSidebar} from '../lib/story.mjs';
 import {betaReaders} from '../dataset/plugins.mjs';
 
@@ -62,6 +62,74 @@ await main(async ({ page }) => {
   await sleep(600);
   expect(await page.getByText('Parts ', { exact: false }).filter({ hasText: 'sent' }).count() === 1, 'the second message sent no parts');
   await snap(page, '_br-chat-second');
+
+  // editing and deleting what was said, and asking again
+  const confirm = async () => { await press(dialog(page), 'Yes', { exact: false }).catch(async () => press(dialog(page), 'Confirm', { exact: false })); await sleep(700); };
+  const button = label => page.locator(`vaadin-button[aria-label="${label}"]`);
+  await snap(page, '_br-chat-actions');
+  await button('Edit message').first().click();
+  await idle(page, 600);
+  await dialog(page).locator('textarea').first().fill('Be honest: does the first chapter hook you at all?');
+  await dialog(page).locator('textarea').first().dispatchEvent('change');
+  await press(dialog(page), 'Save');
+  await sleep(600);
+  expect(await page.getByText('hook you at all?', { exact: false }).count() === 1, 'a message of the user is edited');
+  await button('Delete message').nth(1).click();   // the first is the delete button of the user card, the second is Athena's
+  await confirm();
+  expect(await page.getByText('quiet, confident opening', { exact: false }).count() === 0, 'one message of a turn is deleted');
+  expect(await page.getByText('I would cut the weather', { exact: false }).count() === 1, 'the rest of the turn stays');
+  await page.getByRole('button', { name: 'Regenerate', exact: true }).click();
+  await page.getByText('Let the motives show', { exact: false }).first().waitFor({ timeout: 30000 });
+  await sleep(800);
+  expect(await page.getByText('Let the motives show', { exact: false }).count() === 1, 'the last reply is asked for again, and there is one');
+  expect(await page.getByRole('button', { name: 'Regenerate', exact: true }).count() === 1, 'only the last turn can be regenerated');
+  await button('Delete message').first().click();   // the first message of the user sent the story
+  await confirm();
+  expect(await page.getByText('Parts 1-5 sent').count() === 0, 'the message that sent the story is deleted');
+  expect(await page.getByText('Include the story (5 parts)').count() === 1, 'the story is to be sent again');
+
+  // personas join and leave, are updated from the library
+  await page.getByText('Personas (2)', { exact: true }).click();
+  await sleep(400);
+  await snap(page, '_br-personas');
+  await page.getByRole('button', { name: 'Bring in a persona' }).click();
+  await idle(page, 600);
+  await pick(dialog(page), 'Persona', 'Nox');
+  await dialog(page).locator('textarea').first().fill('Nox has read ahead and is not telling.');
+  await dialog(page).locator('textarea').first().dispatchEvent('change');
+  await snapDialog(page, '_br-bring-in');
+  await press(dialog(page), 'Bring in');
+  await sleep(700);
+  expect(await page.getByText('Nox joined the conversation.').count() === 1, 'a persona joins and the history says so');
+  expect(await page.getByText('Personas (3)', { exact: true }).count() === 1, 'three personas are present');
+  await button('Send away').nth(1).click();   // Vesper
+  await idle(page, 600);
+  await dialog(page).locator('textarea').first().fill('Vesper has to go.');
+  await dialog(page).locator('textarea').first().dispatchEvent('change');
+  await press(dialog(page), 'Send away');
+  await sleep(700);
+  expect(await page.getByText('Vesper left the conversation.').count() === 1, 'a persona leaves and the history says so');
+  expect(await page.getByText('(left)').count() >= 1, 'the persona that left is greyed and marked');
+  await button('Update from the library').first().click();
+  await sleep(700);
+  expect(await page.getByText('is updated from the library.', { exact: false }).count() >= 1, 'a persona is updated from the library');
+  await say('Nox, you first this time.');
+  await page.getByText('Let the motives show', { exact: false }).first().waitFor({ timeout: 30000 });
+  await sleep(1500);
+  await snap(page, '_br-chat-joined');
+
+  // the settings of the chat: another medium leaves a line in the history
+  await menu();
+  await menuItem(page, 'Chat settings').click();
+  await idle(page, 600);
+  await pick(dialog(page), 'Medium', 'Manga / comic');
+  await snapDialog(page, '_br-chat-settings');
+  await press(dialog(page), 'Save');
+  await sleep(800);
+  expect(await page.getByText('From now on the text is read as: Manga / comic').count() === 1, 'the medium change is a line of the history');
+  expect(await page.getByText('Medium: Manga / comic').count() === 1, 'the chat shows its medium');
+  expect(await page.getByText('There is no reply yet.').count() === 0, 'a change of the medium does not leave a question without a reply');
+  await snap(page, '_br-chat-medium');
 
   // a chat with one persona, a title of its own
   await plus.click();

@@ -8,11 +8,14 @@ import com.github.enerccio.marginalia.extensions.betareaders.model.BetaChat;
 import com.github.enerccio.marginalia.extensions.betareaders.model.BetaMessage;
 import com.github.enerccio.marginalia.extensions.betareaders.model.ChatKind;
 import com.github.enerccio.marginalia.extensions.betareaders.model.ChatPersona;
+import com.github.enerccio.marginalia.extensions.betareaders.model.Persona;
 import com.github.enerccio.marginalia.extensions.betareaders.model.Medium;
 import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersService;
 import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersService.Asked;
 import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersService.ContextUsage;
 import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersService.Model;
+import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersStore;
+import com.github.enerccio.marginalia.extensions.betareaders.service.ChatEdits;
 import com.github.enerccio.marginalia.extensions.betareaders.service.ChatRunner;
 import com.github.enerccio.marginalia.extensions.betareaders.service.EmptyReplyException;
 import com.github.enerccio.marginalia.extensions.betareaders.service.NoModelException;
@@ -22,6 +25,7 @@ import com.github.enerccio.marginalia.extensions.betareaders.service.ReplyReader
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
+import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
@@ -35,6 +39,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
@@ -47,6 +52,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.web.context.request.RequestAttributes;
 
 import java.text.NumberFormat;
+import java.util.List;
 import java.util.function.Consumer;
 
 import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.T;
@@ -80,6 +86,8 @@ public class ChatPanel extends VerticalLayout {
 
     /** The request of the user, for the services the panel calls when a reply ends (on a thread that has none). */
     private RequestAttributes attributes;
+    private Component header;
+    private boolean personasOpen;
     private BetaMessageCard.Turn live;
     private CancellationToken running;
     private boolean generating;
@@ -100,13 +108,12 @@ public class ChatPanel extends VerticalLayout {
 
         messages.setPadding(true);
         messages.setAlignItems(Alignment.STRETCH);
-        for (BetaMessage message : chat.getMessages()) {
-            messages.add(BetaMessageCard.create(chat, message));
-        }
+        rebuildMessages();
         scroller.setSizeFull();
         scroller.addClassName(CssStyles.MIN_HEIGHT_0);
 
-        add(header(), scroller, composer());
+        header = header();
+        add(header, scroller, composer());
         setFlexGrow(1, scroller);
         refreshStatus(true);
         scrollToEnd();
@@ -128,10 +135,22 @@ public class ChatPanel extends VerticalLayout {
 
         VerticalLayout personas = new VerticalLayout();
         personas.setPadding(false);
+        personas.addClassName(BetaReadersStyles.PERSONAS);
+        int present = chat.present().size();
         for (ChatPersona member : chat.getPersonas()) {
-            personas.add(row(member));
+            personas.add(row(member, present));
         }
-        Details details = new Details(T.localized("Personas (%d)").formatted(chat.present().size()), personas);
+        if (chat.getKind() == ChatKind.GROUP) {
+            Button bring = new Button(T.localized("Bring in a persona"), Solid.USER_PLUS.create(), _ -> bringIn());
+            bring.addThemeName("tertiary");
+            bring.addThemeName("small");
+            Div actions = new Div(bring);
+            actions.addClassName(BetaReadersStyles.ACTIONS);
+            personas.add(actions);
+        }
+        Details details = new Details(T.localized("Personas (%d)").formatted(present), personas);
+        details.setOpened(personasOpen);
+        details.addOpenedChangeListener(event -> personasOpen = event.isOpened());
 
         VerticalLayout header = new VerticalLayout(about, details);
         header.setPadding(true);
@@ -140,7 +159,17 @@ public class ChatPanel extends VerticalLayout {
         return header;
     }
 
-    private static Div row(ChatPersona member) {
+    private void rebuildHeader() {
+        try {
+            Component fresh = header();
+            replace(header, fresh);
+            header = fresh;
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    private Div row(ChatPersona member, int present) {
         Image icon = new Image(PersonaIcons.source(member.getPersona()), member.getPersona().getName());
         icon.addClassName(BetaReadersStyles.ICON);
 
@@ -154,7 +183,24 @@ public class ChatPanel extends VerticalLayout {
             text.add(description);
         }
 
-        Div row = new Div(icon, text);
+        Div actions = new Div();
+        actions.addClassName(BetaReadersStyles.ACTIONS);
+        Button update = new Button(Solid.ROTATE.create(), _ -> updateFromLibrary(member.getPersona()));
+        update.addThemeName("tertiary");
+        update.addThemeName("small");
+        update.setTooltipText(T.localized("Update from the library"));
+        update.setAriaLabel(T.localized("Update from the library"));
+        actions.add(update);
+        if (chat.getKind() == ChatKind.GROUP && member.isPresent() && present > 1) {
+            Button away = new Button(Solid.USER_MINUS.create(), _ -> sendAway(member.getPersona()));
+            away.addThemeName("tertiary");
+            away.addThemeName("small");
+            away.setTooltipText(T.localized("Send away"));
+            away.setAriaLabel(T.localized("Send away"));
+            actions.add(away);
+        }
+
+        Div row = new Div(icon, text, actions);
         row.addClassName(BetaReadersStyles.PERSONA);
         if (!member.isPresent()) {
             row.addClassName(BetaReadersStyles.PERSONA_LEFT);
@@ -202,16 +248,31 @@ public class ChatPanel extends VerticalLayout {
     // Asking
     // ------------------------------------------------------------------------------------------------------------
 
+    @FunctionalInterface
+    private interface Start {
+        Asked start(ChatRunner.Listener listener) throws Exception;
+    }
+
     private void send() {
+        begin(listener -> service.ask(manuscript, chat, input.getValue(), includeParts.getValue(), listener), true);
+    }
+
+    private void regenerate() {
+        begin(listener -> service.regenerate(manuscript, chat, listener), false);
+    }
+
+    private void begin(Start start, boolean clearInput) {
         if (generating) {
             return;
         }
         UI ui = UI.getCurrent();
         attributes = ThreadCopyRequestAttributes.create();
         try {
-            Asked asked = service.ask(manuscript, chat, input.getValue(), includeParts.getValue(), listener(ui));
-            input.clear();
-            messages.add(BetaMessageCard.create(chat, asked.message()));
+            Asked asked = start.start(listener(ui));
+            if (clearInput) {
+                input.clear();
+            }
+            rebuildMessages();
             live = new BetaMessageCard.Turn(chat);
             messages.add(live);
             running = asked.token();
@@ -276,10 +337,9 @@ public class ChatPanel extends VerticalLayout {
             live = null;
         }
         running = null;
-        if (outcome.reply() != null) {
-            messages.add(BetaMessageCard.create(chat, outcome.reply()));
-        }
         setGenerating(false);
+        // the reply is in the history now (the last turn is the one that can be asked for again)
+        rebuildMessages();
         if (outcome.error() instanceof EmptyReplyException) {
             Notification.warning(T.localized("The model did not answer."));
         } else if (outcome.error() != null) {
@@ -297,6 +357,11 @@ public class ChatPanel extends VerticalLayout {
 
     private void setGenerating(boolean value) {
         generating = value;
+        if (value) {
+            addClassName(BetaReadersStyles.BUSY);
+        } else {
+            removeClassName(BetaReadersStyles.BUSY);
+        }
         input.setEnabled(!value);
         includeParts.setEnabled(!value);
         checkParts.setEnabled(!value);
@@ -307,6 +372,196 @@ public class ChatPanel extends VerticalLayout {
     private void showButton() {
         send.setText(generating ? T.localized("Stop") : T.localized("Send"));
         send.setIcon((generating ? Solid.STOP : Solid.PAPER_PLANE).create());
+    }
+
+    // ------------------------------------------------------------------------------------------------------------
+    // The history
+    // ------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Draws the history again: after a message was edited or deleted, a reply was taken back or one was added.
+     */
+    private void rebuildMessages() {
+        messages.removeAll();
+        List<BetaMessage> history = chat.getMessages();
+        for (int i = 0; i < history.size(); i++) {
+            messages.add(BetaMessageCard.create(chat, history.get(i), actions, i == history.size() - 1));
+        }
+        if (unanswered(history)) {
+            Div none = new Div(new Span(T.localized("There is no reply yet.")));
+            none.addClassName(BetaReadersStyles.HEADLINE);
+            Button again = new Button(T.localized("Ask again"), Solid.ROTATE.create(), _ -> regenerate());
+            again.addThemeName("tertiary");
+            again.addThemeName("small");
+            Div row = new Div(again);
+            row.addClassName(BetaReadersStyles.ACTIONS);
+            none.add(row);
+            none.addClassName(BetaReadersStyles.HINT);
+            messages.add(none);
+        }
+    }
+
+    /**
+     * Whether the last thing said in the conversation is a message of the user that has no reply (a persona joining or the change of the
+     * medium after it does not take the question away).
+     */
+    private static boolean unanswered(List<BetaMessage> history) {
+        for (int i = history.size() - 1; i >= 0; i--) {
+            switch (history.get(i).getKind()) {
+                case USER -> {
+                    return true;
+                }
+                case ASSISTANT -> {
+                    return false;
+                }
+                default -> {
+                }
+            }
+        }
+        return false;
+    }
+
+    private final BetaMessageCard.Actions actions = new BetaMessageCard.Actions() {
+        @Override
+        public void edit(BetaMessage message) {
+            if (!generating) {
+                editMessage(message);
+            }
+        }
+
+        @Override
+        public void delete(BetaMessage message) {
+            if (!generating) {
+                ConfirmDialog.show(T.localized("Delete this message?"), () -> {
+                    ChatEdits.delete(chat, message.getId());
+                    changed(true);
+                });
+            }
+        }
+
+        @Override
+        public void deleteSpoken(BetaMessage turn, int index) {
+            if (!generating) {
+                ConfirmDialog.show(T.localized("Delete this message?"), () -> {
+                    ChatEdits.deleteSpoken(chat, turn.getId(), index);
+                    changed(false);
+                });
+            }
+        }
+
+        @Override
+        public void regenerate() {
+            ChatPanel.this.regenerate();
+        }
+    };
+
+    /**
+     * Stores the chat after the user changed its history and draws it again.
+     *
+     * @param partsBack whether what was sent of the story may have changed (a message that sent parts was deleted)
+     */
+    private void changed(boolean partsBack) {
+        store();
+        rebuildMessages();
+        refreshStatus(partsBack);
+    }
+
+    private void store() {
+        try {
+            service.saveChat(manuscript, chat);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    private void editMessage(BetaMessage message) {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(T.localized("Edit message"));
+        dialog.setWidth("460px");
+        dialog.setMaxWidth("96vw");
+        TextArea text = new TextArea();
+        text.setWidthFull();
+        text.setValue(message.getText());
+        Button save = new Button(T.localized("Save"), _ -> {
+            try {
+                ChatEdits.edit(chat, message.getId(), text.getValue());
+            } catch (IllegalArgumentException e) {
+                Notification.warning(T.localized("Write a message or include the latest parts."));
+                return;
+            }
+            dialog.close();
+            changed(false);
+        });
+        save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        dialog.add(text);
+        dialog.getFooter().add(new Button(T.localized("Cancel"), _ -> dialog.close()), save);
+        dialog.open();
+        text.focus();
+    }
+
+    // ------------------------------------------------------------------------------------------------------------
+    // The personas
+    // ------------------------------------------------------------------------------------------------------------
+
+    private void bringIn() {
+        if (generating) {
+            return;
+        }
+        try {
+            List<String> here = chat.present().stream().map(persona -> BetaReadersStore.nameKey(persona.getName())).toList();
+            List<Persona> candidates = service.available(manuscript).stream().map(available -> available.persona())
+                    .filter(persona -> !here.contains(BetaReadersStore.nameKey(persona.getName()))).toList();
+            if (candidates.isEmpty()) {
+                Notification.warning(T.localized("There is no persona to bring in: they are all here."));
+                return;
+            }
+            new PresenceDialog(T.localized("Bring in a persona"), T.localized("Bring in"), candidates, (persona, note) -> {
+                ChatEdits.join(chat, persona, note);
+                personaChanged();
+            }).open();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    private void sendAway(Persona persona) {
+        if (generating) {
+            return;
+        }
+        new PresenceDialog(T.localized("Send away %s").formatted(persona.getName()), T.localized("Send away"), null, (_, note) -> {
+            try {
+                ChatEdits.leave(chat, persona.getUuid(), note);
+            } catch (IllegalStateException e) {
+                Notification.warning(T.localized("The last persona can't leave."));
+                return;
+            }
+            personaChanged();
+        }).open();
+    }
+
+    private void personaChanged() {
+        store();
+        rebuildHeader();
+        rebuildMessages();
+        refreshStatus(false);
+        scrollToEnd();
+    }
+
+    private void updateFromLibrary(Persona persona) {
+        if (generating) {
+            return;
+        }
+        try {
+            if (service.refreshPersona(manuscript, chat, persona.getUuid())) {
+                Notification.success(T.localized("%s is updated from the library.").formatted(persona.getName()));
+                rebuildHeader();
+                refreshStatus(false);
+            } else {
+                Notification.warning(T.localized("%s is not in the library or in this book any more.").formatted(persona.getName()));
+            }
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     // ------------------------------------------------------------------------------------------------------------
