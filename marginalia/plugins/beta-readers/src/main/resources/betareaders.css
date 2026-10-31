@@ -22,3 +22,20 @@
     color: var(--lumo-secondary-text-color);
     font-size: var(--lumo-font-size-s);
 }
+
+/* The bar with the tabs of the chats, separated from the chat below */
+.beta-readers-bar {
+    border-bottom: 1px solid var(--lumo-contrast-10pct);
+}
+
+/* A persona of a chat: the icon beside its name and description */
+.beta-readers-persona {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--lumo-space-s);
+}
+
+/* A persona that left the group */
+.beta-readers-persona-left {
+    opacity: 0.5;
+}

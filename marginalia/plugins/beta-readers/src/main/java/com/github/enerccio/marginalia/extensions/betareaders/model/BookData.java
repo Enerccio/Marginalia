@@ -13,6 +13,8 @@ public class BookData {
 
     private List<Persona> personas = new ArrayList<>();
     private List<BetaChat> chats = new ArrayList<>();
+    /** The uuid of the chat whose tab was open last. */
+    private String activeChat;
 
     public List<Persona> getPersonas() {
         return personas;
@@ -28,6 +30,14 @@ public class BookData {
 
     public void setChats(List<BetaChat> chats) {
         this.chats = chats;
+    }
+
+    public String getActiveChat() {
+        return activeChat;
+    }
+
+    public void setActiveChat(String activeChat) {
+        this.activeChat = activeChat;
     }
 
     /**

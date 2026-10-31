@@ -1,6 +1,6 @@
 # TODO - Beta Readers
 
-The plugin so far has the settings panel and the inherited settings, the persona and medium libraries and the model of the chats and
+The plugin so far has the tab of the chats (without a conversation yet), the settings panel and the inherited settings, the persona and medium libraries and the model of the chats and
 the prompt (steps 1-3); there is no chat yet.
 
 ## Goal
@@ -143,9 +143,13 @@ Build before every step: `mvn install -DskipTests` in `marginalia/` (the plugin 
   request of the user that asked (`InRequestScope`), as the Anthropic plugin does for the usage; check it when the chat tab exists (7b).
 
 **Step 7 - the chat tab, in three commits.**
-- 7a: the tab in the story sidebar (`renderStoryContent` of `ManuscriptStoryPart` and of the phone twin, a `TabDock`, as Side Query
-  and the Author's Note do) with the tabs of the chats, *New chat* (`ui/NewChatDialog`: 1v1 or group, the personas, the medium, the
-  AI and the protocol), rename, close, delete; the personas of the book (`PersonaLibraryDialog` with the book as its scope).
+- 7a (done): `BetaReadersView` is the tab in the left bar of the story (`renderStoryContent` of `ManuscriptStoryPart` and of
+  `PhoneManuscriptStoryPart`, as Arc Outline does): a tab per open chat, `+` for a new chat, a menu (new, rename, close, delete, *Personas of this
+  book* with the `PersonaLibraryDialog`, *Closed chats* to open one again). A closed chat is kept (`BetaChat.closed`), the open tab is remembered
+  in the book (`BookData.activeChat`). `NewChatDialog` (kind, title, personas from the library and the book, medium, model, protocol and reply
+  format; what is left empty is inherited and the field says from what). `ChatPanel` shows what the chat is made of (kind, medium, model, the
+  personas with icons, the ones who left greyed); the conversation is 7b. Tests: `NewChatDialogTest`. Not tried in a running application yet: the
+  tab (desktop and phone drawer), the dialog and the menu.
 - 7b: the messages (`ui/BetaMessageCard`: the icon and name of the speaker, the narrator without an icon, the reasoning as collapsed
   details above the turn), the composer (the text, *Include the latest parts* with the count of new parts, send / stop), streaming
   with the unfinished message hidden, the token counter, the line where parts were sent.
@@ -187,9 +191,10 @@ below ticked.
 
 (The logic of most of these is done in steps 3-6; an item is ticked when a user can do it, which is the UI of step 7.)
 
-- [ ] Chat tabs: new chat (1v1 with one persona, or group chat with chosen personas), rename, close and delete; stored with the book.
+- [x] Chat tabs: new chat (1v1 with one persona, or group chat with chosen personas), rename, close and delete; stored with the book.
 - [ ] Per tab: the AI and the protocol to use instead of the inherited ones (empty: inherited, shown as the placeholder with where it
-  comes from, like the fields of the settings dialogs); changing it takes effect with the next message.
+  comes from, like the fields of the settings dialogs); changing it takes effect with the next message. (Choosing it when the chat is
+  started is done in 7a; changing it afterwards, in 7c.)
 - [ ] Chat panel with streaming answers and a stop button.
 - [ ] **Regenerate the last reply** (button): drops the last turn and asks again; the roster is built again and the parts sent by the
   message before it stay sent.

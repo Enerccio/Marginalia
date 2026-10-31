@@ -191,5 +191,180 @@ public class BetaReadersLocalization extends PluginLocalizationBundle {
 
         ja("built-in", "組み込み");
         zh("built-in", "内置");
+
+        ja("Title",
+                "タイトル");
+        zh("Title",
+                "标题");
+
+        ja("Persona",
+                "ペルソナ");
+        zh("Persona",
+                "读者角色");
+
+        ja("Personas",
+                "ペルソナ");
+        zh("Personas",
+                "读者角色");
+
+        ja("Model",
+                "モデル");
+        zh("Model",
+                "模型");
+
+        ja("Protocol",
+                "プロトコル");
+        zh("Protocol",
+                "协议");
+
+        ja("New chat",
+                "新しいチャット");
+        zh("New chat",
+                "新建聊天");
+
+        ja("Kind",
+                "種類");
+        zh("Kind",
+                "类型");
+
+        ja("One persona",
+                "1人のペルソナ");
+        zh("One persona",
+                "单个读者角色");
+
+        ja("A group",
+                "グループ");
+        zh("A group",
+                "群组");
+
+        ja("A chat with one persona stays that way. A group can start with one persona, and others can join later.",
+                "ペルソナ1人とのチャットはそのままです。グループは1人のペルソナで始めることができ、後から他のペルソナが参加できます。");
+        zh("A chat with one persona stays that way. A group can start with one persona, and others can join later.",
+                "与单个读者角色的聊天始终如此。群组可以从一个读者角色开始，之后其他角色可以加入。");
+
+        ja("Empty: the names of the personas",
+                "空の場合: ペルソナの名前");
+        zh("Empty: the names of the personas",
+                "留空：使用读者角色的名称");
+
+        ja("Reply format",
+                "返信の形式");
+        zh("Reply format",
+                "回复格式");
+
+        ja("Automatic asks for JSON when the model can follow a schema, free text otherwise",
+                "自動: モデルがスキーマに従える場合は JSON、それ以外は自由テキストを要求します");
+        zh("Automatic asks for JSON when the model can follow a schema, free text otherwise",
+                "自动：模型能遵循模式时要求 JSON，否则使用自由文本");
+
+        ja("Create",
+                "作成");
+        zh("Create",
+                "创建");
+
+        ja("Inherited: %s",
+                "継承: %s");
+        zh("Inherited: %s",
+                "继承：%s");
+
+        ja("none",
+                "なし");
+        zh("none",
+                "无");
+
+        ja("this book",
+                "この本");
+        zh("this book",
+                "本书");
+
+        ja("Automatic",
+                "自動");
+        zh("Automatic",
+                "自动");
+
+        ja("JSON",
+                "JSON");
+        zh("JSON",
+                "JSON");
+
+        ja("Free text",
+                "自由テキスト");
+        zh("Free text",
+                "自由文本");
+
+        ja("Choose a persona",
+                "ペルソナを選択してください");
+        zh("Choose a persona",
+                "请选择一个读者角色");
+
+        ja("Choose at least one persona",
+                "ペルソナを1人以上選択してください");
+        zh("Choose at least one persona",
+                "请至少选择一个读者角色");
+
+        ja("A chat with one persona",
+                "ペルソナ1人とのチャット");
+        zh("A chat with one persona",
+                "与单个读者角色的聊天");
+
+        ja("A group chat",
+                "グループチャット");
+        zh("A group chat",
+                "群聊");
+
+        ja("Medium: %s",
+                "メディア: %s");
+        zh("Medium: %s",
+                "媒介：%s");
+
+        ja("Model: %s",
+                "モデル: %s");
+        zh("Model: %s",
+                "模型：%s");
+
+        ja("left",
+                "退出済み");
+        zh("left",
+                "已离开");
+
+        ja("Chats",
+                "チャット");
+        zh("Chats",
+                "聊天");
+
+        ja("Rename chat",
+                "チャット名を変更");
+        zh("Rename chat",
+                "重命名聊天");
+
+        ja("Close chat",
+                "チャットを閉じる");
+        zh("Close chat",
+                "关闭聊天");
+
+        ja("Delete chat",
+                "チャットを削除");
+        zh("Delete chat",
+                "删除聊天");
+
+        ja("Personas of this book",
+                "この本のペルソナ");
+        zh("Personas of this book",
+                "本书的读者角色");
+
+        ja("Closed chats",
+                "閉じたチャット");
+        zh("Closed chats",
+                "已关闭的聊天");
+
+        ja("No chats yet. Start one with the + button.",
+                "チャットはまだありません。+ ボタンで開始してください。");
+        zh("No chats yet. Start one with the + button.",
+                "还没有聊天。点击 + 按钮开始。");
+
+        ja("There is no persona to talk to. Add some to the library in the settings, or to this book.",
+                "話し相手のペルソナがありません。設定のライブラリか、この本に追加してください。");
+        zh("There is no persona to talk to. Add some to the library in the settings, or to this book.",
+                "没有可交谈的读者角色。请在设置的角色库或本书中添加。");
     }
 }

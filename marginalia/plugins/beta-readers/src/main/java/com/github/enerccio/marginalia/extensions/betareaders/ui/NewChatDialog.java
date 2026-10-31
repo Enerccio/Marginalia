@@ -1,0 +1,190 @@
+package com.github.enerccio.marginalia.extensions.betareaders.ui;
+
+import com.github.enerccio.marginalia.extensions.InheritedSetting.Choice;
+import com.github.enerccio.marginalia.extensions.betareaders.model.BetaChat;
+import com.github.enerccio.marginalia.extensions.betareaders.model.ChatKind;
+import com.github.enerccio.marginalia.extensions.betareaders.model.Medium;
+import com.github.enerccio.marginalia.extensions.betareaders.model.ReplyFormat;
+import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersStore.Available;
+import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersStore.Scope;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.CheckboxGroup;
+import com.vaadin.flow.component.checkbox.CheckboxGroupVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.textfield.TextField;
+
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
+import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.T;
+
+/**
+ * Starts a chat: the kind (a chat with one persona, or a group, decided here for good), the personas, and what a chat may choose
+ * for itself instead of inheriting it - the medium, the model, the protocol and the format of the replies. The dialog knows no
+ * service: it gets what to choose from, and hands the new chat to the caller.
+ */
+public class NewChatDialog extends Dialog {
+
+    /**
+     * What the chat gets when it chooses nothing, as the text shown in the empty field ("Inherited: ...").
+     */
+    public record Inherited(String medium, String ai, String protocol) {
+    }
+
+    private static final int TITLE_LENGTH = 40;
+
+    private final Consumer<BetaChat> onCreate;
+
+    final RadioButtonGroup<ChatKind> kind = new RadioButtonGroup<>();
+    final TextField title = new TextField(T.localized("Title"));
+    final RadioButtonGroup<Available> singlePersona = new RadioButtonGroup<>(T.localized("Persona"));
+    final CheckboxGroup<Available> groupPersonas = new CheckboxGroup<>(T.localized("Personas"));
+    final ComboBox<Medium> medium = new ComboBox<>(T.localized("Medium"));
+    final ComboBox<Choice> ai = new ComboBox<>(T.localized("Model"));
+    final ComboBox<Choice> protocol = new ComboBox<>(T.localized("Protocol"));
+    final Select<ReplyFormat> format = new Select<>();
+    final Button create = new Button(T.localized("Create"));
+
+    /**
+     * @param personas the personas to choose from (the ones of the book and of the library)
+     * @param onCreate told with the new chat, which has copies of the personas chosen
+     */
+    public NewChatDialog(List<Available> personas, List<Medium> mediums, List<Choice> ais, List<Choice> protocols,
+                         Inherited inherited, Consumer<BetaChat> onCreate) {
+        this.onCreate = onCreate;
+        setHeaderTitle(T.localized("New chat"));
+        setWidth("460px");
+        setMaxWidth("96vw");
+        setCloseOnOutsideClick(false);
+
+        kind.setLabel(T.localized("Kind"));
+        kind.setItems(ChatKind.SINGLE, ChatKind.GROUP);
+        kind.setItemLabelGenerator(chatKind -> chatKind == ChatKind.SINGLE ? T.localized("One persona") : T.localized("A group"));
+        kind.setValue(ChatKind.GROUP);
+        kind.addValueChangeListener(_ -> showPersonaChoice());
+
+        Div kindHint = new Div(T.localized("A chat with one persona stays that way. A group can start with one persona, and others can join later."));
+        kindHint.addClassName(BetaReadersStyles.HINT);
+
+        title.setWidthFull();
+        title.setPlaceholder(T.localized("Empty: the names of the personas"));
+        title.setMaxLength(120);
+
+        singlePersona.setItems(personas);
+        singlePersona.setItemLabelGenerator(NewChatDialog::label);
+        singlePersona.addThemeVariants(com.vaadin.flow.component.radiobutton.RadioGroupVariant.LUMO_VERTICAL);
+        groupPersonas.setItems(personas);
+        groupPersonas.setItemLabelGenerator(NewChatDialog::label);
+        groupPersonas.addThemeVariants(CheckboxGroupVariant.LUMO_VERTICAL);
+
+        medium.setItems(mediums);
+        medium.setItemLabelGenerator(Medium::getName);
+        medium.setClearButtonVisible(true);
+        medium.setWidthFull();
+        medium.setPlaceholder(inheritedText(inherited.medium()));
+
+        ai.setItems(ais);
+        ai.setItemLabelGenerator(Choice::label);
+        ai.setClearButtonVisible(true);
+        ai.setWidthFull();
+        ai.setPlaceholder(inheritedText(inherited.ai()));
+
+        protocol.setItems(protocols);
+        protocol.setItemLabelGenerator(Choice::label);
+        protocol.setClearButtonVisible(true);
+        protocol.setWidthFull();
+        protocol.setPlaceholder(inheritedText(inherited.protocol()));
+
+        format.setLabel(T.localized("Reply format"));
+        format.setItems(ReplyFormat.AUTO, ReplyFormat.JSON, ReplyFormat.TEXT);
+        format.setItemLabelGenerator(NewChatDialog::label);
+        format.setValue(ReplyFormat.AUTO);
+        format.setWidthFull();
+        format.setHelperText(T.localized("Automatic asks for JSON when the model can follow a schema, free text otherwise"));
+
+        VerticalLayout content = new VerticalLayout(kind, kindHint, title, singlePersona, groupPersonas, medium, ai, protocol, format);
+        content.setPadding(false);
+        add(content);
+        showPersonaChoice();
+
+        Button cancel = new Button(T.localized("Cancel"), _ -> close());
+        create.addClickListener(_ -> create());
+        create.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        getFooter().add(cancel, create);
+        DialogFocus.onOpen(this, title);
+    }
+
+    private void showPersonaChoice() {
+        boolean single = kind.getValue() == ChatKind.SINGLE;
+        singlePersona.setVisible(single);
+        groupPersonas.setVisible(!single);
+    }
+
+    private static String inheritedText(String value) {
+        return T.localized("Inherited: %s").formatted(value == null || value.isBlank() ? T.localized("none") : value);
+    }
+
+    private static String label(Available available) {
+        String name = available.persona().getName();
+        return available.scope() == Scope.BOOK ? name + " (" + T.localized("this book") + ")" : name;
+    }
+
+    private static String label(ReplyFormat format) {
+        return switch (format) {
+            case AUTO -> T.localized("Automatic");
+            case JSON -> T.localized("JSON");
+            case TEXT -> T.localized("Free text");
+        };
+    }
+
+    /**
+     * The personas the user ticked, or the one picked for a chat with one persona.
+     */
+    private List<Available> chosen() {
+        if (kind.getValue() == ChatKind.SINGLE) {
+            return singlePersona.getValue() == null ? List.of() : List.of(singlePersona.getValue());
+        }
+        return groupPersonas.getSelectedItems().stream().sorted(java.util.Comparator.comparingInt(a -> indexOf(a))).toList();
+    }
+
+    private int indexOf(Available available) {
+        return groupPersonas.getListDataView().getItems().toList().indexOf(available);
+    }
+
+    private void create() {
+        List<Available> personas = chosen();
+        if (personas.isEmpty()) {
+            Notification.warning(kind.getValue() == ChatKind.SINGLE ? T.localized("Choose a persona") : T.localized("Choose at least one persona"));
+            return;
+        }
+        String name = title.getValue() == null ? "" : title.getValue().strip();
+        if (name.isEmpty()) {
+            name = defaultTitle(personas.stream().map(available -> available.persona().getName()).toList());
+        }
+        BetaChat chat = new BetaChat(name, kind.getValue());
+        chat.setFormat(format.getValue() == null ? ReplyFormat.AUTO : format.getValue());
+        chat.setMedium(medium.getValue() == null ? null : medium.getValue().getId());
+        chat.setAi(ai.getValue() == null ? null : ai.getValue().id());
+        chat.setProtocol(protocol.getValue() == null ? null : protocol.getValue().id());
+        personas.forEach(available -> chat.addPersona(available.persona()));
+        close();
+        onCreate.accept(chat);
+    }
+
+    /**
+     * The title of a chat that was given none: the names of its personas, shortened.
+     */
+    static String defaultTitle(List<String> names) {
+        String joined = names.stream().collect(Collectors.joining(", "));
+        return joined.length() <= TITLE_LENGTH ? joined : joined.substring(0, TITLE_LENGTH - 1).stripTrailing() + "…";
+    }
+}

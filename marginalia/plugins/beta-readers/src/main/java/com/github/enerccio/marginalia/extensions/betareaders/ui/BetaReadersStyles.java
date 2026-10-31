@@ -17,6 +17,11 @@ public final class BetaReadersStyles {
     /** The icon of a persona in its editor. */
     public static final String ICON_LARGE = "beta-readers-icon-large";
     public static final String HINT = "beta-readers-hint";
+    /** The bar with the tabs of the chats. */
+    public static final String BAR = "beta-readers-bar";
+    /** A persona of a chat in the panel of the chat: its icon and its text. */
+    public static final String PERSONA = "beta-readers-persona";
+    public static final String PERSONA_LEFT = "beta-readers-persona-left";
 
     private static final String RESOURCE = "/betareaders.css";
 
