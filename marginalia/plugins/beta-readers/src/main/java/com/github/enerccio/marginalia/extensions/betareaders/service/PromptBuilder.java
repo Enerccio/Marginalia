@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.extensions.betareaders.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.ToIntFunction;
 
 /**
@@ -16,8 +17,9 @@ import java.util.function.ToIntFunction;
  * the same text for the same chat, which keeps the cache of the prefix.
  * <ul>
  *   <li>The system message is the prompt (with the medium) and the description of how to answer.</li>
- *   <li>The story the personas read ({@link Options#story()}) is the start of the first message of the user. It is built from the story
- *       for every request and is not part of the history, so the history trimming never drops it.</li>
+ *   <li>The story the personas read ({@link Options#story()}) is in front of the messages of the user that gave the parts. It is built from
+ *       the story for every request, so the prompt only grows at its end when parts are given and the start of it stays the same text,
+ *       which keeps what a server has cached of it.</li>
  *   <li>The history is the lines of the chat; the replies go back in the form they were asked for (the JSON or the text). The lines
  *       on the side of the user that follow each other (the note of a persona joining and the next message) are one message.</li>
  *   <li>The roster, the personas present with their descriptions, is added to the last message of the user. It is not stored, so the
@@ -40,21 +42,22 @@ public final class PromptBuilder {
      * @param maxMessages     the most messages the model may write in a turn; 0 or less for no limit
      * @param maxPromptTokens the most tokens the prompt may have; 0 or less for no limit
      * @param tokens          counts the tokens of a text
-     * @param story           the story the personas read, see {@link PartsTracker#story}; empty for none
+     * @param story           the story the personas read: the block of every message of the user that gave parts, by the id of the message,
+     *                        see {@link PartsTracker#blocks}; empty for none
      */
-    public record Options(boolean json, int maxMessages, int maxPromptTokens, ToIntFunction<String> tokens, String story) {
+    public record Options(boolean json, int maxMessages, int maxPromptTokens, ToIntFunction<String> tokens, Map<String, String> story) {
 
         public Options {
             tokens = tokens != null ? tokens : Options::estimate;
-            story = story == null ? "" : story;
+            story = story == null ? Map.of() : story;
         }
 
         public Options(boolean json, int maxMessages, int maxPromptTokens, ToIntFunction<String> tokens) {
-            this(json, maxMessages, maxPromptTokens, tokens, "");
+            this(json, maxMessages, maxPromptTokens, tokens, Map.of());
         }
 
         /** The same options with the story the personas read. */
-        public Options withStory(String story) {
+        public Options withStory(Map<String, String> story) {
             return new Options(json, maxMessages, maxPromptTokens, tokens, story);
         }
 
@@ -107,13 +110,10 @@ public final class PromptBuilder {
             entries.add(new Entry(true, last.text() + "\n\n" + roster));
         }
 
-        // the story is not a line of the history: it is not dropped with the old lines, it goes to the first one that is left
-        String story = options.story().strip();
         int dropped = 0;
         int limit = options.maxPromptTokens();
         if (limit > 0) {
-            int total = count(systemText, options) + (story.isEmpty() ? 0 : count(story, options))
-                    + entries.stream().mapToInt(entry -> count(entry.text(), options)).sum();
+            int total = count(systemText, options) + entries.stream().mapToInt(entry -> count(entry.text(), options)).sum();
             while (total > limit && entries.size() > 1) {
                 total -= count(entries.removeFirst().text(), options);
                 dropped++;
@@ -123,11 +123,6 @@ public final class PromptBuilder {
                 total -= count(entries.removeFirst().text(), options);
                 dropped++;
             }
-        }
-
-        if (!story.isEmpty()) {
-            Entry first = entries.removeFirst();
-            entries.addFirst(new Entry(true, story + "\n\n" + first.text()));
         }
 
         List<LLMChatMessage> messages = new ArrayList<>();
@@ -226,7 +221,10 @@ public final class PromptBuilder {
 
     private static String textOf(BetaMessage message, Options options) {
         return switch (message.getKind()) {
-            case USER -> message.getText().strip();
+            case USER -> {
+                String story = options.story().get(message.getId());
+                yield ((story == null ? "" : story.strip() + "\n\n") + message.getText().strip()).strip();
+            }
             case JOIN -> presence(message, "joins the conversation");
             case LEAVE -> presence(message, "leaves the conversation");
             case MEDIUM -> "[From now on the text is read as: " + message.getText().strip() + ".]";

@@ -16,6 +16,7 @@ import com.github.enerccio.marginalia.extensions.betareaders.service.PromptBuild
 import com.github.enerccio.marginalia.extensions.betareaders.service.ReplyReader.Reading;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.ToIntFunction;
 
@@ -61,13 +62,13 @@ public final class ChatRunner {
      * @param maxMessages     the most messages the model may write in a turn
      * @param maxPromptTokens the most tokens the prompt may have; 0 for no limit
      * @param tokens          counts the tokens of a text
-     * @param story           the story the personas read, see {@link PartsTracker#story}; empty for none
+     * @param story           the story the personas read, see {@link PartsTracker#blocks}; empty for none
      */
     public record Request(BetaChat chat, String system, int maxMessages, int maxPromptTokens,
-                          ToIntFunction<String> tokens, String story) {
+                          ToIntFunction<String> tokens, java.util.Map<String, String> story) {
 
         public Request(BetaChat chat, String system, int maxMessages, int maxPromptTokens, ToIntFunction<String> tokens) {
-            this(chat, system, maxMessages, maxPromptTokens, tokens, "");
+            this(chat, system, maxMessages, maxPromptTokens, tokens, java.util.Map.of());
         }
     }
 
@@ -130,6 +131,10 @@ public final class ChatRunner {
             @Override
             public void onChunk(InferenceAsyncController controller, ChunkType type, String text) {
                 try {
+                    if (finished.get()) {
+                        // stopped: what arrives after is not read
+                        return;
+                    }
                     // the thinking of the model is progress too: a model that thinks for a minute before it answers would show nothing
                     // until its first word of the reply, and the reasoning only when it is done
                     if (type == ChunkType.REASONING) {
@@ -179,6 +184,15 @@ public final class ChatRunner {
         };
 
         token[0] = inference.stream(payload, protocol, schema, null, callback);
+        // a stop ends the run at once, with what was read: a service may take a long time to notice it (a model that reads a long prompt
+        // sends nothing, and some services look for a stop only when something arrives). What comes later is not read.
+        token[0].onCancel(() -> CompletableFuture.runAsync(() -> {
+            try {
+                callback.onCancel();
+            } catch (Exception e) {
+                // finish() does not throw
+            }
+        }));
         return token[0];
     }
 

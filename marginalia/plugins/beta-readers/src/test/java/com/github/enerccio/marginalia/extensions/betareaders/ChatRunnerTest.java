@@ -341,6 +341,32 @@ class ChatRunnerTest {
     }
 
     @Test
+    void aStopEndsTheRunAtOnceEvenIfTheServiceSendsNothing() throws Exception {
+        // the model is still reading the prompt: nothing arrives, and a service that looks for the stop when a chunk comes never sees it
+        Fake fake = new Fake();
+        fake.runOnStart = false;
+        fake.say("late");
+        Recorder recorder = new Recorder();
+
+        var token = ChatRunner.run(fake, null, request(chat(ReplyFormat.AUTO)), recorder);
+        assertTrue(recorder.finished.isEmpty());
+        token.cancel();
+
+        long end = System.currentTimeMillis() + 5000;
+        while (recorder.finished.isEmpty() && System.currentTimeMillis() < end) {
+            Thread.sleep(10);
+        }
+        assertTrue(recorder.outcome().cancelled());
+        assertNull(recorder.outcome().reply());
+        assertNull(recorder.outcome().error());
+
+        // what the service says afterwards is not read: the run ended once
+        fake.play();
+        assertEquals(1, recorder.finished.size());
+        assertTrue(recorder.progress.isEmpty());
+    }
+
+    @Test
     void aFailedReplyIsNotKept() throws Exception {
         Fake fake = new Fake();
         fake.ending = "error";

@@ -22,6 +22,7 @@ import org.springframework.web.context.request.RequestAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.ToIntFunction;
 
@@ -363,7 +364,7 @@ public class BetaReadersService {
         }
         chat.getMessages().add(user);
         saveChat(manuscript, chat);
-        return new Asked(user, start(manuscript, chat, run, storyText(chat, chat, run, story), listener));
+        return new Asked(user, start(manuscript, chat, run, storyBlocks(chat, chat, run, story), listener));
     }
 
     /**
@@ -390,22 +391,22 @@ public class BetaReadersService {
     }
 
     /**
-     * The story the personas read in a request: the parts they were given (by the messages of {@code view}, which is the chat or a
-     * view of it with a message about to be sent), as they are now. It gets what is left of the prompt after the system prompt and the
-     * history, and at least half of it, the history is trimmed to make room.
+     * The story the personas read in a request: the parts they were given (by the messages of {@code view}, which is the chat or a view
+     * of it with a message about to be sent), as they are now, in front of the messages that gave them. It gets what is left of the
+     * prompt after the system prompt and the history, and at least half of it, the history is trimmed to make room.
      *
      * @param chat the chat that has the settings (the first part, the spoiler limit)
      */
-    private String storyText(BetaChat chat, BetaChat view, Run run, Story story) {
+    private Map<String, String> storyBlocks(BetaChat chat, BetaChat view, Run run, Story story) {
         if (story == null) {
-            return "";
+            return Map.of();
         }
         PromptBuilder.Options options = new PromptBuilder.Options(ChatRunner.mode(chat.getFormat()).json(),
                 BetaReadersDefaults.maxMessages(chat.getKind(), chat.present().size()), 0, run.tokens());
         int used = PromptBuilder.build(view, run.system(), options).tokens();
         int budget = run.limit() > 0 ? Math.max(run.limit() / 2, run.limit() - used) : 0;
-        return PartsTracker.story(view, story.parts(), story.summaries(), chat.getFromPart(), chat.getSpoilerLimit(), budget, run.tokens())
-                .text();
+        return PartsTracker.blocks(view, story.parts(), story.summaries(), chat.getFromPart(), chat.getSpoilerLimit(), budget, run.tokens())
+                .byMessage();
     }
 
     /**
@@ -425,7 +426,7 @@ public class BetaReadersService {
             throw new IllegalStateException("There is nothing to answer");
         }
         saveChat(manuscript, chat);
-        return new Asked(null, start(manuscript, chat, run, storyText(chat, chat, run, storyFor(manuscript, chat, false)), listener));
+        return new Asked(null, start(manuscript, chat, run, storyBlocks(chat, chat, run, storyFor(manuscript, chat, false)), listener));
     }
 
     /**
@@ -475,9 +476,9 @@ public class BetaReadersService {
             }
         }
         PromptBuilder.Options options = new PromptBuilder.Options(ChatRunner.mode(chat.getFormat()).json(),
-                BetaReadersDefaults.maxMessages(chat.getKind(), chat.present().size()), 0, run.tokens(), "");
+                BetaReadersDefaults.maxMessages(chat.getKind(), chat.present().size()), 0, run.tokens(), Map.of());
         // a message that is not sent yet may bring parts: the story is the one the request would read
-        options = options.withStory(storyText(chat, view, run, story));
+        options = options.withStory(storyBlocks(chat, view, run, story));
         return new ContextUsage(PromptBuilder.build(view, run.system(), options).tokens(), run.limit());
     }
 
@@ -502,7 +503,7 @@ public class BetaReadersService {
         return new Run(model, system, inference, tokens, TokenLimits.promptTokens(model.ai(), model.protocol()));
     }
 
-    private CancellationToken start(Manuscript manuscript, BetaChat chat, Run run, String story, ChatRunner.Listener listener)
+    private CancellationToken start(Manuscript manuscript, BetaChat chat, Run run, Map<String, String> story, ChatRunner.Listener listener)
             throws Exception {
         // the reply ends on another thread: it is stored as the user who asked
         RequestAttributes attributes = ThreadCopyRequestAttributes.create();

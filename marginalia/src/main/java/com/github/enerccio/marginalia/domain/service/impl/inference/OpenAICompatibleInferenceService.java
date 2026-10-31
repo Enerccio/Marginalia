@@ -49,6 +49,7 @@ import java.net.SocketTimeoutException;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BooleanSupplier;
 import java.util.regex.Pattern;
@@ -420,7 +421,12 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                     ActivityTracker.Registration generating = generating(request);
                     StreamResponse<ChatCompletionChunk> streamResponse;
                     try {
-                        streamResponse = request.client().chat().completions().createStreaming(paramsBuilder.build());
+                        streamResponse = openStream(request, paramsBuilder.build());
+                    } catch (CancellationException e) {
+                        // stopped while the server was still reading the prompt: nothing arrived, nothing to wait for
+                        generating.close();
+                        request.callback().onCancel();
+                        return;
                     } catch (Throwable e) {
                         generating.close();
                         throw e;
@@ -436,6 +442,9 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                             functionsOffered && !finalRound
                                     ? (text, calls) -> callFunctions(request, request.outcome(), conversation, text, calls,
                                     next -> startRound(request, next, round + 1)) : null);
+                    // a stop closes the connection: the server is told, and a read that waits for the next chunk (the model is
+                    // still reading the prompt) ends instead of waiting for the first token to see the stop
+                    request.cancellationToken().onCancel(controller::abort);
                     controller.continueInference();
                 });
             } catch (Throwable e) {
@@ -447,6 +456,47 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                 }
             }
         });
+    }
+
+    /**
+     * Sends the request and waits for the stream to open. A server that reads a long prompt before it answers sends nothing for
+     * minutes, and the call does not return meanwhile; a stop must not wait for it. It ends the wait with a
+     * {@link CancellationException}, and when the server answers later the stream is closed unread.
+     */
+    private static StreamResponse<ChatCompletionChunk> openStream(Request request, ChatCompletionCreateParams params) throws Exception {
+        CompletableFuture<StreamResponse<ChatCompletionChunk>> opened = new CompletableFuture<>();
+        // blocked in the call for as long as the model reads the prompt: a virtual thread, which a stop interrupts (a read of a socket on
+        // a virtual thread is ended by the interrupt, and the connection is dropped, so the server is told; a platform thread is not
+        // interruptible there), and not a thread of the common pool, which the other requests need
+        Thread opener = Thread.ofVirtual().name("inference-open").unstarted(() -> {
+            try {
+                StreamResponse<ChatCompletionChunk> stream = request.client().chat().completions().createStreaming(params);
+                if (!opened.complete(stream)) {
+                    stream.close();
+                }
+            } catch (Throwable e) {
+                opened.completeExceptionally(e);
+            }
+        });
+        Runnable unregister = request.cancellationToken().onCancel(() -> {
+            opened.completeExceptionally(new CancellationException());
+            opener.interrupt();
+        });
+        opener.start();
+        try {
+            return opened.get();
+        } catch (ExecutionException e) {
+            // the failure as the call had it, for the translation of the error
+            if (e.getCause() instanceof RuntimeException runtime) {
+                throw runtime;
+            }
+            if (e.getCause() instanceof Error error) {
+                throw error;
+            }
+            throw e;
+        } finally {
+            unregister.run();
+        }
     }
 
     private ChatCompletionCreateParams.Builder buildParams(Protocol protocol, List<LLMChatMessage> conversation,
@@ -1086,14 +1136,19 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
         private final InferenceAsyncCallback callback;
         private final Queue<PendingChunk> pendingChunks = new LinkedList<>();
         private final CancellationToken cancellationToken;
-        private boolean completed = false;
+        private volatile boolean completed = false;
+        /** The thread that reads the stream, and whether it is waiting for the server now (then a stop interrupts it). */
+        private volatile Thread reader;
+        private volatile boolean reading;
+        /** The request ended: whoever gets here first (the thread that reads the stream, or a stop) tells the callback, the other stays quiet. */
+        private final AtomicBoolean terminated = new AtomicBoolean();
         private final UsageRecorder usageRecorder;
         private final FunctionCaller functionCaller;
         private final StringBuilder received = new StringBuilder();
         private final StringBuilder responseText = new StringBuilder();
         private final SortedMap<Long, PendingToolCall> toolCalls = new TreeMap<>();
         private TokenUsage reportedUsage;
-        private boolean usageRecorded;
+        private final AtomicBoolean usageRecorded = new AtomicBoolean();
 
         public OpenAIInferenceAsyncController(StreamResponse<ChatCompletionChunk> streamResponse,
                                               InferenceAsyncCallback callback, CancellationToken cancellationToken,
@@ -1109,7 +1164,49 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
         @Override
         public void continueInference() {
             AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
-            CompletableFuture.runAsync(() -> this.processNext(wrapper));
+            // a virtual thread: it waits for the server for as long as the model thinks, and a stop can interrupt the read
+            Thread.ofVirtual().name("inference-reader").start(() -> this.processNext(wrapper));
+        }
+
+        /** Whether the server sends another chunk; waits for it. */
+        private boolean more() {
+            reading = true;
+            try {
+                return iterator.hasNext();
+            } finally {
+                reading = false;
+            }
+        }
+
+        /**
+         * Closes the connection of a request that was stopped. It does not wait for the thread that reads the stream (it may be
+         * blocked in the read, which the close then ends), so it is not synchronized.
+         */
+        void abort() {
+            // closing waits for the thread that reads the stream (the reader is locked while it waits), so it gets a thread of its own:
+            // a stop must not need a free thread of the common pool, or wait for one
+            Thread.ofVirtual().name("inference-abort").start(() -> {
+                if (!terminated.compareAndSet(false, true)) {
+                    // it ended by itself
+                    return;
+                }
+                completed = true;
+                pendingChunks.clear();
+                recordUsage();
+                try {
+                    // at once: the thread that reads the stream may be blocked in the read (the model is thinking, or still reads the
+                    // prompt)
+                    callback.onCancel();
+                } catch (Throwable e) {
+                    log.error("Error invoking callback.onCancel", e);
+                }
+                // the interrupt ends that read and drops the connection; the thread stays quiet, the request ended
+                Thread blocked = reader;
+                if (reading && blocked != null) {
+                    blocked.interrupt();
+                }
+                closeStream();
+            });
         }
 
         @Override
@@ -1118,6 +1215,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                 return;
             }
             completed = true;
+            terminated.set(true);
             pendingChunks.clear();
             closeStream();
             recordUsage();
@@ -1128,6 +1226,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
             if (completed) {
                 return;
             }
+            reader = Thread.currentThread();
 
             try {
                 wrapper.run(() -> {
@@ -1137,14 +1236,17 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                         return;
                     }
 
-                    while (iterator.hasNext()) {
+                    while (more()) {
                         if (completed) {
+                            closeStream();
                             return;
                         }
                         if (callback.isDead() || cancellationToken.isCancelled()) {
                             closeStream();
-                            recordUsage();
-                            callback.onCancel();
+                            if (terminated.compareAndSet(false, true)) {
+                                recordUsage();
+                                callback.onCancel();
+                            }
                             return;
                         }
 
@@ -1179,6 +1281,20 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                         }
                     }
 
+                    if (callback.isDead() || cancellationToken.isCancelled()) {
+                        // the stream ended because it was closed by the stop, it did not finish
+                        completed = true;
+                        closeStream();
+                        if (terminated.compareAndSet(false, true)) {
+                            recordUsage();
+                            callback.onCancel();
+                        }
+                        return;
+                    }
+                    if (!terminated.compareAndSet(false, true)) {
+                        closeStream();
+                        return;
+                    }
                     completed = true;
                     closeStream();
                     recordUsage();
@@ -1208,15 +1324,25 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                     }
                 });
             } catch (Throwable e) {
-                if (!completed) {
+                if (!terminated.compareAndSet(false, true)) {
+                    // a stop ended the request already: the read failed because it closed the connection
+                    closeStream();
+                } else if (!completed) {
                     completed = true;
                     closeStream();
-                    if (!received.isEmpty()) {
-                        // it answered before it failed, so that was billed; a failure before any text is not counted
+                    boolean stopped = cancellationToken.isCancelled();
+                    if (stopped || !received.isEmpty()) {
+                        // it answered before it failed, so that was billed; a failure before any text is not counted. A stop is not a
+                        // failure, and ends the request in any case
                         recordUsage();
                     }
                     try {
-                        callback.onError(translate(e));
+                        if (stopped) {
+                            // the read failed because the stop closed the connection
+                            callback.onCancel();
+                        } else {
+                            callback.onError(translate(e));
+                        }
                     } catch (Exception ex) {
                         log.error("Error invoking callback.onError", ex);
                     }
@@ -1239,10 +1365,9 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
          * Counts the request, once, whichever way it ends.
          */
         private void recordUsage() {
-            if (usageRecorded) {
+            if (!usageRecorded.compareAndSet(false, true)) {
                 return;
             }
-            usageRecorded = true;
             usageRecorder.record(reportedUsage, received.toString());
         }
 

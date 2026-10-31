@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.components.AnnotationTexts;
 import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
+import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.InferenceService.ChunkType;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncCallback;
@@ -127,10 +128,17 @@ public class AnnotateServiceImpl implements AnnotateService {
     @Lazy
     private AgentRunService agentRunService;
 
+    @Autowired
+    private User currentUser;
+
     @Override
     @CommonTxReadOnly
     public GenerationOptions defaultOptions() throws Exception {
-        UserSetting setting = settingService.getOrCreate(UserSetting.class);
+        // read only: a user without settings has chosen nothing, the row is not created inside a read-only transaction
+        UserSetting setting = settingService.find(UserSetting.class, currentUser);
+        if (setting == null) {
+            return GenerationOptions.defaults();
+        }
         AI ai = setting.getDefaultAnnotateModel() == null ? null : aiService.find(setting.getDefaultAnnotateModel());
         Protocol protocol = setting.getDefaultAnnotateProtocol() == null ? null : protocolService.find(setting.getDefaultAnnotateProtocol());
         if (ai != null && ai.isDeleted()) {
