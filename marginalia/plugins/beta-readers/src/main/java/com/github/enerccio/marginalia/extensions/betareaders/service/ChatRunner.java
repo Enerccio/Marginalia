@@ -22,7 +22,7 @@ import java.util.function.ToIntFunction;
 /**
  * Asks the model for the next turn of a chat and reads the reply as it streams. It builds the request ({@link PromptBuilder}, and the
  * schema when the reply is JSON), streams it through the inference service, tells the listener what has been read after every chunk
- * ({@link ReplyReader}: only the messages that are finished) and, when the stream ends, what the reply is. It stores nothing; the
+ * ({@link ReplyReader}: the messages, the one being written too) and, when the stream ends, what the reply is. It stores nothing; the
  * caller adds the reply to the chat.
  * <p>
  * The listener is called on the threads of the inference service. The reply is JSON unless the chat asks for text; a chat that leaves
@@ -34,16 +34,35 @@ public final class ChatRunner {
     }
 
     /**
+     * How a chat is asked.
+     *
+     * @param json   the reply is a JSON object (else free text)
+     * @param schema the request carries the schema as its response format
+     */
+    public record Mode(boolean json, boolean schema) {
+    }
+
+    /**
+     * What the format of the chat comes to.
+     */
+    public static Mode mode(ReplyFormat format) {
+        return switch (format) {
+            case TEXT -> new Mode(false, false);
+            case JSON_NO_SCHEMA -> new Mode(true, false);
+            case JSON, AUTO -> new Mode(true, true);
+        };
+    }
+
+    /**
      * What the request is made of.
      *
      * @param chat            the chat; the reply is for the end of its history
      * @param system          the system prompt of the chat, rendered
-     * @param nativeReasoning the model reasons on its own, so the reply has no reasoning field
      * @param maxMessages     the most messages the model may write in a turn
      * @param maxPromptTokens the most tokens the prompt may have; 0 for no limit
      * @param tokens          counts the tokens of a text
      */
-    public record Request(BetaChat chat, String system, boolean nativeReasoning, int maxMessages, int maxPromptTokens,
+    public record Request(BetaChat chat, String system, int maxMessages, int maxPromptTokens,
                           ToIntFunction<String> tokens) {
     }
 
@@ -75,28 +94,27 @@ public final class ChatRunner {
      * @throws UnsupportedOperationException when the chat asks for JSON and the service can not take a schema
      */
     public static CancellationToken run(InferenceService inference, Protocol protocol, Request request, Listener listener) throws Exception {
-        if (request.chat().getFormat() == ReplyFormat.TEXT) {
-            return start(inference, protocol, request, false, listener);
-        }
+        Mode mode = mode(request.chat().getFormat());
         try {
-            return start(inference, protocol, request, true, listener);
+            return start(inference, protocol, request, mode, listener);
         } catch (UnsupportedOperationException e) {
-            if (request.chat().getFormat() == ReplyFormat.JSON) {
+            // a service that can not take a schema
+            if (!mode.schema() || request.chat().getFormat() == ReplyFormat.JSON) {
                 throw e;
             }
-            return start(inference, protocol, request, false, listener);
+            return start(inference, protocol, request, new Mode(false, false), listener);
         }
     }
 
-    private static CancellationToken start(InferenceService inference, Protocol protocol, Request request, boolean json,
+    private static CancellationToken start(InferenceService inference, Protocol protocol, Request request, Mode mode,
                                            Listener listener) throws Exception {
         BetaChat chat = request.chat();
+        boolean json = mode.json();
         List<String> speakers = chat.present().stream().map(Persona::getName).toList();
-        boolean withReasoning = json && !request.nativeReasoning();
-        Options options = new Options(json, withReasoning, request.maxMessages(), request.maxPromptTokens(), request.tokens());
+        Options options = new Options(json, request.maxMessages(), request.maxPromptTokens(), request.tokens());
         Prompt prompt = PromptBuilder.build(chat, request.system(), options);
         List<LLMChatMessage> payload = prompt.messages();
-        JsonNode schema = json ? BetaSchemas.replySchema(speakers, request.maxMessages(), withReasoning) : null;
+        JsonNode schema = mode.schema() ? BetaSchemas.replySchema(speakers, request.maxMessages()) : null;
 
         StringBuilder reply = new StringBuilder();
         StringBuilder reasoning = new StringBuilder();
@@ -158,10 +176,12 @@ public final class ChatRunner {
     }
 
     /**
-     * The reasoning the model did on its own is shown where the reasoning field would be, unless the reply has one.
+     * The reasoning the model did on its own is the reasoning shown. A reply has none of its own (the plugin does not ask for one: a
+     * short field written under a schema is a plan, not thinking, and gets in the way of a model that thinks), so a model that does
+     * not think shows no reasoning.
      */
     private static Reading withNative(Reading reading, StringBuilder nativeReasoning) {
-        if (!reading.reasoning().isBlank() || nativeReasoning.isEmpty()) {
+        if (nativeReasoning.isEmpty()) {
             return reading;
         }
         return new Reading(nativeReasoning.toString().strip(), reading.messages(), reading.rawText(), reading.dropped());

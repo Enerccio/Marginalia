@@ -9,14 +9,12 @@ import java.util.List;
 
 /**
  * What the model answers with: one turn of the conversation. {@code BetaSchemas} builds the schema of this class for a request:
- * the speakers are the names of the personas present (and the narrator), the number of messages is limited and the reasoning is
- * left out for a model that reasons on its own.
+ * the speakers are the names of the personas present (and the narrator) and the number of messages is limited. There is no reasoning
+ * in it: the thinking of a model that thinks is shown as it is, and a reply of a model that does not has none.
  */
-@JsonPropertyOrder({"reasoning", "messages"})
+@JsonPropertyOrder({"messages"})
 @LLMSchema(description = "One turn of the conversation: what the personas say and do, in order")
 public record Reply(
-        @LLMField(description = "A short reasoning before the messages: who has something to say now, and why", required = false)
-        String reasoning,
         @LLMField(description = "The messages of this turn, in order; the personas may answer one another", minItems = 1)
         List<Message> messages) {
 

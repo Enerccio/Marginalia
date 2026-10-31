@@ -357,14 +357,25 @@ public class BetaReadersService {
             throws Exception {
         Run run = prepare(manuscript, chat);
 
+        BetaMessage user = userMessage(manuscript, chat, run, text, includeLatest);
+        if (user.getText().isBlank() && user.getContext().isBlank()) {
+            throw new IllegalArgumentException("There is nothing to send");
+        }
+        chat.getMessages().add(user);
+        saveChat(manuscript, chat);
+        return new Asked(user, start(manuscript, chat, run, listener));
+    }
+
+    /**
+     * The message of the user as it would be sent: the text and, when asked to, the parts of the story that fit what is left of the
+     * prompt after the system prompt, the history and the text. It is not added to the chat.
+     */
+    private BetaMessage userMessage(Manuscript manuscript, BetaChat chat, Run run, String text, boolean includeLatest) throws Exception {
         BetaMessage user = BetaMessage.user(text == null ? "" : text.strip());
         if (includeLatest) {
             Story story = loadStory(manuscript, chat.getSpoilerLimit(), chat.isSummaries());
-            // what is left of the prompt after the system prompt, the history and the question goes to the story
-            chat.getMessages().add(user);
-            int used = PromptBuilder.build(chat, run.system(), new PromptBuilder.Options(true, true,
+            int used = PromptBuilder.build(chat.preview(user), run.system(), new PromptBuilder.Options(true,
                     BetaReadersDefaults.maxMessages(chat.getKind(), chat.present().size()), 0, run.tokens())).tokens();
-            chat.getMessages().removeLast();
             int budget = run.limit() > 0 ? Math.max(1, run.limit() - used) : 0;
             Plan plan = PartsTracker.plan(chat, story.parts(), story.summaries(), chat.getFromPart(), chat.getSpoilerLimit(), budget,
                     run.tokens());
@@ -372,12 +383,7 @@ public class BetaReadersService {
             user.setSentParts(new ArrayList<>(plan.sent()));
             user.setGoneParts(new ArrayList<>(plan.gone()));
         }
-        if (user.getText().isBlank() && user.getContext().isBlank()) {
-            throw new IllegalArgumentException("There is nothing to send");
-        }
-        chat.getMessages().add(user);
-        saveChat(manuscript, chat);
-        return new Asked(user, start(manuscript, chat, run, listener));
+        return user;
     }
 
     /**
@@ -429,11 +435,25 @@ public class BetaReadersService {
      * The size of the request the chat would send now; fails like {@link #ask} when there is no AI.
      */
     public ContextUsage contextUsage(Manuscript manuscript, BetaChat chat) throws Exception {
+        return contextUsage(manuscript, chat, "", false);
+    }
+
+    /**
+     * The size of the request the chat would send now with the message of the user that is being written: the text typed and, when
+     * the box is ticked, the parts of the story it would bring.
+     */
+    public ContextUsage contextUsage(Manuscript manuscript, BetaChat chat, String draft, boolean includeLatest) throws Exception {
         Run run = prepare(manuscript, chat);
-        PromptBuilder.Options options = new PromptBuilder.Options(chat.getFormat() != ReplyFormat.TEXT,
-                !Boolean.TRUE.equals(run.model().ai().getEnabledReasoning()),
+        BetaChat view = chat;
+        if (includeLatest || (draft != null && !draft.isBlank())) {
+            BetaMessage user = userMessage(manuscript, chat, run, draft, includeLatest);
+            if (!user.getText().isBlank() || !user.getContext().isBlank()) {
+                view = chat.preview(user);
+            }
+        }
+        PromptBuilder.Options options = new PromptBuilder.Options(ChatRunner.mode(chat.getFormat()).json(),
                 BetaReadersDefaults.maxMessages(chat.getKind(), chat.present().size()), 0, run.tokens());
-        return new ContextUsage(PromptBuilder.build(chat, run.system(), options).tokens(), run.limit());
+        return new ContextUsage(PromptBuilder.build(view, run.system(), options).tokens(), run.limit());
     }
 
     /** What a request of a chat needs, found before anything of the chat is changed. */
@@ -460,7 +480,7 @@ public class BetaReadersService {
     private CancellationToken start(Manuscript manuscript, BetaChat chat, Run run, ChatRunner.Listener listener) throws Exception {
         // the reply ends on another thread: it is stored as the user who asked
         RequestAttributes attributes = ThreadCopyRequestAttributes.create();
-        ChatRunner.Request request = new ChatRunner.Request(chat, run.system(), Boolean.TRUE.equals(run.model().ai().getEnabledReasoning()),
+        ChatRunner.Request request = new ChatRunner.Request(chat, run.system(),
                 BetaReadersDefaults.maxMessages(chat.getKind(), chat.present().size()), run.limit(), run.tokens());
         ChatRunner.Listener storing = new ChatRunner.Listener() {
             @Override

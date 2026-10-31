@@ -50,6 +50,19 @@ public class BetaChat {
         this.kind = kind;
     }
 
+    /**
+     * A chat that reads like this one with one more message at the end, to see what a request would hold before the message is sent. The
+     * personas are the same objects and are not to be changed; the history is a list of its own.
+     */
+    public BetaChat preview(BetaMessage extra) {
+        BetaChat view = new BetaChat(title, kind);
+        view.format = format;
+        view.personas = personas;
+        view.messages = new CopyOnWriteArrayList<>(messages);
+        view.messages.add(extra);
+        return view;
+    }
+
     /** The personas in the conversation now, in the order they were added. */
     public List<Persona> present() {
         return personas.stream().filter(ChatPersona::isPresent).map(ChatPersona::getPersona).toList();

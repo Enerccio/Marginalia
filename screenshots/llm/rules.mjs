@@ -3,13 +3,13 @@
 // A rule answers with `reply` (string, or function(ctx) returning a string or {reply, reasoning, status, message}),
 // optionally `reasoning` and `delayMs`.
 import {
-    arcOutline,
-    betaPersona,
-    betaReaders,
-    loreCompaction,
-    loreGeneration,
-    review,
-    sideQuery
+  arcOutline,
+  betaPersona,
+  betaReaders,
+  loreCompaction,
+  loreGeneration,
+  review,
+  sideQuery
 } from '../dataset/plugins.mjs';
 import {ginnyTurn, ginnyTurn2, metaSummary, summaryReasoning, turns} from '../dataset/story.mjs';
 
@@ -88,7 +88,7 @@ const betaRule = {
   reply: ctx => {
     const kind = ctx.system.includes('one-on-one') ? 'single' : 'group';
     const found = betaReaders.find(q => ctx.last.includes(q.question)) ?? betaReaders.find(q => q.kind === kind);
-    if (ctx.wantsJson) return { reply: JSON.stringify(found.answer), reasoning: found.answer.reasoning };
+    if (ctx.wantsJson) return { reply: JSON.stringify({ messages: found.answer.messages }), reasoning: found.answer.reasoning };
     return found.answer.messages.map(m => `**${m.speaker}:** ` + m.parts.map(p => p.type === 'action' ? `*${p.text}*` : p.text).join(' ')).join('\n\n');
   },
 };

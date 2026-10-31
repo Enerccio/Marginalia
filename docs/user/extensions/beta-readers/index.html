@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846783567951">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846785570492">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846783567951" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846785570492" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846783567951" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846785570492" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846783567951" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846785570492" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -307,8 +307,8 @@ and with each other: one reply can have several of them talking, one after anoth
 other&#x27;s points. A message in the reply can also be a narration (<em>Narrator</em>): a short description of what the persona does.</p>
 <h2 id="talking">Talking</h2>
 <p>Write into the box at the bottom and press <strong>Send</strong>; the answer appears as it is written, and <strong>Stop</strong> (the button is <em>Stop</em> while the model
-answers) cuts it short. One reply is one turn of the model: a short <strong>Reasoning</strong> (closed; models that think on their own show their own
-thinking instead and no extra reasoning is asked) and the messages of the personas, each with what they do and what they say.</p>
+answers) cuts it short. One reply is one turn of the model: the thinking of the model, when it sends one (a closed <strong>Reasoning</strong>
+section; a model that does not think shows none) and the messages of the personas, each with what they do and what they say.</p>
 <p>The personas of the group are told who is present at the end of your last message only (nothing about it is saved), so adding or removing a
 persona never changes the earlier history.</p>
 <h3 id="sending-the-story">Sending the story</h3>
@@ -318,7 +318,7 @@ model. Afterwards it sends only what is <strong>new or changed</strong> since th
 change. The label of the box says what would be sent (<em>Include the story (5 parts)</em>, <em>Include the latest parts (2 new)</em>, <em>none new</em>, <em>the story
 changed</em>), and the button next to it checks again after you wrote something. A message of yours says which parts it sent (<em>Parts 1-5 sent</em>).</p>
 <p>Under the box are what the personas have read (<em>The personas have read: parts 1-5</em>) and the size of the context (<em>Context: 2,266 of 30,720
-tokens</em>). When the history does not fit, the oldest messages are left out of the request, not deleted, and a notice says how many.</p>
+tokens</em>): what the next message would send, that is the history, what you have typed and, when <strong>Include the latest parts</strong> is ticked, the parts it would bring. It changes when you tick the box or pause while typing. When the history does not fit, the oldest messages are left out of the request, not deleted, and a notice says how many.</p>
 <h3 id="changing-the-conversation">Changing the conversation</h3>
 <retype-table copy-text="| Button | |
 |---|---|
@@ -386,7 +386,7 @@ persona can&#x27;t leave.</p>
 | Medium | What the text stands for: a book, a movie, a TV series, a manga or comic, an audio drama, a stage play, a game or visual novel. The personas react as the audience of that medium would. Changing it in a running chat leaves a line in the history (*From now on the text is read as: ...*). |
 | Model | The AI that answers. |
 | Protocol | The [protocol](../protocols.md) used with it. |
-| Reply format | **Automatic** (JSON when the model can follow a schema, free text otherwise), **JSON** or **Free text**. |
+| Reply format | How the model is asked to write: **Automatic** (JSON in a schema when the model can follow one, free text otherwise), **JSON** (always in a schema), **JSON without a schema** or **Free text**. See [the reasoning](#the-reasoning). |
 | Personas read up to part | The [spoiler limit](#how-much-of-the-story-the-personas-read). |
 | Start from part | The part where the story the personas get begins. |
 | Use the summaries of the story | See below. |">
@@ -417,7 +417,7 @@ persona can&#x27;t leave.</p>
 </tr>
 <tr>
 <td>Reply format</td>
-<td><strong>Automatic</strong> (JSON when the model can follow a schema, free text otherwise), <strong>JSON</strong> or <strong>Free text</strong>.</td>
+<td>How the model is asked to write: <strong>Automatic</strong> (JSON in a schema when the model can follow one, free text otherwise), <strong>JSON</strong> (always in a schema), <strong>JSON without a schema</strong> or <strong>Free text</strong>. See <doc-anchor-trigger to="#the-reasoning">the reasoning</doc-anchor-trigger>.</td>
 </tr>
 <tr>
 <td>Personas read up to part</td>
@@ -439,6 +439,16 @@ persona can&#x27;t leave.</p>
     <img src="../../../images/plugin-betareaders-chat-settings.png" alt="The settings of a chat" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="460" height="900" />
     <figcaption class="caption">The settings of a chat</figcaption>
 </figure>
+<h3 id="the-reasoning">The reasoning</h3>
+<p>The <strong>Reasoning</strong> above a reply is the thinking of the model, as the server sends it (the same as in the other generators of Marginalia); a model that
+does not think has none, and nothing is shown. The plugin does not ask the model for a reasoning of its own: a few sentences written under a schema would
+be a plan more than thinking, and would only get in the way of a model that thinks. The thinking that is written into the text between <code translate="no" v-pre>&lt;think&gt;</code> tags is
+shown as the reasoning too.</p>
+<p><strong>JSON without a schema</strong> (in <em>Chat settings</em>) asks for the same JSON in the prompt only, without a response format; use it with a server that can&#x27;t take a
+schema together with the thinking of the model.</p>
+<h3 id="the-text-as-it-is-written">The text as it is written</h3>
+<p>The reply is shown while the model writes it, message by message and word by word: the message being written appears as soon as it is known who
+speaks, and grows. A part that is an action appears when its type is written, so a gesture never first looks like speech.</p>
 <h3 id="the-scene">The scene</h3>
 <p>The scene is a text that goes into the system prompt of every chat, after the prompt, so the personas know where they are and how they talk
 to each other. It is an <a href="../../books/prompts/#inherited-settings">inherited setting</a>: a chat&#x27;s own, else the book&#x27;s, else the nearest
@@ -575,7 +585,7 @@ settings in your user settings. The model is asked with the usual limits of the 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (603016660).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (0398c1f42).</p></div>
             </footer>
         </div>
     </div>

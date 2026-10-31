@@ -32,6 +32,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.web.context.request.RequestAttributes;
@@ -206,6 +207,19 @@ public class ChatPanel extends VerticalLayout {
         input.setPlaceholder(T.localized(WRITE_TO_THE_BETA_READERS));
         ResizableTextArea.install(loc, input, "64px");
         Shortcuts.addShortcutListener(input, this::send, Key.ENTER, KeyModifier.CONTROL);
+        // the size of the context follows what is typed (when the typing pauses) and the box of the story
+        input.setValueChangeMode(ValueChangeMode.LAZY);
+        input.setValueChangeTimeout(800);
+        input.addValueChangeListener(event -> {
+            if (event.isFromClient() && !generating) {
+                refreshContext();
+            }
+        });
+        includeParts.addValueChangeListener(event -> {
+            if (event.isFromClient() && !generating) {
+                refreshContext();
+            }
+        });
 
         checkParts.addThemeName("tertiary");
         checkParts.addThemeName("small");
@@ -581,8 +595,15 @@ public class ChatPanel extends VerticalLayout {
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+        refreshContext();
+    }
+
+    /**
+     * Shows how much of the context the request would use: the history, with the message being written and the parts it would bring.
+     */
+    private void refreshContext() {
         try {
-            ContextUsage usage = service.contextUsage(manuscript, chat);
+            ContextUsage usage = service.contextUsage(manuscript, chat, input.getValue(), includeParts.getValue());
             NumberFormat format = NumberFormat.getIntegerInstance();
             context.setText(usage.limit() > 0
                     ? T.localized(CONTEXT_OF_TOKENS).formatted(format.format(usage.tokens()), format.format(usage.limit()))

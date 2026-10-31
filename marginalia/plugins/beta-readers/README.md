@@ -29,7 +29,7 @@ deletes a chat, opens the closed ones again and edits the personas of this book)
 (which may start with one persona); the kind is chosen when it is started. A chat may choose its own medium, model, protocol and reply
 format; what it leaves empty it inherits.
 
-A reply is a turn: a short reasoning (closed, above the messages) and the messages of the personas and the narrator, shown when they are
+A reply is a turn: the thinking of the model, when it sends one (closed, above the messages), and the messages of the personas and the narrator, shown when they are
 finished. The personas present are described at the end of your last message and are not stored, so adding or removing a persona does not
 change the history. **Include the latest parts** sends the story: everything the chat has not read yet the first time, then the parts that
 are new or changed. A message says which parts it sent, and the box under the text shows how many tokens the context uses.

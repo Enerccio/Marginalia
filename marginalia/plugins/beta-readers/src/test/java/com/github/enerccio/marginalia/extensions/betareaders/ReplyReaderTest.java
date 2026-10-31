@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.extensions.betareaders;
 
 import com.github.enerccio.marginalia.extensions.betareaders.model.BetaMessage;
+import com.github.enerccio.marginalia.extensions.betareaders.model.BetaPart;
 import com.github.enerccio.marginalia.extensions.betareaders.model.BetaSpoken;
 import com.github.enerccio.marginalia.extensions.betareaders.model.PartType;
 import com.github.enerccio.marginalia.extensions.betareaders.service.ReplyReader;
@@ -9,7 +10,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Replies are read into messages: JSON (also cut or broken, and while it streams: only the finished messages), free text, and text
@@ -27,6 +29,11 @@ class ReplyReaderTest {
 
     private static Reading read(String text, boolean done) {
         return ReplyReader.read(text, done, SPEAKERS, 0);
+    }
+
+    /** The speaker of an entry made of a speaker and the number of its parts. */
+    private static String speakerOf(String entry) {
+        return entry.replaceAll("\\d+$", "");
     }
 
     private static List<String> speakers(Reading reading) {
@@ -50,6 +57,40 @@ class ReplyReaderTest {
     }
 
     @Test
+    void theThinkingBeforeTheJsonIsTheReasoning() {
+        String reply = "<think>The reader likes the fog; the other one does not.</think>\n" + JSON.replace("\"reasoning\": \"Athena starts, Vesper objects.\", ", "");
+
+        Reading reading = read(reply, true);
+
+        assertEquals("The reader likes the fog; the other one does not.", reading.reasoning());
+        assertEquals(List.of("Athena", "Vesper", "Narrator"), speakers(reading));
+    }
+
+    @Test
+    void theReasoningFieldWinsOverTheThinking() {
+        Reading reading = read("<thinking>native</thinking>" + JSON, true);
+
+        assertEquals("Athena starts, Vesper objects.", reading.reasoning());
+    }
+
+    @Test
+    void thinkingThatIsNotOverYetIsShownAsTheReasoning() {
+        Reading reading = read("<think>Let me see what the fog", false);
+
+        assertEquals("Let me see what the fog", reading.reasoning());
+        assertTrue(reading.messages().isEmpty());
+        assertEquals("", reading.rawText());
+    }
+
+    @Test
+    void aSentenceBeforeTheJsonIsSkipped() {
+        Reading reading = read("Here is the reply:\n\n" + JSON, true);
+
+        assertEquals(3, reading.messages().size());
+        assertEquals("", reading.rawText());
+    }
+
+    @Test
     void aReplyInAMarkdownBlockIsRead() {
         Reading reading = read("```json\n" + JSON + "\n```", true);
 
@@ -57,13 +98,24 @@ class ReplyReaderTest {
     }
 
     @Test
-    void whileStreamingOnlyTheFinishedMessagesAreReturned() {
+    void whileStreamingTheMessageBeingWrittenIsShownWithItsTextSoFar() {
         int secondStarts = JSON.indexOf("{\"speaker\": \"Vesper\"");
         int secondEnds = JSON.indexOf("]}", secondStarts) + 2;
+        int text = JSON.indexOf("Slow, with");
 
-        assertEquals(List.of("Athena"), speakers(read(JSON.substring(0, secondStarts + 30), false)));
+        // nothing of the message is known yet: who speaks, or what the part is
         assertEquals(List.of("Athena"), speakers(read(JSON.substring(0, secondStarts - 1), false)));
-        assertEquals(List.of("Athena"), speakers(read(JSON.substring(0, secondEnds - 1), false)));
+        assertEquals(List.of("Athena"), speakers(read(JSON.substring(0, secondStarts + 8), false)));
+        assertEquals(List.of("Athena"), speakers(read(JSON.substring(0, secondStarts + 30), false)));
+        assertEquals(List.of("Athena"), speakers(read(JSON.substring(0, JSON.indexOf("\"speech\"", secondStarts) + 3), false)),
+                "a part whose type is not written in full is waited for");
+
+        Reading writing = read(JSON.substring(0, text + 10), false);
+        assertEquals(List.of("Athena", "Vesper"), speakers(writing));
+        assertEquals("Slow, with", writing.messages().get(1).getParts().getFirst().getText());
+        assertEquals(PartType.SPEECH, writing.messages().get(1).getParts().getFirst().getType());
+
+        assertEquals(List.of("Athena", "Vesper"), speakers(read(JSON.substring(0, secondEnds - 1), false)));
         assertEquals(List.of("Athena", "Vesper"), speakers(read(JSON.substring(0, secondEnds), false)));
     }
 
@@ -84,7 +136,11 @@ class ReplyReaderTest {
             List<String> now = streaming.messages().stream().map(m -> m.getSpeaker() + m.getParts().size()).toList();
 
             assertTrue(now.size() >= previous.size(), "messages disappeared at " + i);
-            assertEquals(previous, now.subList(0, previous.size()), "messages changed at " + i);
+            // the message being written grows (more parts), the ones before it stay as they were
+            if (!previous.isEmpty()) {
+                assertEquals(previous.subList(0, previous.size() - 1), now.subList(0, previous.size() - 1), "messages changed at " + i);
+                assertEquals(speakerOf(previous.getLast()), speakerOf(now.get(previous.size() - 1)), "the speaker changed at " + i);
+            }
             assertTrue(now.size() <= 3);
             assertEquals("", streaming.rawText(), "raw text at " + i);
             previous = now;
@@ -211,12 +267,27 @@ class ReplyReaderTest {
     }
 
     @Test
-    void whileStreamingTheLastMessageOfFreeTextIsHidden() {
+    void whileStreamingTheLastMessageOfFreeTextIsShownAsItGrows() {
         String text = "**Athena:** First.\n\n**Vesper:** Second, still being wri";
 
-        assertEquals(List.of("Athena"), speakers(read(text, false)));
+        Reading reading = read(text, false);
+
+        assertEquals(List.of("Athena", "Vesper"), speakers(reading));
+        assertEquals("Second, still being wri", reading.messages().get(1).getParts().getFirst().getText());
         assertEquals(List.of("Athena", "Vesper"), speakers(read(text, true)));
-        assertTrue(read("**Athena:** Fir", false).isEmpty());
+        assertEquals("Fir", read("**Athena:** Fir", false).messages().getFirst().getParts().getFirst().getText());
+        assertTrue(read("**Athena", false).isEmpty(), "the name is not written in full yet");
+    }
+
+    @Test
+    void anActionThatIsNotClosedYetWaitsInFreeText() {
+        List<BetaPart> open = read("**Athena:** She nods *and sm", false).messages().getFirst().getParts();
+        List<BetaPart> closed = read("**Athena:** She nods *and smiles* and", false).messages().getFirst().getParts();
+
+        assertEquals(1, open.size());
+        assertEquals("She nods", open.getFirst().getText());
+        assertEquals(List.of(PartType.SPEECH, PartType.ACTION, PartType.SPEECH), closed.stream().map(BetaPart::getType).toList());
+        assertEquals("and smiles", closed.get(1).getText());
     }
 
     @Test

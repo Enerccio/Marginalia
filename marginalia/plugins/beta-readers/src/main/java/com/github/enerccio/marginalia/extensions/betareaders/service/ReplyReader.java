@@ -16,10 +16,12 @@ import java.util.regex.Pattern;
  * Reads a reply of the model into messages, also while it is still being written.
  * <ul>
  *   <li>A reply that starts with JSON is read as the schema says (through {@link PartialJson}, so a reply that is cut or broken keeps
- *       what was read). While the reply streams only the messages that are finished are returned: the one being written is hidden.</li>
+ *       what was read). While the reply streams the message being written is returned too, with the text it has so far, once it is
+ *       known who speaks and the part that is written has its type, so nothing changes under the eyes of the reader.</li>
  *   <li>Other text is read as free text: a message starts with the name of a speaker in bold ({@code **Athena:**}), what follows is
  *       its parts, an action between asterisks and the rest speech. Only a name of a speaker that is present (or the narrator) starts a
- *       message, so a bold word in the middle of a speech does not. The last message is unfinished until the reply is done.</li>
+ *       message, so a bold word in the middle of a speech does not. The last message is shown as it grows; an action that is not closed
+ *       yet is left out until it is.</li>
  *   <li>A reply that is neither is returned as it was written.</li>
  * </ul>
  * The format is judged from the text, not from what the chat asked for: a model that ignores the instructions is still read.
@@ -28,6 +30,15 @@ public final class ReplyReader {
 
     /** {@code **Name:** rest} or {@code **Name**: rest}, on one line. */
     private static final Pattern HEADER = Pattern.compile("^\\s*\\*\\*\\s*([^*\\n]{1,60}?)\\s*(?::\\s*\\*\\*|\\*\\*\\s*:)\\s*(.*)$");
+
+    /** A reasoning at the start of the text: {@code <think>...</think>} (or {@code <thinking>}). */
+    private static final Pattern THINK = Pattern.compile("^\\s*<(think|thinking)>(.*?)</\\1>", Pattern.DOTALL);
+
+    /** A reasoning at the start of the text that is not closed. */
+    private static final Pattern THINK_OPEN = Pattern.compile("^\\s*<(?:think|thinking)>(.*)$", Pattern.DOTALL);
+
+    /** The start of the JSON of a reply after a sentence of introduction: an object that begins with one of its two keys. */
+    private static final Pattern JSON_KEYS = Pattern.compile("\\{\\s*\"(?:reasoning|messages)\"");
 
     /** An action: text between single asterisks (not the bold of {@code **}, not inside a word). */
     private static final Pattern ACTION = Pattern.compile("(?<![*\\w])\\*(?!\\*)(.+?)(?<!\\*)\\*(?![*\\w])", Pattern.DOTALL);
@@ -70,6 +81,22 @@ public final class ReplyReader {
      */
     public static Reading read(String text, boolean done, List<String> speakers, int maxMessages) {
         String reply = text == null ? "" : text;
+        // a model that is not held to a schema may think in the text first, between think tags
+        Matcher think = THINK.matcher(reply);
+        if (think.find()) {
+            Reading body = readBody(reply.substring(think.end()), done, speakers, maxMessages);
+            return body.reasoning().isBlank()
+                    ? new Reading(think.group(2).strip(), body.messages(), body.rawText(), body.dropped()) : body;
+        }
+        Matcher open = THINK_OPEN.matcher(reply);
+        if (open.find()) {
+            // still thinking (or cut in the middle of it): what is thought so far is the reasoning
+            return new Reading(open.group(1).strip(), List.of(), "", 0);
+        }
+        return readBody(reply, done, speakers, maxMessages);
+    }
+
+    private static Reading readBody(String reply, boolean done, List<String> speakers, int maxMessages) {
         int jsonStart = jsonStart(reply);
         Reading reading = jsonStart >= 0 ? readJson(reply, jsonStart, done, speakers, maxMessages)
                 : readText(reply, done, speakers, maxMessages);
@@ -103,7 +130,12 @@ public final class ReplyReader {
             head = text.substring(offset).stripLeading();
             offset = text.length() - head.length();
         }
-        return head.startsWith("{") || head.startsWith("[") ? offset : -1;
+        if (head.startsWith("{") || head.startsWith("[")) {
+            return offset;
+        }
+        // a sentence of introduction before the JSON ("Here is the reply:")
+        Matcher keys = JSON_KEYS.matcher(text);
+        return keys.find() ? keys.start() : -1;
     }
 
     private static Reading readJson(String text, int start, boolean done, List<String> speakers, int maxMessages) {
@@ -123,19 +155,30 @@ public final class ReplyReader {
             return new Reading(reasoning, List.of(), "", 0);
         }
 
-        int available = done ? array.size() : Math.min(array.size(), ends.size());
+        int finished = done ? array.size() : Math.min(array.size(), ends.size());
         List<BetaSpoken> messages = new ArrayList<>();
-        for (int i = 0; i < available; i++) {
-            BetaSpoken spoken = spoken(array.get(i), speakers);
+        for (int i = 0; i < finished; i++) {
+            BetaSpoken spoken = spoken(array.get(i), speakers, false);
             if (spoken != null) {
                 messages.add(spoken);
+            }
+        }
+        if (finished < array.size()) {
+            // the message that is being written
+            BetaSpoken writing = spoken(array.get(finished), speakers, true);
+            if (writing != null) {
+                messages.add(writing);
             }
         }
         return limited(reasoning, messages, maxMessages);
     }
 
-    private static BetaSpoken spoken(JsonNode node, List<String> speakers) {
-        if (!node.isObject()) {
+    /**
+     * @param writing the message is being written: it is only read when it is known who speaks, and a part only when its type is
+     *                written in full (a part that begins as speech and turns out to be an action would change under the reader)
+     */
+    private static BetaSpoken spoken(JsonNode node, List<String> speakers, boolean writing) {
+        if (!node.isObject() || (writing && node.path("speaker").asText("").isBlank())) {
             return null;
         }
         List<BetaPart> parts = new ArrayList<>();
@@ -144,7 +187,11 @@ public final class ReplyReader {
             if (text.isBlank()) {
                 continue;
             }
-            PartType type = "action".equalsIgnoreCase(partNode.path("type").asText("")) ? PartType.ACTION : PartType.SPEECH;
+            String typeName = partNode.path("type").asText("");
+            if (writing && !"action".equalsIgnoreCase(typeName) && !"speech".equalsIgnoreCase(typeName)) {
+                continue;
+            }
+            PartType type = "action".equalsIgnoreCase(typeName) ? PartType.ACTION : PartType.SPEECH;
             parts.add(new BetaPart(type, text.strip()));
         }
         if (parts.isEmpty()) {
@@ -225,14 +272,28 @@ public final class ReplyReader {
                 messages.add(introduction);
             }
         }
-        int available = done ? contents.size() : contents.size() - 1;
-        for (int i = 0; i < available; i++) {
-            List<BetaPart> parts = parts(contents.get(i).toString());
+        for (int i = 0; i < contents.size(); i++) {
+            // the message that is being written: an action that is not closed yet waits
+            String content = !done && i == contents.size() - 1 ? withoutOpenAction(contents.get(i).toString()) : contents.get(i).toString();
+            List<BetaPart> parts = parts(content);
             if (!parts.isEmpty()) {
                 messages.add(new BetaSpoken(names.get(i), parts));
             }
         }
         return limited("", messages, maxMessages);
+    }
+
+    /**
+     * The text up to an action that is opened with an asterisk and not closed yet; the text as it is when there is none.
+     */
+    private static String withoutOpenAction(String content) {
+        Matcher action = ACTION.matcher(content);
+        int last = 0;
+        while (action.find()) {
+            last = action.end();
+        }
+        int open = content.indexOf('*', last);
+        return open < 0 ? content : content.substring(0, open);
     }
 
     /**

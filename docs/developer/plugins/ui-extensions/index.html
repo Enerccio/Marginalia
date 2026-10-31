@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846783567951">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846785570492">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846783567951" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846785570492" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846783567951" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846785570492" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846783567951" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846783567951" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846785570492" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846785570492" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -506,7 +506,8 @@ can also add a <em>language</em> for the application&#x27;s texts, see
 </li>
 </ul>
 <h3 id="texts-in-several-languages">Texts in several languages</h3>
-<p>A plugin can&#x27;t add keys to the <code translate="no" v-pre>L</code> enum, so the texts of its UI are the English sentences themselves.
+<p>A plugin can&#x27;t add keys to the <code translate="no" v-pre>L</code> enum, so the texts of its UI are the English sentences themselves, kept as
+<code translate="no" v-pre>String</code> constants of the plugin&#x27;s bundle class (never as literals in the UI code).
 <code translate="no" v-pre>PluginLocalizationBundle</code> (package <code translate="no" v-pre>extensions</code>) turns one into the text of the language of the current session
 (<code translate="no" v-pre>Localization.getCurrentLanguage()</code>): <code translate="no" v-pre>localized(message)</code> returns the translation, and the English <code translate="no" v-pre>message</code> when the
 language has none, so a language or a text that is missing shows English. The bundled plugins have one subclass each and
@@ -516,22 +517,33 @@ call it through a static field:</p>
 
     public static final InstructionExporterLocalization T = new InstructionExporterLocalization();
 
+    public static final String EXPORT_INSTRUCTIONS = &quot;Export instructions&quot;;
+    public static final String COPIED_TO_CLIPBOARD = &quot;Copied to clipboard&quot;;
+    public static final String FAILED_TO_EXPORT = &quot;Failed to export: %s&quot;;
+
     @Override
     protected void loadKeys() {
-        ja(&quot;Export instructions&quot;, &quot;指示をエクスポート&quot;);
-        zh(&quot;Export instructions&quot;, &quot;导出指令&quot;);
-        ja(&quot;Failed to export: %s&quot;, &quot;エクスポートに失敗しました: %s&quot;);
-        zh(&quot;Failed to export: %s&quot;, &quot;导出失败：%s&quot;);
+        ja(EXPORT_INSTRUCTIONS, &quot;指示をエクスポート&quot;);
+        zh(EXPORT_INSTRUCTIONS, &quot;导出指令&quot;);
+        ja(FAILED_TO_EXPORT, &quot;エクスポートに失敗しました: %s&quot;);
+        zh(FAILED_TO_EXPORT, &quot;导出失败：%s&quot;);
     }
 }</code></pre>
 </doc-codeblock></div>
 <div id="texts-in-several-languages-code-2" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-java"><code v-pre class="language-java">import static ...InstructionExporterLocalization.T;
+<pre translate="no" class="language-java"><code v-pre class="language-java">import static ...InstructionExporterLocalization.*;
 
-Notification.show(T.localized(&quot;Copied to clipboard&quot;));
-Notification.show(T.localized(&quot;Failed to export: %s&quot;).formatted(e.getMessage()));</code></pre>
+Notification.show(T.localized(COPIED_TO_CLIPBOARD));
+Notification.show(T.localized(FAILED_TO_EXPORT).formatted(e.getMessage()));</code></pre>
 </doc-codeblock></div>
 <ul>
+<li>
+<p>The English text is a constant named after its words (<code translate="no" v-pre>EXPORT_INSTRUCTIONS</code>), declared in the bundle class; the
+Japanese and Chinese translations are plain literals in <code translate="no" v-pre>loadKeys</code>, the only place they appear. A call site passes
+the constant and never a literal. Import the constants with a static wildcard import, and mind a constant whose name
+is also a type or a field of the class that uses it (<code translate="no" v-pre>AI</code>, <code translate="no" v-pre>SCENE</code>): the type or the field is hidden, or the field
+wins, so give the constant another name or qualify it with the bundle class.</p>
+</li>
 <li>
 <p><code translate="no" v-pre>ja</code> and <code translate="no" v-pre>zh</code> are shortcuts for <code translate="no" v-pre>add(Language, message, translation)</code>; add other languages the same way (the language
 needs a bundle in <code translate="no" v-pre>Localization</code>, see the <a href="../example/#walkthrough-chinese-localization">Chinese localization</a>).</p>
@@ -545,7 +557,7 @@ order, write one key for each whole sentence (and one for the singular and the p
 <li>
 <p>Look the text up when it is shown, not in a field or a constant: the bundle answers for the language of the session
 that asks, and a text kept in a field stays in the language of whoever created it. A lambda that is called when a
-menu is opened (<code translate="no" v-pre>l -&gt; T.localized(&quot;Export instructions&quot;)</code>) is fine.</p>
+menu is opened (<code translate="no" v-pre>l -&gt; T.localized(EXPORT_INSTRUCTIONS)</code>) is fine.</p>
 </li>
 <li>
 <p>Without a session (startup, a worker thread that got no request attributes) the default language is used, so the
@@ -848,7 +860,7 @@ uninstalled for good, its data stays in the database (and in backups) - harmless
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (603016660).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (0398c1f42).</p></div>
             </footer>
         </div>
     </div>

@@ -18,8 +18,8 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class PromptBuilderTest {
 
-    private static final Options JSON = new Options(true, true, 0, 0, null);
-    private static final Options TEXT = new Options(false, false, 0, 0, null);
+    private static final Options JSON = new Options(true, 0, 0, null);
+    private static final Options TEXT = new Options(false, 0, 0, null);
 
     private static Persona athena() {
         return new Persona("Athena", "The Analytical Archivist.");
@@ -47,6 +47,24 @@ class PromptBuilderTest {
     }
 
     @Test
+    void aPreviewHoldsTheMessageBeingWrittenAndLeavesTheChatAlone() {
+        BetaChat chat = new BetaChat("Chat", ChatKind.GROUP);
+        chat.addPersona(new Persona("Athena", "A reader."));
+        chat.getMessages().add(BetaMessage.user("First"));
+        BetaMessage draft = BetaMessage.user("Second, still typed");
+        draft.setContext("[Part 1] long story");
+        Options options = new Options(true, 0, 0, null);
+
+        Prompt now = PromptBuilder.build(chat, "P", options);
+        Prompt preview = PromptBuilder.build(chat.preview(draft), "P", options);
+
+        assertEquals(1, chat.getMessages().size());
+        assertTrue(preview.tokens() > now.tokens(), "the text and the parts count");
+        assertTrue(preview.messages().getLast().getContent().contains("[Part 1] long story"));
+        assertTrue(preview.messages().getLast().getContent().contains("Second, still typed"));
+    }
+
+    @Test
     void theSceneGoesAfterThePromptUnlessThePromptPlacesIt() {
         assertEquals("Prompt.\n\nThe scene of the conversation:\nA bar.", PromptBuilder.withScene("Prompt.", "Prompt.", " A bar. "));
         assertEquals("Prompt in A bar.", PromptBuilder.withScene("Prompt in {{scene}}", "Prompt in A bar.", "A bar."));
@@ -68,7 +86,7 @@ class PromptBuilderTest {
         LLMChatMessage system = prompt.messages().getFirst();
         assertEquals(LLMRole.SYSTEM, system.getRole());
         assertTrue(system.getContent().startsWith("The prompt.\n\n# How to answer"));
-        assertTrue(system.getContent().contains("\"reasoning\""));
+        assertFalse(system.getContent().contains("reasoning"), "the model is not asked for a reasoning: its own thinking is shown");
         assertTrue(system.getContent().contains("JSON"));
     }
 
@@ -85,22 +103,11 @@ class PromptBuilderTest {
     }
 
     @Test
-    void aModelThatReasonsOnItsOwnIsNotAskedForTheReasoningField() {
-        BetaChat chat = group(athena());
-        chat.getMessages().add(BetaMessage.user("Hello"));
-
-        String system = PromptBuilder.build(chat, "P", new Options(true, false, 0, 0, null)).messages().getFirst().getContent();
-
-        assertTrue(system.contains("JSON"));
-        assertFalse(system.contains("reasoning"));
-    }
-
-    @Test
     void theLimitOfMessagesIsToldToTheModel() {
         BetaChat chat = group(athena());
         chat.getMessages().add(BetaMessage.user("Hello"));
 
-        assertTrue(PromptBuilder.build(chat, "P", new Options(true, true, 4, 0, null)).messages().getFirst().getContent()
+        assertTrue(PromptBuilder.build(chat, "P", new Options(true, 4, 0, null)).messages().getFirst().getContent()
                 .contains("at most 4 messages"));
         assertFalse(PromptBuilder.build(chat, "P", JSON).messages().getFirst().getContent().contains("at most"));
     }
@@ -201,7 +208,7 @@ class PromptBuilderTest {
     }
 
     @Test
-    void theRepliesGoBackAsTheJsonTheyWere() {
+    void theRepliesGoBackAsTheJsonTheyWereWithoutTheReasoning() {
         BetaChat chat = group(athena());
         chat.getMessages().add(BetaMessage.user("First"));
         chat.getMessages().add(reply("Athena first", "Athena", "Hi"));
@@ -209,20 +216,8 @@ class PromptBuilderTest {
 
         String json = history(PromptBuilder.build(chat, "P", JSON)).get(1).getContent();
 
-        assertEquals("{\"reasoning\":\"Athena first\",\"messages\":[{\"speaker\":\"Athena\",\"parts\":"
+        assertEquals("{\"messages\":[{\"speaker\":\"Athena\",\"parts\":"
                 + "[{\"type\":\"action\",\"text\":\"nods\"},{\"type\":\"speech\",\"text\":\"Hi\"}]}]}", json);
-    }
-
-    @Test
-    void theReasoningIsLeftOutOfTheHistoryWhenTheModelHasNone() {
-        BetaChat chat = group(athena());
-        chat.getMessages().add(BetaMessage.user("First"));
-        chat.getMessages().add(reply("Athena first", "Athena", "Hi"));
-        chat.getMessages().add(BetaMessage.user("Second"));
-
-        String json = history(PromptBuilder.build(chat, "P", new Options(true, false, 0, 0, null))).get(1).getContent();
-
-        assertTrue(json.startsWith("{\"messages\":"));
     }
 
     @Test
@@ -293,7 +288,7 @@ class PromptBuilderTest {
         chat.getMessages().add(BetaMessage.user("the last question"));
         Prompt all = PromptBuilder.build(chat, "P", JSON);
 
-        Prompt trimmed = PromptBuilder.build(chat, "P", new Options(true, true, 0, all.tokens() / 2, null));
+        Prompt trimmed = PromptBuilder.build(chat, "P", new Options(true, 0, all.tokens() / 2, null));
 
         assertTrue(trimmed.dropped() > 0);
         assertTrue(trimmed.fits());
@@ -309,7 +304,7 @@ class PromptBuilderTest {
         BetaChat chat = group(athena());
         chat.getMessages().add(BetaMessage.user("question " + "x".repeat(4000)));
 
-        Prompt prompt = PromptBuilder.build(chat, "P", new Options(true, true, 0, 10, null));
+        Prompt prompt = PromptBuilder.build(chat, "P", new Options(true, 0, 10, null));
 
         assertFalse(prompt.fits());
         assertEquals(2, prompt.messages().size());
@@ -320,7 +315,7 @@ class PromptBuilderTest {
         BetaChat chat = group(athena());
         chat.getMessages().add(BetaMessage.user("First"));
 
-        Prompt prompt = PromptBuilder.build(chat, "P", new Options(true, true, 0, 100000, null));
+        Prompt prompt = PromptBuilder.build(chat, "P", new Options(true, 0, 100000, null));
 
         assertEquals(0, prompt.dropped());
         assertTrue(prompt.fits());

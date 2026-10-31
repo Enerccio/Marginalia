@@ -169,6 +169,21 @@ await main(async ({ page }) => {
   const [first, second, quill] = betaReaders;
   expect(await page.getByText('Include the story (5 parts)').count() === 1, 'the first message offers the story, 5 parts');
   expect(await page.getByText('Context:', { exact: false }).count() >= 1, 'the context counter is shown');
+  // the counter is the size of the request the next message would make: with the story, and with what is typed
+  const tokens = async () => Number((await page.getByText('Context:', { exact: false }).first().innerText()).match(/Context: ([\d,]+)/)[1].replace(/,/g, ''));
+  const withStory = await tokens();
+  await page.getByText('Include the story (5 parts)').click();
+  await sleep(1200);
+  const withoutStory = await tokens();
+  expect(withStory > withoutStory + 200, `the counter counts the story that would be sent (${withStory} against ${withoutStory} without it)`);
+  await box.fill('The fog is the point of the first chapter. '.repeat(60));
+  await sleep(2000);
+  const typed = await tokens();
+  expect(typed > withoutStory + 200, `the counter follows what is typed (${typed} against ${withoutStory})`);
+  await box.fill('');
+  await page.getByText('Include the story (5 parts)').click();
+  await sleep(1200);
+  expect(await tokens() === withStory, 'the counter is back with the story ticked and nothing typed');
   await say(first.question);
   await page.getByText('I would cut the weather', { exact: false }).first().waitFor({ timeout: 30000 });
   await sleep(800);
