@@ -81,6 +81,8 @@
         <property name="repository" ref="activityIntervalRepository" />
     </bean>
 
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ActivityTrackerImpl" init-method="start" destroy-method="stop" />
+
     <bean id="manuscriptSizeRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaManuscriptSizeRepository">
         <property name="entityManager" ref="em"/>
     </bean>

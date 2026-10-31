@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.extensions.loregenerator.commands;
 
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.command.CommandScope;
 import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.read.LorebookReadSupport;
@@ -272,7 +273,8 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
     }
 
     private void runGenerate(CommandContext context) throws Exception {
-        Lore lore = new Lore(new Book(context));
+        Book openBook = new Book(context);
+        Lore lore = new Lore(openBook);
         Target target = target(lore, ref(context, "lorebook"), ref(context, "entry"), context.get("order", Integer.class));
         Lorebook book = target.book();
         LorebookEntry entry = target.entry();
@@ -292,7 +294,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         context.setStatus(T.localized("Generating the text of a lore entry"));
         String generated;
         try {
-            generated = service.complete(model, service.toPayload(
+            generated = service.complete(model, openBook.manuscript, service.toPayload(
                     service.buildGenerationPrompt(book, entry, scope, limit, generationPrompt, null),
                     images == null ? List.of() : List.of(images)));
         } catch (CancellationException e) {
@@ -305,7 +307,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
             throw new IllegalStateException("The model returned no text");
         }
         if (!Boolean.FALSE.equals(context.get("compact", Boolean.class))) {
-            String compacted = compactText(context, model, book, entry, scope, limit, generated);
+            String compacted = compactText(context, model, openBook.manuscript, book, entry, scope, limit, generated);
             if (compacted == null) {
                 return;
             }
@@ -390,7 +392,8 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
     }
 
     private void runCompact(CommandContext context) throws Exception {
-        Lore lore = new Lore(new Book(context));
+        Book openBook = new Book(context);
+        Lore lore = new Lore(openBook);
         Target target = target(lore, ref(context, "lorebook"), ref(context, "entry"), context.get("order", Integer.class));
         Lorebook book = target.book();
         LorebookEntry entry = target.entry();
@@ -403,19 +406,19 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         }
         ModelSelection model = requireModel(context);
 
-        String compacted = compactText(context, model, book, entry, scope, limit, source);
+        String compacted = compactText(context, model, openBook.manuscript, book, entry, scope, limit, source);
         if (compacted != null) {
             context.setReturn(compacted);
         }
     }
 
     /** The compaction step shared by both commands; null when the command was cancelled or terminated. */
-    private String compactText(CommandContext context, ModelSelection model, Lorebook book, LorebookEntry entry, LoreScope scope,
+    private String compactText(CommandContext context, ModelSelection model, Manuscript story, Lorebook book, LorebookEntry entry, LoreScope scope,
                                EntryLimit limit, String source) throws Exception {
         context.setStatus(T.localized("Compacting the text of a lore entry"));
         String compacted;
         try {
-            compacted = service.complete(model, service.toPayload(
+            compacted = service.complete(model, story, service.toPayload(
                     service.buildCompactionPrompt(book, entry, scope, limit, source)));
         } catch (CancellationException e) {
             return null;

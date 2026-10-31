@@ -81,6 +81,9 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
     private AILimitService limitService;
 
     @Autowired
+    private ActivityTracker activityTracker;
+
+    @Autowired
     private InferenceServices inferenceServices;
 
     private ExecutorService inferenceService;
@@ -233,6 +236,8 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                     TokenUsage reported = null;
                     boolean stopped = false;
                     RoundStatsCollector stats = new RoundStatsCollector();
+                    // only the time of the request counts, not what the caller does with the answer
+                    ActivityTracker.Registration generating = metered ? activityTracker.generate(book) : ActivityTracker.NONE;
                     try (StreamResponse<ChatCompletionChunk> stream = client.chat().completions().createStreaming(params)) {
                         Iterator<ChatCompletionChunk> chunks = stream.stream().iterator();
                         while (chunks.hasNext()) {
@@ -271,6 +276,8 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                             recordUsage(attributes, conversation, null, received.toString(), metered, book);
                         }
                         throw e;
+                    } finally {
+                        generating.close();
                     }
                     TokenUsage counted = recordUsage(attributes, conversation, stopped ? null : reported,
                             received.toString(), metered, book);
@@ -313,7 +320,10 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                         callback.onCancel();
                         return;
                     }
-                    ChatCompletion completion = request.client().chat().completions().create(params);
+                    ChatCompletion completion;
+                    try (ActivityTracker.Registration generating = generating(request)) {
+                        completion = request.client().chat().completions().create(params);
+                    }
                     ChatCompletionMessage message = completion.choices().stream().findFirst()
                             .map(ChatCompletion.Choice::message).orElse(null);
                     String text = message == null ? "" : message.content().orElse("");
@@ -357,6 +367,13 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
      * {@code metered}: whether the limits apply and the usage is counted, see {@link UnmeteredScope}. {@code book}: the id of the
      * book the request is made for, null for none, see {@link UsageContext}.
      */
+    /**
+     * The registration of the time the request of the book is on the wire; nothing for a request that is not metered or has no book.
+     */
+    private ActivityTracker.Registration generating(Request request) {
+        return request.metered() ? activityTracker.generate(request.book()) : ActivityTracker.NONE;
+    }
+
     private record Request(OpenAIClient client, Protocol protocol, FunctionSet functions, InferenceAsyncCallback callback,
                            CancellationToken cancellationToken, RequestAttributes attributes, JsonNode schema,
                            boolean metered, Long book) {
@@ -399,10 +416,19 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                 wrapper.run(() -> {
                     if (request.cancellationToken().isCancelled())
                         return;
-                    StreamResponse<ChatCompletionChunk> streamResponse = request.client().chat().completions().createStreaming(paramsBuilder.build());
+                    // from the moment the request is sent to the end of the answer (the recorder below is called whichever way it ends)
+                    ActivityTracker.Registration generating = generating(request);
+                    StreamResponse<ChatCompletionChunk> streamResponse;
+                    try {
+                        streamResponse = request.client().chat().completions().createStreaming(paramsBuilder.build());
+                    } catch (Throwable e) {
+                        generating.close();
+                        throw e;
+                    }
                     OpenAIInferenceAsyncController controller = new OpenAIInferenceAsyncController(streamResponse,
                             request.callback(), request.cancellationToken(),
                             (reported, generated) -> {
+                                generating.close();
                                 if (request.metered()) {
                                     recordUsage(request.attributes(), conversation, reported, generated, request.book());
                                 }

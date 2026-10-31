@@ -78,6 +78,9 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
     @Autowired
     private AILimitService limitService;
 
+    @Autowired
+    private ActivityTracker activityTracker;
+
     private final ExtensionAI ai;
     private final AnthropicSettings settings;
     private final Logger log;
@@ -131,6 +134,14 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
         this.configuration = configuration;
         this.usageService = usageService;
         this.limitService = limitService;
+    }
+
+    /**
+     * The time the request of the book is on the wire, for the generation time of the writing statistics; nothing for a request that
+     * is not metered or has no book (and in a test without the application).
+     */
+    private ActivityTracker.Registration generating(Run run) {
+        return run.metered && activityTracker != null ? activityTracker.generate(run.book) : ActivityTracker.NONE;
     }
 
     // ---- models and connection
@@ -235,14 +246,17 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
                         return;
                     }
                     long began = System.nanoTime();
-                    Answer answer = collect(sdk, run, params, piece -> {
-                        try {
-                            callback.onChunk(piece.reasoning() ? ChunkType.REASONING : ChunkType.RESPONSE, piece.text());
-                        } catch (RuntimeException e) {
-                            // the view must not fail the round
-                            log.trace("A chunk of a round was not shown", e);
-                        }
-                    });
+                    Answer answer;
+                    try (ActivityTracker.Registration generating = generating(run)) {
+                        answer = collect(sdk, run, params, piece -> {
+                            try {
+                                callback.onChunk(piece.reasoning() ? ChunkType.REASONING : ChunkType.RESPONSE, piece.text());
+                            } catch (RuntimeException e) {
+                                // the view must not fail the round
+                                log.trace("A chunk of a round was not shown", e);
+                            }
+                        });
+                    }
                     long millis = (System.nanoTime() - began) / 1_000_000;
                     TokenUsage counted = run.metered
                             ? recordUsage(run.attributes, run.book, prepared.turns(), answer.reported(), answer.received.toString()) : null;
@@ -345,9 +359,18 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
                         callback.onCancel();
                         return;
                     }
-                    StreamResponse<RawMessageStreamEvent> stream = open(sdk, run, params);
+                    // from the moment the request is sent to the end of the answer (the recorder below is called whichever way it ends)
+                    ActivityTracker.Registration generating = generating(run);
+                    StreamResponse<RawMessageStreamEvent> stream;
+                    try {
+                        stream = open(sdk, run, params);
+                    } catch (Throwable e) {
+                        generating.close();
+                        throw e;
+                    }
                     AnthropicStreamController controller = new AnthropicStreamController(stream, callback, run,
                             (reported, generated) -> {
+                                generating.close();
                                 if (run.metered) {
                                     recordUsage(run.attributes, run.book, turns, reported, generated);
                                 }
@@ -398,7 +421,10 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
                         callback.onCancel();
                         return;
                     }
-                    Answer answer = collect(sdk, run, params, null);
+                    Answer answer;
+                    try (ActivityTracker.Registration generating = generating(run)) {
+                        answer = collect(sdk, run, params, null);
+                    }
                     if (run.metered) {
                         recordUsage(run.attributes, run.book, turns, answer.reported(), answer.received.toString());
                     }

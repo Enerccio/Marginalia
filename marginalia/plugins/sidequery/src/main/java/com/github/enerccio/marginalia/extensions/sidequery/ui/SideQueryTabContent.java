@@ -505,7 +505,7 @@ public class SideQueryTabContent extends VerticalLayout {
                     return activeToken == null || activeToken.isCancelled();
                 }
             };
-            try (InferenceSession _ = InferenceSession.open(SideQueryService.SESSION_KIND)) {
+            try (InferenceSession _ = InferenceSession.open(SideQueryService.SESSION_KIND); UsageContext _ = UsageContext.open(manuscript)) {
                 activeToken = service.stream(payload, targetProtocol, queryCallback);
             }
 

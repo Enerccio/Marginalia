@@ -2,7 +2,9 @@ package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.domain.collections.ActivityKind;
 import com.github.enerccio.marginalia.domain.components.ActivityRow;
+import com.github.enerccio.marginalia.domain.components.ActivityTimes;
 import com.github.enerccio.marginalia.domain.components.StatisticFilter;
+import com.github.enerccio.marginalia.domain.components.TimeUnion;
 import com.github.enerccio.marginalia.domain.model.impl.ActivityInterval;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.ActivityIntervalRepository;
@@ -13,10 +15,9 @@ import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
+import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public class ActivityIntervalServiceImpl extends OwnedServiceImpl<ActivityInterval, ActivityIntervalRepository>
         implements ActivityIntervalService {
@@ -51,6 +52,24 @@ public class ActivityIntervalServiceImpl extends OwnedServiceImpl<ActivityInterv
     @CommonTxReadOnly
     public List<ActivityRow> findRows(StatisticFilter filter, Collection<ActivityKind> kinds) throws Exception {
         return getRepository().findRows(currentUser, filter, kinds);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public ActivityTimes times(StatisticFilter filter) throws Exception {
+        return TimeUnion.times(getRepository().findRows(currentUser, filter, null));
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public SortedMap<LocalDate, ActivityTimes> timesByDay(StatisticFilter filter) throws Exception {
+        return TimeUnion.byDay(getRepository().findRows(currentUser, filter, null));
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public Map<String, ActivityTimes> timesByBook(StatisticFilter filter) throws Exception {
+        return TimeUnion.byBook(getRepository().findRows(currentUser, filter, null));
     }
 
     @Override

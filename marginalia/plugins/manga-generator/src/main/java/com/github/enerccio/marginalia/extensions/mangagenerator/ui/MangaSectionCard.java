@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.InferenceErrors;
+import com.github.enerccio.marginalia.domain.service.UsageContext;
 import com.github.enerccio.marginalia.extensions.mangagenerator.MangaGeneratorLog;
 import com.github.enerccio.marginalia.extensions.mangagenerator.model.Manga;
 import com.github.enerccio.marginalia.extensions.mangagenerator.model.MangaSection;
@@ -413,7 +414,10 @@ public class MangaSectionCard extends VerticalLayout {
                 section.setReasoningFinished(false);
             }
             generatingTags = tags;
-            activeToken = service.stream(request, new Streaming(ui, tags));
+            // the tokens and the time of the request are the book's
+            try (UsageContext _ = UsageContext.open(manuscript)) {
+                activeToken = service.stream(request, new Streaming(ui, tags));
+            }
             onRun.accept(true);
             refreshView();
         } catch (Exception e) {
