@@ -117,6 +117,20 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
     EffectiveSetting<String> resolveInherited(Folder folder, PromptField field) throws Exception;
 
     /**
+     * The value of a setting an extension added to the books ({@code InheritedSetting}) and where it comes from: the book, else
+     * the nearest folder above it that sets one, else what the user level of the extension holds, else the default of the
+     * extension. A blank text is not set; the value is blank only when the extension's default is. A key nothing is registered for
+     * (the extension is not loaded) has no user level and an empty default. Works from any thread.
+     */
+    EffectiveSetting<String> resolveExtension(Manuscript manuscript, String key) throws Exception;
+
+    /**
+     * What a book filed in the folder (or a folder made in it) inherits for the extension setting and where it comes from, see
+     * {@link #resolveExtension}; the top level (null) has the user level of the extension only.
+     */
+    EffectiveSetting<String> resolveExtensionInherited(Folder folder, String key) throws Exception;
+
+    /**
      * The language of the book and where it comes from: the book, else the nearest folder above it that sets one, else
      * English (the default).
      */

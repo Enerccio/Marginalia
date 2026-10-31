@@ -23,6 +23,9 @@ import com.github.enerccio.marginalia.domain.service.search.Sorter;
 import com.github.enerccio.marginalia.domain.templates.*;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import com.github.enerccio.marginalia.extensions.InheritedSetting;
+import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
+import com.github.enerccio.marginalia.extensions.InheritedSettingValues;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -110,6 +113,9 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @Autowired
     @Lazy
     private ManuscriptStatisticService statisticService;
+
+    @Autowired
+    private InheritedSettingRegistry inheritedSettingRegistry;
 
     /**
      * A book an agent works on can't be changed, see {@link AgentRunService#checkNotLocked}.
@@ -329,6 +335,31 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
             return new EffectiveSetting<>(fromUser, EffectiveSetting.Origin.USER, null);
         }
         return new EffectiveSetting<>(field.fallback(), EffectiveSetting.Origin.DEFAULT, null);
+    }
+
+    @Override
+    public EffectiveSetting<String> resolveExtension(Manuscript manuscript, String key) throws Exception {
+        String own = InheritedSettingValues.get(manuscript, key);
+        if (StringUtils.isNotBlank(own)) {
+            return new EffectiveSetting<>(own, EffectiveSetting.Origin.BOOK, null);
+        }
+        return resolveExtensionInherited(manuscript.getFolder(), key);
+    }
+
+    @Override
+    public EffectiveSetting<String> resolveExtensionInherited(Folder start, String key) throws Exception {
+        for (Folder folder : folderService.findChain(start)) {
+            String inherited = InheritedSettingValues.get(folder, key);
+            if (StringUtils.isNotBlank(inherited)) {
+                return new EffectiveSetting<>(inherited, EffectiveSetting.Origin.FOLDER, folder);
+            }
+        }
+        InheritedSetting setting = inheritedSettingRegistry.find(key);
+        String fromUser = setting == null ? null : setting.userValue();
+        if (StringUtils.isNotBlank(fromUser)) {
+            return new EffectiveSetting<>(fromUser, EffectiveSetting.Origin.USER, null);
+        }
+        return new EffectiveSetting<>(setting == null ? "" : setting.fallback(), EffectiveSetting.Origin.DEFAULT, null);
     }
 
     @Override

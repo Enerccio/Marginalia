@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.domain.security.AdminGuard;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.extensions.ExtensionHasLocalization;
+import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.instruct.verify.ExtensionVerification;
 import com.github.enerccio.marginalia.instruct.verify.ExtensionVerifier;
@@ -71,6 +72,9 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
 
     @Autowired
     private StoryMenuRegistry storyMenuRegistry;
+
+    @Autowired
+    private InheritedSettingRegistry inheritedSettingRegistry;
 
     @Autowired
     private ExtensionService extensionService;
@@ -687,6 +691,7 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
                 ipcService.unregisterAll(b.getSymbolicName());
                 toolService.unregisterAll(b.getSymbolicName());
                 storyMenuRegistry.unregisterAll(b.getSymbolicName());
+                inheritedSettingRegistry.unregisterAll(b.getSymbolicName());
             }
             getContext().ungetService(sr);
             if (reported) {

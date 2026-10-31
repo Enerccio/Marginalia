@@ -6,7 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Folder;
  * The value a setting of a book has, and where it comes from: the book itself, a folder above it, the user settings or
  * the built-in default. See {@link ManuscriptService#resolve}.
 
- * @param value  the value, never blank for a text
+ * @param value  the value, never blank for a text (but the default of an extension setting, which an extension may leave empty)
  * @param origin where the value is set
  * @param folder the folder that sets it when the origin is {@link Origin#FOLDER}, null otherwise
  */

@@ -17,6 +17,7 @@
     <module>marginalia/plugins/anthropic</module>
     <module>marginalia/plugins/arc-outline</module>
     <module>marginalia/plugins/authorsnote</module>
+    <module>marginalia/plugins/beta-readers</module>
     <module>marginalia/plugins/chaptermarker</module>
     <module>marginalia/plugins/character-tracker</module>
     <module>marginalia/plugins/chineselocalization</module>

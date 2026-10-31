@@ -34,6 +34,15 @@ The same fields are in the settings of a folder, with the same lines. A blank te
 done when the prompt is built, moving the book to another folder, or changing the folder, changes the next part you
 generate.
 
+### Settings of extensions
+
+An [extension](../extensions/index.md) can add settings that books and folders inherit the same way (for example the medium a
+chat about the book treats it as). They are in an **Extension Settings** section below the prompts, in the *Prompts* tab of a book
+and in the settings of a folder, one group per extension. They work like the fields above: an empty field is inherited from the
+folders above the book, then from the extension's own settings in *Settings → Extension Settings*, then from its default, and the
+line under the field says which. The section is not shown while no loaded extension has such a setting; a value you set stays with
+the book or the folder when the extension is not loaded.
+
 Each field has a hints popover with **Insert Default Template**, which copies the default into the field as a starting
 point for your own version. The template fields also list the **Available Template Variables** and the
 **Available Macros**.

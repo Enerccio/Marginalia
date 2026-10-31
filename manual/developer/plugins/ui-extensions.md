@@ -322,6 +322,10 @@ Saving on enter lets the application's own `settingService.save(userSetting)` st
 `save()` returns early when the application's own fields don't validate - then the plugin's values are not stored
 either.
 
+A setting that a book or a folder can override (the plugin's panel then holds the user level) does not need a decorator:
+register it in the `InheritedSettingRegistry` and the *Prompts* tab and the folder dialog get the field, see
+[Inherited settings](inherited-settings.md).
+
 ### Dialogs and own components
 
 Plugin dialogs and components are ordinary Vaadin classes in the bundle. Annotate them `@Configurable` to inject

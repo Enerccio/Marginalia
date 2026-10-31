@@ -6,9 +6,10 @@ import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.*;
-import com.github.enerccio.marginalia.domain.service.ManuscriptService.MissingHistory;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookDecision;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookImportCandidate;
+import com.github.enerccio.marginalia.domain.service.ManuscriptService.MissingHistory;
+import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.google.gson.*;
@@ -57,6 +58,9 @@ public class BackupServiceImpl implements BackupService {
 
     @Autowired
     private SettingService settingService;
+
+    @Autowired
+    private InheritedSettingRegistry inheritedSettingRegistry;
 
     @Autowired
     private ResourceService resourceService;
@@ -776,7 +780,8 @@ public class BackupServiceImpl implements BackupService {
         try (Reader reader = Files.newBufferedReader(stored.toPath(), StandardCharsets.UTF_8)) {
             root = JsonParser.parseReader(reader).getAsJsonObject();
         }
-        BackupInheritance.prepare(innerOf(root), includeInherited ? settingService.getOrCreate(UserSetting.class) : null, includeInherited);
+        BackupInheritance.prepare(innerOf(root), includeInherited ? settingService.getOrCreate(UserSetting.class) : null,
+                inheritedSettingRegistry, includeInherited);
         Writer writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
         gson.toJson(root, writer);
         writer.flush();
