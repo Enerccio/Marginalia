@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.repository.impl;
 
+import com.github.enerccio.marginalia.domain.components.FolderPlacement;
 import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.repository.FolderRepository;
 import com.github.enerccio.marginalia.domain.security.model.User;
@@ -15,6 +16,19 @@ public class JpaFolderRepository extends JpaExtendableRepository<Folder> impleme
     @Override
     protected Class<Folder> getEntityClass() {
         return Folder.class;
+    }
+
+    @Override
+    public List<FolderPlacement> findPlacements(User user) throws Exception {
+        List<FolderPlacement> placements = new ArrayList<>();
+        for (Object[] row : getEntityManager().createQuery(
+                        "SELECT f.id, f.name, p.id FROM Folder f LEFT JOIN f.parent p WHERE f.deleted = false AND f.owner.id = :ownerId",
+                        Object[].class)
+                .setParameter("ownerId", user.getId())
+                .getResultList()) {
+            placements.add(new FolderPlacement((Long) row[0], (String) row[1], (Long) row[2]));
+        }
+        return placements;
     }
 
     @Override

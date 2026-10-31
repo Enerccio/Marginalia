@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.repository;
 
+import com.github.enerccio.marginalia.domain.components.FolderPlacement;
 import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.security.model.User;
 
@@ -28,6 +29,12 @@ public interface FolderRepository extends ExtendableRepository<Folder> {
      * not deleted, other than the folder with the given id (null for none).
      */
     Folder findChildByName(Folder parent, String name, Long excludeId, User user) throws Exception;
+
+    /**
+     * The name and the parent of every folder of the user that is not deleted, read from the database (not from the entities a
+     * session may hold, which a bulk update leaves behind).
+     */
+    List<FolderPlacement> findPlacements(User user) throws Exception;
 
     /**
      * Moves the folders that are directly in one of the folders to another folder (null is the top level) with a bulk

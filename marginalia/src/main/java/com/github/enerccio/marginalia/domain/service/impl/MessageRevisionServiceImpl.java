@@ -40,6 +40,10 @@ public class MessageRevisionServiceImpl extends ExtendableServiceImpl<MessageRev
     @Lazy
     private ManuscriptStatisticService statisticService;
 
+    @Autowired
+    @Lazy
+    private ManuscriptSizeService sizeService;
+
     @Override
     @CommonTx
     public MessageRevision record(ChatMessage part, RevisionSource source, String detail, boolean agent) throws Exception {
@@ -71,6 +75,8 @@ public class MessageRevisionServiceImpl extends ExtendableServiceImpl<MessageRev
             return null;
         }
         Manuscript book = bookOf(part);
+        // the size is not about the work but about the text, the repair of a version and the merge of an agent change it too
+        sizeService.touch(book);
         EffectiveHistoryLimit limit = limitOf(book);
         if (limit.isOff()) {
             return null;

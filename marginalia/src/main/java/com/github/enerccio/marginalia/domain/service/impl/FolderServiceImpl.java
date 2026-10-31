@@ -34,6 +34,10 @@ public class FolderServiceImpl extends ExtendableServiceImpl<Folder, FolderRepos
     private AgentRunService agentRunService;
 
     @Autowired
+    @Lazy
+    private ManuscriptStatisticService statisticService;
+
+    @Autowired
     private TagRelationService tagRelationService;
 
     @Autowired
@@ -152,7 +156,10 @@ public class FolderServiceImpl extends ExtendableServiceImpl<Folder, FolderRepos
             return null;
         }
         stored.setName(name);
-        return save(stored);
+        Folder saved = save(stored);
+        // the path of the books below is in the rows of their statistics
+        statisticService.refreshFolders();
+        return saved;
     }
 
     @Override
@@ -176,10 +183,15 @@ public class FolderServiceImpl extends ExtendableServiceImpl<Folder, FolderRepos
             changed.forEach((field, value) -> field.setOfFolder(stored, value));
             stored.setLanguage(details.language());
         }
+        boolean renamed = !Objects.equals(stored.getName(), StringUtils.trim(details.name()));
         stored.setName(details.name());
         stored.setDescription(details.description());
         stored.setHistoryMaxVersions(details.historyMaxVersions() == null || details.historyMaxVersions() < 0 ? null : details.historyMaxVersions());
-        return save(stored);
+        Folder saved = save(stored);
+        if (renamed) {
+            statisticService.refreshFolders();
+        }
+        return saved;
     }
 
     @Override
@@ -198,7 +210,9 @@ public class FolderServiceImpl extends ExtendableServiceImpl<Folder, FolderRepos
         }
         checkNoLockedBook(subtree(stored));
         stored.setParent(parent);
-        return save(stored);
+        Folder saved = save(stored);
+        statisticService.refreshFolders();
+        return saved;
     }
 
     @Override
@@ -322,7 +336,10 @@ public class FolderServiceImpl extends ExtendableServiceImpl<Folder, FolderRepos
         manuscriptRepository.moveFolderContent(List.of(stored.getId()), parent, currentUser);
         getRepository().reparentChildren(List.of(stored.getId()), parent, currentUser);
         tagRelationService.deleteForObject(stored, hard);
-        return super.delete(stored, hard);
+        Folder deleted = super.delete(stored, hard);
+        // the content moved up a level
+        statisticService.refreshFolders();
+        return deleted;
     }
 
     @Override
@@ -369,7 +386,9 @@ public class FolderServiceImpl extends ExtendableServiceImpl<Folder, FolderRepos
     public Outcome transfer(Transfer transfer, Runnable step) throws Exception {
         if (!transfer.copy()) {
             // a move is a few bulk updates: all or nothing
-            return inTx(() -> execute(transfer, check(transfer), step));
+            Outcome outcome = inTx(() -> execute(transfer, check(transfer), step));
+            statisticService.refreshFolders();
+            return outcome;
         }
         // A copy reads and writes every book whole and can take long, and the database has one writer: no transaction around it.
         // Everything is checked first (a transaction of its own, nothing is written), then every folder and every book is a step

@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.security.AdminGuard;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.CleanupService;
+import com.github.enerccio.marginalia.domain.service.ManuscriptSizeService;
 import com.github.enerccio.marginalia.domain.service.TrashService;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference.Policy;
@@ -22,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.lang.reflect.Field;
@@ -55,6 +57,10 @@ public class CleanupServiceImpl implements CleanupService, TrashService {
 
     @Autowired
     private User currentUser;
+
+    @Autowired
+    @Lazy
+    private ManuscriptSizeService sizeService;
 
     private EntityManager entityManager;
     private volatile Model model;
@@ -756,10 +762,37 @@ public class CleanupServiceImpl implements CleanupService, TrashService {
             }
         }
         entityManager.flush();
+        touchSizeOf(selection);
         entityManager.clear();
         result.getRestored().addAll(selection);
         log.info("Restored {} soft deleted entities", selection.size());
         return result;
+    }
+
+    /**
+     * The books whose parts (or the books themselves) the trash brings back or takes away: their size may have changed, and the
+     * trash changes it with bulk updates that no service hears.
+     */
+    private void touchSizeOf(Set<EntityKey> selection) {
+        try {
+            Set<Long> books = new LinkedHashSet<>();
+            List<Long> parts = new ArrayList<>();
+            for (EntityKey key : selection) {
+                if (key.type() == ChatMessage.class) {
+                    parts.add(key.id());
+                } else if (key.type() == Manuscript.class) {
+                    books.add(key.id());
+                }
+            }
+            for (List<Long> chunk : chunks(parts)) {
+                books.addAll(entityManager.createQuery("SELECT DISTINCT m.parentScript.id FROM ChatMessage m WHERE m.id IN :ids", Long.class)
+                        .setParameter("ids", chunk)
+                        .getResultList());
+            }
+            books.forEach(sizeService::touch);
+        } catch (RuntimeException e) {
+            log.warn("Failed to note the books whose size the trash changed", e);
+        }
     }
 
     @Override
@@ -782,6 +815,7 @@ public class CleanupServiceImpl implements CleanupService, TrashService {
             return result;
         }
 
+        touchSizeOf(selection);
         moveChildrenOfMessages(selection);
 
         Closure closure = closure(m, selection, Set.of());

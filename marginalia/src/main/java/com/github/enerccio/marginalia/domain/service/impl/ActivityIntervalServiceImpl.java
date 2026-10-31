@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.components.TimeUnion;
 import com.github.enerccio.marginalia.domain.model.impl.ActivityInterval;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.ActivityIntervalRepository;
+import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.ActivityIntervalService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptStatisticService;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
@@ -33,7 +34,9 @@ public class ActivityIntervalServiceImpl extends OwnedServiceImpl<ActivityInterv
         interval.setOwner(book.getOwner());
         interval.setBookUuid(book.getUuid());
         interval.setBookName(book.getName());
-        interval.setFolderPath(statisticService.folderPathOf(book));
+        String path = statisticService.folderPathOf(book);
+        statisticService.noteBook(book, path);
+        interval.setFolderPath(path);
         interval.setKind(kind);
         interval.setAgent(agent);
         interval.setDay(startTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
@@ -70,6 +73,12 @@ public class ActivityIntervalServiceImpl extends OwnedServiceImpl<ActivityInterv
     @CommonTxReadOnly
     public Map<String, ActivityTimes> timesByBook(StatisticFilter filter) throws Exception {
         return TimeUnion.byBook(getRepository().findRows(currentUser, filter, null));
+    }
+
+    @Override
+    @CommonTx
+    public void refreshBook(User owner, String bookUuid, String bookName, String folderPath) throws Exception {
+        getRepository().refreshBook(owner, bookUuid, bookName, folderPath);
     }
 
     @Override

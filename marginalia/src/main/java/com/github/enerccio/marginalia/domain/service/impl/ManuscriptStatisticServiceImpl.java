@@ -4,10 +4,14 @@ import com.github.enerccio.marginalia.domain.components.*;
 import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.ManuscriptStatistic;
+import com.github.enerccio.marginalia.domain.repository.FolderRepository;
+import com.github.enerccio.marginalia.domain.repository.ManuscriptRepository;
 import com.github.enerccio.marginalia.domain.repository.ManuscriptStatisticRepository;
+import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,9 +19,8 @@ import org.springframework.context.annotation.Lazy;
 
 import java.time.Clock;
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ManuscriptStatisticServiceImpl extends OwnedServiceImpl<ManuscriptStatistic, ManuscriptStatisticRepository>
         implements ManuscriptStatisticService {
@@ -39,6 +42,25 @@ public class ManuscriptStatisticServiceImpl extends OwnedServiceImpl<ManuscriptS
     @Autowired
     @Lazy
     private ManuscriptSizeService sizeService;
+
+    @Autowired
+    @Lazy
+    private ManuscriptService manuscriptService;
+
+    @Autowired
+    @Lazy
+    private ManuscriptRepository manuscriptRepository;
+
+    @Autowired
+    @Lazy
+    private FolderRepository folderRepository;
+
+    /** The name and the path of a book as the last writer told them, to find a rename that nobody announced. */
+    private record Names(String name, String path) {
+    }
+
+    private static final int MAX_REMEMBERED = 5_000;
+    private final Map<String, Names> names = new ConcurrentHashMap<>();
 
     /**
      * The clock that tells the day, the one of the server's zone; a test sets its own.
@@ -72,6 +94,7 @@ public class ManuscriptStatisticServiceImpl extends OwnedServiceImpl<ManuscriptS
             Date now = new Date(clock.millis());
             LocalDate day = LocalDate.now(clock);
             String path = folderPathOf(target);
+            noteBook(target, path);
             if (getRepository().add(target.getOwner(), target.getUuid(), day, agentSide, delta, target.getName(), path, now) > 0) {
                 return;
             }
@@ -89,6 +112,98 @@ public class ManuscriptStatisticServiceImpl extends OwnedServiceImpl<ManuscriptS
         } catch (Exception e) {
             log.warn("Failed to count the statistics of book {}", book.getUuid(), e);
         }
+    }
+
+    @Override
+    @CommonTx
+    public void refreshBook(Manuscript book) {
+        if (book == null || book.getUuid() == null || book.getOwner() == null || book.isDeleted() || book.isAgentic()) {
+            return;
+        }
+        try {
+            refreshRows(book.getOwner(), book.getUuid(), book.getName(), folderPathOf(book));
+        } catch (Exception e) {
+            log.warn("Failed to refresh the name of book {} in the statistics", book.getUuid(), e);
+        }
+    }
+
+    @Override
+    @CommonTx
+    public void refreshBooks(Collection<Manuscript> books, Folder folder) {
+        try {
+            String path = pathOf(folder);
+            for (Manuscript book : books) {
+                if (book != null && book.getUuid() != null && book.getOwner() != null && !book.isDeleted() && !book.isAgentic()) {
+                    refreshRows(book.getOwner(), book.getUuid(), book.getName(), path);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to refresh the folder of the books in the statistics", e);
+        }
+    }
+
+    @Override
+    @CommonTx
+    public void refreshFolders() {
+        try {
+            Map<Long, FolderPlacement> folders = new HashMap<>();
+            for (FolderPlacement placement : folderRepository.findPlacements(currentUser)) {
+                folders.put(placement.id(), placement);
+            }
+            Map<Long, String> paths = new HashMap<>();
+            for (BookPlacement book : manuscriptRepository.findPlacements(currentUser)) {
+                String path = book.folderId() == null ? "" : paths.computeIfAbsent(book.folderId(), id -> pathOf(id, folders));
+                refreshRows(currentUser, book.uuid(), book.name(), path);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to refresh the folders of the books in the statistics", e);
+        }
+    }
+
+    @Override
+    @CommonTx
+    public void noteBook(Manuscript book, String folderPath) {
+        if (book == null || book.getUuid() == null || book.getOwner() == null || book.isAgentic()) {
+            return;
+        }
+        try {
+            Names now = new Names(StringUtils.defaultString(book.getName()), StringUtils.defaultString(folderPath));
+            if (names.size() > MAX_REMEMBERED) {
+                names.clear();
+            }
+            Names before = names.putIfAbsent(book.getUuid(), now);
+            if (before == null || before.equals(now)) {
+                return;
+            }
+            // the caller may hold an old copy of the book: what is stored decides
+            Manuscript stored = manuscriptService.find(book.getId());
+            if (stored != null && !stored.isDeleted()) {
+                Names truth = new Names(StringUtils.defaultString(stored.getName()), StringUtils.defaultString(folderPathOf(stored)));
+                if (!truth.equals(before)) {
+                    refreshRows(stored.getOwner(), stored.getUuid(), truth.name(), truth.path());
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to check the name of book {} in the statistics", book.getUuid(), e);
+        }
+    }
+
+    private void refreshRows(User owner, String uuid, String name, String path) throws Exception {
+        getRepository().refreshBook(owner, uuid, name, path);
+        intervalService.refreshBook(owner, uuid, name, path);
+        sizeService.refreshBook(owner, uuid, name, path);
+        names.put(uuid, new Names(StringUtils.defaultString(name), StringUtils.defaultString(path)));
+    }
+
+    /** The path of a folder from the placements of all of them; a cycle ends the path. */
+    private static String pathOf(Long folderId, Map<Long, FolderPlacement> folders) {
+        LinkedList<String> parts = new LinkedList<>();
+        Set<Long> seen = new HashSet<>();
+        for (FolderPlacement above = folders.get(folderId); above != null && seen.add(above.id());
+             above = above.parentId() == null ? null : folders.get(above.parentId())) {
+            parts.addFirst(above.name());
+        }
+        return String.join(String.valueOf(FolderService.SEPARATOR), parts);
     }
 
     @Override
@@ -154,7 +269,10 @@ public class ManuscriptStatisticServiceImpl extends OwnedServiceImpl<ManuscriptS
     @Override
     @CommonTxReadOnly
     public String folderPathOf(Manuscript book) throws Exception {
-        Folder folder = book == null ? null : book.getFolder();
+        return pathOf(book == null ? null : book.getFolder());
+    }
+
+    private String pathOf(Folder folder) throws Exception {
         if (folder == null) {
             return "";
         }

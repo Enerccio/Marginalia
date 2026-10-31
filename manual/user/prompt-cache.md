@@ -589,15 +589,23 @@ Things to know:
   long story and a large model hundreds of megabytes to several gigabytes. A measured example: a 31 B model with a
   prompt of 18,000 tokens made files of 1.3 to 11 GB, the largest with about 18 checkpoints of about 450 MB each besides
   about 1.5 GB of cache. A server keeps up to 32 checkpoints by default, and every swap writes and reads all of them.
-  `--ctx-checkpoints N` of `llama-server` caps that, which makes the files smaller and the swaps shorter (the newest
-  checkpoint is the one that is used most, as the next prompt differs from the last one at the start of its last user
-  message, so a few are enough unless you edit or swipe far back in the story). There is one file per route, user and
+  `--ctx-checkpoints N` of `llama-server` caps that, which makes the files smaller and the swaps shorter, but a
+  checkpoint helps only when the next prompt first differs from the cached one at or just after it. A new part or a
+  swipe differs at the start of the last user message (the newest checkpoint), while an annotation or a redraft can
+  change a part several parts back, so keep as many checkpoints as the story reaches back (look at the `prompt:` lines
+  of the hook, they tell where each request differs). There is one file per route, user and
   kind, and each is overwritten in place, so the folder stays as small as that.
 - **Speed.** Check that a swap is faster than reading the prompt (the hook logs the size and the time of every save and
   restore). The example above, on an NVMe disk with an AMD Radeon AI PRO R9700: a save of 11 GB took 6 s and a restore
   of 7.6 GB for 20,000 tokens 8 s, about 14 s for a swap, while reading a prompt of that length again takes about 45 s
   at 440 tokens per second, and a prefill grows with the prompt. Without checkpoints the same files were about 1 GB and
   a swap took 5 s.
+- **Memory.** The checkpoints of the slot are held in the **system memory** of the server (not in the memory of the GPU),
+  up to `--ctx-checkpoints` of them (32 by default, hundreds of megabytes each for a large model), and a save or a
+  restore reads or writes all of them. `llama-server` also keeps the prompts of the slots it gave up in a memory cache of
+  its own (`--cache-ram`, 8 GiB by default); the files of the hook do the same job, so it can be set to 0 on a machine
+  that is short of memory. When the machine starts to swap, saves and restores become several times slower, as the
+  checkpoints have to be read back from the swap first: look at `free -h` before looking at the disk.
 - **Limits.** Without a limit the folder grows with the number of routes, users and kinds. Set `max_files` (a number of
   files) and/or `max_gib` (their total size) in the `slot_cache` of a route (or `LLAMA_CACHE_MAX_FILES` and
   `LLAMA_CACHE_MAX_GIB` in the environment of the proxy for all routes) and the hook deletes the caches **of that route**

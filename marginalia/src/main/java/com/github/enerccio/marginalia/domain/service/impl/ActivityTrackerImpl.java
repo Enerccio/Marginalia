@@ -2,10 +2,7 @@ package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.domain.collections.ActivityKind;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.service.ActivityIntervalService;
-import com.github.enerccio.marginalia.domain.service.ActivityTracker;
-import com.github.enerccio.marginalia.domain.service.AgentRunService;
-import com.github.enerccio.marginalia.domain.service.ManuscriptService;
+import com.github.enerccio.marginalia.domain.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -104,6 +101,10 @@ public class ActivityTrackerImpl implements ActivityTracker {
     @Lazy
     private ManuscriptService manuscriptService;
 
+    @Autowired
+    @Lazy
+    private ManuscriptSizeService sizeService;
+
     private final Object lock = new Object();
     private final Map<Key, Stretch> stretches = new LinkedHashMap<>();
     private final Set<Presence> presences = new LinkedHashSet<>();
@@ -174,6 +175,8 @@ public class ActivityTrackerImpl implements ActivityTracker {
                 return NO_PRESENCE;
             }
             Presence presence = new Presence(resolved);
+            // a book that is opened has a size for today, and one that drifted is corrected
+            sizeService.touch(resolved.id());
             synchronized (lock) {
                 presences.add(presence);
                 presence.sync(now());
@@ -305,6 +308,8 @@ public class ActivityTrackerImpl implements ActivityTracker {
                 presences.remove(this);
                 sync(now());
             }
+            // a book that is closed has its size measured now, not in a moment
+            sizeService.touchNow(book.id());
             wake();
         }
 

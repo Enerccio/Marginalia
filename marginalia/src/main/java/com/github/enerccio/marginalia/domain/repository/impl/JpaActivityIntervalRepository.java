@@ -45,11 +45,14 @@ public class JpaActivityIntervalRepository extends JpaOwnedRepository<ActivityIn
 
     @Override
     public int refreshBook(User owner, String bookUuid, String bookName, String folderPath) {
+        // only the rows that differ are written: a book that is saved again and again has the same name
+        String name = bookName == null ? "" : bookName;
         String path = folderPath == null ? "" : ", i.folderPath = :path";
+        String differs = "COALESCE(i.bookName, '') <> :name" + (folderPath == null ? "" : " OR COALESCE(i.folderPath, '') <> :path");
         Query query = entityManager
                 .createQuery("UPDATE ActivityInterval i SET i.bookName = :name" + path
-                        + " WHERE i.bookUuid = :book AND i.owner.id = :owner")
-                .setParameter("name", bookName)
+                        + " WHERE i.bookUuid = :book AND i.owner.id = :owner AND (" + differs + ")")
+                .setParameter("name", name)
                 .setParameter("book", bookUuid)
                 .setParameter("owner", owner.getId());
         if (folderPath != null) {
