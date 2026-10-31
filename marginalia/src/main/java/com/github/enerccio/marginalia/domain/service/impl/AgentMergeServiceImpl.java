@@ -33,7 +33,7 @@ public class AgentMergeServiceImpl implements AgentMergeService {
     private static final Logger log = LoggerFactory.getLogger(AgentMergeServiceImpl.class);
 
     // the versions of a part an agent's work makes when it is merged into the book
-    private static final RevisionOrigin MERGE_ORIGIN = RevisionOrigin.automatic(RevisionDetail.AGENT_MERGE, true);
+    private static final RevisionOrigin MERGE_ORIGIN = RevisionOrigin.automatic(RevisionDetail.AGENT_MERGE, true).uncounted();
 
     private static final Set<AgentRunStatus> REVIEWABLE = Set.of(AgentRunStatus.DONE, AgentRunStatus.STOPPED_KEPT);
 

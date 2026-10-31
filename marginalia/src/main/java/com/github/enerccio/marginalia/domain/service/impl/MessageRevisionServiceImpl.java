@@ -1,45 +1,27 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.domain.collections.RevisionSource;
-import com.github.enerccio.marginalia.domain.components.RevisionClearing;
-import com.github.enerccio.marginalia.domain.components.RevisionData;
-import com.github.enerccio.marginalia.domain.components.RevisionOrigin;
-import com.github.enerccio.marginalia.domain.components.RevisionRow;
+import com.github.enerccio.marginalia.domain.components.*;
 import com.github.enerccio.marginalia.domain.model.OwnedEntity;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.MessageRevision;
 import com.github.enerccio.marginalia.domain.repository.MessageRevisionRepository;
-import com.github.enerccio.marginalia.domain.service.ChatMessageService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService.PartEdit;
-import com.github.enerccio.marginalia.domain.service.EffectiveHistoryLimit;
-import com.github.enerccio.marginalia.domain.service.ManuscriptService;
-import com.github.enerccio.marginalia.domain.service.MessageRevisionService;
 import com.github.enerccio.marginalia.domain.service.search.FulltextHit;
 import com.github.enerccio.marginalia.domain.service.search.FulltextQuery;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class MessageRevisionServiceImpl extends ExtendableServiceImpl<MessageRevision, MessageRevisionRepository> implements MessageRevisionService {
 
@@ -53,6 +35,10 @@ public class MessageRevisionServiceImpl extends ExtendableServiceImpl<MessageRev
     @Autowired
     @Lazy
     private ManuscriptService manuscriptService;
+
+    @Autowired
+    @Lazy
+    private ManuscriptStatisticService statisticService;
 
     @Override
     @CommonTx
@@ -84,7 +70,8 @@ public class MessageRevisionServiceImpl extends ExtendableServiceImpl<MessageRev
         if (!force && latest != null && text.equals(latest.getResponse())) {
             return null;
         }
-        EffectiveHistoryLimit limit = limitOf(part);
+        Manuscript book = bookOf(part);
+        EffectiveHistoryLimit limit = limitOf(book);
         if (limit.isOff()) {
             return null;
         }
@@ -104,15 +91,29 @@ public class MessageRevisionServiceImpl extends ExtendableServiceImpl<MessageRev
         revision.setRestoredFrom(restoredFrom);
         MessageRevision saved = save(revision);
         prune(part, limit);
+        if (data.counted() && book != null) {
+            // the single way a version is made is the single place the words, the parts and the edits are counted
+            statisticService.count(book, StatisticCounts.ofVersion(kind, latest == null ? null : latest.getWordCount(), revision.getWordCount()));
+        }
         return saved;
     }
 
     /**
-     * The limit of the history of the book the part is in, unlimited for a part that is in no book.
+     * The book the part is in, null for a part that is in no book.
      */
-    private EffectiveHistoryLimit limitOf(ChatMessage part) throws Exception {
+    private Manuscript bookOf(ChatMessage part) throws Exception {
         // the part may come with a lazy book without a session: only its id is read from it
-        Manuscript book = part.getParentScript() == null ? null : manuscriptService.find(part.getParentScript().getId());
+        return part.getParentScript() == null ? null : manuscriptService.find(part.getParentScript().getId());
+    }
+
+    private EffectiveHistoryLimit limitOf(ChatMessage part) throws Exception {
+        return limitOf(bookOf(part));
+    }
+
+    /**
+     * The limit of the history of the book, unlimited for a part that is in no book.
+     */
+    private EffectiveHistoryLimit limitOf(Manuscript book) throws Exception {
         if (book == null) {
             return new EffectiveHistoryLimit(null, EffectiveHistoryLimit.Origin.NONE, null);
         }
@@ -176,7 +177,11 @@ public class MessageRevisionServiceImpl extends ExtendableServiceImpl<MessageRev
         if (part == null || part.getId() == null || StringUtils.isEmpty(part.getResponse())) {
             return;
         }
-        record(part, RevisionData.of(part, RevisionSource.PLUGIN, null, false));
+        // a repair of the history, not an edit: it is not counted
+        // (the counts of the part are the ones of the text it had when it was last written by a writer that counts, so the words are counted again)
+        RevisionData data = RevisionData.of(part, RevisionSource.PLUGIN, null, false);
+        record(part, new RevisionData(data.source(), data.detail(), data.agent(), data.text(), data.reasoning(), data.label(), null,
+                data.tokenCount(), false));
     }
 
     @Override
@@ -267,7 +272,10 @@ public class MessageRevisionServiceImpl extends ExtendableServiceImpl<MessageRev
         if (target.getResponse().equals(stored.getResponse())) {
             return new PartEdit(stored, List.of());
         }
+        int wordsBefore = stored.getWordCount();
         PartEdit edit = chatMessageService.updateResponse(book, stored, target.getResponse(), RevisionOrigin.UNRECORDED);
+        // no version is made, so it is counted here: an edit that takes words away, or gives them back
+        statisticService.count(book, StatisticCounts.ofVersion(RevisionSource.RESTORE, wordsBefore, edit.message().getWordCount()));
         return new PartEdit(takeReasoning(edit.message(), target), edit.outdated());
     }
 
@@ -588,11 +596,11 @@ public class MessageRevisionServiceImpl extends ExtendableServiceImpl<MessageRev
             return;
         }
         if (source != null) {
-            append(part, RevisionData.of(part, source, null, false), null, false);
+            append(part, RevisionData.of(part, source, null, false).uncounted(), null, false);
             return;
         }
         if (StringUtils.isBlank(part.getModelUsed())) {
-            append(part, RevisionData.of(part, RevisionSource.HUMAN, null, false), null, false);
+            append(part, RevisionData.of(part, RevisionSource.HUMAN, null, false).uncounted(), null, false);
             return;
         }
         String response = part.getResponse();
@@ -601,9 +609,9 @@ public class MessageRevisionServiceImpl extends ExtendableServiceImpl<MessageRev
         String protocol = StringUtils.trimToNull(part.getProtocolUsed());
         boolean same = generated.equals(response);
         append(part, new RevisionData(RevisionSource.GENERATE, protocol == null ? model : model + " · " + protocol, false, generated,
-                StringUtils.defaultIfEmpty(part.getResponseReasoning(), null), null, same ? part.getWordCount() : null, same ? part.getTokenCount() : 0L), null, false);
+                StringUtils.defaultIfEmpty(part.getResponseReasoning(), null), null, same ? part.getWordCount() : null, same ? part.getTokenCount() : 0L, false), null, false);
         if (!same) {
-            append(part, RevisionData.of(part, RevisionSource.HUMAN, null, false), null, false);
+            append(part, RevisionData.of(part, RevisionSource.HUMAN, null, false).uncounted(), null, false);
         }
     }
 

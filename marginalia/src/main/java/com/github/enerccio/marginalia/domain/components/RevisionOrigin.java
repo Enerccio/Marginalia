@@ -8,8 +8,22 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
  * Who is writing a text into a part, for the code that changes the text of a part and has to say what the version it makes is:
  * the source, a short word about it, whether an agent does it, and the reasoning that came with the text (null for none, the
  * reasoning is stored as given). See {@code MessageRevisionService}. The author is the default of the methods that do not ask.
+ * <p>
+ * {@code counted} says whether the version goes into the writing statistics: false for work that was counted when it was done
+ * (the merge of an agent's work into the book), see {@link #uncounted()}.
  */
-public record RevisionOrigin(RevisionSource source, String detail, boolean agent, String reasoning) {
+public record RevisionOrigin(RevisionSource source, String detail, boolean agent, String reasoning, boolean counted) {
+
+    public RevisionOrigin(RevisionSource source, String detail, boolean agent, String reasoning) {
+        this(source, detail, agent, reasoning, true);
+    }
+
+    /**
+     * The same origin whose versions are not counted in the writing statistics.
+     */
+    public RevisionOrigin uncounted() {
+        return new RevisionOrigin(source, detail, agent, reasoning, false);
+    }
 
     /**
      * The author typed it.
@@ -56,6 +70,6 @@ public record RevisionOrigin(RevisionSource source, String detail, boolean agent
     }
 
     public RevisionData data(ChatMessage part) {
-        return new RevisionData(source, detail, agent, part.getResponse(), reasoning, null, part.getWordCount(), part.getTokenCount());
+        return new RevisionData(source, detail, agent, part.getResponse(), reasoning, null, part.getWordCount(), part.getTokenCount(), counted);
     }
 }
