@@ -53,6 +53,7 @@ public class BetaReadersView extends VerticalLayout {
     private final Button menuButton = new Button(Solid.ELLIPSIS_VERTICAL.create());
     private final ContextMenu menu = new ContextMenu(menuButton);
     private final Div content = new Div();
+    private final HorizontalLayout bar;
     private BetaChat active;
     private boolean refreshing;
 
@@ -82,7 +83,7 @@ public class BetaReadersView extends VerticalLayout {
         menuButton.setTooltipText(T.localized("Chats"));
         menu.setOpenOnClick(true);
 
-        HorizontalLayout bar = new HorizontalLayout(tabs, add, menuButton);
+        bar = new HorizontalLayout(tabs, add, menuButton);
         bar.setWidthFull();
         bar.setAlignItems(Alignment.CENTER);
         bar.setSpacing(false);
@@ -151,6 +152,13 @@ public class BetaReadersView extends VerticalLayout {
         showPanel();
     }
 
+    /**
+     * Locks the tabs and the menu while a reply is being written: the panel of the chat belongs to the tab that is open.
+     */
+    private void setBusy(boolean busy) {
+        bar.setEnabled(!busy);
+    }
+
     private void showPanel() {
         content.removeAll();
         if (active == null) {
@@ -160,7 +168,7 @@ public class BetaReadersView extends VerticalLayout {
             return;
         }
         try {
-            content.add(new ChatPanel(manuscript, active, service));
+            content.add(new ChatPanel(manuscript, active, service, this::setBusy));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }

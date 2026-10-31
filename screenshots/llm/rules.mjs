@@ -2,7 +2,7 @@
 // ctx: { text, system, last, messages, model, stream, wantsJson, hasTools, mode, body }
 // A rule answers with `reply` (string, or function(ctx) returning a string or {reply, reasoning, status, message}),
 // optionally `reasoning` and `delayMs`.
-import {arcOutline, loreCompaction, loreGeneration, review, sideQuery} from '../dataset/plugins.mjs';
+import {arcOutline, betaReaders, loreCompaction, loreGeneration, review, sideQuery} from '../dataset/plugins.mjs';
 import {ginnyTurn, ginnyTurn2, metaSummary, summaryReasoning, turns} from '../dataset/story.mjs';
 
 const storyRules = Object.entries(turns).filter(([id]) => id !== 't2b').map(([id, t]) => ({
@@ -73,7 +73,20 @@ const arcChaptersRule = {
   reply: () => ({ reply: JSON.stringify(arcOutline.generateChapters.answer), reasoning: arcOutline.generateChapters.reasoning }),
 };
 
+// Beta Readers: the personas answer in the schema the plugin sends, or in `**Name:** *action* speech` paragraphs for a chat that wants text.
+const betaRule = {
+  name: 'beta-readers',
+  when: ctx => ctx.system.includes('# How to answer') && /beta reader/i.test(ctx.system),
+  reply: ctx => {
+    const kind = ctx.system.includes('one-on-one') ? 'single' : 'group';
+    const found = betaReaders.find(q => ctx.last.includes(q.question)) ?? betaReaders.find(q => q.kind === kind);
+    if (ctx.wantsJson) return { reply: JSON.stringify(found.answer), reasoning: found.answer.reasoning };
+    return found.answer.messages.map(m => `**${m.speaker}:** ` + m.parts.map(p => p.type === 'action' ? `*${p.text}*` : p.text).join(' ')).join('\n\n');
+  },
+};
+
 export default [
+  betaRule,
   arcRule,
   arcImportRule,
   arcChaptersRule,

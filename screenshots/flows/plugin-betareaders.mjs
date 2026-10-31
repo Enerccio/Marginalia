@@ -2,6 +2,7 @@
 // the personas of the book, delete). It makes chats, so run it on a copy of the state (22-arcoutline) that is thrown away.
 import {bookTab, dialog, idle, login, main, menuItem, openBook, press, sleep, snap, snapDialog, field} from '../lib/shot.mjs';
 import {sideTab, widenSidebar} from '../lib/story.mjs';
+import {betaReaders} from '../dataset/plugins.mjs';
 
 const expect = (ok, what) => { if (!ok) throw new Error('expected: ' + what); console.log('  ok:', what); };
 
@@ -33,6 +34,35 @@ await main(async ({ page }) => {
   expect(await page.getByRole('tab', { name: 'Athena, Vesper', exact: true }).count() === 1, 'a tab "Athena, Vesper"');
   await snap(page, '_br-group');
 
+  // the conversation: the first message brings the story, the second one nothing (nothing is new)
+  const box = page.locator('textarea[placeholder="Write to the beta readers..."]');
+  const say = async text => {
+    await box.fill(text);
+    await box.dispatchEvent('change');
+    await page.getByRole('button', { name: 'Send', exact: true }).click();
+  };
+  const [first, second, quill] = betaReaders;
+  expect(await page.getByText('Include the story (5 parts)').count() === 1, 'the first message offers the story, 5 parts');
+  expect(await page.getByText('Context:', { exact: false }).count() >= 1, 'the context counter is shown');
+  await say(first.question);
+  await page.getByText('I would cut the weather', { exact: false }).first().waitFor({ timeout: 30000 });
+  await sleep(800);
+  expect(await page.getByText('Parts 1-5 sent', { exact: false }).count() === 1, 'the message says which parts it sent');
+  expect(await page.getByText('The weather is the point.', { exact: false }).count() === 1, 'the last message of the turn is shown');
+  expect(await page.getByText('Reasoning', { exact: true }).count() === 1, 'the reasoning is above the turn');
+  expect(await page.getByText('Athena starts, ', { exact: false }).count() === 0, 'the reasoning is collapsed');
+  expect(await page.getByText('Include the latest parts (none new)').count() === 1, 'nothing is new after the story was sent');
+  await snap(page, '_br-chat');
+  await page.getByText('Reasoning', { exact: true }).click();
+  await sleep(400);
+  await snap(page, '_br-chat-reasoning');
+  await page.getByText('Reasoning', { exact: true }).click();
+  await say(second.question);
+  await page.getByText('Let the motives show', { exact: false }).first().waitFor({ timeout: 30000 });
+  await sleep(600);
+  expect(await page.getByText('Parts ', { exact: false }).filter({ hasText: 'sent' }).count() === 1, 'the second message sent no parts');
+  await snap(page, '_br-chat-second');
+
   // a chat with one persona, a title of its own
   await plus.click();
   await idle(page, 700);
@@ -47,6 +77,10 @@ await main(async ({ page }) => {
   await sleep(700);
   expect(await page.getByRole('tab', { name: 'Line edit', exact: true }).count() === 1, 'a tab "Line edit"');
   await snap(page, '_br-single');
+  await say(quill.question);
+  await page.getByText('exclaimed', { exact: false }).first().waitFor({ timeout: 30000 });
+  await sleep(600);
+  await snap(page, '_br-single-chat');
 
   // nothing is created without a persona
   await plus.click();
@@ -111,6 +145,9 @@ await main(async ({ page }) => {
   await sideTab(page, 'Beta Readers');
   expect(await page.getByRole('tab', { name: 'Second pass', exact: true }).count() === 1, 'the chats are kept');
   expect(await page.getByRole('tab', { name: 'Athena, Vesper', exact: true }).count() === 1, 'the group is kept');
+  await page.getByRole('tab', { name: 'Athena, Vesper', exact: true }).click();
+  await sleep(800);
+  expect(await page.getByText('Let the motives show', { exact: false }).count() === 1, 'the conversation is kept');
 
   // delete
   await menu();
@@ -119,6 +156,7 @@ await main(async ({ page }) => {
   await snapDialog(page, '_br-delete');
   await press(dialog(page), 'Yes', { exact: false }).catch(async () => press(dialog(page), 'Confirm', { exact: false }));
   await sleep(600);
-  expect(await page.getByRole('tab', { name: 'Second pass', exact: true }).count() === 0 || await page.getByRole('tab', { name: 'Athena, Vesper', exact: true }).count() === 1, 'a chat is deleted');
+  expect(await page.getByRole('tab', { name: 'Athena, Vesper', exact: true }).count() === 0, 'the group is deleted');
+  expect(await page.getByRole('tab', { name: 'Second pass', exact: true }).count() === 1, 'the other chat stays');
   await snap(page, '_br-after-delete');
 });
