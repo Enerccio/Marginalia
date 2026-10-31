@@ -9,6 +9,9 @@ import com.github.enerccio.marginalia.domain.service.FolderService.Details;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.PromptField;
 import com.github.enerccio.marginalia.domain.service.SettingService;
+import com.github.enerccio.marginalia.extensions.InheritedSetting;
+import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
+import com.github.enerccio.marginalia.extensions.InheritedSettingValues;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.test.ComponentTree;
@@ -45,6 +48,9 @@ class FolderDialogTest extends MarginaliaTestBase {
     @Autowired
     private Localization loc;
 
+    @Autowired
+    private InheritedSettingRegistry registry;
+
     // UI.setCurrent keeps only a weak reference
     private UI ui;
     private Folder scifi;
@@ -62,6 +68,48 @@ class FolderDialogTest extends MarginaliaTestBase {
     @AfterEach
     void tearDown() {
         UI.setCurrent(null);
+        registry.unregisterAll("test-extension");
+    }
+
+    private TextArea extensionArea(FolderDialog dialog, String label) {
+        return ComponentTree.all(dialog, TextArea.class).filter(a -> label.equals(a.getLabel())).findFirst().orElseThrow();
+    }
+
+    @Test
+    void theSettingsOfExtensionsAreASectionThatInheritsAndSaves() throws Exception {
+        registry.register("test-extension", InheritedSetting.textArea("test.hint", () -> "Hint prompt")
+                .group(() -> "Test extension").help(() -> "Sent with every question").userValue(() -> "from the user"));
+        folderService.update(scifi, new Details("Sci-fi", null, null, Map.of(), null, Map.of("test.hint", "from the top folder")));
+
+        FolderDialog top = dialog(scifi, new AtomicReference<>());
+        FolderDialog below = dialog(expanse, new AtomicReference<>());
+
+        assertThat(extensionArea(top, "Hint prompt").getValue()).isEqualTo("from the top folder");
+        TextArea inherited = extensionArea(below, "Hint prompt");
+        assertThat(inherited.getValue()).isEmpty();
+        assertThat(inherited.getPlaceholder()).isEqualTo("from the top folder");
+        assertThat(inherited.getHelperText()).isEqualTo("Sent with every question Inherited from the folder \"Sci-fi\"");
+
+        inherited.setValue("from the near folder");
+        below.save();
+        assertThat(InheritedSettingValues.get(folderService.find(expanse.getId()), "test.hint")).isEqualTo("from the near folder");
+
+        FolderDialog cleared = dialog(expanse, new AtomicReference<>());
+        extensionArea(cleared, "Hint prompt").setValue("");
+        cleared.save();
+        assertThat(InheritedSettingValues.get(folderService.find(expanse.getId()), "test.hint")).isNull();
+        assertThat(InheritedSettingValues.get(folderService.find(scifi.getId()), "test.hint")).as("the top folder is not touched")
+                .isEqualTo("from the top folder");
+    }
+
+    @Test
+    void theTopLevelFolderInheritsTheUserLevelOfTheExtension() throws Exception {
+        registry.register("test-extension", InheritedSetting.textArea("test.hint", () -> "Hint prompt").userValue(() -> "from the user"));
+
+        TextArea hint = extensionArea(dialog(scifi, new AtomicReference<>()), "Hint prompt");
+
+        assertThat(hint.getPlaceholder()).isEqualTo("from the user");
+        assertThat(hint.getHelperText()).isEqualTo("Inherited from your settings");
     }
 
     private FolderDialog dialog(Folder folder, AtomicReference<Folder> saved) {

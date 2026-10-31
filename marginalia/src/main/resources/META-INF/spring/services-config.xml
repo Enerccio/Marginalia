@@ -284,6 +284,8 @@
 
     <bean class="com.github.enerccio.marginalia.ui.menu.StoryMenuRegistry" />
 
+    <bean class="com.github.enerccio.marginalia.extensions.InheritedSettingRegistry" />
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.OsgiServiceImpl" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.ExtensionServiceImpl" />

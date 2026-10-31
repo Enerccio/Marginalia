@@ -3,9 +3,11 @@ package com.github.enerccio.marginalia.ui.dialogs.phone.manuscript;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.traits.*;
+import com.github.enerccio.marginalia.extensions.InheritedSettingValues;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialogPart;
+import com.github.enerccio.marginalia.ui.widgets.ExtensionSettingsForm;
 import com.github.enerccio.marginalia.ui.widgets.PromptSettingsForm;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
@@ -29,6 +31,7 @@ public class PhoneManuscriptPromptPart implements PhoneManuscriptDialogPart {
     private final PhoneManuscriptDialog parent;
 
     private PromptSettingsForm form;
+    private ExtensionSettingsForm extensionForm;
 
     public PhoneManuscriptPromptPart(PhoneManuscriptDialog parent) {
         this.parent = parent;
@@ -47,6 +50,10 @@ public class PhoneManuscriptPromptPart implements PhoneManuscriptDialogPart {
 
         form = new PromptSettingsForm("160px", this::autosave).create();
         form.components().forEach(mainLayout::add);
+        extensionForm = new ExtensionSettingsForm("160px", this::autosave).create();
+        if (!extensionForm.isEmpty()) {
+            mainLayout.add(extensionForm.layout());
+        }
         return mainLayout;
     }
 
@@ -68,6 +75,7 @@ public class PhoneManuscriptPromptPart implements PhoneManuscriptDialogPart {
             }
 
             form.values().forEach((field, value) -> field.setOfBook(manuscript, value));
+            extensionForm.values().forEach((key, value) -> InheritedSettingValues.set(manuscript, key, value));
 
             parent.save();
         } catch (Exception e) {
@@ -92,6 +100,7 @@ public class PhoneManuscriptPromptPart implements PhoneManuscriptDialogPart {
             return;
         }
         form.load(field -> field.ofBook(manuscript), manuscript.getFolder());
+        extensionForm.load(key -> InheritedSettingValues.get(manuscript, key), manuscript.getFolder());
     }
 
     @PublicAPI(from = "1.1.0",

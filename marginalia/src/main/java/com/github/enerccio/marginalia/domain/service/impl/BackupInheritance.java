@@ -5,6 +5,9 @@ import com.github.enerccio.marginalia.domain.listener.ExtendableEntityListener;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.PromptField;
+import com.github.enerccio.marginalia.extensions.InheritedSetting;
+import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
+import com.github.enerccio.marginalia.extensions.InheritedSettingValues;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -12,6 +15,8 @@ import com.google.gson.JsonParser;
 import org.apache.commons.lang3.StringUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Makes the backup of a book fit to leave the installation: the folder of the book is dropped (where a book is filed is a
@@ -28,9 +33,10 @@ final class BackupInheritance {
      * Changes the inner object of a backup in place.
      *
      * @param user         the user settings that come after the folders, null to write only what the folders give
+     * @param registry     the settings of the extensions, whose user level is written after the folders as well
      * @param inlineValues write the inherited values into the book
      */
-    static void prepare(JsonObject backup, UserSetting user, boolean inlineValues) throws Exception {
+    static void prepare(JsonObject backup, UserSetting user, InheritedSettingRegistry registry, boolean inlineValues) throws Exception {
         if (backup == null) {
             return;
         }
@@ -38,11 +44,11 @@ final class BackupInheritance {
                 ? backup.getAsJsonObject(BackupFolders.KEY) : null;
         backup.remove(BackupFolders.KEY);
         if (inlineValues) {
-            inline(backup, folder, user);
+            inline(backup, folder, user, registry);
         }
     }
 
-    private static void inline(JsonObject backup, JsonObject folder, UserSetting user) throws Exception {
+    private static void inline(JsonObject backup, JsonObject folder, UserSetting user, InheritedSettingRegistry registry) throws Exception {
         JsonObject extended = extendedOf(backup);
         if (extended == null) {
             return;
@@ -77,6 +83,7 @@ final class BackupInheritance {
                 any = true;
             }
         }
+        any |= inlineExtensionSettings(own, inherited, path, user, registry);
         if (own.getOwnLanguage() == null) {
             for (int i = path.size() - 1; i >= 0 && inherited.getOwnLanguage() == null; i--) {
                 JsonObject level = path.get(i).isJsonObject() ? path.get(i).getAsJsonObject() : null;
@@ -102,6 +109,51 @@ final class BackupInheritance {
             }
         }
         backup.add("extendedContent", extended);
+    }
+
+    /**
+     * The settings of the extensions the book does not set: from the nearest folder that does, else from the user level of the
+     * extension (only for a setting that is registered, and when the user settings are written). The values the book sets itself
+     * go along, because they are stored in one object that replaces the book's.
+     *
+     * @return whether a value was added
+     */
+    private static boolean inlineExtensionSettings(Manuscript own, Manuscript inherited, JsonArray path, UserSetting user,
+                                                    InheritedSettingRegistry registry) {
+        Map<String, String> values = new LinkedHashMap<>();
+        // nearest folder first wins, so the folders are walked from the nearest and a key is taken once
+        for (int i = path.size() - 1; i >= 0; i--) {
+            JsonObject level = path.get(i).isJsonObject() ? path.get(i).getAsJsonObject() : null;
+            if (level == null || !level.has("extensions") || !level.get("extensions").isJsonObject()) {
+                continue;
+            }
+            for (Map.Entry<String, JsonElement> entry : level.getAsJsonObject("extensions").entrySet()) {
+                if (entry.getValue().isJsonPrimitive() && StringUtils.isNotBlank(entry.getValue().getAsString())) {
+                    values.putIfAbsent(entry.getKey(), entry.getValue().getAsString());
+                }
+            }
+        }
+        if (user != null && registry != null) {
+            for (InheritedSettingRegistry.Group group : registry.groups()) {
+                for (InheritedSetting setting : group.settings()) {
+                    if (StringUtils.isNotBlank(setting.userValue())) {
+                        values.putIfAbsent(setting.getKey(), setting.userValue());
+                    }
+                }
+            }
+        }
+        Map<String, String> ownValues = InheritedSettingValues.all(own);
+        boolean added = false;
+        for (Map.Entry<String, String> entry : values.entrySet()) {
+            if (!ownValues.containsKey(entry.getKey())) {
+                InheritedSettingValues.set(inherited, entry.getKey(), entry.getValue());
+                added = true;
+            }
+        }
+        if (added) {
+            ownValues.forEach((key, value) -> InheritedSettingValues.set(inherited, key, value));
+        }
+        return added;
     }
 
     private static JsonObject serialized(Manuscript manuscript, ExtendableEntityListener listener) throws Exception {

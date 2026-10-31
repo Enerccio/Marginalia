@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.service.FolderService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptLockedException;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
+import com.github.enerccio.marginalia.extensions.InheritedSettingValues;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.*;
@@ -50,6 +51,7 @@ public class FolderDialog extends Dialog {
     private InheritedLanguageCombo languageCombo;
     private HistoryLimitField historyLimitField;
     private PromptSettingsForm form;
+    private ExtensionSettingsForm extensionForm;
 
     /**
      * @param done called with the saved folder after the dialog saved it and closed
@@ -115,7 +117,13 @@ public class FolderDialog extends Dialog {
         form = new PromptSettingsForm("200px", null).create();
         form.load(field -> field.ofFolder(stored), stored.getParent());
 
+        extensionForm = new ExtensionSettingsForm("120px", null).create();
+        extensionForm.load(key -> InheritedSettingValues.get(stored, key), stored.getParent());
+
         VerticalLayout content = new VerticalLayout(nameField, descriptionField, tags, help, languageCombo, historyLimitField, form.formLayout());
+        if (!extensionForm.isEmpty()) {
+            content.add(extensionForm.layout());
+        }
         content.setPadding(false);
         add(content);
 
@@ -142,7 +150,7 @@ public class FolderDialog extends Dialog {
             return;
         }
         try {
-            Folder saved = folderService.update(folder, new FolderService.Details(nameField.getValue(), descriptionField.getValue(), languageCombo.getValue(), form.values(), historyLimitField.getValue()));
+            Folder saved = folderService.update(folder, new FolderService.Details(nameField.getValue(), descriptionField.getValue(), languageCombo.getValue(), form.values(), historyLimitField.getValue(), extensionForm.values()));
             if (saved == null) {
                 Notification.warning(loc.getValue(L.ERROR_FOLDER_GONE));
                 return;

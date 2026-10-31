@@ -8,6 +8,7 @@ a restart.
 | [Anthropic Claude](anthropic/README.md) | Anthropic's Claude models as an inference provider (type *Extension*), over the Anthropic Java SDK: thinking summaries as reasoning, adaptive thinking and effort, exact usage. |
 | [Arc Outline](arc-outline/README.md) | The arcs of the book and their chapters, each planned, current or finished, in the story sidebar; the model can write an arc from the lore. |
 | [Author's Note](authorsnote/README.md) | A per-book note inserted into the prompt of every generation, at a chosen depth and role. |
+| [Beta Readers](beta-readers/README.md) | Personas you define and a chat about the book with them (an empty stub for now, see its `TODO.md`). |
 | [Chapter Marker](chaptermarker/README.md) | Story parts starting a chapter (a Markdown `#` heading) are shown as chapters in the story sidebar. |
 | [Character Tracker](character-tracker/README.md) | The characters of the book with their relationships, and a map of the relationships, in the story sidebar. |
 | [Gemma 4 tools fix](gemma4toolsfix/README.md) | Sends the results of function calls to Gemma 4 models with the role `tool_responses`. |

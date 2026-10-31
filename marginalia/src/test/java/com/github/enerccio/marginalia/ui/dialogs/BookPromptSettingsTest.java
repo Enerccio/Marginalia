@@ -7,6 +7,9 @@ import com.github.enerccio.marginalia.domain.service.FolderService;
 import com.github.enerccio.marginalia.domain.service.FolderService.Details;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.PromptField;
+import com.github.enerccio.marginalia.extensions.InheritedSetting;
+import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
+import com.github.enerccio.marginalia.extensions.InheritedSettingValues;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.test.ComponentTree;
@@ -48,6 +51,9 @@ class BookPromptSettingsTest extends MarginaliaTestBase {
     @Autowired
     private Localization loc;
 
+    @Autowired
+    private InheritedSettingRegistry registry;
+
     // UI.setCurrent keeps only a weak reference
     private UI ui;
     private Folder scifi;
@@ -71,6 +77,49 @@ class BookPromptSettingsTest extends MarginaliaTestBase {
     @AfterEach
     void tearDown() {
         UI.setCurrent(null);
+        registry.unregisterAll("test-extension");
+    }
+
+    private TextArea extensionArea(Component dialog, String label) {
+        return contents(dialog).flatMap(c -> ComponentTree.all(c, TextArea.class)).filter(a -> label.equals(a.getLabel()))
+                .findFirst().orElseThrow();
+    }
+
+    private void anExtensionSettingIsInheritedAndSavedOnTheBook(Component dialog) throws Exception {
+        TextArea hint = extensionArea(dialog, "Hint prompt");
+        assertThat(hint.getValue()).isEmpty();
+        assertThat(hint.getPlaceholder()).isEqualTo("from the folder");
+        assertThat(hint.getHelperText()).isEqualTo("Inherited from the folder \"Sci-fi\"");
+
+        type(hint, "from the book");
+        assertThat(InheritedSettingValues.get(manuscriptService.find(book.getId()), "test.hint")).isEqualTo("from the book");
+        assertThat(manuscriptService.resolveExtension(manuscriptService.find(book.getId()), "test.hint").value()).isEqualTo("from the book");
+        assertThat(hint.getHelperText()).as("a field that is set says nothing").isNull();
+
+        type(hint, "");
+        assertThat(InheritedSettingValues.get(manuscriptService.find(book.getId()), "test.hint")).isNull();
+        assertThat(manuscriptService.resolveExtension(manuscriptService.find(book.getId()), "test.hint").value()).isEqualTo("from the folder");
+        assertThat(hint.getHelperText()).isEqualTo("Inherited from the folder \"Sci-fi\"");
+    }
+
+    private void registerAnExtensionSetting() throws Exception {
+        registry.register("test-extension", InheritedSetting.textArea("test.hint", () -> "Hint prompt").group(() -> "Test extension"));
+        folderService.update(scifi, new Details("Sci-fi", null, null, Map.of(), null, Map.of("test.hint", "from the folder")));
+    }
+
+    @Test
+    void theDesktopWindowSavesAnExtensionSetting() throws Exception {
+        registerAnExtensionSetting();
+        anExtensionSettingIsInheritedAndSavedOnTheBook(desktopDialog());
+    }
+
+    @Test
+    void thePhoneWindowSavesAnExtensionSetting() throws Exception {
+        registerAnExtensionSetting();
+        PhoneManuscriptDialog dialog = new PhoneManuscriptDialog(book);
+        dialog.create();
+        dialog.open();
+        anExtensionSettingIsInheritedAndSavedOnTheBook(dialog);
     }
 
     private TextArea area(Component dialog, L label) {

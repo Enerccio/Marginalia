@@ -139,18 +139,28 @@ public interface FolderService extends ExtendableService<Folder, FolderRepositor
      * What the settings dialog of a folder sets: the name, the description, the language (null: the folder inherits it) and
      * the text settings (a blank text is not set, the folder inherits it). A prompt missing from the map is left as it is.
      * {@code historyMaxVersions} is the most versions of a part the history of the books in the folder keeps (null: the folder sets no
-     * limit).
+     * limit). {@code extensions} are the values of the settings extensions added to the books ({@code InheritedSetting}) by key
+     * (a blank text is not set, a key missing from the map is left as it is).
      */
-    record Details(String name, String description, Language language, Map<PromptField, String> prompts, Integer historyMaxVersions) {
+    record Details(String name, String description, Language language, Map<PromptField, String> prompts, Integer historyMaxVersions,
+                   Map<String, String> extensions) {
+
+        public Details {
+            extensions = extensions == null ? Map.of() : extensions;
+        }
+
+        public Details(String name, String description, Language language, Map<PromptField, String> prompts, Integer historyMaxVersions) {
+            this(name, description, language, prompts, historyMaxVersions, null);
+        }
 
         public Details(String name, String description, Language language, Map<PromptField, String> prompts) {
-            this(name, description, language, prompts, null);
+            this(name, description, language, prompts, null, null);
         }
     }
 
     /**
      * Writes the details to the stored folder (not to the copy the caller holds, which may be old: what the dialog does
-     * not set is kept). Changing the language or a text setting changes what the books below the folder inherit, so it is refused while an
+     * not set is kept). Changing the language, a text setting or an extension setting changes what the books below the folder inherit, so it is refused while an
      * agent works on one of them; the name and the description are not. Returns null when the folder no longer exists.
      *
      * @throws FolderBookLockedException when a setting changes and an agent works on a book in the folder or below it

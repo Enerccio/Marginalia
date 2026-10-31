@@ -2,9 +2,11 @@ package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.traits.*;
+import com.github.enerccio.marginalia.extensions.InheritedSettingValues;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
+import com.github.enerccio.marginalia.ui.widgets.ExtensionSettingsForm;
 import com.github.enerccio.marginalia.ui.widgets.PromptSettingsForm;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
@@ -28,6 +30,7 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
     private final ManuscriptDialog parent;
 
     private PromptSettingsForm form;
+    private ExtensionSettingsForm extensionForm;
 
     public ManuscriptPromptPart(ManuscriptDialog parent) {
         this.parent = parent;
@@ -46,6 +49,10 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
 
         form = new PromptSettingsForm("240px", this::autosave).create();
         mainLayout.add(form.formLayout());
+        extensionForm = new ExtensionSettingsForm("160px", this::autosave).create();
+        if (!extensionForm.isEmpty()) {
+            mainLayout.add(extensionForm.layout());
+        }
 
         container.add(loc.getValue(L.LABEL_PROMPT_PART), mainLayout);
         return mainLayout;
@@ -69,6 +76,7 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
             }
 
             form.values().forEach((field, value) -> field.setOfBook(manuscript, value));
+            extensionForm.values().forEach((key, value) -> InheritedSettingValues.set(manuscript, key, value));
 
             parent.save();
         } catch (Exception e) {
@@ -93,6 +101,7 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
             return;
         }
         form.load(field -> field.ofBook(manuscript), manuscript.getFolder());
+        extensionForm.load(key -> InheritedSettingValues.get(manuscript, key), manuscript.getFolder());
     }
 
     @PublicAPI(from = "1.1.0",

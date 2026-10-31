@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.collections.Language;
 import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.service.FolderService;
 import com.github.enerccio.marginalia.domain.service.PromptField;
+import com.github.enerccio.marginalia.extensions.InheritedSettingValues;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -57,6 +59,12 @@ final class BackupFolders {
             }
             if (!settings.isEmpty()) {
                 level.add("settings", settings);
+            }
+            // the settings extensions added to the books, by key (kept whether the extension is loaded or not)
+            JsonObject extensions = new JsonObject();
+            InheritedSettingValues.all(folder).forEach(extensions::addProperty);
+            if (!extensions.isEmpty()) {
+                level.add("extensions", extensions);
             }
             path.add(level);
         }
@@ -114,6 +122,14 @@ final class BackupFolders {
                 }
             }
         }
+        Map<String, String> extensions = new LinkedHashMap<>();
+        if (level.has("extensions") && level.get("extensions").isJsonObject()) {
+            for (Map.Entry<String, JsonElement> entry : level.getAsJsonObject("extensions").entrySet()) {
+                if (entry.getValue().isJsonPrimitive()) {
+                    extensions.put(entry.getKey(), entry.getValue().getAsString());
+                }
+            }
+        }
         Language language = null;
         if (level.has("language") && level.get("language").isJsonPrimitive()) {
             try {
@@ -123,7 +139,7 @@ final class BackupFolders {
             }
         }
         String description = level.has("description") && level.get("description").isJsonPrimitive() ? level.get("description").getAsString() : null;
-        Folder updated = folders.update(made, new FolderService.Details(made.getName(), description, language, prompts));
+        Folder updated = folders.update(made, new FolderService.Details(made.getName(), description, language, prompts, null, extensions));
         return updated == null ? made : updated;
     }
 }

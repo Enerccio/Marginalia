@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValu
 import com.github.enerccio.marginalia.domain.service.search.Sorter;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import com.github.enerccio.marginalia.extensions.InheritedSettingValues;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -177,10 +178,19 @@ public class FolderServiceImpl extends ExtendableServiceImpl<Folder, FolderRepos
                 changed.put(prompt.getKey(), next);
             }
         }
+        Map<String, String> changedExtensions = new LinkedHashMap<>();
+        for (Map.Entry<String, String> setting : details.extensions().entrySet()) {
+            String now = InheritedSettingValues.get(stored, setting.getKey());
+            String next = StringUtils.defaultIfBlank(setting.getValue(), null);
+            if (!Objects.equals(now, next)) {
+                changedExtensions.put(setting.getKey(), next);
+            }
+        }
         boolean languageChanged = !Objects.equals(stored.getLanguage(), details.language());
-        if (!changed.isEmpty() || languageChanged) {
+        if (!changed.isEmpty() || !changedExtensions.isEmpty() || languageChanged) {
             checkNoLockedBook(subtree(stored));
             changed.forEach((field, value) -> field.setOfFolder(stored, value));
+            changedExtensions.forEach((key, value) -> InheritedSettingValues.set(stored, key, value));
             stored.setLanguage(details.language());
         }
         boolean renamed = !Objects.equals(stored.getName(), StringUtils.trim(details.name()));
