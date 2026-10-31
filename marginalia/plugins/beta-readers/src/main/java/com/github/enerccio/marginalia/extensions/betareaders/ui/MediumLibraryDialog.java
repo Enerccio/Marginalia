@@ -1,0 +1,86 @@
+package com.github.enerccio.marginalia.extensions.betareaders.ui;
+
+import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.extensions.betareaders.model.BetaReadersDefaults;
+import com.github.enerccio.marginalia.extensions.betareaders.model.Medium;
+import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersStore;
+import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.grid.Grid;
+
+import java.util.List;
+import java.util.function.Consumer;
+
+import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.T;
+
+/**
+ * The mediums of the user: the list with add, edit, copy, delete and reorder, and a button that brings back the built-in ones that
+ * were deleted.
+ */
+public class MediumLibraryDialog extends LibraryDialog<Medium> {
+
+    /**
+     * @param source  the mediums, which are not changed
+     * @param onApply told with the new list after <i>Save</i>
+     */
+    public MediumLibraryDialog(List<Medium> source, Consumer<List<Medium>> onApply) {
+        super(T.localized("Mediums"), source, Medium::copy, Medium::duplicate, onApply);
+        Button builtIn = new Button(T.localized("Restore the built-in mediums"), Solid.UNDO.create(), _ -> restoreBuiltIn());
+        builtIn.setTooltipText(T.localized("Adds the mediums the plugin comes with that are not in the list"));
+        addToolbarButton(builtIn);
+        build();
+    }
+
+    @Override
+    protected void addColumns(Grid<Medium> grid) {
+        grid.addColumn(Medium::getName).setHeader(T.localized("Name")).setFlexGrow(1).setAutoWidth(true);
+        grid.addColumn(medium -> summary(medium.getPrompt())).setHeader(T.localized("Prompt")).setFlexGrow(4);
+    }
+
+    @Override
+    protected Medium create() {
+        return new Medium();
+    }
+
+    @Override
+    protected void edit(Medium medium, boolean isNew, Runnable done) {
+        String header = isNew ? T.localized("New medium") : T.localized("Edit medium");
+        new MediumDialog(header, medium, name -> nameTaken(medium, name), done).open();
+    }
+
+    @Override
+    protected String labelOf(Medium medium) {
+        return medium.getName();
+    }
+
+    private boolean nameTaken(Medium edited, String name) {
+        String key = BetaReadersStore.nameKey(name);
+        return items().stream().anyMatch(other -> other != edited && BetaReadersStore.nameKey(other.getName()).equals(key));
+    }
+
+    private void restoreBuiltIn() {
+        int added = 0;
+        for (Medium builtIn : BetaReadersDefaults.builtInMediums()) {
+            // by id: a built-in medium that was renamed is still there
+            if (items().stream().noneMatch(medium -> builtIn.getId().equals(medium.getId()))) {
+                if (nameTaken(builtIn, builtIn.getName())) {
+                    builtIn.setName(builtIn.getName() + " (" + T.localized("built-in") + ")");
+                }
+                items().add(builtIn);
+                added++;
+            }
+        }
+        refresh();
+        if (added == 0) {
+            Notification.warning(T.localized("All the built-in mediums are in the list"));
+        }
+    }
+
+    private static String summary(String text) {
+        if (text == null) {
+            return "";
+        }
+        String line = text.replaceAll("\\s+", " ").strip();
+        return line.length() > 160 ? line.substring(0, 157) + "..." : line;
+    }
+}
