@@ -93,11 +93,17 @@ Build before every step: `mvn install -DskipTests` in `marginalia/` (the plugin 
   last message and not stored, the prefix not changing when a persona joins, joining and leaving lines, 1v1, JSON and text history, the
   schema validating a good answer and refusing a speaker that is not present, too many messages and a reasoning it does not have, the limit.
 
-**Step 4 - which parts are sent.**
-- `PartsTracker`: the parts of the active branch with a hash of their text, what the messages of the chat have sent, the difference
-  (added, changed, gone after a switch of the branch), the context of the first message (the summaries and then the parts after
-  the newest summary within the budget, up to the spoiler limit, like the Reviewer's *With summaries*), the text of the "new stuff".
-- Tests: new parts, a changed part, a deleted message giving its parts back, a branch switch, the spoiler limit, the first message.
+**Step 4 - which parts are sent (done).**
+- `PartsTracker` (pure, works on `StoryPart(id, number, text)`): what a chat has sent is replayed from its messages (`sentBy`), so deleting
+  or editing a message gives its parts back; `status` (new, changed, gone, first) for the checkbox; `plan` for what a message sends: the
+  context of the first message (the summaries, then the parts after the newest of them, the newest that fit the token budget) or the
+  "new stuff" (new parts, changed ones marked, a note for parts that are gone after a branch switch). Everything the message considered is
+  stored as sent, also what the summaries stand for and what did not fit (the plan says how many were left out), so it is not sent later out
+  of order; the gone parts are stored with the message (`BetaMessage.goneParts`) and forgotten. `SentPart` has the number for the line
+  "parts 41-43 sent" (`ranges`). A switch back to the other branch sends its parts as changed. The spoiler limit is a parameter already.
+- `BetaReadersService.loadStory(book, maxNumber, withSummaries)` reads the active branch and gathers the valid summaries as a generation does.
+- Tests (`PartsTrackerTest`): new, changed, nothing new after sending, a deleted message giving its parts back, a branch switch and back,
+  the spoiler limit, the summaries and the budget, ranges. `loadStory` is not covered (it needs the application).
 
 **Step 5 - reading a reply.**
 - `ReplyReader`: JSON through `PartialJson` (only the finished messages, the unfinished one hidden, a broken reply keeps what was read,
@@ -185,7 +191,7 @@ below ticked.
 
 ## New parts
 
-- [ ] Each user message stores which parts it sent (the ids of the parts and a hash of their text); what a chat has sent so far
+- [x] Each user message stores which parts it sent (the ids of the parts and a hash of their text); what a chat has sent so far
   is the union over its messages, so deleting, editing or regenerating a message gives the parts back.
 - [ ] The message box has a checkbox **Include the latest parts**; it shows how many parts are new (added, or changed since they
   were sent). When checked, the message sends them as "new stuff" (the new text, marked as new, before the user's message; a

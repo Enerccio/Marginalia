@@ -173,7 +173,7 @@ class BetaReadersStoreTest {
         chat.setFormat(ReplyFormat.TEXT);
         BetaMessage question = BetaMessage.user("Thoughts?");
         question.setContext("[New: part 2]");
-        question.getSentParts().add(new SentPart("part-2", "abc"));
+        question.getSentParts().add(new SentPart("part-2", "abc", 2));
         chat.getMessages().add(question);
         chat.getMessages().add(BetaMessage.assistant("short", List.of(new BetaSpoken("Athena",
                 List.of(new BetaPart(PartType.ACTION, "nods"), new BetaPart(PartType.SPEECH, "Good."))))));
