@@ -2,9 +2,8 @@
 
 Personas you define and a chat about the book with them.
 
-**Status: under construction.** The configuration and the conversation work (the tab, the chats, the replies as they stream, the story sent
-as new parts, editing, deleting and regenerating, personas joining and leaving); the plan for what is left (the manual, the pictures) is in
-[TODO.md](TODO.md)).
+See the [user manual](../../../manual/user/extensions/beta-readers.md). What is not done (generating a persona from a short description, sending
+the lorebook) is in [TODO.md](TODO.md).
 
 ## Settings
 
@@ -40,3 +39,17 @@ line in the history.
 **How much of the story the personas read** is set per chat (when it is started and in *Chat settings*): **Personas read up to part** (the spoiler
 limit), **Start from part** and **Use the summaries of the story** (the first message sends the summaries and then the parts after the newest
 of them, as far as they fit the context). A line under the text box says which parts the personas have read.
+
+## How it works
+
+The plugin decorates `renderStoryContent` of `ManuscriptStoryPart` and `PhoneManuscriptStoryPart` and adds the tab to their `leftBar`; the
+settings panel is added by decorating `refresh` and `save` of `UserPart`, and the prompts, the medium, the model and the protocol are
+registered as inherited settings (`BetaReadersInherited`). The logic is in plain classes with unit tests: `PromptBuilder` (the request),
+`BetaSchemas` (the JSON schema of a reply), `ReplyReader` (reads a reply while it streams), `PartsTracker` (what was sent and what is new),
+`ChatRunner` (asks any `InferenceService`) and `ChatEdits`; `BetaReadersService` is the part that needs Spring. The styles are in
+`betareaders.css` (`ExtensionHasCss`).
+
+## Storage
+
+The persona library, the mediums and the settings are in the attributes of the `UserSetting` (under `BetaReadersSettings.KEY`), the personas of a book
+and its chats in the attributes of the `Manuscript`, both as JSON (`BetaReadersStore`), so they are in the backups.
