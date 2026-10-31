@@ -12,6 +12,7 @@ import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReaders
 import com.github.enerccio.marginalia.extensions.betareaders.service.PartsTracker.Status;
 import com.github.enerccio.marginalia.extensions.betareaders.service.ReplyReader.Reading;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -325,7 +326,7 @@ public class ChatPanel extends VerticalLayout {
                 ui.access(() -> {
                     if (live != null) {
                         live.show(reading.reasoning(), reading.messages(), reading.rawText());
-                        scrollToEnd();
+                        followEnd();
                         UIPushGuard.push(ui);
                     }
                 });
@@ -342,7 +343,9 @@ public class ChatPanel extends VerticalLayout {
     }
 
     private void finished(ChatRunner.Outcome outcome) {
+        boolean reasoningOpen = false;
         if (live != null) {
+            reasoningOpen = live.isReasoningOpen();
             messages.remove(live);
             live = null;
         }
@@ -350,6 +353,11 @@ public class ChatPanel extends VerticalLayout {
         setGenerating(false);
         // the reply is in the history now (the last turn is the one that can be asked for again)
         rebuildMessages();
+        if (reasoningOpen) {
+            // the reasoning the user opened while it streamed stays open in the turn that replaced it
+            messages.getChildren().filter(BetaMessageCard.Turn.class::isInstance).map(BetaMessageCard.Turn.class::cast)
+                    .reduce((_, last) -> last).ifPresent(turn -> turn.setReasoningOpen(true));
+        }
         if (outcome.error() instanceof EmptyReplyException) {
             Notification.warning(T.localized(THE_MODEL_DID_NOT_ANSWER));
         } else if (outcome.error() != null) {
@@ -362,7 +370,7 @@ public class ChatPanel extends VerticalLayout {
         try (InRequestScope _ = new InRequestScope(attributes)) {
             refreshStatus(true);
         }
-        scrollToEnd();
+        followEnd();
     }
 
     private void setGenerating(boolean value) {
@@ -626,8 +634,14 @@ public class ChatPanel extends VerticalLayout {
                 : T.localized(INCLUDE_THE_LATEST_PARTS_NONE);
     }
 
+    /** Goes to the end of the conversation and follows it from now on (the user sent something or opened the chat). */
     private void scrollToEnd() {
-        scroller.getElement().executeJs("this.scrollTop = this.scrollHeight");
+        JavascriptLibrary.scrollToBottom(scroller.getElement());
+    }
+
+    /** Follows the growing reply, unless the user scrolled up to read: then it stays where they are. */
+    private void followEnd() {
+        JavascriptLibrary.scrollToBottomIfAtBottom(scroller.getElement());
     }
 
     public BetaChat getChat() {

@@ -1,8 +1,8 @@
 package com.github.enerccio.marginalia.extensions.betareaders.ui;
 
 import com.github.enerccio.marginalia.extensions.betareaders.model.*;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -177,6 +177,24 @@ class BetaMessageCardTest {
         assertTrue(text(turn).contains("thinking more"));
         assertFalse(text(turn).contains("thinking thinking"));
         assertEquals(1, all(turn).filter(Image.class::isInstance).count());
+    }
+
+    @Test
+    void theReasoningTheUserOpenedStaysOpenWhenTheTurnIsRebuilt() {
+        BetaMessageCard.Turn turn = new BetaMessageCard.Turn(chat());
+        turn.show("thinking", List.of(), "");
+        Details first = all(turn).filter(Details.class::isInstance).map(Details.class::cast).findFirst().orElseThrow();
+
+        first.setOpened(true);
+        turn.show("thinking more", List.of(spoken("Athena", PartType.SPEECH, "Hi")), "");
+
+        Details second = all(turn).filter(Details.class::isInstance).map(Details.class::cast).findFirst().orElseThrow();
+        assertTrue(second.isOpened(), "the redraw must not close what the user is reading");
+        assertTrue(turn.isReasoningOpen());
+
+        second.setOpened(false);
+        turn.show("thinking even more", List.of(), "");
+        assertFalse(all(turn).filter(Details.class::isInstance).map(Details.class::cast).findFirst().orElseThrow().isOpened());
     }
 
     /** Remembers what the buttons asked for. */
