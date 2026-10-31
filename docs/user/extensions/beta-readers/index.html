@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846779178611">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846783567951">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846779178611" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846783567951" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846779178611" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846783567951" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846779178611" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846783567951" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -253,6 +253,15 @@ throws them away.</p>
 </figure>
 <p>A book can have personas of its own: <em>Personas of this book</em> in the menu of the chats opens the same window with the personas that only this
 book offers. They are marked <em>(this book)</em> when you choose them for a chat.</p>
+<p><strong>Write with the model</strong> in the window of a persona does the writing for you: describe the persona in a few words (<em>a reader who only cares
+about who did it and why</em>), press the button, and the model fills the <strong>Name</strong> and the <strong>Description</strong> in the style of the library. They are only
+fields: change them, or write again, and <strong>Save</strong> when they are right. The model that writes is the one of the chats (the one of the book for the
+personas of a book, the one in the settings of the plugin for the library, else your default model); the names already in the list are
+told to it so it does not take one.</p>
+<figure class="content-center">
+    <img src="../../../images/plugin-betareaders-write-persona.png" alt="A persona written by the model" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="560" height="791" />
+    <figcaption class="caption">A persona written by the model</figcaption>
+</figure>
 <p>A chat keeps a <strong>copy</strong> of its personas, so a change in the library does not change a chat that has begun; the copy is changed when you ask
 (see <doc-anchor-trigger to="#a-group">the group</doc-anchor-trigger>).</p>
 <h2 id="starting-a-chat">Starting a chat</h2>
@@ -373,6 +382,7 @@ persona can&#x27;t leave.</p>
 <p>The window of a new chat and <strong>Chat settings</strong> have the same options; every one can be left empty and then the chat inherits it.</p>
 <retype-table copy-text="| Option | |
 |---|---|
+| Scene | Where and how the conversation takes place, a few sentences: *a rainy bar after closing time*, *a video call after the book club*. Without one, the chat is an online chat, see [below](#the-scene). Changing it in a running chat leaves a line in the history (*The scene is now: ...*). |
 | Medium | What the text stands for: a book, a movie, a TV series, a manga or comic, an audio drama, a stage play, a game or visual novel. The personas react as the audience of that medium would. Changing it in a running chat leaves a line in the history (*From now on the text is read as: ...*). |
 | Model | The AI that answers. |
 | Protocol | The [protocol](../protocols.md) used with it. |
@@ -389,6 +399,10 @@ persona can&#x27;t leave.</p>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>Scene</td>
+<td>Where and how the conversation takes place, a few sentences: <em>a rainy bar after closing time</em>, <em>a video call after the book club</em>. Without one, the chat is an online chat, see <doc-anchor-trigger to="#the-scene">below</doc-anchor-trigger>. Changing it in a running chat leaves a line in the history (<em>The scene is now: ...</em>).</td>
+</tr>
 <tr>
 <td>Medium</td>
 <td>What the text stands for: a book, a movie, a TV series, a manga or comic, an audio drama, a stage play, a game or visual novel. The personas react as the audience of that medium would. Changing it in a running chat leaves a line in the history (<em>From now on the text is read as: ...</em>).</td>
@@ -422,9 +436,15 @@ persona can&#x27;t leave.</p>
 </div>
 </retype-table>
 <figure class="content-center">
-    <img src="../../../images/plugin-betareaders-chat-settings.png" alt="The settings of a chat" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="460" height="847" />
+    <img src="../../../images/plugin-betareaders-chat-settings.png" alt="The settings of a chat" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="460" height="900" />
     <figcaption class="caption">The settings of a chat</figcaption>
 </figure>
+<h3 id="the-scene">The scene</h3>
+<p>The scene is a text that goes into the system prompt of every chat, after the prompt, so the personas know where they are and how they talk
+to each other. It is an <a href="../../books/prompts/#inherited-settings">inherited setting</a>: a chat&#x27;s own, else the book&#x27;s, else the nearest
+folder&#x27;s, else the one in <em>Settings → Extension Settings → Beta Readers</em>, else the built-in one: <strong>an online chat</strong>, where everyone writes
+short messages from wherever they are. A prompt of your own that has &#x60;&#x60; in it decides where the scene stands; without it the scene
+is added after the prompt.</p>
 <h3 id="how-much-of-the-story-the-personas-read">How much of the story the personas read</h3>
 <p>The parts are numbered from 1 as in the <em>Outline</em> tab of the story.</p>
 <ul>
@@ -459,6 +479,7 @@ Summaries apply only when the story starts at its beginning.</p>
 | Protocol of the chats | Empty: the protocol of the book. |
 | Prompt of a chat with one persona | The system prompt of a one-to-one chat. Empty: the built-in prompt. |
 | Prompt of a group chat | The system prompt of a group chat. Empty: the built-in prompt. |
+| Scene | See [above](#the-scene). Empty: an online chat. |
 | Persona library | **Edit personas**, see [above](#personas). |
 | Mediums | **Edit mediums**: each medium has a name and the prompt that tells the personas how to react to it. **Restore the built-in mediums** adds the ones that are missing. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -491,6 +512,10 @@ Summaries apply only when the story starts at its beginning.</p>
 <td>The system prompt of a group chat. Empty: the built-in prompt.</td>
 </tr>
 <tr>
+<td>Scene</td>
+<td>See <doc-anchor-trigger to="#the-scene">above</doc-anchor-trigger>. Empty: an online chat.</td>
+</tr>
+<tr>
 <td>Persona library</td>
 <td><strong>Edit personas</strong>, see <doc-anchor-trigger to="#personas">above</doc-anchor-trigger>.</td>
 </tr>
@@ -502,8 +527,8 @@ Summaries apply only when the story starts at its beginning.</p>
 </table>
 </div>
 </retype-table>
-<p>&#x60;&#x60; in a prompt is replaced by the text of the medium. The settings are saved with the <strong>Save</strong> button of the <em>Settings</em> page.</p>
-<p>The medium, the model, the protocol and the two prompts are also <a href="../../books/prompts/#inherited-settings">inherited settings</a>: the <em>Prompts</em>
+<p><code translate="no" v-pre>in a prompt is replaced by the text of the medium and</code> by the scene. The settings are saved with the <strong>Save</strong> button of the <em>Settings</em> page.</p>
+<p>The scene, the medium, the model, the protocol and the two prompts are also <a href="../../books/prompts/#inherited-settings">inherited settings</a>: the <em>Prompts</em>
 tab of a book and the settings of a <a href="../../books/folders/">folder</a> have them in the <strong>Extension Settings</strong> section. A book uses its own
 value, otherwise the nearest folder&#x27;s, otherwise the one from <em>Settings</em>, otherwise the built-in one; the model and the protocol of the book
 are the last resort. A chat overrides the medium, the model and the protocol for itself in its <doc-anchor-trigger to="#the-options-of-a-chat">options</doc-anchor-trigger>.</p>
@@ -550,7 +575,7 @@ settings in your user settings. The model is asked with the usual limits of the 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (a206797b9).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (603016660).</p></div>
             </footer>
         </div>
     </div>

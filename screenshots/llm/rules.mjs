@@ -2,7 +2,15 @@
 // ctx: { text, system, last, messages, model, stream, wantsJson, hasTools, mode, body }
 // A rule answers with `reply` (string, or function(ctx) returning a string or {reply, reasoning, status, message}),
 // optionally `reasoning` and `delayMs`.
-import {arcOutline, betaReaders, loreCompaction, loreGeneration, review, sideQuery} from '../dataset/plugins.mjs';
+import {
+    arcOutline,
+    betaPersona,
+    betaReaders,
+    loreCompaction,
+    loreGeneration,
+    review,
+    sideQuery
+} from '../dataset/plugins.mjs';
 import {ginnyTurn, ginnyTurn2, metaSummary, summaryReasoning, turns} from '../dataset/story.mjs';
 
 const storyRules = Object.entries(turns).filter(([id]) => id !== 't2b').map(([id, t]) => ({
@@ -85,7 +93,15 @@ const betaRule = {
   },
 };
 
+// Beta Readers: a persona written from a few words (the window of a persona)
+const betaPersonaRule = {
+  name: 'beta-readers-persona',
+  when: ctx => ctx.system.includes('You create personas for beta readers'),
+  reply: () => `Name: ${betaPersona.name}\nDescription: ${betaPersona.description}`,
+};
+
 export default [
+  betaPersonaRule,
   betaRule,
   arcRule,
   arcImportRule,

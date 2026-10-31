@@ -44,6 +44,7 @@ public class BetaReadersSettingsForm extends VerticalLayout {
 
     private final TextArea singlePrompt = new TextArea(T.localized("Prompt of a chat with one persona"));
     private final TextArea groupPrompt = new TextArea(T.localized("Prompt of a group chat"));
+    private final TextArea scene = new TextArea(T.localized("Scene"));
     private final ComboBox<Medium> mediumCombo = new ComboBox<>(T.localized("Medium"));
     private final ComboBox<AI> aiCombo = new ComboBox<>(T.localized("Model of the chats"));
     private final ComboBox<Protocol> protocolCombo = new ComboBox<>(T.localized("Protocol of the chats"));
@@ -71,13 +72,18 @@ public class BetaReadersSettingsForm extends VerticalLayout {
 
         singlePrompt.setWidthFull();
         singlePrompt.setPlaceholder(BetaReadersDefaults.SINGLE_PROMPT);
-        singlePrompt.setHelperText(T.localized("Empty: the built-in prompt. {{medium}} is the text of the medium."));
+        singlePrompt.setHelperText(T.localized("Empty: the built-in prompt. {{medium}} is the text of the medium, {{scene}} the scene."));
         ResizableTextArea.install(loc, singlePrompt, "160px");
 
         groupPrompt.setWidthFull();
         groupPrompt.setPlaceholder(BetaReadersDefaults.GROUP_PROMPT);
-        groupPrompt.setHelperText(T.localized("Empty: the built-in prompt. {{medium}} is the text of the medium."));
+        groupPrompt.setHelperText(T.localized("Empty: the built-in prompt. {{medium}} is the text of the medium, {{scene}} the scene."));
         ResizableTextArea.install(loc, groupPrompt, "160px");
+
+        scene.setWidthFull();
+        scene.setPlaceholder(BetaReadersDefaults.SCENE);
+        scene.setHelperText(T.localized("Empty: the built-in scene, an online chat. It is sent in the system prompt of every chat, after the prompt, or where the prompt has {{scene}}."));
+        ResizableTextArea.install(loc, scene, "100px");
 
         mediumCombo.setWidthFull();
         mediumCombo.setItemLabelGenerator(Medium::getName);
@@ -98,7 +104,7 @@ public class BetaReadersSettingsForm extends VerticalLayout {
         FormLayout choices = new FormLayout(mediumCombo, aiCombo, protocolCombo);
         choices.setWidthFull();
 
-        add(intro, choices, singlePrompt, groupPrompt, libraryRow(personaSummary, T.localized("Edit personas"), this::editPersonas),
+        add(intro, choices, singlePrompt, groupPrompt, scene, libraryRow(personaSummary, T.localized("Edit personas"), this::editPersonas),
                 libraryRow(mediumSummary, T.localized("Edit mediums"), this::editMediums));
     }
 
@@ -123,6 +129,7 @@ public class BetaReadersSettingsForm extends VerticalLayout {
             mediumsEdited = false;
             singlePrompt.setValue(settings.getSinglePrompt());
             groupPrompt.setValue(settings.getGroupPrompt());
+            scene.setValue(settings.getScene());
             loadCombos();
             refreshSummaries();
         } catch (Exception e) {
@@ -155,7 +162,8 @@ public class BetaReadersSettingsForm extends VerticalLayout {
     }
 
     private void editPersonas() {
-        new PersonaLibraryDialog(T.localized("Persona library"), settings.getPersonas(), personas -> {
+        new PersonaLibraryDialog(T.localized("Persona library"), settings.getPersonas(),
+                (brief, taken, done) -> service.writePersona(null, brief, taken, done), personas -> {
             settings.setPersonas(personas);
             personasEdited = true;
             refreshSummaries();
@@ -177,6 +185,7 @@ public class BetaReadersSettingsForm extends VerticalLayout {
     public BetaReadersSettings save() {
         settings.setSinglePrompt(StringUtils.defaultString(singlePrompt.getValue()));
         settings.setGroupPrompt(StringUtils.defaultString(groupPrompt.getValue()));
+        settings.setScene(StringUtils.defaultString(scene.getValue()));
         Medium medium = mediumCombo.getValue();
         settings.setMedium(medium == null ? "" : medium.getId());
         AI ai = aiCombo.getValue();

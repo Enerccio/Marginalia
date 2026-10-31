@@ -25,6 +25,8 @@ import java.util.function.ToIntFunction;
 public final class PromptBuilder {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    /** {@code {{scene}}}, {@code {{{scene}}}}, {@code {{#scene}}}... */
+    private static final java.util.regex.Pattern SCENE_VARIABLE = java.util.regex.Pattern.compile("\\{\\{[#^&{>/ ]*scene\\b");
 
     private PromptBuilder() {
     }
@@ -115,6 +117,19 @@ public final class PromptBuilder {
         return new Prompt(messages, tokens, dropped, limit <= 0 || tokens <= limit);
     }
 
+    /**
+     * The prompt with the scene: the scene goes after it, unless the template places it with {@code {{scene}}} (or a section of it).
+     *
+     * @param template the template of the prompt
+     * @param rendered the prompt rendered from it
+     */
+    public static String withScene(String template, String rendered, String scene) {
+        if (scene == null || scene.isBlank() || SCENE_VARIABLE.matcher(template == null ? "" : template).find()) {
+            return rendered;
+        }
+        return rendered.strip() + "\n\nThe scene of the conversation:\n" + scene.strip();
+    }
+
     private record Entry(boolean user, String text) {
     }
 
@@ -203,6 +218,7 @@ public final class PromptBuilder {
             case JOIN -> presence(message, "joins the conversation");
             case LEAVE -> presence(message, "leaves the conversation");
             case MEDIUM -> "[From now on the text is read as: " + message.getText().strip() + ".]";
+            case SCENE -> "[The scene is now: " + message.getText().strip() + "]";
             case ASSISTANT -> assistant(message, options);
         };
     }

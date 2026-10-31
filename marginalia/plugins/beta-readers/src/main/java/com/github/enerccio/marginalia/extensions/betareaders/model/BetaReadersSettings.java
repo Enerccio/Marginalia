@@ -16,6 +16,8 @@ public class BetaReadersSettings {
     private String singlePrompt = "";
     /** The prompt of a group chat, blank for the built-in one. */
     private String groupPrompt = "";
+    /** The scene of the chats, blank for the built-in one (an online chat). */
+    private String scene = "";
     /** The id of the medium the chats use when nothing else chooses one, blank for the built-in default. */
     private String medium = "";
     /** The uuid of the AI of the chats, blank for the AI of the book. */
@@ -39,6 +41,14 @@ public class BetaReadersSettings {
 
     public void setGroupPrompt(String groupPrompt) {
         this.groupPrompt = groupPrompt;
+    }
+
+    public String getScene() {
+        return scene;
+    }
+
+    public void setScene(String scene) {
+        this.scene = scene;
     }
 
     public String getMedium() {
@@ -87,6 +97,7 @@ public class BetaReadersSettings {
     public BetaReadersSettings normalize() {
         singlePrompt = singlePrompt == null ? "" : singlePrompt;
         groupPrompt = groupPrompt == null ? "" : groupPrompt;
+        scene = scene == null ? "" : scene;
         medium = medium == null ? "" : medium;
         ai = ai == null ? "" : ai;
         protocol = protocol == null ? "" : protocol;

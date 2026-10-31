@@ -209,7 +209,8 @@ below ticked.
 - [x] Storage of the library (user settings) and of book-local personas (attributes of the book).
 - [x] Editor: create, edit, copy, delete, reorder personas.
 - [x] Ready-made starter personas the user can copy (the library starts with six; *Add the starter personas* adds the missing ones).
-- [ ] Generate a persona from a short description with the model.
+- [x] Generate a persona from a short description with the model (`PersonaWriter`, the button *Write with the model* in the window of a persona).
+- [x] The scene: an inherited setting (chat, book, folders, user, built-in *online chat*) that goes into the system prompt; changing it in a chat leaves a line.
 - [x] Global per user (done, the library) + create persona in book (the same window with the book as its list, step 7a)
 - [x] Small icon (saved as same as character-tracker; uploading it is the persona dialog of step 2)
 

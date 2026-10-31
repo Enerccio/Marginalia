@@ -9,6 +9,7 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.IntegerField;
+import com.vaadin.flow.component.textfield.TextArea;
 
 import java.util.List;
 
@@ -24,10 +25,15 @@ public class ChatOptionsForm extends VerticalLayout {
     /**
      * What the chat gets when it chooses nothing, as the names shown in the empty fields ("Inherited: ...").
      */
-    public record Inherited(String medium, String ai, String protocol) {
+    public record Inherited(String medium, String ai, String protocol, String scene) {
+
+        public Inherited(String medium, String ai, String protocol) {
+            this(medium, ai, protocol, null);
+        }
     }
 
     final ComboBox<Medium> medium = new ComboBox<>(T.localized("Medium"));
+    final TextArea scene = new TextArea(T.localized("Scene"));
     final ComboBox<Choice> ai = new ComboBox<>(T.localized("Model"));
     final ComboBox<Choice> protocol = new ComboBox<>(T.localized("Protocol"));
     final Select<ReplyFormat> format = new Select<>();
@@ -44,6 +50,10 @@ public class ChatOptionsForm extends VerticalLayout {
         medium.setItems(mediums);
         medium.setItemLabelGenerator(Medium::getName);
         medium.setPlaceholder(inheritedText(inherited.medium()));
+        scene.setWidthFull();
+        scene.setMinHeight("6rem");
+        scene.setPlaceholder(inheritedText(shorten(inherited.scene())));
+        scene.setHelperText(T.localized("Empty: inherited. Where and how the conversation takes place; it goes into the system prompt."));
         ai.setItems(ais);
         ai.setItemLabelGenerator(Choice::label);
         ai.setPlaceholder(inheritedText(inherited.ai()));
@@ -72,7 +82,7 @@ public class ChatOptionsForm extends VerticalLayout {
         fromPart.setHelperText(T.localized("Empty: from the first part. Earlier parts are not sent, not even as summaries."));
         summaries.setValue(true);
 
-        add(spoilerLimit, fromPart, summaries, medium, ai, protocol, format);
+        add(spoilerLimit, fromPart, summaries, medium, scene, ai, protocol, format);
     }
 
     /**
@@ -85,6 +95,14 @@ public class ChatOptionsForm extends VerticalLayout {
             return T.localized("The first part can't come after the last one.");
         }
         return null;
+    }
+
+    private static String shorten(String text) {
+        if (text == null) {
+            return null;
+        }
+        String line = text.replaceAll("\\s+", " ").strip();
+        return line.length() > 120 ? line.substring(0, 117) + "..." : line;
     }
 
     private static String inheritedText(String value) {
@@ -104,6 +122,7 @@ public class ChatOptionsForm extends VerticalLayout {
      */
     public void load(BetaChat chat) {
         medium.setValue(medium.getListDataView().getItems().filter(item -> item.getId().equals(chat.getMedium())).findFirst().orElse(null));
+        scene.setValue(chat.getScene() == null ? "" : chat.getScene());
         ai.setValue(ai.getListDataView().getItems().filter(item -> item.id().equals(chat.getAi())).findFirst().orElse(null));
         protocol.setValue(protocol.getListDataView().getItems().filter(item -> item.id().equals(chat.getProtocol())).findFirst().orElse(null));
         format.setValue(chat.getFormat());
@@ -113,18 +132,19 @@ public class ChatOptionsForm extends VerticalLayout {
     }
 
     /**
-     * Puts the choices into the chat: all of them, the medium too, which is right for a chat that is made now. A chat that exists has
-     * its medium changed with {@code ChatEdits.changeMedium}, which leaves a line in the history.
+     * Puts the choices into the chat: all of them, the medium and the scene too, which is right for a chat that is made now. A chat that
+     * exists has them changed with {@code ChatEdits.changeMedium} and {@code changeScene}, which leave a line in the history.
      */
     public void apply(BetaChat chat) {
         chat.setMedium(mediumId());
-        applyExceptMedium(chat);
+        chat.setScene(sceneText());
+        applyExceptHistoryLines(chat);
     }
 
     /**
-     * Puts the choices into the chat but the medium.
+     * Puts the choices into the chat but the medium and the scene.
      */
-    public void applyExceptMedium(BetaChat chat) {
+    public void applyExceptHistoryLines(BetaChat chat) {
         chat.setAi(aiId());
         chat.setProtocol(protocolId());
         chat.setFormat(replyFormat());
@@ -141,6 +161,17 @@ public class ChatOptionsForm extends VerticalLayout {
     /** The name of the medium the chat reads the text as with this choice. */
     public String mediumName() {
         return medium.getValue() != null ? medium.getValue().getName() : inherited.medium();
+    }
+
+    /** The scene typed; null for the inherited one. */
+    public String sceneText() {
+        return scene.getValue() == null || scene.getValue().isBlank() ? null : scene.getValue().strip();
+    }
+
+    /** The scene the chat has with this choice. */
+    public String effectiveScene() {
+        String own = sceneText();
+        return own != null ? own : inherited.scene();
     }
 
     public String aiId() {

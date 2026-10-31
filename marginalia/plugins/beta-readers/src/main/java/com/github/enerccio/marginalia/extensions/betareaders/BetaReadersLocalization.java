@@ -35,6 +35,39 @@ public class BetaReadersLocalization extends PluginLocalizationBundle {
         ja("Mediums", "メディア");
         zh("Mediums", "媒介");
 
+        ja("Scene", "シーン");
+        zh("Scene", "场景");
+
+        ja("Where and how the conversation takes place; it is sent in the system prompt of every chat", "会話がどこで、どのように行われるか。すべてのチャットのシステムプロンプトに送られます");
+        zh("Where and how the conversation takes place; it is sent in the system prompt of every chat", "对话发生的地点和方式；它会随每个聊天的系统提示词一起发送");
+
+        ja("Empty: the built-in scene, an online chat. It is sent in the system prompt of every chat, after the prompt, or where the prompt has {{scene}}.", "空の場合: 組み込みのシーン（オンラインチャット）。すべてのチャットのシステムプロンプトの、プロンプトの後（プロンプトに {{scene}} がある場合はその位置）に送られます。");
+        zh("Empty: the built-in scene, an online chat. It is sent in the system prompt of every chat, after the prompt, or where the prompt has {{scene}}.", "留空：使用内置场景（在线聊天）。它会放在每个聊天的系统提示词中提示词之后（提示词里有 {{scene}} 时放在该位置）。");
+
+        ja("Empty: the built-in prompt. {{medium}} is the text of the medium, {{scene}} the scene.", "空の場合: 組み込みのプロンプト。{{medium}} はメディアのテキスト、{{scene}} はシーンです。");
+        zh("Empty: the built-in prompt. {{medium}} is the text of the medium, {{scene}} the scene.", "留空：使用内置提示词。{{medium}} 是媒介的文字，{{scene}} 是场景。");
+
+        ja("Empty: inherited. Where and how the conversation takes place; it goes into the system prompt.", "空の場合: 継承。会話がどこで、どのように行われるか。システムプロンプトに入ります。");
+        zh("Empty: inherited. Where and how the conversation takes place; it goes into the system prompt.", "留空：继承。对话发生的地点和方式；它会进入系统提示词。");
+
+        ja("The scene is now: %s", "今のシーン: %s");
+        zh("The scene is now: %s", "现在的场景：%s");
+
+        ja("What the persona is like", "ペルソナの人物像");
+        zh("What the persona is like", "这个读者角色是什么样的");
+
+        ja("A grumpy editor who hates adverbs, a teenager who only reads fantasy...", "副詞が大嫌いな気難しい編集者、ファンタジーしか読まない十代の若者…");
+        zh("A grumpy editor who hates adverbs, a teenager who only reads fantasy...", "讨厌副词的暴躁编辑，只读奇幻小说的少年……");
+
+        ja("Describe the persona in a few words and let the model write the name and the description; you can change them before you save.", "ペルソナを数語で説明すると、モデルが名前と説明を書きます。保存する前に変更できます。");
+        zh("Describe the persona in a few words and let the model write the name and the description; you can change them before you save.", "用几个词描述这个读者角色，让模型写出名字和描述；保存前你还可以修改。");
+
+        ja("Write with the model", "モデルで書く");
+        zh("Write with the model", "让模型来写");
+
+        ja("Describe the persona first", "先にペルソナを説明してください");
+        zh("Describe the persona first", "请先描述这个读者角色");
+
         ja("Medium", "メディア");
         zh("Medium", "媒介");
 
@@ -68,11 +101,6 @@ public class BetaReadersLocalization extends PluginLocalizationBundle {
                 "本とフォルダーが継承する設定です。本やフォルダーは、それぞれの設定で独自の値を指定できます。ペルソナとメディアはあなた専用で、本には独自のペルソナを追加できます。");
         zh("What books and folders inherit: a book or a folder can set its own in its settings. The personas and the mediums are yours, a book can add personas of its own.",
                 "书籍和文件夹继承的设置：书籍或文件夹可以在各自的设置中指定自己的值。读者角色和媒介属于你，书籍还可以添加自己的读者角色。");
-
-        ja("Empty: the built-in prompt. {{medium}} is the text of the medium.",
-                "空の場合: 組み込みのプロンプト。{{medium}} はメディアのテキストです。");
-        zh("Empty: the built-in prompt. {{medium}} is the text of the medium.",
-                "留空：使用内置提示词。{{medium}} 是媒介的文本。");
 
         ja("Empty: the built-in default", "空の場合: 組み込みの既定値");
         zh("Empty: the built-in default", "留空：使用内置默认值");

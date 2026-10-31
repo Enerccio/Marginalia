@@ -1,10 +1,15 @@
 package com.github.enerccio.marginalia.extensions.betareaders.ui;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.extensions.betareaders.model.Persona;
+import com.github.enerccio.marginalia.extensions.betareaders.service.NoModelException;
 import com.github.enerccio.marginalia.extensions.betareaders.service.PersonaIcons;
+import com.github.enerccio.marginalia.extensions.betareaders.service.PersonaWriter;
+import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -19,7 +24,9 @@ import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.server.streams.InMemoryUploadHandler;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.List;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.T;
 
@@ -37,6 +44,11 @@ public class PersonaDialog extends Dialog {
 
     private final TextField name = new TextField(T.localized("Name"));
     private final TextArea description = new TextArea(T.localized("Description"));
+    private final PersonaGenerator generator;
+    private final Supplier<List<String>> takenNames;
+    private final TextArea brief = new TextArea(T.localized("What the persona is like"));
+    private final Button write = new Button(T.localized("Write with the model"), Solid.WAND_MAGIC_SPARKLES.create());
+    private CancellationToken running;
     private final Image preview = new Image();
     private Button removeIcon;
     private String icon;
@@ -48,7 +60,18 @@ public class PersonaDialog extends Dialog {
      * @param onSaved   called after the persona was changed
      */
     public PersonaDialog(String header, Persona persona, Predicate<String> nameTaken, Runnable onSaved) {
+        this(header, persona, nameTaken, onSaved, null, List::of);
+    }
+
+    /**
+     * @param generator lets the model write the persona from a few words; null for no such button
+     * @param takenNames the names of the personas of the list, which the model is told not to use
+     */
+    public PersonaDialog(String header, Persona persona, Predicate<String> nameTaken, Runnable onSaved, PersonaGenerator generator,
+                         Supplier<List<String>> takenNames) {
         this.persona = persona;
+        this.generator = generator;
+        this.takenNames = takenNames;
         this.nameTaken = nameTaken;
         this.onSaved = onSaved;
         this.icon = persona.getIcon();
@@ -70,7 +93,11 @@ public class PersonaDialog extends Dialog {
         description.setHelperText(T.localized("How the persona reads and what it cares about; it is what the model plays"));
         description.setValue(StringUtils.defaultString(persona.getDescription()));
 
-        VerticalLayout content = new VerticalLayout(name, description, buildIcon());
+        VerticalLayout content = new VerticalLayout();
+        if (generator != null) {
+            content.add(buildWriter());
+        }
+        content.add(name, description, buildIcon());
         content.setPadding(false);
         add(content);
 
@@ -78,6 +105,77 @@ public class PersonaDialog extends Dialog {
         Button save = new Button(T.localized("Save"), _ -> save());
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         getFooter().add(cancel, save);
+    }
+
+    /**
+     * The wish of the user and the button that lets the model write the name and the description from it.
+     */
+    private VerticalLayout buildWriter() {
+        brief.setWidthFull();
+        brief.setMinHeight("80px");
+        brief.setPlaceholder(T.localized("A grumpy editor who hates adverbs, a teenager who only reads fantasy..."));
+        brief.setHelperText(T.localized("Describe the persona in a few words and let the model write the name and the description; you can change them before you save."));
+        write.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
+        write.addClickListener(_ -> writeOrStop());
+        VerticalLayout writer = new VerticalLayout(brief, write);
+        writer.setPadding(false);
+        return writer;
+    }
+
+    private void writeOrStop() {
+        if (running != null) {
+            running.cancel();
+            return;
+        }
+        if (StringUtils.isBlank(brief.getValue())) {
+            Notification.warning(T.localized("Describe the persona first"));
+            return;
+        }
+        UI ui = UI.getCurrent();
+        try {
+            setWriting(true);
+            running = generator.start(brief.getValue(), takenNames.get(), outcome -> {
+                if (UI.getCurrent() == ui) {
+                    written(outcome);
+                } else {
+                    ui.access(() -> {
+                        written(outcome);
+                        UIPushGuard.push(ui);
+                    });
+                }
+            });
+        } catch (Exception e) {
+            setWriting(false);
+            Notification.warning(e instanceof NoModelException ? T.localized("There is no model to ask. Choose one for the chat, the book or in the settings.")
+                    : T.localized("Can't ask the model: %s").formatted(e.getMessage() != null ? e.getMessage() : e.toString()));
+        }
+    }
+
+    private void written(PersonaWriter.Outcome outcome) {
+        running = null;
+        setWriting(false);
+        if (outcome.cancelled()) {
+            return;
+        }
+        if (outcome.error() != null) {
+            Notification.warning(T.localized("Can't ask the model: %s").formatted(outcome.error().getMessage() != null
+                    ? outcome.error().getMessage() : outcome.error().toString()));
+        } else if (outcome.written() == null) {
+            Notification.warning(T.localized("The model did not answer."));
+        } else {
+            if (!outcome.written().name().isBlank()) {
+                name.setValue(outcome.written().name());
+            }
+            if (!outcome.written().description().isBlank()) {
+                description.setValue(outcome.written().description());
+            }
+        }
+    }
+
+    private void setWriting(boolean value) {
+        write.setText(value ? T.localized("Stop") : T.localized("Write with the model"));
+        write.setIcon(value ? Solid.STOP.create() : Solid.WAND_MAGIC_SPARKLES.create());
+        brief.setReadOnly(value);
     }
 
     private VerticalLayout buildIcon() {

@@ -2,6 +2,8 @@
 
 Personas you define and a chat about the book with them.
 
+A persona can be written by the model from a few words (*Write with the model* in its window).
+
 See the [user manual](../../../manual/user/extensions/beta-readers.md). What is not done (generating a persona from a short description, sending
 the lorebook) is in [TODO.md](TODO.md).
 
@@ -11,6 +13,7 @@ the lorebook) is in [TODO.md](TODO.md).
 
 - the **prompt of a chat with one persona** and the **prompt of a group chat** (empty: the built-in prompt; `{{medium}}` is the text
   of the medium),
+- the **scene** (where and how the conversation takes place; empty: an online chat; sent in the system prompt of every chat, after the prompt or where it has `{{scene}}`),
 - the **medium** (what the text stands for: a book, a movie, a manga...), the **model** and the **protocol** of the chats,
 - the **persona library** (a name, an icon and a description; it starts with six personas) and the **mediums** (a name and the part of
   the prompt that tells the personas how to react), each edited in a window of its own.

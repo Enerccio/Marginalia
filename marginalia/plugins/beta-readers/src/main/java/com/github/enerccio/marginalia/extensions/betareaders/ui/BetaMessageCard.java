@@ -2,13 +2,7 @@ package com.github.enerccio.marginalia.extensions.betareaders.ui;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
-import com.github.enerccio.marginalia.extensions.betareaders.model.BetaChat;
-import com.github.enerccio.marginalia.extensions.betareaders.model.BetaMessage;
-import com.github.enerccio.marginalia.extensions.betareaders.model.BetaPart;
-import com.github.enerccio.marginalia.extensions.betareaders.model.BetaSpoken;
-import com.github.enerccio.marginalia.extensions.betareaders.model.Persona;
-import com.github.enerccio.marginalia.extensions.betareaders.model.PartType;
-import com.github.enerccio.marginalia.extensions.betareaders.model.SentPart;
+import com.github.enerccio.marginalia.extensions.betareaders.model.*;
 import com.github.enerccio.marginalia.extensions.betareaders.service.PartsTracker;
 import com.github.enerccio.marginalia.extensions.betareaders.service.PersonaIcons;
 import com.vaadin.flow.component.Component;
@@ -69,6 +63,7 @@ public final class BetaMessageCard {
             case JOIN -> note(T.localized("%s joined the conversation.").formatted(name(message)), message, actions);
             case LEAVE -> note(T.localized("%s left the conversation.").formatted(name(message)), message, actions);
             case MEDIUM -> note(T.localized("From now on the text is read as: %s").formatted(message.getText()), null, actions, message);
+            case SCENE -> note(T.localized("The scene is now: %s").formatted(message.getText()), null, actions, message);
             case ASSISTANT -> {
                 Turn turn = new Turn(chat);
                 turn.show(message.getReasoning(), message.getSpoken(), message.getRawText(), message, actions, last);

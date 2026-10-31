@@ -38,13 +38,13 @@ class BetaReadersInheritedTest {
     }
 
     @Test
-    void fiveSettingsAreRegisteredAsOneGroup() {
+    void sixSettingsAreRegisteredAsOneGroup() {
         List<InheritedSettingRegistry.Group> groups = registry.groups();
 
         assertEquals(1, groups.size());
         assertEquals("Beta Readers", groups.get(0).title());
-        assertEquals(List.of(BetaReadersInherited.SINGLE_PROMPT, BetaReadersInherited.GROUP_PROMPT, BetaReadersInherited.MEDIUM,
-                        BetaReadersInherited.AI, BetaReadersInherited.PROTOCOL),
+        assertEquals(List.of(BetaReadersInherited.SINGLE_PROMPT, BetaReadersInherited.GROUP_PROMPT, BetaReadersInherited.SCENE,
+                        BetaReadersInherited.MEDIUM, BetaReadersInherited.AI, BetaReadersInherited.PROTOCOL),
                 groups.get(0).settings().stream().map(InheritedSetting::getKey).toList());
     }
 
@@ -52,6 +52,7 @@ class BetaReadersInheritedTest {
     void theKindsAreTheEditorsOfTheFields() {
         assertEquals(InheritedSetting.Kind.TEXT_AREA, setting(BetaReadersInherited.SINGLE_PROMPT).getKind());
         assertEquals(InheritedSetting.Kind.TEXT_AREA, setting(BetaReadersInherited.GROUP_PROMPT).getKind());
+        assertEquals(InheritedSetting.Kind.TEXT_AREA, setting(BetaReadersInherited.SCENE).getKind());
         assertEquals(InheritedSetting.Kind.CHOICE, setting(BetaReadersInherited.MEDIUM).getKind());
         assertEquals(InheritedSetting.Kind.CHOICE, setting(BetaReadersInherited.AI).getKind());
         assertEquals(InheritedSetting.Kind.CHOICE, setting(BetaReadersInherited.PROTOCOL).getKind());
@@ -69,6 +70,17 @@ class BetaReadersInheritedTest {
 
         assertEquals("my one on one", setting(BetaReadersInherited.SINGLE_PROMPT).userValue());
         assertEquals("my group", setting(BetaReadersInherited.GROUP_PROMPT).userValue());
+    }
+
+    @Test
+    void theSceneFallsBackToAnOnlineChatAndTakesTheUserLevelFirst() {
+        assertTrue(setting(BetaReadersInherited.SCENE).userValue().isBlank());
+        assertEquals(BetaReadersDefaults.SCENE, setting(BetaReadersInherited.SCENE).fallback());
+        assertTrue(BetaReadersDefaults.SCENE.contains("online chat"));
+
+        settings.setScene("A rainy bar.");
+
+        assertEquals("A rainy bar.", setting(BetaReadersInherited.SCENE).userValue());
     }
 
     @Test

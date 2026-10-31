@@ -42,6 +42,14 @@ throws them away.
 A book can have personas of its own: *Personas of this book* in the menu of the chats opens the same window with the personas that only this
 book offers. They are marked *(this book)* when you choose them for a chat.
 
+**Write with the model** in the window of a persona does the writing for you: describe the persona in a few words (*a reader who only cares
+about who did it and why*), press the button, and the model fills the **Name** and the **Description** in the style of the library. They are only
+fields: change them, or write again, and **Save** when they are right. The model that writes is the one of the chats (the one of the book for the
+personas of a book, the one in the settings of the plugin for the library, else your default model); the names already in the list are
+told to it so it does not take one.
+
+![A persona written by the model](../../images/plugin-betareaders-write-persona.png)
+
 A chat keeps a **copy** of its personas, so a change in the library does not change a chat that has begun; the copy is changed when you ask
 (see [the group](#a-group)).
 
@@ -116,6 +124,7 @@ The window of a new chat and **Chat settings** have the same options; every one 
 
 | Option | |
 |---|---|
+| Scene | Where and how the conversation takes place, a few sentences: *a rainy bar after closing time*, *a video call after the book club*. Without one, the chat is an online chat, see [below](#the-scene). Changing it in a running chat leaves a line in the history (*The scene is now: ...*). |
 | Medium | What the text stands for: a book, a movie, a TV series, a manga or comic, an audio drama, a stage play, a game or visual novel. The personas react as the audience of that medium would. Changing it in a running chat leaves a line in the history (*From now on the text is read as: ...*). |
 | Model | The AI that answers. |
 | Protocol | The [protocol](../protocols.md) used with it. |
@@ -125,6 +134,14 @@ The window of a new chat and **Chat settings** have the same options; every one 
 | Use the summaries of the story | See below. |
 
 ![The settings of a chat](../../images/plugin-betareaders-chat-settings.png)
+
+### The scene
+
+The scene is a text that goes into the system prompt of every chat, after the prompt, so the personas know where they are and how they talk
+to each other. It is an [inherited setting](../books/prompts.md#inherited-settings): a chat's own, else the book's, else the nearest
+folder's, else the one in *Settings → Extension Settings → Beta Readers*, else the built-in one: **an online chat**, where everyone writes
+short messages from wherever they are. A prompt of your own that has `` in it decides where the scene stands; without it the scene
+is added after the prompt.
 
 ### How much of the story the personas read
 
@@ -155,12 +172,13 @@ The lorebook is not sent to the personas: they only know what the story tells th
 | Protocol of the chats | Empty: the protocol of the book. |
 | Prompt of a chat with one persona | The system prompt of a one-to-one chat. Empty: the built-in prompt. |
 | Prompt of a group chat | The system prompt of a group chat. Empty: the built-in prompt. |
+| Scene | See [above](#the-scene). Empty: an online chat. |
 | Persona library | **Edit personas**, see [above](#personas). |
 | Mediums | **Edit mediums**: each medium has a name and the prompt that tells the personas how to react to it. **Restore the built-in mediums** adds the ones that are missing. |
 
-`` in a prompt is replaced by the text of the medium. The settings are saved with the **Save** button of the *Settings* page.
+`` in a prompt is replaced by the text of the medium and `` by the scene. The settings are saved with the **Save** button of the *Settings* page.
 
-The medium, the model, the protocol and the two prompts are also [inherited settings](../books/prompts.md#inherited-settings): the *Prompts*
+The scene, the medium, the model, the protocol and the two prompts are also [inherited settings](../books/prompts.md#inherited-settings): the *Prompts*
 tab of a book and the settings of a [folder](../books/folders.md) have them in the **Extension Settings** section. A book uses its own
 value, otherwise the nearest folder's, otherwise the one from *Settings*, otherwise the built-in one; the model and the protocol of the book
 are the last resort. A chat overrides the medium, the model and the protocol for itself in its [options](#the-options-of-a-chat).

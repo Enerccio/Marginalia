@@ -15,7 +15,6 @@ import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
-import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.SubMenu;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
@@ -218,7 +217,8 @@ public class BetaReadersView extends VerticalLayout {
         Model model = service.resolveModel(manuscript, null);
         var medium = service.resolveMedium(manuscript, null);
         return new ChatOptionsForm.Inherited(medium == null ? null : medium.getName(),
-                model.ai() == null ? null : model.ai().getName(), model.protocol() == null ? null : model.protocol().getName());
+                model.ai() == null ? null : model.ai().getName(), model.protocol() == null ? null : model.protocol().getName(),
+                service.resolveScene(manuscript, null));
     }
 
     private void settings() {
@@ -230,9 +230,11 @@ public class BetaReadersView extends VerticalLayout {
             new ChatSettingsDialog(chat, service.settingsOrDefaults().getMediums(), service.aiChoices(), service.protocolChoices(),
                     inherited(), form -> {
                         try {
-                            form.applyExceptMedium(chat);
-                            // the line that says the medium changed is for the model: it reads what was said before as said about the old one
+                            form.applyExceptHistoryLines(chat);
+                            // the lines that say the medium or the scene changed are for the model: it reads what was said before as
+                            // said about the old one
                             ChatEdits.changeMedium(chat, form.mediumId(), form.mediumName());
+                            ChatEdits.changeScene(chat, form.sceneText(), form.effectiveScene());
                             service.saveChat(manuscript, chat);
                             showPanel();
                         } catch (Exception e) {
@@ -323,7 +325,8 @@ public class BetaReadersView extends VerticalLayout {
     private void editBookPersonas() {
         try {
             BookData data = service.loadCurrentBook(manuscript);
-            new PersonaLibraryDialog(T.localized("Personas of this book"), data.getPersonas(), personas -> {
+            new PersonaLibraryDialog(T.localized("Personas of this book"), data.getPersonas(),
+                    (brief, taken, done) -> service.writePersona(manuscript, brief, taken, done), personas -> {
                 try {
                     BookData current = service.loadCurrentBook(manuscript);
                     current.setPersonas(personas);

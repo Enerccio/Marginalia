@@ -8,16 +8,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.extensions.InheritedSetting.Choice;
-import com.github.enerccio.marginalia.extensions.betareaders.model.BetaReadersDefaults;
-import com.github.enerccio.marginalia.extensions.betareaders.model.BetaChat;
-import com.github.enerccio.marginalia.extensions.betareaders.model.BetaMessage;
-import com.github.enerccio.marginalia.extensions.betareaders.model.BetaReadersSettings;
-import com.github.enerccio.marginalia.extensions.betareaders.model.BetaReadersTemplateData;
-import com.github.enerccio.marginalia.extensions.betareaders.model.BookData;
-import com.github.enerccio.marginalia.extensions.betareaders.model.ChatKind;
-import com.github.enerccio.marginalia.extensions.betareaders.model.Medium;
-import com.github.enerccio.marginalia.extensions.betareaders.model.Persona;
-import com.github.enerccio.marginalia.extensions.betareaders.model.ReplyFormat;
+import com.github.enerccio.marginalia.extensions.betareaders.model.*;
 import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersStore.Available;
 import com.github.enerccio.marginalia.extensions.betareaders.service.PartsTracker.Plan;
 import com.github.enerccio.marginalia.extensions.betareaders.service.PartsTracker.StoryPart;
@@ -32,6 +23,7 @@ import org.springframework.web.context.request.RequestAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.ToIntFunction;
 
 /**
@@ -146,16 +138,18 @@ public class BetaReadersService {
     }
 
     /**
-     * The prompt of a chat with the medium in it ({@code {{medium}}}), as the system prompt before the description of the answer is
-     * added.
+     * The prompt of a chat with the medium ({@code {{medium}}}) and the scene ({@code {{scene}}}) in it, as the system prompt before the
+     * description of the answer is added. A prompt that does not use {@code {{scene}}} gets the scene after it.
      *
      * @param medium the prompt fragment of the medium; empty for none
+     * @param scene  the scene; empty for none
      * @throws Exception when the prompt is not a valid template
      */
-    public String renderPrompt(String template, String medium) throws Exception {
+    public String renderPrompt(String template, String medium, String scene) throws Exception {
         BetaReadersTemplateData data = new BetaReadersTemplateData();
         data.setMedium(medium);
-        return templateService.processTemplate(template, "betaReadersPrompt", data);
+        data.setScene(scene);
+        return PromptBuilder.withScene(template, templateService.processTemplate(template, "betaReadersPrompt", data), scene);
     }
 
     /**
@@ -263,8 +257,8 @@ public class BetaReadersService {
     }
 
     /**
-     * The system prompt of the chat: the prompt of its kind (the chain of the book) with the medium (the one of the chat, else the
-     * chain's) in it.
+     * The system prompt of the chat: the prompt of its kind (the chain of the book) with the medium and the scene (the ones of the chat,
+     * else the chain's) in it.
      *
      * @throws Exception when the prompt is not a valid template
      */
@@ -273,7 +267,20 @@ public class BetaReadersService {
         String template = manuscriptService.resolveExtension(current, chat.getKind() == ChatKind.SINGLE
                 ? BetaReadersInherited.SINGLE_PROMPT : BetaReadersInherited.GROUP_PROMPT).value();
         Medium medium = resolveMedium(manuscript, chat);
-        return renderPrompt(template, medium == null ? "" : medium.getPrompt());
+        return renderPrompt(template, medium == null ? "" : medium.getPrompt(), resolveScene(manuscript, chat));
+    }
+
+    /**
+     * The scene of the chat: its own, else the one of the settings chain (the book, the folders above it, the settings of the user, the
+     * built-in one).
+     *
+     * @param chat the chat; null for what a chat of this book would inherit
+     */
+    public String resolveScene(Manuscript manuscript, BetaChat chat) throws Exception {
+        if (chat != null && chat.getScene() != null && !chat.getScene().isBlank()) {
+            return chat.getScene();
+        }
+        return manuscriptService.resolveExtension(currentBook(manuscript), BetaReadersInherited.SCENE).value();
     }
 
     /**
@@ -477,6 +484,52 @@ public class BetaReadersService {
         };
         try (InferenceSession _ = InferenceSession.open("beta-readers"); UsageContext _ = UsageContext.open(manuscript)) {
             return ChatRunner.run(run.inference(), run.model().protocol(), request, storing);
+        }
+    }
+
+    /**
+     * The AI and the protocol that write a persona: the ones of the chats of the book (the chain), or, without a book (the settings of
+     * the user), the ones of the user's settings of this plugin, else the default model and protocol of the user.
+     */
+    public Model resolvePersonaModel(Manuscript manuscript) throws Exception {
+        if (manuscript != null) {
+            return resolveModel(manuscript, null);
+        }
+        BetaReadersSettings settings = settingsOrDefaults();
+        UserSetting user = settingService.getOrCreate(UserSetting.class);
+        AI ai = ModelChoice.firstUsable(Arrays.asList(settings.getAi()), aiService::findForUser, found -> !found.isDeleted());
+        if (ai == null && user.getDefaultModel() != null) {
+            AI found = aiService.find(user.getDefaultModel());
+            ai = found != null && !found.isDeleted() ? found : null;
+        }
+        Protocol protocol = ModelChoice.firstUsable(Arrays.asList(settings.getProtocol()), protocolService::findForUser,
+                found -> !found.isDeleted());
+        if (protocol == null && user.getDefaultProtocol() != null) {
+            Protocol found = protocolService.find(user.getDefaultProtocol());
+            protocol = found != null && !found.isDeleted() ? found : null;
+        }
+        return new Model(ai, protocol);
+    }
+
+    /**
+     * Lets the model write a persona from a few words, see {@link PersonaWriter}.
+     *
+     * @param manuscript the book the persona is for; null for a persona of the user's library
+     * @param taken      the names the persona must not take
+     * @param done       told when it ended, on a thread of the inference service
+     * @return what stops it
+     * @throws NoModelException when there is no AI to ask
+     */
+    public CancellationToken writePersona(Manuscript manuscript, String brief, List<String> taken, Consumer<PersonaWriter.Outcome> done)
+            throws Exception {
+        Model model = resolvePersonaModel(manuscript);
+        if (model.ai() == null) {
+            throw new NoModelException();
+        }
+        InferenceService inference = inferenceServices.forAIOrThrow(model.ai());
+        try (InferenceSession _ = InferenceSession.open("beta-readers");
+             UsageContext _ = manuscript != null ? UsageContext.open(manuscript) : null) {
+            return PersonaWriter.run(inference, model.protocol(), brief, taken, done);
         }
     }
 

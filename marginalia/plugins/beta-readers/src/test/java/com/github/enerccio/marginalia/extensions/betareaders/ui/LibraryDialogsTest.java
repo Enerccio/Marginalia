@@ -1,8 +1,10 @@
 package com.github.enerccio.marginalia.extensions.betareaders.ui;
 
+import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.extensions.betareaders.model.BetaReadersDefaults;
 import com.github.enerccio.marginalia.extensions.betareaders.model.Medium;
 import com.github.enerccio.marginalia.extensions.betareaders.model.Persona;
+import com.github.enerccio.marginalia.extensions.betareaders.service.PersonaWriter;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
@@ -206,6 +208,64 @@ class LibraryDialogsTest {
         click(button(dialog, "Save"));
         assertTrue(saved.get());
         assertEquals("Mara", edited.getName());
+    }
+
+    @Test
+    void theModelWritesANameAndADescriptionForTheUserToKeep() {
+        List<String> asked = new ArrayList<>();
+        PersonaGenerator generator = (brief, taken, done) -> {
+            asked.add(brief + " / " + taken);
+            done.accept(new PersonaWriter.Outcome(new PersonaWriter.Written("Rook", "The Plot Hound."), false, null));
+            return new CancellationToken();
+        };
+        Persona edited = new Persona("", "");
+        PersonaDialog dialog = new PersonaDialog("New", edited, name -> false, () -> {
+        }, generator, () -> List.of("Athena"));
+        TextArea brief = all(dialog, TextArea.class).filter(area -> "What the persona is like".equals(area.getLabel())).findFirst().orElseThrow();
+        TextField name = all(dialog, TextField.class).filter(field -> "Name".equals(field.getLabel())).findFirst().orElseThrow();
+        TextArea description = all(dialog, TextArea.class).filter(area -> "Description".equals(area.getLabel())).findFirst().orElseThrow();
+
+        click(button(dialog, "Write with the model"));
+        assertTrue(asked.isEmpty(), "nothing is asked without a wish");
+
+        brief.setValue("a plot hound");
+        click(button(dialog, "Write with the model"));
+
+        assertEquals(List.of("a plot hound / [Athena]"), asked);
+        assertEquals("Rook", name.getValue());
+        assertEquals("The Plot Hound.", description.getValue());
+        assertEquals("", edited.getName(), "the persona is changed with Save only");
+        assertFalse(brief.isReadOnly());
+    }
+
+    @Test
+    void aFailedOrEmptyAnswerLeavesTheFieldsAsTheyWere() {
+        AtomicReference<PersonaWriter.Outcome> outcome = new AtomicReference<>();
+        PersonaGenerator generator = (brief, taken, done) -> {
+            done.accept(outcome.get());
+            return new CancellationToken();
+        };
+        PersonaDialog dialog = new PersonaDialog("Edit", new Persona("Mine", "About me"), name -> false, () -> {
+        }, generator, List::of);
+        TextArea brief = all(dialog, TextArea.class).filter(area -> "What the persona is like".equals(area.getLabel())).findFirst().orElseThrow();
+        TextField name = all(dialog, TextField.class).filter(field -> "Name".equals(field.getLabel())).findFirst().orElseThrow();
+        brief.setValue("something");
+
+        for (PersonaWriter.Outcome result : List.of(new PersonaWriter.Outcome(null, false, new IllegalStateException("boom")),
+                new PersonaWriter.Outcome(null, false, null), new PersonaWriter.Outcome(null, true, null))) {
+            outcome.set(result);
+            click(button(dialog, "Write with the model"));
+        }
+
+        assertEquals("Mine", name.getValue());
+    }
+
+    @Test
+    void thereIsNoButtonWithoutAGenerator() {
+        PersonaDialog dialog = new PersonaDialog("New", new Persona("", ""), name -> false, () -> {
+        });
+
+        assertTrue(all(dialog, Button.class).noneMatch(button -> "Write with the model".equals(button.getText())));
     }
 
     @Test

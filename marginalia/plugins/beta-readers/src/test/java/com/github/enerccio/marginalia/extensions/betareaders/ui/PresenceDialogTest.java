@@ -1,11 +1,7 @@
 package com.github.enerccio.marginalia.extensions.betareaders.ui;
 
 import com.github.enerccio.marginalia.extensions.InheritedSetting.Choice;
-import com.github.enerccio.marginalia.extensions.betareaders.model.BetaChat;
-import com.github.enerccio.marginalia.extensions.betareaders.model.ChatKind;
-import com.github.enerccio.marginalia.extensions.betareaders.model.Medium;
-import com.github.enerccio.marginalia.extensions.betareaders.model.Persona;
-import com.github.enerccio.marginalia.extensions.betareaders.model.ReplyFormat;
+import com.github.enerccio.marginalia.extensions.betareaders.model.*;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.UI;
@@ -76,14 +72,17 @@ class PresenceDialogTest {
     void theSettingsOfAChatShowWhatItChoseAndGiveBackTheNewChoice() {
         BetaChat chat = new BetaChat("Chat", ChatKind.GROUP);
         chat.setMedium("manga");
+        chat.setScene("A rainy bar.");
         chat.setAi("ai-1");
         chat.setFormat(ReplyFormat.TEXT);
         List<ChatOptionsForm> saved = new ArrayList<>();
         ChatSettingsDialog dialog = new ChatSettingsDialog(chat, List.of(new Medium("book", "Book", "p"), new Medium("manga", "Manga", "p")),
                 List.of(new Choice("ai-1", "Big"), new Choice("ai-2", "Small")), List.of(new Choice("pr-1", "Cold")),
-                new ChatOptionsForm.Inherited("Book", "Big", null), saved::add);
+                new ChatOptionsForm.Inherited("Book", "Big", null, "An online chat"), saved::add);
 
         assertEquals("Manga", dialog.options.medium.getValue().getName());
+        assertEquals("A rainy bar.", dialog.options.scene.getValue());
+        assertEquals("Inherited: An online chat", dialog.options.scene.getPlaceholder());
         assertEquals("Big", dialog.options.ai.getValue().label());
         assertNull(dialog.options.protocol.getValue());
         assertEquals(ReplyFormat.TEXT, dialog.options.format.getValue());
@@ -100,13 +99,17 @@ class PresenceDialogTest {
         assertEquals(1, saved.size());
         assertNull(saved.getFirst().mediumId());
         assertEquals("Book", saved.getFirst().mediumName(), "an empty choice reads the text as the inherited medium");
+        dialog.options.scene.setValue("   ");
+        assertNull(saved.getFirst().sceneText());
+        assertEquals("An online chat", saved.getFirst().effectiveScene());
         assertEquals("ai-2", saved.getFirst().aiId());
         assertNull(saved.getFirst().protocolId());
         assertEquals(ReplyFormat.TEXT, saved.getFirst().replyFormat());
 
         // applied to a chat that exists: everything but the medium (a change of that leaves a line in the history)
-        saved.getFirst().applyExceptMedium(chat);
+        saved.getFirst().applyExceptHistoryLines(chat);
         assertEquals("manga", chat.getMedium());
+        assertEquals("A rainy bar.", chat.getScene(), "the scene, like the medium, is changed with a line in the history");
         assertEquals("ai-2", chat.getAi());
         assertEquals(8, chat.getSpoilerLimit());
         assertEquals(2, chat.getFromPart());
