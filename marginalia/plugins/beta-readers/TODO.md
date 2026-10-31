@@ -105,17 +105,42 @@ Build before every step: `mvn install -DskipTests` in `marginalia/` (the plugin 
 - Tests (`PartsTrackerTest`): new, changed, nothing new after sending, a deleted message giving its parts back, a branch switch and back,
   the spoiler limit, the summaries and the budget, ranges. `loadStory` is not covered (it needs the application).
 
-**Step 5 - reading a reply.**
-- `ReplyReader`: JSON through `PartialJson` (only the finished messages, the unfinished one hidden, a broken reply keeps what was read,
-  the messages over the limit dropped, the reasoning), the free text with `**Name:**` prefixes, a reply that is neither shown as text.
-- Tests: a reply cut at every position, broken JSON, an unknown speaker, too many messages, the free text.
+**Step 5 - reading a reply (done).**
+- `ReplyReader.read(text, done, speakers, maxMessages)` returns a `Reading` (reasoning, messages, raw text, how many were dropped;
+  `toMessage()` makes the line of the history). The format is judged from the text: JSON when it starts with a brace or a bracket (after
+  an optional markdown fence), else free text.
+- JSON through `PartialJson`; while the reply streams only the finished messages are returned, found by scanning for the closing braces
+  of the objects of the `messages` array (`messageEnds`), so a message appears when it is closed, not when the next one starts. A reply
+  that is broken after some messages keeps them; a reply that is cut for good keeps the message that was being written. The reasoning
+  shows as it is written. The speaker is taken in the chat's spelling, an unknown one is kept as written; parts of an unknown type are
+  speech, empty parts and messages are skipped. A bare array of messages is read too.
+- Free text: a message starts with `**Name:**` (or `**Name**:`) of a speaker that is present or the narrator, so a bold word in a speech does
+  not start one; `*...*` is an action, the rest speech; text before the first speaker is the narrator's; the last message is hidden until
+  the reply is done.
+- The messages over `maxMessages` are dropped (also while streaming). A reply with no messages is the raw text once it is done, and is not
+  shown while it streams.
+- Tests (`ReplyReaderTest`): a reply cut at every position (never fewer messages, never changed ones), broken JSON, an unknown speaker,
+  too many messages, the markdown block, bare array, free text and what is neither.
 
-**Step 6 - asking the model.**
-- `BetaReadersService.ask(chat, message, includeLatest, listener)`: finds the AI and the protocol (the tab, the chain, the book), builds the
-  request with the schema or without, streams through the inference service as Side Query does, gives the listener the finished messages
-  and the reasoning, can be stopped, stores the reply; `regenerate(chat)`, `edit`, `delete`, `addPersona` / `removePersona` (the saved
-  lines of the history).
-- Tests with a fake stream: the reply stored, a stop in the middle, regenerate, the delete of one message of a turn, the join line.
+**Step 6 - asking the model (done).**
+- `ChatRunner.run(inference, protocol, request, listener)` (pure, takes any `InferenceService`): builds the prompt and, for JSON, the schema, streams
+  with `stream(payload, protocol, schema, ...)`, tells the listener what `ReplyReader` has read after every chunk, and ends exactly once with an
+  `Outcome` (the reply for the history, stopped, failed, the prompt with how many messages were trimmed, JSON or not). A stopped reply keeps what was
+  read, a failed one is not kept, a model that wrote nothing is an `EmptyReplyException`. The reasoning chunks of a model that reasons on its own show
+  where the field would be, unless the reply has the field. `ReplyFormat.AUTO` is JSON and falls back to text when the service takes no schema,
+  `JSON` does not fall back, `TEXT` asks without a schema.
+- `ChatEdits` (pure): edit a message of the user (the parts it sent stay), delete a message, delete one message of a turn (the turn keeps the rest,
+  a turn left empty goes), take the last reply back, `join` / `leave` (the saved lines; group chats only, the last persona can't leave, a persona that
+  left comes back with its copy). The prompt now merges replies that follow each other after a delete and drops a history that begins with a reply.
+- `ModelChoice` (pure): the first candidate that exists and is not deleted.
+- `BetaReadersService`: `resolveModel(book, chat)` (the tab, the chain, the book), `systemPrompt(book, chat)` (the prompt of the kind from the chain and the
+  medium of the chat or the chain's), `getChats` / `saveChat` / `deleteChat`, `ask(book, chat, text, includeLatest, listener)` (builds the parts with
+  the room the prompt leaves, stores the message of the user, asks, stores the reply before the listener hears of it), `regenerate(book, chat, listener)`
+  (also the retry after a failure). The number of messages of a turn follows the kind and the size of the group (`BetaReadersDefaults.maxMessages`).
+- Tests (`ChatRunnerTest` with a fake stream, `ChatEditsTest`, `ModelChoiceTest`): the schema and the prompt of the request, reading while it streams, the
+  reasoning, text and the fall back, stopped / failed / empty, the limits, one end per run, edits, deletes, joining and leaving, the merged turns.
+  Not covered (they need the application): the methods of the service above. The reply is stored from the thread of the inference service inside the
+  request of the user that asked (`InRequestScope`), as the Anthropic plugin does for the usage; check it when the chat tab exists (7b).
 
 **Step 7 - the chat tab, in three commits.**
 - 7a: the tab in the story sidebar (`renderStoryContent` of `ManuscriptStoryPart` and of the phone twin, a `TabDock`, as Side Query
@@ -160,6 +185,8 @@ below ticked.
 
 ## Chat
 
+(The logic of most of these is done in steps 3-6; an item is ticked when a user can do it, which is the UI of step 7.)
+
 - [ ] Chat tabs: new chat (1v1 with one persona, or group chat with chosen personas), rename, close and delete; stored with the book.
 - [ ] Per tab: the AI and the protocol to use instead of the inherited ones (empty: inherited, shown as the placeholder with where it
   comes from, like the fields of the settings dialogs); changing it takes effect with the next message.
@@ -180,7 +207,7 @@ below ticked.
 - [x] Json schema output. Preliminary structure (the `speaker` is restricted to the names present plus `Narrator`, built per request):
   `{"reasoning": "...", "messages": [{"speaker": "Athena", "parts": [{"type": "action" | "speech", "text": "..."}]}, ...]}`
   - the narrator describes the scene, the personas speak and act (body expressions), the parts of a message are interleaved.
-- [ ] Reading a reply while it streams (`PartialJson`): show the messages that are finished, hide the one being written, ignore the
+- [x] Reading a reply while it streams (`PartialJson`): show the messages that are finished, hide the one being written, ignore the
   rest of a broken reply but keep what was read; a reply that is not JSON at all is shown as text.
 - [x] The roster in the last user message (not saved): names and descriptions of the personas present, and who may speak.
 - [ ] Prompt should encourage interaction between personas

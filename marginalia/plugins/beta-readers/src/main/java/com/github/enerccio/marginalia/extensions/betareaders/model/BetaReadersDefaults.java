@@ -57,6 +57,13 @@ public final class BetaReadersDefaults {
     /** The id of the medium the chats use when nothing chooses one. */
     public static final String DEFAULT_MEDIUM = "book";
 
+    /**
+     * The most messages the model may write in one turn: a few for one persona, about two for each persona of a group.
+     */
+    public static int maxMessages(ChatKind kind, int present) {
+        return kind == ChatKind.SINGLE ? 3 : Math.clamp(present * 2L, 3, 8);
+    }
+
     private BetaReadersDefaults() {
     }
 
