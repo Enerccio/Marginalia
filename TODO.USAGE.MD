@@ -9,7 +9,7 @@ the agents do is recorded apart (`agent` = true), against the original book alth
 the author's and the agents' side up, or shows one of them. The author gets a *Statistics* window for a book (a day-by-day grid,
 totals, charts of the words, the time and the tokens per day) and one across all books (*Global statistics*: today, yesterday, the
 last 7 or 30 days, a range of dates, with a breakdown by book). This file collects the decisions, the open questions and the order
-of work. **Step 1 (the data layer) is built**, nothing counts yet. Done items are marked ✅.
+of work. **Steps 1 (the data layer) and 2 (words, parts, edits) are built**, nothing else counts yet. Done items are marked ✅.
 
 Not to be confused with `Usage` (`usages`, *Token usage per user*, `UsageDialog`): that one counts what a *user* used of an *AI*
 (for the limits of shared models) and has no idea which book the tokens went to. This one is per *book* and day.
@@ -466,8 +466,9 @@ transaction, retried on a lock; it runs once and writes nothing for a book that 
    `persistence.xml`. No `@CleanupReference` to the book. `ManuscriptStatisticCrudTest` (`OwnedCrudContract`) and a concurrency test
    (many threads adding to the same day lose nothing); a test that the trash, the purge and the cleanup of a book leave the rows
    and a test of the per-book list for a book in the trash and a purged one.
-2. **Words, parts, edits** in `MessageRevisionService.record` (+ the repair flag), with the tests of every `RevisionSource`, a
+2. ✅ **Words, parts, edits** in `MessageRevisionService.record` (+ the repair flag), with the tests of every `RevisionSource`, a
    blank text, the same text twice, `ensureCurrent`.
+   Done differently from the first draft: a `counted` flag on `RevisionData` / `RevisionOrigin` (`uncounted()`) instead of a `UNRECORDED`-like constant; `recordFirst` and the agent merge are uncounted; `MERGE` is an edit with no words (step 3: the merged-in part's delete must not count its words as removed again); `rollBackTo` counts its own edit; nothing is counted while the book's history is off; the hidden working copy of an agent is skipped until step 5; archive / SillyTavern imports still count as written words (step 8 decides).
 3. **Deletes** in `ChatMessageServiceImpl` (soft, hard, node-and-migrate), with the words of the deleted subtree.
 4. **Tokens:** `UsageContext`, set in the generation pipeline and the other callers, read in `UsageServiceImpl.record`; the
    plugins' entry point. Tests with `MockLLMServer` (generate, regenerate, summary, a stopped generation, a call without a book).

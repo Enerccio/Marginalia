@@ -20,9 +20,16 @@ import org.apache.commons.lang3.StringUtils;
  * @param label     the name of a version saved by hand, null for none
  * @param wordCount null to count the words of the text
  * @param tokenCount null to take the tokens of the part (or 0 when its text is another one)
+ * @param counted   whether the version goes into the writing statistics; false for the one that is a repair, a restored backup or
+ *                  work that was counted before (an agent merge), see {@code ManuscriptStatisticService}
  */
 public record RevisionData(RevisionSource source, String detail, boolean agent, String text, String reasoning, String label,
-                           Integer wordCount, Long tokenCount) {
+                           Integer wordCount, Long tokenCount, boolean counted) {
+
+    public RevisionData(RevisionSource source, String detail, boolean agent, String text, String reasoning, String label,
+                        Integer wordCount, Long tokenCount) {
+        this(source, detail, agent, text, reasoning, label, wordCount, tokenCount, true);
+    }
 
     /**
      * The text of the part as it is now, with its counts; the reasoning of the part only for a {@link RevisionSource#isModel()
@@ -39,13 +46,20 @@ public record RevisionData(RevisionSource source, String detail, boolean agent, 
      * The same data with another reasoning.
      */
     public RevisionData withReasoning(String reasoning) {
-        return new RevisionData(source, detail, agent, text, reasoning, label, wordCount, tokenCount);
+        return new RevisionData(source, detail, agent, text, reasoning, label, wordCount, tokenCount, counted);
     }
 
     /**
      * The same data with another text and counts worked out again.
      */
     public RevisionData withText(String text) {
-        return new RevisionData(source, detail, agent, text, reasoning, label, null, null);
+        return new RevisionData(source, detail, agent, text, reasoning, label, null, null, counted);
+    }
+
+    /**
+     * The same data that does not go into the writing statistics.
+     */
+    public RevisionData uncounted() {
+        return new RevisionData(source, detail, agent, text, reasoning, label, wordCount, tokenCount, false);
     }
 }

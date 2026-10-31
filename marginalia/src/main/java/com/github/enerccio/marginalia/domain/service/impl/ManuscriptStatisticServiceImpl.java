@@ -56,6 +56,11 @@ public class ManuscriptStatisticServiceImpl extends OwnedServiceImpl<ManuscriptS
         if (book == null || book.getUuid() == null || book.getOwner() == null || delta == null || delta.isZero()) {
             return;
         }
+        if (book.isAgentic()) {
+            // the hidden working copy of an agent is not a book of the author, what happens to it is counted for the original
+            // with the agents' side, which is not resolved yet
+            return;
+        }
         try {
             Date now = new Date(clock.millis());
             LocalDate day = LocalDate.now(clock);
