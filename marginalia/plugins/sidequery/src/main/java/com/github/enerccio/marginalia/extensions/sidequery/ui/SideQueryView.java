@@ -24,7 +24,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.github.enerccio.marginalia.extensions.sidequery.SideQueryLocalization.T;
+import static com.github.enerccio.marginalia.extensions.sidequery.SideQueryLocalization.*;
 
 @Configurable(preConstruction = true)
 public class SideQueryView extends VerticalLayout {
@@ -190,14 +190,14 @@ public class SideQueryView extends VerticalLayout {
     private void renameTab(SideQuerySession session) {
         if (generating) return;
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle(T.localized("Rename Tab"));
+        dialog.setHeaderTitle(T.localized(RENAME_TAB));
 
-        TextField nameField = new TextField(T.localized("Tab Name"));
+        TextField nameField = new TextField(T.localized(TAB_NAME));
         nameField.setWidthFull();
         DialogFocus.onOpen(dialog, nameField);
         nameField.setValue(session.getName());
 
-        Button saveBtn = new Button(T.localized("Save"), e -> {
+        Button saveBtn = new Button(T.localized(SAVE), e -> {
             String val = nameField.getValue() != null ? nameField.getValue().trim() : "";
             if (!val.isEmpty()) {
                 session.setName(val);
@@ -209,7 +209,7 @@ public class SideQueryView extends VerticalLayout {
         });
         saveBtn.setThemeName("primary");
 
-        Button cancelBtn = new Button(T.localized("Cancel"), e -> dialog.close());
+        Button cancelBtn = new Button(T.localized(CANCEL), e -> dialog.close());
 
         dialog.add(new VerticalLayout(nameField));
         dialog.getFooter().add(cancelBtn, saveBtn);
@@ -219,7 +219,7 @@ public class SideQueryView extends VerticalLayout {
     private void closeTab(SideQuerySession session) {
         if (generating) return;
         if (data.getSessions().size() <= 1) {
-            Notification.warning(T.localized("Cannot close the last tab"));
+            Notification.warning(T.localized(CANNOT_CLOSE_THE_LAST_TAB));
             return;
         }
 

@@ -12,7 +12,7 @@ import com.vaadin.flow.component.textfield.TextArea;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.T;
+import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.*;
 
 /**
  * Brings a persona into a group chat or sends one away. It asks for what the user says to the group about it, which goes into the
@@ -20,8 +20,8 @@ import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersL
  */
 public class PresenceDialog extends Dialog {
 
-    final ComboBox<Persona> persona = new ComboBox<>(T.localized("Persona"));
-    final TextArea note = new TextArea(T.localized("What the group is told (optional)"));
+    final ComboBox<Persona> persona = new ComboBox<>(T.localized(PERSONA));
+    final TextArea note = new TextArea(T.localized(WHAT_THE_GROUP_IS_TOLD));
     final Button confirm;
 
     private final boolean choosing;
@@ -54,12 +54,12 @@ public class PresenceDialog extends Dialog {
         confirm.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         confirm.addClickListener(_ -> {
             if (choosing && persona.getValue() == null) {
-                Notification.warning(T.localized("Choose a persona"));
+                Notification.warning(T.localized(CHOOSE_A_PERSONA));
                 return;
             }
             close();
             onChosen.accept(persona.getValue(), note.getValue() == null ? "" : note.getValue().strip());
         });
-        getFooter().add(new Button(T.localized("Cancel"), _ -> close()), confirm);
+        getFooter().add(new Button(T.localized(CANCEL), _ -> close()), confirm);
     }
 }

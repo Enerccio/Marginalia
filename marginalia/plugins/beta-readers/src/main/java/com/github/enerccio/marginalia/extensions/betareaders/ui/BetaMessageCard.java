@@ -16,7 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 
-import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.T;
+import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.*;
 
 /**
  * A line of the history of a chat as the user sees it: what they wrote (and which parts of the story it sent), a persona that joined
@@ -60,10 +60,10 @@ public final class BetaMessageCard {
     public static Component create(BetaChat chat, BetaMessage message, Actions actions, boolean last) {
         return switch (message.getKind()) {
             case USER -> user(message, actions);
-            case JOIN -> note(T.localized("%s joined the conversation.").formatted(name(message)), message, actions);
-            case LEAVE -> note(T.localized("%s left the conversation.").formatted(name(message)), message, actions);
-            case MEDIUM -> note(T.localized("From now on the text is read as: %s").formatted(message.getText()), null, actions, message);
-            case SCENE -> note(T.localized("The scene is now: %s").formatted(message.getText()), null, actions, message);
+            case JOIN -> note(T.localized(JOINED_THE_CONVERSATION).formatted(name(message)), message, actions);
+            case LEAVE -> note(T.localized(LEFT_THE_CONVERSATION).formatted(name(message)), message, actions);
+            case MEDIUM -> note(T.localized(FROM_NOW_ON_THE_TEXT).formatted(message.getText()), null, actions, message);
+            case SCENE -> note(T.localized(THE_SCENE_IS_NOW).formatted(message.getText()), null, actions, message);
             case ASSISTANT -> {
                 Turn turn = new Turn(chat);
                 turn.show(message.getReasoning(), message.getSpoken(), message.getRawText(), message, actions, last);
@@ -94,19 +94,19 @@ public final class BetaMessageCard {
     private static Component user(BetaMessage message, Actions actions) {
         Div card = new Div();
         card.addClassName(BetaReadersStyles.USER);
-        Span who = new Span(T.localized("You"));
+        Span who = new Span(T.localized(YOU));
         who.addClassName(CssStyles.TEXT_BOLD);
         Div headline = new Div(who);
         headline.addClassName(BetaReadersStyles.HEADLINE);
         if (actions != null) {
             headline.add(actionsRow(
-                    button(Solid.PEN.create(), T.localized("Edit message"), () -> actions.edit(message)),
-                    button(Solid.TRASH.create(), T.localized("Delete message"), () -> actions.delete(message))));
+                    button(Solid.PEN.create(), T.localized(EDIT_MESSAGE), () -> actions.edit(message)),
+                    button(Solid.TRASH.create(), T.localized(DELETE_MESSAGE), () -> actions.delete(message))));
         }
         card.add(headline);
         String sent = sentParts(message.getSentParts());
         if (!sent.isEmpty()) {
-            Div hint = new Div(T.localized("Parts %s sent").formatted(sent));
+            Div hint = new Div(T.localized(PARTS_SENT).formatted(sent));
             hint.addClassName(BetaReadersStyles.HINT);
             card.add(hint);
         }
@@ -133,7 +133,7 @@ public final class BetaMessageCard {
         Div line = new Div(new Span(text));
         line.addClassName(BetaReadersStyles.HEADLINE);
         if (actions != null) {
-            line.add(actionsRow(button(Solid.TRASH.create(), T.localized("Delete message"), () -> actions.delete(message))));
+            line.add(actionsRow(button(Solid.TRASH.create(), T.localized(DELETE_MESSAGE), () -> actions.delete(message))));
         }
         Div note = new Div(line);
         if (user != null && !user.isBlank()) {
@@ -176,7 +176,7 @@ public final class BetaMessageCard {
             if (reasoning != null && !reasoning.isBlank()) {
                 Div text = new Div(reasoning.strip());
                 text.addClassNames(BetaReadersStyles.TEXT, BetaReadersStyles.HINT);
-                add(new Details(T.localized("Reasoning"), text));
+                add(new Details(T.localized(REASONING), text));
             }
             for (int i = 0; i < messages.size(); i++) {
                 add(spoken(messages.get(i), i, owner, actions));
@@ -189,10 +189,10 @@ public final class BetaMessageCard {
             if (actions != null && owner != null) {
                 Div row = actionsRow();
                 if (messages.isEmpty()) {
-                    row.add(button(Solid.TRASH.create(), T.localized("Delete message"), () -> actions.delete(owner)));
+                    row.add(button(Solid.TRASH.create(), T.localized(DELETE_MESSAGE), () -> actions.delete(owner)));
                 }
                 if (last) {
-                    Button regenerate = new Button(T.localized("Regenerate"), Solid.ROTATE.create(), _ -> actions.regenerate());
+                    Button regenerate = new Button(T.localized(REGENERATE), Solid.ROTATE.create(), _ -> actions.regenerate());
                     regenerate.addThemeName("tertiary");
                     regenerate.addThemeName("small");
                     row.add(regenerate);
@@ -223,7 +223,7 @@ public final class BetaMessageCard {
             }
 
             Div body = new Div();
-            Span name = new Span(spoken.isNarrator() ? T.localized("Narrator") : spoken.getSpeaker());
+            Span name = new Span(spoken.isNarrator() ? T.localized(NARRATOR) : spoken.getSpeaker());
             name.addClassName(CssStyles.TEXT_BOLD);
             Div parts = new Div();
             parts.addClassName(BetaReadersStyles.TEXT);
@@ -240,7 +240,7 @@ public final class BetaMessageCard {
             body.add(name, parts);
             row.add(body);
             if (actions != null && owner != null) {
-                row.add(actionsRow(button(Solid.TRASH.create(), T.localized("Delete message"), () -> actions.deleteSpoken(owner, index))));
+                row.add(actionsRow(button(Solid.TRASH.create(), T.localized(DELETE_MESSAGE), () -> actions.deleteSpoken(owner, index))));
             }
             return row;
         }

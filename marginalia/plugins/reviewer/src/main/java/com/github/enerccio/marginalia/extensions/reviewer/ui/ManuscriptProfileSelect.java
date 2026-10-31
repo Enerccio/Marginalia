@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.List;
 
+import static com.github.enerccio.marginalia.extensions.reviewer.ReviewerLocalization.REVIEWER_PROFILE_DEFAULT_SELECTED;
 import static com.github.enerccio.marginalia.extensions.reviewer.ReviewerLocalization.T;
 
 /**
@@ -28,7 +29,7 @@ public class ManuscriptProfileSelect extends ComboBox<ReviewerProfile> {
     private Manuscript manuscript;
 
     public ManuscriptProfileSelect(ReviewerService reviewerService) {
-        super(T.localized("Reviewer Profile (Default: selected in settings)"));
+        super(T.localized(REVIEWER_PROFILE_DEFAULT_SELECTED));
         this.reviewerService = reviewerService;
 
         setWidthFull();

@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import static com.github.enerccio.marginalia.extensions.stconverter.STConverterLocalization.CONVERTER;
 import static com.github.enerccio.marginalia.extensions.stconverter.STConverterLocalization.T;
 
 /**
@@ -87,7 +88,7 @@ public class STConverterExtension implements MarginaliaExtension, ExtensionHasCs
                         return true;
                     };
                     ConverterView view = new ConverterView(converterService, currentManuscript, opener, phone);
-                    leftBar.add(TAB_ID, T.localized("Converter"), "Cv", view);
+                    leftBar.add(TAB_ID, T.localized(CONVERTER), "Cv", view);
                     ComponentUtil.setData(leftBar, VIEW_KEY, view);
                     activeTabDocks.add(leftBar);
                 }

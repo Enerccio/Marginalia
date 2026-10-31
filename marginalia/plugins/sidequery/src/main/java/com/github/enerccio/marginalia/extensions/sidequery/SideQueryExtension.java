@@ -27,7 +27,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import static com.github.enerccio.marginalia.extensions.sidequery.SideQueryLocalization.T;
+import static com.github.enerccio.marginalia.extensions.sidequery.SideQueryLocalization.*;
 
 @Configurable
 public class SideQueryExtension implements MarginaliaExtension, ExtensionHasCss {
@@ -65,7 +65,7 @@ public class SideQueryExtension implements MarginaliaExtension, ExtensionHasCss 
                         }
 
                         SideQueryView sideQueryView = new SideQueryView(currentManuscript, sideQueryService);
-                        leftBar.add("sidequery", T.localized("Side Query"), "SQ", sideQueryView);
+                        leftBar.add("sidequery", T.localized(SIDE_QUERY), "SQ", sideQueryView);
 
                         ComponentUtil.setData(leftBar, SIDE_QUERY_VIEW_KEY, sideQueryView);
                         activeTabSheets.add(leftBar);
@@ -97,7 +97,7 @@ public class SideQueryExtension implements MarginaliaExtension, ExtensionHasCss 
                             });
                         } else {
                             SideQuerySettingsForm form = new SideQuerySettingsForm(sideQueryService);
-                            contentPanel = extensionSettings.add(T.localized("SideQuery Settings"), form);
+                            contentPanel = extensionSettings.add(T.localized(SIDEQUERY_SETTINGS), form);
                             ComponentUtil.setData(extensionSettings, SETTINGS_PANEL_KEY, contentPanel);
                             activeAccordions.add(extensionSettings);
                         }

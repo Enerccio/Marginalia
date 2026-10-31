@@ -32,7 +32,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static com.github.enerccio.marginalia.extensions.reviewer.ReviewerLocalization.T;
+import static com.github.enerccio.marginalia.extensions.reviewer.ReviewerLocalization.*;
 
 @Configurable(preConstruction = true)
 public class AdvancedOptionsDialog extends Dialog {
@@ -68,20 +68,20 @@ public class AdvancedOptionsDialog extends Dialog {
             options.setPrompt(setting.getReviewPrompt());
         }
 
-        setHeaderTitle(T.localized("Advanced Review Options"));
+        setHeaderTitle(T.localized(ADVANCED_REVIEW_OPTIONS));
         setWidth("900px");
 
         VerticalLayout layout = new VerticalLayout();
         layout.setSpacing(true);
 
         ReviewerSettings settings = reviewerService.getSettings();
-        ComboBox<ReviewerProfile> promptProfileCombo = new ComboBox<>(T.localized("Prompt from Profile"));
+        ComboBox<ReviewerProfile> promptProfileCombo = new ComboBox<>(T.localized(PROMPT_FROM_PROFILE));
         promptProfileCombo.setWidthFull();
         promptProfileCombo.setAllowCustomValue(false);
         promptProfileCombo.setItemLabelGenerator(ReviewerProfile::name);
         promptProfileCombo.setItems(reviewerService.getProfiles(settings));
 
-        promptArea = new TextArea(T.localized("Prompt Override"));
+        promptArea = new TextArea(T.localized(PROMPT_OVERRIDE));
         promptArea.setWidthFull();
         DialogFocus.onOpen(this, promptArea);
         ResizableTextArea.install(loc, promptArea, "160px");
@@ -103,7 +103,7 @@ public class AdvancedOptionsDialog extends Dialog {
             }
         });
 
-        usePromptInfo = new Checkbox(T.localized("Use standard prompt info"), options.isUsePromptInfo());
+        usePromptInfo = new Checkbox(T.localized(USE_STANDARD_PROMPT_INFO), options.isUsePromptInfo());
         usePromptInfo.addValueChangeListener(e -> toggleFields(!e.getValue()));
         usePromptInfo.addValueChangeListener(event -> {
             if (event.isFromClient()) {
@@ -118,23 +118,22 @@ public class AdvancedOptionsDialog extends Dialog {
         optionsRow.setWidthFull();
         optionsRow.setAlignItems(Alignment.BASELINE);
 
-        lorebookBox = new Checkbox(T.localized("Include Lorebook"), options.isLorebook());
+        lorebookBox = new Checkbox(T.localized(INCLUDE_LOREBOOK), options.isLorebook());
         lorebookBox.addValueChangeListener(event -> {
             if (event.isFromClient()) {
                 refreshCount();
             }
         });
 
-        summariesBox = new Checkbox(T.localized("With summaries"), options.isSummaries());
-        summariesBox.setTooltipText(T.localized("Send the summaries of the story before the part, then the parts after the newest summary,"
-                + " as a generation does, instead of as many of the latest parts as fit"));
+        summariesBox = new Checkbox(T.localized(WITH_SUMMARIES), options.isSummaries());
+        summariesBox.setTooltipText(T.localized(SEND_THE_SUMMARIES));
         summariesBox.addValueChangeListener(event -> {
             if (event.isFromClient()) {
                 refreshCount();
             }
         });
 
-        tokenLimitField = new IntegerField(T.localized("Token Limit"));
+        tokenLimitField = new IntegerField(T.localized(TOKEN_LIMIT));
         tokenLimitField.setValue(reviewerService.getTokenLimit(setting, manuscript));
         tokenLimitField.addValueChangeListener(event -> {
             if (event.isFromClient()) {
@@ -149,14 +148,14 @@ public class AdvancedOptionsDialog extends Dialog {
 
         toggleFields(!usePromptInfo.getValue());
 
-        Button generateBtn = new Button(T.localized("Generate"), e -> {
+        Button generateBtn = new Button(T.localized(GENERATE), e -> {
             saveState();
             close();
             onConfirm.accept(options);
         });
         generateBtn.setThemeName("primary");
 
-        Button cancelBtn = new Button(T.localized("Cancel"), e -> close());
+        Button cancelBtn = new Button(T.localized(CANCEL), e -> close());
 
         getFooter().add(cancelBtn, generateBtn);
     }
@@ -168,7 +167,7 @@ public class AdvancedOptionsDialog extends Dialog {
                 saveState();
                 List<LLMChatMessage> prompt = reviewerService.buildChatCompletePrompts(inferenceService, targetMessage, setting, options);
                 String text = gson.toJson(prompt);
-                counter.setText(T.localized("Total tokens: %s").formatted(inferenceService.countTokensApprox(text)));
+                counter.setText(T.localized(TOTAL_TOKENS).formatted(inferenceService.countTokensApprox(text)));
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }

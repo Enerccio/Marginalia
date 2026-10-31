@@ -11,7 +11,7 @@ import com.vaadin.flow.component.grid.Grid;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.T;
+import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.*;
 
 /**
  * The mediums of the user: the list with add, edit, copy, delete and reorder, and a button that brings back the built-in ones that
@@ -24,17 +24,17 @@ public class MediumLibraryDialog extends LibraryDialog<Medium> {
      * @param onApply told with the new list after <i>Save</i>
      */
     public MediumLibraryDialog(List<Medium> source, Consumer<List<Medium>> onApply) {
-        super(T.localized("Mediums"), source, Medium::copy, Medium::duplicate, onApply);
-        Button builtIn = new Button(T.localized("Restore the built-in mediums"), Solid.UNDO.create(), _ -> restoreBuiltIn());
-        builtIn.setTooltipText(T.localized("Adds the mediums the plugin comes with that are not in the list"));
+        super(T.localized(MEDIUMS), source, Medium::copy, Medium::duplicate, onApply);
+        Button builtIn = new Button(T.localized(RESTORE_THE_BUILT_IN_MEDIUMS), Solid.UNDO.create(), _ -> restoreBuiltIn());
+        builtIn.setTooltipText(T.localized(ADDS_THE_MEDIUMS_THE_PLUGIN));
         addToolbarButton(builtIn);
         build();
     }
 
     @Override
     protected void addColumns(Grid<Medium> grid) {
-        grid.addColumn(Medium::getName).setHeader(T.localized("Name")).setFlexGrow(1).setAutoWidth(true);
-        grid.addColumn(medium -> summary(medium.getPrompt())).setHeader(T.localized("Prompt")).setFlexGrow(4);
+        grid.addColumn(Medium::getName).setHeader(T.localized(NAME)).setFlexGrow(1).setAutoWidth(true);
+        grid.addColumn(medium -> summary(medium.getPrompt())).setHeader(T.localized(PROMPT)).setFlexGrow(4);
     }
 
     @Override
@@ -44,7 +44,7 @@ public class MediumLibraryDialog extends LibraryDialog<Medium> {
 
     @Override
     protected void edit(Medium medium, boolean isNew, Runnable done) {
-        String header = isNew ? T.localized("New medium") : T.localized("Edit medium");
+        String header = isNew ? T.localized(NEW_MEDIUM) : T.localized(EDIT_MEDIUM);
         new MediumDialog(header, medium, name -> nameTaken(medium, name), done).open();
     }
 
@@ -64,7 +64,7 @@ public class MediumLibraryDialog extends LibraryDialog<Medium> {
             // by id: a built-in medium that was renamed is still there
             if (items().stream().noneMatch(medium -> builtIn.getId().equals(medium.getId()))) {
                 if (nameTaken(builtIn, builtIn.getName())) {
-                    builtIn.setName(builtIn.getName() + " (" + T.localized("built-in") + ")");
+                    builtIn.setName(builtIn.getName() + " (" + T.localized(BUILT) + ")");
                 }
                 items().add(builtIn);
                 added++;
@@ -72,7 +72,7 @@ public class MediumLibraryDialog extends LibraryDialog<Medium> {
         }
         refresh();
         if (added == 0) {
-            Notification.warning(T.localized("All the built-in mediums are in the list"));
+            Notification.warning(T.localized(ALL_THE_BUILT_IN_MEDIUMS));
         }
     }
 

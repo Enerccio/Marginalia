@@ -16,7 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.function.Consumer;
 
-import static com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineLocalization.T;
+import static com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineLocalization.*;
 
 /**
  * Asks the model for a new arc. The arc it answers with is shown as an arc of the outline while it streams in; a valid
@@ -36,7 +36,7 @@ public class ArcGeneratorDialog extends GeneratorDialog {
      * @param onSave  gets the new arc (it is not in the outline yet) when the user saves the answer
      */
     public ArcGeneratorDialog(ArcOutlineService service, Manuscript manuscript, ArcOutline outline, Consumer<Arc> onSave) {
-        super(service, manuscript, T.localized("Generate an arc"), T.localized("Save as arc"));
+        super(service, manuscript, T.localized(GENERATE_AN_ARC), T.localized(SAVE_AS_ARC));
         this.outline = outline;
         this.onSave = onSave;
         build();
@@ -59,12 +59,12 @@ public class ArcGeneratorDialog extends GeneratorDialog {
 
     @Override
     protected Component createInputs() {
-        specificationArea = new TextArea(T.localized("Specification"));
+        specificationArea = new TextArea(T.localized(SPECIFICATION));
         specificationArea.setWidthFull();
         DialogFocus.onOpen(this, specificationArea);
         specificationArea.setMinHeight("140px");
         specificationArea.setMaxHeight("30vh");
-        specificationArea.setPlaceholder(T.localized("What you want from the arc: its theme, the characters, where it should lead..."));
+        specificationArea.setPlaceholder(T.localized(WHAT_YOU_WANT_FROM_THE_ARC));
         return specificationArea;
     }
 
@@ -86,7 +86,7 @@ public class ArcGeneratorDialog extends GeneratorDialog {
     @Override
     protected void showEmptyResult() {
         resultHolder().removeAll();
-        resultHolder().add(emptyHint(T.localized("The arc the model writes appears here.")));
+        resultHolder().add(emptyHint(T.localized(THE_ARC_THE_MODEL_WRITES)));
     }
 
     @Override
@@ -112,14 +112,14 @@ public class ArcGeneratorDialog extends GeneratorDialog {
         result = null;
         SchemaCheck check = StructuredOutputs.validate(service.schema(), output);
         if (!check.valid()) {
-            return T.localized("The answer is not a valid arc: %s").formatted(String.join("; ", check.errors()));
+            return T.localized(THE_ANSWER).formatted(String.join("; ", check.errors()));
         }
         try {
             result = StructuredOutputs.parse(output, GeneratedArc.class);
             showPreview(result.name(), result.description(), result.note());
             return null;
         } catch (Exception e) {
-            return T.localized("The answer can't be read: %s").formatted(e.getMessage());
+            return T.localized(THE_ANSWER_CANT_BE_READ).formatted(e.getMessage());
         }
     }
 

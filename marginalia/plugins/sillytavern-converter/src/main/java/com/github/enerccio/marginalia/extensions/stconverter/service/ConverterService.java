@@ -21,7 +21,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-import static com.github.enerccio.marginalia.extensions.stconverter.STConverterLocalization.T;
+import static com.github.enerccio.marginalia.extensions.stconverter.STConverterLocalization.*;
 
 /**
  * Keeps the chat and the turn details with the book and asks the model for the turn details.
@@ -206,7 +206,7 @@ public class ConverterService {
     public int importBook(Manuscript manuscript, ConverterData data, Manuscript source) throws Exception {
         Manuscript book = manuscriptService.find(source);
         if (book == null) {
-            throw new IllegalArgumentException(T.localized("The book has no parts to load"));
+            throw new IllegalArgumentException(T.localized(THE_BOOK_HAS_NO_PARTS));
         }
         List<BookSource.Part> parts = new ArrayList<>();
         if (book.getActiveLeaf() != null) {
@@ -231,9 +231,9 @@ public class ConverterService {
 
     private int adopt(Manuscript manuscript, ConverterData data, BookSource source) throws Exception {
         if (source.getParts().isEmpty()) {
-            throw new IllegalArgumentException(T.localized("The book has no parts to load"));
+            throw new IllegalArgumentException(T.localized(THE_BOOK_HAS_NO_PARTS));
         }
-        String name = StringUtils.defaultIfBlank(source.getName(), T.localized("Book")) + ".redraft.json";
+        String name = StringUtils.defaultIfBlank(source.getName(), T.localized(BOOK)) + ".redraft.json";
         Resource resource = resourceService.upload(name, BookSourceReader.toBytes(source), BOOK_MIME_TYPE);
         if (manuscript.getId() != null) {
             resourceService.link(resource, Manuscript.class, manuscript.getId());
@@ -282,7 +282,7 @@ public class ConverterService {
         }
         List<ChatLine> lines = toLines(SillyTavernChats.parse(text, fileName));
         if (lines.isEmpty()) {
-            throw new IllegalArgumentException(T.localized("The chat has no messages"));
+            throw new IllegalArgumentException(T.localized(THE_CHAT_HAS_NO_MESSAGES));
         }
         return lines;
     }
@@ -492,11 +492,11 @@ public class ConverterService {
     public List<TurnItem> readAnswer(String answer, int from, int to) throws Exception {
         SchemaCheck check = StructuredOutputs.validate(schema(), answer);
         if (!check.valid()) {
-            throw new IllegalStateException(T.localized("The model's answer does not match what was asked for: %s").formatted(String.join("; ", check.errors())));
+            throw new IllegalStateException(T.localized(THE_MODELS_ANSWER_DOES).formatted(String.join("; ", check.errors())));
         }
         List<TurnItem> turns = toTurns(StructuredOutputs.parse(answer, GeneratedTurns.class), from, to);
         if (turns.isEmpty()) {
-            throw new IllegalStateException(T.localized("The model's answer has no turn for the messages %d to %d").formatted(from, to));
+            throw new IllegalStateException(T.localized(THE_MODELS_ANSWER_HAS_NO).formatted(from, to));
         }
         return turns;
     }

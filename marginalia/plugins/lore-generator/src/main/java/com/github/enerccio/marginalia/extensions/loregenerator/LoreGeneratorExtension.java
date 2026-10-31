@@ -34,7 +34,7 @@ import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.Callable;
 
-import static com.github.enerccio.marginalia.extensions.loregenerator.LoreGeneratorLocalization.T;
+import static com.github.enerccio.marginalia.extensions.loregenerator.LoreGeneratorLocalization.*;
 
 @Configurable
 public class LoreGeneratorExtension implements MarginaliaExtension {
@@ -93,7 +93,7 @@ public class LoreGeneratorExtension implements MarginaliaExtension {
                             }
                         });
                     } else {
-                        panel = extensionSettings.add(T.localized("Lore Generator"), new LoreGeneratorSettingsForm(loreGeneratorService));
+                        panel = extensionSettings.add(T.localized(LORE_GENERATOR), new LoreGeneratorSettingsForm(loreGeneratorService));
                         ComponentUtil.setData(extensionSettings, SETTINGS_PANEL_KEY, panel);
                         activeAccordions.add(extensionSettings);
                     }
@@ -204,7 +204,7 @@ public class LoreGeneratorExtension implements MarginaliaExtension {
                 }
             });
             button.setThemeName("tertiary");
-            button.setTooltipText(T.localized("Generate lore entry"));
+            button.setTooltipText(T.localized(GENERATE_LORE_ENTRY));
             return button;
         }).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE);
         ComponentUtil.setData(lorebookView, GENERATE_COLUMN_KEY, column);

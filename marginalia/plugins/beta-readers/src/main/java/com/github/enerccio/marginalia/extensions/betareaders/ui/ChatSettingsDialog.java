@@ -11,7 +11,7 @@ import com.vaadin.flow.component.dialog.Dialog;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.T;
+import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.*;
 
 /**
  * Changes what an existing chat chooses for itself: the medium, the model, the protocol and the format of the replies. The kind of the
@@ -21,14 +21,14 @@ import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersL
 public class ChatSettingsDialog extends Dialog {
 
     final ChatOptionsForm options;
-    final Button save = new Button(T.localized("Save"));
+    final Button save = new Button(T.localized(SAVE));
 
     /**
      * @param onSave told with the form after <i>Save</i>
      */
     public ChatSettingsDialog(BetaChat chat, List<Medium> mediums, List<Choice> ais, List<Choice> protocols,
                               ChatOptionsForm.Inherited inherited, Consumer<ChatOptionsForm> onSave) {
-        setHeaderTitle(T.localized("Chat settings"));
+        setHeaderTitle(T.localized(CHAT_SETTINGS));
         setWidth("460px");
         setMaxWidth("96vw");
         setCloseOnOutsideClick(false);
@@ -47,6 +47,6 @@ public class ChatSettingsDialog extends Dialog {
             close();
             onSave.accept(options);
         });
-        getFooter().add(new Button(T.localized("Cancel"), _ -> close()), save);
+        getFooter().add(new Button(T.localized(CANCEL), _ -> close()), save);
     }
 }

@@ -47,7 +47,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-import static com.github.enerccio.marginalia.extensions.anthropic.AnthropicLocalization.T;
+import static com.github.enerccio.marginalia.extensions.anthropic.AnthropicLocalization.*;
 
 /**
  * The inference service of an Anthropic Claude AI, over the Anthropic Java SDK. It does what the service of an OpenAI
@@ -545,7 +545,7 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
             }
         }
         if (answer.message == null && !run.token.isCancelled()) {
-            throw new InferenceException(Type.CONNECTION, null, T.localized("The connection to Anthropic ended before the answer was complete"), null);
+            throw new InferenceException(Type.CONNECTION, null, T.localized(THE_CONNECTION_TO_ANTHROPIC), null);
         }
         return answer;
     }
@@ -636,7 +636,7 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
 
     private String model() {
         if (settings.model().isBlank()) {
-            throw new InferenceException(Type.MODEL_NOT_FOUND, null, T.localized("No model is set"), null);
+            throw new InferenceException(Type.MODEL_NOT_FOUND, null, T.localized(NO_MODEL_IS_SET), null);
         }
         return settings.model();
     }
@@ -652,7 +652,7 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
         }
         if (client == null) {
             if (settings.apiKey().isBlank()) {
-                throw new InferenceException(Type.AUTHENTICATION, null, T.localized("No API key is set"), null);
+                throw new InferenceException(Type.AUTHENTICATION, null, T.localized(NO_API_KEY_IS_SET), null);
             }
             Duration timeout = Duration.ofSeconds(settings.timeoutSeconds());
             // read is the wait for the first text and between the chunks; the whole request limit must not cut a long
@@ -1069,7 +1069,7 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
                     if (answer.message == null) {
                         // the connection ended without the end of the message: what arrived is not a whole answer
                         fail(run.outcome, new InferenceException(Type.CONNECTION, null,
-                                T.localized("The connection to Anthropic ended before the answer was complete"), null));
+                                T.localized(THE_CONNECTION_TO_ANTHROPIC), null));
                     } else if (answer.isEmptyAndStopped()) {
                         // nothing came and the model was stopped: that is not an empty answer, the user has to know why
                         fail(run.outcome, answer.stopped());

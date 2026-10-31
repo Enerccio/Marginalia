@@ -18,7 +18,7 @@ import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import static com.github.enerccio.marginalia.extensions.stconverter.STConverterLocalization.T;
+import static com.github.enerccio.marginalia.extensions.stconverter.STConverterLocalization.*;
 
 /**
  * Strips a book to what the converter redrafts from ({@link BookSource}): reads the JSON of a backup (the same shape for a
@@ -60,7 +60,7 @@ public final class BookSourceReader {
      */
     public static BookSource fromBackup(JsonObject backup, String origin, String fallbackName) {
         if (backup == null || !backup.has("messages") || !backup.get("messages").isJsonArray()) {
-            throw new IllegalArgumentException(T.localized("Not a backup of a book"));
+            throw new IllegalArgumentException(T.localized(NOT_A_BACKUP));
         }
         BookSource source = new BookSource();
         source.setName(StringUtils.defaultIfBlank(string(backup, "name"), fallbackName));
@@ -84,7 +84,7 @@ public final class BookSourceReader {
         for (String uuid = leaf; uuid != null; ) {
             JsonObject message = byUuid.get(uuid);
             if (message == null || !seen.add(uuid)) {
-                throw new IllegalArgumentException(T.localized("The backup is damaged: the parts do not lead to the first part"));
+                throw new IllegalArgumentException(T.localized(THE_BACKUP_IS_DAMAGED));
             }
             path.addFirst(message);
             uuid = string(message, "parentUuid");
@@ -128,21 +128,21 @@ public final class BookSourceReader {
             JsonElement root = JsonParser.parseString(new String(file, StandardCharsets.UTF_8));
             stored = root.isJsonObject() ? root.getAsJsonObject() : null;
         } catch (RuntimeException e) {
-            throw new IllegalArgumentException(T.localized("The stored source of the book can't be read"), e);
+            throw new IllegalArgumentException(T.localized(THE_STORED_SOURCE), e);
         }
         // the property itself, the class has the default format and would pass any JSON object
         if (stored == null || !BookSource.FORMAT.equals(string(stored, "format"))) {
-            throw new IllegalArgumentException(T.localized("The stored source of the book can't be read"));
+            throw new IllegalArgumentException(T.localized(THE_STORED_SOURCE));
         }
         JsonElement version = stored.get("version");
         if (version != null && version.isJsonPrimitive() && version.getAsJsonPrimitive().isNumber()
                 && version.getAsInt() > BookSource.VERSION) {
-            throw new IllegalArgumentException(T.localized("The stored source of the book is from a newer version of the plugin"));
+            throw new IllegalArgumentException(T.localized(THE_STORED_SOURCE_OF_THE_BOOK));
         }
         try {
             return GSON.fromJson(stored, BookSource.class);
         } catch (RuntimeException e) {
-            throw new IllegalArgumentException(T.localized("The stored source of the book can't be read"), e);
+            throw new IllegalArgumentException(T.localized(THE_STORED_SOURCE), e);
         }
     }
 
@@ -183,9 +183,9 @@ public final class BookSourceReader {
                 }
             }
         } catch (IOException e) {
-            throw new IllegalArgumentException(T.localized("Not a backup of a book"), e);
+            throw new IllegalArgumentException(T.localized(NOT_A_BACKUP), e);
         }
-        throw new IllegalArgumentException(T.localized("Not a backup of a book"));
+        throw new IllegalArgumentException(T.localized(NOT_A_BACKUP));
     }
 
     private static JsonObject parse(byte[] file) {
@@ -199,9 +199,9 @@ public final class BookSourceReader {
                 return root.getAsJsonObject();
             }
         } catch (RuntimeException e) {
-            throw new IllegalArgumentException(T.localized("Not a backup of a book"), e);
+            throw new IllegalArgumentException(T.localized(NOT_A_BACKUP), e);
         }
-        throw new IllegalArgumentException(T.localized("Not a backup of a book"));
+        throw new IllegalArgumentException(T.localized(NOT_A_BACKUP));
     }
 
     /** The text of a property, null when it is missing, null or not a string. */

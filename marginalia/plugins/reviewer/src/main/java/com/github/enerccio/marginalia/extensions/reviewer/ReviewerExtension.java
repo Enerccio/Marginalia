@@ -33,7 +33,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import static com.github.enerccio.marginalia.extensions.reviewer.ReviewerLocalization.T;
+import static com.github.enerccio.marginalia.extensions.reviewer.ReviewerLocalization.*;
 
 @Configurable
 public class ReviewerExtension implements MarginaliaExtension {
@@ -71,9 +71,9 @@ public class ReviewerExtension implements MarginaliaExtension {
         try {
             // the Review sub menu of the menu of a part (desktop and phone), its items are shown by the story tab with the keys of the user;
             // what each one needs is read from the part the menu is opened for
-            menuRegistry.register(owner, StoryMenuItem.card(MENU_REVIEW, l -> T.localized("Review"), null)
+            menuRegistry.register(owner, StoryMenuItem.card(MENU_REVIEW, l -> T.localized(REVIEW), null)
                     .icon(VaadinIcon.STAR::create));
-            menuRegistry.register(owner, StoryMenuItem.card(MENU_VIEW, l -> T.localized("View / Generate Review"), (story, card) -> {
+            menuRegistry.register(owner, StoryMenuItem.card(MENU_VIEW, l -> T.localized(VIEW_GENERATE_REVIEW), (story, card) -> {
                         try {
                             ChatMessage freshMessage = reviewerService.refreshMessage(card.getMessage());
                             Manuscript manuscript = manuscriptService.find(freshMessage.getParentScript());
@@ -84,7 +84,7 @@ public class ReviewerExtension implements MarginaliaExtension {
                         }
                     })
                     .parent(MENU_REVIEW));
-            menuRegistry.register(owner, StoryMenuItem.card(MENU_ADVANCED, l -> T.localized("Review: Advanced Options"), (story, card) -> {
+            menuRegistry.register(owner, StoryMenuItem.card(MENU_ADVANCED, l -> T.localized(REVIEW_ADVANCED_OPTIONS), (story, card) -> {
                         try {
                             ChatMessage freshMessage = reviewerService.refreshMessage(card.getMessage());
                             Manuscript manuscript = manuscriptService.find(freshMessage.getParentScript());
@@ -103,9 +103,9 @@ public class ReviewerExtension implements MarginaliaExtension {
                             UIUtils.internalServerError(loc, ex);
                         }
                     })
-                    .contextLabel((l, story, card) -> T.localized("Advanced Options"))
+                    .contextLabel((l, story, card) -> T.localized(ADVANCED_OPTIONS))
                     .parent(MENU_REVIEW));
-            menuRegistry.register(owner, StoryMenuItem.card(MENU_DELETE, l -> T.localized("Delete Review"), (story, card) -> {
+            menuRegistry.register(owner, StoryMenuItem.card(MENU_DELETE, l -> T.localized(DELETE_REVIEW), (story, card) -> {
                         try {
                             ChatMessage freshMessage = reviewerService.refreshMessage(card.getMessage());
                             reviewerService.deleteReviewData(freshMessage);
@@ -137,7 +137,7 @@ public class ReviewerExtension implements MarginaliaExtension {
                             });
                         } else {
                             ReviewerSettingsForm form = new ReviewerSettingsForm(reviewerService);
-                            contentPanel = extensionSettings.add(T.localized("Reviewer Settings"), form);
+                            contentPanel = extensionSettings.add(T.localized(REVIEWER_SETTINGS), form);
                             ComponentUtil.setData(extensionSettings, SETTINGS_PANEL_KEY, contentPanel);
                             activeAccordions.add(extensionSettings);
                         }

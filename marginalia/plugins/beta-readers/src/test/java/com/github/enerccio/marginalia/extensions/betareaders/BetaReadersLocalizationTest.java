@@ -5,6 +5,8 @@ import com.github.enerccio.marginalia.loc.Language;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -19,12 +21,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /**
- * Every text the plugin shows has a Japanese and a Chinese translation: the texts are found in the sources, as
- * {@code T.localized("...")}.
+ * Every text the plugin shows is a constant of {@link BetaReadersLocalization} and has a Japanese and a Chinese
+ * translation; the sources ask for it as {@code T.localized(CONSTANT)}, never with a literal.
  */
 class BetaReadersLocalizationTest {
 
-    private static final Pattern TEXT = Pattern.compile("T\\.localized\\(\"((?:[^\"\\\\]|\\\\.)*)\"\\)");
+    private static final Pattern LITERAL = Pattern.compile("T\\.localized\\(\"");
 
     /** Gives the test the translations, which the bundle keeps in a protected field. */
     private static class Probe extends BetaReadersLocalization {
@@ -33,21 +35,31 @@ class BetaReadersLocalizationTest {
         }
     }
 
-    private static List<String> usedTexts() throws IOException {
+    private static List<String> usedTexts() throws IllegalAccessException {
         TreeSet<String> texts = new TreeSet<>();
-        try (Stream<Path> files = Files.walk(Path.of("src/main/java"))) {
-            for (Path file : files.filter(path -> path.toString().endsWith(".java")).toList()) {
-                Matcher matcher = TEXT.matcher(Files.readString(file));
-                while (matcher.find()) {
-                    texts.add(matcher.group(1).replace("\\\"", "\"").replace("\\\\", "\\"));
-                }
+        for (Field field : BetaReadersLocalization.class.getDeclaredFields()) {
+            if (Modifier.isStatic(field.getModifiers()) && field.getType() == String.class) {
+                texts.add((String) field.get(null));
             }
         }
         return new ArrayList<>(texts);
     }
 
     @Test
-    void everyTextHasAJapaneseAndAChineseTranslation() throws IOException {
+    void textsAreAskedForByConstant() throws IOException {
+        List<String> literals = new ArrayList<>();
+        try (Stream<Path> files = Files.walk(Path.of("src/main/java"))) {
+            for (Path file : files.filter(path -> path.toString().endsWith(".java")).toList()) {
+                if (LITERAL.matcher(Files.readString(file)).find()) {
+                    literals.add(file.toString());
+                }
+            }
+        }
+        assertEquals(List.of(), literals);
+    }
+
+    @Test
+    void everyTextHasAJapaneseAndAChineseTranslation() throws IllegalAccessException {
         Probe probe = new Probe();
         List<String> texts = usedTexts();
         assertFalse(texts.isEmpty());
@@ -65,7 +77,7 @@ class BetaReadersLocalizationTest {
     }
 
     @Test
-    void noTranslationIsForATextThatIsGone() throws IOException {
+    void noTranslationIsForATextThatIsGone() throws IllegalAccessException {
         Probe probe = new Probe();
         List<String> texts = usedTexts();
 

@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.T;
+import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.*;
 
 /**
  * Starts a chat: the kind (a chat with one persona, or a group, decided here for good), the personas, and what a chat may choose
@@ -37,11 +37,11 @@ public class NewChatDialog extends Dialog {
     private final Consumer<BetaChat> onCreate;
 
     final RadioButtonGroup<ChatKind> kind = new RadioButtonGroup<>();
-    final TextField title = new TextField(T.localized("Title"));
-    final RadioButtonGroup<Available> singlePersona = new RadioButtonGroup<>(T.localized("Persona"));
-    final CheckboxGroup<Available> groupPersonas = new CheckboxGroup<>(T.localized("Personas"));
+    final TextField title = new TextField(T.localized(TITLE));
+    final RadioButtonGroup<Available> singlePersona = new RadioButtonGroup<>(T.localized(PERSONA));
+    final CheckboxGroup<Available> groupPersonas = new CheckboxGroup<>(T.localized(PERSONAS));
     final ChatOptionsForm options;
-    final Button create = new Button(T.localized("Create"));
+    final Button create = new Button(T.localized(CREATE));
 
     /**
      * @param personas the personas to choose from (the ones of the book and of the library)
@@ -50,22 +50,22 @@ public class NewChatDialog extends Dialog {
     public NewChatDialog(List<Available> personas, List<Medium> mediums, List<Choice> ais, List<Choice> protocols,
                          ChatOptionsForm.Inherited inherited, Consumer<BetaChat> onCreate) {
         this.onCreate = onCreate;
-        setHeaderTitle(T.localized("New chat"));
+        setHeaderTitle(T.localized(NEW_CHAT));
         setWidth("460px");
         setMaxWidth("96vw");
         setCloseOnOutsideClick(false);
 
-        kind.setLabel(T.localized("Kind"));
+        kind.setLabel(T.localized(KIND));
         kind.setItems(ChatKind.SINGLE, ChatKind.GROUP);
-        kind.setItemLabelGenerator(chatKind -> chatKind == ChatKind.SINGLE ? T.localized("One persona") : T.localized("A group"));
+        kind.setItemLabelGenerator(chatKind -> chatKind == ChatKind.SINGLE ? T.localized(ONE_PERSONA) : T.localized(A_GROUP));
         kind.setValue(ChatKind.GROUP);
         kind.addValueChangeListener(_ -> showPersonaChoice());
 
-        Div kindHint = new Div(T.localized("A chat with one persona stays that way. A group can start with one persona, and others can join later."));
+        Div kindHint = new Div(T.localized(A_CHAT_WITH_ONE_PERSONA_STAYS));
         kindHint.addClassName(BetaReadersStyles.HINT);
 
         title.setWidthFull();
-        title.setPlaceholder(T.localized("Empty: the names of the personas"));
+        title.setPlaceholder(T.localized(EMPTY_THE_NAMES));
         title.setMaxLength(120);
 
         singlePersona.setItems(personas);
@@ -78,14 +78,14 @@ public class NewChatDialog extends Dialog {
         options = new ChatOptionsForm(mediums, ais, protocols, inherited);
 
         // what a chat may choose for itself is out of the way: most chats inherit all of it
-        Details optionsSection = new Details(T.localized("Story, medium, model and format"), options);
+        Details optionsSection = new Details(T.localized(STORY_MEDIUM_MODEL_AND_FORMAT), options);
 
         VerticalLayout content = new VerticalLayout(kind, kindHint, title, singlePersona, groupPersonas, optionsSection);
         content.setPadding(false);
         add(content);
         showPersonaChoice();
 
-        Button cancel = new Button(T.localized("Cancel"), _ -> close());
+        Button cancel = new Button(T.localized(CANCEL), _ -> close());
         create.addClickListener(_ -> create());
         create.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         getFooter().add(cancel, create);
@@ -100,7 +100,7 @@ public class NewChatDialog extends Dialog {
 
     private static String label(Available available) {
         String name = available.persona().getName();
-        return available.scope() == Scope.BOOK ? name + " (" + T.localized("this book") + ")" : name;
+        return available.scope() == Scope.BOOK ? name + " (" + T.localized(THIS_BOOK) + ")" : name;
     }
 
     /**
@@ -125,7 +125,7 @@ public class NewChatDialog extends Dialog {
         }
         List<Available> personas = chosen();
         if (personas.isEmpty()) {
-            Notification.warning(kind.getValue() == ChatKind.SINGLE ? T.localized("Choose a persona") : T.localized("Choose at least one persona"));
+            Notification.warning(kind.getValue() == ChatKind.SINGLE ? T.localized(CHOOSE_A_PERSONA) : T.localized(CHOOSE_AT_LEAST_ONE_PERSONA));
             return;
         }
         String name = title.getValue() == null ? "" : title.getValue().strip();

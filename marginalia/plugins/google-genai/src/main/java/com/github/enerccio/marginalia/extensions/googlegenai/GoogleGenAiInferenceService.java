@@ -39,7 +39,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import static com.github.enerccio.marginalia.extensions.googlegenai.GoogleGenAiLocalization.T;
+import static com.github.enerccio.marginalia.extensions.googlegenai.GoogleGenAiLocalization.*;
 
 /**
  * The inference service of a Google Gemini AI, over the Google Gen AI Java SDK. It does what the service of an OpenAI
@@ -572,7 +572,7 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
 
     private String model() {
         if (settings.model().isBlank()) {
-            throw new InferenceException(Type.MODEL_NOT_FOUND, null, T.localized("No model is set"), null);
+            throw new InferenceException(Type.MODEL_NOT_FOUND, null, T.localized(NO_MODEL_IS_SET), null);
         }
         return settings.model();
     }
@@ -588,7 +588,7 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
         }
         if (client == null) {
             if (settings.apiKey().isBlank()) {
-                throw new InferenceException(Type.AUTHENTICATION, null, T.localized("No API key is set"), null);
+                throw new InferenceException(Type.AUTHENTICATION, null, T.localized(NO_API_KEY_IS_SET), null);
             }
             Duration timeout = Duration.ofSeconds(settings.timeoutSeconds());
             // read is the wait for the first text and between the chunks; the whole request limit must not cut a long

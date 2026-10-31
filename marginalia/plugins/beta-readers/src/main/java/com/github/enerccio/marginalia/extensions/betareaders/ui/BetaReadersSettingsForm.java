@@ -25,7 +25,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.List;
 
-import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.T;
+import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.*;
 
 /**
  * The panel of the plugin in <i>Settings → Extension Settings</i>: the user level of what books and folders inherit (the two
@@ -42,14 +42,14 @@ public class BetaReadersSettingsForm extends VerticalLayout {
 
     private final BetaReadersService service;
 
-    private final TextArea singlePrompt = new TextArea(T.localized("Prompt of a chat with one persona"));
-    private final TextArea groupPrompt = new TextArea(T.localized("Prompt of a group chat"));
-    private final TextArea scene = new TextArea(T.localized("Scene"));
-    private final ComboBox<Medium> mediumCombo = new ComboBox<>(T.localized("Medium"));
-    private final ComboBox<AI> aiCombo = new ComboBox<>(T.localized("Model of the chats"));
-    private final ComboBox<Protocol> protocolCombo = new ComboBox<>(T.localized("Protocol of the chats"));
-    private final TextField personaSummary = new TextField(T.localized("Persona library"));
-    private final TextField mediumSummary = new TextField(T.localized("Mediums"));
+    private final TextArea singlePrompt = new TextArea(T.localized(PROMPT_OF_A_CHAT));
+    private final TextArea groupPrompt = new TextArea(T.localized(PROMPT_OF_A_GROUP_CHAT));
+    private final TextArea scene = new TextArea(T.localized(SCENE));
+    private final ComboBox<Medium> mediumCombo = new ComboBox<>(T.localized(MEDIUM));
+    private final ComboBox<AI> aiCombo = new ComboBox<>(T.localized(MODEL_OF_THE_CHATS));
+    private final ComboBox<Protocol> protocolCombo = new ComboBox<>(T.localized(PROTOCOL_OF_THE_CHATS));
+    private final TextField personaSummary = new TextField(T.localized(PERSONA_LIBRARY));
+    private final TextField mediumSummary = new TextField(T.localized(MEDIUMS));
 
     private BetaReadersSettings settings;
     /** Whether a library was edited since the settings were loaded, shown in its summary so the Settings screen sees a change. */
@@ -67,45 +67,45 @@ public class BetaReadersSettingsForm extends VerticalLayout {
     }
 
     private void buildForm() {
-        Span intro = new Span(T.localized("What books and folders inherit: a book or a folder can set its own in its settings. The personas and the mediums are yours, a book can add personas of its own."));
+        Span intro = new Span(T.localized(WHAT_BOOKS_AND_FOLDERS_INHERIT));
         intro.addClassName(BetaReadersStyles.HINT);
 
         singlePrompt.setWidthFull();
         singlePrompt.setPlaceholder(BetaReadersDefaults.SINGLE_PROMPT);
-        singlePrompt.setHelperText(T.localized("Empty: the built-in prompt. {{medium}} is the text of the medium, {{scene}} the scene."));
+        singlePrompt.setHelperText(T.localized(EMPTY_THE_BUILT_IN_PROMPT));
         ResizableTextArea.install(loc, singlePrompt, "160px");
 
         groupPrompt.setWidthFull();
         groupPrompt.setPlaceholder(BetaReadersDefaults.GROUP_PROMPT);
-        groupPrompt.setHelperText(T.localized("Empty: the built-in prompt. {{medium}} is the text of the medium, {{scene}} the scene."));
+        groupPrompt.setHelperText(T.localized(EMPTY_THE_BUILT_IN_PROMPT));
         ResizableTextArea.install(loc, groupPrompt, "160px");
 
         scene.setWidthFull();
         scene.setPlaceholder(BetaReadersDefaults.SCENE);
-        scene.setHelperText(T.localized("Empty: the built-in scene, an online chat. It is sent in the system prompt of every chat, after the prompt, or where the prompt has {{scene}}."));
+        scene.setHelperText(T.localized(EMPTY_THE_BUILT_IN_SCENE));
         ResizableTextArea.install(loc, scene, "100px");
 
         mediumCombo.setWidthFull();
         mediumCombo.setItemLabelGenerator(Medium::getName);
         mediumCombo.setClearButtonVisible(true);
         mediumCombo.setAllowCustomValue(false);
-        mediumCombo.setHelperText(T.localized("Empty: the built-in default"));
+        mediumCombo.setHelperText(T.localized(EMPTY_THE_BUILT_IN_DEFAULT));
 
         aiCombo.setWidthFull();
         aiCombo.setItemLabelGenerator(AI::getName);
         aiCombo.setClearButtonVisible(true);
-        aiCombo.setHelperText(T.localized("Empty: the model of the book"));
+        aiCombo.setHelperText(T.localized(EMPTY_THE_MODEL));
 
         protocolCombo.setWidthFull();
         protocolCombo.setItemLabelGenerator(Protocol::getName);
         protocolCombo.setClearButtonVisible(true);
-        protocolCombo.setHelperText(T.localized("Empty: the protocol of the book"));
+        protocolCombo.setHelperText(T.localized(EMPTY_THE_PROTOCOL));
 
         FormLayout choices = new FormLayout(mediumCombo, aiCombo, protocolCombo);
         choices.setWidthFull();
 
-        add(intro, choices, singlePrompt, groupPrompt, scene, libraryRow(personaSummary, T.localized("Edit personas"), this::editPersonas),
-                libraryRow(mediumSummary, T.localized("Edit mediums"), this::editMediums));
+        add(intro, choices, singlePrompt, groupPrompt, scene, libraryRow(personaSummary, T.localized(EDIT_PERSONAS), this::editPersonas),
+                libraryRow(mediumSummary, T.localized(EDIT_MEDIUMS), this::editMediums));
     }
 
     private HorizontalLayout libraryRow(TextField summary, String button, Runnable action) {
@@ -155,14 +155,14 @@ public class BetaReadersSettingsForm extends VerticalLayout {
     }
 
     private void refreshSummaries() {
-        personaSummary.setValue(T.localized("Personas: %d").formatted(settings.getPersonas().size())
-                + (personasEdited ? " " + T.localized("(edited)") : ""));
-        mediumSummary.setValue(T.localized("Mediums: %d").formatted(settings.getMediums().size())
-                + (mediumsEdited ? " " + T.localized("(edited)") : ""));
+        personaSummary.setValue(T.localized(PERSONAS_D).formatted(settings.getPersonas().size())
+                + (personasEdited ? " " + T.localized(EDITED) : ""));
+        mediumSummary.setValue(T.localized(MEDIUMS_D).formatted(settings.getMediums().size())
+                + (mediumsEdited ? " " + T.localized(EDITED) : ""));
     }
 
     private void editPersonas() {
-        new PersonaLibraryDialog(T.localized("Persona library"), settings.getPersonas(),
+        new PersonaLibraryDialog(T.localized(PERSONA_LIBRARY), settings.getPersonas(),
                 (brief, taken, done) -> service.writePersona(null, brief, taken, done), personas -> {
             settings.setPersonas(personas);
             personasEdited = true;
