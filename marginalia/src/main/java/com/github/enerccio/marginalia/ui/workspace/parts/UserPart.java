@@ -24,6 +24,7 @@ import com.github.enerccio.marginalia.ui.shortcuts.KeyBindingsEditor;
 import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
+import com.github.enerccio.marginalia.utils.AttributeMerge;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
@@ -846,8 +847,9 @@ public class UserPart implements WorkspaceComponent {
         String defaultStyle = defaultStyleField.getValue();
 
         try {
-            // the setting is also written by the workspace autosave and the language selector since it was loaded
-            userSetting = settingService.getOrCreate(UserSetting.class);
+            // the setting is also written by the workspace autosave and the language selector since it was loaded; the data the
+            // extensions put into the loaded one (their decorators of this method ran before it) is carried over
+            userSetting = reloadKeepingAttributes(settingService, userSetting);
 
             AI selectedModel = defaultModelCombo.getValue();
             userSetting.setDefaultModel(selectedModel != null ? selectedModel.getId() : null);
@@ -1051,5 +1053,15 @@ public class UserPart implements WorkspaceComponent {
     @Override
     public void onTabClosed() throws Exception {
 
+    }
+
+    /**
+     * The user setting loaded again, with the attributes of {@code held} over its own: the extensions put their settings into the one
+     * the screen holds (their decorators of {@code save} run before its body).
+     */
+    private static UserSetting reloadKeepingAttributes(SettingService settingService, UserSetting held) throws Exception {
+        UserSetting fresh = settingService.getOrCreate(UserSetting.class);
+        fresh.setAttributes(AttributeMerge.merge(held.getAttributes(), fresh.getAttributes()));
+        return fresh;
     }
 }
