@@ -9,7 +9,7 @@ the agents do is recorded apart (`agent` = true), against the original book alth
 the author's and the agents' side up, or shows one of them. The author gets a *Statistics* window for a book (a day-by-day grid,
 totals, charts of the words, the time and the tokens per day) and one across all books (*Global statistics*: today, yesterday, the
 last 7 or 30 days, a range of dates, with a breakdown by book). This file collects the decisions, the open questions and the order
-of work. **Nothing is built yet.** Done items will be marked ✅.
+of work. **Step 1 (the data layer) is built**, nothing counts yet. Done items are marked ✅.
 
 Not to be confused with `Usage` (`usages`, *Token usage per user*, `UsageDialog`): that one counts what a *user* used of an *AI*
 (for the limits of shared models) and has no idea which book the tokens went to. This one is per *book* and day.
@@ -53,6 +53,7 @@ are added up in SQL (`UPDATE ... SET x = x + :n`) so that parallel generations a
 | `partsCreated` | parts that got their first text that day |
 | `partsDeleted` | parts deleted (a part with its descendants counts each of them) |
 | `edits` | new versions of a part that already had a text (author edit, redraft, regenerate, replace, command, agent merge, restore) |
+| `reconstructed` | true for a day rebuilt from the history of the parts instead of counted live, see *Backfill* |
 | `lastChange` | timestamp of the last count, for the "last active" column |
 
 Unique index `(bookUuid, day, agent)`; a second index on `(userId, day)` for the global statistics. No row exists for a day without
@@ -84,7 +85,8 @@ changes only when the author's text, a restore or the merge of an agent changes 
 | `bookWords`, `bookTokens` | the size of the **whole book**: every part that is not deleted, all branches and alternatives included (`ChatMessageService.getTotalWordCount` / `getTotalTokenCount`, the numbers the book already shows) |
 | `branchWords`, `branchTokens` | the size of the **current branch**: the story from the first part to the active leaf (`getBranchWordCount` / `getBranchTokenCount`) |
 | `leafUuid` | the active leaf the branch values were measured on, so a day on which the author switched to another branch can be told from a day on which the branch grew |
-| `baseline` | true for a row that only says how big the book was when tracking began (see below); the change that day is unknown |
+| `baseline` | true for a row that only says how big the book was when tracking began (see below), written only for a book with nothing to rebuild the history from; the change that day is unknown |
+| `reconstructed` | true for a day rebuilt from the history of the parts, see *Backfill* |
 | `lastChange` | timestamp of the last update of the row |
 
 **Words are the main measure of growth, tokens the second one** (the book is measured in both, every time, and both are kept).
@@ -180,7 +182,8 @@ something is done.
     first row, not a `baseline`, so the growth from nothing is the first day's.
   The working copy of an agent is not measured (it is not the book; its size reaches the original at the merge, which `touch`es the
   original). A book that has no row at all when it is first touched (a book that was there before the statistics were) gets a
-  `baseline` row, and the upgrade seeds one for every book (see *Backfill*).
+  `baseline` row; the upgrade rebuilds the history of every book (see *Backfill*), and a `baseline` row is left only for a book it
+  could not rebuild.
 - **Not counted:** the changes of the book's settings, the lorebook, the summaries' text (only the model calls for them are
   tokens), the annotations. The text of a part that is a *branch* of another (`DUPLICATE` / `BRANCH`) is a copy, not writing: the
   version of a duplicate does not count, a *swipe* (a new generation of a sibling) does, it is a real generation.
@@ -409,9 +412,55 @@ The same rows read across the books: no new table, just queries over `(userId, d
 - Texts: new keys in `L`, `LocalizationBundleEN`, `JP` and the Chinese bundle, grouped by prefix, reusing `LABEL_TOKENS_SENT`,
   `LABEL_TOKENS_GENERATED`, `LABEL_REQUESTS`, `LABEL_CLOSE`; new ones for the times and for the *All / Me / Agents* switch.
 
+## Backfill
+
+Everything but the time can be rebuilt for the days before the statistics existed, from data the application already keeps: every
+part has its `creation`, every version of its text (`message_revisions`, since 1.6.0) has `creation`, `source`, `is_agent`,
+`wordCount` and `tokenCount`, and a deleted part keeps its `modification`. It is not exact and does not pretend to be, but it is
+much better than an empty chart that starts on the day of the upgrade. One app migration, `StatisticsBackfillMigration` (app
+version bump, written like `PartRevisionMigration`: a batch read per book in one session, the rows written in another
+transaction, retried on a lock; it runs once and writes nothing for a book that has rows already).
+
+- **What is rebuilt**
+  - **Parts created:** per day, from `ChatMessage.creation` of the parts of the book (swipes included, the parts in the trash
+    included, the purged ones are gone). The author's side, unless the first version of the part is a generated one: then it is a
+    generation, which the live counting also counts as a part created.
+  - **Edits and words:** from the versions of each part in order: the first version is the part created (its `wordCount` is
+    `wordsWritten` or `wordsGenerated` by the source, `isModel()`), every later version is an edit whose word change is the
+    difference of the `wordCount` of the version and the one before it (positive to written / generated, negative to
+    `wordsRemoved`). The same rules as the live counting in `MessageRevisionService.record`, so the two give the same numbers for
+    the same history. A version of an agent (`is_agent`) goes to the agents' side, and `AGENT_MERGE` too (the live counting does
+    not count a merge, but the work that preceded it is lost, the merge is the only trace of it). A `DUPLICATE` version and a repair
+    (`PLUGIN` without a detail) are not counted, as live.
+  - **Deletes:** a part in the trash gives `partsDeleted` on the day of its `modification` (the day it was deleted, as far as it
+    is known) and its words to `wordsRemoved`. A part that was purged is gone and is not found.
+  - **Tokens:** estimated, since the real counts of the calls were never kept: the tokens *generated* from the `tokenCount` of the
+    generated versions, the tokens *sent* from the prompt tokens the part has saved (`promptTokens`). The reasoning, the summaries and
+    the other calls are not in them, so the numbers are a floor, and are shown as an estimate.
+  - **Size:** the size of the book at the end of each day, from the versions: for a day, the sum over the parts that existed and
+    were not deleted that day of the `wordCount` / `tokenCount` of the newest version made by then. Done for the whole book; for
+    the **current branch** the branch is the one of today's active leaf (the old active leaves were not kept), measured the same
+    way, so the line shows how the branch the author is on now grew. `leafUuid` is that leaf. A book that has no versions at all
+    (nothing to rebuild from) gets one `baseline` row of today instead.
+  - **Days worked on** (for the calendar widget): they come out of the above, since every day that has a part created or a version
+    has a row: the creation and the modification of the parts and the dates of the versions reveal when the book was worked on.
+    Before 1.6.0 there are no versions, only the one `modification` of a part: such a part marks its creation day and its last
+    modification day, and the days between are not known.
+- **What is not rebuilt: the time** (`OPEN`, `EDIT`, `GENERATE`, `RUN`). There are no intervals for the old days, and the display
+  must not show them as zeros: the day is **unknown**, shown as a dash in the grid and left out of the time chart. The date from which
+  the time is recorded is kept (`statisticsSince`, an extended attribute of `UserSetting`, set by the migration the first time), and
+  every day before it is a day without time; the dialog says so in a line under the grid.
+- **Marked as reconstructed.** The rows have a `reconstructed` flag (a column of `ManuscriptStatistic` and of `ManuscriptSize`); the
+  grid marks them (an icon with a tooltip: *rebuilt from the history of the parts, an estimate*), the totals say how many of the
+  days are reconstructed, and the token columns of those days carry the "estimate" mark. A live count that falls on a day with a
+  reconstructed row **replaces** it (the migration runs at the start of the new version, so a day is either rebuilt or live, and
+  the day of the upgrade is live from then on and not rebuilt).
+- **Not rebuilt for a book that was purged**: its parts are gone, and so is anything to build from.
+- **Names and paths** are the books' current ones.
+
 ## Order of work
 
-1. **Data layer:** `ManuscriptStatistic`, `ActivityInterval` and `ManuscriptSize`, V23, their repositories (`JpaManuscriptStatisticRepository`: `add`
+1. ✅ **Data layer:** `ManuscriptStatistic`, `ActivityInterval` and `ManuscriptSize`, V23, their repositories (`JpaManuscriptStatisticRepository`: `add`
    as one SQL update that returns the rows changed, `findRange`, the sums; `JpaActivityIntervalRepository`: insert, move the end,
    find by filter, delete by book), `ManuscriptStatisticService` (`count(book, delta)`, `range`, the sums), wiring,
    `persistence.xml`. No `@CleanupReference` to the book. `ManuscriptStatisticCrudTest` (`OwnedCrudContract`) and a concurrency test
@@ -437,7 +486,7 @@ The same rows read across the books: no new table, just queries over `(userId, d
    counting 5 minutes after the last key and starts again on a key; a lost "idle" message is covered by the tick; a closed
    registration ends its row at the close and not at the next tick; a stopped agent run closes its `RUN`.
 7. **Size:** `ManuscriptSize`, `ManuscriptSizeService` (`touch`, the coalescing worker, `sizeAt`, `growth`), the calls in the places of
-   *Size* and the `OPEN` safety net, the `baseline` rule and the seed for existing books (an app migration, see *Backfill*).
+   *Size* and the `OPEN` safety net, the `baseline` rule for a book without history (the history of the others is the migration of step 10).
    Tests: edit, delete, restore from the trash, a new part, a branch switch (the branch changes, the whole does not), a merge of
    an agent (the original grows, the copy is not measured), a burst of edits is one measurement, a change of the model or the tokenizer
    leaves the stored tokens and the earlier rows alone, a book born today (growth from 0), a baseline row (no growth), two days compared with a day without a row between
@@ -450,13 +499,9 @@ The same rows read across the books: no new table, just queries over `(userId, d
 9. **Interface:** `StatisticRange`, `StatisticCharts` (with a unit test of the configs: the filled zero days, the weekly grouping, the
    negative removed words, grouped time bars, the top 10 and *Other*), `StatisticsDialog` + `GlobalStatisticsDialog` and the phone
    twins, the menu items, the commands, localization (EN, JP, ZH), `BundleCompletenessTest`.
-10. **Backfill:** *required* for the sizes, an app migration like `PartRevisionMigration` that writes a `baseline` `ManuscriptSize`
-    row (today) for every existing book from its current sizes, so growth is measured from the upgrade on. *Optional* for the
-    counts: rebuild the old days of the **counts** from what exists:
-   `partsCreated` from `ChatMessage.creation`, `edits` and the words from the `message_revisions` rows (`creation`, `source`,
-   `wordCount`). Tokens and all the times cannot be recovered (only the `tokenCount` of the generated versions, which is not the
-   same number), so a backfilled day has zero tokens and no intervals; the dialog says "counted since <date of the first live row>"
-   instead of showing zeros as facts.
+10. **Backfill** (see the section *Backfill* below): an app migration, `StatisticsBackfillMigration`, like `PartRevisionMigration`,
+    that reconstructs the history of the counts and of the sizes from the parts and their versions, and marks it as reconstructed.
+    Tests per rule of the section, with the fixtures of the `PartRevisionMigrationTest` kind.
 11. **Docs:** user page in `manual/user` (with a picture: add it to `TODO.IMAGES.md` and the screenshot flow), the developer page
     (generation of the context, where the counts come from, the intervals and the union; front matter `covers` / `verified`,
     `tools/check_dev_docs.py`, stamp), `CHANGELOG.MD` under `[Unreleased]` (*Added*, the migration number V23, the new
