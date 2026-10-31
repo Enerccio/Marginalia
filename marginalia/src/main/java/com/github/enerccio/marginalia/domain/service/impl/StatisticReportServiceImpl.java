@@ -7,6 +7,8 @@ import com.github.enerccio.marginalia.domain.components.StatisticReport.BookLine
 import com.github.enerccio.marginalia.domain.components.StatisticReport.DayLine;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.ManuscriptSize;
+import com.github.enerccio.marginalia.domain.model.impl.ManuscriptStatistic;
+import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +34,10 @@ public class StatisticReportServiceImpl implements StatisticReportService {
     @Autowired
     @Lazy
     private ManuscriptService manuscriptService;
+
+    @Autowired
+    @Lazy
+    private SettingService settingService;
 
     @Override
     public StatisticReport report(StatisticFilter requested) throws Exception {
@@ -62,18 +68,34 @@ public class StatisticReportServiceImpl implements StatisticReportService {
         TreeSet<LocalDate> dayList = new TreeSet<>(countsByDay.keySet());
         dayList.addAll(timed.keySet());
         sizeRows.forEach(row -> dayList.add(row.getDay()));
+        Set<LocalDate> rebuilt = new HashSet<>();
+        statisticService.findRange(filter).stream().filter(ManuscriptStatistic::isReconstructed).forEach(row -> rebuilt.add(row.getDay()));
+        sizeRows.stream().filter(ManuscriptSize::isReconstructed).forEach(row -> rebuilt.add(row.getDay()));
         List<DayLine> days = new ArrayList<>();
         for (LocalDate day : dayList) {
             if (!day.isBefore(from) && !day.isAfter(filter.to())) {
                 days.add(new DayLine(day, countsByDay.getOrDefault(day, StatisticCounts.ZERO),
-                        timed.getOrDefault(day, ActivityTimes.ZERO)));
+                        timed.getOrDefault(day, ActivityTimes.ZERO), rebuilt.contains(day)));
             }
         }
 
         Map<String, SizeGrowth> growths = SizeSeries.perBook(before, sizeRows);
         List<BookLine> books = book == null ? booksOf(filter, growths, before, sizeRows) : List.of();
         return new StatisticReport(filter, statisticService.total(filter), intervalService.times(filter), days, books,
-                SizeSeries.build(before, sizeRows, from, filter.to()), SizeSeries.sum(growths.values()));
+                SizeSeries.build(before, sizeRows, from, filter.to()), SizeSeries.sum(growths.values()), timeSince());
+    }
+
+    /**
+     * The day the time of the current user is recorded from, null when it is not known (a user that was made after the backfill).
+     */
+    private LocalDate timeSince() {
+        try {
+            String since = settingService.getOrCreate(UserSetting.class).getStatisticsSince();
+            return since == null || since.isBlank() ? null : LocalDate.parse(since);
+        } catch (Exception e) {
+            log.debug("Cannot read the day the time is recorded from", e);
+            return null;
+        }
     }
 
     /**

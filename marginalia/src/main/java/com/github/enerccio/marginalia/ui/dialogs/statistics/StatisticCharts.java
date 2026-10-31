@@ -235,12 +235,22 @@ public final class StatisticCharts {
     public static Map<String, Object> time(StatisticReport report, Function<L, String> text) {
         List<Bucket> buckets = buckets(report.filter().from(), report.filter().to());
         List<ActivityTimes> times = timesOf(report, buckets);
+        // a bar of days on which no time was recorded is left out, not drawn as zero
+        List<Boolean> known = buckets.stream().map(bucket -> report.timeKnown(bucket.to())).toList();
         return bars(labels(buckets), List.of(
-                dataset(text.apply(L.LABEL_OPEN), COLOR_OPEN, times.stream().map(t -> hours(t.open())).toList()),
-                dataset(text.apply(L.LABEL_TIME_EDITING), COLOR_EDITING, times.stream().map(t -> hours(t.edit())).toList()),
-                dataset(text.apply(L.LABEL_TIME_GENERATING), COLOR_GENERATING, times.stream().map(t -> hours(t.generate())).toList()),
-                dataset(text.apply(L.LABEL_TIME_AGENTS_RUNNING), COLOR_AGENTS, times.stream().map(t -> hours(t.run())).toList())),
+                dataset(text.apply(L.LABEL_OPEN), COLOR_OPEN, hours(times, known, ActivityTimes::open)),
+                dataset(text.apply(L.LABEL_TIME_EDITING), COLOR_EDITING, hours(times, known, ActivityTimes::edit)),
+                dataset(text.apply(L.LABEL_TIME_GENERATING), COLOR_GENERATING, hours(times, known, ActivityTimes::generate)),
+                dataset(text.apply(L.LABEL_TIME_AGENTS_RUNNING), COLOR_AGENTS, hours(times, known, ActivityTimes::run))),
                 false, grouping(report, text), text.apply(L.LABEL_STATISTICS_HOURS));
+    }
+
+    private static List<Double> hours(List<ActivityTimes> times, List<Boolean> known, ToLongFunction<ActivityTimes> kind) {
+        List<Double> hours = new ArrayList<>();
+        for (int i = 0; i < times.size(); i++) {
+            hours.add(known.get(i) ? hours(kind.applyAsLong(times.get(i))) : null);
+        }
+        return hours;
     }
 
     private static double hours(long millis) {

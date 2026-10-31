@@ -36,6 +36,19 @@ final class StatisticJson {
         row.addProperty("minutesAgentsRunning", minutes(times.run()));
     }
 
+    /**
+     * What a reader of the numbers has to know about their quality: the day the time is recorded from, and how many of the days were
+     * rebuilt from the history of the parts (an estimate, the tokens are a floor).
+     */
+    static void quality(JsonObject result, com.github.enerccio.marginalia.domain.components.StatisticReport report) {
+        if (report.timeSince() != null) {
+            result.addProperty("timeRecordedSince", report.timeSince().toString());
+        }
+        if (report.reconstructedDays() > 0) {
+            result.addProperty("rebuiltDays", report.reconstructedDays());
+        }
+    }
+
     static void growth(JsonObject row, SizeGrowth growth) {
         if (!growth.known()) {
             row.addProperty("growthKnown", false);

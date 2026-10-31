@@ -87,6 +87,7 @@ public class GetStatisticsCommand extends ManuscriptReadSupport {
         StatisticJson.times(total, report.times());
         StatisticJson.growth(total, report.growth());
         result.add("total", total);
+        StatisticJson.quality(result, report);
 
         if (byBook) {
             List<StatisticReport.BookLine> books = report.books().stream()
@@ -116,6 +117,9 @@ public class GetStatisticsCommand extends ManuscriptReadSupport {
                 row.addProperty("day", line.day().toString());
                 StatisticJson.counts(row, line.counts());
                 StatisticJson.times(row, line.times());
+                if (line.reconstructed()) {
+                    row.addProperty("rebuilt", true);
+                }
                 SizeSeries.Point size = sizes.get(line.day());
                 if (size != null && size.present() && size.growthKnown()) {
                     row.addProperty("growthWords", size.growthWords());

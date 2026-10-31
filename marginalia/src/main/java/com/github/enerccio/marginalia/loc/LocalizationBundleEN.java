@@ -1485,6 +1485,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_STATISTICS_TIMES_OVERLAP, "The times of the books overlap: the total above is the real time, not the sum of the lines.");
         setValue(L.MSG_STATISTICS_GROUPED_WEEK, "Grouped by week");
         setValue(L.MSG_STATISTICS_GROUPED_MONTH, "Grouped by month");
+        setValue(L.MSG_STATISTICS_TIME_SINCE, "The time is recorded from %s; the days before show none.");
+        setValue(L.MSG_STATISTICS_RECONSTRUCTED, "%d of the days were rebuilt from the history of the parts (marked ~): an estimate, the tokens are only a floor.");
+        setValue(L.MSG_STATISTICS_RECONSTRUCTED_DAY, "Rebuilt from the history of the parts: an estimate");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

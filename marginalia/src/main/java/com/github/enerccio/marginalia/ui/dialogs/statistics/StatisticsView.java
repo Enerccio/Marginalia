@@ -217,11 +217,11 @@ public class StatisticsView extends VerticalLayout {
         daysGrid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_NO_BORDER);
         daysGrid.setWidthFull();
         daysGrid.setHeight(compact ? GRID_HEIGHT_COMPACT : GRID_HEIGHT);
-        Grid.Column<DayRow> date = daysGrid.addColumn(row -> row.line().day().toString()).setHeader(loc.getValue(L.LABEL_DATE))
+        Grid.Column<DayRow> date = daysGrid.addComponentColumn(this::dayCell).setHeader(loc.getValue(L.LABEL_DATE))
                 .setComparator(Comparator.comparing(row -> row.line().day())).setAutoWidth(true).setFlexGrow(0).setFrozen(true);
         if (!compact) {
-            number(daysGrid, row -> row.line().counts().prefillTokens(), L.LABEL_TOKENS_SENT);
-            number(daysGrid, row -> row.line().counts().generatedTokens(), L.LABEL_TOKENS_GENERATED);
+            estimate(daysGrid, row -> row.line().counts().prefillTokens(), L.LABEL_TOKENS_SENT);
+            estimate(daysGrid, row -> row.line().counts().generatedTokens(), L.LABEL_TOKENS_GENERATED);
             number(daysGrid, row -> row.line().counts().requests(), L.LABEL_REQUESTS);
         }
         number(daysGrid, row -> row.line().counts().wordsWritten(), L.LABEL_WORDS_WRITTEN);
@@ -231,12 +231,12 @@ public class StatisticsView extends VerticalLayout {
             number(daysGrid, row -> row.line().counts().partsCreated(), L.LABEL_PARTS_CREATED);
             number(daysGrid, row -> row.line().counts().edits(), L.LABEL_EDITS);
             number(daysGrid, row -> row.line().counts().partsDeleted(), L.LABEL_PARTS_DELETED);
-            time(daysGrid, row -> row.line().times().open(), L.LABEL_OPEN);
+            dayTime(row -> row.line().times().open(), L.LABEL_OPEN);
         }
-        time(daysGrid, row -> row.line().times().edit(), L.LABEL_TIME_EDITING);
+        dayTime(row -> row.line().times().edit(), L.LABEL_TIME_EDITING);
         if (!compact) {
-            time(daysGrid, row -> row.line().times().generate(), L.LABEL_TIME_GENERATING);
-            time(daysGrid, row -> row.line().times().run(), L.LABEL_TIME_AGENTS_RUNNING);
+            dayTime(row -> row.line().times().generate(), L.LABEL_TIME_GENERATING);
+            dayTime(row -> row.line().times().run(), L.LABEL_TIME_AGENTS_RUNNING);
             daysGrid.addColumn(row -> row.size() == null || !row.size().present() ? "–" : format(row.size().bookWords()))
                     .setHeader(loc.getValue(L.LABEL_SIZE_BOOK_WORDS)).setTextAlign(ColumnTextAlign.END).setAutoWidth(true).setFlexGrow(0)
                     .setComparator(Comparator.comparingLong(row -> row.size() == null ? 0 : row.size().bookWords()));
@@ -339,6 +339,37 @@ public class StatisticsView extends VerticalLayout {
                 .setAutoWidth(true).setFlexGrow(0).setComparator(Comparator.comparingLong(value::apply));
     }
 
+    /**
+     * The date of the day, with a mark on a day that was rebuilt from the history of the parts.
+     */
+    private Component dayCell(DayRow row) {
+        Div cell = new Div(new Span(row.line().day().toString()));
+        if (row.line().reconstructed()) {
+            Span mark = new Span(" ~");
+            mark.getElement().setAttribute("title", loc.getValue(L.MSG_STATISTICS_RECONSTRUCTED_DAY));
+            cell.add(mark);
+        }
+        return cell;
+    }
+
+    /**
+     * A count that is an estimate on a rebuilt day (the tokens of the calls were not kept, what is shown is a floor).
+     */
+    private void estimate(Grid<DayRow> grid, ValueProvider<DayRow, Long> value, L header) {
+        grid.addColumn(row -> (row.line().reconstructed() && value.apply(row) > 0 ? "~" : "") + format(value.apply(row)))
+                .setHeader(loc.getValue(header)).setTextAlign(ColumnTextAlign.END).setAutoWidth(true).setFlexGrow(0)
+                .setComparator(Comparator.comparingLong(value::apply));
+    }
+
+    /**
+     * A time of a day; a day before the time was recorded has none, which is not a zero.
+     */
+    private void dayTime(ValueProvider<DayRow, Long> value, L header) {
+        daysGrid.addColumn(row -> report != null && !report.timeKnown(row.line().day()) ? "–" : formatTime(value.apply(row)))
+                .setHeader(loc.getValue(header)).setTextAlign(ColumnTextAlign.END).setAutoWidth(true).setFlexGrow(0)
+                .setComparator(Comparator.comparingLong(value::apply));
+    }
+
     private Component bookName(BookLine line) {
         Div cell = new Div();
         cell.add(new Span(line.book().bookName().isEmpty() ? line.book().bookUuid() : line.book().bookName()));
@@ -415,6 +446,12 @@ public class StatisticsView extends VerticalLayout {
         }
         if (bookUuid == null) {
             lines.add(loc.getValue(L.MSG_STATISTICS_TIMES_OVERLAP));
+        }
+        if (report.timeSince() != null && report.filter().from().isBefore(report.timeSince())) {
+            lines.add(String.format(loc.getValue(L.MSG_STATISTICS_TIME_SINCE), report.timeSince()));
+        }
+        if (report.reconstructedDays() > 0) {
+            lines.add(String.format(loc.getValue(L.MSG_STATISTICS_RECONSTRUCTED), report.reconstructedDays()));
         }
         lines.forEach(line -> notes.add(new Div(line)));
 

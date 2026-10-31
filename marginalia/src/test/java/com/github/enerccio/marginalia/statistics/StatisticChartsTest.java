@@ -31,13 +31,18 @@ class StatisticChartsTest {
     private static final long HOUR = 3_600_000L;
     private static final LocalDate D1 = LocalDate.of(2026, 3, 2);  // a Monday
 
-    private static StatisticReport report(LocalDate from, LocalDate to, List<DayLine> days, List<BookLine> books, List<SizeSeries.Point> sizes) {
+    private static StatisticReport report(LocalDate from, LocalDate to, List<DayLine> days, List<BookLine> books, List<SizeSeries.Point> sizes,
+                                          LocalDate timeSince) {
         return new StatisticReport(StatisticFilter.of(from, to, StatisticSide.ALL), StatisticCounts.ZERO, ActivityTimes.ZERO, days, books,
-                sizes, SizeGrowth.ZERO);
+                sizes, SizeGrowth.ZERO, timeSince);
+    }
+
+    private static StatisticReport report(LocalDate from, LocalDate to, List<DayLine> days, List<BookLine> books, List<SizeSeries.Point> sizes) {
+        return report(from, to, days, books, sizes, null);
     }
 
     private static DayLine day(LocalDate day, StatisticCounts counts, ActivityTimes times) {
-        return new DayLine(day, counts, times);
+        return new DayLine(day, counts, times, false);
     }
 
     @SuppressWarnings("unchecked")
@@ -99,6 +104,19 @@ class StatisticChartsTest {
         Map<String, Object> scales = (Map<String, Object>) ((Map<String, Object>) config.get("options")).get("scales");
         assertThat(GSON.toJson(scales)).as("not stacked: the kinds overlap").contains("\"stacked\":false").doesNotContain("\"stacked\":true");
         assertThat(GSON.toJson(scales)).contains("LABEL_STATISTICS_HOURS");
+    }
+
+    @Test
+    void theDaysBeforeTheTimeWasRecordedAreLeftOutOfTheTimeChart() {
+        StatisticReport report = report(D1, D1.plusDays(3), List.of(day(D1.plusDays(3), StatisticCounts.ZERO, new ActivityTimes(HOUR, 0, 0, 0))),
+                List.of(), List.of(), D1.plusDays(2));
+
+        Map<String, Object> config = StatisticCharts.time(report, TEXT);
+
+        assertThat(data(config, 0)).containsExactly(null, null, 0.0, 1.0);
+        assertThat(GSON.toJson(config)).contains("null");
+        assertThat(report.timeKnown(D1)).isFalse();
+        assertThat(report.timeKnown(D1.plusDays(2))).isTrue();
     }
 
     @Test

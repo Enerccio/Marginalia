@@ -1485,6 +1485,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_STATISTICS_TIMES_OVERLAP, "本ごとの時間は重なります。上の合計は実際の時間であり、各行の合計ではありません。");
         setValue(L.MSG_STATISTICS_GROUPED_WEEK, "週ごとにまとめています");
         setValue(L.MSG_STATISTICS_GROUPED_MONTH, "月ごとにまとめています");
+        setValue(L.MSG_STATISTICS_TIME_SINCE, "時間は %s から記録されています。それ以前の日には時間が表示されません。");
+        setValue(L.MSG_STATISTICS_RECONSTRUCTED, "%d 日分はパートの履歴から再構築されたものです（~ 印）。推定値で、トークン数は下限です。");
+        setValue(L.MSG_STATISTICS_RECONSTRUCTED_DAY, "パートの履歴から再構築した推定値");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
