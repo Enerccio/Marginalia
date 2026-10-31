@@ -103,6 +103,14 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @Lazy
     private PermissionService permissionService;
 
+    @Autowired
+    @Lazy
+    private ManuscriptSizeService sizeService;
+
+    @Autowired
+    @Lazy
+    private ManuscriptStatisticService statisticService;
+
     /**
      * A book an agent works on can't be changed, see {@link AgentRunService#checkNotLocked}.
      */
@@ -111,7 +119,15 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     public Manuscript save(Manuscript manuscript) throws Exception {
         agentRunService.checkNotLocked(manuscript);
         checkFolder(manuscript);
-        return super.save(manuscript);
+        boolean born = manuscript.getId() == null;
+        Manuscript saved = super.save(manuscript);
+        if (!born) {
+            // a rename (or a new folder) of the book is in the rows of its statistics; only the rows that differ are written
+            statisticService.refreshBook(saved);
+        }
+        // the active leaf may have moved, and a new book has its first size
+        sizeService.touch(saved, born);
+        return saved;
     }
 
     @Override
@@ -186,6 +202,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     public void moveToFolder(Collection<Manuscript> books, Folder folder) throws Exception {
         Folder target = checkFolder(folder, currentUser.getId());
         List<Long> ids = new ArrayList<>();
+        List<Manuscript> moved = new ArrayList<>();
         for (Manuscript book : books) {
             Manuscript stored = book == null ? null : findForUser(book.getUuid());
             if (stored == null) {
@@ -193,8 +210,10 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
             }
             agentRunService.checkNotLocked(stored);
             ids.add(stored.getId());
+            moved.add(stored);
         }
         getRepository().moveToFolder(ids, target, currentUser);
+        statisticService.refreshBooks(moved, target);
     }
 
     /**
@@ -913,6 +932,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
             }
         }
 
+        sizeService.touch(manuscript, true);
         return manuscript;
     }
 
@@ -1016,6 +1036,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
             chatMessageService.delete(oldMsg, true);
         }
 
+        sizeService.touch(m);
         return m;
     }
 

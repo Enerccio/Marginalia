@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.repository;
 
+import com.github.enerccio.marginalia.domain.components.BookPlacement;
 import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.security.model.User;
@@ -57,6 +58,12 @@ public interface ManuscriptRepository extends ExtendableRepository<Manuscript> {
      * {@code modification} is saved. Returns the number of books.
      */
     int moveToFolder(Collection<Long> bookIds, Folder folder, User user) throws Exception;
+
+    /**
+     * The name and the folder of every book of the user that is not deleted, the working copies of agents left out. Read from the
+     * database, so it sees the bulk updates of {@link #moveToFolder} and {@link #moveFolderContent} even when the session holds the old books.
+     */
+    List<BookPlacement> findPlacements(User user) throws Exception;
 
     /**
      * Moves all books (the working copies of agents too) that are in one of the folders to another folder.

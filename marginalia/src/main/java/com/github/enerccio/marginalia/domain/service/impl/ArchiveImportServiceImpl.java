@@ -41,7 +41,7 @@ public class ArchiveImportServiceImpl implements ArchiveImportService {
             if (stopped.getAsBoolean()) {
                 break;
             }
-            last = chatMessageService.createPart(manuscript, last, item.text(), null, RevisionOrigin.human(RevisionDetail.ARCHIVE_IMPORT, false));
+            last = chatMessageService.createPart(manuscript, last, item.text(), null, RevisionOrigin.human(RevisionDetail.ARCHIVE_IMPORT, false).uncounted());
             imported++;
             onStored.run();
         }

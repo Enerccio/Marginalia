@@ -1,11 +1,13 @@
 package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.components.*;
+import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.ManuscriptStatistic;
 import com.github.enerccio.marginalia.domain.repository.ManuscriptStatisticRepository;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -34,6 +36,33 @@ public interface ManuscriptStatisticService extends OwnedService<ManuscriptStati
      * Adds the counts to today's row of the book for the side: the author's, or the agents' ({@code agent}).
      */
     void count(Manuscript book, boolean agent, StatisticCounts delta);
+
+    /**
+     * Makes the name and the folder path of the book in all its rows (the counts, the stretches and the sizes) the ones it has now.
+     * The rows hold a copy of them so that a book that is gone can still be shown: a rename of the book calls this. Nothing for a book
+     * that is in the trash or is an agent's working copy. Never throws. Only the rows that differ are written.
+     */
+    void refreshBook(Manuscript book);
+
+    /**
+     * The same after the books were put into the folder (null is the top level), which a bulk update does, so the books may still
+     * have the old folder in the session of the caller.
+     */
+    void refreshBooks(Collection<Manuscript> books, Folder folder);
+
+    /**
+     * The same for every book of the current user that is not in the trash, with the names and paths the database has now: a folder
+     * was renamed, moved or deleted (its content moved up), or books were moved between folders. The books that are in the trash keep
+     * the last name and path they had. Never throws.
+     */
+    void refreshFolders();
+
+    /**
+     * The safety net for a rename or a move that did not call {@link #refreshBook}: a writer that has the name and the path of the
+     * book in hand tells them, and when they differ from the ones the last writer told (and from the stored book) all the rows are
+     * corrected. Never throws.
+     */
+    void noteBook(Manuscript book, String folderPath);
 
     /**
      * @return the row of the book, day and side of the current user, null if there is none

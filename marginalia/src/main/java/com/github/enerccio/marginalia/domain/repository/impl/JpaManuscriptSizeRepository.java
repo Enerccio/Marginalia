@@ -79,11 +79,14 @@ public class JpaManuscriptSizeRepository extends JpaOwnedRepository<ManuscriptSi
 
     @Override
     public int refreshBook(User owner, String bookUuid, String bookName, String folderPath) {
+        // only the rows that differ are written: a book that is saved again and again has the same name
+        String name = bookName == null ? "" : bookName;
         String path = folderPath == null ? "" : ", s.folderPath = :path";
+        String differs = "COALESCE(s.bookName, '') <> :name" + (folderPath == null ? "" : " OR COALESCE(s.folderPath, '') <> :path");
         Query query = entityManager
                 .createQuery("UPDATE ManuscriptSize s SET s.bookName = :name" + path
-                        + " WHERE s.bookUuid = :book AND s.owner.id = :owner")
-                .setParameter("name", bookName)
+                        + " WHERE s.bookUuid = :book AND s.owner.id = :owner AND (" + differs + ")")
+                .setParameter("name", name)
                 .setParameter("book", bookUuid)
                 .setParameter("owner", owner.getId());
         if (folderPath != null) {

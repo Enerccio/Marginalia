@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.components.StatisticFilter;
 import com.github.enerccio.marginalia.domain.model.impl.ActivityInterval;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.ActivityIntervalRepository;
+import com.github.enerccio.marginalia.domain.security.model.User;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -53,6 +54,13 @@ public interface ActivityIntervalService extends OwnedService<ActivityInterval, 
      * parts of {@link #times}.
      */
     Map<String, ActivityTimes> timesByBook(StatisticFilter filter) throws Exception;
+
+    /**
+     * Makes the name and the folder path of all the rows of the book the given ones; only the rows that differ are written.
+     *
+     * @param folderPath null leaves the path as it is
+     */
+    void refreshBook(User owner, String bookUuid, String bookName, String folderPath) throws Exception;
 
     void clearBook(String bookUuid) throws Exception;
 

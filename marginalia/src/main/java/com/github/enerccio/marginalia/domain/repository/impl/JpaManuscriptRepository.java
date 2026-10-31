@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.repository.impl;
 
+import com.github.enerccio.marginalia.domain.components.BookPlacement;
 import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.ManuscriptRepository;
@@ -98,6 +99,19 @@ public class JpaManuscriptRepository extends JpaExtendableRepository<Manuscript>
                     .getResultList());
         }
         return existing;
+    }
+
+    @Override
+    public List<BookPlacement> findPlacements(User user) throws Exception {
+        List<BookPlacement> placements = new ArrayList<>();
+        for (Object[] row : getEntityManager().createQuery(
+                        "SELECT m.uuid, m.name, f.id FROM Manuscript m LEFT JOIN m.folder f WHERE m.deleted = false "
+                                + "AND m.agentic = false AND m.owner.id = :ownerId", Object[].class)
+                .setParameter("ownerId", user.getId())
+                .getResultList()) {
+            placements.add(new BookPlacement((String) row[0], (String) row[1], (Long) row[2]));
+        }
+        return placements;
     }
 
     @Override

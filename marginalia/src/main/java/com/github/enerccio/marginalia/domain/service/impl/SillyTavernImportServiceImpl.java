@@ -46,8 +46,10 @@ public class SillyTavernImportServiceImpl implements SillyTavernImportService {
             part.setResponseReasoning(node.alternative().reasoning());
             part.setModelUsed(node.alternative().model());
             ChatMessage saved = chatMessageService.addPart(manuscript, node.parent() == null ? null : stored.get(node.parent()), part,
-                    node.alternative().model() == null ? RevisionOrigin.human(RevisionDetail.SILLYTAVERN_IMPORT, false)
-                            : RevisionOrigin.model(RevisionSource.GENERATE, node.alternative().model(), false, node.alternative().reasoning()));
+                    // the text was written elsewhere: an import is not the work of the author or of a model on this book
+                    (node.alternative().model() == null ? RevisionOrigin.human(RevisionDetail.SILLYTAVERN_IMPORT, false)
+                            : RevisionOrigin.model(RevisionSource.GENERATE, node.alternative().model(), false, node.alternative().reasoning()))
+                            .uncounted());
             stored.put(node, saved);
             last = saved;
             imported++;

@@ -57,6 +57,10 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
 
     @Autowired
     @Lazy
+    private ManuscriptSizeService sizeService;
+
+    @Autowired
+    @Lazy
     private AgentRunService agentRunService;
 
     @Autowired
@@ -116,7 +120,18 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     @CommonTx
     public ChatMessage save(ChatMessage message) throws Exception {
         agentRunService.checkNotLocked(message.getParentScript());
-        return super.save(message);
+        ChatMessage saved = super.save(message);
+        touchSize(saved);
+        return saved;
+    }
+
+    /**
+     * Says that the size of the book of the part may have changed, see {@link ManuscriptSizeService#touch}.
+     */
+    private void touchSize(ChatMessage message) {
+        if (message != null && message.getParentScript() != null) {
+            sizeService.touch(message.getParentScript().getId());
+        }
     }
 
     @Override
@@ -551,6 +566,7 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
             messagePromptService.hardDeleteForParts(List.of(message.getId()));
             messageRevisionService.hardDeleteForParts(List.of(message.getId()));
         }
+        touchSize(message);
         return super.delete(message, hard);
     }
 
