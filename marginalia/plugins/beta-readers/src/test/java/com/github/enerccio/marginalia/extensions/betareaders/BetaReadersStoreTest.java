@@ -245,4 +245,47 @@ class BetaReadersStoreTest {
 
         assertEquals("Archivist", chat.present().getFirst().getDescription());
     }
+
+    @Test
+    void theStoryOptionsOfAChatComeBackAndTheDefaultsAreTheWholeStoryWithSummaries() {
+        BookData data = new BookData();
+        BetaChat chat = new BetaChat("Chat", ChatKind.GROUP);
+        assertEquals(0, chat.getSpoilerLimit());
+        assertEquals(0, chat.getFromPart());
+        assertTrue(chat.isSummaries());
+        chat.setSpoilerLimit(12);
+        chat.setFromPart(4);
+        chat.setSummaries(false);
+        data.getChats().add(chat);
+        JsonObject attributes = new JsonObject();
+
+        BetaReadersStore.writeBook(attributes, data);
+        BetaChat read = BetaReadersStore.readBook(attributes).getChats().getFirst();
+
+        assertEquals(12, read.getSpoilerLimit());
+        assertEquals(4, read.getFromPart());
+        assertFalse(read.isSummaries());
+    }
+
+    @Test
+    void aChatStoredBeforeTheStoryOptionsReadsTheWholeStoryWithSummaries() {
+        JsonObject attributes = JsonParser.parseString(
+                "{\"" + BookData.KEY + "\": {\"chats\": [{\"title\": \"Old\"}]}}").getAsJsonObject();
+
+        BetaChat chat = BetaReadersStore.readBook(attributes).getChats().getFirst();
+
+        assertEquals(0, chat.getSpoilerLimit());
+        assertEquals(0, chat.getFromPart());
+        assertTrue(chat.isSummaries());
+    }
+
+    @Test
+    void aNegativeLimitIsNoLimit() {
+        BetaChat chat = new BetaChat("Chat", ChatKind.GROUP);
+        chat.setSpoilerLimit(-3);
+        chat.setFromPart(-1);
+
+        assertEquals(0, chat.getSpoilerLimit());
+        assertEquals(0, chat.getFromPart());
+    }
 }

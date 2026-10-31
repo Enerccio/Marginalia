@@ -20,6 +20,15 @@ public class BetaChat {
     /** Closed: the tab is not shown, the chat is kept and can be opened again. */
     private boolean closed;
 
+    /**
+     * What of the story the personas read: the last part they may read (the spoiler limit) and the first one they read, both places in the
+     * active branch from 1 (0: no limit, the start of the story), and whether the first message sends the summaries of the story that
+     * is before the parts it sends.
+     */
+    private int spoilerLimit;
+    private int fromPart;
+    private boolean summaries = true;
+
     private List<ChatPersona> personas = new ArrayList<>();
 
     /** The id of the medium of this chat; null: the inherited one. */
@@ -118,6 +127,30 @@ public class BetaChat {
 
     public void setClosed(boolean closed) {
         this.closed = closed;
+    }
+
+    public int getSpoilerLimit() {
+        return spoilerLimit;
+    }
+
+    public void setSpoilerLimit(int spoilerLimit) {
+        this.spoilerLimit = Math.max(0, spoilerLimit);
+    }
+
+    public int getFromPart() {
+        return fromPart;
+    }
+
+    public void setFromPart(int fromPart) {
+        this.fromPart = Math.max(0, fromPart);
+    }
+
+    public boolean isSummaries() {
+        return summaries;
+    }
+
+    public void setSummaries(boolean summaries) {
+        this.summaries = summaries;
     }
 
     public List<ChatPersona> getPersonas() {

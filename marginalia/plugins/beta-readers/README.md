@@ -3,8 +3,8 @@
 Personas you define and a chat about the book with them.
 
 **Status: under construction.** The configuration and the conversation work (the tab, the chats, the replies as they stream, the story sent
-as new parts, editing, deleting and regenerating, personas joining and leaving); the spoiler limit and the options of what the first
-message sends are still to come (the plan is in [TODO.md](TODO.md)).
+as new parts, editing, deleting and regenerating, personas joining and leaving); the plan for what is left (the manual, the pictures) is in
+[TODO.md](TODO.md)).
 
 ## Settings
 
@@ -36,3 +36,7 @@ You can edit and delete your messages and every message of a turn, **Regenerate*
 note for the group) or **Send away** one; the history keeps a line for each. **Update from the library** takes the current description and icon
 of a persona into the chat's copy. **Chat settings** changes the medium, model, protocol and reply format of a chat; a changed medium leaves a
 line in the history.
+
+**How much of the story the personas read** is set per chat (when it is started and in *Chat settings*): **Personas read up to part** (the spoiler
+limit), **Start from part** and **Use the summaries of the story** (the first message sends the summaries and then the parts after the newest
+of them, as far as they fit the context). A line under the text box says which parts the personas have read.

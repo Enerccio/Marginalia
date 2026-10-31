@@ -19,6 +19,7 @@ import com.github.enerccio.marginalia.extensions.betareaders.service.ChatEdits;
 import com.github.enerccio.marginalia.extensions.betareaders.service.ChatRunner;
 import com.github.enerccio.marginalia.extensions.betareaders.service.EmptyReplyException;
 import com.github.enerccio.marginalia.extensions.betareaders.service.NoModelException;
+import com.github.enerccio.marginalia.extensions.betareaders.service.PartsTracker;
 import com.github.enerccio.marginalia.extensions.betareaders.service.PartsTracker.Status;
 import com.github.enerccio.marginalia.extensions.betareaders.service.PersonaIcons;
 import com.github.enerccio.marginalia.extensions.betareaders.service.ReplyReader.Reading;
@@ -83,6 +84,7 @@ public class ChatPanel extends VerticalLayout {
     private final Button checkParts = new Button(Solid.ROTATE.create());
     private final Button send = new Button();
     private final Span context = new Span();
+    private final Span read = new Span();
 
     /** The request of the user, for the services the panel calls when a reply ends (on a thread that has none). */
     private RequestAttributes attributes;
@@ -106,7 +108,8 @@ public class ChatPanel extends VerticalLayout {
         setSpacing(false);
         addClassNames(CssStyles.MIN_HEIGHT_0, CssStyles.OVERFLOW_HIDDEN);
 
-        messages.setPadding(true);
+        messages.setPadding(false);
+        messages.addClassName(CssStyles.PADDING_COMPACT);
         messages.setAlignItems(Alignment.STRETCH);
         rebuildMessages();
         scroller.setSizeFull();
@@ -131,6 +134,12 @@ public class ChatPanel extends VerticalLayout {
                 new Span(chat.getKind() == ChatKind.SINGLE ? T.localized("A chat with one persona") : T.localized("A group chat")),
                 new Span(" · " + T.localized("Medium: %s").formatted(medium == null ? none : medium.getName())),
                 new Span(" · " + T.localized("Model: %s").formatted(model.ai() == null ? none : model.ai().getName())));
+        if (chat.getSpoilerLimit() > 0) {
+            about.add(new Span(" · " + T.localized("Reads up to part %d").formatted(chat.getSpoilerLimit())));
+        }
+        if (chat.getFromPart() > 1) {
+            about.add(new Span(" · " + T.localized("from part %d").formatted(chat.getFromPart())));
+        }
         about.addClassName(BetaReadersStyles.HINT);
 
         VerticalLayout personas = new VerticalLayout();
@@ -153,9 +162,9 @@ public class ChatPanel extends VerticalLayout {
         details.addOpenedChangeListener(event -> personasOpen = event.isOpened());
 
         VerticalLayout header = new VerticalLayout(about, details);
-        header.setPadding(true);
+        header.setPadding(false);
         header.setSpacing(false);
-        header.addClassName(BetaReadersStyles.BAR);
+        header.addClassNames(BetaReadersStyles.BAR, CssStyles.PADDING_COMPACT);
         return header;
     }
 
@@ -211,7 +220,7 @@ public class ChatPanel extends VerticalLayout {
     private Component composer() {
         input.setWidthFull();
         input.setPlaceholder(T.localized("Write to the beta readers..."));
-        ResizableTextArea.install(loc, input, "90px");
+        ResizableTextArea.install(loc, input, "64px");
         Shortcuts.addShortcutListener(input, this::send, Key.ENTER, KeyModifier.CONTROL);
 
         checkParts.addThemeName("tertiary");
@@ -234,13 +243,16 @@ public class ChatPanel extends VerticalLayout {
         row.setWidthFull();
         row.setAlignItems(Alignment.CENTER);
         row.setWrap(true);
+        row.setSpacing(false);
         row.setJustifyContentMode(JustifyContentMode.BETWEEN);
 
-        context.addClassName(BetaReadersStyles.HINT);
-        VerticalLayout composer = new VerticalLayout(input, row, context);
-        composer.setPadding(true);
+        // what the personas have read and how full the context is, in one line (two when the sidebar is narrow)
+        Div status = new Div(read, new Span(" "), context);
+        status.addClassName(BetaReadersStyles.HINT);
+        VerticalLayout composer = new VerticalLayout(input, row, status);
+        composer.setPadding(false);
         composer.setSpacing(false);
-        composer.addClassName(BetaReadersStyles.TOP);
+        composer.addClassNames(BetaReadersStyles.TOP, CssStyles.PADDING_COMPACT);
         return composer;
     }
 
@@ -576,6 +588,8 @@ public class ChatPanel extends VerticalLayout {
     private void refreshStatus(boolean check) {
         try {
             Status status = service.partsStatus(manuscript, chat);
+            String sent = PartsTracker.read(chat);
+            read.setText(sent.isEmpty() ? "" : T.localized("The personas have read: parts %s").formatted(sent));
             includeParts.setLabel(partsLabel(status));
             if (check) {
                 includeParts.setValue(status.pending());

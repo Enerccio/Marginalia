@@ -133,8 +133,18 @@ public final class PartsTracker {
      * @param maxNumber the last part the personas may read (the spoiler limit); 0 for no limit
      */
     public static Status status(BetaChat chat, List<StoryPart> branch, int maxNumber) {
+        return status(chat, branch, 0, maxNumber);
+    }
+
+    /**
+     * What including the parts would do now.
+     *
+     * @param minNumber the first part the personas read (earlier parts are not sent at all); 0 for the first part of the story
+     * @param maxNumber the last part the personas may read (the spoiler limit); 0 for no limit
+     */
+    public static Status status(BetaChat chat, List<StoryPart> branch, int minNumber, int maxNumber) {
         Map<String, SentPart> sent = sentBy(chat);
-        List<StoryPart> readable = readable(branch, maxNumber);
+        List<StoryPart> readable = readable(branch, minNumber, maxNumber);
         int added = 0;
         int changed = 0;
         for (StoryPart part : readable) {
@@ -159,10 +169,22 @@ public final class PartsTracker {
      */
     public static Plan plan(BetaChat chat, List<StoryPart> branch, Summaries summaries, int maxNumber, int maxTokens,
                             ToIntFunction<String> tokens) {
+        return plan(chat, branch, summaries, 0, maxNumber, maxTokens, tokens);
+    }
+
+    /**
+     * Works out what a message sends.
+     *
+     * @param minNumber the first part the personas read; 0 for the first part of the story. The summaries stand for the story from its
+     *                  beginning, so they are used only when the personas read from there
+     */
+    public static Plan plan(BetaChat chat, List<StoryPart> branch, Summaries summaries, int minNumber, int maxNumber, int maxTokens,
+                            ToIntFunction<String> tokens) {
         Map<String, SentPart> sent = sentBy(chat);
-        List<StoryPart> readable = readable(branch, maxNumber);
+        List<StoryPart> readable = readable(branch, minNumber, maxNumber);
+        Summaries usable = summaries == null || minNumber > 1 ? Summaries.NONE : summaries;
         return sent.isEmpty()
-                ? firstPlan(readable, summaries == null ? Summaries.NONE : summaries, maxTokens, tokens)
+                ? firstPlan(readable, usable, maxTokens, tokens)
                 : laterPlan(readable, sent, gone(sent, branch), maxTokens, tokens);
     }
 
@@ -253,10 +275,18 @@ public final class PartsTracker {
         return parts.stream().map(part -> new SentPart(part.id(), hash(part.text()), part.number())).toList();
     }
 
-    /** The parts the personas may read: not blank, and not after the limit. */
-    private static List<StoryPart> readable(List<StoryPart> branch, int maxNumber) {
+    /** The parts the personas may read: not blank, from the first part they read to the spoiler limit. */
+    private static List<StoryPart> readable(List<StoryPart> branch, int minNumber, int maxNumber) {
         return branch.stream().filter(part -> part.text() != null && !part.text().isBlank())
+                .filter(part -> minNumber <= 0 || part.number() >= minNumber)
                 .filter(part -> maxNumber <= 0 || part.number() <= maxNumber).toList();
+    }
+
+    /**
+     * The numbers of the parts the chat has been sent, as ranges ({@code 1-5, 8}); empty when it has been sent none.
+     */
+    public static String read(BetaChat chat) {
+        return ranges(sentBy(chat).values().stream().map(SentPart::getNumber).filter(number -> number > 0).toList());
     }
 
     private static List<SentPart> gone(Map<String, SentPart> sent, List<StoryPart> branch) {

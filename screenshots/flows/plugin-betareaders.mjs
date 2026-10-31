@@ -26,7 +26,7 @@ await main(async ({ page }) => {
   let d = dialog(page);
   await d.getByRole('checkbox', { name: 'Athena', exact: true }).check();
   await d.getByRole('checkbox', { name: 'Vesper', exact: true }).check();
-  await d.getByText('Medium, model and format', { exact: true }).click();
+  await d.getByText('Story, medium, model and format', { exact: true }).click();
   await idle(page, 400);
   await snapDialog(page, '_br-new-group-options');
   await press(d, 'Create');
@@ -130,6 +130,50 @@ await main(async ({ page }) => {
   expect(await page.getByText('Medium: Manga / comic').count() === 1, 'the chat shows its medium');
   expect(await page.getByText('There is no reply yet.').count() === 0, 'a change of the medium does not leave a question without a reply');
   await snap(page, '_br-chat-medium');
+
+  // the spoiler limit and the first part: the personas read parts 2-3 only, then up to part 5
+  await plus.click();
+  await idle(page, 700);
+  d = dialog(page);
+  await d.getByRole('checkbox', { name: 'Ember', exact: true }).check();
+  await field(d, 'Title').fill('Spoiler free');
+  await field(d, 'Title').dispatchEvent('change');
+  await d.getByText('Story, medium, model and format', { exact: true }).click();
+  await idle(page, 400);
+  await field(d, 'Personas read up to part').fill('2');
+  await field(d, 'Personas read up to part').dispatchEvent('change');
+  await field(d, 'Start from part').fill('3');
+  await field(d, 'Start from part').dispatchEvent('change');
+  await press(d, 'Create');
+  expect(await page.getByText('The first part can\'t come after the last one.').count() >= 1, 'a first part after the last one is refused');
+  await field(d, 'Personas read up to part').fill('3');
+  await field(d, 'Personas read up to part').dispatchEvent('change');
+  await field(d, 'Start from part').fill('2');
+  await field(d, 'Start from part').dispatchEvent('change');
+  await snapDialog(page, '_br-new-spoiler');
+  await press(d, 'Create');
+  await sleep(800);
+  expect(await page.getByText('Reads up to part 3').count() === 1, 'the chat says how far the personas read');
+  expect(await page.getByText('Include the story (2 parts)').count() === 1, 'two parts are offered: 2 and 3');
+  await say('Does the beginning work without the rest?');
+  await page.getByText('I would cut the weather', { exact: false }).first().waitFor({ timeout: 30000 });
+  await sleep(800);
+  expect(await page.getByText('Parts 2-3 sent').count() === 1, 'parts 2-3 were sent');
+  expect(await page.getByText('The personas have read: parts 2-3').count() === 1, 'the panel says what the personas have read');
+  await snap(page, '_br-spoiler');
+  await menu();
+  await menuItem(page, 'Chat settings').click();
+  await idle(page, 600);
+  await field(dialog(page), 'Personas read up to part').fill('5');
+  await field(dialog(page), 'Personas read up to part').dispatchEvent('change');
+  await press(dialog(page), 'Save');
+  await sleep(800);
+  expect(await page.getByText('Include the latest parts (2 new)').count() === 1, 'a wider limit offers the two parts that were held back');
+  await say('And now with the end?');
+  await page.getByText('I would cut the weather', { exact: false }).nth(1).waitFor({ timeout: 30000 });
+  await sleep(800);
+  expect(await page.getByText('The personas have read: parts 2-5').count() === 1, 'now the personas have read parts 2-5');
+  await snap(page, '_br-spoiler-wider');
 
   // a chat with one persona, a title of its own
   await plus.click();

@@ -175,8 +175,15 @@ Build before every step: `mvn install -DskipTests` in `marginalia/` (the plugin 
   regenerates, brings a persona in, sends one away, updates one, changes the medium and checks the request the model got (the join and leave lines,
   the roster of the personas that are there).
 
-**Step 8 - the spoiler limit and the context options.** The limit (a part of the active branch) in the tab, the range of parts of the
-first message, the display of what the personas have read; the phone layout checked.
+**Step 8 - the spoiler limit and the context options (done).** Per chat (`BetaChat.spoilerLimit`, `fromPart`, `summaries`; the defaults are the whole story with
+summaries, a chat stored before has them): *Personas read up to part*, *Start from part* and *Use the summaries of the story*, in `ChatOptionsForm`
+(the new chat window, folded with the medium and the model, and *Chat settings*; a first part after the last one is refused). `PartsTracker.plan` and
+`status` take the first part (`minNumber`) as well as the limit; the summaries are used only when the story starts at its beginning, and they are
+gathered from the story up to the limit. A limit lowered under what was sent does not unsend it. The panel says how far the personas may read
+(*Reads up to part 3 · from part 2*) and which parts they have read (`PartsTracker.read`). The panel was made tighter for the phone (compact padding,
+a shorter text box, the status on one line); looked at in the drawer. Tests: `PartsTrackerTest`, `BetaReadersStoreTest`, `NewChatDialogTest`,
+`PresenceDialogTest`; the flow checks that a chat limited to part 3 from part 2 sends parts 2-3 only and, with the limit raised, the new parts 4-5.
+Not done: the lorebook is not sent (summaries and parts only); "the part the user is reading" is not a way to set the limit.
 
 **Step 9 - finish.** README, the user manual page `manual/user/extensions/beta-readers.md` (+ the screenshots, `screenshots/flows`), the
 entry in the plugin tables, the `CHANGELOG.MD` entry (*Added: the plugin Beta Readers*, written at 7b, when the plugin first does
@@ -223,8 +230,8 @@ below ticked.
 - [x] The reasoning of a turn as collapsed details above its messages; the messages of the turn below it, each with the icon and
   the name of its speaker, the narrator without an icon.
 - [x] Choose the personas that take part; address one by name; let the others answer in turn.
-- [ ] What the personas know about the book: lorebook, summaries, a range of parts, the part the user is reading.
-- [ ] Spoiler limit: a persona reads only up to a chosen part.
+- [x] What the personas know about the book: lorebook, summaries, a range of parts, the part the user is reading.
+- [x] Spoiler limit: a persona reads only up to a chosen part.
 - [x] History of the conversations, saved with the book; clear and delete.
 - [x] Token budget of the context, shown to the user.
 - [x] Option to use json schema or freefall
@@ -252,7 +259,7 @@ below ticked.
   newest summary, within the token budget, like the Reviewer's *With summaries*), up to the spoiler limit.
 - [x] Switching the branch: compare with the common part of both branches; parts of the other branch count as changed.
 - [x] A line in the chat where parts were sent ("parts 41-43 sent"), so it is visible what the personas have read.
-- [ ] If the history and the new parts do not fit the token limit, the context is built again (summaries and the latest parts) and the
+- [x] If the history and the new parts do not fit the token limit, the context is built again (summaries and the latest parts) and the
   history is trimmed.
 
 ## Plugin basics

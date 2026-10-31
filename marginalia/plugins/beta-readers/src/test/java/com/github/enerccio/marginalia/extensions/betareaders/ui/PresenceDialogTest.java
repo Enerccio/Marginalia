@@ -87,7 +87,12 @@ class PresenceDialogTest {
         assertEquals("Big", dialog.options.ai.getValue().label());
         assertNull(dialog.options.protocol.getValue());
         assertEquals(ReplyFormat.TEXT, dialog.options.format.getValue());
+        assertNull(dialog.options.spoilerLimit.getValue());
+        assertTrue(dialog.options.summaries.getValue());
 
+        dialog.options.spoilerLimit.setValue(8);
+        dialog.options.fromPart.setValue(2);
+        dialog.options.summaries.setValue(false);
         dialog.options.medium.clear();
         dialog.options.ai.setValue(new Choice("ai-2", "Small"));
         click(dialog.save);
@@ -98,5 +103,13 @@ class PresenceDialogTest {
         assertEquals("ai-2", saved.getFirst().aiId());
         assertNull(saved.getFirst().protocolId());
         assertEquals(ReplyFormat.TEXT, saved.getFirst().replyFormat());
+
+        // applied to a chat that exists: everything but the medium (a change of that leaves a line in the history)
+        saved.getFirst().applyExceptMedium(chat);
+        assertEquals("manga", chat.getMedium());
+        assertEquals("ai-2", chat.getAi());
+        assertEquals(8, chat.getSpoilerLimit());
+        assertEquals(2, chat.getFromPart());
+        assertFalse(chat.isSummaries());
     }
 }

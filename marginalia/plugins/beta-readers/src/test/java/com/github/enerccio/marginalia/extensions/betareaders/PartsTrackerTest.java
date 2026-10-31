@@ -321,4 +321,58 @@ class PartsTrackerTest {
         assertEquals("1-2, 4-5, 9", PartsTracker.ranges(List.of(1, 2, 4, 5, 9)));
         assertEquals("", PartsTracker.ranges(List.of()));
     }
+
+    @Test
+    void thePersonasStartFromAPartAndNothingBeforeItIsSent() {
+        BetaChat chat = chat();
+        List<StoryPart> story = story("A", "B", "C", "D");
+
+        Plan first = PartsTracker.plan(chat, story, Summaries.NONE, 3, 0, 0, TOKENS);
+
+        assertEquals("[The story the author shows you]\n[Part 3]\nC\n[Part 4]\nD", first.text());
+        assertEquals(List.of("p3", "p4"), first.sent().stream().map(part -> part.getId()).toList());
+        assertEquals(2, PartsTracker.status(chat, story, 3, 0).count());
+        assertEquals(0, PartsTracker.status(chat, story, 3, 0).gone());
+    }
+
+    @Test
+    void theRangeHasTwoEndsAndTheSummariesAreNotUsedWhenTheStoryDoesNotStartAtTheBeginning() {
+        List<StoryPart> story = story("A", "B", "C", "D", "E");
+        Summaries summaries = new Summaries(List.of("Summary."), "p2");
+
+        Plan fromThree = PartsTracker.plan(chat(), story, summaries, 3, 4, 0, TOKENS);
+        Plan fromStart = PartsTracker.plan(chat(), story, summaries, 1, 4, 0, TOKENS);
+
+        assertEquals("[The story the author shows you]\n[Part 3]\nC\n[Part 4]\nD", fromThree.text());
+        assertEquals("[The story the author shows you]\nSummaries of the story so far:\nSummary.\n[Part 3]\nC\n[Part 4]\nD", fromStart.text());
+    }
+
+    @Test
+    void widerRangesSendWhatIsNewInIt() {
+        BetaChat chat = chat();
+        List<StoryPart> story = story("A", "B", "C", "D");
+        send(chat, PartsTracker.plan(chat, story, Summaries.NONE, 2, 3, 0, TOKENS), "Hi");
+
+        Plan wider = PartsTracker.plan(chat, story, Summaries.NONE, 2, 4, 0, TOKENS);
+
+        assertEquals("[New in the story since you last read it]\n[Part 4]\nD", wider.text());
+    }
+
+    @Test
+    void whatTheChatHasReadIsWrittenAsRanges() {
+        BetaChat chat = chat();
+        assertEquals("", PartsTracker.read(chat));
+
+        send(chat, plan(chat, story("A", "B", "C", "D", "E")), "Hi");
+        chat.getMessages().clear();
+        List<StoryPart> gapped = story("A", "B", "C", "D", "E");
+        BetaMessage message = BetaMessage.user("x");
+        message.getSentParts().add(new com.github.enerccio.marginalia.extensions.betareaders.model.SentPart("p1", "h", 1));
+        message.getSentParts().add(new com.github.enerccio.marginalia.extensions.betareaders.model.SentPart("p2", "h", 2));
+        message.getSentParts().add(new com.github.enerccio.marginalia.extensions.betareaders.model.SentPart("p5", "h", 5));
+        chat.getMessages().add(message);
+
+        assertEquals("1-2, 5", PartsTracker.read(chat));
+        assertEquals(5, gapped.size());
+    }
 }
