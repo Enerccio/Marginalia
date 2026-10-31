@@ -1014,6 +1014,81 @@ vaadin-dialog-overlay.phone-dialog::part(overlay) {
     white-space: nowrap;
 }
 
+/* Activity calendar of the statistics (ui.dialogs.statistics.ActivityCalendarView): a column per week, a square per day */
+.activity-calendar {
+    display: flex;
+    gap: 3px;
+    max-width: 100%;
+    overflow-x: auto;
+    padding-bottom: var(--lumo-space-xs);
+}
+
+.activity-calendar-week {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.activity-calendar-month {
+    height: 1.2em;
+    overflow: visible;
+    white-space: nowrap;
+    font-size: var(--lumo-font-size-xxs);
+    color: var(--lumo-secondary-text-color);
+}
+
+.activity-calendar-day {
+    width: 12px;
+    height: 12px;
+    flex: none;
+    border-radius: 2px;
+    background: var(--lumo-contrast-10pct);
+}
+
+.activity-calendar-level-1 {
+    background: color-mix(in srgb, var(--lumo-success-color) 35%, var(--lumo-contrast-10pct));
+}
+
+.activity-calendar-level-2 {
+    background: color-mix(in srgb, var(--lumo-success-color) 60%, var(--lumo-contrast-10pct));
+}
+
+.activity-calendar-level-3 {
+    background: color-mix(in srgb, var(--lumo-success-color) 80%, var(--lumo-contrast-10pct));
+}
+
+.activity-calendar-level-4 {
+    background: var(--lumo-success-color);
+}
+
+.activity-calendar-today {
+    outline: 2px solid var(--lumo-primary-color);
+    outline-offset: -1px;
+}
+
+.activity-calendar-legend {
+    align-items: center;
+    font-size: var(--lumo-font-size-xs);
+    color: var(--lumo-secondary-text-color);
+}
+
+.activity-goal {
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-s);
+    font-size: var(--lumo-font-size-s);
+}
+
+.activity-goal-line {
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-xs);
+}
+
+.activity-goal-bar {
+    max-width: 20em;
+}
+
 vaadin-grid::part(statistic-growth-up) {
     color: var(--lumo-success-text-color);
 }

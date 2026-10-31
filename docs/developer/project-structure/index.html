@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846742728558">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846755110708">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846742728558" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846755110708" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846742728558" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846755110708" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846742728558" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846755110708" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -284,7 +284,7 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 <h3 id="bound---startup-and-sessions"><code translate="no" v-pre>bound</code> - startup and sessions</h3>
 <retype-table copy-text="| File | |
 |---|---|
-| `ApplicationInitializer.java` | Runs registered `Migration`s when the stored `AppSettings` versions are behind (`bound/migration`: `EncryptApiKeysMigration`, `FulltextMigration`, `PartRevisionMigration`, `VersionHistoryPermissionMigration`, `OriginalResponseMigration`, `PermissionsMigration`, see [Database &amp; migrations](database.md)). |
+| `ApplicationInitializer.java` | Runs registered `Migration`s when the stored `AppSettings` versions are behind (`bound/migration`: `EncryptApiKeysMigration`, `FulltextMigration`, `PartRevisionMigration`, `VersionHistoryPermissionMigration`, `StatisticsBackfillMigration`, `OriginalResponseMigration`, `PermissionsMigration`, see [Database &amp; migrations](database.md)). |
 | `Migration.java` | Interface of data migrations in Java (schema migrations are Flyway SQL). |
 | `SessionManager.java` | The `sessionManager` bean: registry of all HTTP sessions, binds the logged-in user to them, runs code in other users' sessions (`runForUsers`) and closes dead UIs and sessions on its watcher thread. See [Sessions](architecture.md#sessions). |
 | `SessionTrackingListener.java` | `HttpSessionListener` registered by `WebappApplicationInitializer`; forwards session creation and destruction to `SessionManager`. |
@@ -305,7 +305,7 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 <tbody>
 <tr>
 <td><code translate="no" v-pre>ApplicationInitializer.java</code></td>
-<td>Runs registered <code translate="no" v-pre>Migration</code>s when the stored <code translate="no" v-pre>AppSettings</code> versions are behind (<code translate="no" v-pre>bound/migration</code>: <code translate="no" v-pre>EncryptApiKeysMigration</code>, <code translate="no" v-pre>FulltextMigration</code>, <code translate="no" v-pre>PartRevisionMigration</code>, <code translate="no" v-pre>VersionHistoryPermissionMigration</code>, <code translate="no" v-pre>OriginalResponseMigration</code>, <code translate="no" v-pre>PermissionsMigration</code>, see <a href="../database/">Database &amp; migrations</a>).</td>
+<td>Runs registered <code translate="no" v-pre>Migration</code>s when the stored <code translate="no" v-pre>AppSettings</code> versions are behind (<code translate="no" v-pre>bound/migration</code>: <code translate="no" v-pre>EncryptApiKeysMigration</code>, <code translate="no" v-pre>FulltextMigration</code>, <code translate="no" v-pre>PartRevisionMigration</code>, <code translate="no" v-pre>VersionHistoryPermissionMigration</code>, <code translate="no" v-pre>StatisticsBackfillMigration</code>, <code translate="no" v-pre>OriginalResponseMigration</code>, <code translate="no" v-pre>PermissionsMigration</code>, see <a href="../database/">Database &amp; migrations</a>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>Migration.java</code></td>
@@ -1510,7 +1510,7 @@ ignored by Git), see <a href="../packaging/#building-the-plugins-in-docker">Pack
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (e7fa16c14).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (07ee16dea).</p></div>
             </footer>
         </div>
     </div>

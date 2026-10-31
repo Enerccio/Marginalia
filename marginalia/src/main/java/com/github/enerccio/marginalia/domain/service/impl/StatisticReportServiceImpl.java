@@ -1,6 +1,8 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.domain.collections.ActivityKind;
 import com.github.enerccio.marginalia.domain.collections.StatisticRange;
+import com.github.enerccio.marginalia.domain.collections.StatisticSide;
 import com.github.enerccio.marginalia.domain.components.*;
 import com.github.enerccio.marginalia.domain.components.BookStatistic.BookState;
 import com.github.enerccio.marginalia.domain.components.StatisticReport.BookLine;
@@ -83,6 +85,40 @@ public class StatisticReportServiceImpl implements StatisticReportService {
         List<BookLine> books = book == null ? booksOf(filter, growths, before, sizeRows) : List.of();
         return new StatisticReport(filter, statisticService.total(filter), intervalService.times(filter), days, books,
                 SizeSeries.build(before, sizeRows, from, filter.to()), SizeSeries.sum(growths.values()), timeSince());
+    }
+
+    @Override
+    public WritingActivity activity(String bookUuid) throws Exception {
+        LocalDate today = statisticService.today();
+        StatisticFilter filter = new StatisticFilter(StatisticRange.BEGINNING, today, StatisticSide.AUTHOR, bookUuid);
+        Map<LocalDate, StatisticCounts> counts = new HashMap<>();
+        statisticService.sumByDay(filter).forEach(day -> counts.put(day.day(), day.counts()));
+        Map<LocalDate, Date> last = new HashMap<>();
+        Set<LocalDate> rebuilt = new HashSet<>();
+        for (ManuscriptStatistic row : statisticService.findRange(filter)) {
+            if (row.getLastChange() != null) {
+                last.merge(row.getDay(), row.getLastChange(), (a, b) -> a.after(b) ? a : b);
+            }
+            if (row.isReconstructed()) {
+                rebuilt.add(row.getDay());
+            }
+        }
+        List<ActivityRow> rows = intervalService.findRows(filter, List.of(ActivityKind.EDIT));
+        Map<LocalDate, Long> edit = new HashMap<>();
+        TimeUnion.byDay(rows).forEach((day, times) -> edit.put(day, times.edit()));
+        for (ActivityRow row : rows) {
+            last.merge(row.day(), row.endTime(), (a, b) -> a.after(b) ? a : b);
+        }
+        WritingGoal goal = WritingGoal.NONE;
+        if (bookUuid == null) {
+            UserSetting setting = settingService.getOrCreate(UserSetting.class);
+            goal = new WritingGoal(orZero(setting.getDailyGoalWords()), orZero(setting.getDailyGoalMinutes()));
+        }
+        return WritingActivity.of(today, counts, edit, last, rebuilt, goal, timeSince());
+    }
+
+    private static int orZero(Integer value) {
+        return value == null ? 0 : value;
     }
 
     /**

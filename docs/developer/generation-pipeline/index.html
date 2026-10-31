@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846742728558">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846755110708">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846742728558" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846755110708" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846742728558" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846755110708" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846742728558" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846742728558" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846755110708" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846755110708" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -599,6 +599,20 @@ tokens. Without a report (the provider doesn&#x27;t send it, or the request was 
 arrived with <code translate="no" v-pre>countTokensApprox</code>. It is recorded once, when the stream completes, is stopped (<code translate="no" v-pre>terminateInference</code>, cancellation) or fails
 after some text arrived; a request that fails before any text is not counted. The stream threads have no request, so the service takes
 the <code translate="no" v-pre>ThreadCopyRequestAttributes</code> of the thread that called <code translate="no" v-pre>stream</code> and records inside it (<code translate="no" v-pre>currentUser</code> resolves).</p>
+<p>The same request is counted for the <strong>book</strong> it was made for (the tokens column of the <a href="../domain-model/#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize">writing statistics</a>):
+the caller opens a <code translate="no" v-pre>UsageContext</code> (a thread-local scope like <code translate="no" v-pre>UnmeteredScope</code>, <code translate="no" v-pre>try (UsageContext _ = UsageContext.open(book)) { service.stream(...); }</code>)
+around the call that starts the request; <code translate="no" v-pre>OpenAICompatibleInferenceService</code> reads <code translate="no" v-pre>UsageContext.current()</code> once in that thread, keeps the id of the
+book in its <code translate="no" v-pre>Request</code> and opens it again around <code translate="no" v-pre>UsageService.record</code> in the stream threads. <code translate="no" v-pre>UsageServiceImpl.record</code> then adds the tokens
+(<code translate="no" v-pre>StatisticCounts.tokens</code>, one request) to the day&#x27;s row of the book through <code translate="no" v-pre>ManuscriptStatisticService.count</code>, whoever the user is: the row is
+the owner&#x27;s of the book, and a thread without a user counts for the book too. A call without a context counts for the AI only. The generation
+(<code translate="no" v-pre>InferenceStep</code>), summaries, impersonate, redraft, annotate (all its stages) and the agent runs (the working copy, see the agents note
+of the statistics) open it; an unmetered request counts for nobody. An extension AI does what the Anthropic and Google plugins do: reads
+<code translate="no" v-pre>UsageContext.current()</code> in the thread that starts the request and reopens it around its <code translate="no" v-pre>UsageService.record</code>; a plugin that asks a model for
+a book opens the scope around its call.</p>
+<p>The same context decides the <strong>generation time</strong> of the book (the <code translate="no" v-pre>GENERATE</code> stretches of the <code translate="no" v-pre>ActivityTracker</code>): <code translate="no" v-pre>OpenAICompatibleInferenceService</code>
+registers the request with <code translate="no" v-pre>ActivityTracker.generate(book)</code> when a metered request has a book, from before it is sent to the end of its answer, the stop or the failure (a
+request with function calls registers each round on its own: the time the functions take between the rounds is not the model&#x27;s, and the tracker keeps the stretch open
+for 2 s so the next round of an agent joins it). An extension AI has no hook for it yet.</p>
 <p>Before a request is built, <code translate="no" v-pre>stream</code> asks <code translate="no" v-pre>AILimitService.check(ai, promptTokens, reservedTokens)</code> (with our estimate of the payload and the response size the request reserves): a user with the AI not available or over their token limit gets an
 <code translate="no" v-pre>InferenceException</code> (<code translate="no" v-pre>NOT_AVAILABLE</code>, <code translate="no" v-pre>LIMIT_REACHED</code>) in the caller&#x27;s thread and nothing is sent, so the steps, summaries and
 extensions handle it like any provider failure. The limits are described in the <a href="../domain-model/#limits-of-the-users-of-a-shared-ai">domain model</a>.</p>
@@ -992,7 +1006,7 @@ wait for it to finish. See <a href="../testing/">Testing</a>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (e7fa16c14).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (07ee16dea).</p></div>
             </footer>
         </div>
     </div>

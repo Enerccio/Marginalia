@@ -48,6 +48,13 @@ run shoot-folders.mjs                             # folders made through the UI,
 on 13-db-backup
 run shoot-history.mjs                             # changes the last part (edits, a redraft), names a version: a copy, discarded
 on 13-db-backup
+# the statistics of the dataset are one or two days: the application makes its tables (it was just started), then a year of history is
+# written into them (bin/seed-statistics.py, the application stopped) and the daily goals are set by the flow
+"$SHOT_ROOT/bin/stop-app.sh" >/dev/null
+python3 bin/seed-statistics.py "$SHOT_HOME/.marginalia/marginalia.sqlite"
+"$SHOT_ROOT/bin/start-app.sh" >/dev/null
+run shoot-statistics.mjs                          # the goals in the Settings, the statistics windows (book, all books, phone): a copy, discarded
+on 13-db-backup
 run shoot-books-extra.mjs                        # imports a lorebook with subbooks and a book from a zip: a copy, discarded
 on 22-arcoutline
 run shoot-agents.mjs                             # four agents with runs (the fake model answers from its queue), three more books: a copy, discarded

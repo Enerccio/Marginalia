@@ -111,6 +111,8 @@ public class UserPart implements WorkspaceComponent {
     private ComboBox<BackupStrategy> backupStrategyCombo;
     private IntegerField backupStrategyValueField;
     private IntegerField storyPartsLimitField;
+    private IntegerField dailyGoalWordsField;
+    private IntegerField dailyGoalMinutesField;
     private HistoryLimitField historyLimitField;
     // the message to a URL when an agent needs the user, for users who may use agents
     private TextField agentWebhookUrlField;
@@ -187,6 +189,7 @@ public class UserPart implements WorkspaceComponent {
         defaultsFormLayout.add(new HorizontalLayout(backupStrategyCombo, backupStrategyValueField));
         defaultsFormLayout.add(storyPartsLimitField);
         defaultsFormLayout.add(historyLimitField);
+        defaultsFormLayout.add(dailyGoalWordsField, dailyGoalMinutesField);
         defaultsFormLayout.add(agentWebhookUrlField, 2);
         defaultsFormLayout.add(agentWebhookFormatCombo, agentWebhookAlwaysBox);
         defaultsFormLayout.add(agentWebhookTestButton, 2);
@@ -387,6 +390,11 @@ public class UserPart implements WorkspaceComponent {
 
         historyLimitField = new HistoryLimitField(loc.getValue(L.LABEL_HISTORY_MAX_VERSIONS));
 
+        dailyGoalWordsField = goalField(L.LABEL_DAILY_GOAL_WORDS);
+        dailyGoalMinutesField = goalField(L.LABEL_DAILY_GOAL_MINUTES);
+        // one help text for the two goals
+        dailyGoalMinutesField.setHelperText(null);
+
         agentWebhookUrlField = new TextField(loc.getValue(L.LABEL_AGENT_WEBHOOK_URL));
         agentWebhookUrlField.setWidthFull();
         agentWebhookUrlField.setClearButtonVisible(true);
@@ -537,6 +545,20 @@ public class UserPart implements WorkspaceComponent {
      * The address, its format and the wish for the message while the application is open, into the setting. Only for a user who
      * sees them: they are hidden where the administrator turned the messages off, and what was set stays then.
      */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = IntegerField.class),
+            parameters = {@APIParameter(name = "label", type = L.class)},
+            locals = {@APILocals(name = "field", type = IntegerField.class)})
+    private IntegerField goalField(L label) {
+        IntegerField field = new IntegerField(loc.getValue(label));
+        field.setWidthFull();
+        field.setMin(1);
+        field.setStepButtonsVisible(true);
+        field.setClearButtonVisible(true);
+        field.setHelperText(loc.getValue(L.HELP_DAILY_GOAL));
+        return field;
+    }
+
     @PublicAPI(from = "1.4.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "userSetting", type = UserSetting.class)},
@@ -665,6 +687,8 @@ public class UserPart implements WorkspaceComponent {
 
             storyPartsLimitField.setValue(userSetting.getStoryPartsLimit());
             historyLimitField.load(userSetting.getHistoryMaxVersions(), manuscriptService.resolvePermissionHistoryLimit());
+            dailyGoalWordsField.setValue(userSetting.getDailyGoalWords());
+            dailyGoalMinutesField.setValue(userSetting.getDailyGoalMinutes());
             masterTemplateField.setValue(StringUtils.defaultString(userSetting.getMasterTemplate()));
             defaultPovField.setValue(StringUtils.defaultString(userSetting.getDefaultPov()));
             defaultTenseField.setValue(StringUtils.defaultString(userSetting.getDefaultTense()));
@@ -839,6 +863,8 @@ public class UserPart implements WorkspaceComponent {
             Integer storyPartsLimit = storyPartsLimitField.getValue();
             userSetting.setStoryPartsLimit(storyPartsLimit != null && storyPartsLimit > 0 ? storyPartsLimit : null);
             userSetting.setHistoryMaxVersions(historyLimitField.getValue());
+            userSetting.setDailyGoalWords(dailyGoalWordsField.getValue());
+            userSetting.setDailyGoalMinutes(dailyGoalMinutesField.getValue());
 
             userSetting.setMasterTemplate(masterTemplate);
             userSetting.setDefaultPov(defaultPov);

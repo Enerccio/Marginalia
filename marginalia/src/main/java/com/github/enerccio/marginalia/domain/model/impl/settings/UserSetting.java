@@ -237,6 +237,37 @@ public class UserSetting extends Setting {
     @Transient
     private Integer historyMaxVersions;
 
+    /**
+     * The words the author wants to write on a day, over all the books, for the goal and the streak of the statistics; null or
+     * zero is no goal.
+     */
+    @ExtendedAttribute
+    @Transient
+    private Integer dailyGoalWords;
+
+    /**
+     * The minutes the author wants to spend editing on a day, over all the books; null or zero is no goal.
+     */
+    @ExtendedAttribute
+    @Transient
+    private Integer dailyGoalMinutes;
+
+    public Integer getDailyGoalWords() {
+        return dailyGoalWords;
+    }
+
+    public void setDailyGoalWords(Integer dailyGoalWords) {
+        this.dailyGoalWords = dailyGoalWords;
+    }
+
+    public Integer getDailyGoalMinutes() {
+        return dailyGoalMinutes;
+    }
+
+    public void setDailyGoalMinutes(Integer dailyGoalMinutes) {
+        this.dailyGoalMinutes = dailyGoalMinutes;
+    }
+
     public boolean isHelpAssistantBooks() {
         return helpAssistantBooks != null && helpAssistantBooks;
     }

@@ -94,6 +94,7 @@ unlock them.
 | **Backup Strategy** | Automatic [book backups](books/backups.md#automatic-backups) for books without their own strategy: *No Backups*, *After N Messages* or *After N Minutes*, with the number next to it. |
 | **Versions kept per part** | How many earlier versions of the text of a part the [history](books/version-history.md#how-many-versions-are-kept) keeps for all your books, unless a folder, a book or the administrator limits it more. Empty sets no limit here; **0** keeps no history. |
 | **Parts loaded at once in the story** | How many parts of a book the [story](books/story-editor.md) and the [viewer](books/publishing.md) keep loaded. The story starts with the last parts, the viewer where you stopped reading (or the first parts); the parts before and after are loaded as you scroll and the ones far from you are dropped again. Empty loads all the parts at once. |
+| **Daily goal: words written**, **Daily goal: minutes of editing** | The goal of a day for the calendar of the [writing statistics](books/statistics.md#the-daily-goal): the words you write yourself and the minutes you edit, over all your books. Empty is no goal. |
 
 *Default Model* and *Default Protocol* are used only when a book is created; changing them doesn't change existing
 books. The [Lore Generator](extensions/lore-generator.md) extension has no book and generates with them. The backup strategy applies to all books without a *Per manuscript override*, from their next generated part.

@@ -522,7 +522,7 @@ transaction, retried on a lock; it runs once and writes nothing for a book that 
   one `RUN` row and a few hundred `GENERATE` rows (thanks to the linger) a day. A year is in the tens of thousands of rows, and the
   "All time" union is a sweep over them; if that ever gets slow, the old days can be compacted (merge the touching rows of a key,
   lossless) or cached per month. Not needed for the first version.
-- **Goals, streaks and a calendar widget (later, a fun feature, display only).** Nothing in the data model is needed for it, it is
+- ✅ **Goals, streaks and a calendar widget (done as a last tab *Calendar* of the statistics windows: `WritingActivity` / `WritingGoal`, `StatisticReportService.activity`, `ActivityCalendarView`, the goals in `UserPart`; the goal and the goal streak are for all books only, the shade of a book goes by its busiest day).** Nothing in the data model is needed for it, it is
   all read from the rows that exist: a widget (in the book window and in the global view) that marks every **day the book was
   worked on**, like a contribution calendar (a grid of days, shade by words written or time spent editing, the last activity
   time as the tooltip from `lastChange` / the end of the last interval), the current and the longest **streak** of days in a row,

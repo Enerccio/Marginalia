@@ -120,6 +120,12 @@ The story tab is one column of parts. The differences from the [story editor](bo
 
   ![The version history of a part on a phone](../images/phone-history.png)
 
+- **Statistics** is in the settings menu of the story (the statistics of the book) and a button in the header of the list of books
+  (all books). The window is a full screen page; its calendar shows the last 16 weeks (a year on the desktop), see
+  [Writing statistics](books/statistics.md).
+
+  ![The statistics of all books on a phone](../images/phone-statistics.png)
+
 - The [summaries](books/summaries.md) overview keeps a fixed width and scrolls sideways.
 
 ## What is missing

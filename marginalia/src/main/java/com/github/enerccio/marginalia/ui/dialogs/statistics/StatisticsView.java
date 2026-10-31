@@ -81,6 +81,7 @@ public class StatisticsView extends VerticalLayout {
     private Checkbox showDeleted;
     private RadioButtonGroup<Boolean> sizeUnit;
     private ComboBox<StatisticCharts.BookMetric> metric;
+    private ActivityCalendarView calendar;
     private ChartJs wordsChart, timeChart, tokensChart, sizeChart, growthChart, booksChart;
 
     /**
@@ -129,6 +130,9 @@ public class StatisticsView extends VerticalLayout {
             addTab(loc.getValue(L.LABEL_BOOKS), createBooks(), null);
             addTab(loc.getValue(L.LABEL_STATISTICS_BY_BOOK), createByBook(), this::renderByBook);
         }
+        calendar = new ActivityCalendarView(bookUuid, compact);
+        calendar.create();
+        addTab(loc.getValue(L.LABEL_STATISTICS_CALENDAR), calendar, calendar::load);
         tabs.addSelectedChangeListener(_ -> renderSelected());
         add(totals, notes, tabs);
         reload();
@@ -150,6 +154,10 @@ public class StatisticsView extends VerticalLayout {
 
     Checkbox showDeleted() {
         return showDeleted;
+    }
+
+    ActivityCalendarView calendar() {
+        return calendar;
     }
 
     TabSheet tabs() {

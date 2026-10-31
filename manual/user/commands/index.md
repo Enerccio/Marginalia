@@ -143,6 +143,8 @@ changes the book; **No** leaves everything as it was. The question stays until y
 | `/preview-lore-activation <text> [limit]`, `/preview-lore-activation <part> <branch> <limit>` | Which entries a generation would use for a text, or for a turn like the one that made a part, and why (no filter, filter found - in the text, or in the content of another entry when the lorebook has a [scan depth](../lorebooks/entries.md#entries-brought-in-by-other-entries) - or not used because it is switched off, a tag of the book decides, or the filter is not in the text), with the lore text and its tokens. The text may be the handle of a part. |
 | `/list-annotations [status [part [offset [limit]]]]` | The [annotations](../books/annotations.md) of the book or of a part: the open ones unless `status` says `resolved`, `dismissed`, `orphaned` or `all`. |
 | `/get-annotation <annotation>` | One annotation in full, with the text around its passage. |
+| `/get-book-statistics [range] [side]` | What was done to the open book day by day (tokens, words, parts, edits, time, size): see [Writing statistics](../books/statistics.md#commands). |
+| `/get-statistics [range] [by] [side]` | The same for all your books, by day or by book. Needs no open book. |
 
 ### Reading the story
 

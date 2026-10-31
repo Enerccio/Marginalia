@@ -87,7 +87,7 @@ Application code lives in `com.github.enerccio.marginalia` (paths below are rela
 
 | File | |
 |---|---|
-| `ApplicationInitializer.java` | Runs registered `Migration`s when the stored `AppSettings` versions are behind (`bound/migration`: `EncryptApiKeysMigration`, `FulltextMigration`, `PartRevisionMigration`, `VersionHistoryPermissionMigration`, `OriginalResponseMigration`, `PermissionsMigration`, see [Database & migrations](database.md)). |
+| `ApplicationInitializer.java` | Runs registered `Migration`s when the stored `AppSettings` versions are behind (`bound/migration`: `EncryptApiKeysMigration`, `FulltextMigration`, `PartRevisionMigration`, `VersionHistoryPermissionMigration`, `StatisticsBackfillMigration`, `OriginalResponseMigration`, `PermissionsMigration`, see [Database & migrations](database.md)). |
 | `Migration.java` | Interface of data migrations in Java (schema migrations are Flyway SQL). |
 | `SessionManager.java` | The `sessionManager` bean: registry of all HTTP sessions, binds the logged-in user to them, runs code in other users' sessions (`runForUsers`) and closes dead UIs and sessions on its watcher thread. See [Sessions](architecture.md#sessions). |
 | `SessionTrackingListener.java` | `HttpSessionListener` registered by `WebappApplicationInitializer`; forwards session creation and destruction to `SessionManager`. |

@@ -863,6 +863,16 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_GROWTH_WORDS, "Growth (words)");
         setValue(L.LABEL_GROWTH_TOKENS, "Growth (tokens)");
         setValue(L.LABEL_COMMAND_GET_BOOK_STATISTICS, "Book statistics");
+        setValue(L.LABEL_STATISTICS_CALENDAR, "Calendar");
+        setValue(L.LABEL_STREAK_CURRENT, "Current streak (days)");
+        setValue(L.LABEL_STREAK_LONGEST, "Longest streak (days)");
+        setValue(L.LABEL_STREAK_GOAL_CURRENT, "Goal streak (days)");
+        setValue(L.LABEL_STREAK_GOAL_LONGEST, "Longest goal streak (days)");
+        setValue(L.LABEL_DAYS_WORKED, "Days worked on");
+        setValue(L.LABEL_DAILY_GOAL_WORDS, "Daily goal: words written");
+        setValue(L.LABEL_DAILY_GOAL_MINUTES, "Daily goal: minutes of editing");
+        setValue(L.LABEL_LESS, "Less");
+        setValue(L.LABEL_MORE, "More");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1488,6 +1498,12 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_STATISTICS_TIME_SINCE, "The time is recorded from %s; the days before show none.");
         setValue(L.MSG_STATISTICS_RECONSTRUCTED, "%d of the days were rebuilt from the history of the parts (marked ~): an estimate, the tokens are only a floor.");
         setValue(L.MSG_STATISTICS_RECONSTRUCTED_DAY, "Rebuilt from the history of the parts: an estimate");
+        setValue(L.MSG_STATISTICS_CALENDAR_NOTE, "A day counts as worked on when you wrote words, edited, created a part or spent time editing; what the agents did and opening a book do not count.");
+        setValue(L.MSG_STATISTICS_CALENDAR_NONE, "%s – nothing recorded");
+        setValue(L.MSG_STATISTICS_CALENDAR_DAY, "%s – %s words written, %s editing");
+        setValue(L.MSG_STATISTICS_CALENDAR_LAST, ", last activity at %s");
+        setValue(L.MSG_GOAL_PROGRESS_WORDS, "Today: %s of %s words");
+        setValue(L.MSG_GOAL_PROGRESS_MINUTES, "Today: %s of %s minutes of editing");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1585,6 +1601,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_MASS_RENAME, "Pick how to rename the books and check the books: the column New name shows the result. A numbering counts the checked books in the order of the list; in the pattern {name} is the current name and {n} the number. Books an agent works on are grayed out and can't be renamed.");
         setValue(L.HELP_HISTORY_MAX_VERSIONS, "How many versions of a part the history keeps (the ones in the trash count). Empty: this level sets no limit. 0 keeps no history. The strictest of the book, its folders, your settings and the limit of the administrator applies. The first generated version and the saved ones are kept besides.");
         setValue(L.HELP_VERSION_HISTORY_PERMISSION, "The most versions of a part the history of the user's books keeps. Empty: no limit from the administrator. A user without this permission has 50; a permission that is not granted keeps no history.");
+        setValue(L.HELP_DAILY_GOAL, "The goals of the calendar of the statistics, over all the books: the words you write yourself (not the generated ones) and the minutes you edit on a day. A day that reaches every goal that is set counts for the goal streak. Empty is no goal.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

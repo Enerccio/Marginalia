@@ -145,6 +145,17 @@ public final class CssStyles {
     public static final String STATISTIC_TOTAL_ITEM = "statistic-total-item";
     public static final String STATISTIC_GROWTH_UP = "statistic-growth-up";
     public static final String STATISTIC_GROWTH_DOWN = "statistic-growth-down";
+    public static final String ACTIVITY_CALENDAR = "activity-calendar";
+    public static final String ACTIVITY_CALENDAR_WEEK = "activity-calendar-week";
+    public static final String ACTIVITY_CALENDAR_MONTH = "activity-calendar-month";
+    public static final String ACTIVITY_CALENDAR_DAY = "activity-calendar-day";
+    /** The prefix of the shade classes, the level (0 to 4) follows it. */
+    public static final String ACTIVITY_CALENDAR_LEVEL = "activity-calendar-level-";
+    public static final String ACTIVITY_CALENDAR_TODAY = "activity-calendar-today";
+    public static final String ACTIVITY_CALENDAR_LEGEND = "activity-calendar-legend";
+    public static final String ACTIVITY_GOAL = "activity-goal";
+    public static final String ACTIVITY_GOAL_LINE = "activity-goal-line";
+    public static final String ACTIVITY_GOAL_BAR = "activity-goal-bar";
 
     public static final String PROMPT_COMPARE_FIRST_DIFFERENCE = "prompt-compare-first-difference";
     public static final String PROMPT_COMPARE_LOST = "prompt-compare-lost";

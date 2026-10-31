@@ -246,10 +246,16 @@ A command that changes the UI does it on the UI thread: from a synchronous comma
 The package `domain.service.impl.commands.manuscript.read` holds one class per command (`GetBookInfoCommand`, `ListPartsCommand`,
 `GetPartCommand`, `ListSwipesCommand`, `ListBranchesCommand`, `GetPartMetricsCommand`, `ShowPromptCommand`, `SearchPartsCommand`,
 `FindOccurrencesCommand`, `ComparePartsCommand`, `CountTokensCommand`, `ListSummariesCommand`, `GetSummaryCommand`,
-`CheckSummariesCommand`, `GetTemplateVariablesCommand`), each a `@Configurable` suite registered by `CommandServiceImpl`. They share
+`CheckSummariesCommand`, `GetTemplateVariablesCommand`, `GetBookStatisticsCommand`, `GetStatisticsCommand`), each a `@Configurable` suite registered by `CommandServiceImpl`. They share
 `ManuscriptReadSupport` (the services, the `Book` loaded again from the current manuscript, the JSON helpers) and `StoryTree` (the
 parts as a tree, with the numbers of the branches). All are `NON_DESTRUCTIVE`, synchronous and answer JSON text.
 
+- **Statistics.** `get-book-statistics [range] [side]` (the open book, day by day) and `get-statistics [range] [by] [side]` (all the books of the
+  author: `by` is `day`, the default, or `book`, the books in the order of their words, with `handle`, `name`, `folder` and `deleted`, also the
+  books that are gone) answer from `StatisticReportService`. The `range` is a name of `StatisticRange` (`today`, `yesterday`, `last-7-days`, the
+  default, `last-30-days`, `this-month`, `all-time`), a day (`2026-03-14`) or two (`2026-03-01..2026-03-14`); the `side` is `all`, the default,
+  `me` or `agents`. The numbers are the counts, the time in minutes (`minutesOpen`, `minutesEditing`, `minutesGenerating`, `minutesAgentsRunning`:
+  the union, so books that ran together are counted once) and the growth of the size. `get-statistics` needs no open book.
 - **Handles, positions and numbers.** Every row of an answer has a `handle`, the uuid of the part (an agent sees it as `h:m17`: the
   border of the agent turns the uuids of its copy into handles and back, see `CommandCage`; a command knows nothing of it). A part
   parameter is a `String` that `Book.locate(part, branch)` reads as a handle (`CommandScope.resolveMessage`, so only a part of the
