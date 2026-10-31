@@ -270,17 +270,39 @@ public class BetaReadersService {
         Manuscript current = currentBook(manuscript);
         String template = manuscriptService.resolveExtension(current, chat.getKind() == ChatKind.SINGLE
                 ? BetaReadersInherited.SINGLE_PROMPT : BetaReadersInherited.GROUP_PROMPT).value();
-        String mediumId = chat.getMedium() != null && !chat.getMedium().isBlank() ? chat.getMedium()
-                : manuscriptService.resolveExtension(current, BetaReadersInherited.MEDIUM).value();
-        return renderPrompt(template, mediumPrompt(settingsOrDefaults(), mediumId));
+        Medium medium = resolveMedium(manuscript, chat);
+        return renderPrompt(template, medium == null ? "" : medium.getPrompt());
     }
 
     /**
-     * The prompt fragment of the medium; the built-in one when the user's list lost it, empty when there is none.
+     * The medium of the chat: its own choice, else the one of the settings chain. Null when there is none (the medium was deleted
+     * and is not a built-in one either).
+     *
+     * @param chat the chat; null for what a chat of this book would inherit
      */
-    static String mediumPrompt(BetaReadersSettings settings, String id) {
+    public Medium resolveMedium(Manuscript manuscript, BetaChat chat) throws Exception {
+        String id = chat != null && chat.getMedium() != null && !chat.getMedium().isBlank() ? chat.getMedium()
+                : manuscriptService.resolveExtension(currentBook(manuscript), BetaReadersInherited.MEDIUM).value();
+        return findMedium(settingsOrDefaults(), id);
+    }
+
+    /**
+     * The medium with the id: from the list of the user, else a built-in one (the user's list lost it); null when there is none.
+     */
+    static Medium findMedium(BetaReadersSettings settings, String id) {
         return java.util.stream.Stream.concat(settings.getMediums().stream(), BetaReadersDefaults.builtInMediums().stream())
-                .filter(medium -> medium.getId().equals(id)).map(Medium::getPrompt).findFirst().orElse("");
+                .filter(medium -> medium.getId().equals(id)).findFirst().orElse(null);
+    }
+
+    /**
+     * Remembers which chat tab is open in the book.
+     */
+    public void setActiveChat(Manuscript manuscript, String uuid) throws Exception {
+        BookData data = loadCurrentBook(manuscript);
+        if (!java.util.Objects.equals(data.getActiveChat(), uuid)) {
+            data.setActiveChat(uuid);
+            saveBook(manuscript, data);
+        }
     }
 
     /**

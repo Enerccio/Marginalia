@@ -16,6 +16,8 @@ public class BetaChat {
     private ChatKind kind = ChatKind.GROUP;
     private ReplyFormat format = ReplyFormat.AUTO;
     private long created = System.currentTimeMillis();
+    /** Closed: the tab is not shown, the chat is kept and can be opened again. */
+    private boolean closed;
 
     private List<ChatPersona> personas = new ArrayList<>();
 
@@ -106,6 +108,14 @@ public class BetaChat {
 
     public void setCreated(long created) {
         this.created = created;
+    }
+
+    public boolean isClosed() {
+        return closed;
+    }
+
+    public void setClosed(boolean closed) {
+        this.closed = closed;
     }
 
     public List<ChatPersona> getPersonas() {
