@@ -13,12 +13,11 @@ import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.SubMenu;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.menubar.MenuBar;
-import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
@@ -51,7 +50,8 @@ public class BetaReadersView extends VerticalLayout {
     private final Map<Tab, BetaChat> tabChats = new HashMap<>();
 
     private final Tabs tabs = new Tabs();
-    private final MenuBar menu = new MenuBar();
+    private final Button menuButton = new Button(Solid.ELLIPSIS_VERTICAL.create());
+    private final ContextMenu menu = new ContextMenu(menuButton);
     private final Div content = new Div();
     private BetaChat active;
     private boolean refreshing;
@@ -76,9 +76,13 @@ public class BetaReadersView extends VerticalLayout {
         add.addThemeName("small");
         add.setTooltipText(T.localized("New chat"));
         add.setAriaLabel(T.localized("New chat"));
-        menu.addThemeVariants(MenuBarVariant.LUMO_TERTIARY, MenuBarVariant.LUMO_SMALL);
+        menuButton.addThemeName("tertiary");
+        menuButton.addThemeName("small");
+        menuButton.setAriaLabel(T.localized("Chats"));
+        menuButton.setTooltipText(T.localized("Chats"));
+        menu.setOpenOnClick(true);
 
-        HorizontalLayout bar = new HorizontalLayout(tabs, add, menu);
+        HorizontalLayout bar = new HorizontalLayout(tabs, add, menuButton);
         bar.setWidthFull();
         bar.setAlignItems(Alignment.CENTER);
         bar.setSpacing(false);
@@ -168,9 +172,7 @@ public class BetaReadersView extends VerticalLayout {
 
     private void rebuildMenu() {
         menu.removeAll();
-        MenuItem root = menu.addItem(Solid.ELLIPSIS_VERTICAL.create());
-        root.getElement().setAttribute("aria-label", T.localized("Chats"));
-        SubMenu sub = root.getSubMenu();
+        ContextMenu sub = menu;
         sub.addItem(T.localized("New chat"), _ -> newChat());
         sub.addItem(T.localized("Rename chat"), _ -> rename()).setEnabled(active != null);
         sub.addItem(T.localized("Close chat"), _ -> close()).setEnabled(active != null);

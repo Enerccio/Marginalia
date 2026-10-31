@@ -14,6 +14,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.CheckboxGroup;
 import com.vaadin.flow.component.checkbox.CheckboxGroupVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -111,7 +112,12 @@ public class NewChatDialog extends Dialog {
         format.setWidthFull();
         format.setHelperText(T.localized("Automatic asks for JSON when the model can follow a schema, free text otherwise"));
 
-        VerticalLayout content = new VerticalLayout(kind, kindHint, title, singlePersona, groupPersonas, medium, ai, protocol, format);
+        // what a chat may choose for itself is out of the way: most chats inherit all of it
+        VerticalLayout options = new VerticalLayout(medium, ai, protocol, format);
+        options.setPadding(false);
+        Details optionsSection = new Details(T.localized("Medium, model and format"), options);
+
+        VerticalLayout content = new VerticalLayout(kind, kindHint, title, singlePersona, groupPersonas, optionsSection);
         content.setPadding(false);
         add(content);
         showPersonaChoice();

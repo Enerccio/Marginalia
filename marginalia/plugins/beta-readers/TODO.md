@@ -148,8 +148,10 @@ Build before every step: `mvn install -DskipTests` in `marginalia/` (the plugin 
   book* with the `PersonaLibraryDialog`, *Closed chats* to open one again). A closed chat is kept (`BetaChat.closed`), the open tab is remembered
   in the book (`BookData.activeChat`). `NewChatDialog` (kind, title, personas from the library and the book, medium, model, protocol and reply
   format; what is left empty is inherited and the field says from what). `ChatPanel` shows what the chat is made of (kind, medium, model, the
-  personas with icons, the ones who left greyed); the conversation is 7b. Tests: `NewChatDialogTest`. Not tried in a running application yet: the
-  tab (desktop and phone drawer), the dialog and the menu.
+  personas with icons, the ones who left greyed); the conversation is 7b. Tests: `NewChatDialogTest`. Tried in the screenshot environment
+  (`screenshots/flows/plugin-betareaders.mjs`, on a copy of `22-arcoutline`: the tab, the dialog, the menu, rename, close and reopen, the personas
+  of the book, delete, the chats kept after a reload; the phone drawer by hand). The menu is a button with a context menu (a menu bar moved its
+  one item into its overflow), the options of the dialog are folded away.
 - 7b: the messages (`ui/BetaMessageCard`: the icon and name of the speaker, the narrator without an icon, the reasoning as collapsed
   details above the turn), the composer (the text, *Include the latest parts* with the count of new parts, send / stop), streaming
   with the unfinished message hidden, the token counter, the line where parts were sent.
