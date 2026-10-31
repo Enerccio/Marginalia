@@ -14,13 +14,14 @@ import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersL
 
 /**
  * The settings of the plugin that books and folders inherit (see {@code InheritedSettingRegistry}): the prompts of the two kinds of
- * chat, the medium and the AI and the protocol of the chats. Their user level is the settings of the user
+ * chat, the scene, the medium and the AI and the protocol of the chats. Their user level is the settings of the user
  * ({@link BetaReadersSettings}), their last level the built-in text (or, for the AI and the protocol, the ones of the book).
  */
 public final class BetaReadersInherited {
 
     public static final String SINGLE_PROMPT = "betareaders.singlePrompt";
     public static final String GROUP_PROMPT = "betareaders.groupPrompt";
+    public static final String SCENE = "betareaders.scene";
     public static final String MEDIUM = "betareaders.medium";
     public static final String AI = "betareaders.ai";
     public static final String PROTOCOL = "betareaders.protocol";
@@ -29,7 +30,7 @@ public final class BetaReadersInherited {
     }
 
     /**
-     * Registers the five settings.
+     * Registers the six settings.
      *
      * @param owner     the symbolic name of the bundle
      * @param settings  the settings of the user to read the user level from; it must not write (it is asked when a setting is resolved)
@@ -48,6 +49,11 @@ public final class BetaReadersInherited {
                 .help(() -> T.localized("The system prompt of a chat with a group of personas"))
                 .userValue(() -> settings.get().getGroupPrompt())
                 .fallback(() -> BetaReadersDefaults.GROUP_PROMPT));
+        registry.register(owner, InheritedSetting.textArea(SCENE, () -> T.localized("Scene"))
+                .group(() -> T.localized("Beta Readers"))
+                .help(() -> T.localized("Where and how the conversation takes place; it is sent in the system prompt of every chat"))
+                .userValue(() -> settings.get().getScene())
+                .fallback(() -> BetaReadersDefaults.SCENE));
         registry.register(owner, InheritedSetting.choice(MEDIUM, () -> T.localized("Medium"),
                         () -> settings.get().getMediums().stream().map(BetaReadersInherited::choice).toList())
                 .group(() -> T.localized("Beta Readers"))

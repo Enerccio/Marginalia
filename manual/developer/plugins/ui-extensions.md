@@ -311,7 +311,8 @@ if (panel == null) {
 // UserPart.save, on ENTER: put the form's values into the user's settings object...
 UserSetting userSetting = context.getReflectiveFieldValue(instrumented, "userSetting", UserSetting.class);
 reviewerService.saveSettings(form.save(), userSetting);     // writes into userSetting.getAttributes()
-// ...which the body of save() then stores with settingService.save(userSetting)
+// ...which the body of save() then stores with settingService.save(userSetting): it loads the setting again first (other code writes it
+// too) and takes over the attributes of this object, so what you wrote into getAttributes() is kept
 ```
 
 Changes in the panel's fields are tracked like the application's own: any value change outside of

@@ -260,6 +260,35 @@ class ChatEditsTest {
     }
 
     @Test
+    void changingTheSceneLeavesALineInTheHistoryThatTheModelReads() {
+        BetaChat chat = group();
+        chat.getMessages().add(BetaMessage.user("Hi"));
+        chat.getMessages().add(turn("Athena"));
+
+        assertTrue(ChatEdits.changeScene(chat, "  A rainy bar.  ", "A rainy bar."));
+        chat.getMessages().add(BetaMessage.user("Now?"));
+
+        assertEquals("A rainy bar.", chat.getScene());
+        assertEquals(MessageKind.SCENE, chat.getMessages().get(2).getKind());
+        var messages = PromptBuilder.build(chat, "P", new Options(true, true, 0, 0, null)).messages();
+        assertTrue(messages.getLast().getContent().startsWith("[The scene is now: A rainy bar.]\n\nNow?"));
+    }
+
+    @Test
+    void theSameSceneLeavesNoLineAndAnEmptyOneIsTheInheritedOne() {
+        BetaChat chat = group();
+        assertTrue(ChatEdits.changeScene(chat, "A bar", "A bar"));
+        assertTrue(chat.getMessages().isEmpty(), "a chat without history needs no line");
+        chat.getMessages().add(BetaMessage.user("Hi"));
+
+        assertFalse(ChatEdits.changeScene(chat, "A bar", "A bar"));
+        assertTrue(ChatEdits.changeScene(chat, " ", "An online chat"));
+
+        assertNull(chat.getScene());
+        assertEquals("An online chat", chat.getMessages().getLast().getText());
+    }
+
+    @Test
     void theSameMediumLeavesNoLineAndAnEmptyChatNeedsNone() {
         BetaChat chat = group();
         assertTrue(ChatEdits.changeMedium(chat, "manga", "Manga"));

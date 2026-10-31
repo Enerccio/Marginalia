@@ -154,6 +154,12 @@ Ending: the cabinet in the room hums, a knock comes from inside it, and Draconia
 // parts: [{type, text}]}]}); the fake model writes it as JSON, or as `**Name:** *action* speech` paragraphs when the chat wants free text.
 const a = text => ({ type: 'action', text });
 const s = text => ({ type: 'speech', text });
+export const betaPersona = {
+  brief: 'A reader who only cares about who did it and why',
+  name: 'Rook',
+  description: 'The Plot Hound. Reads for the mystery and keeps a list of suspects as she goes. She notices every unexplained detail and every convenient coincidence, likes a fair clue and cannot stand a culprit who comes from nowhere.',
+};
+
 export const betaReaders = [
   {
     kind: 'group',

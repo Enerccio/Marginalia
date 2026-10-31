@@ -247,6 +247,8 @@ public class UserPart implements WorkspaceComponent {
 
         extensionSettings = new Accordion();
         extensionSettings.setSizeFull();
+        // the first panel is open by default; the panels are added by the extensions and the user opens the one wanted
+        extensionSettings.close();
         tabSheet.add(loc.getValue(L.LABEL_EXTENSION_SETTINGS), extensionSettings);
 
         mainLayout.add(headerLayout, tabSheet);

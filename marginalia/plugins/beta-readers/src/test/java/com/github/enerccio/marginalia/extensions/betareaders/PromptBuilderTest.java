@@ -47,6 +47,18 @@ class PromptBuilderTest {
     }
 
     @Test
+    void theSceneGoesAfterThePromptUnlessThePromptPlacesIt() {
+        assertEquals("Prompt.\n\nThe scene of the conversation:\nA bar.", PromptBuilder.withScene("Prompt.", "Prompt.", " A bar. "));
+        assertEquals("Prompt in A bar.", PromptBuilder.withScene("Prompt in {{scene}}", "Prompt in A bar.", "A bar."));
+        assertEquals("X", PromptBuilder.withScene("{{#scene}}x{{/scene}}", "X", "A bar."));
+        assertEquals("X", PromptBuilder.withScene("{{{ scene }}}", "X", "A bar."));
+        assertEquals("Prompt.", PromptBuilder.withScene("Prompt.", "Prompt.", ""));
+        assertEquals("Prompt.", PromptBuilder.withScene("Prompt.", "Prompt.", null));
+        assertTrue(PromptBuilder.withScene("About the sceneries", "About the sceneries", "A bar.").endsWith("A bar."),
+                "a word that only starts like it is not the variable");
+    }
+
+    @Test
     void theSystemMessageIsThePromptAndTheDescriptionOfTheAnswer() {
         BetaChat chat = group(athena());
         chat.getMessages().add(BetaMessage.user("Hello"));

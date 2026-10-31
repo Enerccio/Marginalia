@@ -13,5 +13,7 @@ public enum MessageKind {
     /** A line the user left when a persona left the group. */
     LEAVE,
     /** A line the chat leaves when its medium is changed: the text is now read as another medium (its name is in the text). */
-    MEDIUM
+    MEDIUM,
+    /** A line the chat leaves when its scene is changed (the new scene is in the text). */
+    SCENE
 }

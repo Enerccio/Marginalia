@@ -22,13 +22,23 @@ import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersL
  */
 public class PersonaLibraryDialog extends LibraryDialog<Persona> {
 
+    private final PersonaGenerator generator;
+
     /**
      * @param title   what the dialog says, like "Persona library"
      * @param source  the personas, which are not changed
      * @param onApply told with the new list after <i>Save</i>
      */
     public PersonaLibraryDialog(String title, List<Persona> source, Consumer<List<Persona>> onApply) {
+        this(title, source, null, onApply);
+    }
+
+    /**
+     * @param generator lets the model write a persona in the window of a persona; null for no such button
+     */
+    public PersonaLibraryDialog(String title, List<Persona> source, PersonaGenerator generator, Consumer<List<Persona>> onApply) {
         super(title, source, Persona::copy, Persona::duplicate, onApply);
+        this.generator = generator;
         Button starters = new Button(T.localized("Add the starter personas"), Solid.USERS.create(), _ -> addStarters());
         starters.setTooltipText(T.localized("Adds the personas the plugin comes with that are not in the list"));
         addToolbarButton(starters);
@@ -61,7 +71,8 @@ public class PersonaLibraryDialog extends LibraryDialog<Persona> {
      * The window that edits one persona.
      */
     protected PersonaDialog createEditor(String header, Persona persona, Predicate<String> nameTaken, Runnable done) {
-        return new PersonaDialog(header, persona, nameTaken, done);
+        return new PersonaDialog(header, persona, nameTaken, done, generator,
+                () -> items().stream().map(Persona::getName).filter(name -> name != null && !name.isBlank()).toList());
     }
 
     @Override

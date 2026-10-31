@@ -54,6 +54,14 @@ public final class BetaReadersDefaults {
             {{/medium}}
             """;
 
+    /**
+     * The scene of the chats when nothing sets one: an online chat. It goes into the system prompt after the prompt, unless the prompt
+     * has {@code {{scene}}} in it.
+     */
+    public static final String SCENE = """
+            The conversation is an online chat: the author and the personas write to each other from wherever they are, as people do in \
+            a chat room. Keep the messages short and conversational, the way people type.""";
+
     /** The id of the medium the chats use when nothing chooses one. */
     public static final String DEFAULT_MEDIUM = "book";
 

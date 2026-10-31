@@ -24,7 +24,7 @@ import {
   snapDialog
 } from '../lib/shot.mjs';
 import {sideTab, widenSidebar} from '../lib/story.mjs';
-import {betaReaders} from '../dataset/plugins.mjs';
+import {betaPersona, betaReaders} from '../dataset/plugins.mjs';
 
 const expect = (ok, what) => { if (!ok) throw new Error('expected: ' + what); console.log('  ok:', what); };
 
@@ -47,7 +47,18 @@ async function install(page) {
   console.log('  installed beta-readers');
 }
 
+/** The system messages of the requests the fake model got since `offset` (the log keeps the requests of all runs). */
+function systemMessagesSince(offset) {
+  const file = path.join(repo, 'screenshots/.run/llm-requests.jsonl');
+  const text = fs.readFileSync(file).subarray(offset).toString('utf8');
+  return text.split('\n').filter(Boolean).map(line => {
+    try { return JSON.parse(line).messages?.[0]?.content ?? ''; } catch { return ''; }
+  });
+}
+
 await main(async ({ page }) => {
+  const logFile = path.join(repo, 'screenshots/.run/llm-requests.jsonl');
+  const logStart = fs.existsSync(logFile) ? fs.statSync(logFile).size : 0;
   await login(page);
   await install(page);
   await goto(page, '/');
@@ -71,6 +82,14 @@ await main(async ({ page }) => {
   await press(dialog(page), 'Add');
   await idle(page, 600);
   let pd = dialog(page);
+  // the model writes the name and the description from a few words
+  await field(pd, 'What the persona is like').fill(betaPersona.brief);
+  await field(pd, 'What the persona is like').dispatchEvent('change');
+  await press(pd, 'Write with the model');
+  await page.waitForFunction(value => [...document.querySelectorAll('vaadin-dialog[opened] input')].some(i => i.value === value), betaPersona.name, { timeout: 30000 });
+  expect(await field(pd, 'Name').inputValue() === betaPersona.name, 'the model wrote the name');
+  expect((await field(pd, 'Description').inputValue()).startsWith('The Plot Hound.'), 'the model wrote the description');
+  await snapDialog(page, 'plugin-betareaders-write-persona');
   await field(pd, 'Name').fill('Rook');
   await field(pd, 'Name').dispatchEvent('change');
   await field(pd, 'Description').fill('Reads for the plot and wants to know who did it.');
@@ -185,8 +204,10 @@ await main(async ({ page }) => {
   expect(await page.getByText('quiet, confident opening', { exact: false }).count() === 0, 'one message of a turn is deleted');
   expect(await page.getByText('I would cut the weather', { exact: false }).count() === 1, 'the rest of the turn stays');
   await page.getByRole('button', { name: 'Regenerate', exact: true }).click();
-  await page.getByText('Let the motives show', { exact: false }).first().waitFor({ timeout: 30000 });
+  // the old reply goes at once; the new one is there when the last turn can be regenerated again
   await sleep(800);
+  await page.getByRole('button', { name: 'Regenerate', exact: true }).waitFor({ timeout: 30000 });
+  await sleep(500);
   expect(await page.getByText('Let the motives show', { exact: false }).count() === 1, 'the last reply is asked for again, and there is one');
   expect(await page.getByRole('button', { name: 'Regenerate', exact: true }).count() === 1, 'only the last turn can be regenerated');
   await button('Delete message').first().click();   // the first message of the user sent the story
@@ -229,9 +250,20 @@ await main(async ({ page }) => {
   await menuItem(page, 'Chat settings').click();
   await idle(page, 600);
   await pick(dialog(page), 'Medium', 'Manga / comic');
+  await field(dialog(page), 'Scene').fill('A rainy bar after closing time. The chairs are on the tables.');
+  await field(dialog(page), 'Scene').dispatchEvent('change');
   await snapDialog(page, 'plugin-betareaders-chat-settings');
   await press(dialog(page), 'Save');
   await sleep(800);
+  expect(await page.getByText('The scene is now: A rainy bar after closing time.').count() === 1, 'the scene change is a line of the history');
+  await say('One more thing: the ending?');
+  // the reply is there when the last turn offers to be regenerated
+  await sleep(500);
+  await page.getByRole('button', { name: 'Regenerate' }).waitFor({ timeout: 30000 });
+  await sleep(800);
+  const systems = systemMessagesSince(logStart).filter(system => system.includes('beta reader'));
+  expect(systems.some(system => system.includes('The conversation is an online chat')), 'the built-in scene (an online chat) is in the system prompt of a chat that sets none');
+  expect(systems.some(system => system.includes('The scene of the conversation:\nA rainy bar after closing time.')), 'the scene of the chat is in its system prompt');
   expect(await page.getByText('From now on the text is read as: Manga / comic').count() === 1, 'the medium change is a line of the history');
   expect(await page.getByText('Medium: Manga / comic').count() === 1, 'the chat shows its medium');
   expect(await page.getByText('There is no reply yet.').count() === 0, 'a change of the medium does not leave a question without a reply');

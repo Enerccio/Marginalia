@@ -31,6 +31,8 @@ public class BetaChat {
 
     private List<ChatPersona> personas = new ArrayList<>();
 
+    /** The scene of this chat; null: the inherited one. */
+    private String scene;
     /** The id of the medium of this chat; null: the inherited one. */
     private String medium;
     /** The uuids of the AI and the protocol of this chat (the highest priority); null: the inherited ones. */
@@ -159,6 +161,14 @@ public class BetaChat {
 
     public void setPersonas(List<ChatPersona> personas) {
         this.personas = personas;
+    }
+
+    public String getScene() {
+        return scene;
+    }
+
+    public void setScene(String scene) {
+        this.scene = scene;
     }
 
     public String getMedium() {
