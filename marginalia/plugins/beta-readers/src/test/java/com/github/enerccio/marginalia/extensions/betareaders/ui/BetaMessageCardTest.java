@@ -2,7 +2,10 @@ package com.github.enerccio.marginalia.extensions.betareaders.ui;
 
 import com.github.enerccio.marginalia.extensions.betareaders.model.*;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.html.Image;
 import org.junit.jupiter.api.AfterEach;
@@ -174,5 +177,100 @@ class BetaMessageCardTest {
         assertTrue(text(turn).contains("thinking more"));
         assertFalse(text(turn).contains("thinking thinking"));
         assertEquals(1, all(turn).filter(Image.class::isInstance).count());
+    }
+
+    /** Remembers what the buttons asked for. */
+    private static class Recorder implements BetaMessageCard.Actions {
+        final java.util.List<String> calls = new java.util.ArrayList<>();
+
+        @Override
+        public void edit(BetaMessage message) {
+            calls.add("edit " + message.getText());
+        }
+
+        @Override
+        public void delete(BetaMessage message) {
+            calls.add("delete " + message.getKind());
+        }
+
+        @Override
+        public void deleteSpoken(BetaMessage turn, int index) {
+            calls.add("deleteSpoken " + index);
+        }
+
+        @Override
+        public void regenerate() {
+            calls.add("regenerate");
+        }
+    }
+
+    private static void click(Component root, String tooltip) {
+        Button button = all(root).filter(Button.class::isInstance).map(Button.class::cast)
+                .filter(b -> tooltip.equals(b.getTooltip().getText()) || tooltip.equals(b.getText())).findFirst()
+                .orElseThrow(() -> new AssertionError("No button " + tooltip));
+        ComponentUtil.fireEvent(button, new ClickEvent<>(button));
+    }
+
+    @Test
+    void aMessageOfTheUserHasButtonsToEditAndDeleteIt() {
+        Recorder recorder = new Recorder();
+        Component card = BetaMessageCard.create(chat(), BetaMessage.user("Hello"), recorder, false);
+
+        click(card, "Edit message");
+        click(card, "Delete message");
+
+        assertEquals(List.of("edit Hello", "delete USER"), recorder.calls);
+    }
+
+    @Test
+    void everyMessageOfATurnCanBeDeletedAndTheLastTurnAskedForAgain() {
+        Recorder recorder = new Recorder();
+        BetaMessage reply = BetaMessage.assistant("", List.of(
+                spoken("Athena", PartType.SPEECH, "Hi"), spoken("Vesper", PartType.SPEECH, "Hm")));
+        Component last = BetaMessageCard.create(chat(), reply, recorder, true);
+        Component earlier = BetaMessageCard.create(chat(), reply, recorder, false);
+
+        List<Button> trash = all(last).filter(Button.class::isInstance).map(Button.class::cast)
+                .filter(b -> "Delete message".equals(b.getTooltip().getText())).toList();
+        ComponentUtil.fireEvent(trash.get(1), new ClickEvent<>(trash.get(1)));
+        click(last, "Regenerate");
+
+        assertEquals(2, trash.size());
+        assertEquals(List.of("deleteSpoken 1", "regenerate"), recorder.calls);
+        assertTrue(all(earlier).filter(Button.class::isInstance).map(Button.class::cast).noneMatch(b -> "Regenerate".equals(b.getText())));
+    }
+
+    @Test
+    void aTurnWithoutMessagesCanBeDeletedAsAWhole() {
+        Recorder recorder = new Recorder();
+        BetaMessage broken = BetaMessage.assistant("", List.of());
+        broken.setRawText("Lost.");
+
+        click(BetaMessageCard.create(chat(), broken, recorder, false), "Delete message");
+
+        assertEquals(List.of("delete ASSISTANT"), recorder.calls);
+    }
+
+    @Test
+    void aLineAboutAPersonaOrTheMediumCanBeDeleted() {
+        Recorder recorder = new Recorder();
+        BetaMessage medium = BetaMessage.user("Manga");
+        medium.setKind(MessageKind.MEDIUM);
+
+        Component joined = BetaMessageCard.create(chat(), BetaMessage.joined(new Persona("Nox", "N"), ""), recorder, false);
+        Component changed = BetaMessageCard.create(chat(), medium, recorder, false);
+        click(joined, "Delete message");
+        click(changed, "Delete message");
+
+        assertEquals(List.of("delete JOIN", "delete MEDIUM"), recorder.calls);
+        assertTrue(text(changed).contains("From now on the text is read as: Manga"));
+    }
+
+    @Test
+    void cardsWithoutActionsHaveNoButtons() {
+        BetaMessage reply = BetaMessage.assistant("", List.of(spoken("Athena", PartType.SPEECH, "Hi")));
+
+        assertTrue(all(BetaMessageCard.create(chat(), reply)).noneMatch(Button.class::isInstance));
+        assertTrue(all(BetaMessageCard.create(chat(), BetaMessage.user("Hi"))).noneMatch(Button.class::isInstance));
     }
 }

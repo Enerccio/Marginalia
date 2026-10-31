@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.extensions.betareaders.model.BetaChat;
 import com.github.enerccio.marginalia.extensions.betareaders.model.BookData;
 import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersService;
 import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersService.Model;
+import com.github.enerccio.marginalia.extensions.betareaders.service.ChatEdits;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
@@ -184,6 +185,7 @@ public class BetaReadersView extends VerticalLayout {
         sub.addItem(T.localized("New chat"), _ -> newChat());
         sub.addItem(T.localized("Rename chat"), _ -> rename()).setEnabled(active != null);
         sub.addItem(T.localized("Close chat"), _ -> close()).setEnabled(active != null);
+        sub.addItem(T.localized("Chat settings"), _ -> settings()).setEnabled(active != null);
         sub.addItem(T.localized("Delete chat"), _ -> delete()).setEnabled(active != null);
         sub.addSeparator();
         sub.addItem(T.localized("Personas of this book"), _ -> editBookPersonas());
@@ -202,13 +204,43 @@ public class BetaReadersView extends VerticalLayout {
                 Notification.warning(T.localized("There is no persona to talk to. Add some to the library in the settings, or to this book."));
                 return;
             }
-            Model model = service.resolveModel(manuscript, null);
-            var medium = service.resolveMedium(manuscript, null);
             new NewChatDialog(personas, service.settingsOrDefaults().getMediums(), service.aiChoices(), service.protocolChoices(),
-                    new NewChatDialog.Inherited(medium == null ? null : medium.getName(),
-                            model.ai() == null ? null : model.ai().getName(),
-                            model.protocol() == null ? null : model.protocol().getName()),
-                    this::created).open();
+                    inherited(), this::created).open();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * What a chat of this book gets when it chooses nothing.
+     */
+    private ChatOptionsForm.Inherited inherited() throws Exception {
+        Model model = service.resolveModel(manuscript, null);
+        var medium = service.resolveMedium(manuscript, null);
+        return new ChatOptionsForm.Inherited(medium == null ? null : medium.getName(),
+                model.ai() == null ? null : model.ai().getName(), model.protocol() == null ? null : model.protocol().getName());
+    }
+
+    private void settings() {
+        BetaChat chat = active;
+        if (chat == null) {
+            return;
+        }
+        try {
+            new ChatSettingsDialog(chat, service.settingsOrDefaults().getMediums(), service.aiChoices(), service.protocolChoices(),
+                    inherited(), form -> {
+                        try {
+                            chat.setAi(form.aiId());
+                            chat.setProtocol(form.protocolId());
+                            chat.setFormat(form.replyFormat());
+                            // the line that says the medium changed is for the model: it reads what was said before as said about the old one
+                            ChatEdits.changeMedium(chat, form.mediumId(), form.mediumName());
+                            service.saveChat(manuscript, chat);
+                            showPanel();
+                        } catch (Exception e) {
+                            UIUtils.internalServerError(loc, e);
+                        }
+                    }).open();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }

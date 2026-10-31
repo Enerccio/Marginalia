@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReaders
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * A chat of a book, shown as a tab: its personas (copies), its settings that override the inherited ones, and its history.
@@ -27,7 +28,8 @@ public class BetaChat {
     private String ai;
     private String protocol;
 
-    private List<BetaMessage> messages = new ArrayList<>();
+    /** A list that can be read while the reply of the model, which ends on another thread, is added to it. */
+    private List<BetaMessage> messages = new CopyOnWriteArrayList<>();
 
     public BetaChat() {
     }
@@ -155,7 +157,7 @@ public class BetaChat {
     }
 
     public void setMessages(List<BetaMessage> messages) {
-        this.messages = messages;
+        this.messages = new CopyOnWriteArrayList<>(messages);
     }
 
     /**
@@ -165,7 +167,7 @@ public class BetaChat {
         kind = kind == null ? ChatKind.GROUP : kind;
         format = format == null ? ReplyFormat.AUTO : format;
         personas = personas == null ? new ArrayList<>() : personas;
-        messages = messages == null ? new ArrayList<>() : messages;
+        messages = messages == null ? new CopyOnWriteArrayList<>() : new CopyOnWriteArrayList<>(messages);
         messages.forEach(BetaMessage::normalize);
         return this;
     }

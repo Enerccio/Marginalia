@@ -202,6 +202,7 @@ public final class PromptBuilder {
             case USER -> ((message.getContext().isBlank() ? "" : message.getContext().strip() + "\n\n") + message.getText().strip()).strip();
             case JOIN -> presence(message, "joins the conversation");
             case LEAVE -> presence(message, "leaves the conversation");
+            case MEDIUM -> "[From now on the text is read as: " + message.getText().strip() + ".]";
             case ASSISTANT -> assistant(message, options);
         };
     }

@@ -243,4 +243,63 @@ class ChatEditsTest {
         assertEquals(6, BetaReadersDefaults.maxMessages(ChatKind.GROUP, 3));
         assertEquals(8, BetaReadersDefaults.maxMessages(ChatKind.GROUP, 12));
     }
+
+    @Test
+    void changingTheMediumLeavesALineInTheHistoryThatTheModelReads() {
+        BetaChat chat = group();
+        chat.getMessages().add(BetaMessage.user("Hi"));
+        chat.getMessages().add(turn("Athena"));
+
+        assertTrue(ChatEdits.changeMedium(chat, "manga", "Manga / comic"));
+        chat.getMessages().add(BetaMessage.user("Now?"));
+
+        assertEquals("manga", chat.getMedium());
+        assertEquals(MessageKind.MEDIUM, chat.getMessages().get(2).getKind());
+        var messages = PromptBuilder.build(chat, "P", new Options(true, true, 0, 0, null)).messages();
+        assertTrue(messages.getLast().getContent().startsWith("[From now on the text is read as: Manga / comic.]\n\nNow?"));
+    }
+
+    @Test
+    void theSameMediumLeavesNoLineAndAnEmptyChatNeedsNone() {
+        BetaChat chat = group();
+        assertTrue(ChatEdits.changeMedium(chat, "manga", "Manga"));
+        assertTrue(chat.getMessages().isEmpty());
+
+        chat.getMessages().add(BetaMessage.user("Hi"));
+
+        assertFalse(ChatEdits.changeMedium(chat, "manga", "Manga"));
+        assertTrue(ChatEdits.changeMedium(chat, "", "Book"));
+        assertNull(chat.getMedium());
+        assertEquals(2, chat.getMessages().size());
+        assertEquals("Book", chat.getMessages().getLast().getText());
+    }
+
+    @Test
+    void aPersonaIsUpdatedFromTheLibraryButKeepsItsName() {
+        BetaChat chat = group();
+        Persona copy = chat.findPersona("Athena");
+        Persona library = new Persona("Athena the Great", "A new description.");
+        library.setUuid(copy.getUuid());
+        library.setIcon("icon");
+
+        assertTrue(ChatEdits.refresh(chat, library));
+
+        assertEquals("A new description.", copy.getDescription());
+        assertEquals("icon", copy.getIcon());
+        assertEquals("Athena", copy.getName());
+        assertFalse(ChatEdits.refresh(chat, new Persona("Other", "x")));
+    }
+
+    @Test
+    void theHistoryCanBeReadWhileAReplyIsAddedToIt() {
+        BetaChat chat = group();
+        chat.getMessages().add(BetaMessage.user("Hi"));
+
+        for (BetaMessage message : chat.getMessages()) {
+            chat.getMessages().add(turn("Athena"));
+            assertNotNull(message);
+        }
+
+        assertEquals(2, chat.getMessages().size());
+    }
 }

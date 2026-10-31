@@ -11,5 +11,7 @@ public enum MessageKind {
     /** A line the user left when a persona joined the group; the model reads it as part of the user's side. */
     JOIN,
     /** A line the user left when a persona left the group. */
-    LEAVE
+    LEAVE,
+    /** A line the chat leaves when its medium is changed: the text is now read as another medium (its name is in the text). */
+    MEDIUM
 }

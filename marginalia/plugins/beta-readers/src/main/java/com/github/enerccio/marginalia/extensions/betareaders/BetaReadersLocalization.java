@@ -486,5 +486,95 @@ public class BetaReadersLocalization extends PluginLocalizationBundle {
                 "コンテキスト: %s トークン");
         zh("Context: %s tokens",
                 "上下文：%s 个词元");
+
+        ja("Regenerate",
+                "再生成");
+        zh("Regenerate",
+                "重新生成");
+
+        ja("There is no reply yet.",
+                "まだ返信がありません。");
+        zh("There is no reply yet.",
+                "还没有回复。");
+
+        ja("Ask again",
+                "もう一度尋ねる");
+        zh("Ask again",
+                "再次询问");
+
+        ja("Edit message",
+                "メッセージを編集");
+        zh("Edit message",
+                "编辑消息");
+
+        ja("Delete message",
+                "メッセージを削除");
+        zh("Delete message",
+                "删除消息");
+
+        ja("Delete this message?",
+                "このメッセージを削除しますか？");
+        zh("Delete this message?",
+                "删除这条消息？");
+
+        ja("Bring in a persona",
+                "ペルソナを呼ぶ");
+        zh("Bring in a persona",
+                "邀请读者角色加入");
+
+        ja("Bring in",
+                "呼ぶ");
+        zh("Bring in",
+                "邀请");
+
+        ja("Send away",
+                "退出させる");
+        zh("Send away",
+                "请其离开");
+
+        ja("Send away %s",
+                "%s を退出させる");
+        zh("Send away %s",
+                "请 %s 离开");
+
+        ja("Update from the library",
+                "ライブラリから更新");
+        zh("Update from the library",
+                "从角色库更新");
+
+        ja("%s is updated from the library.",
+                "%s をライブラリから更新しました。");
+        zh("%s is updated from the library.",
+                "已从角色库更新 %s。");
+
+        ja("%s is not in the library or in this book any more.",
+                "%s はライブラリにもこの本にもありません。");
+        zh("%s is not in the library or in this book any more.",
+                "角色库和本书中都没有 %s 了。");
+
+        ja("There is no persona to bring in: they are all here.",
+                "呼べるペルソナがありません。全員がここにいます。");
+        zh("There is no persona to bring in: they are all here.",
+                "没有可邀请的读者角色：他们都在这里。");
+
+        ja("The last persona can't leave.",
+                "最後のペルソナは退出できません。");
+        zh("The last persona can't leave.",
+                "最后一个读者角色不能离开。");
+
+        ja("What the group is told (optional)",
+                "グループに伝えること (任意)");
+        zh("What the group is told (optional)",
+                "告诉群组的话（可选）");
+
+        ja("Chat settings",
+                "チャット設定");
+        zh("Chat settings",
+                "聊天设置");
+
+        ja("From now on the text is read as: %s",
+                "これ以降、テキストは次のメディアとして読まれます: %s");
+        zh("From now on the text is read as: %s",
+                "从现在起，文本将作为以下媒介阅读：%s");
     }
 }

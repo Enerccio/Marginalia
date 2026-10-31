@@ -3,8 +3,8 @@
 Personas you define and a chat about the book with them.
 
 **Status: under construction.** The configuration and the conversation work (the tab, the chats, the replies as they stream, the story sent
-as new parts); editing and deleting messages, regenerating a reply and bringing personas into a group are still to come (the plan is in
-[TODO.md](TODO.md)).
+as new parts, editing, deleting and regenerating, personas joining and leaving); the spoiler limit and the options of what the first
+message sends are still to come (the plan is in [TODO.md](TODO.md)).
 
 ## Settings
 
@@ -31,3 +31,8 @@ A reply is a turn: a short reasoning (closed, above the messages) and the messag
 finished. The personas present are described at the end of your last message and are not stored, so adding or removing a persona does not
 change the history. **Include the latest parts** sends the story: everything the chat has not read yet the first time, then the parts that
 are new or changed. A message says which parts it sent, and the box under the text shows how many tokens the context uses.
+
+You can edit and delete your messages and every message of a turn, **Regenerate** the last turn, and in a group **Bring in a persona** (with a
+note for the group) or **Send away** one; the history keeps a line for each. **Update from the library** takes the current description and icon
+of a persona into the chat's copy. **Chat settings** changes the medium, model, protocol and reply format of a chat; a changed medium leaves a
+line in the history.
