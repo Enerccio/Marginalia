@@ -67,7 +67,7 @@ public final class PromptBuilder {
         String systemText = (system == null ? "" : system.strip()) + "\n\n" + answerFormat(chat, options);
 
         List<Entry> entries = new ArrayList<>();
-        for (BetaMessage message : chat.getMessages()) {
+        for (BetaMessage message : mergeReplies(chat.getMessages())) {
             String text = textOf(message, options);
             if (text.isBlank()) {
                 continue;
@@ -78,6 +78,10 @@ public final class PromptBuilder {
             } else {
                 entries.add(new Entry(message.isUserSide(), text));
             }
+        }
+        // a history that begins with a reply (the message it answered was deleted) is not sent as it is: it has to begin with the user
+        while (!entries.isEmpty() && !entries.getFirst().user()) {
+            entries.removeFirst();
         }
 
         // the roster goes to the last message of the user; when the history ends with a reply, it is a message of its own
@@ -112,6 +116,27 @@ public final class PromptBuilder {
     }
 
     private record Entry(boolean user, String text) {
+    }
+
+    /**
+     * Replies that follow each other (the message between them was deleted) are one reply, as one turn is.
+     */
+    private static List<BetaMessage> mergeReplies(List<BetaMessage> messages) {
+        List<BetaMessage> merged = new ArrayList<>();
+        for (BetaMessage message : messages) {
+            BetaMessage last = merged.isEmpty() ? null : merged.getLast();
+            if (last != null && last.getKind() == MessageKind.ASSISTANT && message.getKind() == MessageKind.ASSISTANT) {
+                List<BetaSpoken> spoken = new ArrayList<>(last.getSpoken());
+                spoken.addAll(message.getSpoken());
+                String reasoning = (last.getReasoning() + " " + message.getReasoning()).strip();
+                BetaMessage combined = BetaMessage.assistant(reasoning, spoken);
+                combined.setRawText((last.getRawText() + "\n\n" + message.getRawText()).strip());
+                merged.set(merged.size() - 1, combined);
+            } else {
+                merged.add(message);
+            }
+        }
+        return merged;
     }
 
     private static int count(String text, Options options) {
@@ -174,7 +199,7 @@ public final class PromptBuilder {
 
     private static String textOf(BetaMessage message, Options options) {
         return switch (message.getKind()) {
-            case USER -> (message.getContext().isBlank() ? "" : message.getContext().strip() + "\n\n") + message.getText().strip();
+            case USER -> ((message.getContext().isBlank() ? "" : message.getContext().strip() + "\n\n") + message.getText().strip()).strip();
             case JOIN -> presence(message, "joins the conversation");
             case LEAVE -> presence(message, "leaves the conversation");
             case ASSISTANT -> assistant(message, options);
