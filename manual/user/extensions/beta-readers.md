@@ -80,8 +80,8 @@ other's points. A message in the reply can also be a narration (*Narrator*): a s
 ## Talking
 
 Write into the box at the bottom and press **Send**; the answer appears as it is written, and **Stop** (the button is *Stop* while the model
-answers) cuts it short. One reply is one turn of the model: a short **Reasoning** (closed; models that think on their own show their own
-thinking instead and no extra reasoning is asked) and the messages of the personas, each with what they do and what they say.
+answers) cuts it short. One reply is one turn of the model: the thinking of the model, when it sends one (a closed **Reasoning**
+section; a model that does not think shows none) and the messages of the personas, each with what they do and what they say.
 
 The personas of the group are told who is present at the end of your last message only (nothing about it is saved), so adding or removing a
 persona never changes the earlier history.
@@ -95,7 +95,7 @@ change. The label of the box says what would be sent (*Include the story (5 part
 changed*), and the button next to it checks again after you wrote something. A message of yours says which parts it sent (*Parts 1-5 sent*).
 
 Under the box are what the personas have read (*The personas have read: parts 1-5*) and the size of the context (*Context: 2,266 of 30,720
-tokens*). When the history does not fit, the oldest messages are left out of the request, not deleted, and a notice says how many.
+tokens*): what the next message would send, that is the history, what you have typed and, when **Include the latest parts** is ticked, the parts it would bring. It changes when you tick the box or pause while typing. When the history does not fit, the oldest messages are left out of the request, not deleted, and a notice says how many.
 
 ### Changing the conversation
 
@@ -133,12 +133,27 @@ The window of a new chat and **Chat settings** have the same options; every one 
 | Medium | What the text stands for: a book, a movie, a TV series, a manga or comic, an audio drama, a stage play, a game or visual novel. The personas react as the audience of that medium would. Changing it in a running chat leaves a line in the history (*From now on the text is read as: ...*). |
 | Model | The AI that answers. |
 | Protocol | The [protocol](../protocols.md) used with it. |
-| Reply format | **Automatic** (JSON when the model can follow a schema, free text otherwise), **JSON** or **Free text**. |
+| Reply format | How the model is asked to write: **Automatic** (JSON in a schema when the model can follow one, free text otherwise), **JSON** (always in a schema), **JSON without a schema** or **Free text**. See [the reasoning](#the-reasoning). |
 | Personas read up to part | The [spoiler limit](#how-much-of-the-story-the-personas-read). |
 | Start from part | The part where the story the personas get begins. |
 | Use the summaries of the story | See below. |
 
 ![The settings of a chat](../../images/plugin-betareaders-chat-settings.png)
+
+### The reasoning
+
+The **Reasoning** above a reply is the thinking of the model, as the server sends it (the same as in the other generators of Marginalia); a model that
+does not think has none, and nothing is shown. The plugin does not ask the model for a reasoning of its own: a few sentences written under a schema would
+be a plan more than thinking, and would only get in the way of a model that thinks. The thinking that is written into the text between `<think>` tags is
+shown as the reasoning too.
+
+**JSON without a schema** (in *Chat settings*) asks for the same JSON in the prompt only, without a response format; use it with a server that can't take a
+schema together with the thinking of the model.
+
+### The text as it is written
+
+The reply is shown while the model writes it, message by message and word by word: the message being written appears as soon as it is known who
+speaks, and grows. A part that is an action appears when its type is written, so a gesture never first looks like speech.
 
 ### The scene
 

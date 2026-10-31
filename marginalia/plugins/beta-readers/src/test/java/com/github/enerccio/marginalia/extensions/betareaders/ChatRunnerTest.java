@@ -141,8 +141,8 @@ class ChatRunnerTest {
         return chat;
     }
 
-    private static Request request(BetaChat chat, boolean nativeReasoning) {
-        return new Request(chat, "The prompt.", nativeReasoning, 4, 0, null);
+    private static Request request(BetaChat chat) {
+        return new Request(chat, "The prompt.", 4, 0, null);
     }
 
     private static List<String> streamed(Fake fake, String text) {
@@ -159,12 +159,12 @@ class ChatRunnerTest {
         Fake fake = new Fake();
         streamed(fake, REPLY);
 
-        ChatRunner.run(fake, null, request(chat(ReplyFormat.AUTO), false), new Recorder());
+        ChatRunner.run(fake, null, request(chat(ReplyFormat.AUTO)), new Recorder());
 
         assertNotNull(fake.schema);
         assertEquals(List.of("Athena", "Vesper", "Narrator"), enumOf(fake.schema));
         assertEquals(4, fake.schema.path("properties").path("messages").path("maxItems").asInt());
-        assertFalse(fake.schema.path("properties").path("reasoning").isMissingNode());
+        assertTrue(fake.schema.path("properties").path("reasoning").isMissingNode());
         assertEquals("The prompt.\n\n# How to answer", fake.payload.getFirst().getContent().substring(0, "The prompt.\n\n# How to answer".length()));
         assertTrue(fake.payload.getLast().getContent().contains("[The personas present]"));
     }
@@ -177,12 +177,32 @@ class ChatRunnerTest {
     }
 
     @Test
-    void aModelThatReasonsOnItsOwnGetsNoReasoningField() throws Exception {
+    void theModelIsNotAskedForAReasoning() throws Exception {
         Fake fake = new Fake();
 
-        ChatRunner.run(fake, null, request(chat(ReplyFormat.AUTO), true), new Recorder());
+        ChatRunner.run(fake, null, request(chat(ReplyFormat.AUTO)), new Recorder());
 
         assertTrue(fake.schema.path("properties").path("reasoning").isMissingNode());
+        assertFalse(fake.payload.getFirst().getContent().contains("reasoning"));
+    }
+
+    @Test
+    void jsonWithoutASchemaAsksForTheJsonInThePromptOnly() throws Exception {
+        Fake fake = new Fake();
+        streamed(fake, REPLY);
+
+        ChatRunner.run(fake, null, request(chat(ReplyFormat.JSON_NO_SCHEMA)), new Recorder());
+
+        assertNull(fake.schema);
+        assertTrue(fake.payload.getFirst().getContent().contains("Answer with one JSON object and nothing else"));
+    }
+
+    @Test
+    void theModesFollowTheFormat() {
+        assertEquals(new ChatRunner.Mode(true, true), ChatRunner.mode(ReplyFormat.AUTO));
+        assertEquals(new ChatRunner.Mode(true, true), ChatRunner.mode(ReplyFormat.JSON));
+        assertEquals(new ChatRunner.Mode(true, false), ChatRunner.mode(ReplyFormat.JSON_NO_SCHEMA));
+        assertEquals(new ChatRunner.Mode(false, false), ChatRunner.mode(ReplyFormat.TEXT));
     }
 
     @Test
@@ -191,7 +211,7 @@ class ChatRunnerTest {
         streamed(fake, REPLY);
         Recorder recorder = new Recorder();
 
-        ChatRunner.run(fake, null, request(chat(ReplyFormat.AUTO), false), recorder);
+        ChatRunner.run(fake, null, request(chat(ReplyFormat.AUTO)), recorder);
 
         assertFalse(recorder.progress.isEmpty());
         int previous = 0;
@@ -207,6 +227,7 @@ class ChatRunnerTest {
         assertNull(outcome.error());
         assertFalse(outcome.cancelled());
         assertTrue(outcome.json());
+        // a model that writes a reasoning of its own accord is read (the plugin does not ask for one)
         assertEquals("Athena first.", outcome.reply().getReasoning());
         assertEquals(2, outcome.reply().getSpoken().size());
         assertEquals("Athena", outcome.reply().getSpoken().getFirst().getSpeaker());
@@ -219,22 +240,24 @@ class ChatRunnerTest {
         streamed(fake, "{\"messages\": [{\"speaker\": \"Athena\", \"parts\": [{\"type\": \"speech\", \"text\": \"Hi\"}]}]}");
         Recorder recorder = new Recorder();
 
-        ChatRunner.run(fake, null, request(chat(ReplyFormat.AUTO), true), recorder);
+        ChatRunner.run(fake, null, request(chat(ReplyFormat.AUTO)), recorder);
 
         assertEquals("Let me think.", recorder.outcome().reply().getReasoning());
         assertEquals("Let me think.", recorder.progress.getLast().reasoning());
     }
 
     @Test
-    void theReasoningFieldWinsOverTheReasoningOfTheModel() throws Exception {
+    void theThinkingOfTheModelWinsOverTheReasoningField() throws Exception {
         Fake fake = new Fake();
         fake.think("native");
         streamed(fake, REPLY);
         Recorder recorder = new Recorder();
 
-        ChatRunner.run(fake, null, request(chat(ReplyFormat.AUTO), false), recorder);
+        ChatRunner.run(fake, null, request(chat(ReplyFormat.AUTO)), recorder);
 
-        assertEquals("Athena first.", recorder.outcome().reply().getReasoning());
+        // a model that thinks while the field is asked for too: the thinking is the reasoning, the field is a summary of it
+        assertEquals("native", recorder.outcome().reply().getReasoning());
+        assertEquals("native", recorder.progress.getLast().reasoning());
     }
 
     @Test
@@ -243,7 +266,7 @@ class ChatRunnerTest {
         streamed(fake, "**Athena:** Hello.\n\n**Vesper:** *shrugs*");
         Recorder recorder = new Recorder();
 
-        ChatRunner.run(fake, null, request(chat(ReplyFormat.TEXT), false), recorder);
+        ChatRunner.run(fake, null, request(chat(ReplyFormat.TEXT)), recorder);
 
         assertNull(fake.schema);
         assertTrue(fake.payload.getFirst().getContent().contains("**Name:**"));
@@ -260,7 +283,7 @@ class ChatRunnerTest {
         streamed(fake, "**Athena:** Hello.");
         Recorder recorder = new Recorder();
 
-        ChatRunner.run(fake, null, request(chat(ReplyFormat.AUTO), false), recorder);
+        ChatRunner.run(fake, null, request(chat(ReplyFormat.AUTO)), recorder);
 
         assertNull(fake.schema);
         assertFalse(recorder.outcome().json());
@@ -273,7 +296,7 @@ class ChatRunnerTest {
         fake.schemaSupported = false;
 
         assertThrows(UnsupportedOperationException.class,
-                () -> ChatRunner.run(fake, null, request(chat(ReplyFormat.JSON), false), new Recorder()));
+                () -> ChatRunner.run(fake, null, request(chat(ReplyFormat.JSON)), new Recorder()));
     }
 
     @Test
@@ -283,7 +306,7 @@ class ChatRunnerTest {
         fake.say(REPLY.substring(0, REPLY.indexOf("Vesper") - 20));
         Recorder recorder = new Recorder();
 
-        ChatRunner.run(fake, null, request(chat(ReplyFormat.AUTO), false), recorder);
+        ChatRunner.run(fake, null, request(chat(ReplyFormat.AUTO)), recorder);
 
         Outcome outcome = recorder.outcome();
         assertTrue(outcome.cancelled());
@@ -297,7 +320,7 @@ class ChatRunnerTest {
         fake.ending = "cancel";
         Recorder recorder = new Recorder();
 
-        ChatRunner.run(fake, null, request(chat(ReplyFormat.AUTO), false), recorder);
+        ChatRunner.run(fake, null, request(chat(ReplyFormat.AUTO)), recorder);
 
         assertTrue(recorder.outcome().cancelled());
         assertNull(recorder.outcome().reply());
@@ -311,7 +334,7 @@ class ChatRunnerTest {
         streamed(fake, REPLY.substring(0, 80));
         Recorder recorder = new Recorder();
 
-        ChatRunner.run(fake, null, request(chat(ReplyFormat.AUTO), false), recorder);
+        ChatRunner.run(fake, null, request(chat(ReplyFormat.AUTO)), recorder);
 
         assertNull(recorder.outcome().reply());
         assertEquals("boom", recorder.outcome().error().getMessage());
@@ -322,7 +345,7 @@ class ChatRunnerTest {
         Fake fake = new Fake();
         Recorder recorder = new Recorder();
 
-        ChatRunner.run(fake, null, request(chat(ReplyFormat.AUTO), false), recorder);
+        ChatRunner.run(fake, null, request(chat(ReplyFormat.AUTO)), recorder);
 
         assertNull(recorder.outcome().reply());
         assertInstanceOf(EmptyReplyException.class, recorder.outcome().error());
@@ -334,7 +357,7 @@ class ChatRunnerTest {
         streamed(fake, "Sorry, I lost my train of thought.");
         Recorder recorder = new Recorder();
 
-        ChatRunner.run(fake, null, request(chat(ReplyFormat.AUTO), false), recorder);
+        ChatRunner.run(fake, null, request(chat(ReplyFormat.AUTO)), recorder);
 
         assertTrue(recorder.progress.stream().allMatch(Reading::isEmpty));
         assertTrue(recorder.outcome().reply().getSpoken().isEmpty());
@@ -347,7 +370,7 @@ class ChatRunnerTest {
         streamed(fake, REPLY);
         Recorder recorder = new Recorder();
 
-        ChatRunner.run(fake, null, new Request(chat(ReplyFormat.AUTO), "P", false, 1, 0, null), recorder);
+        ChatRunner.run(fake, null, new Request(chat(ReplyFormat.AUTO), "P", 1, 0, null), recorder);
 
         assertEquals(1, recorder.outcome().reply().getSpoken().size());
     }
@@ -365,7 +388,7 @@ class ChatRunnerTest {
         chat.getMessages().add(BetaMessage.user("the last question"));
         Recorder recorder = new Recorder();
 
-        ChatRunner.run(fake, null, new Request(chat, "P", false, 4, 400, null), recorder);
+        ChatRunner.run(fake, null, new Request(chat, "P", 4, 400, null), recorder);
 
         assertTrue(recorder.outcome().prompt().dropped() > 0);
         assertTrue(fake.payload.size() < 14);
@@ -379,7 +402,7 @@ class ChatRunnerTest {
         streamed(fake, REPLY);
         Recorder recorder = new Recorder();
 
-        ChatRunner.run(fake, null, request(chat(ReplyFormat.AUTO), false), recorder);
+        ChatRunner.run(fake, null, request(chat(ReplyFormat.AUTO)), recorder);
         fake.play();
         fake.callback.onCancel();
 

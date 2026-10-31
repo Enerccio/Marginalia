@@ -27,9 +27,10 @@ about the book.
   last user message when the request is built, not saved in the chat and added again with every new message. The system prompt
   (the prompt and the medium) and the history never change, so the cache of the prefix stays; adding or removing a persona only
   changes the roster. A persona that joins or leaves is still a saved line in the history ("Mara joins") so the model sees when.
-- **Reasoning** is a small field of the schema, first, before the messages (the model writes a short reasoning, then the messages).
-  The chat shows it as collapsed details above the messages of the turn, like the reasoning elsewhere in the application. A model
-  with native reasoning shows that in the same place and the field is left out of its schema.
+- **Reasoning** is only the thinking of the model, as the server sends it (or between `<think>` tags in the text); there is no field for
+  it in the schema, and a model that does not think shows none. (Decided after the first version: a short field written under the schema
+  was a plan, not thinking, and it hid the real thinking of a model that thinks.) The chat shows it as collapsed details above the
+  messages of the turn, like the reasoning elsewhere in the application.
 - **A chat keeps a copy of every persona it uses** (name, icon, description at the moment the persona was added), so editing or
   deleting the persona in the library or the book does not change the chats. A book-local persona wins over a global one when the
   persona is picked.
@@ -81,9 +82,8 @@ Build before every step: `mvn install -DskipTests` in `marginalia/` (the plugin 
   USER / ASSISTANT / JOIN / LEAVE; user: the text, the "new stuff" block as it was sent, the `SentPart`s; assistant: the reasoning and the
   list of `BetaSpoken` with their `BetaPart`s of type action / speech, or the raw text of a reply that could not be read). The chats are
   in `BookData`, there is no separate `BetaChats`.
-- `Reply` (record, `@LLMSchema`) is the schema of one turn and `BetaSchemas.replySchema(speakers, maxMessages, withReasoning)` builds it per
-  request: the `speaker` enum is the personas present plus `Narrator`, `maxItems`, the `reasoning` field only for a model without native
-  reasoning, no `allOf` around the items, the part types in lower case.
+- `Reply` (record, `@LLMSchema`) is the schema of one turn and `BetaSchemas.replySchema(speakers, maxMessages)` builds it per
+  request: the `speaker` enum is the personas present plus `Narrator`, `maxItems`, no `reasoning` field, no `allOf` around the items, the part types in lower case.
 - `PromptBuilder.build(chat, renderedSystemPrompt, options)`: the system message is the prompt and "How to answer" (JSON or text), the
   history (replies sent back as the JSON or the text they were, the join / leave lines and the next user message as one message), the
   roster added to the last user message only (a message of its own when the history ends with a reply), and the token limit (the oldest

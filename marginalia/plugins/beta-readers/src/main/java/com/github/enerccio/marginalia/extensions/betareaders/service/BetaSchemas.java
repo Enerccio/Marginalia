@@ -14,7 +14,7 @@ import java.util.Set;
 
 /**
  * The JSON schema of a reply, made for one request: the speakers allowed are the personas present (and the narrator), the number of
- * messages is limited, and the reasoning is a field only for a model that does not reason on its own.
+ * messages is limited.
  */
 public final class BetaSchemas {
 
@@ -24,28 +24,10 @@ public final class BetaSchemas {
     /**
      * @param speakers     the names of the personas present; {@link BetaSpoken#NARRATOR} is added
      * @param maxMessages  the most messages of a turn; 0 or less for no limit
-     * @param withReasoning whether the model writes a short reasoning before the messages
      */
-    public static ObjectNode replySchema(List<String> speakers, int maxMessages, boolean withReasoning) {
+    public static ObjectNode replySchema(List<String> speakers, int maxMessages) {
         ObjectNode schema = StructuredOutputs.schemaOf(Reply.class);
         ObjectNode properties = (ObjectNode) schema.path("properties");
-
-        if (!withReasoning) {
-            properties.remove("reasoning");
-            if (schema.path("required") instanceof ArrayNode required) {
-                for (int i = required.size() - 1; i >= 0; i--) {
-                    if ("reasoning".equals(required.get(i).asText())) {
-                        required.remove(i);
-                    }
-                }
-            }
-        } else if (schema.path("required") instanceof ArrayNode required
-                && !contains(required, "reasoning")) {
-            // the model writes it every time, first, so it is thought through before the messages
-            ArrayNode reordered = required.arrayNode().add("reasoning");
-            required.forEach(reordered::add);
-            schema.set("required", reordered);
-        }
 
         if (properties.path("messages") instanceof ObjectNode messages) {
             flattenItems(messages);

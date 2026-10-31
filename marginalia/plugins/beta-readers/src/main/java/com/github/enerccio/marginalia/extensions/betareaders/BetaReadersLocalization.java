@@ -86,7 +86,9 @@ public class BetaReadersLocalization extends PluginLocalizationBundle {
     public static final String A_CHAT_WITH_ONE_PERSONA_STAYS = "A chat with one persona stays that way. A group can start with one persona, and others can join later.";
     public static final String EMPTY_THE_NAMES = "Empty: the names of the personas";
     public static final String REPLY_FORMAT = "Reply format";
-    public static final String AUTOMATIC_ASKS_FOR_JSON = "Automatic asks for JSON when the model can follow a schema, free text otherwise";
+    public static final String AUTOMATIC_ASKS_FOR_JSON = "Automatic asks for JSON in a schema when the model can follow one, free text otherwise";
+    public static final String JSON_WITHOUT_A_SCHEMA = "JSON without a schema";
+    public static final String JSON_WITHOUT_A_SCHEMA_HELP = "JSON without a schema is for a server that can not take a schema together with the thinking of the model";
     public static final String CREATE = "Create";
     public static final String INHERITED = "Inherited: %s";
     public static final String NONE = "none";
@@ -433,9 +435,19 @@ public class BetaReadersLocalization extends PluginLocalizationBundle {
                 "回复格式");
 
         ja(AUTOMATIC_ASKS_FOR_JSON,
-                "自動: モデルがスキーマに従える場合は JSON、それ以外は自由テキストを要求します");
+                "自動: モデルがスキーマに従える場合はスキーマ付きの JSON、それ以外は自由テキストを要求します");
         zh(AUTOMATIC_ASKS_FOR_JSON,
-                "自动：模型能遵循模式时要求 JSON，否则使用自由文本");
+                "自动：模型能遵循模式时要求带模式的 JSON，否则使用自由文本");
+
+        ja(JSON_WITHOUT_A_SCHEMA,
+                "スキーマなしの JSON");
+        zh(JSON_WITHOUT_A_SCHEMA,
+                "不带模式的 JSON");
+
+        ja(JSON_WITHOUT_A_SCHEMA_HELP,
+                "スキーマなしの JSON は、スキーマとモデルの思考を同時に扱えないサーバー向けです");
+        zh(JSON_WITHOUT_A_SCHEMA_HELP,
+                "不带模式的 JSON 适用于无法同时处理模式和模型思考的服务器");
 
         ja(CREATE,
                 "作成");

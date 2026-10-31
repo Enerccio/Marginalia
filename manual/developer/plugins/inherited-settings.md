@@ -43,10 +43,10 @@ public class BetaReadersExtension implements MarginaliaExtension {
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
         settings.register(bundle.getSymbolicName(),
-                InheritedSetting.choice("betareaders.medium", () -> T.localized("Medium"),
+                InheritedSetting.choice("betareaders.medium", () -> T.localized(MEDIUM),
                                 () -> mediumService.choices())                 // List<InheritedSetting.Choice>(id, label)
-                        .group(() -> T.localized("Beta Readers"))              // the title of the group, once per plugin
-                        .help(() -> T.localized("What the text stands for"))
+                        .group(() -> T.localized(BETA_READERS))              // the title of the group, once per plugin
+                        .help(() -> T.localized(WHAT_THE_TEXT_STANDS))
                         .userValue(() -> userSettings().getMedium())           // the user level of the plugin, null for none
                         .fallback(() -> "book"));                              // when nothing sets it
     }

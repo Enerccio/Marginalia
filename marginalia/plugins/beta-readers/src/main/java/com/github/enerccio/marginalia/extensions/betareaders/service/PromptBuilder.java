@@ -35,12 +35,11 @@ public final class PromptBuilder {
      * How the request is made.
      *
      * @param json            the replies are JSON (else free text)
-     * @param withReasoning   the reply starts with a short reasoning (JSON only; a model that reasons on its own does not)
      * @param maxMessages     the most messages the model may write in a turn; 0 or less for no limit
      * @param maxPromptTokens the most tokens the prompt may have; 0 or less for no limit
      * @param tokens          counts the tokens of a text
      */
-    public record Options(boolean json, boolean withReasoning, int maxMessages, int maxPromptTokens, ToIntFunction<String> tokens) {
+    public record Options(boolean json, int maxMessages, int maxPromptTokens, ToIntFunction<String> tokens) {
 
         public Options {
             tokens = tokens != null ? tokens : Options::estimate;
@@ -166,15 +165,7 @@ public final class PromptBuilder {
         StringBuilder text = new StringBuilder("# How to answer\n");
         if (options.json()) {
             text.append("Answer with one JSON object and nothing else: ");
-            if (options.withReasoning()) {
-                text.append("{\"reasoning\": \"...\", ");
-            } else {
-                text.append("{");
-            }
-            text.append("\"messages\": [{\"speaker\": \"...\", \"parts\": [{\"type\": \"action\" or \"speech\", \"text\": \"...\"}]}]}.\n");
-            if (options.withReasoning()) {
-                text.append("The reasoning is short, a few sentences: who has something to say now and why. It comes first.\n");
-            }
+            text.append("{\"messages\": [{\"speaker\": \"...\", \"parts\": [{\"type\": \"action\" or \"speech\", \"text\": \"...\"}]}]}.\n");
             text.append("The speaker is the name of a persona present or \"Narrator\" for a description of the scene. A message is made of "
                     + "parts that may alternate: an \"action\" is a gesture, an expression or a tone, \"speech\" is what is said. Do not "
                     + "write quotation marks or asterisks in the text.");
@@ -239,9 +230,6 @@ public final class PromptBuilder {
             return TextFormat.render(message.getSpoken());
         }
         ObjectNode reply = MAPPER.createObjectNode();
-        if (options.withReasoning()) {
-            reply.put("reasoning", message.getReasoning());
-        }
         ArrayNode messages = reply.putArray("messages");
         for (BetaSpoken spoken : message.getSpoken()) {
             ObjectNode node = messages.addObject();

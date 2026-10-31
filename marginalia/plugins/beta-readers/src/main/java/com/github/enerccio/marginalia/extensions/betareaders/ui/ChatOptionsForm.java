@@ -66,11 +66,11 @@ public class ChatOptionsForm extends VerticalLayout {
         }
 
         format.setLabel(T.localized(REPLY_FORMAT));
-        format.setItems(ReplyFormat.AUTO, ReplyFormat.JSON, ReplyFormat.TEXT);
+        format.setItems(ReplyFormat.AUTO, ReplyFormat.JSON, ReplyFormat.JSON_NO_SCHEMA, ReplyFormat.TEXT);
         format.setItemLabelGenerator(ChatOptionsForm::label);
         format.setValue(ReplyFormat.AUTO);
         format.setWidthFull();
-        format.setHelperText(T.localized(AUTOMATIC_ASKS_FOR_JSON));
+        format.setHelperText(T.localized(AUTOMATIC_ASKS_FOR_JSON) + ". " + T.localized(JSON_WITHOUT_A_SCHEMA_HELP));
 
         spoilerLimit.setMin(1);
         spoilerLimit.setStepButtonsVisible(true);
@@ -113,6 +113,7 @@ public class ChatOptionsForm extends VerticalLayout {
         return switch (format) {
             case AUTO -> T.localized(AUTOMATIC);
             case JSON -> T.localized(JSON);
+            case JSON_NO_SCHEMA -> T.localized(JSON_WITHOUT_A_SCHEMA);
             case TEXT -> T.localized(FREE_TEXT);
         };
     }

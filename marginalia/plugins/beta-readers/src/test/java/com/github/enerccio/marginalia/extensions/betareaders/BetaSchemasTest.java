@@ -14,12 +14,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * The schema of a reply is made for a request: the speakers are the personas present and the narrator, the number of messages is
- * limited, and the reasoning is there only for a model that does not reason on its own.
+ * limited, and there is no reasoning in it.
  */
 class BetaSchemasTest {
 
     private static final String ANSWER = """
-            {"reasoning": "Athena has the most to say.", "messages": [
+            {"messages": [
               {"speaker": "Athena", "parts": [{"type": "action", "text": "nods"}, {"type": "speech", "text": "Good chapter."}]},
               {"speaker": "Narrator", "parts": [{"type": "speech", "text": "Vesper snorts."}]}]}""";
 
@@ -32,40 +32,37 @@ class BetaSchemasTest {
 
     @Test
     void theSpeakersArePersonasPresentAndTheNarrator() {
-        JsonNode schema = BetaSchemas.replySchema(List.of("Athena", "Vesper"), 0, true);
+        JsonNode schema = BetaSchemas.replySchema(List.of("Athena", "Vesper"), 0);
 
         assertEquals(List.of("Athena", "Vesper", "Narrator"), speakers(schema));
     }
 
     @Test
     void theNarratorIsNeverTwiceAndAPersonaNamedLikeItDoesNotAddOne() {
-        assertEquals(List.of("Athena", "Narrator"), speakers(BetaSchemas.replySchema(List.of("Athena", "Narrator"), 0, true)));
+        assertEquals(List.of("Athena", "Narrator"), speakers(BetaSchemas.replySchema(List.of("Athena", "Narrator"), 0)));
     }
 
     @Test
     void theNumberOfMessagesIsLimited() {
-        JsonNode limited = BetaSchemas.replySchema(List.of("Athena"), 3, true);
-        JsonNode unlimited = BetaSchemas.replySchema(List.of("Athena"), 0, true);
+        JsonNode limited = BetaSchemas.replySchema(List.of("Athena"), 3);
+        JsonNode unlimited = BetaSchemas.replySchema(List.of("Athena"), 0);
 
         assertEquals(3, limited.path("properties").path("messages").path("maxItems").asInt());
         assertTrue(unlimited.path("properties").path("messages").path("maxItems").isMissingNode());
     }
 
     @Test
-    void theReasoningIsFirstAndRequiredOnlyWithoutNativeReasoning() {
-        JsonNode with = BetaSchemas.replySchema(List.of("Athena"), 0, true);
-        JsonNode without = BetaSchemas.replySchema(List.of("Athena"), 0, false);
+    void theSchemaHasNoReasoning() {
+        JsonNode schema = BetaSchemas.replySchema(List.of("Athena"), 0);
 
-        assertEquals("reasoning", with.path("required").get(0).asText());
-        assertFalse(with.path("properties").path("reasoning").isMissingNode());
-        assertTrue(without.path("properties").path("reasoning").isMissingNode());
-        assertEquals(1, without.path("required").size());
-        assertEquals("messages", without.path("required").get(0).asText());
+        assertTrue(schema.path("properties").path("reasoning").isMissingNode());
+        assertEquals(1, schema.path("required").size());
+        assertEquals("messages", schema.path("required").get(0).asText());
     }
 
     @Test
     void theItemsAreNotWrappedInAnAllOf() {
-        JsonNode schema = BetaSchemas.replySchema(List.of("Athena"), 3, true);
+        JsonNode schema = BetaSchemas.replySchema(List.of("Athena"), 3);
 
         JsonNode messages = schema.path("properties").path("messages");
         assertTrue(messages.path("items").path("allOf").isMissingNode());
@@ -74,7 +71,7 @@ class BetaSchemasTest {
 
     @Test
     void thePartTypesAreTheLowerCaseNames() {
-        JsonNode schema = BetaSchemas.replySchema(List.of("Athena"), 0, true);
+        JsonNode schema = BetaSchemas.replySchema(List.of("Athena"), 0);
 
         JsonNode type = schema.path("properties").path("messages").path("items").path("properties").path("parts")
                 .path("items").path("properties").path("type");
@@ -84,13 +81,12 @@ class BetaSchemasTest {
 
     @Test
     void anAnswerInTheSchemaIsValidAndReadsIntoTheReply() throws Exception {
-        JsonNode schema = BetaSchemas.replySchema(List.of("Athena", "Vesper"), 4, true);
+        JsonNode schema = BetaSchemas.replySchema(List.of("Athena", "Vesper"), 4);
 
         SchemaCheck check = StructuredOutputs.validate(schema, ANSWER);
         Reply reply = StructuredOutputs.parse(ANSWER, Reply.class);
 
         assertTrue(check.valid(), () -> String.valueOf(check));
-        assertEquals("Athena has the most to say.", reply.reasoning());
         assertEquals(2, reply.messages().size());
         assertEquals(Reply.Type.ACTION, reply.messages().getFirst().parts().getFirst().type());
         assertEquals("Good chapter.", reply.messages().getFirst().parts().get(1).text());
@@ -98,22 +94,23 @@ class BetaSchemasTest {
 
     @Test
     void aSpeakerThatIsNotPresentIsNotValid() {
-        JsonNode schema = BetaSchemas.replySchema(List.of("Vesper"), 4, true);
+        JsonNode schema = BetaSchemas.replySchema(List.of("Vesper"), 4);
 
         assertFalse(StructuredOutputs.validate(schema, ANSWER).valid());
     }
 
     @Test
     void tooManyMessagesAreNotValid() {
-        JsonNode schema = BetaSchemas.replySchema(List.of("Athena"), 1, true);
+        JsonNode schema = BetaSchemas.replySchema(List.of("Athena"), 1);
 
         assertFalse(StructuredOutputs.validate(schema, ANSWER).valid());
     }
 
     @Test
-    void theReasoningIsNotAllowedWhenTheSchemaHasNone() {
-        JsonNode schema = BetaSchemas.replySchema(List.of("Athena"), 4, false);
+    void aReasoningIsNotAllowedInTheReply() {
+        JsonNode schema = BetaSchemas.replySchema(List.of("Athena", "Narrator"), 4);
 
-        assertFalse(StructuredOutputs.validate(schema, ANSWER).valid());
+        assertTrue(StructuredOutputs.validate(schema, ANSWER).valid());
+        assertFalse(StructuredOutputs.validate(schema, ANSWER.replace("{\"messages\"", "{\"reasoning\": \"Athena.\", \"messages\"")).valid());
     }
 }

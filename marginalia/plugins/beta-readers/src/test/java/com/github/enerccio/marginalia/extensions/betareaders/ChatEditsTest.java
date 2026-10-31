@@ -90,7 +90,7 @@ class ChatEditsTest {
         assertTrue(ChatEdits.deleteSpoken(chat, reply.getId(), 1));
 
         assertEquals(List.of("Athena", "Narrator"), reply.getSpoken().stream().map(BetaSpoken::getSpeaker).toList());
-        String sent = PromptBuilder.build(chat, "P", new Options(true, true, 0, 0, null)).messages().get(2).getContent();
+        String sent = PromptBuilder.build(chat, "P", new Options(true, 0, 0, null)).messages().get(2).getContent();
         assertFalse(sent.contains("Vesper"));
         assertTrue(sent.contains("Narrator"));
     }
@@ -159,7 +159,7 @@ class ChatEditsTest {
 
         assertEquals(3, chat.present().size());
         assertEquals(MessageKind.JOIN, chat.getMessages().get(2).getKind());
-        String last = PromptBuilder.build(chat, "P", new Options(true, true, 0, 0, null)).messages().getLast().getContent();
+        String last = PromptBuilder.build(chat, "P", new Options(true, 0, 0, null)).messages().getLast().getContent();
         assertTrue(last.contains("[Nox joins the conversation.] Nox has read ahead."));
         assertTrue(last.contains("**Nox**: The Villain's Advocate."));
     }
@@ -213,12 +213,12 @@ class ChatEditsTest {
         chat.getMessages().add(BetaMessage.user("Last"));
         ChatEdits.delete(chat, middle.getId());
 
-        var messages = PromptBuilder.build(chat, "P", new Options(true, true, 0, 0, null)).messages();
+        var messages = PromptBuilder.build(chat, "P", new Options(true, 0, 0, null)).messages();
 
         assertEquals(4, messages.size());
         assertTrue(messages.get(2).getContent().contains("Athena"));
         assertTrue(messages.get(2).getContent().contains("Vesper"));
-        assertTrue(messages.get(2).getContent().startsWith("{\"reasoning\":\"r r\",\"messages\":[{"));
+        assertTrue(messages.get(2).getContent().startsWith("{\"messages\":[{"));
     }
 
     @Test
@@ -230,7 +230,7 @@ class ChatEditsTest {
         chat.getMessages().add(BetaMessage.user("Second"));
         ChatEdits.delete(chat, first.getId());
 
-        var messages = PromptBuilder.build(chat, "P", new Options(true, true, 0, 0, null)).messages();
+        var messages = PromptBuilder.build(chat, "P", new Options(true, 0, 0, null)).messages();
 
         assertEquals(2, messages.size());
         assertTrue(messages.get(1).getContent().startsWith("Second"));
@@ -255,7 +255,7 @@ class ChatEditsTest {
 
         assertEquals("manga", chat.getMedium());
         assertEquals(MessageKind.MEDIUM, chat.getMessages().get(2).getKind());
-        var messages = PromptBuilder.build(chat, "P", new Options(true, true, 0, 0, null)).messages();
+        var messages = PromptBuilder.build(chat, "P", new Options(true, 0, 0, null)).messages();
         assertTrue(messages.getLast().getContent().startsWith("[From now on the text is read as: Manga / comic.]\n\nNow?"));
     }
 
@@ -270,7 +270,7 @@ class ChatEditsTest {
 
         assertEquals("A rainy bar.", chat.getScene());
         assertEquals(MessageKind.SCENE, chat.getMessages().get(2).getKind());
-        var messages = PromptBuilder.build(chat, "P", new Options(true, true, 0, 0, null)).messages();
+        var messages = PromptBuilder.build(chat, "P", new Options(true, 0, 0, null)).messages();
         assertTrue(messages.getLast().getContent().startsWith("[The scene is now: A rainy bar.]\n\nNow?"));
     }
 

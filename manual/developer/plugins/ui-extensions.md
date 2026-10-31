@@ -351,7 +351,8 @@ What plugins can't do:
 
 ### Texts in several languages
 
-A plugin can't add keys to the `L` enum, so the texts of its UI are the English sentences themselves.
+A plugin can't add keys to the `L` enum, so the texts of its UI are the English sentences themselves, kept as
+`String` constants of the plugin's bundle class (never as literals in the UI code).
 `PluginLocalizationBundle` (package `extensions`) turns one into the text of the language of the current session
 (`Localization.getCurrentLanguage()`): `localized(message)` returns the translation, and the English `message` when the
 language has none, so a language or a text that is missing shows English. The bundled plugins have one subclass each and
@@ -362,22 +363,32 @@ public class InstructionExporterLocalization extends PluginLocalizationBundle {
 
     public static final InstructionExporterLocalization T = new InstructionExporterLocalization();
 
+    public static final String EXPORT_INSTRUCTIONS = "Export instructions";
+    public static final String COPIED_TO_CLIPBOARD = "Copied to clipboard";
+    public static final String FAILED_TO_EXPORT = "Failed to export: %s";
+
     @Override
     protected void loadKeys() {
-        ja("Export instructions", "指示をエクスポート");
-        zh("Export instructions", "导出指令");
-        ja("Failed to export: %s", "エクスポートに失敗しました: %s");
-        zh("Failed to export: %s", "导出失败：%s");
+        ja(EXPORT_INSTRUCTIONS, "指示をエクスポート");
+        zh(EXPORT_INSTRUCTIONS, "导出指令");
+        ja(FAILED_TO_EXPORT, "エクスポートに失敗しました: %s");
+        zh(FAILED_TO_EXPORT, "导出失败：%s");
     }
 }
 ```
 
 ```java
-import static ...InstructionExporterLocalization.T;
+import static ...InstructionExporterLocalization.*;
 
-Notification.show(T.localized("Copied to clipboard"));
-Notification.show(T.localized("Failed to export: %s").formatted(e.getMessage()));
+Notification.show(T.localized(COPIED_TO_CLIPBOARD));
+Notification.show(T.localized(FAILED_TO_EXPORT).formatted(e.getMessage()));
 ```
+
+- The English text is a constant named after its words (`EXPORT_INSTRUCTIONS`), declared in the bundle class; the
+  Japanese and Chinese translations are plain literals in `loadKeys`, the only place they appear. A call site passes
+  the constant and never a literal. Import the constants with a static wildcard import, and mind a constant whose name
+  is also a type or a field of the class that uses it (`AI`, `SCENE`): the type or the field is hidden, or the field
+  wins, so give the constant another name or qualify it with the bundle class.
 
 - `ja` and `zh` are shortcuts for `add(Language, message, translation)`; add other languages the same way (the language
   needs a bundle in `Localization`, see the [Chinese localization](example.md#walkthrough-chinese-localization)).
@@ -387,7 +398,7 @@ Notification.show(T.localized("Failed to export: %s").formatted(e.getMessage()))
   order, write one key for each whole sentence (and one for the singular and the plural).
 - Look the text up when it is shown, not in a field or a constant: the bundle answers for the language of the session
   that asks, and a text kept in a field stays in the language of whoever created it. A lambda that is called when a
-  menu is opened (`l -> T.localized("Export instructions")`) is fine.
+  menu is opened (`l -> T.localized(EXPORT_INSTRUCTIONS)`) is fine.
 - Without a session (startup, a worker thread that got no request attributes) the default language is used, so the
   title that a plugin registers in `onExtensionLoad` (`ToolService.registerProvider(..., "Name provider", ...)`) stays in
   English; the same holds for annotation values (`@CommandParameter(descriptionText = ...)`), which must be constants.
