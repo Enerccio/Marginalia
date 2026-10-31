@@ -82,23 +82,23 @@ public final class BetaReadersDefaults {
         List<Medium> mediums = new ArrayList<>();
         mediums.add(new Medium("book", "Book", "The text is a book, a work of prose fiction. React to it as readers of a novel do: "
                 + "to the prose and the voice, the characters, the pacing and the structure."));
-        mediums.add(new Medium("movie", "Movie", "The text is the source of a film (a screenplay, a treatment or a prose draft that "
+        mediums.add(new Medium("movie", "Movie", "The text is a film (a screenplay, a treatment or a prose draft that "
                 + "is meant to become one). React to it as the audience of the finished film would: what they would see and hear on "
                 + "the screen, the scenes and their pacing, the performances, the cuts and the visuals, what would work on the screen "
                 + "and what would not."));
-        mediums.add(new Medium("series", "TV series", "The text is the source of a television series. React to it as its audience "
+        mediums.add(new Medium("series", "TV series", "The text is a television series. React to it as its audience "
                 + "would: the episodes and the arc of the season, how each part ends and makes the audience come back, the cast and "
                 + "the threads that run through the episodes."));
-        mediums.add(new Medium("manga", "Manga / comic", "The text is the source of a manga (or a comic). React to it as the readers "
+        mediums.add(new Medium("manga", "Manga / comic", "The text is a manga (or a comic). React to it as the readers "
                 + "of the finished work would: the panels and the page turns, the art direction, the timing of the reveals, the "
                 + "expressions and the visual gags, what would read well in drawings and what would not."));
-        mediums.add(new Medium("audio-drama", "Audio drama", "The text is the source of an audio drama. React to it as listeners "
+        mediums.add(new Medium("audio-drama", "Audio drama", "The text is an audio drama. React to it as listeners "
                 + "would: only what can be heard counts, the voices, the sound effects, the music and the silences. Is it clear who "
                 + "speaks and what happens without seeing it?"));
-        mediums.add(new Medium("stage-play", "Stage play", "The text is the source of a stage play. React to it as a theater "
+        mediums.add(new Medium("stage-play", "Stage play", "The text is a stage play. React to it as a theater "
                 + "audience would: the staging, the entrances and exits, what can be shown on one stage, the dialogue, the acts and "
                 + "the pace."));
-        mediums.add(new Medium("game", "Game / visual novel", "The text is the source of a game or a visual novel. React to it as "
+        mediums.add(new Medium("game", "Game / visual novel", "The text is a game or a visual novel. React to it as "
                 + "its players would: their choices and the branches, the pacing between the story and the interaction, the "
                 + "characters the player grows attached to, the endings."));
         return mediums;

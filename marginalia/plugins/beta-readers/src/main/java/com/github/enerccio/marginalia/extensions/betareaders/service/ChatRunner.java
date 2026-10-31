@@ -125,11 +125,13 @@ public final class ChatRunner {
             @Override
             public void onChunk(InferenceAsyncController controller, ChunkType type, String text) {
                 try {
+                    // the thinking of the model is progress too: a model that thinks for a minute before it answers would show nothing
+                    // until its first word of the reply, and the reasoning only when it is done
                     if (type == ChunkType.REASONING) {
                         reasoning.append(text);
-                        return;
+                    } else {
+                        reply.append(text);
                     }
-                    reply.append(text);
                     Reading reading = ReplyReader.read(reply.toString(), false, speakers, request.maxMessages());
                     listener.onProgress(withNative(reading, reasoning));
                 } finally {

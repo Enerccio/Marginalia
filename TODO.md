@@ -253,6 +253,10 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     (`InvalidExtensionsWarning`, `OsgiService.getInvalidExtensions`); it is built at login, so it does not appear for an
     extension that turns invalid while the page is open, and it does not link to *Admin → Extensions* yet. Still missing:
     show bundle errors and dependencies. The plugin API is not frozen in 1.0.
+    ✅ Extensions can add settings that books and folders inherit (`InheritedSettingRegistry`: a line, a text area or a choice;
+    shown as *Extension Settings* in the *Prompts* tab and in the folder window, resolved book -> folders -> user settings -> default;
+    carried by backups; used by Reviewer, Arc Outline, Manga Generator and Beta Readers), and the *Extension Settings* of the user
+    settings are no longer lost when *Settings* is saved (`AttributeMerge`).
 
 26. **Summaries overview tools** — the *Summaries* dialog (`SummariesDialog`, `@Extendable`) has a menu bar:
     - ✅ Search and replace in the summaries (*Search and Replace*, `ManuscriptSearchReplaceDialog` with `summariesOnly`,
@@ -331,6 +335,13 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     `MARGINALIA_ALLOW_PERSISTENT_LOGIN`, `MARGINALIA_PERSISTENT_LOGIN_TTL`, `MARGINALIA_TRUSTED_PROXIES` (or the same as
     `-Dmarginalia.*`), over `configuration.properties`; documented in the Docker server page and `architecture.md`. Not done:
     the other `-D` options and the extensions folder (`MARGINALIA_EXTENSIONS` only exists in `install-plugins.sh`).
+38a. ✅ **Folders for books** (desktop, phone and the Viewer list). Nested folders with their own description, tags, language and the
+    text settings of a book (master template, POV, tense, style, prompts); a book resolves each setting through its own value, the
+    nearest folder above it, the user settings and the built-in default. Backups carry the folders of a book and what it inherits
+    (optional in the export), agents write with the settings of the folders of their book, *Mass changes* of books (model / protocol).
+38b. ✅ **Beta Readers** (plugin `beta-readers`, 🧩). Persona chats about the book kept with it: one persona or a group, mediums,
+    scene, spoiler limit and start part, summaries, regenerate / edit / delete, personas joining and leaving, personas written by the
+    model, inherited settings for prompts / model / protocol (38a). Desktop sidebar tab and the phone drawer.
 
 ---
 

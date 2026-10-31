@@ -15,7 +15,6 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +54,7 @@ public class ExtensionSettingsForm {
      * One setting and its editor, whatever the editor is.
      */
     private record Editor(InheritedSetting setting, Component component, Supplier<String> value, Consumer<String> setValue,
-                          Consumer<String> setPlaceholder, Consumer<String> setHelper) {
+                          Consumer<String> setPlaceholder, Consumer<String> setHelper, Consumer<String> setDefault) {
     }
 
     private final Map<String, Editor> editors = new LinkedHashMap<>();
@@ -106,11 +105,13 @@ public class ExtensionSettingsForm {
         String label = setting.label();
         switch (setting.getKind()) {
             case TEXT_AREA -> {
-                TextArea area = new TextArea(label);
+                // a text area is mostly a prompt: the info icon offers the inherited text to be copied into the field
+                TextAreaPopoverComponent area = new TextAreaPopoverComponent(label);
                 area.setWidthFull();
                 ResizableTextArea.install(loc, area, areaHeight);
                 area.addValueChangeListener(this::changed);
-                return new Editor(setting, area, area::getValue, area::setValue, area::setPlaceholder, area::setHelperText);
+                return new Editor(setting, area, area::getValue, area::setValue, area::setPlaceholder, area::setHelperText,
+                        text -> area.setPopoverContent(TemplateHints.create(loc, area, area.getPopover(), null, text)));
             }
             case CHOICE -> {
                 ComboBox<Choice> combo = new ComboBox<>(label);
@@ -122,13 +123,16 @@ public class ExtensionSettingsForm {
                 combo.addValueChangeListener(this::changed);
                 return new Editor(setting, combo, () -> combo.getValue() == null ? "" : combo.getValue().id(),
                         id -> combo.setValue(choiceOf(setting.choices(), id)),
-                        id -> combo.setPlaceholder(labelOf(setting.choices(), id)), combo::setHelperText);
+                        id -> combo.setPlaceholder(labelOf(setting.choices(), id)), combo::setHelperText, id -> {
+                        });
             }
             default -> {
                 TextField line = new TextField(label);
                 line.setWidthFull();
                 line.addValueChangeListener(this::changed);
-                return new Editor(setting, line, line::getValue, line::setValue, line::setPlaceholder, line::setHelperText);
+                return new Editor(setting, line, line::getValue, line::setValue, line::setPlaceholder, line::setHelperText,
+                        text -> {
+                        });
             }
         }
     }
@@ -172,6 +176,7 @@ public class ExtensionSettingsForm {
                 EffectiveSetting<String> fallback = manuscriptService.resolveExtensionInherited(inheritedFrom, key);
                 inherited.put(key, fallback);
                 editor.setPlaceholder().accept(fallback.value());
+                editor.setDefault().accept(fallback.value());
                 editor.setValue().accept(StringUtils.defaultString(own.apply(key)));
                 refreshHelper(editor);
             }

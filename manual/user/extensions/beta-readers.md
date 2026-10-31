@@ -155,6 +155,9 @@ schema together with the thinking of the model.
 The reply is shown while the model writes it, message by message and word by word: the message being written appears as soon as it is known who
 speaks, and grows. A part that is an action appears when its type is written, so a gesture never first looks like speech.
 
+The conversation follows the reply down as it grows. Scroll up to read something earlier and it stays where you are; scroll back to the
+end and it follows again. Sending a message always goes to the end.
+
 ### The scene
 
 The scene is a text that goes into the system prompt of every chat, after the prompt, so the personas know where they are and how they talk
