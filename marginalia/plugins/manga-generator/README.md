@@ -23,6 +23,10 @@ Choose **Manga Generator** in the settings (⚙) menu of the story. One large wi
   (**Abort** - what came in is kept). **Override** gives a section its own prompts and rules, or adds a rules addendum to the
   rules of the manga. The eye shows the exact request the model gets, with its size.
 
+**Continuous mode** generates one kind of text at a time (the box next to the button): *Scripts only* writes the script of the sections that
+have none, then keeps adding a section for the next parts of the story and writing its script, until the story has no part left; *Tags only*
+writes the tags of the sections that have a script but no tags. It runs until it is finished or stopped (the same button, **Stop continuous mode**).
+
 Sections of one manga can generate side by side. While a model writes, mangas and sections cannot be changed.
 
 ### What the model gets

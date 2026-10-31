@@ -966,25 +966,79 @@ public final class JavascriptLibrary {
     }
 
     /**
-     * Finds out which of the elements holds the text the user has selected.
+     * The script that picks the most visible of {@code elements}: the one with the largest height inside the viewport and the scrolling
+     * areas around it. Leaves the index in {@code best}, -1 when none is visible.
+     */
+    private static final String MOST_VISIBLE = """
+            let best = -1;
+            let bestHeight = 0;
+            elements.forEach((el, index) => {
+              if (!el || !el.isConnected) {
+                return;
+              }
+              const rect = el.getBoundingClientRect();
+              let top = Math.max(rect.top, 0);
+              let bottom = Math.min(rect.bottom, window.innerHeight);
+              for (let parent = el.parentElement; parent; parent = parent.parentElement) {
+                if (parent.scrollHeight > parent.clientHeight && getComputedStyle(parent).overflowY !== 'visible') {
+                  const box = parent.getBoundingClientRect();
+                  top = Math.max(top, box.top);
+                  bottom = Math.min(bottom, box.bottom);
+                }
+              }
+              if (bottom - top > bestHeight) {
+                bestHeight = bottom - top;
+                best = index;
+              }
+            });
+            """;
+
+    /**
+     * Finds out which of the elements the user means: the one that holds the text the user has selected, else the one that
+     * is the most visible (the largest part of it inside the viewport and the scrolling areas around it).
      *
-     * @return the index in {@code candidates} of the first element that contains the start of the selection, -1 when the
-     * selection is empty or in none of them
+     * @return the index in {@code candidates} of the first element that contains the start of the selection, else of the
+     * most visible element, -1 when nothing is selected and no element is visible
      */
     public static PendingJavaScriptResult selectionOwner(Element anchor, List<Element> candidates) {
+        return anchor.executeJs("""
+                const elements = [""" + placeholders(candidates) + """
+                ];
+                const selection = window.getSelection();
+                if (selection && selection.rangeCount > 0 && !selection.isCollapsed) {
+                  const node = selection.getRangeAt(0).startContainer;
+                  const owner = elements.findIndex(el => el && el.contains(node));
+                  if (owner >= 0) {
+                    return owner;
+                  }
+                }
+                """ + MOST_VISIBLE + """
+                return best;
+                """, concat(anchor, candidates));
+    }
+
+    /**
+     * Finds out which of the elements is the most visible: the largest part of it inside the viewport and the scrolling areas
+     * around it.
+     *
+     * @return the index in {@code candidates}, -1 when no element is visible
+     */
+    public static PendingJavaScriptResult mostVisible(Element anchor, List<Element> candidates) {
+        return anchor.executeJs("""
+                const elements = [""" + placeholders(candidates) + """
+                ];
+                """ + MOST_VISIBLE + """
+                return best;
+                """, concat(anchor, candidates));
+    }
+
+    /** {@code $2,$3...}: the references to the candidates in the arguments of a script ({@code $0} is the anchor). */
+    private static String placeholders(List<Element> candidates) {
         StringBuilder list = new StringBuilder();
         for (int i = 0; i < candidates.size(); i++) {
             list.append(i == 0 ? "" : ",").append('$').append(i + 1);
         }
-        return anchor.executeJs("""
-                const selection = window.getSelection();
-                if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
-                  return -1;
-                }
-                const node = selection.getRangeAt(0).startContainer;
-                return [""" + list + """
-                ].findIndex(el => el && el.contains(node));
-                """, concat(anchor, candidates));
+        return list.toString();
     }
 
     private static Object[] concat(Element first, List<Element> rest) {

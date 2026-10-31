@@ -316,5 +316,34 @@ public class ArcOutlineLocalization extends PluginLocalizationBundle {
 
         ja("The answer is not a valid arc with chapters: %s", "回答は章を含む有効なアークではありません: %s");
         zh("The answer is not a valid arc with chapters: %s", "回答不是包含章节的有效故事弧：%s");
+        ja("Link the chapters to the parts of the story", "章を物語のパートにリンクする");
+        zh("Link the chapters to the parts of the story", "将章节链接到故事的段落");
+
+        ja("The model says in which message every chapter begins; the chapter is linked to that part of the story (the Arcs tab can scroll the story to it)", "モデルが各章の始まるメッセージを答えます。章はその物語のパートにリンクされます（アークのタブから物語をそこへスクロールできます）");
+        zh("The model says in which message every chapter begins; the chapter is linked to that part of the story (the Arcs tab can scroll the story to it)", "模型会说明每一章从哪条消息开始；该章节会链接到故事的这一段落（“故事弧”标签页可以把故事滚动到那里）");
+
+        ja("Linked part", "リンクされたパート");
+        zh("Linked part", "链接的段落");
+
+        ja("The place of the part in the story, as the outline numbers it", "物語内のパートの位置（アウトラインの番号）");
+        zh("The place of the part in the story, as the outline numbers it", "段落在故事中的位置（与大纲的编号一致）");
+
+        ja("Link the part that is the most visible in the story", "物語で最もよく見えているパートをリンクする");
+        zh("Link the part that is the most visible in the story", "链接故事中最显眼的段落");
+
+        ja("Go to the linked part", "リンクされたパートへ移動");
+        zh("Go to the linked part", "转到链接的段落");
+
+        ja("No part of the story is visible", "見えている物語のパートがありません");
+        zh("No part of the story is visible", "故事中没有可见的段落");
+
+        ja("No part is linked", "リンクされたパートがありません");
+        zh("No part is linked", "没有链接的段落");
+
+        ja("The active branch has no part %d", "現在のブランチにパート %d はありません");
+        zh("The active branch has no part %d", "当前分支没有第 %d 段");
+
+        ja("Go to part %d of the story", "物語のパート %d へ移動");
+        zh("Go to part %d of the story", "转到故事的第 %d 段");
     }
 }

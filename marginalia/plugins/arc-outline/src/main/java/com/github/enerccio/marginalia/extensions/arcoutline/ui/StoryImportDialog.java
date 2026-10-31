@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineSe
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService.StoryMessage;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.Defaults;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -50,9 +51,21 @@ public class StoryImportDialog extends GeneratorDialog {
     private IntegerField toField;
     private IntegerField chaptersField;
     private Select<OutlineState> stateSelect;
+    private Checkbox mapParts;
     private Span tokenInfo;
     /** The valid answer of the last generation, null while there is none. */
-    private GeneratedStoryArc result;
+    private Imported result;
+    /** The messages the last generation was given and whether the chapters were asked where they begin, to map the answer back. */
+    private List<StoryMessage> sentMessages = List.of();
+    private boolean sentMapped;
+
+    /** An answer of the model, with or without the messages the chapters begin in. */
+    private record Imported(String name, String description, String note, List<ImportedChapter> chapters) {
+    }
+
+    /** @param part the place in the branch of the part the chapter begins in, null when unknown */
+    private record ImportedChapter(String name, String description, String note, Integer part) {
+    }
 
     /**
      * @param outline  the outline of the book, the model is told about its arcs
@@ -129,11 +142,16 @@ public class StoryImportDialog extends GeneratorDialog {
         stateSelect.setValue(OutlineState.FINISHED);
         stateSelect.setWidthFull();
 
+        mapParts = new Checkbox(T.localized("Link the chapters to the parts of the story"), true);
+        mapParts.addValueChangeListener(_ -> updateTokenInfo());
+        mapParts.setTooltipText(T.localized("The model says in which message every chapter begins; the chapter is linked to that part of the story"
+                + " (the Arcs tab can scroll the story to it)"));
+
         tokenInfo = new Span();
         tokenInfo.setWidthFull();
         tokenInfo.addClassNames(CssStyles.TEXT_S);
 
-        VerticalLayout inputs = new VerticalLayout(range, rangeHint, chaptersField, stateSelect, tokenInfo);
+        VerticalLayout inputs = new VerticalLayout(range, rangeHint, chaptersField, mapParts, stateSelect, tokenInfo);
         inputs.setPadding(false);
         inputs.getThemeList().add("spacing-xs");
         return inputs;
@@ -171,6 +189,7 @@ public class StoryImportDialog extends GeneratorDialog {
         fromField.setEnabled(enabled);
         toField.setEnabled(enabled);
         chaptersField.setEnabled(enabled);
+        mapParts.setEnabled(enabled);
         stateSelect.setEnabled(enabled);
     }
 
@@ -247,12 +266,15 @@ public class StoryImportDialog extends GeneratorDialog {
 
     @Override
     protected String buildPrompt(String template, ToolSet tools) throws Exception {
-        return service.buildImportPrompt(manuscript, outline, template, selected(), exactCount());
+        return service.buildImportPrompt(manuscript, outline, template, selected(), exactCount(), mapParts.getValue());
     }
 
     @Override
     protected JsonNode schema() {
-        return service.importSchema(exactCount());
+        // the answer is mapped back with what was sent, the range and the check box may change before it is saved
+        sentMessages = selected();
+        sentMapped = mapParts.getValue();
+        return service.importSchema(exactCount(), sentMapped);
     }
 
     // --- result ---
@@ -302,18 +324,32 @@ public class StoryImportDialog extends GeneratorDialog {
     @Override
     protected String accept(String output) {
         result = null;
-        SchemaCheck check = StructuredOutputs.validate(service.importSchema(exactCount()), output);
+        SchemaCheck check = StructuredOutputs.validate(service.importSchema(exactCount(), sentMapped), output);
         if (!check.valid()) {
             return T.localized("The answer is not a valid arc with chapters: %s").formatted(String.join("; ", check.errors()));
         }
         try {
-            result = StructuredOutputs.parse(output, GeneratedStoryArc.class);
+            result = sentMapped ? mapped(StructuredOutputs.parse(output, GeneratedMappedStoryArc.class))
+                    : plain(StructuredOutputs.parse(output, GeneratedStoryArc.class));
             showPreview(result.name(), result.description(), result.note(),
                     result.chapters().stream().map(c -> new String[] {c.name(), c.description(), c.note()}).toList());
             return null;
         } catch (Exception e) {
             return T.localized("The answer can't be read: %s").formatted(e.getMessage());
         }
+    }
+
+    private static Imported plain(GeneratedStoryArc arc) {
+        return new Imported(arc.name(), arc.description(), arc.note(),
+                arc.chapters().stream().map(c -> new ImportedChapter(c.name(), c.description(), c.note(), null)).toList());
+    }
+
+    /**
+     * The model counts the messages from 1 in the range it was given; the chapters are linked to the real places in the branch.
+     */
+    private Imported mapped(GeneratedMappedStoryArc arc) {
+        return new Imported(arc.name(), arc.description(), arc.note(), arc.chapters().stream().map(c -> new ImportedChapter(
+                c.name(), c.description(), c.note(), ArcOutlineService.mapPart(sentMessages, c.part()))).toList());
     }
 
     @Override
@@ -338,8 +374,9 @@ public class StoryImportDialog extends GeneratorDialog {
         // the arc and each of its chapters keep what the model wrote for all of them, as it came
         arc.setGenerationReasoning(reasoning);
         arc.setGenerationResult(answer);
-        for (GeneratedChapter generated : result.chapters()) {
+        for (ImportedChapter generated : result.chapters()) {
             Chapter chapter = new Chapter();
+            chapter.setPart(generated.part());
             chapter.setTitle(generated.name().trim());
             chapter.setDescription(generated.description().trim());
             chapter.setNote(generated.note().trim());
@@ -348,6 +385,8 @@ public class StoryImportDialog extends GeneratorDialog {
             chapter.setState(state);
             arc.getChapters().add(chapter);
         }
+        // the arc begins where its first chapter does
+        arc.setPart(result.chapters().getFirst().part());
         // after the chapters, a finished arc finishes them
         arc.setState(state);
         onSave.accept(arc);

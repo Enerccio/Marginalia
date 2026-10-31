@@ -51,6 +51,9 @@ public class ReviewerService {
     @Autowired
     private MessagePromptService messagePromptService;
 
+    @Autowired
+    private SummaryService summaryService;
+
     private static final String MANUSCRIPT_PROFILE_KEY = ReviewerSettings.KEY + ".profile";
 
     private final Gson gson = new Gson();
@@ -256,10 +259,25 @@ public class ReviewerService {
                 currentTokens += countTokens(inferenceService, lore);
             }
 
+            // the summaries stand in for the story up to the newest of them, the parts after it are sent as they are
+            List<String> summaries = new ArrayList<>();
+            ChatMessage stopMessage = null;
+            if (advancedOptions.isSummaries()) {
+                stopMessage = gatherSummaries(branch, summaries);
+            }
+            String summaryText = String.join("\n", summaries);
+            boolean includeSummaries = StringUtils.isNotBlank(summaryText);
+            if (includeSummaries) {
+                currentTokens += countTokens(inferenceService, summaryText);
+            }
+
             // Iterate backwards through chat branch to fit within tokenLimit
             List<ChatMessage> selectedMessages = new ArrayList<>();
             for (int i = branch.size() - 1; i >= 0; i--) {
                 ChatMessage msg = branch.get(i);
+                if (stopMessage != null && stopMessage.getId().equals(msg.getId())) {
+                    break;
+                }
                 String response = msg.getResponse();
                 if (StringUtils.isBlank(response)) continue;
 
@@ -281,6 +299,9 @@ public class ReviewerService {
             }
             if (includeLore) {
                 payload.add(LLMChatMessage.of(LLMRole.SYSTEM, "Lorebook:\n" + lore));
+            }
+            if (includeSummaries) {
+                payload.add(LLMChatMessage.of(LLMRole.SYSTEM, "Summaries of the story so far:\n" + summaryText));
             }
             for (ChatMessage msg : selectedMessages) {
                 payload.add(LLMChatMessage.of(LLMRole.ASSISTANT, msg.getResponse()));
@@ -310,6 +331,28 @@ public class ReviewerService {
         }
 
         return payload;
+    }
+
+    /**
+     * The summaries of the story before the reviewed part, as a generation gathers them: oldest first, a meta summary in place of the
+     * summaries it merged. A summary whose story was changed since it was made is left out (a generation would remove it; the
+     * review changes nothing).
+     *
+     * @param branch   the story from the first part to the reviewed one
+     * @param summaries gets the texts of the summaries
+     * @return the part with the newest summary that is used, it and the parts before it are represented by the summaries; null when
+     * there is none
+     */
+    private ChatMessage gatherSummaries(List<ChatMessage> branch, List<String> summaries) throws Exception {
+        // the reviewed part is like the part a generation is about to write: it is not a summary point
+        List<ChatMessage> newestFirst = new ArrayList<>(branch.subList(0, Math.max(0, branch.size() - 1)).reversed());
+        List<SummaryService.SummaryBlock> blocks = summaryService.collectBlocks(newestFirst).stream()
+                .filter(SummaryService.SummaryBlock::isValid).toList();
+        if (blocks.isEmpty()) {
+            return null;
+        }
+        blocks.reversed().forEach(block -> summaries.add(StringUtils.defaultString(block.summary().getSummary())));
+        return blocks.getFirst().head();
     }
 
     private long countTokens(InferenceService inferenceService, String text) {

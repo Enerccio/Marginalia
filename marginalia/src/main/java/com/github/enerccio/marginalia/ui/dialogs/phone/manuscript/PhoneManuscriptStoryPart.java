@@ -496,6 +496,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "e", type = Exception.class)})
     private void refreshSummariesMenuItem() {
+        refreshOutlineSummaryMarks();
         if (summariesMenuItem == null || currentManuscript == null) {
             return;
         }
@@ -503,6 +504,23 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             long tokens = summaryService.collectTree(currentManuscript).stream().mapToLong(SummaryNode::getTokens).sum();
             UIUtils.addTooltip(summariesMenuItem, loc.getValue(L.LABEL_SUMMARIES) + "\n"
                     + String.format(loc.getValue(L.MSG_ACTIVE_SUMMARIES_TOKENS), tokens));
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * Shows in the outline which parts have a summary (it changes when a summary is made, edited away or deleted).
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    private void refreshOutlineSummaryMarks() {
+        if (sidebarList == null || currentManuscript == null || currentManuscript.getActiveLeaf() == null) {
+            return;
+        }
+        try {
+            OutlineSummaryMarks.refresh(sidebarList, chatMessageService.getBranchFromLeaf(currentManuscript.getActiveLeaf()), loc);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -669,6 +687,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
         sidebarBtn.setThemeName("tertiary small");
         sidebarBtn.setWidthFull();
         sidebarBtn.addClassName(CssStyles.SIDEBAR_BUTTON);
+        OutlineSummaryMarks.init(sidebarBtn, msg, dbId, loc);
 
         sidebarBtn.addClickListener(event -> {
             layout.setDrawerOpened(false);

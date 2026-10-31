@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineLocalization.T;
 
@@ -43,9 +44,10 @@ public class ArcOutlineView extends VerticalLayout {
     private Localization loc;
 
     /**
-     * The new turn form of the story the tab is in, where the drafted instructions go.
+     * The story the tab is in: the new turn form, where the drafted instructions go, and the parts, which the arcs and chapters
+     * are linked to.
      */
-    public interface InstructionsTarget {
+    public interface StoryTarget {
 
         /**
          * @return what the author typed into the new turn form, {@code null} when it is not there
@@ -58,11 +60,27 @@ public class ArcOutlineView extends VerticalLayout {
          * @return false when the story has no such form
          */
         boolean put(String instructions);
+
+        /**
+         * Finds the part of the story that is the most visible on the screen.
+         *
+         * @param then gets its place in the active branch as the outline of the story numbers it (from 1), null when there is
+         *             none; called later, from the UI
+         */
+        void visiblePart(Consumer<Integer> then);
+
+        /**
+         * Scrolls the story to the part and shows the story.
+         *
+         * @param order the place of the part in the active branch, from 1
+         * @return false when the branch has no such part
+         */
+        boolean showPart(int order);
     }
 
     private final ArcOutlineService service;
     private final Manuscript manuscript;
-    private final InstructionsTarget instructionsTarget;
+    private final StoryTarget storyTarget;
     private ArcOutline outline;
     /** Removes the listener that reads the outline again when a command changes it, set while the view is attached. */
     private Runnable changeRegistration;
@@ -82,12 +100,13 @@ public class ArcOutlineView extends VerticalLayout {
     }
 
     /**
-     * @param instructionsTarget where the instructions drafted from the current chapter go; {@code null} hides that button
+     * @param storyTarget the story the tab is in: where the instructions drafted from the current chapter go (without it that button is
+     *                    hidden) and what the parts linked to arcs and chapters are shown in
      */
-    public ArcOutlineView(Manuscript manuscript, ArcOutlineService service, InstructionsTarget instructionsTarget) {
+    public ArcOutlineView(Manuscript manuscript, ArcOutlineService service, StoryTarget storyTarget) {
         this.manuscript = manuscript;
         this.service = service;
-        this.instructionsTarget = instructionsTarget;
+        this.storyTarget = storyTarget;
         this.outline = loadOutline();
 
         setSizeFull();
@@ -129,7 +148,7 @@ public class ArcOutlineView extends VerticalLayout {
     private void buildUI() {
         Button addArc = new Button(T.localized("Add new arc"), Solid.PLUS.create(), _ -> {
             Arc arc = new Arc();
-            new OutlineNodeDialog(T.localized("New arc"), arc, () -> {
+            new OutlineNodeDialog(T.localized("New arc"), arc, storyTarget, () -> {
                 outline.add(arc);
                 persist();
             }).open();
@@ -148,7 +167,7 @@ public class ArcOutlineView extends VerticalLayout {
         generateMenu.addItem(UIUtils.menuItemWithIcon(Solid.FILE_IMPORT.create(), T.localized("Import from story")), _ -> importFromStory());
 
         HorizontalLayout buttons = new HorizontalLayout(addArc, generate);
-        if (instructionsTarget != null) {
+        if (storyTarget != null) {
             // the model drafts the instructions of the next turn from the chapter the story is at
             Button draft = new Button(Solid.PEN_FANCY.create());
             draft.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
@@ -181,8 +200,8 @@ public class ArcOutlineView extends VerticalLayout {
             Notification.warning(T.localized("There is no current chapter: mark one as current, or leave one planned"));
             return;
         }
-        ImpersonateDialog.open(manuscript, instructionsTarget.turn(), chapter, text -> {
-            if (!instructionsTarget.put(text)) {
+        ImpersonateDialog.open(manuscript, storyTarget.turn(), chapter, text -> {
+            if (!storyTarget.put(text)) {
                 Notification.warning(T.localized("The story has no place for the instructions"));
             }
         });
@@ -262,7 +281,7 @@ public class ArcOutlineView extends VerticalLayout {
         down.setEnabled(outline.canMoveDown(arc));
         Button addChapter = iconButton(Solid.PLUS.create(), T.localized("Add chapter"), _ -> {
             Chapter chapter = new Chapter();
-            new OutlineNodeDialog(T.localized("New chapter in %s").formatted(arc.getTitle()), chapter, () -> {
+            new OutlineNodeDialog(T.localized("New chapter in %s").formatted(arc.getTitle()), chapter, storyTarget, () -> {
                 outline.add(arc, chapter);
                 collapsed.remove(arc.getUuid());
                 persist();
@@ -275,7 +294,7 @@ public class ArcOutlineView extends VerticalLayout {
                     persist();
                 }).open());
         Button edit = iconButton(Solid.PEN.create(), T.localized("Edit arc"), _ ->
-                new OutlineNodeDialog(T.localized("Edit arc"), arc, this::persist).open());
+                new OutlineNodeDialog(T.localized("Edit arc"), arc, storyTarget, this::persist).open());
         Button delete = iconButton(Solid.TRASH.create(), T.localized("Delete arc"), _ -> confirmDelete(arc));
 
         List<Component> actions = new ArrayList<>();
@@ -283,6 +302,7 @@ public class ArcOutlineView extends VerticalLayout {
         if (wasGenerated(arc)) {
             actions.add(createGenerationInfo(arc));
         }
+        addGoToPart(actions, arc);
         actions.addAll(List.of(up, down, addChapter, generateChapters, edit, delete));
         return createCard(arc, ArcOutlineStyles.ARC, toggle, actions.toArray(new Component[0]));
     }
@@ -293,13 +313,14 @@ public class ArcOutlineView extends VerticalLayout {
         Button down = iconButton(Solid.ARROW_DOWN.create(), T.localized("Move chapter down"), _ -> moveChapter(chapter, false));
         down.setEnabled(outline.canMoveDown(chapter));
         Button edit = iconButton(Solid.PEN.create(), T.localized("Edit chapter"), _ ->
-                new OutlineNodeDialog(T.localized("Edit chapter"), chapter, this::persist).open());
+                new OutlineNodeDialog(T.localized("Edit chapter"), chapter, storyTarget, this::persist).open());
         Button delete = iconButton(Solid.TRASH.create(), T.localized("Delete chapter"), _ -> confirmDelete(chapter));
 
         List<Component> actions = new ArrayList<>();
         if (wasGenerated(chapter)) {
             actions.add(createGenerationInfo(chapter));
         }
+        addGoToPart(actions, chapter);
         actions.addAll(List.of(up, down, edit, delete));
 
         // the third level: the note of the chapter under its description, instead of the dialog of the chapter
@@ -317,6 +338,21 @@ public class ArcOutlineView extends VerticalLayout {
         }
         return new NodeCard(chapter, ArcOutlineStyles.CHAPTER, createStateButton(chapter), noteToggle, false, showNote,
                 actions.toArray(new Component[0]));
+    }
+
+    /**
+     * Adds the button that scrolls the story to the part the node is linked to, when it is linked.
+     */
+    private void addGoToPart(List<Component> actions, OutlineNode node) {
+        if (storyTarget == null || node.getPart() == null) {
+            return;
+        }
+        int part = node.getPart();
+        actions.add(iconButton(Solid.LOCATION_CROSSHAIRS.create(), T.localized("Go to part %d of the story").formatted(part), _ -> {
+            if (!storyTarget.showPart(part)) {
+                Notification.warning(T.localized("The active branch has no part %d").formatted(part));
+            }
+        }));
     }
 
     private void moveChapter(Chapter chapter, boolean up) {

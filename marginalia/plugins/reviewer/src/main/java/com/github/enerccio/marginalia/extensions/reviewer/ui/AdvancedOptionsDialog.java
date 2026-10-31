@@ -51,6 +51,7 @@ public class AdvancedOptionsDialog extends Dialog {
     private TextArea promptArea;
     private Checkbox usePromptInfo;
     private Checkbox lorebookBox;
+    private Checkbox summariesBox;
     private IntegerField tokenLimitField;
     private Span counter;
 
@@ -124,6 +125,15 @@ public class AdvancedOptionsDialog extends Dialog {
             }
         });
 
+        summariesBox = new Checkbox(T.localized("With summaries"), options.isSummaries());
+        summariesBox.setTooltipText(T.localized("Send the summaries of the story before the part, then the parts after the newest summary,"
+                + " as a generation does, instead of as many of the latest parts as fit"));
+        summariesBox.addValueChangeListener(event -> {
+            if (event.isFromClient()) {
+                refreshCount();
+            }
+        });
+
         tokenLimitField = new IntegerField(T.localized("Token Limit"));
         tokenLimitField.setValue(reviewerService.getTokenLimit(setting, manuscript));
         tokenLimitField.addValueChangeListener(event -> {
@@ -132,7 +142,7 @@ public class AdvancedOptionsDialog extends Dialog {
             }
         });
 
-        optionsRow.add(lorebookBox, tokenLimitField);
+        optionsRow.add(lorebookBox, summariesBox, tokenLimitField);
 
         layout.add(promptProfileCombo, promptArea, usePromptInfo, counter, optionsRow);
         add(layout);
@@ -167,6 +177,7 @@ public class AdvancedOptionsDialog extends Dialog {
 
     private void toggleFields(boolean enabled) {
         lorebookBox.setEnabled(enabled);
+        summariesBox.setEnabled(enabled);
         tokenLimitField.setEnabled(enabled);
     }
 
@@ -175,6 +186,7 @@ public class AdvancedOptionsDialog extends Dialog {
             options.setPrompt(promptArea.getValue());
             options.setUsePromptInfo(usePromptInfo.getValue());
             options.setLorebook(lorebookBox.getValue());
+            options.setSummaries(summariesBox.getValue());
             options.setTokenLimit(tokenLimitField.getValue() != null ? tokenLimitField.getValue() :
                     reviewerService.getTokenLimit(setting, manuscript));
 
