@@ -366,5 +366,10 @@ public class BetaReadersLocalization extends PluginLocalizationBundle {
                 "話し相手のペルソナがありません。設定のライブラリか、この本に追加してください。");
         zh("There is no persona to talk to. Add some to the library in the settings, or to this book.",
                 "没有可交谈的读者角色。请在设置的角色库或本书中添加。");
+
+        ja("Medium, model and format",
+                "メディア、モデル、形式");
+        zh("Medium, model and format",
+                "媒介、模型和格式");
     }
 }
