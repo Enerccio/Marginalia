@@ -181,7 +181,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         // the summary row is inserted by this transaction: the inference runs on another thread, which saves the summary
         // as soon as the model answers, so it must not start before the commit makes the row visible to it
         Runnable start = () -> {
-            try (InferenceSession _ = InferenceSession.open(InferenceSession.SUMMARY)) {
+            try (InferenceSession _ = InferenceSession.open(InferenceSession.SUMMARY); UsageContext _ = UsageContext.open(manuscript)) {
                 inferenceService.stream(payload, protocol, inferenceCallback);
             } catch (Exception e) {
                 log.error("Failed to start the summary inference", e);

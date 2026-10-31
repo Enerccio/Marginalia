@@ -223,7 +223,7 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
                     Answer answer = new Answer();
                     List<ChunkPiece> pieces = answer.absorb(response, functionsOffered);
                     TokenUsage counted = run.metered
-                            ? recordUsage(run.attributes, prepared.contents(), answer.reported, answer.received.toString()) : null;
+                            ? recordUsage(run.attributes, run.book, prepared.contents(), answer.reported, answer.received.toString()) : null;
                     if (run.outcome.dead().getAsBoolean() || run.token.isCancelled()) {
                         callback.onCancel();
                     } else if (answer.calls.isEmpty() && answer.isEmptyAndStopped()) {
@@ -310,7 +310,7 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
                     GoogleStreamController controller = new GoogleStreamController(stream, callback, run,
                             (reported, generated) -> {
                                 if (run.metered) {
-                                    recordUsage(run.attributes, contents, reported, generated);
+                                    recordUsage(run.attributes, run.book, contents, reported, generated);
                                 }
                             },
                             functionsOffered && !finalRound
@@ -364,7 +364,7 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
                     Answer answer = new Answer();
                     answer.absorb(response, functionsOffered && !finalRound);
                     if (run.metered) {
-                        recordUsage(run.attributes, contents, answer.reported, answer.received.toString());
+                        recordUsage(run.attributes, run.book, contents, answer.reported, answer.received.toString());
                     }
 
                     // the request can not be taken back once sent, but a canceled one gets no result
@@ -405,6 +405,8 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
         final RequestAttributes attributes = ThreadCopyRequestAttributes.create();
         // read in the thread that starts the request: it is not metered inside an UnmeteredScope (the help assistant)
         final boolean metered = !UnmeteredScope.isActive();
+        // the book the request is made for, read in the same thread (see UsageContext)
+        final Long book = UsageContext.current();
         final String id = UUID.randomUUID().toString();
         // read in the same thread: the header that tells a server with a prompt cache what kind of work this is
         final String sessionId = sessionIds.get();
@@ -700,8 +702,9 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
      * Google reported, otherwise our count of the contents and of the text that arrived (a stopped request has no
      * report).
      */
-    private TokenUsage recordUsage(RequestAttributes attributes, List<Content> contents, TokenUsage reported, String generated) {
-        try (InRequestScope _ = new InRequestScope(attributes)) {
+    private TokenUsage recordUsage(RequestAttributes attributes, Long book, List<Content> contents, TokenUsage reported, String generated) {
+        // the book of the request, not of the thread that runs it now
+        try (InRequestScope _ = new InRequestScope(attributes); UsageContext _ = UsageContext.open(book)) {
             long prefill;
             long generatedTokens;
             if (reported != null) {

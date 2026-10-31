@@ -30,6 +30,12 @@ public interface AgentRunRepository extends ExtendableRepository<AgentRun> {
     AgentRun findByManuscript(Manuscript manuscript, Collection<AgentRunStatus> statuses) throws Exception;
 
     /**
+     * The book of the agent of the non-deleted run that has the manuscript as its working copy, whoever owns it; null when no
+     * run has it (a book that is not a working copy, or a copy that is being made or dropped).
+     */
+    Manuscript findOriginalOfCopy(Manuscript copy) throws Exception;
+
+    /**
      * Non-deleted runs of all users in one of the statuses.
      */
     List<AgentRun> findAllByStatus(Collection<AgentRunStatus> statuses) throws Exception;

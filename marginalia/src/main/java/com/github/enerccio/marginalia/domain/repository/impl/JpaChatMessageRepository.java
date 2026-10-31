@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.repository.impl;
 
+import com.github.enerccio.marginalia.domain.components.PartTotals;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -177,6 +178,19 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
             level = next;
         }
         return descendants;
+    }
+
+    @Override
+    public PartTotals measureLive(Collection<Long> ids) throws Exception {
+        PartTotals totals = PartTotals.NONE;
+        for (List<Long> chunk : chunks(ids)) {
+            Object[] row = (Object[]) entityManager
+                    .createQuery("SELECT COUNT(m), COALESCE(SUM(m.wordCount), 0L) FROM ChatMessage m WHERE m.id IN :ids AND m.deleted = false")
+                    .setParameter("ids", chunk)
+                    .getSingleResult();
+            totals = totals.plus(new PartTotals(((Number) row[0]).longValue(), ((Number) row[1]).longValue()));
+        }
+        return totals;
     }
 
     @Override

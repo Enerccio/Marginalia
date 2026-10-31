@@ -1022,7 +1022,8 @@ public class AgentMergeServiceImpl implements AgentMergeService {
 
         private void deleteMessage(Item item) throws Exception {
             ChatMessage message = messageOf(item.targetUuid());
-            targetBook = chatMessageService.deleteNodeAndMigrateChildren(message, targetBook, false);
+            // the delete was counted when the agent did it
+            targetBook = chatMessageService.deleteNodeAndMigrateChildren(message, targetBook, false, false);
         }
 
         // --- annotations

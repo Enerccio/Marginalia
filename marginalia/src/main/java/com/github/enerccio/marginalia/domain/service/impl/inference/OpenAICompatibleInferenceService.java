@@ -174,7 +174,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
         Request request = new Request(openClient(), protocol, functions != null && !functions.isEmpty() ? functions : null,
                 callback, new CancellationToken(),
                 // the request ends on other threads, the user it counts for is the one who started it
-                ThreadCopyRequestAttributes.create(), schema, metered);
+                ThreadCopyRequestAttributes.create(), schema, metered, UsageContext.current());
         startRound(request, new ArrayList<>(payload), 0);
         return request.cancellationToken();
     }
@@ -187,7 +187,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
             limitService.check(ai, approximatePromptTokens(payload), TokenLimits.responseTokens(ai, protocol));
         }
         Request request = new Request(openClient(), protocol, functions != null && !functions.isEmpty() ? functions : null,
-                null, new CancellationToken(), ThreadCopyRequestAttributes.create(), schema, metered);
+                null, new CancellationToken(), ThreadCopyRequestAttributes.create(), schema, metered, UsageContext.current());
         Outcome outcome = new Outcome(callback::isDead, callback::onFunctionCall, callback::onCancel, callback::onError);
         inferRound(request, outcome, callback, schema, new ArrayList<>(payload), 0);
         return request.cancellationToken();
@@ -210,6 +210,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
         OpenAIClient client = openClient();
         CancellationToken token = new CancellationToken();
         RequestAttributes attributes = ThreadCopyRequestAttributes.create();
+        Long book = UsageContext.current();
         List<LLMChatMessage> conversation = new ArrayList<>(payload);
         // streamed and put together here: the read timeout is the wait for the next chunk, so a model that thinks for
         // long (its reasoning arrives chunk by chunk) is not cut as one that waits for the whole answer would be
@@ -267,12 +268,12 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                     } catch (RuntimeException e) {
                         if (!received.isEmpty()) {
                             // it answered before it failed, so that was billed; a failure before any text is not counted
-                            recordUsage(attributes, conversation, null, received.toString(), metered);
+                            recordUsage(attributes, conversation, null, received.toString(), metered, book);
                         }
                         throw e;
                     }
                     TokenUsage counted = recordUsage(attributes, conversation, stopped ? null : reported,
-                            received.toString(), metered);
+                            received.toString(), metered, book);
                     List<LLMToolCall> calls = functionsOffered ? toToolCalls(pending) : List.of();
                     if (stopped || callback.isDead() || token.isCancelled()) {
                         callback.onCancel();
@@ -319,7 +320,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                     TokenUsage reported = completion.usage()
                             .map(usage -> new TokenUsage(usage.promptTokens(), usage.completionTokens())).orElse(null);
                     if (request.metered()) {
-                        recordUsage(request.attributes(), conversation, reported, text);
+                        recordUsage(request.attributes(), conversation, reported, text, request.book());
                     }
 
                     List<LLMToolCall> calls = new ArrayList<>();
@@ -353,11 +354,12 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
 
     /**
      * What stays the same through the rounds of a request: with functions the model is asked again after each call.
-     * {@code metered}: whether the limits apply and the usage is counted, see {@link UnmeteredScope}.
+     * {@code metered}: whether the limits apply and the usage is counted, see {@link UnmeteredScope}. {@code book}: the id of the
+     * book the request is made for, null for none, see {@link UsageContext}.
      */
     private record Request(OpenAIClient client, Protocol protocol, FunctionSet functions, InferenceAsyncCallback callback,
                            CancellationToken cancellationToken, RequestAttributes attributes, JsonNode schema,
-                           boolean metered) {
+                           boolean metered, Long book) {
 
         /** The part of the callback the function calls need, the same for a stream and for infer. */
         Outcome outcome() {
@@ -402,7 +404,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                             request.callback(), request.cancellationToken(),
                             (reported, generated) -> {
                                 if (request.metered()) {
-                                    recordUsage(request.attributes(), conversation, reported, generated);
+                                    recordUsage(request.attributes(), conversation, reported, generated, request.book());
                                 }
                             },
                             functionsOffered && !finalRound
@@ -759,13 +761,14 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
      * the provider reported, otherwise our count of the payload and of the text that arrived (a stopped request has no
      * report).
      */
-    private void recordUsage(RequestAttributes attributes, List<LLMChatMessage> payload, TokenUsage reported, String generated) {
-        recordUsage(attributes, payload, reported, generated, true);
+    private void recordUsage(RequestAttributes attributes, List<LLMChatMessage> payload, TokenUsage reported, String generated, Long book) {
+        recordUsage(attributes, payload, reported, generated, true, book);
     }
 
     /**
      * @param metered whether the usage is recorded for the user, the counts are returned either way (zeros when they
      *                could not be made)
+     * @param book    the id of the book the request is made for, see {@link UsageContext}
      */
     /** The calls arrive in pieces: the first has the id and the name, then the JSON arguments follow. */
     private static void collectToolCalls(SortedMap<Long, PendingToolCall> calls,
@@ -808,8 +811,9 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
     }
 
     private TokenUsage recordUsage(RequestAttributes attributes, List<LLMChatMessage> payload, TokenUsage reported,
-                                   String generated, boolean metered) {
-        try (InRequestScope _ = new InRequestScope(attributes)) {
+                                   String generated, boolean metered, Long book) {
+        // the book of the request, not of the thread that runs it now
+        try (InRequestScope _ = new InRequestScope(attributes); UsageContext _ = UsageContext.open(book)) {
             long prefill;
             long generatedTokens;
             if (reported != null) {

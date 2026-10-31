@@ -323,6 +323,12 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
 
     @Override
     @CommonTxReadOnly
+    public Manuscript findOriginalOfCopy(Manuscript copy) throws Exception {
+        return getRepository().findOriginalOfCopy(copy);
+    }
+
+    @Override
+    @CommonTxReadOnly
     public AgentRun findLockingRun(Manuscript manuscript) throws Exception {
         return manuscript == null || manuscript.getId() == null ? null
                 : getRepository().findByManuscript(manuscript, AgentRunStatus.locking());

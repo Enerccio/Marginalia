@@ -10,13 +10,12 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.InferenceService.ChunkType;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncCallback;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncController;
-import com.github.enerccio.marginalia.domain.service.InferenceService.TypedInferenceCallback;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.service.structured.SchemaCheck;
-import com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs;
 import com.github.enerccio.marginalia.domain.service.structured.StructuredOutputException;
+import com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs;
 import com.github.enerccio.marginalia.domain.templates.AnnotateTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateContext;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
@@ -35,10 +34,10 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.web.context.request.RequestAttributes;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class AnnotateServiceImpl implements AnnotateService {
 
@@ -186,6 +185,7 @@ public class AnnotateServiceImpl implements AnnotateService {
 
         Run run = new Run(stored.getResponse(), callback);
         run.attributes = ThreadCopyRequestAttributes.create();
+        run.book = book.getId();
         try {
             switch (mode) {
                 case DELIMITED -> run.stream(inference, protocol, payload, false, null, null);
@@ -238,6 +238,8 @@ public class AnnotateServiceImpl implements AnnotateService {
         // what the model has written, for the end by Stop
         private volatile Supplier<String> partial = () -> "";
         private RequestAttributes attributes;
+        // the book the model calls of the run are made for
+        private Long book;
 
         Run(String text, Callback callback) {
             this.text = text;
@@ -343,7 +345,7 @@ public class AnnotateServiceImpl implements AnnotateService {
                     return token.isCancelled();
                 }
             };
-            try (InferenceSession _ = InferenceSession.open(InferenceSession.ANNOTATE)) {
+            try (InferenceSession _ = InferenceSession.open(InferenceSession.ANNOTATE); UsageContext _ = UsageContext.open(book)) {
                 follow(inference.stream(payload, protocol, schema, null, streamed));
             }
         }
@@ -401,7 +403,7 @@ public class AnnotateServiceImpl implements AnnotateService {
                     return token.isCancelled();
                 }
             };
-            try (InferenceSession _ = InferenceSession.open(InferenceSession.ANNOTATE)) {
+            try (InferenceSession _ = InferenceSession.open(InferenceSession.ANNOTATE); UsageContext _ = UsageContext.open(book)) {
                 follow(inference.stream(payload, protocol, streamed));
             }
         }
@@ -472,7 +474,7 @@ public class AnnotateServiceImpl implements AnnotateService {
                     }
                 };
                 // another prompt than the critique: it must not take the cache of the critique
-                try (InferenceSession _ = InferenceSession.open(InferenceSession.ANNOTATE, "extract")) {
+                try (InferenceSession _ = InferenceSession.open(InferenceSession.ANNOTATE, "extract"); UsageContext _ = UsageContext.open(book)) {
                     follow(inference.stream(asText, protocol, extracted));
                 }
             }
