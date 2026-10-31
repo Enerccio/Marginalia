@@ -145,6 +145,7 @@ Skipped when the book has no lorebook. Otherwise:
    | Check | Rule |
    |---|---|
    | enabled | `entry.enabled` |
+   | range of parts | `fromMessage` / `toMessage` are empty, or the number of the part the turn creates is inside them (both included): else `OUT_OF_RANGE`, whatever the rest says - the entry is also never a `FILTER_NOT_MATCHED` candidate of the scan of step 4. Checked only when the position is known (see below) |
    | negative tags | none of the entry's negative tags is a tag of the book |
    | tags | the entry has no tags, or one of them is a tag of the book (the entry's tags include the tags of its lorebook) |
    | filter | no filter, or the filter matches the **rendered user prompt** (for `activationContext = INCLUDE_PARTS`: the text of the newest `activationParts` parts of the branch, oldest first, then the user prompt, all joined by blank lines; see below): `KEYWORDS_OR` / `KEYWORDS_AND` - the filter split by commas, trimmed, blanks dropped; any / every keyword is a case-insensitive substring (no keyword never matches); `TEXT` - case-insensitive substring; `REGEX` - case-insensitive `find()` (`DOTALL`); an invalid regex never matches |
@@ -154,6 +155,11 @@ Skipped when the book has no lorebook. Otherwise:
    excludeLeaf)`: the non-blank `response` of the branch from the root to the active leaf, the newest `n`, oldest first (the leaf is left out
    for a swipe or a regeneration - it is the part being replaced). With 0 the story is not read. Each entry then takes the newest of the
    parts it asks for (`evaluate(entry, tags, instructions, parts)`); the scan of step 4 does not use the parts.
+
+   The position of the turn is `activationService.turnPosition(activeLeaf, excludeLeaf)`: the number of parts of the branch (blank ones
+   included, like the outline) plus one, or - for a swipe or a regeneration (`excludeLeaf`) - the number of the leaf itself. The step asks for it
+   only when `positionNeeded(entries)` (an enabled entry has a range), else it passes null and no range is checked
+   (`evaluate(entry, tags, instructions, parts, position)`).
 4. **Scan** (only with a scan depth): `Lorebook.scanDepth` of the lorebook the book uses (clamped to
    `LorebookActivationService.MAX_SCAN_DEPTH`, 5; the value of a sub-lorebook is ignored) is how many passes follow.
    Pass n takes the entries pass n - 1 activated (pass 0 is step 3), leaves out those with `preventRecursion` or no
