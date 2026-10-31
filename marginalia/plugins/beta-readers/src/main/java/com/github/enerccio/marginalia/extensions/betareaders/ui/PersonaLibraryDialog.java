@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.T;
+import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.*;
 
 /**
  * The personas of the library of the user (or, with another title and list, of a book): the list with add, edit, copy, delete and
@@ -39,8 +39,8 @@ public class PersonaLibraryDialog extends LibraryDialog<Persona> {
     public PersonaLibraryDialog(String title, List<Persona> source, PersonaGenerator generator, Consumer<List<Persona>> onApply) {
         super(title, source, Persona::copy, Persona::duplicate, onApply);
         this.generator = generator;
-        Button starters = new Button(T.localized("Add the starter personas"), Solid.USERS.create(), _ -> addStarters());
-        starters.setTooltipText(T.localized("Adds the personas the plugin comes with that are not in the list"));
+        Button starters = new Button(T.localized(ADD_THE_STARTER_PERSONAS), Solid.USERS.create(), _ -> addStarters());
+        starters.setTooltipText(T.localized(ADDS_THE_PERSONAS_THE_PLUGIN));
         addToolbarButton(starters);
         build();
     }
@@ -51,9 +51,9 @@ public class PersonaLibraryDialog extends LibraryDialog<Persona> {
             Image icon = new Image(PersonaIcons.source(persona), persona.getName());
             icon.addClassName(BetaReadersStyles.ICON);
             return icon;
-        }).setHeader(T.localized("Icon")).setFlexGrow(0).setWidth("5rem");
-        grid.addColumn(Persona::getName).setHeader(T.localized("Name")).setFlexGrow(1).setAutoWidth(true);
-        grid.addColumn(persona -> summary(persona.getDescription())).setHeader(T.localized("Description")).setFlexGrow(4);
+        }).setHeader(T.localized(ICON)).setFlexGrow(0).setWidth("5rem");
+        grid.addColumn(Persona::getName).setHeader(T.localized(NAME)).setFlexGrow(1).setAutoWidth(true);
+        grid.addColumn(persona -> summary(persona.getDescription())).setHeader(T.localized(DESCRIPTION)).setFlexGrow(4);
     }
 
     @Override
@@ -63,7 +63,7 @@ public class PersonaLibraryDialog extends LibraryDialog<Persona> {
 
     @Override
     protected void edit(Persona persona, boolean isNew, Runnable done) {
-        String header = isNew ? T.localized("New persona") : T.localized("Edit persona");
+        String header = isNew ? T.localized(NEW_PERSONA) : T.localized(EDIT_PERSONA);
         createEditor(header, persona, name -> nameTaken(persona, name), done).open();
     }
 
@@ -95,7 +95,7 @@ public class PersonaLibraryDialog extends LibraryDialog<Persona> {
         }
         refresh();
         if (added == 0) {
-            Notification.warning(T.localized("All the starter personas are in the list"));
+            Notification.warning(T.localized(ALL_THE_STARTER_PERSONAS));
         }
     }
 

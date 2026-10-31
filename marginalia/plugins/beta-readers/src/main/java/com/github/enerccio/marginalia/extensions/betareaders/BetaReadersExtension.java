@@ -13,8 +13,8 @@ import com.github.enerccio.marginalia.extensions.betareaders.model.BetaReadersSe
 import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersInherited;
 import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersService;
 import com.github.enerccio.marginalia.extensions.betareaders.ui.BetaReadersSettingsForm;
-import com.github.enerccio.marginalia.extensions.betareaders.ui.BetaReadersView;
 import com.github.enerccio.marginalia.extensions.betareaders.ui.BetaReadersStyles;
+import com.github.enerccio.marginalia.extensions.betareaders.ui.BetaReadersView;
 import com.github.enerccio.marginalia.ui.main.ApplicationEntryPoint;
 import com.github.enerccio.marginalia.ui.main.Main;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.BETA_READERS;
 import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.T;
 
 /**
@@ -81,7 +82,7 @@ public class BetaReadersExtension implements MarginaliaExtension, ExtensionHasCs
                         return;
                     }
                     BetaReadersView view = new BetaReadersView(book, service);
-                    leftBar.add("beta-readers", T.localized("Beta Readers"), "BR", view);
+                    leftBar.add("beta-readers", T.localized(BETA_READERS), "BR", view);
                     ComponentUtil.setData(leftBar, VIEW_KEY, view);
                     activeTabSheets.add(leftBar);
                 }
@@ -111,7 +112,7 @@ public class BetaReadersExtension implements MarginaliaExtension, ExtensionHasCs
                             }
                         });
                     } else {
-                        panel = extensionSettings.add(T.localized("Beta Readers"), new BetaReadersSettingsForm(service));
+                        panel = extensionSettings.add(T.localized(BETA_READERS), new BetaReadersSettingsForm(service));
                         ComponentUtil.setData(extensionSettings, SETTINGS_PANEL_KEY, panel);
                         activeAccordions.add(extensionSettings);
                     }

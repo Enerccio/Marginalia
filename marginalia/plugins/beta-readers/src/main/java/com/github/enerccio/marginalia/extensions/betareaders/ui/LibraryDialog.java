@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
-import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.T;
+import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.*;
 
 /**
  * A list the user edits in a window: add, edit, copy, delete and reorder, applied with <i>Save</i> and thrown away with
@@ -113,18 +113,18 @@ public abstract class LibraryDialog<T> extends Dialog {
         grid.addItemDoubleClickListener(event -> editItem(event.getItem()));
         grid.setItems(items);
 
-        Button add = new Button(T.localized("Add"), Solid.PLUS.create(), _ -> add());
+        Button add = new Button(T.localized(ADD), Solid.PLUS.create(), _ -> add());
         add.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        editButton = new Button(T.localized("Edit"), Solid.PEN.create(), _ -> selected(this::editItem));
-        copyButton = new Button(T.localized("Copy"), Solid.COPY.create(), _ -> selected(this::copyItem));
-        deleteButton = new Button(T.localized("Delete"), Solid.TRASH.create(), _ -> selected(this::deleteItem));
+        editButton = new Button(T.localized(EDIT), Solid.PEN.create(), _ -> selected(this::editItem));
+        copyButton = new Button(T.localized(COPY), Solid.COPY.create(), _ -> selected(this::copyItem));
+        deleteButton = new Button(T.localized(DELETE), Solid.TRASH.create(), _ -> selected(this::deleteItem));
         deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
         upButton = new Button(Solid.ARROW_UP.create(), _ -> selected(item -> move(item, -1)));
-        upButton.setTooltipText(T.localized("Move up"));
-        upButton.setAriaLabel(T.localized("Move up"));
+        upButton.setTooltipText(T.localized(MOVE_UP));
+        upButton.setAriaLabel(T.localized(MOVE_UP));
         downButton = new Button(Solid.ARROW_DOWN.create(), _ -> selected(item -> move(item, 1)));
-        downButton.setTooltipText(T.localized("Move down"));
-        downButton.setAriaLabel(T.localized("Move down"));
+        downButton.setTooltipText(T.localized(MOVE_DOWN));
+        downButton.setAriaLabel(T.localized(MOVE_DOWN));
         toolbar.addComponentAtIndex(0, add);
         toolbar.addComponentAtIndex(1, editButton);
         toolbar.addComponentAtIndex(2, copyButton);
@@ -140,8 +140,8 @@ public abstract class LibraryDialog<T> extends Dialog {
         content.setMinWidth("0");
         add(content);
 
-        Button cancel = new Button(T.localized("Cancel"), _ -> close());
-        Button save = new Button(T.localized("Save"), _ -> {
+        Button cancel = new Button(T.localized(CANCEL), _ -> close());
+        Button save = new Button(T.localized(SAVE), _ -> {
             onApply.accept(new ArrayList<>(items));
             close();
         });
@@ -174,7 +174,7 @@ public abstract class LibraryDialog<T> extends Dialog {
     }
 
     private void deleteItem(T item) {
-        ConfirmDialog.show(T.localized("Delete \"%s\"?").formatted(labelOf(item)), () -> {
+        ConfirmDialog.show(T.localized(DELETE_S).formatted(labelOf(item)), () -> {
             items.remove(item);
             refresh();
         });

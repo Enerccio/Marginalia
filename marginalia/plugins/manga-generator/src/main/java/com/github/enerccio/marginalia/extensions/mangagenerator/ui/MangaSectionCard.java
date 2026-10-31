@@ -39,7 +39,7 @@ import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import static com.github.enerccio.marginalia.extensions.mangagenerator.MangaGeneratorLocalization.T;
+import static com.github.enerccio.marginalia.extensions.mangagenerator.MangaGeneratorLocalization.*;
 
 /**
  * One section of a manga: the parts of the story it adapts, and its script and image tags, which can be generated, edited
@@ -124,11 +124,11 @@ public class MangaSectionCard extends VerticalLayout {
     // --- building ---
 
     private HorizontalLayout buildHeader(int number) {
-        Span title = new Span(T.localized("Section %d").formatted(number));
+        Span title = new Span(T.localized(SECTION).formatted(number));
         title.addClassName(CssStyles.TEXT_BOLD);
 
-        scriptTab = new Tab(T.localized("Script"));
-        tagsTab = new Tab(T.localized("Tags"));
+        scriptTab = new Tab(T.localized(SCRIPT));
+        tagsTab = new Tab(T.localized(TAGS));
         modeTabs = new Tabs(scriptTab, tagsTab);
         modeTabs.addSelectedChangeListener(e -> {
             tagsMode = e.getSelectedTab() == tagsTab;
@@ -140,14 +140,14 @@ public class MangaSectionCard extends VerticalLayout {
 
         overrides = new MenuBar();
         overrides.addThemeVariants(MenuBarVariant.LUMO_TERTIARY_INLINE);
-        SubMenu menu = overrides.addItem(T.localized("Override")).getSubMenu();
-        menu.addItem(T.localized("Script prompt"), e -> editOverride(T.localized("Script prompt of this section"),
+        SubMenu menu = overrides.addItem(T.localized(OVERRIDE)).getSubMenu();
+        menu.addItem(T.localized(SCRIPT_PROMPT), e -> editOverride(T.localized(SCRIPT_PROMPT_OF_THIS_SECTION),
                 section.getPromptOverride(), inheritedPrompt(), section::setPromptOverride));
-        menu.addItem(T.localized("Tags prompt"), e -> editOverride(T.localized("Tags prompt of this section"),
+        menu.addItem(T.localized(TAGS_PROMPT), e -> editOverride(T.localized(TAGS_PROMPT_OF_THIS_SECTION),
                 section.getTagsPromptOverride(), inheritedTagsPrompt(), section::setTagsPromptOverride));
-        menu.addItem(T.localized("Additional rules"), e -> editOverride(T.localized("Additional rules of this section"),
+        menu.addItem(T.localized(ADDITIONAL_RULES), e -> editOverride(T.localized(ADDITIONAL_RULES_OF_THIS_SECTION),
                 section.getAdditionalRules(), StringUtils.defaultString(manga.getAdditionalRules()), section::setAdditionalRules));
-        menu.addItem(T.localized("Rules addendum"), e -> editOverride(T.localized("Rules added to the rules of the manga"),
+        menu.addItem(T.localized(RULES_ADDENDUM), e -> editOverride(T.localized(RULES_ADDED_TO_THE_RULES),
                 section.getAdditionalRulesAddendum(), "", section::setAdditionalRulesAddendum));
 
         HorizontalLayout header = new HorizontalLayout(title, modeTabs, overrides);
@@ -158,10 +158,10 @@ public class MangaSectionCard extends VerticalLayout {
     }
 
     private HorizontalLayout buildRanges() {
-        startPart = rangeField(T.localized("Adapt from part"), section.getStartPart(), section::setStartPart);
-        endPart = rangeField(T.localized("to part"), section.getEndPart(), section::setEndPart);
-        contextStart = rangeField(T.localized("Context from part"), section.getContextStart(), section::setContextStart);
-        contextEnd = rangeField(T.localized("to part"), section.getContextEnd(), section::setContextEnd);
+        startPart = rangeField(T.localized(ADAPT_FROM_PART), section.getStartPart(), section::setStartPart);
+        endPart = rangeField(T.localized(TO_PART), section.getEndPart(), section::setEndPart);
+        contextStart = rangeField(T.localized(CONTEXT_FROM_PART), section.getContextStart(), section::setContextStart);
+        contextEnd = rangeField(T.localized(TO_PART), section.getContextEnd(), section::setContextEnd);
         HorizontalLayout ranges = new HorizontalLayout(startPart, endPart, contextStart, contextEnd);
         ranges.setWidthFull();
         ranges.setWrap(true);
@@ -216,17 +216,17 @@ public class MangaSectionCard extends VerticalLayout {
         generateButton.setThemeName("primary");
 
         editButton = new Button(Solid.PEN.create(), e -> setEditing(true, false));
-        editButton.setTooltipText(T.localized("Edit the text"));
-        saveEditButton = new Button(T.localized("Save"), e -> setEditing(false, true));
+        editButton.setTooltipText(T.localized(EDIT_THE_TEXT));
+        saveEditButton = new Button(T.localized(SAVE), e -> setEditing(false, true));
         saveEditButton.setThemeName("primary");
-        cancelEditButton = new Button(T.localized("Cancel"), e -> setEditing(false, false));
+        cancelEditButton = new Button(T.localized(CANCEL), e -> setEditing(false, false));
 
         copyButton = new Button(Solid.COPY.create(), e -> copy());
-        copyButton.setTooltipText(T.localized("Copy"));
+        copyButton.setTooltipText(T.localized(COPY));
         requestButton = new Button(Solid.EYE.create(), e -> showRequest());
-        requestButton.setTooltipText(T.localized("Show the request the model gets"));
-        deleteButton = new Button(Solid.TRASH.create(), e -> ConfirmDialog.show(T.localized("Delete this section?"), onDelete));
-        deleteButton.setTooltipText(T.localized("Delete"));
+        requestButton.setTooltipText(T.localized(SHOW_THE_REQUEST_THE_MODEL));
+        deleteButton = new Button(Solid.TRASH.create(), e -> ConfirmDialog.show(T.localized(DELETE_THIS_SECTION), onDelete));
+        deleteButton.setTooltipText(T.localized(DELETE));
         deleteButton.setThemeName("error");
 
         HorizontalLayout buttons = new HorizontalLayout(generateButton, editButton, saveEditButton, cancelEditButton,
@@ -251,8 +251,8 @@ public class MangaSectionCard extends VerticalLayout {
             long millis = tagsMode ? section.getTagsReasoningMillis() : section.getReasoningMillis();
             boolean finished = tagsMode ? section.isTagsReasoningFinished() : section.isReasoningFinished();
             String seconds = String.format(Locale.ROOT, "%.1f", millis / 1000.0);
-            reasoningDetails.setSummaryText(finished ? T.localized("Thought for %s s").formatted(seconds)
-                    : T.localized("Thinking for %s s").formatted(seconds));
+            reasoningDetails.setSummaryText(finished ? T.localized(THOUGHT).formatted(seconds)
+                    : T.localized(THINKING).formatted(seconds));
             reasoningMarkdown.setContent(reasoning);
             reasoningDetails.setVisible(true);
         } else {
@@ -264,12 +264,12 @@ public class MangaSectionCard extends VerticalLayout {
         outputMarkdown.setContent(text);
         emptyHint.setVisible(!editing && StringUtils.isBlank(text));
         emptyHint.setText(busy && generatingTags == tagsMode
-                ? T.localized("Waiting for the model...")
-                : tagsMode ? T.localized("No tags yet. Generate them from the script, or write them.")
-                : T.localized("No script yet. Generate it, or write it."));
+                ? T.localized(WAITING_FOR_THE_MODEL)
+                : tagsMode ? T.localized(NO_TAGS_YET_GENERATE_THEM)
+                : T.localized(NO_SCRIPT_YET_GENERATE));
 
         boolean here = busy && generatingTags == tagsMode;
-        generateButton.setText(here ? T.localized("Abort") : tagsMode ? T.localized("Generate tags") : T.localized("Generate script"));
+        generateButton.setText(here ? T.localized(ABORT) : tagsMode ? T.localized(GENERATE_TAGS) : T.localized(GENERATE_SCRIPT));
         generateButton.setIcon((here ? Solid.BAN : Solid.WAND_MAGIC_SPARKLES).create());
         generateButton.setEnabled(!editing && (here || (!busy && !frozen)));
 
@@ -322,7 +322,7 @@ public class MangaSectionCard extends VerticalLayout {
 
     private void copy() {
         UI.getCurrent().getPage().executeJs("navigator.clipboard.writeText($0)", text());
-        Notification.show(tagsMode ? T.localized("Tags copied") : T.localized("Script copied"));
+        Notification.show(tagsMode ? T.localized(TAGS_COPIED) : T.localized(SCRIPT_COPIED));
     }
 
     // --- overrides ---
@@ -336,7 +336,7 @@ public class MangaSectionCard extends VerticalLayout {
     }
 
     private void editOverride(String title, String current, String inherited, Consumer<String> setter) {
-        new TextEditDialog(title, T.localized("Empty or unchanged: the setting of the manga is used"), current, inherited, value -> {
+        new TextEditDialog(title, T.localized(EMPTY_OR_UNCHANGED_THE_SETTING), current, inherited, value -> {
             setter.accept(value);
             onChange.run();
         }).open();
@@ -353,7 +353,7 @@ public class MangaSectionCard extends VerticalLayout {
         try {
             MangaService.Request request = buildRequest(tagsMode);
             Dialog dialog = new Dialog();
-            dialog.setHeaderTitle(T.localized("Request"));
+            dialog.setHeaderTitle(T.localized(REQUEST));
             dialog.setWidth("70vw");
             dialog.setHeight("80vh");
 
@@ -370,7 +370,7 @@ public class MangaSectionCard extends VerticalLayout {
             area.addClassName(CssStyles.MIN_HEIGHT_0);
             content.expand(area);
             dialog.add(content);
-            dialog.getFooter().add(new Button(T.localized("Close"), e -> dialog.close()));
+            dialog.getFooter().add(new Button(T.localized(CLOSE), e -> dialog.close()));
             dialog.open();
         } catch (Exception e) {
             Notification.error(messageOf(e));
@@ -378,13 +378,13 @@ public class MangaSectionCard extends VerticalLayout {
     }
 
     private static String statsText(MangaService.Request request) {
-        StringBuilder stats = new StringBuilder(T.localized("About %d tokens").formatted(request.promptTokens()));
+        StringBuilder stats = new StringBuilder(T.localized(ABOUT_TOKENS).formatted(request.promptTokens()));
         if (request.promptLimit() > 0) {
-            stats.append(" ").append(T.localized("of %d the model has room for (its context without the reply)").formatted(request.promptLimit()));
+            stats.append(" ").append(T.localized(OF_THE_MODEL_HAS_ROOM).formatted(request.promptLimit()));
         }
-        stats.append(". ").append(T.localized("Lore entries: %d").formatted(request.loreEntries()));
+        stats.append(". ").append(T.localized(LORE_ENTRIES).formatted(request.loreEntries()));
         if (request.skippedLore() > 0) {
-            stats.append(" ").append(T.localized("(%d more did not fit)").formatted(request.skippedLore()));
+            stats.append(" ").append(T.localized(MORE_DID_NOT_FIT).formatted(request.skippedLore()));
         }
         return stats.toString();
     }
@@ -446,10 +446,10 @@ public class MangaSectionCard extends VerticalLayout {
         try {
             MangaService.Request request = buildRequest(tags);
             if (request.exceedsContext()) {
-                Notification.warning(T.localized("The request (about %d tokens) is more than the model has room for (%d)").formatted(
+                Notification.warning(T.localized(THE_REQUEST_ABOUT_TOKENS).formatted(
                         request.promptTokens(), request.promptLimit()));
             } else if (request.skippedLore() > 0) {
-                Notification.show(T.localized("%d lore entries were left out to fit the context").formatted(request.skippedLore()));
+                Notification.show(T.localized(LORE_ENTRIES_WERE_LEFT_OUT).formatted(request.skippedLore()));
             }
 
             if (tags) {

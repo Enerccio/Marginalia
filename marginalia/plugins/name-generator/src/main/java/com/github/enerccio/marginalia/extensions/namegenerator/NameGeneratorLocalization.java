@@ -9,9 +9,11 @@ public class NameGeneratorLocalization extends PluginLocalizationBundle {
 
     public static final NameGeneratorLocalization T = new NameGeneratorLocalization();
 
+    public static final String NAMES_MADE_UP_BY_MARKOV = "Names made up by Markov chains trained on lists of names: places, deities, companies, surnames of countries... Groups (like all Native American names) pick a category at random for every name.";
+
     @Override
     protected void loadKeys() {
-        ja("Names made up by Markov chains trained on lists of names: places, deities, companies, surnames of countries... Groups (like all Native American names) pick a category at random for every name.", "名前リストで学習したマルコフ連鎖で作られた名前: 地名、神々、企業、各国の姓など。グループ（アメリカ先住民の名前全般など）は、名前ごとにカテゴリをランダムに選びます。");
-        zh("Names made up by Markov chains trained on lists of names: places, deities, companies, surnames of countries... Groups (like all Native American names) pick a category at random for every name.", "由基于名称列表训练的马尔可夫链生成的名字：地名、神祇、公司、各国姓氏等。分组（如所有美洲原住民名字）会为每个名字随机选择一个类别。");
+        ja(NAMES_MADE_UP_BY_MARKOV, "名前リストで学習したマルコフ連鎖で作られた名前: 地名、神々、企業、各国の姓など。グループ（アメリカ先住民の名前全般など）は、名前ごとにカテゴリをランダムに選びます。");
+        zh(NAMES_MADE_UP_BY_MARKOV, "由基于名称列表训练的马尔可夫链生成的名字：地名、神祇、公司、各国姓氏等。分组（如所有美洲原住民名字）会为每个名字随机选择一个类别。");
     }
 }

@@ -4,24 +4,12 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
-import com.github.enerccio.marginalia.extensions.betareaders.model.BetaChat;
-import com.github.enerccio.marginalia.extensions.betareaders.model.BetaMessage;
-import com.github.enerccio.marginalia.extensions.betareaders.model.ChatKind;
-import com.github.enerccio.marginalia.extensions.betareaders.model.ChatPersona;
-import com.github.enerccio.marginalia.extensions.betareaders.model.Persona;
-import com.github.enerccio.marginalia.extensions.betareaders.model.Medium;
-import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersService;
+import com.github.enerccio.marginalia.extensions.betareaders.model.*;
+import com.github.enerccio.marginalia.extensions.betareaders.service.*;
 import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersService.Asked;
 import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersService.ContextUsage;
 import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersService.Model;
-import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersStore;
-import com.github.enerccio.marginalia.extensions.betareaders.service.ChatEdits;
-import com.github.enerccio.marginalia.extensions.betareaders.service.ChatRunner;
-import com.github.enerccio.marginalia.extensions.betareaders.service.EmptyReplyException;
-import com.github.enerccio.marginalia.extensions.betareaders.service.NoModelException;
-import com.github.enerccio.marginalia.extensions.betareaders.service.PartsTracker;
 import com.github.enerccio.marginalia.extensions.betareaders.service.PartsTracker.Status;
-import com.github.enerccio.marginalia.extensions.betareaders.service.PersonaIcons;
 import com.github.enerccio.marginalia.extensions.betareaders.service.ReplyReader.Reading;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
@@ -31,11 +19,7 @@ import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.utils.UIUtils;
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.Key;
-import com.vaadin.flow.component.KeyModifier;
-import com.vaadin.flow.component.Shortcuts;
-import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -56,7 +40,7 @@ import java.text.NumberFormat;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.T;
+import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.*;
 
 /**
  * The content of the tab of a chat: what the chat is made of (the kind, the medium, the model and the personas), the conversation, and
@@ -80,7 +64,7 @@ public class ChatPanel extends VerticalLayout {
     private final VerticalLayout messages = new VerticalLayout();
     private final Scroller scroller = new Scroller(messages);
     private final TextArea input = new TextArea();
-    private final Checkbox includeParts = new Checkbox(T.localized("Include the latest parts"));
+    private final Checkbox includeParts = new Checkbox(T.localized(INCLUDE_THE_LATEST_PARTS));
     private final Button checkParts = new Button(Solid.ROTATE.create());
     private final Button send = new Button();
     private final Span context = new Span();
@@ -129,16 +113,16 @@ public class ChatPanel extends VerticalLayout {
     private Component header() throws Exception {
         Medium medium = service.resolveMedium(manuscript, chat);
         Model model = service.resolveModel(manuscript, chat);
-        String none = T.localized("none");
+        String none = T.localized(NONE);
         Div about = new Div(
-                new Span(chat.getKind() == ChatKind.SINGLE ? T.localized("A chat with one persona") : T.localized("A group chat")),
-                new Span(" · " + T.localized("Medium: %s").formatted(medium == null ? none : medium.getName())),
-                new Span(" · " + T.localized("Model: %s").formatted(model.ai() == null ? none : model.ai().getName())));
+                new Span(chat.getKind() == ChatKind.SINGLE ? T.localized(A_CHAT_WITH_ONE_PERSONA) : T.localized(A_GROUP_CHAT)),
+                new Span(" · " + T.localized(MEDIUM_S).formatted(medium == null ? none : medium.getName())),
+                new Span(" · " + T.localized(MODEL_S).formatted(model.ai() == null ? none : model.ai().getName())));
         if (chat.getSpoilerLimit() > 0) {
-            about.add(new Span(" · " + T.localized("Reads up to part %d").formatted(chat.getSpoilerLimit())));
+            about.add(new Span(" · " + T.localized(READS_UP_TO_PART).formatted(chat.getSpoilerLimit())));
         }
         if (chat.getFromPart() > 1) {
-            about.add(new Span(" · " + T.localized("from part %d").formatted(chat.getFromPart())));
+            about.add(new Span(" · " + T.localized(FROM_PART).formatted(chat.getFromPart())));
         }
         about.addClassName(BetaReadersStyles.HINT);
 
@@ -150,14 +134,14 @@ public class ChatPanel extends VerticalLayout {
             personas.add(row(member, present));
         }
         if (chat.getKind() == ChatKind.GROUP) {
-            Button bring = new Button(T.localized("Bring in a persona"), Solid.USER_PLUS.create(), _ -> bringIn());
+            Button bring = new Button(T.localized(BRING_IN_A_PERSONA), Solid.USER_PLUS.create(), _ -> bringIn());
             bring.addThemeName("tertiary");
             bring.addThemeName("small");
             Div actions = new Div(bring);
             actions.addClassName(BetaReadersStyles.ACTIONS);
             personas.add(actions);
         }
-        Details details = new Details(T.localized("Personas (%d)").formatted(present), personas);
+        Details details = new Details(T.localized(PERSONAS_COUNT).formatted(present), personas);
         details.setOpened(personasOpen);
         details.addOpenedChangeListener(event -> personasOpen = event.isOpened());
 
@@ -183,7 +167,7 @@ public class ChatPanel extends VerticalLayout {
         icon.addClassName(BetaReadersStyles.ICON);
 
         Div text = new Div();
-        Span name = new Span(member.getPersona().getName() + (member.isPresent() ? "" : " (" + T.localized("left") + ")"));
+        Span name = new Span(member.getPersona().getName() + (member.isPresent() ? "" : " (" + T.localized(LEFT) + ")"));
         name.addClassName(CssStyles.TEXT_BOLD);
         text.add(name);
         if (member.getPersona().getDescription() != null && !member.getPersona().getDescription().isBlank()) {
@@ -197,15 +181,15 @@ public class ChatPanel extends VerticalLayout {
         Button update = new Button(Solid.ROTATE.create(), _ -> updateFromLibrary(member.getPersona()));
         update.addThemeName("tertiary");
         update.addThemeName("small");
-        update.setTooltipText(T.localized("Update from the library"));
-        update.setAriaLabel(T.localized("Update from the library"));
+        update.setTooltipText(T.localized(UPDATE_FROM_THE_LIBRARY));
+        update.setAriaLabel(T.localized(UPDATE_FROM_THE_LIBRARY));
         actions.add(update);
         if (chat.getKind() == ChatKind.GROUP && member.isPresent() && present > 1) {
             Button away = new Button(Solid.USER_MINUS.create(), _ -> sendAway(member.getPersona()));
             away.addThemeName("tertiary");
             away.addThemeName("small");
-            away.setTooltipText(T.localized("Send away"));
-            away.setAriaLabel(T.localized("Send away"));
+            away.setTooltipText(T.localized(SEND_AWAY));
+            away.setAriaLabel(T.localized(SEND_AWAY));
             actions.add(away);
         }
 
@@ -219,14 +203,14 @@ public class ChatPanel extends VerticalLayout {
 
     private Component composer() {
         input.setWidthFull();
-        input.setPlaceholder(T.localized("Write to the beta readers..."));
+        input.setPlaceholder(T.localized(WRITE_TO_THE_BETA_READERS));
         ResizableTextArea.install(loc, input, "64px");
         Shortcuts.addShortcutListener(input, this::send, Key.ENTER, KeyModifier.CONTROL);
 
         checkParts.addThemeName("tertiary");
         checkParts.addThemeName("small");
-        checkParts.setTooltipText(T.localized("Check for new parts"));
-        checkParts.setAriaLabel(T.localized("Check for new parts"));
+        checkParts.setTooltipText(T.localized(CHECK_FOR_NEW_PARTS));
+        checkParts.setAriaLabel(T.localized(CHECK_FOR_NEW_PARTS));
         checkParts.addClickListener(_ -> refreshStatus(true));
 
         send.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -292,13 +276,13 @@ public class ChatPanel extends VerticalLayout {
             refreshStatus(false);
             scrollToEnd();
         } catch (NoModelException e) {
-            Notification.warning(T.localized("There is no model to ask. Choose one for the chat, the book or in the settings."));
+            Notification.warning(T.localized(THERE_IS_NO_MODEL));
         } catch (IllegalArgumentException e) {
-            Notification.warning(T.localized("Write a message or include the latest parts."));
+            Notification.warning(T.localized(WRITE_A_MESSAGE_OR_INCLUDE));
         } catch (UnsupportedOperationException e) {
             Notification.warning(e.getMessage());
         } catch (Exception e) {
-            Notification.error(T.localized("Can't ask the model: %s").formatted(e.getMessage() != null ? e.getMessage() : e.toString()));
+            Notification.error(T.localized(CANT_ASK_THE_MODEL).formatted(e.getMessage() != null ? e.getMessage() : e.toString()));
         }
     }
 
@@ -353,12 +337,12 @@ public class ChatPanel extends VerticalLayout {
         // the reply is in the history now (the last turn is the one that can be asked for again)
         rebuildMessages();
         if (outcome.error() instanceof EmptyReplyException) {
-            Notification.warning(T.localized("The model did not answer."));
+            Notification.warning(T.localized(THE_MODEL_DID_NOT_ANSWER));
         } else if (outcome.error() != null) {
             UIUtils.inferenceError(loc, outcome.error());
         }
         if (outcome.prompt().dropped() > 0) {
-            Notification.warning(T.localized("%d older messages were left out of the request to fit the context.").formatted(outcome.prompt().dropped()));
+            Notification.warning(T.localized(OLDER_MESSAGES_WERE_LEFT_OUT).formatted(outcome.prompt().dropped()));
         }
         // the reply ends on a thread of the inference service: the services need the request of the user
         try (InRequestScope _ = new InRequestScope(attributes)) {
@@ -382,7 +366,7 @@ public class ChatPanel extends VerticalLayout {
     }
 
     private void showButton() {
-        send.setText(generating ? T.localized("Stop") : T.localized("Send"));
+        send.setText(generating ? T.localized(STOP) : T.localized(SEND));
         send.setIcon((generating ? Solid.STOP : Solid.PAPER_PLANE).create());
     }
 
@@ -400,9 +384,9 @@ public class ChatPanel extends VerticalLayout {
             messages.add(BetaMessageCard.create(chat, history.get(i), actions, i == history.size() - 1));
         }
         if (unanswered(history)) {
-            Div none = new Div(new Span(T.localized("There is no reply yet.")));
+            Div none = new Div(new Span(T.localized(THERE_IS_NO_REPLY_YET)));
             none.addClassName(BetaReadersStyles.HEADLINE);
-            Button again = new Button(T.localized("Ask again"), Solid.ROTATE.create(), _ -> regenerate());
+            Button again = new Button(T.localized(ASK_AGAIN), Solid.ROTATE.create(), _ -> regenerate());
             again.addThemeName("tertiary");
             again.addThemeName("small");
             Div row = new Div(again);
@@ -444,7 +428,7 @@ public class ChatPanel extends VerticalLayout {
         @Override
         public void delete(BetaMessage message) {
             if (!generating) {
-                ConfirmDialog.show(T.localized("Delete this message?"), () -> {
+                ConfirmDialog.show(T.localized(DELETE_THIS_MESSAGE), () -> {
                     ChatEdits.delete(chat, message.getId());
                     changed(true);
                 });
@@ -454,7 +438,7 @@ public class ChatPanel extends VerticalLayout {
         @Override
         public void deleteSpoken(BetaMessage turn, int index) {
             if (!generating) {
-                ConfirmDialog.show(T.localized("Delete this message?"), () -> {
+                ConfirmDialog.show(T.localized(DELETE_THIS_MESSAGE), () -> {
                     ChatEdits.deleteSpoken(chat, turn.getId(), index);
                     changed(false);
                 });
@@ -488,17 +472,17 @@ public class ChatPanel extends VerticalLayout {
 
     private void editMessage(BetaMessage message) {
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle(T.localized("Edit message"));
+        dialog.setHeaderTitle(T.localized(EDIT_MESSAGE));
         dialog.setWidth("460px");
         dialog.setMaxWidth("96vw");
         TextArea text = new TextArea();
         text.setWidthFull();
         text.setValue(message.getText());
-        Button save = new Button(T.localized("Save"), _ -> {
+        Button save = new Button(T.localized(SAVE), _ -> {
             try {
                 ChatEdits.edit(chat, message.getId(), text.getValue());
             } catch (IllegalArgumentException e) {
-                Notification.warning(T.localized("Write a message or include the latest parts."));
+                Notification.warning(T.localized(WRITE_A_MESSAGE_OR_INCLUDE));
                 return;
             }
             dialog.close();
@@ -506,7 +490,7 @@ public class ChatPanel extends VerticalLayout {
         });
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         dialog.add(text);
-        dialog.getFooter().add(new Button(T.localized("Cancel"), _ -> dialog.close()), save);
+        dialog.getFooter().add(new Button(T.localized(CANCEL), _ -> dialog.close()), save);
         dialog.open();
         text.focus();
     }
@@ -524,10 +508,10 @@ public class ChatPanel extends VerticalLayout {
             List<Persona> candidates = service.available(manuscript).stream().map(available -> available.persona())
                     .filter(persona -> !here.contains(BetaReadersStore.nameKey(persona.getName()))).toList();
             if (candidates.isEmpty()) {
-                Notification.warning(T.localized("There is no persona to bring in: they are all here."));
+                Notification.warning(T.localized(THERE_IS_NO_PERSONA));
                 return;
             }
-            new PresenceDialog(T.localized("Bring in a persona"), T.localized("Bring in"), candidates, (persona, note) -> {
+            new PresenceDialog(T.localized(BRING_IN_A_PERSONA), T.localized(BRING), candidates, (persona, note) -> {
                 ChatEdits.join(chat, persona, note);
                 personaChanged();
             }).open();
@@ -540,11 +524,11 @@ public class ChatPanel extends VerticalLayout {
         if (generating) {
             return;
         }
-        new PresenceDialog(T.localized("Send away %s").formatted(persona.getName()), T.localized("Send away"), null, (_, note) -> {
+        new PresenceDialog(T.localized(SEND_AWAY_S).formatted(persona.getName()), T.localized(SEND_AWAY), null, (_, note) -> {
             try {
                 ChatEdits.leave(chat, persona.getUuid(), note);
             } catch (IllegalStateException e) {
-                Notification.warning(T.localized("The last persona can't leave."));
+                Notification.warning(T.localized(THE_LAST_PERSONA_CANT_LEAVE));
                 return;
             }
             personaChanged();
@@ -565,11 +549,11 @@ public class ChatPanel extends VerticalLayout {
         }
         try {
             if (service.refreshPersona(manuscript, chat, persona.getUuid())) {
-                Notification.success(T.localized("%s is updated from the library.").formatted(persona.getName()));
+                Notification.success(T.localized(IS_UPDATED_FROM_THE_LIBRARY).formatted(persona.getName()));
                 rebuildHeader();
                 refreshStatus(false);
             } else {
-                Notification.warning(T.localized("%s is not in the library or in this book any more.").formatted(persona.getName()));
+                Notification.warning(T.localized(IS_NOT_IN_THE_LIBRARY).formatted(persona.getName()));
             }
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -589,7 +573,7 @@ public class ChatPanel extends VerticalLayout {
         try {
             Status status = service.partsStatus(manuscript, chat);
             String sent = PartsTracker.read(chat);
-            read.setText(sent.isEmpty() ? "" : T.localized("The personas have read: parts %s").formatted(sent));
+            read.setText(sent.isEmpty() ? "" : T.localized(THE_PERSONAS_HAVE_READ_PARTS).formatted(sent));
             includeParts.setLabel(partsLabel(status));
             if (check) {
                 includeParts.setValue(status.pending());
@@ -601,10 +585,10 @@ public class ChatPanel extends VerticalLayout {
             ContextUsage usage = service.contextUsage(manuscript, chat);
             NumberFormat format = NumberFormat.getIntegerInstance();
             context.setText(usage.limit() > 0
-                    ? T.localized("Context: %1$s of %2$s tokens").formatted(format.format(usage.tokens()), format.format(usage.limit()))
-                    : T.localized("Context: %s tokens").formatted(format.format(usage.tokens())));
+                    ? T.localized(CONTEXT_OF_TOKENS).formatted(format.format(usage.tokens()), format.format(usage.limit()))
+                    : T.localized(CONTEXT_TOKENS).formatted(format.format(usage.tokens())));
         } catch (NoModelException e) {
-            context.setText(T.localized("There is no model to ask. Choose one for the chat, the book or in the settings."));
+            context.setText(T.localized(THERE_IS_NO_MODEL));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -612,13 +596,13 @@ public class ChatPanel extends VerticalLayout {
 
     private static String partsLabel(Status status) {
         if (status.first() && status.count() > 0) {
-            return T.localized("Include the story (%d parts)").formatted(status.count());
+            return T.localized(INCLUDE_THE_STORY_PARTS).formatted(status.count());
         }
         if (status.count() > 0) {
-            return T.localized("Include the latest parts (%d new)").formatted(status.count());
+            return T.localized(INCLUDE_THE_LATEST_PARTS_NEW).formatted(status.count());
         }
-        return status.pending() ? T.localized("Include the latest parts (the story changed)")
-                : T.localized("Include the latest parts (none new)");
+        return status.pending() ? T.localized(INCLUDE_THE_LATEST_PARTS_THE_STORY)
+                : T.localized(INCLUDE_THE_LATEST_PARTS_NONE);
     }
 
     private void scrollToEnd() {

@@ -17,7 +17,7 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import org.apache.commons.lang3.StringUtils;
 
-import static com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineLocalization.T;
+import static com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineLocalization.*;
 
 /**
  * Creates or edits an arc or a chapter. The fields are applied to the node when it is saved.
@@ -28,11 +28,11 @@ public class OutlineNodeDialog extends Dialog {
     private final ArcOutlineView.StoryTarget storyTarget;
     private final Runnable onSaved;
 
-    private final TextField title = new TextField(T.localized("Title"));
-    private final TextArea description = new TextArea(T.localized("Description"));
-    private final TextArea note = new TextArea(T.localized("Note (private)"));
+    private final TextField title = new TextField(T.localized(TITLE));
+    private final TextArea description = new TextArea(T.localized(DESCRIPTION));
+    private final TextArea note = new TextArea(T.localized(NOTE_PRIVATE));
     private final Select<OutlineState> state = new Select<>();
-    private final IntegerField part = new IntegerField(T.localized("Linked part"));
+    private final IntegerField part = new IntegerField(T.localized(LINKED_PART));
 
     /**
      * @param header what the dialog says, like "New arc"
@@ -65,7 +65,7 @@ public class OutlineNodeDialog extends Dialog {
         note.setMinHeight("100px");
         note.setValue(StringUtils.defaultString(node.getNote()));
 
-        state.setLabel(T.localized("State"));
+        state.setLabel(T.localized(STATE));
         state.setItems(OutlineState.values());
         state.setItemLabelGenerator(s -> T.localized(s.getLabel()));
         state.setValue(node.getState());
@@ -75,7 +75,7 @@ public class OutlineNodeDialog extends Dialog {
         part.setStepButtonsVisible(true);
         part.setClearButtonVisible(true);
         part.setValue(node.getPart());
-        part.setTooltipText(T.localized("The place of the part in the story, as the outline numbers it"));
+        part.setTooltipText(T.localized(THE_PLACE_OF_THE_PART));
         part.setWidth("14em");
         HorizontalLayout link = new HorizontalLayout(part);
         link.setWidthFull();
@@ -83,16 +83,16 @@ public class OutlineNodeDialog extends Dialog {
         if (storyTarget != null) {
             Button linkVisible = new Button(Solid.LINK.create(), _ -> storyTarget.visiblePart(order -> {
                 if (order == null) {
-                    Notification.warning(T.localized("No part of the story is visible"));
+                    Notification.warning(T.localized(NO_PART_OF_THE_STORY));
                 } else {
                     part.setValue(order);
                 }
             }));
-            linkVisible.setTooltipText(T.localized("Link the part that is the most visible in the story"));
-            linkVisible.setAriaLabel(T.localized("Link the part that is the most visible in the story"));
+            linkVisible.setTooltipText(T.localized(LINK_THE_PART));
+            linkVisible.setAriaLabel(T.localized(LINK_THE_PART));
             Button goTo = new Button(Solid.LOCATION_CROSSHAIRS.create(), _ -> goToPart());
-            goTo.setTooltipText(T.localized("Go to the linked part"));
-            goTo.setAriaLabel(T.localized("Go to the linked part"));
+            goTo.setTooltipText(T.localized(GO_TO_THE_LINKED_PART));
+            goTo.setAriaLabel(T.localized(GO_TO_THE_LINKED_PART));
             link.add(linkVisible, goTo);
         }
 
@@ -100,25 +100,25 @@ public class OutlineNodeDialog extends Dialog {
         content.setPadding(false);
         add(content);
 
-        Button save = new Button(T.localized("Save"), _ -> save());
+        Button save = new Button(T.localized(SAVE), _ -> save());
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        Button cancel = new Button(T.localized("Cancel"), _ -> close());
+        Button cancel = new Button(T.localized(CANCEL), _ -> close());
         getFooter().add(cancel, save);
     }
 
     private void goToPart() {
         Integer order = part.getValue();
         if (order == null || order < 1) {
-            Notification.warning(T.localized("No part is linked"));
+            Notification.warning(T.localized(NO_PART_IS_LINKED));
         } else if (!storyTarget.showPart(order)) {
-            Notification.warning(T.localized("The active branch has no part %d").formatted(order));
+            Notification.warning(T.localized(THE_ACTIVE_BRANCH_HAS_NO).formatted(order));
         }
     }
 
     private void save() {
         if (StringUtils.isBlank(title.getValue())) {
             title.setInvalid(true);
-            title.setErrorMessage(T.localized("The title is required"));
+            title.setErrorMessage(T.localized(THE_TITLE_IS_REQUIRED));
             return;
         }
         node.setTitle(title.getValue().trim());

@@ -13,7 +13,7 @@ import com.vaadin.flow.component.textfield.TextArea;
 
 import java.util.List;
 
-import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.T;
+import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.*;
 
 /**
  * What a chat may choose for itself instead of inheriting it: the medium, the model, the protocol and the format of the replies, and
@@ -32,14 +32,14 @@ public class ChatOptionsForm extends VerticalLayout {
         }
     }
 
-    final ComboBox<Medium> medium = new ComboBox<>(T.localized("Medium"));
-    final TextArea scene = new TextArea(T.localized("Scene"));
-    final ComboBox<Choice> ai = new ComboBox<>(T.localized("Model"));
-    final ComboBox<Choice> protocol = new ComboBox<>(T.localized("Protocol"));
+    final ComboBox<Medium> medium = new ComboBox<>(T.localized(MEDIUM));
+    final TextArea scene = new TextArea(T.localized(SCENE));
+    final ComboBox<Choice> ai = new ComboBox<>(T.localized(MODEL));
+    final ComboBox<Choice> protocol = new ComboBox<>(T.localized(PROTOCOL));
     final Select<ReplyFormat> format = new Select<>();
-    final IntegerField spoilerLimit = new IntegerField(T.localized("Personas read up to part"));
-    final IntegerField fromPart = new IntegerField(T.localized("Start from part"));
-    final Checkbox summaries = new Checkbox(T.localized("Use the summaries of the story"));
+    final IntegerField spoilerLimit = new IntegerField(T.localized(PERSONAS_READ_UP_TO_PART));
+    final IntegerField fromPart = new IntegerField(T.localized(START_FROM_PART));
+    final Checkbox summaries = new Checkbox(T.localized(USE_THE_SUMMARIES));
 
     private final Inherited inherited;
 
@@ -53,7 +53,7 @@ public class ChatOptionsForm extends VerticalLayout {
         scene.setWidthFull();
         scene.setMinHeight("6rem");
         scene.setPlaceholder(inheritedText(shorten(inherited.scene())));
-        scene.setHelperText(T.localized("Empty: inherited. Where and how the conversation takes place; it goes into the system prompt."));
+        scene.setHelperText(T.localized(EMPTY_INHERITED_WHERE_AND_HOW));
         ai.setItems(ais);
         ai.setItemLabelGenerator(Choice::label);
         ai.setPlaceholder(inheritedText(inherited.ai()));
@@ -65,21 +65,21 @@ public class ChatOptionsForm extends VerticalLayout {
             combo.setWidthFull();
         }
 
-        format.setLabel(T.localized("Reply format"));
+        format.setLabel(T.localized(REPLY_FORMAT));
         format.setItems(ReplyFormat.AUTO, ReplyFormat.JSON, ReplyFormat.TEXT);
         format.setItemLabelGenerator(ChatOptionsForm::label);
         format.setValue(ReplyFormat.AUTO);
         format.setWidthFull();
-        format.setHelperText(T.localized("Automatic asks for JSON when the model can follow a schema, free text otherwise"));
+        format.setHelperText(T.localized(AUTOMATIC_ASKS_FOR_JSON));
 
         spoilerLimit.setMin(1);
         spoilerLimit.setStepButtonsVisible(true);
         spoilerLimit.setWidthFull();
-        spoilerLimit.setHelperText(T.localized("Empty: the whole story. The personas never get a part after this one."));
+        spoilerLimit.setHelperText(T.localized(EMPTY_THE_WHOLE_STORY));
         fromPart.setMin(1);
         fromPart.setStepButtonsVisible(true);
         fromPart.setWidthFull();
-        fromPart.setHelperText(T.localized("Empty: from the first part. Earlier parts are not sent, not even as summaries."));
+        fromPart.setHelperText(T.localized(EMPTY_FROM_THE_FIRST_PART));
         summaries.setValue(true);
 
         add(spoilerLimit, fromPart, summaries, medium, scene, ai, protocol, format);
@@ -92,7 +92,7 @@ public class ChatOptionsForm extends VerticalLayout {
         Integer first = fromPart.getValue();
         Integer last = spoilerLimit.getValue();
         if (first != null && last != null && first > last) {
-            return T.localized("The first part can't come after the last one.");
+            return T.localized(THE_FIRST_PART_CANT_COME);
         }
         return null;
     }
@@ -106,14 +106,14 @@ public class ChatOptionsForm extends VerticalLayout {
     }
 
     private static String inheritedText(String value) {
-        return T.localized("Inherited: %s").formatted(value == null || value.isBlank() ? T.localized("none") : value);
+        return T.localized(INHERITED).formatted(value == null || value.isBlank() ? T.localized(NONE) : value);
     }
 
     private static String label(ReplyFormat format) {
         return switch (format) {
-            case AUTO -> T.localized("Automatic");
-            case JSON -> T.localized("JSON");
-            case TEXT -> T.localized("Free text");
+            case AUTO -> T.localized(AUTOMATIC);
+            case JSON -> T.localized(JSON);
+            case TEXT -> T.localized(FREE_TEXT);
         };
     }
 

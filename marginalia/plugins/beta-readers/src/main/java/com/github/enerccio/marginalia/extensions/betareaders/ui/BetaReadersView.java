@@ -31,7 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.T;
+import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.*;
 
 /**
  * The tab of the plugin in the story sidebar: a tab for every open chat of the book, a button that starts a chat and a menu (rename,
@@ -75,12 +75,12 @@ public class BetaReadersView extends VerticalLayout {
         Button add = new Button(Solid.PLUS.create(), _ -> newChat());
         add.addThemeName("tertiary");
         add.addThemeName("small");
-        add.setTooltipText(T.localized("New chat"));
-        add.setAriaLabel(T.localized("New chat"));
+        add.setTooltipText(T.localized(NEW_CHAT));
+        add.setAriaLabel(T.localized(NEW_CHAT));
         menuButton.addThemeName("tertiary");
         menuButton.addThemeName("small");
-        menuButton.setAriaLabel(T.localized("Chats"));
-        menuButton.setTooltipText(T.localized("Chats"));
+        menuButton.setAriaLabel(T.localized(CHATS));
+        menuButton.setTooltipText(T.localized(CHATS));
         menu.setOpenOnClick(true);
 
         bar = new HorizontalLayout(tabs, add, menuButton);
@@ -162,7 +162,7 @@ public class BetaReadersView extends VerticalLayout {
     private void showPanel() {
         content.removeAll();
         if (active == null) {
-            Div empty = new Div(T.localized("No chats yet. Start one with the + button."));
+            Div empty = new Div(T.localized(NO_CHATS_YET_START_ONE));
             empty.addClassName(BetaReadersStyles.HINT);
             content.add(empty);
             return;
@@ -181,17 +181,17 @@ public class BetaReadersView extends VerticalLayout {
     private void rebuildMenu() {
         menu.removeAll();
         ContextMenu sub = menu;
-        sub.addItem(T.localized("New chat"), _ -> newChat());
-        sub.addItem(T.localized("Rename chat"), _ -> rename()).setEnabled(active != null);
-        sub.addItem(T.localized("Close chat"), _ -> close()).setEnabled(active != null);
-        sub.addItem(T.localized("Chat settings"), _ -> settings()).setEnabled(active != null);
-        sub.addItem(T.localized("Delete chat"), _ -> delete()).setEnabled(active != null);
+        sub.addItem(T.localized(NEW_CHAT), _ -> newChat());
+        sub.addItem(T.localized(RENAME_CHAT), _ -> rename()).setEnabled(active != null);
+        sub.addItem(T.localized(CLOSE_CHAT), _ -> close()).setEnabled(active != null);
+        sub.addItem(T.localized(CHAT_SETTINGS), _ -> settings()).setEnabled(active != null);
+        sub.addItem(T.localized(DELETE_CHAT), _ -> delete()).setEnabled(active != null);
         sub.addSeparator();
-        sub.addItem(T.localized("Personas of this book"), _ -> editBookPersonas());
+        sub.addItem(T.localized(PERSONAS_OF_THIS_BOOK), _ -> editBookPersonas());
         List<BetaChat> closed = chats.stream().filter(BetaChat::isClosed).toList();
         if (!closed.isEmpty()) {
             sub.addSeparator();
-            SubMenu reopen = sub.addItem(T.localized("Closed chats")).getSubMenu();
+            SubMenu reopen = sub.addItem(T.localized(CLOSED_CHATS)).getSubMenu();
             closed.forEach(chat -> reopen.addItem(chat.getTitle(), _ -> reopen(chat)));
         }
     }
@@ -200,7 +200,7 @@ public class BetaReadersView extends VerticalLayout {
         try {
             var personas = service.available(manuscript);
             if (personas.isEmpty()) {
-                Notification.warning(T.localized("There is no persona to talk to. Add some to the library in the settings, or to this book."));
+                Notification.warning(T.localized(THERE_IS_NO_PERSONA_TO_TALK));
                 return;
             }
             new NewChatDialog(personas, service.settingsOrDefaults().getMediums(), service.aiChoices(), service.protocolChoices(),
@@ -264,13 +264,13 @@ public class BetaReadersView extends VerticalLayout {
             return;
         }
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle(T.localized("Rename chat"));
-        TextField name = new TextField(T.localized("Title"));
+        dialog.setHeaderTitle(T.localized(RENAME_CHAT));
+        TextField name = new TextField(T.localized(TITLE));
         name.setWidthFull();
         name.setValue(chat.getTitle());
         name.setMaxLength(120);
         DialogFocus.onOpen(dialog, name);
-        Button save = new Button(T.localized("Save"), _ -> {
+        Button save = new Button(T.localized(SAVE), _ -> {
             String value = name.getValue() == null ? "" : name.getValue().strip();
             if (!value.isEmpty()) {
                 chat.setTitle(value);
@@ -281,7 +281,7 @@ public class BetaReadersView extends VerticalLayout {
         });
         save.addThemeName("primary");
         dialog.add(new VerticalLayout(name));
-        dialog.getFooter().add(new Button(T.localized("Cancel"), _ -> dialog.close()), save);
+        dialog.getFooter().add(new Button(T.localized(CANCEL), _ -> dialog.close()), save);
         dialog.open();
     }
 
@@ -311,7 +311,7 @@ public class BetaReadersView extends VerticalLayout {
         if (chat == null) {
             return;
         }
-        ConfirmDialog.show(T.localized("Delete \"%s\"?").formatted(chat.getTitle()), () -> {
+        ConfirmDialog.show(T.localized(DELETE_S).formatted(chat.getTitle()), () -> {
             try {
                 service.deleteChat(manuscript, chat.getUuid());
                 chats.remove(chat);
@@ -325,7 +325,7 @@ public class BetaReadersView extends VerticalLayout {
     private void editBookPersonas() {
         try {
             BookData data = service.loadCurrentBook(manuscript);
-            new PersonaLibraryDialog(T.localized("Personas of this book"), data.getPersonas(),
+            new PersonaLibraryDialog(T.localized(PERSONAS_OF_THIS_BOOK), data.getPersonas(),
                     (brief, taken, done) -> service.writePersona(manuscript, brief, taken, done), personas -> {
                 try {
                     BookData current = service.loadCurrentBook(manuscript);

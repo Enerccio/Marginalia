@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import static com.github.enerccio.marginalia.extensions.charactertracker.CharacterTrackerLocalization.CHARACTERS;
 import static com.github.enerccio.marginalia.extensions.charactertracker.CharacterTrackerLocalization.T;
 
 /**
@@ -89,7 +90,7 @@ public class CharacterTrackerExtension implements MarginaliaExtension, Extension
                         }
 
                         CharacterTrackerView view = new CharacterTrackerView(currentManuscript, service);
-                        leftBar.add("character-tracker", T.localized("Characters"), "Cr", view);
+                        leftBar.add("character-tracker", T.localized(CHARACTERS), "Cr", view);
 
                         ComponentUtil.setData(leftBar, VIEW_KEY, view);
                         activeTabSheets.add(leftBar);

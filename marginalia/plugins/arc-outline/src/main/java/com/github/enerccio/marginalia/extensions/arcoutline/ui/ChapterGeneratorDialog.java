@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineLocalization.T;
+import static com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineLocalization.*;
 
 /**
  * Asks the model for the chapters of an arc. The arc is shown on the right as the outline shows it, with its chapters,
@@ -57,7 +57,7 @@ public class ChapterGeneratorDialog extends GeneratorDialog {
      */
     public ChapterGeneratorDialog(ArcOutlineService service, Manuscript manuscript, ArcOutline outline, Arc arc,
                                   Consumer<List<Chapter>> onSave) {
-        super(service, manuscript, T.localized("Generate chapters: %s").formatted(arc.getTitle()), T.localized("Save as chapters"));
+        super(service, manuscript, T.localized(GENERATE_CHAPTERS_S).formatted(arc.getTitle()), T.localized(SAVE_AS_CHAPTERS));
         this.outline = outline;
         this.arc = arc;
         this.onSave = onSave;
@@ -83,29 +83,29 @@ public class ChapterGeneratorDialog extends GeneratorDialog {
 
     @Override
     protected Component createInputs() {
-        contextGroup = new RadioButtonGroup<>(T.localized("What the model knows of the story"));
+        contextGroup = new RadioButtonGroup<>(T.localized(WHAT_THE_MODEL_KNOWS));
         contextGroup.setItems(ChapterContext.values());
-        contextGroup.setItemLabelGenerator(c -> T.localized("%s - %s").formatted(T.localized(c.getLabel()), T.localized(c.getDescription())));
+        contextGroup.setItemLabelGenerator(c -> T.localized(FORMAT).formatted(T.localized(c.getLabel()), T.localized(c.getDescription())));
         contextGroup.setValue(ChapterContext.EVERYTHING);
         contextGroup.addThemeName("vertical");
 
-        generalSpecification = new TextArea(T.localized("What you want from the chapters in general"));
+        generalSpecification = new TextArea(T.localized(WHAT_YOU_WANT));
         generalSpecification.setWidthFull();
         DialogFocus.onOpen(this, generalSpecification);
         generalSpecification.setMinHeight("100px");
         generalSpecification.setMaxHeight("25vh");
-        generalSpecification.setPlaceholder(T.localized("The pace, the tone, what must happen, what must not..."));
+        generalSpecification.setPlaceholder(T.localized(THE_PACE_THE_TONE_WHAT));
 
-        countText = new TextField(T.localized("Number of chapters"));
+        countText = new TextField(T.localized(NUMBER_OF_CHAPTERS));
         countText.setWidthFull();
-        countText.setPlaceholder(T.localized("In words, like: about eight, as many as the arc needs"));
+        countText.setPlaceholder(T.localized(IN_WORDS_LIKE_ABOUT_EIGHT));
         countText.setValueChangeMode(ValueChangeMode.EAGER);
 
-        countNumber = new IntegerField(T.localized("or an exact number"));
+        countNumber = new IntegerField(T.localized(OR_AN_EXACT_NUMBER));
         countNumber.setMin(1);
         countNumber.setMax(MAX_CHAPTERS);
         countNumber.setStepButtonsVisible(true);
-        countNumber.setHelperText(T.localized("Gives a field for each chapter"));
+        countNumber.setHelperText(T.localized(GIVES_A_FIELD_FOR_EACH));
         countNumber.setWidth("14rem");
 
         chapterAreas = new VerticalLayout();
@@ -143,7 +143,7 @@ public class ChapterGeneratorDialog extends GeneratorDialog {
             chapterAreas.remove(removed);
         }
         while (chapterSpecifications.size() < wanted) {
-            TextArea area = new TextArea(T.localized("Chapter %d (optional)").formatted(chapterSpecifications.size() + 1));
+            TextArea area = new TextArea(T.localized(CHAPTER_OPTIONAL).formatted(chapterSpecifications.size() + 1));
             area.setWidthFull();
             area.setMinHeight("80px");
             area.setMaxHeight("20vh");
@@ -235,7 +235,7 @@ public class ChapterGeneratorDialog extends GeneratorDialog {
             resultHolder().add(new NodeCard(chapter, ArcOutlineStyles.CHAPTER, null, null, false));
         }
         if (generated.isEmpty()) {
-            resultHolder().add(emptyHint(T.localized("The chapters the model writes appear here, after the ones the arc has.")));
+            resultHolder().add(emptyHint(T.localized(THE_CHAPTERS_THE_MODEL_WRITES)));
             return;
         }
         for (String[] item : generated) {
@@ -257,14 +257,14 @@ public class ChapterGeneratorDialog extends GeneratorDialog {
         result = null;
         SchemaCheck check = StructuredOutputs.validate(service.chaptersSchema(exactCount()), output);
         if (!check.valid()) {
-            return T.localized("The answer is not a valid list of chapters: %s").formatted(String.join("; ", check.errors()));
+            return T.localized(THE_ANSWER_IS_NOT_A_VALID).formatted(String.join("; ", check.errors()));
         }
         try {
             result = StructuredOutputs.parse(output, GeneratedChapters.class).chapters();
             showPreviewOf(result);
             return null;
         } catch (Exception e) {
-            return T.localized("The answer can't be read: %s").formatted(e.getMessage());
+            return T.localized(THE_ANSWER_CANT_BE_READ).formatted(e.getMessage());
         }
     }
 

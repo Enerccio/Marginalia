@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.T;
+import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.*;
 
 /**
  * Creates or edits a persona: its name, its description and its icon. The fields are written to the persona when it is saved;
@@ -42,12 +42,12 @@ public class PersonaDialog extends Dialog {
     private final Predicate<String> nameTaken;
     private final Runnable onSaved;
 
-    private final TextField name = new TextField(T.localized("Name"));
-    private final TextArea description = new TextArea(T.localized("Description"));
+    private final TextField name = new TextField(T.localized(NAME));
+    private final TextArea description = new TextArea(T.localized(DESCRIPTION));
     private final PersonaGenerator generator;
     private final Supplier<List<String>> takenNames;
-    private final TextArea brief = new TextArea(T.localized("What the persona is like"));
-    private final Button write = new Button(T.localized("Write with the model"), Solid.WAND_MAGIC_SPARKLES.create());
+    private final TextArea brief = new TextArea(T.localized(WHAT_THE_PERSONA_IS_LIKE));
+    private final Button write = new Button(T.localized(WRITE_WITH_THE_MODEL), Solid.WAND_MAGIC_SPARKLES.create());
     private CancellationToken running;
     private final Image preview = new Image();
     private Button removeIcon;
@@ -90,7 +90,7 @@ public class PersonaDialog extends Dialog {
 
         description.setWidthFull();
         description.setMinHeight("180px");
-        description.setHelperText(T.localized("How the persona reads and what it cares about; it is what the model plays"));
+        description.setHelperText(T.localized(HOW_THE_PERSONA_READS));
         description.setValue(StringUtils.defaultString(persona.getDescription()));
 
         VerticalLayout content = new VerticalLayout();
@@ -101,8 +101,8 @@ public class PersonaDialog extends Dialog {
         content.setPadding(false);
         add(content);
 
-        Button cancel = new Button(T.localized("Cancel"), _ -> close());
-        Button save = new Button(T.localized("Save"), _ -> save());
+        Button cancel = new Button(T.localized(CANCEL), _ -> close());
+        Button save = new Button(T.localized(SAVE), _ -> save());
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         getFooter().add(cancel, save);
     }
@@ -113,8 +113,8 @@ public class PersonaDialog extends Dialog {
     private VerticalLayout buildWriter() {
         brief.setWidthFull();
         brief.setMinHeight("80px");
-        brief.setPlaceholder(T.localized("A grumpy editor who hates adverbs, a teenager who only reads fantasy..."));
-        brief.setHelperText(T.localized("Describe the persona in a few words and let the model write the name and the description; you can change them before you save."));
+        brief.setPlaceholder(T.localized(A_GRUMPY_EDITOR_WHO_HATES));
+        brief.setHelperText(T.localized(DESCRIBE_THE_PERSONA));
         write.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
         write.addClickListener(_ -> writeOrStop());
         VerticalLayout writer = new VerticalLayout(brief, write);
@@ -128,7 +128,7 @@ public class PersonaDialog extends Dialog {
             return;
         }
         if (StringUtils.isBlank(brief.getValue())) {
-            Notification.warning(T.localized("Describe the persona first"));
+            Notification.warning(T.localized(DESCRIBE_THE_PERSONA_FIRST));
             return;
         }
         UI ui = UI.getCurrent();
@@ -146,8 +146,8 @@ public class PersonaDialog extends Dialog {
             });
         } catch (Exception e) {
             setWriting(false);
-            Notification.warning(e instanceof NoModelException ? T.localized("There is no model to ask. Choose one for the chat, the book or in the settings.")
-                    : T.localized("Can't ask the model: %s").formatted(e.getMessage() != null ? e.getMessage() : e.toString()));
+            Notification.warning(e instanceof NoModelException ? T.localized(THERE_IS_NO_MODEL)
+                    : T.localized(CANT_ASK_THE_MODEL).formatted(e.getMessage() != null ? e.getMessage() : e.toString()));
         }
     }
 
@@ -158,10 +158,10 @@ public class PersonaDialog extends Dialog {
             return;
         }
         if (outcome.error() != null) {
-            Notification.warning(T.localized("Can't ask the model: %s").formatted(outcome.error().getMessage() != null
+            Notification.warning(T.localized(CANT_ASK_THE_MODEL).formatted(outcome.error().getMessage() != null
                     ? outcome.error().getMessage() : outcome.error().toString()));
         } else if (outcome.written() == null) {
-            Notification.warning(T.localized("The model did not answer."));
+            Notification.warning(T.localized(THE_MODEL_DID_NOT_ANSWER));
         } else {
             if (!outcome.written().name().isBlank()) {
                 name.setValue(outcome.written().name());
@@ -173,21 +173,21 @@ public class PersonaDialog extends Dialog {
     }
 
     private void setWriting(boolean value) {
-        write.setText(value ? T.localized("Stop") : T.localized("Write with the model"));
+        write.setText(value ? T.localized(STOP) : T.localized(WRITE_WITH_THE_MODEL));
         write.setIcon(value ? Solid.STOP.create() : Solid.WAND_MAGIC_SPARKLES.create());
         brief.setReadOnly(value);
     }
 
     private VerticalLayout buildIcon() {
         preview.addClassName(BetaReadersStyles.ICON_LARGE);
-        preview.setAlt(T.localized("Icon"));
+        preview.setAlt(T.localized(ICON));
 
         InMemoryUploadHandler handler = new InMemoryUploadHandler((_, data) -> {
             try {
                 icon = PersonaIcons.createIcon(data);
                 refreshPreview();
             } catch (IllegalArgumentException e) {
-                Notification.error(T.localized("The file is not an image that can be read"));
+                Notification.error(T.localized(THE_FILE));
             }
         });
         Upload upload = new Upload(handler);
@@ -195,11 +195,11 @@ public class PersonaDialog extends Dialog {
         upload.setMaxFileSize((int) MAX_UPLOAD_BYTES);
         upload.setMaxFiles(1);
         upload.setDropAllowed(true);
-        upload.setUploadButton(new Button(T.localized("Upload icon"), Solid.IMAGE.create()));
-        upload.addFileRejectedListener(_ -> Notification.error(T.localized("The file is not an image or it is too big")));
+        upload.setUploadButton(new Button(T.localized(UPLOAD_ICON), Solid.IMAGE.create()));
+        upload.addFileRejectedListener(_ -> Notification.error(T.localized(THE_FILE_IS_NOT_AN_IMAGE)));
         upload.addSucceededListener(_ -> upload.clearFileList());
 
-        removeIcon = new Button(T.localized("Remove icon"), Solid.TRASH.create(), _ -> {
+        removeIcon = new Button(T.localized(REMOVE_ICON), Solid.TRASH.create(), _ -> {
             icon = null;
             refreshPreview();
         });
@@ -207,7 +207,7 @@ public class PersonaDialog extends Dialog {
 
         HorizontalLayout row = new HorizontalLayout(preview, upload, removeIcon);
         row.setAlignItems(FlexComponent.Alignment.CENTER);
-        Span caption = new Span(T.localized("Icon (scaled down to at most %1$d x %1$d pixels; without one, a circle with the first letters of the name is shown)")
+        Span caption = new Span(T.localized(ICON_SCALED_DOWN)
                 .formatted(PersonaIcons.MAX_ICON_SIZE));
         caption.addClassName(BetaReadersStyles.HINT);
         VerticalLayout layout = new VerticalLayout(caption, row);
@@ -230,12 +230,12 @@ public class PersonaDialog extends Dialog {
         String trimmed = StringUtils.strip(name.getValue());
         if (StringUtils.isEmpty(trimmed)) {
             name.setInvalid(true);
-            name.setErrorMessage(T.localized("The name is required"));
+            name.setErrorMessage(T.localized(THE_NAME_IS_REQUIRED));
             return;
         }
         if (nameTaken.test(trimmed)) {
             name.setInvalid(true);
-            name.setErrorMessage(T.localized("Another persona has this name"));
+            name.setErrorMessage(T.localized(ANOTHER_PERSONA_HAS_THIS_NAME));
             return;
         }
         persona.setName(trimmed);

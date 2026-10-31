@@ -12,7 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.function.Predicate;
 
-import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.T;
+import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.*;
 
 /**
  * Creates or edits a medium: its name and the fragment of the prompt that tells the personas what the text stands for. The fields are
@@ -24,8 +24,8 @@ public class MediumDialog extends Dialog {
     private final Predicate<String> nameTaken;
     private final Runnable onSaved;
 
-    private final TextField name = new TextField(T.localized("Name"));
-    private final TextArea prompt = new TextArea(T.localized("Prompt"));
+    private final TextField name = new TextField(T.localized(NAME));
+    private final TextArea prompt = new TextArea(T.localized(PROMPT));
 
     /**
      * @param header    what the dialog says, like "New medium"
@@ -51,15 +51,15 @@ public class MediumDialog extends Dialog {
 
         prompt.setWidthFull();
         prompt.setMinHeight("200px");
-        prompt.setHelperText(T.localized("Goes into the prompt of the chats: what the text stands for and how the personas react to it"));
+        prompt.setHelperText(T.localized(GOES_INTO_THE_PROMPT));
         prompt.setValue(StringUtils.defaultString(medium.getPrompt()));
 
         VerticalLayout content = new VerticalLayout(name, prompt);
         content.setPadding(false);
         add(content);
 
-        Button cancel = new Button(T.localized("Cancel"), _ -> close());
-        Button save = new Button(T.localized("Save"), _ -> save());
+        Button cancel = new Button(T.localized(CANCEL), _ -> close());
+        Button save = new Button(T.localized(SAVE), _ -> save());
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         getFooter().add(cancel, save);
     }
@@ -68,12 +68,12 @@ public class MediumDialog extends Dialog {
         String trimmed = StringUtils.strip(name.getValue());
         if (StringUtils.isEmpty(trimmed)) {
             name.setInvalid(true);
-            name.setErrorMessage(T.localized("The name is required"));
+            name.setErrorMessage(T.localized(THE_NAME_IS_REQUIRED));
             return;
         }
         if (nameTaken.test(trimmed)) {
             name.setInvalid(true);
-            name.setErrorMessage(T.localized("Another medium has this name"));
+            name.setErrorMessage(T.localized(ANOTHER_MEDIUM_HAS_THIS_NAME));
             return;
         }
         medium.setName(trimmed);
