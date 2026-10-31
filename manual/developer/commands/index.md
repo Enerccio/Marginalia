@@ -20,7 +20,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/commands/lorebook/write
   - marginalia/src/main/java/com/github/enerccio/marginalia/bound/AgenticSessionPoint.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/utils/TextDiff.java
-verified: 218e7ac2e
+verified: b102fd45a
 ---
 
 # Commands
