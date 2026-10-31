@@ -367,10 +367,6 @@ public class BetaReadersLocalization extends PluginLocalizationBundle {
         zh("There is no persona to talk to. Add some to the library in the settings, or to this book.",
                 "没有可交谈的读者角色。请在设置的角色库或本书中添加。");
 
-        ja("Medium, model and format",
-                "メディア、モデル、形式");
-        zh("Medium, model and format",
-                "媒介、模型和格式");
 
         ja("%s joined the conversation.",
                 "%s が会話に参加しました。");
@@ -576,5 +572,55 @@ public class BetaReadersLocalization extends PluginLocalizationBundle {
                 "これ以降、テキストは次のメディアとして読まれます: %s");
         zh("From now on the text is read as: %s",
                 "从现在起，文本将作为以下媒介阅读：%s");
+
+        ja("Personas read up to part",
+                "ペルソナが読むパートの上限");
+        zh("Personas read up to part",
+                "读者角色最多读到的部分");
+
+        ja("Start from part",
+                "開始パート");
+        zh("Start from part",
+                "起始部分");
+
+        ja("Use the summaries of the story",
+                "ストーリーの要約を使う");
+        zh("Use the summaries of the story",
+                "使用故事的摘要");
+
+        ja("Empty: the whole story. The personas never get a part after this one.",
+                "空の場合: ストーリー全体。ペルソナはこのパートより後のパートを受け取りません。");
+        zh("Empty: the whole story. The personas never get a part after this one.",
+                "留空：整个故事。读者角色不会收到此部分之后的任何部分。");
+
+        ja("Empty: from the first part. Earlier parts are not sent, not even as summaries.",
+                "空の場合: 最初のパートから。それ以前のパートは要約としても送信されません。");
+        zh("Empty: from the first part. Earlier parts are not sent, not even as summaries.",
+                "留空：从第一个部分开始。更早的部分不会发送，摘要也不会。");
+
+        ja("The first part can't come after the last one.",
+                "最初のパートを最後のパートより後にすることはできません。");
+        zh("The first part can't come after the last one.",
+                "起始部分不能在最后一个部分之后。");
+
+        ja("Story, medium, model and format",
+                "ストーリー、メディア、モデル、形式");
+        zh("Story, medium, model and format",
+                "故事、媒介、模型和格式");
+
+        ja("Reads up to part %d",
+                "パート %d まで読む");
+        zh("Reads up to part %d",
+                "最多读到第 %d 部分");
+
+        ja("from part %d",
+                "パート %d から");
+        zh("from part %d",
+                "从第 %d 部分起");
+
+        ja("The personas have read: parts %s",
+                "ペルソナが読んだパート: %s");
+        zh("The personas have read: parts %s",
+                "读者角色已读：部分 %s");
     }
 }

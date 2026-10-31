@@ -180,4 +180,44 @@ class NewChatDialogTest {
         assertEquals("Athena", dialog.groupPersonas.getItemLabelGenerator().apply(athena));
         assertEquals(Set.of(), dialog.groupPersonas.getSelectedItems());
     }
+
+    @Test
+    void theStoryOptionsAreKeptAndStartAsTheWholeStoryWithSummaries() {
+        NewChatDialog dialog = dialog();
+        dialog.groupPersonas.select(athena);
+        create(dialog);
+        BetaChat plain = created.getFirst();
+
+        assertEquals(0, plain.getSpoilerLimit());
+        assertEquals(0, plain.getFromPart());
+        assertTrue(plain.isSummaries());
+
+        NewChatDialog second = dialog();
+        second.groupPersonas.select(vesper);
+        second.options.spoilerLimit.setValue(12);
+        second.options.fromPart.setValue(4);
+        second.options.summaries.setValue(false);
+        create(second);
+
+        assertEquals(12, created.get(1).getSpoilerLimit());
+        assertEquals(4, created.get(1).getFromPart());
+        assertFalse(created.get(1).isSummaries());
+    }
+
+    @Test
+    void aFirstPartAfterTheLastOneIsRefused() {
+        NewChatDialog dialog = dialog();
+        dialog.groupPersonas.select(athena);
+        dialog.options.spoilerLimit.setValue(3);
+        dialog.options.fromPart.setValue(5);
+
+        create(dialog);
+
+        assertTrue(created.isEmpty());
+        assertEquals("The first part can't come after the last one.", dialog.options.problem());
+        dialog.options.fromPart.setValue(3);
+        assertNull(dialog.options.problem());
+        create(dialog);
+        assertEquals(1, created.size());
+    }
 }

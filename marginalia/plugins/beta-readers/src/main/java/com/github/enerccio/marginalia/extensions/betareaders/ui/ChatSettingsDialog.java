@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.extensions.betareaders.ui;
 import com.github.enerccio.marginalia.extensions.InheritedSetting.Choice;
 import com.github.enerccio.marginalia.extensions.betareaders.model.BetaChat;
 import com.github.enerccio.marginalia.extensions.betareaders.model.Medium;
+import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -38,6 +39,11 @@ public class ChatSettingsDialog extends Dialog {
 
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         save.addClickListener(_ -> {
+            String problem = options.problem();
+            if (problem != null) {
+                Notification.warning(problem);
+                return;
+            }
             close();
             onSave.accept(options);
         });

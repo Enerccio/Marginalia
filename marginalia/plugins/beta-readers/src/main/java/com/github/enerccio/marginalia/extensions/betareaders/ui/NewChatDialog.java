@@ -78,7 +78,7 @@ public class NewChatDialog extends Dialog {
         options = new ChatOptionsForm(mediums, ais, protocols, inherited);
 
         // what a chat may choose for itself is out of the way: most chats inherit all of it
-        Details optionsSection = new Details(T.localized("Medium, model and format"), options);
+        Details optionsSection = new Details(T.localized("Story, medium, model and format"), options);
 
         VerticalLayout content = new VerticalLayout(kind, kindHint, title, singlePersona, groupPersonas, optionsSection);
         content.setPadding(false);
@@ -118,6 +118,11 @@ public class NewChatDialog extends Dialog {
     }
 
     private void create() {
+        String problem = options.problem();
+        if (problem != null) {
+            Notification.warning(problem);
+            return;
+        }
         List<Available> personas = chosen();
         if (personas.isEmpty()) {
             Notification.warning(kind.getValue() == ChatKind.SINGLE ? T.localized("Choose a persona") : T.localized("Choose at least one persona"));
@@ -128,10 +133,7 @@ public class NewChatDialog extends Dialog {
             name = defaultTitle(personas.stream().map(available -> available.persona().getName()).toList());
         }
         BetaChat chat = new BetaChat(name, kind.getValue());
-        chat.setFormat(options.replyFormat());
-        chat.setMedium(options.mediumId());
-        chat.setAi(options.aiId());
-        chat.setProtocol(options.protocolId());
+        options.apply(chat);
         personas.forEach(available -> chat.addPersona(available.persona()));
         close();
         onCreate.accept(chat);

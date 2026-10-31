@@ -230,9 +230,7 @@ public class BetaReadersView extends VerticalLayout {
             new ChatSettingsDialog(chat, service.settingsOrDefaults().getMediums(), service.aiChoices(), service.protocolChoices(),
                     inherited(), form -> {
                         try {
-                            chat.setAi(form.aiId());
-                            chat.setProtocol(form.protocolId());
-                            chat.setFormat(form.replyFormat());
+                            form.applyExceptMedium(chat);
                             // the line that says the medium changed is for the model: it reads what was said before as said about the old one
                             ChatEdits.changeMedium(chat, form.mediumId(), form.mediumName());
                             service.saveChat(manuscript, chat);

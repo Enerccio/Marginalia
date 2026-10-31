@@ -352,14 +352,15 @@ public class BetaReadersService {
 
         BetaMessage user = BetaMessage.user(text == null ? "" : text.strip());
         if (includeLatest) {
-            Story story = loadStory(manuscript, 0, true);
+            Story story = loadStory(manuscript, chat.getSpoilerLimit(), chat.isSummaries());
             // what is left of the prompt after the system prompt, the history and the question goes to the story
             chat.getMessages().add(user);
             int used = PromptBuilder.build(chat, run.system(), new PromptBuilder.Options(true, true,
                     BetaReadersDefaults.maxMessages(chat.getKind(), chat.present().size()), 0, run.tokens())).tokens();
             chat.getMessages().removeLast();
             int budget = run.limit() > 0 ? Math.max(1, run.limit() - used) : 0;
-            Plan plan = PartsTracker.plan(chat, story.parts(), story.summaries(), 0, budget, run.tokens());
+            Plan plan = PartsTracker.plan(chat, story.parts(), story.summaries(), chat.getFromPart(), chat.getSpoilerLimit(), budget,
+                    run.tokens());
             user.setContext(plan.text());
             user.setSentParts(new ArrayList<>(plan.sent()));
             user.setGoneParts(new ArrayList<>(plan.gone()));
@@ -405,7 +406,7 @@ public class BetaReadersService {
      * How the story stands against what the chat has read: the number of parts to include, see {@link PartsTracker#status}.
      */
     public PartsTracker.Status partsStatus(Manuscript manuscript, BetaChat chat) throws Exception {
-        return PartsTracker.status(chat, loadStory(manuscript, 0, false).parts(), 0);
+        return PartsTracker.status(chat, loadStory(manuscript, 0, false).parts(), chat.getFromPart(), chat.getSpoilerLimit());
     }
 
     /**
