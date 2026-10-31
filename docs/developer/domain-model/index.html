@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846712837344">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846742728558">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846712837344" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846742728558" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846712837344" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846742728558" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846712837344" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846712837344" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846742728558" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846742728558" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -183,6 +183,7 @@ delete, extended attributes and cleanup. Entities are in <code translate="no" v-
 | `Lorebook`, `LorebookEntry` | `lorebooks`, `entries` | Lorebook, entry |
 | `AI`, `OpenAICompatible`, `ExtensionAI` | `ais`, `ais_openaicompat`, `ais_extension` | Inference provider |
 | `Usage` | `usages` | Tokens sent / generated column of the Inference Providers tab |
+| `ManuscriptStatistic`, `ActivityInterval`, `ManuscriptSize` | `manuscript_statistics`, `activity_intervals`, `manuscript_sizes` | The writing statistics of a book per day: counts, time, size, see [Writing statistics](#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize) |
 | `Protocol`, `ChatCompletionProtocol` | `protocols`, `protocols_chatcompletion` | Protocol |
 | `Tag`, `TagRelation` | `tags`, `t2e` | Tag |
 | `Setting`, `AppSettings`, `UserSetting` | `settings` | Settings page, admin settings |
@@ -245,6 +246,11 @@ delete, extended attributes and cleanup. Entities are in <code translate="no" v-
 <td><code translate="no" v-pre>Usage</code></td>
 <td><code translate="no" v-pre>usages</code></td>
 <td>Tokens sent / generated column of the Inference Providers tab</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ManuscriptStatistic</code>, <code translate="no" v-pre>ActivityInterval</code>, <code translate="no" v-pre>ManuscriptSize</code></td>
+<td><code translate="no" v-pre>manuscript_statistics</code>, <code translate="no" v-pre>activity_intervals</code>, <code translate="no" v-pre>manuscript_sizes</code></td>
+<td>The writing statistics of a book per day: counts, time, size, see <doc-anchor-trigger to="#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize">Writing statistics</doc-anchor-trigger></td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>Protocol</code>, <code translate="no" v-pre>ChatCompletionProtocol</code></td>
@@ -350,6 +356,9 @@ and lorebook.</p>
     ExtendableEntity &lt;|-- Lorebook
     ExtendableEntity &lt;|-- LorebookEntry
     OwnedEntity &lt;|-- Usage
+    OwnedEntity &lt;|-- ManuscriptStatistic
+    OwnedEntity &lt;|-- ActivityInterval
+    OwnedEntity &lt;|-- ManuscriptSize
     ExtendableEntity &lt;|-- AI
     ExtendableEntity &lt;|-- Protocol
     ExtendableEntity &lt;|-- Tag
@@ -1401,6 +1410,55 @@ limit, so the last response can go over - unless <code translate="no" v-pre>AILi
 response the request reserves (<code translate="no" v-pre>TokenLimits.responseTokens(ai, protocol)</code>, the <code translate="no" v-pre>max_completion_tokens</code> it sends; 0 when
 there is none) has to fit into the generated limit. The hard flag does not apply to the total limit. <code translate="no" v-pre>AILimit.validate()</code> rejects negative numbers and, when all three are
 set, sent plus generated below the total (the total could never be reached).</p>
+<h3 id="writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize">Writing statistics (<code translate="no" v-pre>ManuscriptStatistic</code>, <code translate="no" v-pre>ActivityInterval</code>, <code translate="no" v-pre>ManuscriptSize</code>)</h3>
+<p>What happened to a book, day by day (design and plan: <code translate="no" v-pre>TODO.USAGE.MD</code>; not to be confused with <code translate="no" v-pre>Usage</code>, which counts what a <em>user</em>
+used of an <em>AI</em> and knows no book). Three <code translate="no" v-pre>OwnedEntity</code>s of the owner of the book. <strong>The book is a plain <code translate="no" v-pre>bookUuid</code> column, not a
+reference</strong>, and none of them has a <code translate="no" v-pre>@CleanupReference</code> to it: the trash and the purge of the book leave the rows, the user clears
+them (<code translate="no" v-pre>ManuscriptStatisticService.clearBook</code> / <code translate="no" v-pre>clearAll</code>, a hard delete of all three tables). So <code translate="no" v-pre>bookName</code> and <code translate="no" v-pre>folderPath</code> are
+copied into every row, to show a book that is gone. The <code translate="no" v-pre>day</code> is a <code translate="no" v-pre>LocalDate</code> stored as ISO text (<code translate="no" v-pre>LocalDateConverter</code>), the day
+of the server&#x27;s time zone (<code translate="no" v-pre>ManuscriptStatisticService.today()</code>; a test sets the clock of <code translate="no" v-pre>ManuscriptStatisticServiceImpl</code>).</p>
+<retype-table copy-text="| Entity | One row is | Notes |
+|---|---|---|
+| `ManuscriptStatistic` | a book, a day and a side (`agent` false: the author with the models they asked, true: the agents), unique on `(bookUuid, day, is_agent)` | The nine counters (`StatisticCounts`: tokens sent / generated, requests, words written / generated / removed, parts created / deleted, edits) are real columns added up in SQL (`ManuscriptStatisticRepository.add`, `x = x + :n`, like `Usage`). `reconstructed` marks a day rebuilt from the history, `lastChange` the last count. |
+| `ActivityInterval` | a stretch of time of a `kind` (`ActivityKind`: `OPEN`, `EDIT`, `GENERATE`, `RUN`) in a book, inside one day | The time is recorded as it happened, per book, and combined only when shown (a union), so the length is `endTime - startTime` and `endTime` is moved forward while the stretch is open (`ActivityIntervalService.start` / `extend`). The kinds overlap and are never added to each other. |
+| `ManuscriptSize` | a book and a day: the size at the end of the day | `bookWords` / `bookTokens` of the whole book, `branchWords` / `branchTokens` of the current branch (`leafUuid` is the leaf it was measured on), `baseline` (only says how big the book was when tracking began). A day without a change has no row: the size of that day is the latest earlier row (`ManuscriptSizeService.sizeAt`, `sizeBefore`). Tokens are never recounted. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Entity</th>
+<th>One row is</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>ManuscriptStatistic</code></td>
+<td>a book, a day and a side (<code translate="no" v-pre>agent</code> false: the author with the models they asked, true: the agents), unique on <code translate="no" v-pre>(bookUuid, day, is_agent)</code></td>
+<td>The nine counters (<code translate="no" v-pre>StatisticCounts</code>: tokens sent / generated, requests, words written / generated / removed, parts created / deleted, edits) are real columns added up in SQL (<code translate="no" v-pre>ManuscriptStatisticRepository.add</code>, <code translate="no" v-pre>x = x + :n</code>, like <code translate="no" v-pre>Usage</code>). <code translate="no" v-pre>reconstructed</code> marks a day rebuilt from the history, <code translate="no" v-pre>lastChange</code> the last count.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ActivityInterval</code></td>
+<td>a stretch of time of a <code translate="no" v-pre>kind</code> (<code translate="no" v-pre>ActivityKind</code>: <code translate="no" v-pre>OPEN</code>, <code translate="no" v-pre>EDIT</code>, <code translate="no" v-pre>GENERATE</code>, <code translate="no" v-pre>RUN</code>) in a book, inside one day</td>
+<td>The time is recorded as it happened, per book, and combined only when shown (a union), so the length is <code translate="no" v-pre>endTime - startTime</code> and <code translate="no" v-pre>endTime</code> is moved forward while the stretch is open (<code translate="no" v-pre>ActivityIntervalService.start</code> / <code translate="no" v-pre>extend</code>). The kinds overlap and are never added to each other.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ManuscriptSize</code></td>
+<td>a book and a day: the size at the end of the day</td>
+<td><code translate="no" v-pre>bookWords</code> / <code translate="no" v-pre>bookTokens</code> of the whole book, <code translate="no" v-pre>branchWords</code> / <code translate="no" v-pre>branchTokens</code> of the current branch (<code translate="no" v-pre>leafUuid</code> is the leaf it was measured on), <code translate="no" v-pre>baseline</code> (only says how big the book was when tracking began). A day without a change has no row: the size of that day is the latest earlier row (<code translate="no" v-pre>ManuscriptSizeService.sizeAt</code>, <code translate="no" v-pre>sizeBefore</code>). Tokens are never recounted.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p><code translate="no" v-pre>ManuscriptStatisticService.count(book, [agent,] StatisticCounts)</code> is the way to count: it resolves the owner from the book (no
+session needed, it runs on worker threads), reads the folder path from the folder chain (<code translate="no" v-pre>FolderService.findChain</code>), updates the
+row of the day and makes it on the first count; it never throws, a failure to count is logged and must not fail the work. The
+writers go one at a time (a read-write transaction takes the SQLite write lock when it begins, see <code translate="no" v-pre>ReadWriteRoutingDataSource</code>),
+so nobody inserts the row between the update and the insert. The reads take a <code translate="no" v-pre>StatisticFilter</code> (days, <code translate="no" v-pre>StatisticSide</code>
+<code translate="no" v-pre>ALL</code> / <code translate="no" v-pre>AUTHOR</code> / <code translate="no" v-pre>AGENTS</code>, optionally a book) and only see the rows of the current user: <code translate="no" v-pre>total</code>, <code translate="no" v-pre>sumByDay</code>, <code translate="no" v-pre>sumByBook</code>
+(with the <code translate="no" v-pre>BookStatistic.BookState</code> of every book: <code translate="no" v-pre>PRESENT</code>, <code translate="no" v-pre>TRASHED</code> for a book in the trash, <code translate="no" v-pre>PURGED</code> for one that is gone) and
+<code translate="no" v-pre>sumByFolder</code>.</p>
 <h3 id="protocol--chatcompletionprotocol"><code translate="no" v-pre>Protocol</code> / <code translate="no" v-pre>ChatCompletionProtocol</code></h3>
 <retype-table copy-text="| Field | Stored | |
 |---|---|---|
@@ -1965,7 +2023,7 @@ define both beans in <code translate="no" v-pre>services-config.xml</code>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (218e7ac2e).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (e7fa16c14).</p></div>
             </footer>
         </div>
     </div>

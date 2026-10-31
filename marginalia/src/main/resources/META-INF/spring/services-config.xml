@@ -65,6 +65,30 @@
         <property name="repository" ref="usageRepository" />
     </bean>
 
+    <bean id="manuscriptStatisticRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaManuscriptStatisticRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ManuscriptStatisticServiceImpl">
+        <property name="repository" ref="manuscriptStatisticRepository" />
+    </bean>
+
+    <bean id="activityIntervalRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaActivityIntervalRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ActivityIntervalServiceImpl">
+        <property name="repository" ref="activityIntervalRepository" />
+    </bean>
+
+    <bean id="manuscriptSizeRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaManuscriptSizeRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ManuscriptSizeServiceImpl">
+        <property name="repository" ref="manuscriptSizeRepository" />
+    </bean>
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AILimitServiceImpl" />
 
     <bean id="protocolRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaProtocolRepository">

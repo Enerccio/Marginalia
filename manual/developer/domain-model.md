@@ -33,6 +33,7 @@ Some entities kept their early names. The UI and this manual use the names on th
 | `Lorebook`, `LorebookEntry` | `lorebooks`, `entries` | Lorebook, entry |
 | `AI`, `OpenAICompatible`, `ExtensionAI` | `ais`, `ais_openaicompat`, `ais_extension` | Inference provider |
 | `Usage` | `usages` | Tokens sent / generated column of the Inference Providers tab |
+| `ManuscriptStatistic`, `ActivityInterval`, `ManuscriptSize` | `manuscript_statistics`, `activity_intervals`, `manuscript_sizes` | The writing statistics of a book per day: counts, time, size, see [Writing statistics](#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize) |
 | `Protocol`, `ChatCompletionProtocol` | `protocols`, `protocols_chatcompletion` | Protocol |
 | `Tag`, `TagRelation` | `tags`, `t2e` | Tag |
 | `Setting`, `AppSettings`, `UserSetting` | `settings` | Settings page, admin settings |
@@ -109,6 +110,9 @@ classDiagram
     ExtendableEntity <|-- Lorebook
     ExtendableEntity <|-- LorebookEntry
     OwnedEntity <|-- Usage
+    OwnedEntity <|-- ManuscriptStatistic
+    OwnedEntity <|-- ActivityInterval
+    OwnedEntity <|-- ManuscriptSize
     ExtendableEntity <|-- AI
     ExtendableEntity <|-- Protocol
     ExtendableEntity <|-- Tag
@@ -551,6 +555,30 @@ limit, so the last response can go over - unless `AILimit.hardGeneratedLimit` is
 response the request reserves (`TokenLimits.responseTokens(ai, protocol)`, the `max_completion_tokens` it sends; 0 when
 there is none) has to fit into the generated limit. The hard flag does not apply to the total limit. `AILimit.validate()` rejects negative numbers and, when all three are
 set, sent plus generated below the total (the total could never be reached).
+
+### Writing statistics (`ManuscriptStatistic`, `ActivityInterval`, `ManuscriptSize`)
+
+What happened to a book, day by day (design and plan: `TODO.USAGE.MD`; not to be confused with `Usage`, which counts what a *user*
+used of an *AI* and knows no book). Three `OwnedEntity`s of the owner of the book. **The book is a plain `bookUuid` column, not a
+reference**, and none of them has a `@CleanupReference` to it: the trash and the purge of the book leave the rows, the user clears
+them (`ManuscriptStatisticService.clearBook` / `clearAll`, a hard delete of all three tables). So `bookName` and `folderPath` are
+copied into every row, to show a book that is gone. The `day` is a `LocalDate` stored as ISO text (`LocalDateConverter`), the day
+of the server's time zone (`ManuscriptStatisticService.today()`; a test sets the clock of `ManuscriptStatisticServiceImpl`).
+
+| Entity | One row is | Notes |
+|---|---|---|
+| `ManuscriptStatistic` | a book, a day and a side (`agent` false: the author with the models they asked, true: the agents), unique on `(bookUuid, day, is_agent)` | The nine counters (`StatisticCounts`: tokens sent / generated, requests, words written / generated / removed, parts created / deleted, edits) are real columns added up in SQL (`ManuscriptStatisticRepository.add`, `x = x + :n`, like `Usage`). `reconstructed` marks a day rebuilt from the history, `lastChange` the last count. |
+| `ActivityInterval` | a stretch of time of a `kind` (`ActivityKind`: `OPEN`, `EDIT`, `GENERATE`, `RUN`) in a book, inside one day | The time is recorded as it happened, per book, and combined only when shown (a union), so the length is `endTime - startTime` and `endTime` is moved forward while the stretch is open (`ActivityIntervalService.start` / `extend`). The kinds overlap and are never added to each other. |
+| `ManuscriptSize` | a book and a day: the size at the end of the day | `bookWords` / `bookTokens` of the whole book, `branchWords` / `branchTokens` of the current branch (`leafUuid` is the leaf it was measured on), `baseline` (only says how big the book was when tracking began). A day without a change has no row: the size of that day is the latest earlier row (`ManuscriptSizeService.sizeAt`, `sizeBefore`). Tokens are never recounted. |
+
+`ManuscriptStatisticService.count(book, [agent,] StatisticCounts)` is the way to count: it resolves the owner from the book (no
+session needed, it runs on worker threads), reads the folder path from the folder chain (`FolderService.findChain`), updates the
+row of the day and makes it on the first count; it never throws, a failure to count is logged and must not fail the work. The
+writers go one at a time (a read-write transaction takes the SQLite write lock when it begins, see `ReadWriteRoutingDataSource`),
+so nobody inserts the row between the update and the insert. The reads take a `StatisticFilter` (days, `StatisticSide`
+`ALL` / `AUTHOR` / `AGENTS`, optionally a book) and only see the rows of the current user: `total`, `sumByDay`, `sumByBook`
+(with the `BookStatistic.BookState` of every book: `PRESENT`, `TRASHED` for a book in the trash, `PURGED` for one that is gone) and
+`sumByFolder`.
 
 ### `Protocol` / `ChatCompletionProtocol`
 
