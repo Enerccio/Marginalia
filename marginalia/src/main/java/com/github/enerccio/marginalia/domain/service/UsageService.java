@@ -13,7 +13,8 @@ public interface UsageService extends OwnedService<Usage, UsageRepository> {
 
     /**
      * Adds one request to the usage of the AI by the current user, creating the usage on first use. Never throws:
-     * a failure to count is logged and must not break the generation.
+     * a failure to count is logged and must not break the generation. When the thread has a {@link UsageContext} the tokens count
+     * for that book as well (its writing statistics), whoever the user is.
      *
      * @param prefillTokens    tokens sent to the model
      * @param generatedTokens tokens the model generated

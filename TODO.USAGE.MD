@@ -9,7 +9,7 @@ the agents do is recorded apart (`agent` = true), against the original book alth
 the author's and the agents' side up, or shows one of them. The author gets a *Statistics* window for a book (a day-by-day grid,
 totals, charts of the words, the time and the tokens per day) and one across all books (*Global statistics*: today, yesterday, the
 last 7 or 30 days, a range of dates, with a breakdown by book). This file collects the decisions, the open questions and the order
-of work. **Steps 1 (the data layer) and 2 (words, parts, edits) are built**, nothing else counts yet. Done items are marked ✅.
+of work. **Steps 1 (the data layer), 2 (words, parts, edits), 3 (deletes), 4 (tokens) and 5 (agents) are built**, nothing else counts yet. Done items are marked ✅.
 
 Not to be confused with `Usage` (`usages`, *Token usage per user*, `UsageDialog`): that one counts what a *user* used of an *AI*
 (for the limits of shared models) and has no idea which book the tokens went to. This one is per *book* and day.
@@ -469,13 +469,16 @@ transaction, retried on a lock; it runs once and writes nothing for a book that 
 2. ✅ **Words, parts, edits** in `MessageRevisionService.record` (+ the repair flag), with the tests of every `RevisionSource`, a
    blank text, the same text twice, `ensureCurrent`.
    Done differently from the first draft: a `counted` flag on `RevisionData` / `RevisionOrigin` (`uncounted()`) instead of a `UNRECORDED`-like constant; `recordFirst` and the agent merge are uncounted; `MERGE` is an edit with no words (step 3: the merged-in part's delete must not count its words as removed again); `rollBackTo` counts its own edit; nothing is counted while the book's history is off; the hidden working copy of an agent is skipped until step 5; archive / SillyTavern imports still count as written words (step 8 decides).
-3. **Deletes** in `ChatMessageServiceImpl` (soft, hard, node-and-migrate), with the words of the deleted subtree.
-4. **Tokens:** `UsageContext`, set in the generation pipeline and the other callers, read in `UsageServiceImpl.record`; the
+3. ✅ **Deletes** in `ChatMessageServiceImpl` (soft, hard, node-and-migrate), with the words of the deleted subtree.
+   Words of the deleted parts are their `wordCount` columns (`measureLive`), not a query on `message_revisions`, so a part without versions counts too. Only a soft delete counts; the merge counts the part but not its words; `deleteNodeAndMigrateChildren(…, counted)` for the agent merge.
+4. ✅ **Tokens:** `UsageContext`, set in the generation pipeline and the other callers, read in `UsageServiceImpl.record`; the
    plugins' entry point. Tests with `MockLLMServer` (generate, regenerate, summary, a stopped generation, a call without a book).
-5. **Agents:** the copy → original → `agent` resolution in `ManuscriptStatisticService.count`, the "do not count" flag for the merge,
+   Done as a thread-local scope like `UnmeteredScope` / `InferenceSession` (`UsageContext.open(book)` around the call that starts a request, read once by the inference service in that thread and kept in its `Request`) rather than a request attribute, so the later rounds and threads of a request keep the book; set by `InferenceStep`, summaries, impersonate, redraft, annotate (all stages) and the agent runner (the working copy; skipped by `count` until step 5); the `anthropic` and `google-genai` plugins reopen it around `UsageService.record`. Not done: the other plugins that ask a model about a book (reviewer, sidequery, lore-generator...) do not open the scope yet.
+5. ✅ **Agents:** the copy → original → `agent` resolution in `ManuscriptStatisticService.count`, the "do not count" flag for the merge,
    the copy, the checkpoint restore and the drop of the copy; tests that run an agent on a book and check that the author's side is
    untouched (also: a write to a locked book is refused and counts nothing), the agent's has the work, the merge adds nothing, a
    discarded run keeps its row, and two runs cannot exist for a book.
+   `AgentRunService.findOriginalOfCopy` (a query on the run's `workingCopy`) resolves a copy in `ManuscriptStatisticService.count`, which replaced the temporary skip of step 2; the flags for the merge were done in steps 2 and 3 (versions and deletes), making the copy, restoring a checkpoint and dropping the copy needed none (backup restore versions and hard deletes are uncounted already), each has a test in `AgentStatisticsTest`, with a real run through the runner for the tokens.
 6. **Time:** `ActivityTracker` (the keys and the stretches, the registrations of `OPEN`, `EDIT`, `GENERATE`, the `RUN` query, the
    60 s tick with the extension of the open stretches, the cut at midnight, the caps and the linger, the registration of a round in
    the inference service), the visibility and keystroke script in `JavascriptLibrary` (state changes only, the 5 minute cut-off), the

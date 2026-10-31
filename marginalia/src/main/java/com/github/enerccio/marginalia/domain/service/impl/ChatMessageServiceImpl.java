@@ -18,6 +18,8 @@ import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.domain.traits.NoTx;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Hibernate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
@@ -29,6 +31,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, ChatMessageRepository> implements ChatMessageService {
+
+    private static final Logger log = LoggerFactory.getLogger(ChatMessageServiceImpl.class);
     private static final int SNIPPET_RADIUS = 60;
     private static final Pattern WORD_PATTERN = Pattern.compile("\\w+", Pattern.UNICODE_CHARACTER_CLASS);
 
@@ -46,6 +50,10 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
 
     @Autowired
     private MessageRevisionService messageRevisionService;
+
+    @Autowired
+    @Lazy
+    private ManuscriptStatisticService statisticService;
 
     @Autowired
     @Lazy
@@ -507,11 +515,31 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     @Override
     @CommonTx
     public ChatMessage delete(ChatMessage message, boolean hard) throws Exception {
+        return delete(message, hard, Counting.ALL);
+    }
+
+    /**
+     * What a delete adds to the writing statistics.
+     */
+    private enum Counting {
+        /** The parts deleted and the words they had. */
+        ALL,
+        /** The parts deleted only: the words of the part were moved to another part, not taken away. */
+        PARTS,
+        /** Nothing: the delete was counted when it was done (the merge of the work of an agent). */
+        NONE
+    }
+
+    private ChatMessage delete(ChatMessage message, boolean hard, Counting counting) throws Exception {
         if (message != null) {
             agentRunService.checkNotLocked(message.getParentScript());
         }
         if (!hard && message != null && message.getId() != null) {
             List<Long> deleted = getRepository().findDescendantIds(message);
+            deleted.add(message.getId());
+            // only a delete by hand is work: deleting for good (the trash, a generation that got nothing, a copy that is dropped) is not
+            countDeleted(message, deleted, counting);
+            deleted.remove(message.getId());
             getRepository().softDeleteByIds(deleted);
             deleted.add(message.getId());
             summaryService.softDeleteForMessages(deleted);
@@ -524,6 +552,25 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
             messageRevisionService.hardDeleteForParts(List.of(message.getId()));
         }
         return super.delete(message, hard);
+    }
+
+    /**
+     * Counts the parts that are about to be soft deleted (the ones that are not deleted yet), with the words they have.
+     */
+    private void countDeleted(ChatMessage message, List<Long> ids, Counting counting) {
+        if (counting == Counting.NONE || message.getParentScript() == null) {
+            return;
+        }
+        try {
+            PartTotals totals = getRepository().measureLive(ids);
+            Manuscript book = totals.parts() == 0 ? null : manuscriptService.find(message.getParentScript().getId());
+            if (book != null) {
+                statisticService.count(book, StatisticCounts.partsDeleted(totals.parts())
+                        .plus(counting == Counting.ALL ? StatisticCounts.wordsRemoved(totals.words()) : StatisticCounts.ZERO));
+            }
+        } catch (Exception e) {
+            log.warn("Failed to count the deleted parts", e);
+        }
     }
 
     @Override
@@ -573,6 +620,16 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     @Override
     @CommonTx
     public Manuscript deleteNodeAndMigrateChildren(ChatMessage message, Manuscript manuscript, boolean hard) throws Exception {
+        return deleteNodeAndMigrateChildren(message, manuscript, hard, Counting.ALL);
+    }
+
+    @Override
+    @CommonTx
+    public Manuscript deleteNodeAndMigrateChildren(ChatMessage message, Manuscript manuscript, boolean hard, boolean counted) throws Exception {
+        return deleteNodeAndMigrateChildren(message, manuscript, hard, counted ? Counting.ALL : Counting.NONE);
+    }
+
+    private Manuscript deleteNodeAndMigrateChildren(ChatMessage message, Manuscript manuscript, boolean hard, Counting counting) throws Exception {
         if (message == null) {
             return manuscript;
         }
@@ -587,7 +644,7 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
             }
         }
 
-        delete(message, hard);
+        delete(message, hard, counting);
         // the active leaf may have moved - it must not stay on the deleted part in the database
         return manuscript != null ? manuscriptService.save(manuscript) : null;
     }
@@ -747,7 +804,8 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         annotationService.moveToPrevious(book, later, saved, laterOffset);
 
         // what follows the part follows the previous one now, the active leaf moves to it when the part was the leaf
-        deleteNodeAndMigrateChildren(later, book, false);
+        // the words of the part live on in the previous one: only the part is counted as deleted
+        deleteNodeAndMigrateChildren(later, book, false, Counting.PARTS);
         return saved;
     }
 

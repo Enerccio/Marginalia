@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.repository;
 
+import com.github.enerccio.marginalia.domain.components.PartTotals;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 
@@ -110,6 +111,11 @@ public interface ChatMessageRepository extends ExtendableRepository<ChatMessage>
      * @return number of the deleted messages
      */
     int softDeleteByIds(Collection<Long> ids) throws Exception;
+
+    /**
+     * How many of the parts are not deleted, and the words they have (their {@code wordCount}).
+     */
+    PartTotals measureLive(Collection<Long> ids) throws Exception;
 
     int getTotalWordCount(Long manuscriptId) throws Exception;
 

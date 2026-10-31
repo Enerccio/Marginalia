@@ -9,7 +9,6 @@ import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceA
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncController;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
-import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.templates.RedraftTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateContext;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
@@ -157,7 +156,7 @@ public class RedraftServiceImpl implements RedraftService {
             }
         };
 
-        try (InferenceSession _ = InferenceSession.open(InferenceSession.REDRAFT)) {
+        try (InferenceSession _ = InferenceSession.open(InferenceSession.REDRAFT); UsageContext _ = UsageContext.open(book)) {
             inferenceService.stream(payload, protocol, inferenceCallback);
         } catch (Exception e) {
             log.error("Failed to start the redraft inference", e);

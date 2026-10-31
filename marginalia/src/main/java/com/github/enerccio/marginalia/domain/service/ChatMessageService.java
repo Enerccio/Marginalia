@@ -150,6 +150,12 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
 
     Manuscript deleteNodeAndMigrateChildren(ChatMessage message, Manuscript manuscript, boolean hard) throws Exception;
 
+    /**
+     * As {@link #deleteNodeAndMigrateChildren(ChatMessage, Manuscript, boolean)}; {@code counted} false keeps the delete out of the
+     * writing statistics, for a delete that was counted when it was done (the merge of the work of an agent).
+     */
+    Manuscript deleteNodeAndMigrateChildren(ChatMessage message, Manuscript manuscript, boolean hard, boolean counted) throws Exception;
+
     int countWords(String text);
 
     /**

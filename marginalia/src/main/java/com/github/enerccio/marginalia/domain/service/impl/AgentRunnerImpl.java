@@ -2942,7 +2942,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             }
             CancellationToken token;
             // a run grows its own conversation, so each run has the cache of the provider to itself
-            try (InferenceSession _ = InferenceSession.open(InferenceSession.AGENT, String.valueOf(runId))) {
+            try (InferenceSession _ = InferenceSession.open(InferenceSession.AGENT, String.valueOf(runId));
+                 UsageContext _ = UsageContext.open(run.getWorkingCopy())) {
                 token = inference.round(payload, profile.protocol(), tools, noCalls, roundCallback(answer, live));
             } catch (Exception | Error e) {
                 if (live != null) {

@@ -5,10 +5,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.ManuscriptStatistic;
 import com.github.enerccio.marginalia.domain.repository.ManuscriptStatisticRepository;
-import com.github.enerccio.marginalia.domain.service.ActivityIntervalService;
-import com.github.enerccio.marginalia.domain.service.FolderService;
-import com.github.enerccio.marginalia.domain.service.ManuscriptSizeService;
-import com.github.enerccio.marginalia.domain.service.ManuscriptStatisticService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import org.slf4j.Logger;
@@ -30,6 +27,10 @@ public class ManuscriptStatisticServiceImpl extends OwnedServiceImpl<ManuscriptS
     @Autowired
     @Lazy
     private FolderService folderService;
+
+    @Autowired
+    @Lazy
+    private AgentRunService agentRunService;
 
     @Autowired
     @Lazy
@@ -56,26 +57,32 @@ public class ManuscriptStatisticServiceImpl extends OwnedServiceImpl<ManuscriptS
         if (book == null || book.getUuid() == null || book.getOwner() == null || delta == null || delta.isZero()) {
             return;
         }
-        if (book.isAgentic()) {
-            // the hidden working copy of an agent is not a book of the author, what happens to it is counted for the original
-            // with the agents' side, which is not resolved yet
-            return;
-        }
         try {
+            Manuscript target = book;
+            boolean agentSide = agent;
+            if (book.isAgentic()) {
+                // the hidden working copy of an agent is not a book of the author: what happens to it is what the agent did to
+                // the original, counted for the agents' side. A copy that no run has (it is being made or dropped) is not counted.
+                target = agentRunService.findOriginalOfCopy(book);
+                agentSide = true;
+                if (target == null || target.getOwner() == null) {
+                    return;
+                }
+            }
             Date now = new Date(clock.millis());
             LocalDate day = LocalDate.now(clock);
-            String path = folderPathOf(book);
-            if (getRepository().add(book.getOwner(), book.getUuid(), day, agent, delta, book.getName(), path, now) > 0) {
+            String path = folderPathOf(target);
+            if (getRepository().add(target.getOwner(), target.getUuid(), day, agentSide, delta, target.getName(), path, now) > 0) {
                 return;
             }
             // the writers go one at a time (a transaction that writes takes the write lock when it begins), so nobody makes the row between the update and this
             ManuscriptStatistic row = new ManuscriptStatistic();
-            row.setOwner(book.getOwner());
-            row.setBookUuid(book.getUuid());
-            row.setBookName(book.getName());
+            row.setOwner(target.getOwner());
+            row.setBookUuid(target.getUuid());
+            row.setBookName(target.getName());
             row.setFolderPath(path);
             row.setDay(day);
-            row.setAgent(agent);
+            row.setAgent(agentSide);
             row.setCounts(delta);
             row.setLastChange(now);
             save(row);

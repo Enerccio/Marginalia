@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.InferenceService.ChunkType;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncCallback;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncController;
 import com.github.enerccio.marginalia.domain.service.InferenceSession;
+import com.github.enerccio.marginalia.domain.service.UsageContext;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController.State;
 import com.github.enerccio.marginalia.loc.L;
@@ -159,7 +160,8 @@ public class InferenceStep extends GenerationStepBase {
                 }
             };
             // a new part, a regenerated one and a swipe are the same kind of work for the provider's cache
-            try (InferenceSession _ = InferenceSession.open(InferenceSession.GENERATION)) {
+            try (InferenceSession _ = InferenceSession.open(InferenceSession.GENERATION);
+                 UsageContext _ = UsageContext.open(controller.getManuscript())) {
                 inferenceService.stream(controller.getPayload(), controller.getProtocol(), callback);
             }
         });
