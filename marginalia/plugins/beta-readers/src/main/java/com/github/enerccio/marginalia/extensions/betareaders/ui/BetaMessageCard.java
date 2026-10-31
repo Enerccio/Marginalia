@@ -150,10 +150,25 @@ public final class BetaMessageCard {
     public static final class Turn extends Div {
 
         private final BetaChat chat;
+        /** The section of the reasoning is rebuilt with the turn, so what the user did with it is remembered here. */
+        private boolean reasoningOpen;
+        private Details reasoningSection;
 
         public Turn(BetaChat chat) {
             this.chat = chat;
             addClassName(BetaReadersStyles.TURN);
+        }
+
+        public boolean isReasoningOpen() {
+            return reasoningOpen;
+        }
+
+        /** Opens or closes the reasoning, now and in the next rebuilds of the turn. */
+        public void setReasoningOpen(boolean open) {
+            reasoningOpen = open;
+            if (reasoningSection != null) {
+                reasoningSection.setOpened(open);
+            }
         }
 
         /**
@@ -173,10 +188,15 @@ public final class BetaMessageCard {
          */
         public void show(String reasoning, List<BetaSpoken> messages, String rawText, BetaMessage owner, Actions actions, boolean last) {
             removeAll();
+            reasoningSection = null;
             if (reasoning != null && !reasoning.isBlank()) {
                 Div text = new Div(reasoning.strip());
                 text.addClassNames(BetaReadersStyles.TEXT, BetaReadersStyles.HINT);
-                add(new Details(T.localized(REASONING), text));
+                Details section = new Details(T.localized(REASONING), text);
+                section.setOpened(reasoningOpen);
+                section.addOpenedChangeListener(e -> reasoningOpen = e.isOpened());
+                reasoningSection = section;
+                add(section);
             }
             for (int i = 0; i < messages.size(); i++) {
                 add(spoken(messages.get(i), i, owner, actions));
