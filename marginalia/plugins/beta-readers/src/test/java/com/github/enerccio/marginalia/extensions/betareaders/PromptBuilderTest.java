@@ -52,7 +52,7 @@ class PromptBuilderTest {
         chat.addPersona(new Persona("Athena", "A reader."));
         chat.getMessages().add(BetaMessage.user("First"));
         BetaMessage draft = BetaMessage.user("Second, still typed");
-        Options options = new Options(true, 0, 0, null, "[Part 1] long story");
+        Options options = new Options(true, 0, 0, null, java.util.Map.of(draft.getId(), "[Part 1] long story"));
 
         Prompt now = PromptBuilder.build(chat, "P", options);
         Prompt preview = PromptBuilder.build(chat.preview(draft), "P", options);
@@ -246,11 +246,12 @@ class PromptBuilderTest {
     }
 
     @Test
-    void theStoryGoesBeforeTheFirstMessageOfTheHistory() {
+    void theStoryGoesBeforeTheMessageThatGaveIt() {
         BetaChat chat = group(athena());
-        chat.getMessages().add(BetaMessage.user("What do you think?"));
+        BetaMessage first = BetaMessage.user("What do you think?");
+        chat.getMessages().add(first);
 
-        Prompt prompt = PromptBuilder.build(chat, "P", JSON.withStory("[The story]\n[Part 3]\nHe opened the door."));
+        Prompt prompt = PromptBuilder.build(chat, "P", JSON.withStory(java.util.Map.of(first.getId(), "[The story]\n[Part 3]\nHe opened the door.")));
 
         assertTrue(history(prompt).getFirst().getContent().startsWith("[The story]\n[Part 3]\nHe opened the door.\n\nWhat do you think?"));
         // it is in the prompt once, whatever is asked
@@ -258,30 +259,43 @@ class PromptBuilderTest {
     }
 
     @Test
-    void theStoryIsNotDroppedWithTheOldLinesOfTheHistory() {
+    void aMessageThatGaveNothingHasNoStory() {
         BetaChat chat = group(athena());
-        for (int i = 0; i < 6; i++) {
-            chat.getMessages().add(BetaMessage.user("Question number " + i + " " + "x".repeat(200)));
-            chat.getMessages().add(reply("r", "Athena", "Answer " + i));
-        }
-        chat.getMessages().add(BetaMessage.user("The last question"));
-        Options story = new Options(true, 0, 0, null, "[The story]\n[Part 1]\nOnce upon a time.");
-        int whole = PromptBuilder.build(chat, "P", story).tokens();
+        BetaMessage first = BetaMessage.user("First");
+        BetaMessage second = BetaMessage.user("Second");
+        chat.getMessages().add(first);
+        chat.getMessages().add(reply("r", "Athena", "Hi"));
+        chat.getMessages().add(second);
 
-        Prompt trimmed = PromptBuilder.build(chat, "P", new Options(true, 0, whole / 2, null, story.story()));
+        Prompt prompt = PromptBuilder.build(chat, "P", JSON.withStory(java.util.Map.of(second.getId(), "[More of the story]")));
 
-        assertTrue(trimmed.dropped() > 0);
-        assertTrue(history(trimmed).getFirst().getContent().startsWith("[The story]\n[Part 1]\nOnce upon a time.\n\n"));
-        assertTrue(history(trimmed).getLast().getContent().contains("The last question"));
-        assertEquals(1, trimmed.messages().stream().filter(message -> message.getContent().contains("Once upon a time.")).count());
+        assertTrue(history(prompt).getFirst().getContent().startsWith("First"));
+        assertTrue(history(prompt).getLast().getContent().startsWith("[More of the story]\n\nSecond"));
     }
 
     @Test
-    void aStoryAloneIsAMessageOfTheUserWhenTheChatHasNoLines() {
-        Prompt prompt = PromptBuilder.build(group(athena()), "P", JSON.withStory("[The story]"));
+    void givingMorePartsOnlyChangesTheEndOfThePrompt() {
+        // what a server that keeps the start of the prompt in its cache needs: the new parts and the new message are the only change
+        BetaChat chat = group(athena());
+        BetaMessage first = BetaMessage.user("What do you think?");
+        chat.getMessages().add(first);
+        chat.getMessages().add(reply("r", "Athena", "Interesting."));
+        java.util.Map<String, String> story = new java.util.LinkedHashMap<>();
+        story.put(first.getId(), "[The story the author shows you]\n[Part 1]\n" + "He walked. ".repeat(200));
+        Prompt before = PromptBuilder.build(chat, "P", JSON.withStory(story));
 
-        assertEquals(2, prompt.messages().size());
-        assertTrue(prompt.messages().getLast().getContent().startsWith("[The story]"));
+        BetaMessage second = BetaMessage.user("And the new part?");
+        chat.getMessages().add(second);
+        story.put(second.getId(), "[More of the story the author shows you]\n[Part 2]\nShe ran.");
+        Prompt after = PromptBuilder.build(chat, "P", JSON.withStory(story));
+
+        // the system message and the history up to the new message are the same text, byte for byte; only what is new comes after
+        List<LLMChatMessage> was = before.messages();
+        List<LLMChatMessage> is = after.messages();
+        assertEquals(was.getFirst().getContent(), is.getFirst().getContent());
+        assertEquals(was.get(1).getContent(), is.get(1).getContent());
+        assertEquals(was.get(2).getContent(), is.get(2).getContent());
+        assertTrue(is.getLast().getContent().startsWith("[More of the story the author shows you]\n[Part 2]\nShe ran.\n\nAnd the new part?"));
     }
 
     @Test

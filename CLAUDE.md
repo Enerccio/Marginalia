@@ -20,6 +20,7 @@ mvn install -DskipTests      # also installs the classes JAR into ~/.m2 (require
 mvn test -Dtest=LorebookActivationTest        # one class
 mvn test -Dtest='MacroRenderingTest#name'     # one method
 mvn test -Dtest='Backup*Test'                 # pattern
+mvn test -Dbuild.dir=/tmp/marginalia-build    # build and run elsewhere than target/ (default ${project.basedir}/target), see below
 export MAVEN_OPTS="-XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true -Duser.home=/path/to/dev-home"
 mvn -DskipTests jetty:run    # dev mode at http://localhost:8080/
 docker compose up --build    # from repo root; data in ./data
@@ -30,6 +31,8 @@ Use a separate `-Duser.home` for dev runs: data lives in `~/.marginalia` (also t
 `pom.xml` in the repo root is the parent POM of the app and all plugins: it holds the version (children inherit it; bump with `mvn versions:set -DnewVersion=X -DgenerateBackupPoms=false` in the root) and aggregates them, so `mvn package` there builds everything. Building a plugin on its own needs `mvn -N install` in the root once, besides the app's `mvn install`.
 
 Plugins (`marginalia/plugins/*`: anthropic, arc-outline, authorsnote, beta-readers, chaptermarker, character-tracker, chineselocalization, gemma4toolsfix, google-genai, instructionexporter, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, reviewer, sidequery, sillytavern-converter; the list is in the `<modules>` of the root `pom.xml`) are separate Maven projects (OSGi bundles): after `mvn install` of the app, run `mvn package` in the plugin dir, then load the JAR in Admin → Extensions. They must be built from the same source tree as the app.
+
+The IDE (IntelliJ with the Ajc compiler) compiles into the same `target/` as Maven, and a class compiled by the other one is overwritten (or left unwoven: `@Configurable` fields `null`). When it is open, or to keep a run apart from it, build elsewhere: `-Dbuild.dir=/tmp/marginalia-build` moves the classes, the test home (`<build.dir>/test-home`) and the WAR. Use the same folder for the whole sequence (`mvn install` of the app and the plugins read from the local repository, not from it); `rm -rf` it for a clean build. Do not run two Maven builds on the same folder.
 
 There is no lint step. First build is slow (Vaadin downloads Node.js and npm packages).
 

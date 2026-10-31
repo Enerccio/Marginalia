@@ -90,8 +90,10 @@ persona never changes the earlier history.
 
 The chat does not keep a copy of the story. It remembers which parts you **gave** to the personas, and for every request the story they read
 is built again from the story as it is now: the parts they were given, with the summaries in place of the oldest of them, as far as they
-fit the context of the model. It stands once at the start of the conversation, so there is no second copy of a part in the history. An
-edited part is read as edited, a part you deleted is not read any more, and a new summary is used from the next message on.
+fit the context of the model. The parts stand in front of the message that gave them, so a part is in the request once and the start of the
+request stays the same text when you give more parts: a model server that keeps the start of the prompt only reads what is new. An edited
+part is read as edited and a part you deleted is not read any more, which changes the request from the message that gave it on. A summary
+made later replaces the parts it describes from the next message on.
 
 **Include the latest parts** is what gives the personas more of the story: it adds the parts they were not given yet (see
 [below](#how-much-of-the-story-the-personas-read)). Leave it off to just chat and give them the story later. The label of the box says how
@@ -99,7 +101,7 @@ many parts it would add (*Include the story (5 parts)*, *Include the latest part
 again after you wrote something. A message of yours says which parts it gave (*Parts 1-5 sent*).
 
 Under the box are what the personas have read (*The personas have read: parts 1-5*) and the size of the context (*Context: 2,266 of 30,720
-tokens*): what the next message would send, that is the history, what you have typed and, when **Include the latest parts** is ticked, the parts it would add. It changes when you tick the box or pause while typing. The story gets at least half of the context; when the history does not fit beside it, the oldest messages are left out of the request, not deleted, and a notice says how many.
+tokens*): what the next message would send, that is the history, what you have typed and, when **Include the latest parts** is ticked, the parts it would add. It changes when you tick the box or pause while typing. The parts get at least half of the context; when the history does not fit beside them, the oldest messages (with the parts they gave) are left out of the request, not deleted, and a notice says how many.
 
 ### Changing the conversation
 

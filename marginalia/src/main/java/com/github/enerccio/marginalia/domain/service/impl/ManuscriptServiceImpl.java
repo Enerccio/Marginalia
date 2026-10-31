@@ -330,7 +330,10 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
                 return new EffectiveSetting<>(inherited, EffectiveSetting.Origin.FOLDER, folder);
             }
         }
-        String fromUser = field.ofUser(settingService.getOrCreate(UserSetting.class));
+        // read only: the settings of a user that has none yet are not created here (a resolver runs inside read-only transactions, where
+        // a write fails with SQLITE_BUSY when another connection wrote in between), a user without settings has set nothing
+        UserSetting userSetting = settingService.find(UserSetting.class, currentUser);
+        String fromUser = userSetting == null ? null : field.ofUser(userSetting);
         if (StringUtils.isNotBlank(fromUser)) {
             return new EffectiveSetting<>(fromUser, EffectiveSetting.Origin.USER, null);
         }
@@ -506,8 +509,8 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     public BackupStrategy getBackupStrategy(Manuscript manuscript) throws Exception {
         if (manuscript.getBackupStrategy() != null)
             return manuscript.getBackupStrategy();
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (userSetting.getBackupStrategy() != null)
+        UserSetting userSetting = settingService.find(UserSetting.class, currentUser);
+        if (userSetting != null && userSetting.getBackupStrategy() != null)
             return userSetting.getBackupStrategy();
         return null;
     }
@@ -516,8 +519,8 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     public String getBackupStrategyValue(Manuscript manuscript) throws Exception {
         if (manuscript.getBackupStrategy() != null)
             return manuscript.getBackupStrategyValue();
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (userSetting.getBackupStrategy() != null)
+        UserSetting userSetting = settingService.find(UserSetting.class, currentUser);
+        if (userSetting != null && userSetting.getBackupStrategy() != null)
             return userSetting.getBackupStrategyValue();
         return null;
     }

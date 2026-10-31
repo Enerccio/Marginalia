@@ -82,7 +82,7 @@ public class HelpAssistantServiceImpl implements HelpAssistantService {
     @CommonTxReadOnly
     public Settings getSettings() throws Exception {
         adminGuard.requireAdmin();
-        AppSettings app = settingService.getOrCreateApp(AppSettings.class);
+        AppSettings app = settingService.findOrBlank(AppSettings.class, null);
         return new Settings(app.getHelpAiUuid(), app.getHelpPromptAdmin(), app.getHelpPromptUser(), app.getHelpAdminData());
     }
 
@@ -105,7 +105,8 @@ public class HelpAssistantServiceImpl implements HelpAssistantService {
     @Override
     @CommonTxReadOnly
     public boolean isBooksAllowed() throws Exception {
-        return settingService.getOrCreate(UserSetting.class).isHelpAssistantBooks();
+        UserSetting setting = settingService.find(UserSetting.class, currentUser);
+        return setting != null && setting.isHelpAssistantBooks();
     }
 
     @Override

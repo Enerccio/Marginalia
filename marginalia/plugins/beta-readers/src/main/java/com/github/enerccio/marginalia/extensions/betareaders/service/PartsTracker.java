@@ -72,18 +72,19 @@ public final class PartsTracker {
     }
 
     /**
-     * The story the personas read.
+     * The story the personas read, as the blocks that go in front of the messages that gave the parts.
      *
-     * @param text     the block that goes at the start of the history; empty when they were given no part
-     * @param included how many parts are in the text as they are
-     * @param omitted  how many parts they were given that did not fit and are left out of the text
+     * @param byMessage the block of a message of the user (by its id): the parts it gave, as they are now; a message that gave nothing
+     *                  that is read has none
+     * @param included  how many parts are in the blocks as they are
+     * @param omitted   how many parts they were given that did not fit and are left out
      */
-    public record Block(String text, int included, int omitted) {
+    public record Blocks(Map<String, String> byMessage, int included, int omitted) {
 
-        public static final Block EMPTY = new Block("", 0, 0);
+        public static final Blocks EMPTY = new Blocks(Map.of(), 0, 0);
 
         public boolean isEmpty() {
-            return text.isEmpty();
+            return byMessage.isEmpty();
         }
     }
 
@@ -121,8 +122,11 @@ public final class PartsTracker {
     }
 
     /**
-     * Writes the story the personas read: the parts they were given that are in the branch and in the range they may read, with the
-     * summaries in place of the oldest when they stand for them, and as many of the newest parts as fit the budget.
+     * Writes the story the personas read. Every message that gave parts carries them, as they are in the story now: the text is not kept,
+     * so an edited part is read as edited and a part that is gone from the branch is not read. The prompt then only grows at its end when
+     * parts are given, which a server that keeps the start of the prompt in its cache needs, and a change inside it starts over from the
+     * message it is in. The summaries stand in for the oldest parts, in the first message that gave parts; the parts they stand for are
+     * left out of all the messages. As many of the newest parts as fit the budget are kept, the oldest go first.
      *
      * @param chat      the chat (or a view of it with the message about to be sent) that knows what it was given
      * @param branch    the parts of the active branch, first to last
@@ -130,46 +134,74 @@ public final class PartsTracker {
      *                  is among the parts they were given
      * @param minNumber the first part the personas read; 0 for the first part of the story
      * @param maxNumber the last part the personas may read; 0 for no limit
-     * @param maxTokens the tokens the block may have; 0 for no limit
+     * @param maxTokens the tokens the blocks may have; 0 for no limit
      * @param tokens    counts the tokens of a text
      */
-    public static Block story(BetaChat chat, List<StoryPart> branch, Summaries summaries, int minNumber, int maxNumber, int maxTokens,
-                              ToIntFunction<String> tokens) {
-        Map<String, SentPart> sent = sentBy(chat);
-        List<StoryPart> given = readable(branch, minNumber, maxNumber).stream().filter(part -> sent.containsKey(part.id())).toList();
-        Summaries usable = summaries == null || minNumber > 1 ? Summaries.NONE : summaries;
+    public static Blocks blocks(BetaChat chat, List<StoryPart> branch, Summaries summaries, int minNumber, int maxNumber, int maxTokens,
+                                ToIntFunction<String> tokens) {
+        Map<String, StoryPart> readable = new HashMap<>();
+        readable(branch, minNumber, maxNumber).forEach(part -> readable.put(part.id(), part));
 
-        int covered = -1;
-        if (usable.coveredId() != null) {
-            for (int i = 0; i < given.size(); i++) {
-                if (given.get(i).id().equals(usable.coveredId())) {
-                    covered = i;
+        // the parts each message gave that are read, in the order of the story, and nobody reads one twice
+        Map<String, List<StoryPart>> given = new LinkedHashMap<>();
+        Set<String> seen = new HashSet<>();
+        for (BetaMessage message : chat.getMessages()) {
+            if (message.getKind() != MessageKind.USER || message.getSentParts().isEmpty()) {
+                continue;
+            }
+            List<StoryPart> parts = new ArrayList<>();
+            for (SentPart sent : message.getSentParts()) {
+                StoryPart part = readable.get(sent.getId());
+                if (part != null && seen.add(part.id())) {
+                    parts.add(part);
                 }
             }
+            parts.sort(Comparator.comparingInt(StoryPart::number));
+            given.put(message.getId(), parts);
         }
-        // the summaries only stand for the story when the part they end with is among the parts the personas read
-        List<String> summaryTexts = covered >= 0 ? usable.texts().stream().filter(text -> !text.isBlank()).toList() : List.of();
-        List<StoryPart> rest = given.subList(summaryTexts.isEmpty() ? 0 : covered + 1, given.size());
-        if (summaryTexts.isEmpty() && rest.isEmpty()) {
-            return Block.EMPTY;
+        if (given.isEmpty()) {
+            return Blocks.EMPTY;
         }
 
-        StringBuilder text = new StringBuilder("[The story the author shows you]");
-        int budget = maxTokens;
-        if (!summaryTexts.isEmpty()) {
-            String summaries1 = "Summaries of the story so far:\n" + String.join("\n\n", summaryTexts);
-            text.append("\n").append(summaries1);
-            budget -= tokens.applyAsInt(summaries1);
+        // the summaries only stand for the story when the part they end with is among the parts the personas read
+        Summaries usable = summaries == null || minNumber > 1 ? Summaries.NONE : summaries;
+        int covered = 0;
+        if (usable.coveredId() != null) {
+            StoryPart end = readable.get(usable.coveredId());
+            covered = end != null && seen.contains(end.id()) ? end.number() : 0;
         }
-        List<StoryPart> included = fit(rest, maxTokens > 0 ? Math.max(budget, 1) : 0, tokens);
+        List<String> summaryTexts = covered > 0 ? usable.texts().stream().filter(text -> !text.isBlank()).toList() : List.of();
+        int standsFor = summaryTexts.isEmpty() ? 0 : covered;
+
+        List<StoryPart> rest = given.values().stream().flatMap(List::stream).filter(part -> part.number() > standsFor).toList();
+        String summaryBlock = summaryTexts.isEmpty() ? "" : "Summaries of the story so far:\n" + String.join("\n\n", summaryTexts);
+        int budget = maxTokens - (summaryBlock.isEmpty() ? 0 : tokens.applyAsInt(summaryBlock));
+        Set<String> included = fit(rest, maxTokens > 0 ? Math.max(budget, 1) : 0, tokens).stream().map(StoryPart::id)
+                .collect(java.util.stream.Collectors.toSet());
         int omitted = rest.size() - included.size();
-        if (omitted > 0) {
-            text.append("\n(The ").append(omitted == 1 ? "part" : omitted + " parts").append(" before the part ")
-                    .append(included.isEmpty() ? "you can see" : included.getFirst().number())
-                    .append(" did not fit and ").append(omitted == 1 ? "is" : "are").append(" left out.)");
+
+        Map<String, String> byMessage = new LinkedHashMap<>();
+        for (Map.Entry<String, List<StoryPart>> entry : given.entrySet()) {
+            List<StoryPart> parts = entry.getValue().stream().filter(part -> included.contains(part.id())).toList();
+            // the first block that is written opens the story: the summaries and what was left out are said there
+            boolean opening = byMessage.isEmpty();
+            if (parts.isEmpty() && !(opening && (!summaryBlock.isEmpty() || omitted > 0))) {
+                continue;
+            }
+            StringBuilder text = new StringBuilder(opening ? "[The story the author shows you]" : "[More of the story the author shows you]");
+            if (opening) {
+                if (!summaryBlock.isEmpty()) {
+                    text.append("\n").append(summaryBlock);
+                }
+                if (omitted > 0) {
+                    text.append("\n(").append(omitted == 1 ? "A part" : omitted + " parts").append(" of the story did not fit and ")
+                            .append(omitted == 1 ? "is" : "are").append(" left out.)");
+                }
+            }
+            parts.forEach(part -> text.append("\n").append(render(part)));
+            byMessage.put(entry.getKey(), text.toString());
         }
-        included.forEach(part -> text.append("\n").append(render(part)));
-        return new Block(text.toString(), included.size(), omitted);
+        return new Blocks(byMessage, included.size(), omitted);
     }
 
     /**

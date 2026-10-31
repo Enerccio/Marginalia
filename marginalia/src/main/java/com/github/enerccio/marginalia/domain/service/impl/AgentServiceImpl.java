@@ -237,7 +237,7 @@ public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentReposito
         }
         User owner = agent == null ? null : agent.getOwner();
         if (owner != null) {
-            UserSetting userSetting = settingService.getOrCreate(UserSetting.class, owner);
+            UserSetting userSetting = settingService.findOrBlank(UserSetting.class, owner);
             if (StringUtils.isNotBlank(userSetting.getDefaultAgentPrompt())) {
                 return userSetting.getDefaultAgentPrompt();
             }
@@ -253,7 +253,7 @@ public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentReposito
         }
         User owner = agent == null ? null : agent.getOwner();
         if (owner != null) {
-            return StringUtils.defaultString(settingService.getOrCreate(UserSetting.class, owner).getDefaultAgentInstructions());
+            return StringUtils.defaultString(settingService.findOrBlank(UserSetting.class, owner).getDefaultAgentInstructions());
         }
         return "";
     }
@@ -261,13 +261,13 @@ public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentReposito
     @Override
     @CommonTxReadOnly
     public String getDefaultInstructions() throws Exception {
-        return StringUtils.defaultString(settingService.getOrCreate(UserSetting.class).getDefaultAgentInstructions());
+        return StringUtils.defaultString(settingService.findOrBlank(UserSetting.class, currentUser).getDefaultAgentInstructions());
     }
 
     @Override
     @CommonTxReadOnly
     public String getDefaultSystemPrompt() throws Exception {
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+        UserSetting userSetting = settingService.findOrBlank(UserSetting.class, currentUser);
         if (StringUtils.isNotBlank(userSetting.getDefaultAgentPrompt())) {
             return userSetting.getDefaultAgentPrompt();
         }
@@ -277,7 +277,7 @@ public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentReposito
     @Override
     @CommonTxReadOnly
     public String getAppDefaultSystemPrompt() throws Exception {
-        AppSettings app = settingService.getOrCreateApp(AppSettings.class);
+        AppSettings app = settingService.findOrBlank(AppSettings.class, null);
         return StringUtils.isNotBlank(app.getDefaultAgentPrompt()) ? app.getDefaultAgentPrompt() : Defaults.DEFAULT_AGENT_PROMPT;
     }
 
@@ -285,14 +285,14 @@ public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentReposito
     @CommonTxReadOnly
     public String getAppSystemPrompt() throws Exception {
         adminGuard.requireAdmin();
-        return StringUtils.defaultString(settingService.getOrCreateApp(AppSettings.class).getDefaultAgentPrompt());
+        return StringUtils.defaultString(settingService.findOrBlank(AppSettings.class, null).getDefaultAgentPrompt());
     }
 
     @Override
     @CommonTx
     public void setAppSystemPrompt(String prompt) throws Exception {
         adminGuard.requireAdmin();
-        AppSettings app = settingService.getOrCreateApp(AppSettings.class);
+        AppSettings app = settingService.findOrBlank(AppSettings.class, null);
         app.setDefaultAgentPrompt(StringUtils.isBlank(prompt) ? null : prompt);
         settingService.save(app);
     }
@@ -305,7 +305,7 @@ public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentReposito
         }
         User owner = agent == null ? null : agent.getOwner();
         if (owner != null) {
-            UserSetting userSetting = settingService.getOrCreate(UserSetting.class, owner);
+            UserSetting userSetting = settingService.findOrBlank(UserSetting.class, owner);
             if (StringUtils.isNotBlank(userSetting.getDefaultAgentCompactionPrompt())) {
                 return userSetting.getDefaultAgentCompactionPrompt();
             }
@@ -316,7 +316,7 @@ public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentReposito
     @Override
     @CommonTxReadOnly
     public String getDefaultCompactionPrompt() throws Exception {
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+        UserSetting userSetting = settingService.findOrBlank(UserSetting.class, currentUser);
         if (StringUtils.isNotBlank(userSetting.getDefaultAgentCompactionPrompt())) {
             return userSetting.getDefaultAgentCompactionPrompt();
         }
@@ -326,7 +326,7 @@ public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentReposito
     @Override
     @CommonTxReadOnly
     public String getAppDefaultCompactionPrompt() throws Exception {
-        AppSettings app = settingService.getOrCreateApp(AppSettings.class);
+        AppSettings app = settingService.findOrBlank(AppSettings.class, null);
         return StringUtils.isNotBlank(app.getDefaultAgentCompactionPrompt())
                 ? app.getDefaultAgentCompactionPrompt() : Defaults.DEFAULT_AGENT_COMPACTION_PROMPT;
     }
@@ -335,7 +335,7 @@ public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentReposito
     @CommonTxReadOnly
     public String getAppCompactionPrompt() throws Exception {
         adminGuard.requireAdmin();
-        return StringUtils.defaultString(settingService.getOrCreateApp(AppSettings.class).getDefaultAgentCompactionPrompt());
+        return StringUtils.defaultString(settingService.findOrBlank(AppSettings.class, null).getDefaultAgentCompactionPrompt());
     }
 
     @Override
