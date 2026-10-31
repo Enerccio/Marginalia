@@ -103,7 +103,7 @@ public class ArcGenerationCommands extends ArcOutlineCommandSupport {
         context.setStatus("Generating an arc");
         Generated<GeneratedArc> generated;
         try {
-            generated = service.generate(model, prompt, service.schema(), GeneratedArc.class);
+            generated = service.generate(model, book.manuscript, prompt, service.schema(), GeneratedArc.class);
         } catch (CancellationException e) {
             return;
         }
@@ -213,7 +213,7 @@ public class ArcGenerationCommands extends ArcOutlineCommandSupport {
         context.setStatus("Generating the chapters of the arc " + arcNumber);
         Generated<GeneratedChapters> generated;
         try {
-            generated = service.generate(model, prompt, service.chaptersSchema(count), GeneratedChapters.class);
+            generated = service.generate(model, book.manuscript, prompt, service.chaptersSchema(count), GeneratedChapters.class);
         } catch (CancellationException e) {
             return;
         }
@@ -371,7 +371,7 @@ public class ArcGenerationCommands extends ArcOutlineCommandSupport {
         context.setStatus("Summarizing messages " + first + " to " + last + " as an arc");
         Generated<GeneratedStoryArc> generated;
         try {
-            generated = service.generate(model, prompt, service.importSchema(count), GeneratedStoryArc.class);
+            generated = service.generate(model, book.manuscript, prompt, service.importSchema(count), GeneratedStoryArc.class);
         } catch (CancellationException e) {
             return;
         }

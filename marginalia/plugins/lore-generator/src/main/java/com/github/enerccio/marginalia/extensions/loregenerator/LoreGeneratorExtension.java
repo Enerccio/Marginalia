@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.extensions.loregenerator;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.CommandService;
 import com.github.enerccio.marginalia.domain.service.ExtensionService;
@@ -16,6 +17,7 @@ import com.github.enerccio.marginalia.extensions.loregenerator.service.LoreGener
 import com.github.enerccio.marginalia.extensions.loregenerator.ui.LoreGeneratorDialog;
 import com.github.enerccio.marginalia.extensions.loregenerator.ui.LoreGeneratorSettingsForm;
 import com.github.enerccio.marginalia.ui.components.LorebookView;
+import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.accordion.Accordion;
@@ -30,6 +32,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.Callable;
 
 import static com.github.enerccio.marginalia.extensions.loregenerator.LoreGeneratorLocalization.T;
 
@@ -39,8 +42,11 @@ public class LoreGeneratorExtension implements MarginaliaExtension {
     private static final String USER_PART = "com.github.enerccio.marginalia.ui.workspace.parts.UserPart";
     private static final String LOREBOOK_VIEW = "com.github.enerccio.marginalia.ui.components.LorebookView";
     private static final String LOREBOOK_PART = "com.github.enerccio.marginalia.ui.workspace.parts.LorebookPart";
+    private static final String MANUSCRIPT_LOREBOOK_PART = "com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptLorebookPart";
     private static final String SETTINGS_PANEL_KEY = LoreGeneratorData.KEY + ".settingsPanel";
     private static final String GENERATE_COLUMN_KEY = LoreGeneratorData.KEY + ".generateColumn";
+    /** On a lorebook view that is the Lorebook tab of a book: how to get that book (a {@code Callable<Manuscript>}). */
+    private static final String BOOK_KEY = LoreGeneratorData.KEY + ".book";
 
     /** The logger of this extension, its lines go to the extension log (Admin → Extensions → Log). */
     private Logger log;
@@ -57,6 +63,7 @@ public class LoreGeneratorExtension implements MarginaliaExtension {
     private ExtensionDecorator userPartSaveDecorator;
     private ExtensionDecorator lorebookViewDecorator;
     private ExtensionDecorator lorebookPartDecorator;
+    private ExtensionDecorator bookLorebookPartDecorator;
 
     private final Set<LorebookView> activeViews = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
     private final Set<Accordion> activeAccordions = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
@@ -147,6 +154,23 @@ public class LoreGeneratorExtension implements MarginaliaExtension {
             };
             extensionService.registerDecorator(lorebookPartDecorator, LOREBOOK_PART, "refresh");
 
+            // the Lorebook tab of a book knows the book, the lorebooks of the workspace do not: what the model costs is the book's when there is one
+            bookLorebookPartDecorator = new ExtensionDecorator() {
+                @Override
+                public void onMethodEnter(Object instrumented, ExtendableMethodContext context) throws Exception {}
+
+                @Override
+                public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
+                    LorebookView lorebookView = context.getReflectiveFieldValue(instrumented, "lorebookView", LorebookView.class);
+                    ManuscriptDialog parent = context.getReflectiveFieldValue(instrumented, "parent", ManuscriptDialog.class);
+                    if (lorebookView != null && parent != null) {
+                        Callable<Manuscript> book = parent::refreshManuscript;
+                        ComponentUtil.setData(lorebookView, BOOK_KEY, book);
+                    }
+                }
+            };
+            extensionService.registerDecorator(bookLorebookPartDecorator, MANUSCRIPT_LOREBOOK_PART, "create");
+
             // the commands for the command bar and for agents
             commands = new LoreGeneratorCommands(loreGeneratorService);
             commandService.registerCommands(commands);
@@ -173,7 +197,9 @@ public class LoreGeneratorExtension implements MarginaliaExtension {
         Grid.Column<LorebookEntry> column = grid.addComponentColumn(entry -> {
             Button button = new Button(Solid.WAND_MAGIC_SPARKLES.create(), e -> {
                 if (lorebookView.getCurrentLorebook() != null) {
-                    new LoreGeneratorDialog(loreGeneratorService, lorebookView.getCurrentLorebook(), entry,
+                    @SuppressWarnings("unchecked")
+                    Callable<Manuscript> book = (Callable<Manuscript>) ComponentUtil.getData(lorebookView, BOOK_KEY);
+                    new LoreGeneratorDialog(loreGeneratorService, lorebookView.getCurrentLorebook(), entry, book,
                             lorebookView::refreshEntries).open();
                 }
             });
@@ -203,6 +229,9 @@ public class LoreGeneratorExtension implements MarginaliaExtension {
         }
         if (lorebookPartDecorator != null) {
             extensionService.unregisterDecorator(lorebookPartDecorator);
+        }
+        if (bookLorebookPartDecorator != null) {
+            extensionService.unregisterDecorator(bookLorebookPartDecorator);
         }
         synchronized (activeViews) {
             for (LorebookView view : activeViews) {

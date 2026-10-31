@@ -1062,6 +1062,93 @@ public final class JavascriptLibrary {
                 """, element);
     }
 
+    // --- activity (the time of the writing statistics) ---
+
+    /**
+     * Tells the element, with the event {@code marginalia-visibility} (the detail is true or false), whether the page of the
+     * browser is visible: now, and on every change. A book left open in a hidden tab does not count as open. Calling it again
+     * replaces the earlier watch.
+     */
+    public static void watchPageVisibility(Element element) {
+        element.executeJs("""
+                var el = $0;
+                if (el.__visibilityWatch) { el.__visibilityWatch(); }
+                var send = function () {
+                    el.dispatchEvent(new CustomEvent('marginalia-visibility', { detail: !document.hidden }));
+                };
+                document.addEventListener('visibilitychange', send);
+                el.__visibilityWatch = function () {
+                    document.removeEventListener('visibilitychange', send);
+                    el.__visibilityWatch = null;
+                };
+                send();
+                """, element);
+    }
+
+    /**
+     * Stops {@link #watchPageVisibility}.
+     */
+    public static void unwatchPageVisibility(Element element) {
+        element.executeJs("if ($0.__visibilityWatch) { $0.__visibilityWatch(); }", element);
+    }
+
+    /**
+     * Tells the element, with the event {@code marginalia-typing} (the detail is true or false), whether the author is typing in
+     * the text area: true on a key after an idle time, again at most once a minute while the keys go on (the server treats a
+     * silence longer than the cut-off as idle, so a long run of typing must be heard now and then), false when the last key was
+     * {@code cutoffMillis} ago. Only the keys of the text areas that were watched count; the mouse and the scrolling are reading.
+     *
+     * @param element      the element the events are fired on
+     * @param textArea     the editor of a part (its element)
+     * @param cutoffMillis the time after the last key when the author is idle
+     */
+    public static void watchTyping(Element element, Element textArea, int cutoffMillis) {
+        element.executeJs("""
+                var el = $0, area = $1, cutoff = $2;
+                var state = el.__typing;
+                if (!state) {
+                    state = el.__typing = { areas: [], typing: false, timer: null, sent: 0 };
+                }
+                var send = function (typing) {
+                    state.typing = typing;
+                    state.sent = Date.now();
+                    el.dispatchEvent(new CustomEvent('marginalia-typing', { detail: typing }));
+                };
+                if (area.__typingHandler) { return; }
+                area.__typingHandler = function (e) {
+                    if (e.isComposing && e.key === 'Process') { return; }
+                    if (!state.typing || Date.now() - state.sent > 60000) { send(true); }
+                    clearTimeout(state.timer);
+                    state.timer = setTimeout(function () { state.timer = null; send(false); }, cutoff);
+                };
+                area.addEventListener('keydown', area.__typingHandler);
+                state.areas.push(area);
+                """, element, textArea, cutoffMillis);
+    }
+
+    /**
+     * Stops watching the keys of the editor of a part; when it was the last one the author is idle.
+     */
+    public static void unwatchTyping(Element element, Element textArea) {
+        element.executeJs("""
+                var el = $0, area = $1, state = el.__typing;
+                if (!state) { return; }
+                if (area.__typingHandler) {
+                    area.removeEventListener('keydown', area.__typingHandler);
+                    area.__typingHandler = null;
+                }
+                state.areas = state.areas.filter(function (a) { return a !== area; });
+                if (state.areas.length === 0) {
+                    clearTimeout(state.timer);
+                    state.timer = null;
+                    if (state.typing) {
+                        state.typing = false;
+                        el.dispatchEvent(new CustomEvent('marginalia-typing', { detail: false }));
+                    }
+                }
+                """, element, textArea);
+    }
+
     // --- help assistant ---
 
     /** The sessionStorage key of the problems the browser keeps for the help assistant. */

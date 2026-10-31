@@ -325,16 +325,17 @@ public class ArcOutlineService {
      * Asks the model for an answer in the schema and waits for it (the dialogs stream it; a command has no one to show
      * it to).
      *
+     * @param book the book the outline is of; the tokens and the time of the request are counted for it
      * @param type the class the answer is read into, the one the schema was made of
      * @throws CancellationException when the request was cancelled
      * @throws IllegalStateException when the answer does not match the schema
      */
-    public <T> Generated<T> generate(ModelSelection model, String prompt, JsonNode schema, Class<T> type) throws Exception {
+    public <T> Generated<T> generate(ModelSelection model, Manuscript book, String prompt, JsonNode schema, Class<T> type) throws Exception {
         record Answer(String text, SchemaCheck check) {
         }
         CompletableFuture<Answer> answer = new CompletableFuture<>();
         CancellationToken token;
-        try (InferenceSession _ = InferenceSession.open("arc-outline")) {
+        try (InferenceSession _ = InferenceSession.open("arc-outline"); UsageContext _ = UsageContext.open(book)) {
             token = inferenceServices.forAIOrThrow(model.ai()).infer(toPayload(prompt), model.protocol(), schema,
                 new InferenceService.InferenceResultCallback() {
                     @Override

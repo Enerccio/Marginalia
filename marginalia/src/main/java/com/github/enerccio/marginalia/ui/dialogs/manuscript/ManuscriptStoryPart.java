@@ -99,6 +99,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     private Localization loc;
 
     @Autowired
+    private ActivityTracker activityTracker;
+
+    @Autowired
     private ChatMessageService chatMessageService;
 
     @Autowired
@@ -147,6 +150,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     private KeyBindings keyBindings;
 
     private Manuscript currentManuscript;
+    private StoryActivity activity;
     private boolean isFrozen = false;
     // diff view, not stored: the response of the cards is shown with the generated text highlighted
     private boolean showGeneratedDiff = false;
@@ -208,6 +212,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         centerLayout.setFlexGrow(1, centerContentPanel);
         centerLayout.setFlexGrow(0, massDelete.getBar());
         centerLayout.setFlexGrow(0, bottomControlsLayout);
+
+        // the time the book is open and edited, for the statistics
+        activity = new StoryActivity(centerLayout, activityTracker);
+        activity.track(currentManuscript);
 
         // the story is a tab like the others, the user puts it where they want it
         leftBar.add(STORY_TAB, loc.getValue(L.LABEL_STORY_PART), centerLayout);
@@ -1157,6 +1165,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             massDelete.deactivate();
         }
         this.currentManuscript = manuscript;
+        if (activity != null) {
+            activity.track(manuscript);
+        }
         if (manuscript != null && leftBar != null) {
             applyLanguage(manuscript);
         }
@@ -1870,6 +1881,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
                 contentLayout.addComponentAtIndex(contentLayout.indexOf(responseMarkdown) + 1, responseTextArea);
                 responseMarkdown.setVisible(false);
                 JavascriptLibrary.focusAfterRender(responseTextArea.getElement());
+                activity.editorOpened(responseTextArea.getElement());
             }
         }
 
@@ -1897,6 +1909,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             if (!editing) {
                 return;
             }
+            activity.editorClosed(responseTextArea.getElement());
             contentLayout.remove(responseTextArea);
             responseTextArea = null;
             responseMarkdown.setVisible(true);
@@ -1915,6 +1928,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
                     // the passages of the annotations moved with the edit
                     annotationsChanged();
                     renderResponse();
+                    activity.editorClosed(responseTextArea.getElement());
                     contentLayout.remove(responseTextArea);
                     responseTextArea = null;
                     responseMarkdown.setVisible(true);

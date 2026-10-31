@@ -1,9 +1,6 @@
 package com.github.enerccio.marginalia.extensions.loregenerator.service;
 
-import com.github.enerccio.marginalia.domain.model.impl.AI;
-import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
-import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
-import com.github.enerccio.marginalia.domain.model.impl.Protocol;
+import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
@@ -346,12 +343,13 @@ public class LoreGeneratorService {
      * Asks the model and waits for the whole answer (without its reasoning). The request is cancelled when the waiting
      * thread is interrupted, which is how a stopped command ends.
      *
+     * @param book the book the request is made for, null for none; the tokens and the time of the request are counted for it
      * @throws CancellationException when the request was cancelled
      */
-    public String complete(ModelSelection model, List<LLMChatMessage> payload) throws Exception {
+    public String complete(ModelSelection model, Manuscript book, List<LLMChatMessage> payload) throws Exception {
         CompletableFuture<String> answer = new CompletableFuture<>();
         CancellationToken token;
-        try (InferenceSession _ = InferenceSession.open("lore-generator")) {
+        try (InferenceSession _ = InferenceSession.open("lore-generator"); UsageContext _ = UsageContext.open(book)) {
             token = inferenceServices.forAIOrThrow(model.ai()).infer(payload, model.protocol(),
                 new InferenceService.InferenceResultCallback() {
                     @Override

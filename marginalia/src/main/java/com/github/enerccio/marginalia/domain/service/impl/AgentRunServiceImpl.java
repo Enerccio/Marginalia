@@ -329,6 +329,20 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
 
     @Override
     @CommonTxReadOnly
+    public Set<Long> findRunningBookIds() throws Exception {
+        Set<Long> ids = new LinkedHashSet<>();
+        for (AgentRun run : getRepository().findAllByStatus(EnumSet.of(AgentRunStatus.RUNNING))) {
+            Agent agent = run.getAgent();
+            Manuscript book = agent == null || agent.isDeleted() ? null : agent.getManuscript();
+            if (book != null && book.getId() != null) {
+                ids.add(book.getId());
+            }
+        }
+        return ids;
+    }
+
+    @Override
+    @CommonTxReadOnly
     public AgentRun findLockingRun(Manuscript manuscript) throws Exception {
         return manuscript == null || manuscript.getId() == null ? null
                 : getRepository().findByManuscript(manuscript, AgentRunStatus.locking());

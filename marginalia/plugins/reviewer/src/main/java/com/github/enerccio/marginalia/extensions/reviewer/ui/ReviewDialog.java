@@ -292,7 +292,7 @@ public class ReviewDialog extends Dialog {
                     return isGenerating != null && isGenerating.isCancelled();
                 }
             };
-            try (InferenceSession _ = InferenceSession.open("reviewer")) {
+            try (InferenceSession _ = InferenceSession.open("reviewer"); UsageContext _ = UsageContext.open(manuscript)) {
                 isGenerating = service.stream(payload, targetProtocol, reviewCallback);
             }
 

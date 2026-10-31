@@ -66,6 +66,9 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
     @Autowired
     private AILimitService limitService;
 
+    @Autowired
+    private ActivityTracker activityTracker;
+
     private final ExtensionAI ai;
     private final GoogleGenAiSettings settings;
     private final Logger log;
@@ -110,6 +113,14 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
         this.settings = settings;
         this.log = log;
         this.sessionIds = sessionIds;
+    }
+
+    /**
+     * The time the request of the book is on the wire, for the generation time of the writing statistics; nothing for a request that
+     * is not metered or has no book (and in a test without the application).
+     */
+    private ActivityTracker.Registration generating(Run run) {
+        return run.metered && activityTracker != null ? activityTracker.generate(run.book) : ActivityTracker.NONE;
     }
 
     // ---- models and connection
@@ -218,7 +229,10 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
                         return;
                     }
                     long began = System.nanoTime();
-                    GenerateContentResponse response = sdk.models.generateContent(model, prepared.contents(), config);
+                    GenerateContentResponse response;
+                    try (ActivityTracker.Registration generating = generating(run)) {
+                        response = sdk.models.generateContent(model, prepared.contents(), config);
+                    }
                     long millis = (System.nanoTime() - began) / 1_000_000;
                     Answer answer = new Answer();
                     List<ChunkPiece> pieces = answer.absorb(response, functionsOffered);
@@ -306,9 +320,18 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
                         callback.onCancel();
                         return;
                     }
-                    ResponseStream<GenerateContentResponse> stream = sdk.models.generateContentStream(model, contents, config);
+                    // from the moment the request is sent to the end of the answer (the recorder below is called whichever way it ends)
+                    ActivityTracker.Registration generating = generating(run);
+                    ResponseStream<GenerateContentResponse> stream;
+                    try {
+                        stream = sdk.models.generateContentStream(model, contents, config);
+                    } catch (Throwable e) {
+                        generating.close();
+                        throw e;
+                    }
                     GoogleStreamController controller = new GoogleStreamController(stream, callback, run,
                             (reported, generated) -> {
+                                generating.close();
                                 if (run.metered) {
                                     recordUsage(run.attributes, run.book, contents, reported, generated);
                                 }
@@ -360,7 +383,10 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
                         callback.onCancel();
                         return;
                     }
-                    GenerateContentResponse response = sdk.models.generateContent(model, contents, config);
+                    GenerateContentResponse response;
+                    try (ActivityTracker.Registration generating = generating(run)) {
+                        response = sdk.models.generateContent(model, contents, config);
+                    }
                     Answer answer = new Answer();
                     answer.absorb(response, functionsOffered && !finalRound);
                     if (run.metered) {

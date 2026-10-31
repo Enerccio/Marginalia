@@ -182,6 +182,13 @@ public interface AgentRunService extends ExtendableService<AgentRun, AgentRunRep
     Manuscript findOriginalOfCopy(Manuscript copy) throws Exception;
 
     /**
+     * The ids of the books the agents work on right now: the original of every non-deleted run in the status
+     * {@link AgentRunStatus#RUNNING} (not paused, not waiting for the author), whoever owns it. The tracker of the writing
+     * statistics asks once a tick; a book with several such runs is listed once.
+     */
+    java.util.Set<Long> findRunningBookIds() throws Exception;
+
+    /**
      * The run that locks the manuscript, whoever it belongs to; null when the book is free. A book is locked while
      * the run of its agent works or waits for the user ({@link AgentRunStatus#holdsLock()}); paused, stopped and
      * finished runs release it. Reading the book is always allowed, the services that change it ask

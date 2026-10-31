@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.extensions.loregenerator.ui;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
@@ -41,6 +42,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import static com.github.enerccio.marginalia.extensions.loregenerator.LoreGeneratorLocalization.T;
 
@@ -88,9 +90,16 @@ public class LoreGeneratorDialog extends Dialog {
 
     private LoreGeneratorData data;
     private CancellationToken running;
+    private final Callable<Manuscript> book;
 
-    public LoreGeneratorDialog(LoreGeneratorService service, Lorebook lorebook, LorebookEntry entry, Runnable onEntryChanged) {
+    /**
+     * @param book the book the lorebook is edited for, null when it is edited on its own (the lorebooks of the workspace): what the
+     *             model costs is counted for the book when there is one
+     */
+    public LoreGeneratorDialog(LoreGeneratorService service, Lorebook lorebook, LorebookEntry entry, Callable<Manuscript> book,
+                               Runnable onEntryChanged) {
         this.service = service;
+        this.book = book;
         this.lorebook = lorebook;
         this.entry = entry;
         this.onEntryChanged = onEntryChanged;
@@ -393,6 +402,14 @@ public class LoreGeneratorDialog extends Dialog {
         }
     }
 
+    private Manuscript book() {
+        try {
+            return book == null ? null : book.call();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     private void start(GenerationPane pane, String prompt, List<LLMAttachment> sent, FunctionSet functions) throws Exception {
         if (modelPicker.getAi() == null) {
             Notification.warning(T.localized("Choose a model"));
@@ -404,7 +421,7 @@ public class LoreGeneratorDialog extends Dialog {
 
         pane.setRunning(true);
         updateControls();
-        try (InferenceSession _ = InferenceSession.open("lore-generator")) {
+        try (InferenceSession _ = InferenceSession.open("lore-generator"); UsageContext _ = UsageContext.open(book())) {
             running = inference.stream(service.toPayload(prompt, new ArrayList<>(sent)), modelPicker.getProtocol(), functions, callback(ui, pane));
         } catch (Exception e) {
             // nothing runs, do not leave the controls frozen

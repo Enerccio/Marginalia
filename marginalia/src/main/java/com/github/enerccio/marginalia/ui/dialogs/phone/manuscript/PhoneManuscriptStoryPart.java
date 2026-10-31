@@ -76,6 +76,9 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     private Localization loc;
 
     @Autowired
+    private ActivityTracker activityTracker;
+
+    @Autowired
     private ChatMessageService chatMessageService;
 
     @Autowired
@@ -119,6 +122,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     private NewTurnForm newTurnForm;
 
     private Manuscript currentManuscript;
+    private StoryActivity activity;
     private boolean isFrozen = false;
 
     private final StoryCards<ChatMessageCard> cards = new StoryCards<>();
@@ -171,6 +175,10 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
         centerLayout.setFlexGrow(1, centerContentPanel);
         centerLayout.setFlexGrow(0, massDelete.getBar());
         centerLayout.setFlexGrow(0, bottomControlsLayout);
+
+        // the time the book is open and edited, for the statistics
+        activity = new StoryActivity(centerLayout, activityTracker);
+        activity.track(currentManuscript);
 
         layout.setContent(centerLayout);
         applyBookStyles();
@@ -850,6 +858,9 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             massDelete.deactivate();
         }
         this.currentManuscript = manuscript;
+        if (activity != null) {
+            activity.track(manuscript);
+        }
         if (manuscript != null && layout != null) {
             applyLanguage(manuscript);
         }
@@ -1403,6 +1414,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
                 responseTextArea.setValue(StringUtils.defaultString(message.getResponse()));
                 addComponentAtIndex(indexOf(responseMarkdown) + 1, responseTextArea);
                 responseMarkdown.setVisible(false);
+                activity.editorOpened(responseTextArea.getElement());
             }
         }
 
@@ -1430,6 +1442,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             if (!editing) {
                 return;
             }
+            activity.editorClosed(responseTextArea.getElement());
             remove(responseTextArea);
             responseTextArea = null;
             responseMarkdown.setVisible(true);
@@ -1448,6 +1461,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
                     // the passages of the annotations moved with the edit
                     annotationsChanged();
                     renderResponse();
+                    activity.editorClosed(responseTextArea.getElement());
                     remove(responseTextArea);
                     responseTextArea = null;
                     responseMarkdown.setVisible(true);
