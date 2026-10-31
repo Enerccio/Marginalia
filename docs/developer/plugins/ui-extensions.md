@@ -529,6 +529,7 @@ CancellationToken token = service.stream(payload, protocol, new InferenceService
   apart runs that do not share a prompt). The service then sends the header `X-Session-ID` with a hash of the user and
   the kind, which a server or proxy with a prompt cache can use to keep a cache per kind of work; see [Prompt cache and
   session id](../../user/prompt-cache.md). The scope covers only the call itself; a request outside of any scope sends no header.
+- **Name the book.** When the request is made for a book, open a `UsageContext` next to the session: `try (InferenceSession _ = InferenceSession.open("my-plugin"); UsageContext _ = UsageContext.open(book)) { service.stream(...); }`. The tokens of the request then go to the [writing statistics](../domain-model.md#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize) of that book, and the time of the request to its *generating* time; without it the request is counted for no book. The scope covers only the call itself, like the session.
 - **Call `controller.continueInference()`** after each chunk, or the stream stops after the first one.
   `terminateInference()` ends it early.
 - `protocol` supplies sampling parameters and the response limit; it may be `null`.

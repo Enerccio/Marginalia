@@ -144,6 +144,7 @@ Plugins that name a changed method or variable must follow `@PublicAPI`, see [Ex
   `HelpBookData` (a `BookDataSource`), which runs each call in the request of the asking user, because the functions run on worker
   threads. The data is limited (100 entries, 20 matches, shortened descriptions), the text of a story is never returned and the
   prompts are reported only as custom or built-in. See [the help assistant](services.md#the-help-assistant).
+- **Statistics.** The rows of the [writing statistics](domain-model.md#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize) hold the folder path of their book, so `FolderServiceImpl` calls `ManuscriptStatisticService.refreshFolders()` after a rename, a move, a delete (the content moves up) and every transfer of the Organise window; it reads the placements from `ManuscriptRepository.findPlacements` and `FolderRepository.findPlacements`.
 - **Cleanup.** `Manuscript.folder` is `WEAK` and `Folder.parent` is `OWNED_BY`, so a purge of a folder unlinks live books and
   purges the folders below it. `CleanupServiceTest` has the cases.
 - **Trash.** Only books appear in the Trash; a deleted folder does not (its books do, when deleted with it).

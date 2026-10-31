@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846755110708">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846755265129">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846755110708" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846755265129" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846755110708" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846755265129" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846755110708" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846755265129" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -363,7 +363,8 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 | `ui.dialogs.agent` | The screens of [agents](agents.md#the-screens): `AgentConsoleDialog` and its tabs, `AgentDialog` and its editors, `AgentMergeDialog` / `JsonMergeDialog` (the review of a result), the dialogs of a run (`AgentApprovalDialog`, `AgentStopDialog`, `AgentResumeDialog`, `AgentCloneDialog`). |
 | `ui.dialogs.search` | The search and replace windows: `SearchReplaceDialog` (the part both share) with `ManuscriptSearchReplaceDialog` (story) and `LorebookSearchReplaceDialog` (entries), see [Books and the story](services.md#books-and-the-story). |
 | `ui.dialogs` | Entity dialogs (`AIDialog`, `ProtocolDialog`, `LorebookDialog`, `UserDialog`), the limits of a shared AI (`AILimitsDialog`, `AILimitEditDialog`; `AILimitInfoDialog` is the user's own view), `UsageDialog` (every user's usage), `ManuscriptDialog` (the book window), `LorebookImportDialog` (resolving lorebooks during restores), `PromptDialog` (shows the prompt a part was generated from), `ExtensionLogDialog` (the log of an extension, opened from the Admin page), `UsageDialog` (what every user used of every AI, opened by administrators from the Inference Providers tab) and generic dialogs: `ConfirmDialog`, `TextInputDialog`, `ListSelectDialog`, `ErrorDialog`, `ProgressBarDialog`. `ExportDialog` exports the story of a book. `ManuscriptCloneDialog` (clone a book), `ArchiveUploadDialog` / `ArchiveEntryNamesDialog` / `ArchiveImportRunner` (import of `.md` archives), `MultiTagDialog` (a tag on many books, lorebooks or entries), `MassChangeModelProtocolDialog` (a model and a protocol on many books), `MassChangeLanguageDialog`, `MassRenameDialog` (a language on many books), `LorebookMassEditDialog` (all entries of a lorebook in one table), `LorebookActivationPreviewDialog` (which entries a text would use and why), `CommandProgressDialog` (the Stop window of a running command). Threading helpers `ThreadAccessDialog` and `UIPushGuard`. |
-| `ui.dialogs.story` | What the desktop and the phone story tab share: `StoryHost` (implemented by both book dialogs), `StoryEditor` (the interface of the story tab, desktop and phone, that the menu callbacks get), `StoryCard` / `StoryCards`, `StoryDockLayout` (the layouts of the desktop dock), `StoryBranchSearch` (the search of the branch), `StoryAnnotations` / `CardAnnotations` / `AnnotationsPanel` / `AnnotationView` / `AnnotationDialog` / `AnnotateDialog` (the notes), `RedraftDialog`, `ImpersonateDialog` (draft the instructions), `PartMergeDialog`, `StoryGenerationListener`, `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics`, `StoryBackup`, `StorySupport`, and the lazy loading of long stories: `LazyBranch`, `StoryLazyLoader`, `ReaderLazyLoader`. |
+| `ui.dialogs.statistics` | The content of the four statistics windows (`StatisticsDialog`, `GlobalStatisticsDialog` and the phone twins in `ui.dialogs` / `ui.dialogs.phone`): `StatisticsView` (the period, the totals and the tabs), `StatisticCharts` (the Chart.js configurations), `ActivityCalendarView` and `ActivityCalendarGrid` (the calendar of the days worked on, its layout is pure). See [User interface](ui.md). |
+| `ui.dialogs.story` | What the desktop and the phone story tab share: `StoryHost` (implemented by both book dialogs), `StoryEditor` (the interface of the story tab, desktop and phone, that the menu callbacks get), `StoryCard` / `StoryCards`, `StoryDockLayout` (the layouts of the desktop dock), `StoryBranchSearch` (the search of the branch), `StoryAnnotations` / `CardAnnotations` / `AnnotationsPanel` / `AnnotationView` / `AnnotationDialog` / `AnnotateDialog` (the notes), `RedraftDialog`, `ImpersonateDialog` (draft the instructions), `PartMergeDialog`, `StoryGenerationListener`, `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics`, `StoryBackup`, `StorySupport`, `StoryActivity` (the time the book is open and edited, for the statistics), and the lazy loading of long stories: `LazyBranch`, `StoryLazyLoader`, `ReaderLazyLoader`. |
 | `ui.dialogs.manuscript` | The tabs of the book window, each a `ManuscriptDialogPart`: `ManuscriptStoryPart` (story editor - the largest UI class), `ManuscriptTreePart`, `ManuscriptInfoPart` (About), `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptBackupPart`; and the summary dialogs: `SummariesDialog` (overview of the summaries of the branch, opened from the story editor), `SummaryDialog` (one summary or meta summary, generating or viewing) and `SummaryRemoval` (asking before a summary is removed); and `ImagesDialog` (add, caption and remove the images of a part, opened from its card). |
 | `ui.components` | Larger reusable components: `TagsView` (the Tags tab of the settings: tags with their usage, rename, merge, delete), `LorebookView` (the lorebook editor, used in the Lorebooks tab and in books), `PhoneLorebookView` (its reduced phone version), `LorebookPreview` (the read only Lorebook tab of the desktop story editor), `InvalidExtensionsWarning` (the red bar of the workspace about invalid extensions), `TreantTree` (story tree drawn with treant.js), `MessageImages` (the images of a part under its text - in the story editor, the Viewer, the image dialog and the Resources tab preview; the files are read when the browser asks for them), `ThreadCopyRequestAttributes` (carries the session to worker threads). `HelpAssistantWidget` (the robot button and chat panel `Main` adds after the workspace; it answers the model's requests to read and move through the page on the page's thread)., `BuildInfoFooter` (the version text in the corner), `CommandBar` (the command line, see [Commands](commands/index.md)). |
 | `ui.widgets` | Small widgets: `ChartJs` (a Chart.js chart drawn from a JSON configuration, see [UI](ui.md)), `GraphView` (a Cytoscape.js graph, see [Custom components](custom-components.md)), `HTabSheet` (tab sheet with the tabs on the left and room for custom content, used by the workspace), `TabDock` (columns of tab sheets whose tabs can be dragged apart and together, the left bar of the story editor), `BackendTableProvider*` / `BackendTableItem` (lazy grids backed by a repository query), `TagMultiComboBox`, `LazyContextMenu` (a context menu filled when it opens), `LazyLoadIndicator`, `WordDiffView` (the word by word differences of the review), `TrashGrid` (restoring deleted objects and deleting parts and entries for good, used by `TrashPart` and `CleanupPanel`), `PhoneTrashGrid` (its phone layout, used by `PhoneTrashPart`), `TemplateHints` (hint popovers of prompt fields), `TextAreaPopoverComponent` / `TextFieldPopOverComponent`, `HtmlText`, `ScrollPanel`, `ModelProtocolPicker` (a model and a protocol to choose from, for dialogs that run the model with a choice of their own), `ToolSelectionButton` (choosing the tools the model may use, with `ui.dialogs.ToolSelectionDialog`), `ResizableTextArea` (`install(loc, area, fixedHeight)` adds a corner icon that switches a text area between a fixed height and growing with its content; used by the prompt, description and lorebook fields), `Notification`, `PermissiveLoginOverlay` (allows empty passwords). |">
@@ -429,8 +430,12 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 <td>Entity dialogs (<code translate="no" v-pre>AIDialog</code>, <code translate="no" v-pre>ProtocolDialog</code>, <code translate="no" v-pre>LorebookDialog</code>, <code translate="no" v-pre>UserDialog</code>), the limits of a shared AI (<code translate="no" v-pre>AILimitsDialog</code>, <code translate="no" v-pre>AILimitEditDialog</code>; <code translate="no" v-pre>AILimitInfoDialog</code> is the user&#x27;s own view), <code translate="no" v-pre>UsageDialog</code> (every user&#x27;s usage), <code translate="no" v-pre>ManuscriptDialog</code> (the book window), <code translate="no" v-pre>LorebookImportDialog</code> (resolving lorebooks during restores), <code translate="no" v-pre>PromptDialog</code> (shows the prompt a part was generated from), <code translate="no" v-pre>ExtensionLogDialog</code> (the log of an extension, opened from the Admin page), <code translate="no" v-pre>UsageDialog</code> (what every user used of every AI, opened by administrators from the Inference Providers tab) and generic dialogs: <code translate="no" v-pre>ConfirmDialog</code>, <code translate="no" v-pre>TextInputDialog</code>, <code translate="no" v-pre>ListSelectDialog</code>, <code translate="no" v-pre>ErrorDialog</code>, <code translate="no" v-pre>ProgressBarDialog</code>. <code translate="no" v-pre>ExportDialog</code> exports the story of a book. <code translate="no" v-pre>ManuscriptCloneDialog</code> (clone a book), <code translate="no" v-pre>ArchiveUploadDialog</code> / <code translate="no" v-pre>ArchiveEntryNamesDialog</code> / <code translate="no" v-pre>ArchiveImportRunner</code> (import of <code translate="no" v-pre>.md</code> archives), <code translate="no" v-pre>MultiTagDialog</code> (a tag on many books, lorebooks or entries), <code translate="no" v-pre>MassChangeModelProtocolDialog</code> (a model and a protocol on many books), <code translate="no" v-pre>MassChangeLanguageDialog</code>, <code translate="no" v-pre>MassRenameDialog</code> (a language on many books), <code translate="no" v-pre>LorebookMassEditDialog</code> (all entries of a lorebook in one table), <code translate="no" v-pre>LorebookActivationPreviewDialog</code> (which entries a text would use and why), <code translate="no" v-pre>CommandProgressDialog</code> (the Stop window of a running command). Threading helpers <code translate="no" v-pre>ThreadAccessDialog</code> and <code translate="no" v-pre>UIPushGuard</code>.</td>
 </tr>
 <tr>
+<td><code translate="no" v-pre>ui.dialogs.statistics</code></td>
+<td>The content of the four statistics windows (<code translate="no" v-pre>StatisticsDialog</code>, <code translate="no" v-pre>GlobalStatisticsDialog</code> and the phone twins in <code translate="no" v-pre>ui.dialogs</code> / <code translate="no" v-pre>ui.dialogs.phone</code>): <code translate="no" v-pre>StatisticsView</code> (the period, the totals and the tabs), <code translate="no" v-pre>StatisticCharts</code> (the Chart.js configurations), <code translate="no" v-pre>ActivityCalendarView</code> and <code translate="no" v-pre>ActivityCalendarGrid</code> (the calendar of the days worked on, its layout is pure). See <a href="../ui/">User interface</a>.</td>
+</tr>
+<tr>
 <td><code translate="no" v-pre>ui.dialogs.story</code></td>
-<td>What the desktop and the phone story tab share: <code translate="no" v-pre>StoryHost</code> (implemented by both book dialogs), <code translate="no" v-pre>StoryEditor</code> (the interface of the story tab, desktop and phone, that the menu callbacks get), <code translate="no" v-pre>StoryCard</code> / <code translate="no" v-pre>StoryCards</code>, <code translate="no" v-pre>StoryDockLayout</code> (the layouts of the desktop dock), <code translate="no" v-pre>StoryBranchSearch</code> (the search of the branch), <code translate="no" v-pre>StoryAnnotations</code> / <code translate="no" v-pre>CardAnnotations</code> / <code translate="no" v-pre>AnnotationsPanel</code> / <code translate="no" v-pre>AnnotationView</code> / <code translate="no" v-pre>AnnotationDialog</code> / <code translate="no" v-pre>AnnotateDialog</code> (the notes), <code translate="no" v-pre>RedraftDialog</code>, <code translate="no" v-pre>ImpersonateDialog</code> (draft the instructions), <code translate="no" v-pre>PartMergeDialog</code>, <code translate="no" v-pre>StoryGenerationListener</code>, <code translate="no" v-pre>NewTurnForm</code>, <code translate="no" v-pre>TurnDetailsForm</code>, <code translate="no" v-pre>MessageMetrics</code>, <code translate="no" v-pre>StoryBackup</code>, <code translate="no" v-pre>StorySupport</code>, and the lazy loading of long stories: <code translate="no" v-pre>LazyBranch</code>, <code translate="no" v-pre>StoryLazyLoader</code>, <code translate="no" v-pre>ReaderLazyLoader</code>.</td>
+<td>What the desktop and the phone story tab share: <code translate="no" v-pre>StoryHost</code> (implemented by both book dialogs), <code translate="no" v-pre>StoryEditor</code> (the interface of the story tab, desktop and phone, that the menu callbacks get), <code translate="no" v-pre>StoryCard</code> / <code translate="no" v-pre>StoryCards</code>, <code translate="no" v-pre>StoryDockLayout</code> (the layouts of the desktop dock), <code translate="no" v-pre>StoryBranchSearch</code> (the search of the branch), <code translate="no" v-pre>StoryAnnotations</code> / <code translate="no" v-pre>CardAnnotations</code> / <code translate="no" v-pre>AnnotationsPanel</code> / <code translate="no" v-pre>AnnotationView</code> / <code translate="no" v-pre>AnnotationDialog</code> / <code translate="no" v-pre>AnnotateDialog</code> (the notes), <code translate="no" v-pre>RedraftDialog</code>, <code translate="no" v-pre>ImpersonateDialog</code> (draft the instructions), <code translate="no" v-pre>PartMergeDialog</code>, <code translate="no" v-pre>StoryGenerationListener</code>, <code translate="no" v-pre>NewTurnForm</code>, <code translate="no" v-pre>TurnDetailsForm</code>, <code translate="no" v-pre>MessageMetrics</code>, <code translate="no" v-pre>StoryBackup</code>, <code translate="no" v-pre>StorySupport</code>, <code translate="no" v-pre>StoryActivity</code> (the time the book is open and edited, for the statistics), and the lazy loading of long stories: <code translate="no" v-pre>LazyBranch</code>, <code translate="no" v-pre>StoryLazyLoader</code>, <code translate="no" v-pre>ReaderLazyLoader</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.dialogs.manuscript</code></td>
@@ -457,6 +462,7 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 | `impl/Folder` | A folder of books, nested through `parent`; its settings are inherited by the books below. See [Folders](folders.md). |
 | `impl/ChatMessage` | A story part - a node of the story tree. |
 | `impl/Summary` | A summary of the story up to a part, or a meta summary of summaries. |
+| `impl/ManuscriptStatistic`, `impl/ActivityInterval`, `impl/ManuscriptSize` | The writing statistics of a book (counts per day, stretches of time, the size at the end of a day); the book is a plain `bookUuid`, `converter/LocalDateConverter` stores the day. See [Domain model](domain-model.md#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize). |
 | `impl/Lorebook`, `impl/LorebookEntry` | Lorebooks and their entries. |
 | `impl/AI`, `impl/OpenAICompatible`, `impl/ExtensionAI` | Inference providers (`AI` is the base; `OpenAICompatible` talks to an OpenAI-compatible API, `ExtensionAI` is provided by an extension). |
 | `impl/Protocol`, `impl/ChatCompletionProtocol` | Protocols (generation settings). |
@@ -499,6 +505,10 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 <td>A summary of the story up to a part, or a meta summary of summaries.</td>
 </tr>
 <tr>
+<td><code translate="no" v-pre>impl/ManuscriptStatistic</code>, <code translate="no" v-pre>impl/ActivityInterval</code>, <code translate="no" v-pre>impl/ManuscriptSize</code></td>
+<td>The writing statistics of a book (counts per day, stretches of time, the size at the end of a day); the book is a plain <code translate="no" v-pre>bookUuid</code>, <code translate="no" v-pre>converter/LocalDateConverter</code> stores the day. See <a href="../domain-model/#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize">Domain model</a>.</td>
+</tr>
+<tr>
 <td><code translate="no" v-pre>impl/Lorebook</code>, <code translate="no" v-pre>impl/LorebookEntry</code></td>
 <td>Lorebooks and their entries.</td>
 </tr>
@@ -539,7 +549,7 @@ See <a href="../domain-model/">Domain model</a>.</p>
 <h3 id="domainrepository---data-access"><code translate="no" v-pre>domain.repository</code> - data access</h3>
 <p>One interface and one JPA implementation (<code translate="no" v-pre>impl/Jpa*Repository</code>) per entity, built on <code translate="no" v-pre>BaseRepository</code> →
 <code translate="no" v-pre>OwnedRepository</code> → <code translate="no" v-pre>ExtendableRepository</code> (and <code translate="no" v-pre>JpaBaseRepository</code> → ...). The beans are defined in
-<code translate="no" v-pre>services-config.xml</code> with the shared <code translate="no" v-pre>EntityManager</code>. <code translate="no" v-pre>FolderRepository</code> / <code translate="no" v-pre>JpaFolderRepository</code> come with <code translate="no" v-pre>FolderScope</code> (the folder clause of the list queries) and <code translate="no" v-pre>FolderModification</code> (the <em>Last modified</em> of the folders).</p>
+<code translate="no" v-pre>services-config.xml</code> with the shared <code translate="no" v-pre>EntityManager</code>. <code translate="no" v-pre>FolderRepository</code> / <code translate="no" v-pre>JpaFolderRepository</code> come with <code translate="no" v-pre>FolderScope</code> (the folder clause of the list queries) and <code translate="no" v-pre>FolderModification</code> (the <em>Last modified</em> of the folders). <code translate="no" v-pre>ManuscriptStatisticRepository</code>, <code translate="no" v-pre>ActivityIntervalRepository</code> and <code translate="no" v-pre>ManuscriptSizeRepository</code> (the statistics) share the queries of <code translate="no" v-pre>impl/StatisticQueries</code> (the filter of a <code translate="no" v-pre>StatisticFilter</code> as a <code translate="no" v-pre>where</code>).</p>
 <h3 id="domaincomponents---plain-data-and-helpers"><code translate="no" v-pre>domain.components</code> - plain data and helpers</h3>
 <p>Small classes that are neither entities nor services, shared by services, generation steps and the UI. No Spring beans,
 no state besides their fields.</p>
@@ -552,7 +562,9 @@ no state besides their fields.</p>
 | `RevisionRow`, `RevisionData`, `RevisionOrigin`, `RevisionClearing` | The [version history](version-history.md): a version without its text (what the list reads), the whole data of a version to record, who is writing a text into a part (source, detail, agent, reasoning), what *Clear history* deletes. |
 | `PromptTokenBreakdown` | Raw token counts of one built prompt: the budget, every section, what was cut and the tokens of each payload message. Filled by the generation steps, stored with the part (`ChatMessage.getTokenBreakdown()`), shown by `TokenUsageDialog`. |
 | `SummaryNode` | A summary and the summaries it merges, for the summaries overview. |
-| `CronSchedule` | Cron expression parsing and next-run computation, used by the database backup schedule. |">
+| `CronSchedule` | Cron expression parsing and next-run computation, used by the database backup schedule. |
+| `StatisticCounts`, `StatisticFilter`, `StatisticReport`, `DayStatistic`, `BookStatistic`, `FolderStatistic`, `ActivityRow`, `ActivityTimes`, `TimeUnion`, `SizeGrowth`, `SizeSeries`, `PartTotals`, `BookPlacement`, `FolderPlacement` | The [writing statistics](domain-model.md#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize): what is counted, what a read asks for and gets back, the union of the stretches of time and the size and its growth, all pure. |
+| `WritingActivity`, `WritingGoal` | The days a book was worked on, the streaks and the daily goal, read from the same rows for the calendar of the statistics; pure. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -594,6 +606,14 @@ no state besides their fields.</p>
 <td><code translate="no" v-pre>CronSchedule</code></td>
 <td>Cron expression parsing and next-run computation, used by the database backup schedule.</td>
 </tr>
+<tr>
+<td><code translate="no" v-pre>StatisticCounts</code>, <code translate="no" v-pre>StatisticFilter</code>, <code translate="no" v-pre>StatisticReport</code>, <code translate="no" v-pre>DayStatistic</code>, <code translate="no" v-pre>BookStatistic</code>, <code translate="no" v-pre>FolderStatistic</code>, <code translate="no" v-pre>ActivityRow</code>, <code translate="no" v-pre>ActivityTimes</code>, <code translate="no" v-pre>TimeUnion</code>, <code translate="no" v-pre>SizeGrowth</code>, <code translate="no" v-pre>SizeSeries</code>, <code translate="no" v-pre>PartTotals</code>, <code translate="no" v-pre>BookPlacement</code>, <code translate="no" v-pre>FolderPlacement</code></td>
+<td>The <a href="../domain-model/#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize">writing statistics</a>: what is counted, what a read asks for and gets back, the union of the stretches of time and the size and its growth, all pure.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>WritingActivity</code>, <code translate="no" v-pre>WritingGoal</code></td>
+<td>The days a book was worked on, the streaks and the daily goal, read from the same rows for the calendar of the statistics; pure.</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -606,6 +626,7 @@ no state besides their fields.</p>
 | `ManuscriptService`, `ChatMessageService`, `SummaryService` | Books, the story tree (add, branch, swipe, delete a part and re-attach its children, word and token counts), summaries. |
 | `MessageRevisionService`, `EffectiveHistoryLimit` | The versions of the text of a part and the limit of the history, see [Version history](version-history.md). |
 | `FolderService`, `PromptField`, `EffectiveSetting`, `FolderBookLockedException` | The folders and the settings the books inherit from them, see [Folders](folders.md). `BackupFolders` and `BackupInheritance` (`impl`) are the folder in a backup and the inherited settings in an export; `HelpBookData` with `manual/BookHelpTools` the books tools of the help assistant. |
+| `ManuscriptStatisticService`, `ActivityIntervalService`, `ManuscriptSizeService`, `ActivityTracker`, `StatisticReportService`, `UsageContext` | The writing statistics: the counts, the time and the size of a book per day, the one writer of the stretches of time, the report for the windows and the commands, and the book a model request is made for. See [Services](services.md). |
 | `LorebookService`, `LorebookEntryService` | Lorebooks, entries, import and export (incl. SillyTavern through `SillyTavernEntryConverter`). |
 | `AIService`, `ProtocolService` | Inference providers and protocols. |
 | `TagService`, `TagRelationService`, `SettingService`, `ResourceService` | Tags, settings, files. |
@@ -647,6 +668,10 @@ no state besides their fields.</p>
 <tr>
 <td><code translate="no" v-pre>FolderService</code>, <code translate="no" v-pre>PromptField</code>, <code translate="no" v-pre>EffectiveSetting</code>, <code translate="no" v-pre>FolderBookLockedException</code></td>
 <td>The folders and the settings the books inherit from them, see <a href="../folders/">Folders</a>. <code translate="no" v-pre>BackupFolders</code> and <code translate="no" v-pre>BackupInheritance</code> (<code translate="no" v-pre>impl</code>) are the folder in a backup and the inherited settings in an export; <code translate="no" v-pre>HelpBookData</code> with <code translate="no" v-pre>manual/BookHelpTools</code> the books tools of the help assistant.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ManuscriptStatisticService</code>, <code translate="no" v-pre>ActivityIntervalService</code>, <code translate="no" v-pre>ManuscriptSizeService</code>, <code translate="no" v-pre>ActivityTracker</code>, <code translate="no" v-pre>StatisticReportService</code>, <code translate="no" v-pre>UsageContext</code></td>
+<td>The writing statistics: the counts, the time and the size of a book per day, the one writer of the stretches of time, the report for the windows and the commands, and the book a model request is made for. See <a href="../services/">Services</a>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>LorebookService</code>, <code translate="no" v-pre>LorebookEntryService</code></td>
@@ -734,6 +759,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 | `service.agent`, `service.agent.jsonmerge` | Everything agents need that is not a service of its own: `CommandFunctions` (the commands as functions of the model), the virtual file system (`VirtualFileSystem`, `VirtualPath`, the mounts, `WorkspaceLimits`, `ZipExtractor`), the tools of the model (`RunTools`, `AgentFileTools`, `CheckpointTools`, `SubAgentTools`, `ImageTools`, `SyncTools`), checkpoints, the merge of a result (`MergePlan`, `MergeDiff`) and the JSON merge of extension data, `AgentDiagnostics`, `HandleTranslator`. See [Agents](agents.md). |
 | `service.command` | The model of [commands](commands/index.md): `CommandDefinition`, `CommandContext`, `CommandScope`, `CommandRun`, `CommandLine`, `CommandHelp`, `CommandText`, the parameter and return definitions. |
 | `service.impl.commands` (+ `lorebook`, `manuscript` with `read` / `write`) | The commands of the application: read commands (`ListPartsCommand`, `GetPartCommand`, `SearchLoreCommand`...), write commands (`PartEditCommands`, `LoreEntryWriteCommands`, `StoryGenerationCommands`...), `SearchReplace*Command`, `BackupCommands`, with their support classes. |
+| `service.impl.commands.manuscript.read` (statistics) | `GetBookStatisticsCommand`, `GetStatisticsCommand` and `StatisticJson` (how a report becomes JSON): the commands `get-book-statistics` and `get-statistics`. |
 | `service.search.replace` | `TextSearch` / `EntityTextSearch` (finding and replacing text, plain or by regular expression), `TextHit`, `TaskProgress`; used by `ManuscriptReplaceService` and `LorebookReplaceService`. |
 | `service.impl.inference.tokenizer` | `TokenizerStrategy` and its implementations: OpenAI SDK, llama.cpp, LiteLLM, LiteLLM Anthropic, JTokkit. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -784,6 +810,10 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 <tr>
 <td><code translate="no" v-pre>service.impl.commands</code> (+ <code translate="no" v-pre>lorebook</code>, <code translate="no" v-pre>manuscript</code> with <code translate="no" v-pre>read</code> / <code translate="no" v-pre>write</code>)</td>
 <td>The commands of the application: read commands (<code translate="no" v-pre>ListPartsCommand</code>, <code translate="no" v-pre>GetPartCommand</code>, <code translate="no" v-pre>SearchLoreCommand</code>...), write commands (<code translate="no" v-pre>PartEditCommands</code>, <code translate="no" v-pre>LoreEntryWriteCommands</code>, <code translate="no" v-pre>StoryGenerationCommands</code>...), <code translate="no" v-pre>SearchReplace*Command</code>, <code translate="no" v-pre>BackupCommands</code>, with their support classes.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>service.impl.commands.manuscript.read</code> (statistics)</td>
+<td><code translate="no" v-pre>GetBookStatisticsCommand</code>, <code translate="no" v-pre>GetStatisticsCommand</code> and <code translate="no" v-pre>StatisticJson</code> (how a report becomes JSON): the commands <code translate="no" v-pre>get-book-statistics</code> and <code translate="no" v-pre>get-statistics</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>service.search.replace</code></td>
@@ -892,7 +922,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 <retype-table copy-text="| Package | |
 |---|---|
 | `domain.traits` | Annotations: `@CommonTx`, `@CommonTxReadOnly`, `@NoTx` (transactions), `@Extendable` (instrumented UI classes) with `@PublicAPI`, `@APIReturn`, `@APIParameter`, `@APILocals` (the signature of each of their methods that plugins see), `@LLMSchema` / `@LLMField` (describe a class the model answers with, see `StructuredOutputs`), `@ExtendedAttribute` (fields stored in `attributes`), `@Fulltextable` (fields whose text goes into `_fulltext`), `@CleanupReference(s)` (how references behave during cleanup), `@LocalizedTemplateDescription` (texts of template hints), `@SupportedAI` (provider type of an inference service). `@Command` with `CommandDataSeverity` (what a command does to existing data, see [Commands](commands/index.md#data-severity)). |
-| `domain.collections` | Enums: `AIType`, `ProtocolType`, `ReasoningEffort`, `LimitStrategy`, `ResetStrategy`, `FilteringMode`, `InsertionMode`, `ActivationContext`, `SummaryType`, `RevisionSource`, `RevisionDetail` (the sources and the named details of a version of a part). |
+| `domain.collections` | Enums: `AIType`, `ProtocolType`, `ReasoningEffort`, `LimitStrategy`, `ResetStrategy`, `FilteringMode`, `InsertionMode`, `ActivationContext`, `SummaryType`, `RevisionSource`, `RevisionDetail` (the sources and the named details of a version of a part), `ActivityKind`, `ActivityMetric`, `StatisticRange`, `StatisticSide` (the [writing statistics](domain-model.md#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize)). |
 | `domain.listener` | `ExtendableEntityListener` - serializes `attributes` and `@ExtendedAttribute` fields to `extendedContent` and back, and collects the `@Fulltextable` fields into `_fulltext`. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -909,7 +939,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 </tr>
 <tr>
 <td><code translate="no" v-pre>domain.collections</code></td>
-<td>Enums: <code translate="no" v-pre>AIType</code>, <code translate="no" v-pre>ProtocolType</code>, <code translate="no" v-pre>ReasoningEffort</code>, <code translate="no" v-pre>LimitStrategy</code>, <code translate="no" v-pre>ResetStrategy</code>, <code translate="no" v-pre>FilteringMode</code>, <code translate="no" v-pre>InsertionMode</code>, <code translate="no" v-pre>ActivationContext</code>, <code translate="no" v-pre>SummaryType</code>, <code translate="no" v-pre>RevisionSource</code>, <code translate="no" v-pre>RevisionDetail</code> (the sources and the named details of a version of a part).</td>
+<td>Enums: <code translate="no" v-pre>AIType</code>, <code translate="no" v-pre>ProtocolType</code>, <code translate="no" v-pre>ReasoningEffort</code>, <code translate="no" v-pre>LimitStrategy</code>, <code translate="no" v-pre>ResetStrategy</code>, <code translate="no" v-pre>FilteringMode</code>, <code translate="no" v-pre>InsertionMode</code>, <code translate="no" v-pre>ActivationContext</code>, <code translate="no" v-pre>SummaryType</code>, <code translate="no" v-pre>RevisionSource</code>, <code translate="no" v-pre>RevisionDetail</code> (the sources and the named details of a version of a part), <code translate="no" v-pre>ActivityKind</code>, <code translate="no" v-pre>ActivityMetric</code>, <code translate="no" v-pre>StatisticRange</code>, <code translate="no" v-pre>StatisticSide</code> (the <a href="../domain-model/#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize">writing statistics</a>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>domain.listener</code></td>
@@ -972,7 +1002,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 | `.../spring/container-config.xml` | Localization, configuration, `applicationPoint`, `sessionManager`, session beans, application initializer. |
 | `.../spring/datasources-config.xml` | Data source, Flyway, JPA, transaction manager. |
 | `.../spring/services-config.xml` | Repositories, services, generation steps, extensions. |
-| `src/main/resources/migration/V&lt;n&gt;__&lt;name&gt;.sql` | Flyway migrations - currently `V1__initial` to `V18__agent_message_threads`. |
+| `src/main/resources/migration/V&lt;n&gt;__&lt;name&gt;.sql` | Flyway migrations - currently `V1__initial` to `V23__statistics`. |
 | `src/main/resources/logback.xml` | Logging for development (IDE, `mvn jetty:run`) - `DEBUG`. |
 | `src/main/resources-release/logback.xml` | Logging packaged into the WAR instead - `INFO` (see [Packaging &amp; releases](packaging.md#the-war)). |
 | `src/main/resources/META-INF/build-info/build-info.properties` | Version and build time, filtered by Maven. |
@@ -1007,7 +1037,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 </tr>
 <tr>
 <td><code translate="no" v-pre>src/main/resources/migration/V&lt;n&gt;__&lt;name&gt;.sql</code></td>
-<td>Flyway migrations - currently <code translate="no" v-pre>V1__initial</code> to <code translate="no" v-pre>V18__agent_message_threads</code>.</td>
+<td>Flyway migrations - currently <code translate="no" v-pre>V1__initial</code> to <code translate="no" v-pre>V23__statistics</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>src/main/resources/logback.xml</code></td>
@@ -1124,6 +1154,7 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 | `backup`, `cleanup`, `lorebook`, `db` | Book and database backups, cleanup planner, lorebook import/export, Flyway migrations. |
 | `instruct` | Bytecode instrumentation (with fixture classes in `instruct.fixture`), the extension verifier and the check that every method of an `@Extendable` class declares its `@PublicAPI` (`PublicAPISignatureTest`). |
 | `domain.agents`, `ui.dialogs.agent`, `ui.workspace.parts` | Agents: services, runner, tools, checkpoints, merge, console and review dialogs (`AgentRunnerTest`, `AgentMergeTest`, `AgentConsoleDialogTest`...), see [Testing](testing.md). |
+| `statistics`, `ui.dialogs.statistics`, `crud` | The writing statistics: counting, the time, the size, the report, the backfill, the calendar and the windows (`StatisticReportServiceTest`, `ActivityTrackerTest`, `WritingActivityTest`, `StatisticsViewTest`...), see [Testing](testing.md). |
 | `command` | The command service, the command line and help, commands as functions, the read and write commands of the application (`*CommandsTest`). |
 | `domain`, `domain.service` | Entity listener, token limits, cron expressions, SillyTavern conversion. |
 | `manual`, `ui` (`LLMSnapshotTest`, `WorkspaceLLMSupportTest`, `WorkspacePartsLLMTest`), `ui.components`, `bound` / `utils` (`ProblemLogTest`, `UiProblemsTest`), `domain` (`HelpAssistantServiceTest`, `HelpAdminDataTest`) | The manual parser and index, the help assistant (who pays, prompts, the functions, interactions), what the UI tells it and the widget that answers it. |">
@@ -1167,6 +1198,10 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 <tr>
 <td><code translate="no" v-pre>domain.agents</code>, <code translate="no" v-pre>ui.dialogs.agent</code>, <code translate="no" v-pre>ui.workspace.parts</code></td>
 <td>Agents: services, runner, tools, checkpoints, merge, console and review dialogs (<code translate="no" v-pre>AgentRunnerTest</code>, <code translate="no" v-pre>AgentMergeTest</code>, <code translate="no" v-pre>AgentConsoleDialogTest</code>...), see <a href="../testing/">Testing</a>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>statistics</code>, <code translate="no" v-pre>ui.dialogs.statistics</code>, <code translate="no" v-pre>crud</code></td>
+<td>The writing statistics: counting, the time, the size, the report, the backfill, the calendar and the windows (<code translate="no" v-pre>StatisticReportServiceTest</code>, <code translate="no" v-pre>ActivityTrackerTest</code>, <code translate="no" v-pre>WritingActivityTest</code>, <code translate="no" v-pre>StatisticsViewTest</code>...), see <a href="../testing/">Testing</a>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>command</code></td>
@@ -1510,7 +1545,7 @@ ignored by Git), see <a href="../packaging/#building-the-plugins-in-docker">Pack
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (07ee16dea).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (0d00c1d11).</p></div>
             </footer>
         </div>
     </div>
