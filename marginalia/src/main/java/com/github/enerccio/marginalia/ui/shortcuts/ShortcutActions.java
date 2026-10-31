@@ -15,7 +15,7 @@ public final class ShortcutActions {
     public static final String STORY_SWIPE = "story.swipe";
     /** Generates the last part again. */
     public static final String STORY_REGENERATE = "story.regenerate";
-    /** Opens the editor of the last part. */
+    /** Opens the editor of the part that is selected, else the most visible one. */
     public static final String STORY_EDIT = "story.edit";
     /** Saves the part that is being edited (works while the cursor is in its editor). */
     public static final String STORY_SAVE_EDIT = "story.saveEdit";

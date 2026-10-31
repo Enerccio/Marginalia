@@ -653,7 +653,7 @@ menu of a part (`CARD`, the hamburger button of a card) and the right click menu
   key (`get(key)`) and `refresh(definition)` works out text, visibility, enabled and ticked state and the key hint of every item again. The story
   tab refreshes a menu when it opens (the part menus are `LazyContextMenu`s, filled the first time) and the tools menu after an item ran
   and when the story tab is entered (the user may have changed the keys).
-- A key of a `CARD` or `TEXT` item acts on the part that is edited, else the part that holds the text selection (`JavascriptLibrary.selectionOwner`),
+- A key of a `CARD` or `TEXT` item acts on the part that is edited, else the part that holds the text selection, else the most visible part (both `JavascriptLibrary.selectionOwner`),
   else the last part, and on the last part when the item does not apply to the chosen one (`ManuscriptStoryPart.runMenuItem`).
 - The hooks stay for extensions that decorate them (how to register an item and the details: [UI extensions](plugins/ui-extensions.md#menu-items-of-the-story-editor)): `createCogsMenuItem` (local `cogs`) and the card's `createMenuItems` (field `hamburgerMenu`)
   run after the registry has filled the menu, and what they add directly is no registry item (no shortcut row, no key hint). Registering the

@@ -43,6 +43,7 @@ The **pre-prompt** of the profile, if set, comes first as a system message.
 | **Prompt Override** | A different review prompt for this review. Starts with the prompt of the profile. |
 | **Use standard prompt info** | On: the prompt the part was written from, as above. Off: only the story parts, with the options below. |
 | **Include Lorebook** | (off only) Adds the lore that was active when the part was written. |
+| **With summaries** | (off only) Sends the [summaries](../books/summaries.md) of the story first, then the parts after the newest summary, the way a generation does: the part with the newest summary and everything before it are represented by the summaries. The summaries take their room from the token limit first, the parts get the rest, newest first. A summary whose story was changed after it was made is not sent (the review does not remove it). Off: no summaries, as many of the latest parts as fit. |
 | **Token Limit** | (off only) How many tokens of story to send: the parts up to and including the reviewed one, newest first, as many as fit. Starts with the room for the prompt of the model. |
 
 With *Use standard prompt info* off, the dialog shows the size of the request (*Total tokens*). **Generate** opens the

@@ -342,7 +342,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             }
             return;
         }
-        // the part that is edited, else the part that holds the selection, else the last part
+        // the part that is edited, else the part that holds the selection, else the most visible part (else the last part)
         ChatMessageCard editing = cards.values().stream().filter(ChatMessageCard::isEditing).findFirst().orElse(null);
         if (editing != null) {
             runOnCard(item, editing);
@@ -780,6 +780,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "e", type = Exception.class)})
     private void refreshSummariesMenuItem() {
+        refreshOutlineSummaryMarks();
         if (summariesMenuItem == null || currentManuscript == null) {
             return;
         }
@@ -787,6 +788,23 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             long tokens = summaryService.collectTree(currentManuscript).stream().mapToLong(SummaryNode::getTokens).sum();
             UIUtils.addTooltip(summariesMenuItem, loc.getValue(L.LABEL_SUMMARIES) + "\n"
                     + String.format(loc.getValue(L.MSG_ACTIVE_SUMMARIES_TOKENS), tokens));
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * Shows in the outline which parts have a summary (it changes when a summary is made, edited away or deleted).
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    private void refreshOutlineSummaryMarks() {
+        if (sidebarList == null || currentManuscript == null || currentManuscript.getActiveLeaf() == null) {
+            return;
+        }
+        try {
+            OutlineSummaryMarks.refresh(sidebarList, chatMessageService.getBranchFromLeaf(currentManuscript.getActiveLeaf()), loc);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -958,6 +976,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         sidebarBtn.setThemeName("tertiary small");
         sidebarBtn.setWidthFull();
         sidebarBtn.addClassName(CssStyles.SIDEBAR_BUTTON);
+        OutlineSummaryMarks.init(sidebarBtn, msg, dbId, loc);
 
         sidebarBtn.addClickListener(event -> {
             if (dbId != null) {

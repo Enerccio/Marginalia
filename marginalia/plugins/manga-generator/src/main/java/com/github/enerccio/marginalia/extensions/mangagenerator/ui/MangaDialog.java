@@ -17,6 +17,7 @@ import com.github.enerccio.marginalia.ui.widgets.ModelProtocolPicker;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -24,6 +25,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.IntegerField;
@@ -64,6 +66,9 @@ public class MangaDialog extends Dialog {
     private IntegerField contextLeft;
     private IntegerField contextRight;
     private Button addSectionButton;
+    private Button continuousButton;
+    /** What the continuous mode generates: true the tags of the scripts that are there, false the scripts (and new sections). */
+    private Select<Boolean> continuousWhat;
     private Button copyAllButton;
     private Span emptyHint;
     /** The note that stands in the place of the sections while there are none, null otherwise. */
@@ -134,6 +139,8 @@ public class MangaDialog extends Dialog {
     /** Set while the widgets are filled in from the data, so that this does not count as the user's change. */
     private boolean binding;
     private int running;
+    /** The continuous mode is on: sections are added and generated one after the other until the story runs out or the user stops it. */
+    private boolean continuous;
 
     public MangaDialog(Manuscript manuscript, MangaService service) {
         this.manuscript = manuscript;
@@ -157,6 +164,13 @@ public class MangaDialog extends Dialog {
 
         buildUI();
         refreshTabs();
+    }
+
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        super.onDetach(detachEvent);
+        // the sections cancel what they generate when the window is closed
+        continuous = false;
     }
 
     // --- building ---
@@ -203,12 +217,22 @@ public class MangaDialog extends Dialog {
         copyAllButton = new Button(T.localized("Copy all"), Solid.COPY.create(), e -> copyAll());
         addSectionButton = new Button(T.localized("Add section"), Solid.PLUS.create(), e -> addSection());
         addSectionButton.setThemeName("primary");
+        continuousWhat = new Select<>();
+        continuousWhat.setItems(false, true);
+        continuousWhat.setItemLabelGenerator(tags -> tags ? T.localized("Tags only") : T.localized("Scripts only"));
+        continuousWhat.setValue(false);
+        continuousWhat.addValueChangeListener(e -> updateContinuousButton());
+        continuousWhat.setWidth("10em");
+        continuousWhat.setTooltipText(T.localized("What the continuous mode generates: it does one kind at a time, so the model keeps the same prompt"));
+        continuousButton = new Button(Solid.FORWARD.create(), e -> toggleContinuous());
+        continuousButton.setThemeName("primary");
+        updateContinuousButton();
 
         modelPicker = new ModelProtocolPicker();
         initModelPicker();
 
         settingsBar = new HorizontalLayout(modelPicker, tokenBudget, splitCount, contextLeft, contextRight, scriptPrompt, tagsPrompt, rules,
-                copyAllButton, addSectionButton);
+                copyAllButton, addSectionButton, continuousWhat, continuousButton);
         settingsBar.setWidthFull();
         settingsBar.setWrap(true);
         settingsBar.setAlignItems(FlexComponent.Alignment.END);
@@ -364,7 +388,7 @@ public class MangaDialog extends Dialog {
         }
     }
 
-    private void addCard(Manga manga, List<MangaSection> sections, int index) {
+    private MangaSectionCard addCard(Manga manga, List<MangaSection> sections, int index) {
         MangaSection section = sections.get(index);
         MangaSectionCard card = new MangaSectionCard(service, manuscript, manga, section, index + 1,
                 () -> {
@@ -372,9 +396,11 @@ public class MangaDialog extends Dialog {
                     return position > 0 ? sections.get(position - 1) : null;
                 },
                 this::save, this::runChanged, () -> deleteSection(section));
-        card.setLocked(running > 0);
+        card.setLocked(busy());
+        card.setFrozen(continuous);
         cards.add(card);
         sectionsList.add(card);
+        return card;
     }
 
     /**
@@ -382,12 +408,26 @@ public class MangaDialog extends Dialog {
      */
     private void runChanged(boolean started) {
         running += started ? 1 : -1;
-        cards.forEach(card -> card.setLocked(running > 0));
+        lockCards();
         updateStructureControls();
     }
 
+    private void lockCards() {
+        cards.forEach(card -> {
+            card.setLocked(busy());
+            card.setFrozen(continuous);
+        });
+    }
+
+    /**
+     * Whether a model is writing into a section, or the continuous mode is on (and is about to start the next one).
+     */
+    private boolean busy() {
+        return running > 0 || continuous;
+    }
+
     private void updateStructureControls() {
-        boolean free = running == 0;
+        boolean free = !busy();
         boolean has = current() != null;
         int index = data.getActiveManga();
         tabs.setEnabled(free);
@@ -397,10 +437,12 @@ public class MangaDialog extends Dialog {
         moveRightButton.setEnabled(free && has && index < data.getMangas().size() - 1);
         addSectionButton.setEnabled(free);
         copyAllButton.setEnabled(has);
+        continuousButton.setEnabled(has && (continuous || running == 0));
+        continuousWhat.setEnabled(has && !busy());
     }
 
     private void addManga() {
-        if (running > 0) {
+        if (busy()) {
             return;
         }
         Manga manga = new Manga(T.localized("Manga Script %d").formatted(data.getMangas().size() + 1), service.getSettings());
@@ -435,7 +477,7 @@ public class MangaDialog extends Dialog {
     private void moveManga(int by) {
         int from = data.getActiveManga();
         int to = from + by;
-        if (running > 0 || from < 0 || to < 0 || to >= data.getMangas().size()) {
+        if (busy() || from < 0 || to < 0 || to >= data.getMangas().size()) {
             return;
         }
         data.getMangas().add(to, data.getMangas().remove(from));
@@ -468,21 +510,33 @@ public class MangaDialog extends Dialog {
      * Adds a section for the next parts of the story: the ones after the last section, as many as the manga says.
      */
     private void addSection() {
-        Manga manga = current();
-        if (manga == null || running > 0) {
+        if (current() == null || busy()) {
             return;
         }
+        addNextSection(false);
+    }
+
+    /**
+     * @param quiet do not tell the user that the story has no part left for a section (the caller does)
+     * @return the card of the new section, null when it was not added
+     */
+    private MangaSectionCard addNextSection(boolean quiet) {
+        Manga manga = current();
         try {
             int parts = service.branch(manuscript).size();
             if (parts == 0) {
-                Notification.warning(T.localized("The story has no parts yet"));
-                return;
+                if (!quiet) {
+                    Notification.warning(T.localized("The story has no parts yet"));
+                }
+                return null;
             }
             List<MangaSection> sections = manga.getSections();
             int start = sections.isEmpty() ? 1 : sections.getLast().getEndPart() + 1;
             if (start > parts) {
-                Notification.warning(T.localized("No new parts of the story for another section (the story has %d parts)").formatted(parts));
-                return;
+                if (!quiet) {
+                    Notification.warning(T.localized("No new parts of the story for another section (the story has %d parts)").formatted(parts));
+                }
+                return null;
             }
             int end = Math.min(parts, start + Math.max(1, manga.getSplitCount()) - 1);
 
@@ -498,14 +552,101 @@ public class MangaDialog extends Dialog {
                 sectionsList.remove(noSections);
                 noSections = null;
             }
-            addCard(manga, sections, sections.size() - 1);
+            return addCard(manga, sections, sections.size() - 1);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
+            return null;
+        }
+    }
+
+    // --- the continuous mode ---
+
+    private void toggleContinuous() {
+        if (continuous) {
+            stopContinuous(null);
+            return;
+        }
+        if (current() == null || running > 0) {
+            return;
+        }
+        continuous = true;
+        lockCards();
+        updateStructureControls();
+        updateContinuousButton();
+        continueWork();
+    }
+
+    /**
+     * Turns the continuous mode off and stops what is being generated; what came in so far is kept.
+     *
+     * @param message what to tell the user, null for nothing
+     */
+    private void stopContinuous(String message) {
+        boolean wasOn = continuous;
+        continuous = false;
+        cards.forEach(MangaSectionCard::abort);
+        lockCards();
+        updateStructureControls();
+        updateContinuousButton();
+        if (wasOn && message != null) {
+            Notification.show(message);
+        }
+    }
+
+    private void updateContinuousButton() {
+        continuousButton.setText(continuous ? T.localized("Stop continuous mode") : T.localized("Continuous mode"));
+        continuousButton.setIcon((continuous ? Solid.STOP : Solid.FORWARD).create());
+        continuousButton.setTooltipText(continuousWhat.getValue()
+                ? T.localized("Generate the tags of the sections that have a script but no tags, until there are none or you stop it")
+                : T.localized("Generate the script of the sections that have none, and keep adding sections for the next parts of the story"
+                + " and generating their scripts, until the story runs out or you stop it"));
+    }
+
+    /**
+     * The next step of the continuous mode. Scripts: the script of the first section that has none, else a new section for the next
+     * parts of the story, until there is no part of the story left. Tags: the tags of the first section that has a script but no tags,
+     * until there is none. Every step calls this again when its answer is over.
+     */
+    private void continueWork() {
+        boolean tags = continuousWhat.getValue();
+        while (continuous) {
+            for (MangaSectionCard card : cards) {
+                if (tags ? card.hasText(false) && !card.hasText(true) : !card.hasText(false)) {
+                    generateStep(card, tags);
+                    return;
+                }
+            }
+            if (tags) {
+                stopContinuous(T.localized("Continuous mode is finished: every script has its tags"));
+                return;
+            }
+            MangaSectionCard added = addNextSection(true);
+            if (added == null) {
+                stopContinuous(T.localized("Continuous mode is finished: there are no more parts of the story"));
+                return;
+            }
+        }
+    }
+
+    private void generateStep(MangaSectionCard card, boolean tags) {
+        card.scrollIntoView();
+        boolean started = card.generate(tags, outcome -> {
+            if (outcome != MangaService.Outcome.COMPLETED) {
+                stopContinuous(T.localized("Continuous mode stopped"));
+            } else if (!card.hasText(tags)) {
+                // an empty answer would be asked for again and again
+                stopContinuous(T.localized("Continuous mode stopped: the model wrote nothing"));
+            } else {
+                continueWork();
+            }
+        });
+        if (!started) {
+            stopContinuous(T.localized("Continuous mode stopped"));
         }
     }
 
     private void deleteSection(MangaSection section) {
-        if (running > 0) {
+        if (busy()) {
             return;
         }
         int index = current().getSections().indexOf(section);

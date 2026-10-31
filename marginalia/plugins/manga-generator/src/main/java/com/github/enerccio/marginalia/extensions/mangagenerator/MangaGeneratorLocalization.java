@@ -74,6 +74,39 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         ja("Add section", "セクションを追加");
         zh("Add section", "添加一节");
 
+        ja("Continuous mode", "連続モード");
+        zh("Continuous mode", "连续模式");
+
+        ja("Stop continuous mode", "連続モードを停止");
+        zh("Stop continuous mode", "停止连续模式");
+
+        ja("Scripts only", "スクリプトのみ");
+        zh("Scripts only", "仅脚本");
+
+        ja("Tags only", "タグのみ");
+        zh("Tags only", "仅标签");
+
+        ja("What the continuous mode generates: it does one kind at a time, so the model keeps the same prompt", "連続モードが生成するもの：一度に一種類ずつ行うので、モデルは同じプロンプトを使い続けます");
+        zh("What the continuous mode generates: it does one kind at a time, so the model keeps the same prompt", "连续模式生成的内容：每次只生成一种，因此模型始终使用同一个提示词");
+
+        ja("Generate the tags of the sections that have a script but no tags, until there are none or you stop it", "スクリプトがありタグのないセクションのタグを、なくなるか停止するまで生成します");
+        zh("Generate the tags of the sections that have a script but no tags, until there are none or you stop it", "为有脚本但没有标签的各节生成标签，直到没有为止或你停止");
+
+        ja("Generate the script of the sections that have none, and keep adding sections for the next parts of the story and generating their scripts, until the story runs out or you stop it", "スクリプトのないセクションのスクリプトを生成し、物語の次のパートのセクションを追加してそのスクリプトを生成し続けます。物語のパートがなくなるか、停止するまで続きます");
+        zh("Generate the script of the sections that have none, and keep adding sections for the next parts of the story and generating their scripts, until the story runs out or you stop it", "为没有脚本的各节生成脚本，并持续为故事的后续段落添加新的一节并生成脚本，直到故事用完或你停止为止");
+
+        ja("Continuous mode is finished: every script has its tags", "連続モードが完了しました：すべてのスクリプトにタグがあります");
+        zh("Continuous mode is finished: every script has its tags", "连续模式已完成：所有脚本都已有标签");
+
+        ja("Continuous mode is finished: there are no more parts of the story", "連続モードが完了しました：物語のパートがもうありません");
+        zh("Continuous mode is finished: there are no more parts of the story", "连续模式已完成：故事中没有更多段落了");
+
+        ja("Continuous mode stopped", "連続モードを停止しました");
+        zh("Continuous mode stopped", "连续模式已停止");
+
+        ja("Continuous mode stopped: the model wrote nothing", "連続モードを停止しました：モデルが何も書きませんでした");
+        zh("Continuous mode stopped: the model wrote nothing", "连续模式已停止：模型没有写出任何内容");
+
         ja("There is no manga in this book yet. Create one with the plus.", "この本にはまだマンガがありません。プラスで作成してください。");
         zh("There is no manga in this book yet. Create one with the plus.", "这本书还没有漫画。请用加号创建一个。");
 

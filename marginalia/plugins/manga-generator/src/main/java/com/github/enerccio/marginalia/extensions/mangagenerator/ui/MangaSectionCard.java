@@ -88,6 +88,7 @@ public class MangaSectionCard extends VerticalLayout {
     private boolean tagsMode;
     private boolean editing;
     private boolean locked;
+    private boolean frozen;
     private boolean generatingTags;
     private CancellationToken activeToken;
 
@@ -270,16 +271,16 @@ public class MangaSectionCard extends VerticalLayout {
         boolean here = busy && generatingTags == tagsMode;
         generateButton.setText(here ? T.localized("Abort") : tagsMode ? T.localized("Generate tags") : T.localized("Generate script"));
         generateButton.setIcon((here ? Solid.BAN : Solid.WAND_MAGIC_SPARKLES).create());
-        generateButton.setEnabled(!editing && (!busy || here));
+        generateButton.setEnabled(!editing && (here || (!busy && !frozen)));
 
         editButton.setVisible(!editing);
-        editButton.setEnabled(!busy);
+        editButton.setEnabled(!busy && !frozen);
         saveEditButton.setVisible(editing);
         cancelEditButton.setVisible(editing);
         copyButton.setEnabled(StringUtils.isNotBlank(text));
         requestButton.setEnabled(!busy && !editing);
 
-        boolean free = !busy && !editing;
+        boolean free = !busy && !editing && !frozen;
         for (IntegerField field : new IntegerField[]{startPart, endPart, contextStart, contextEnd}) {
             field.setEnabled(free);
         }
@@ -292,6 +293,14 @@ public class MangaSectionCard extends VerticalLayout {
      */
     public void setLocked(boolean locked) {
         this.locked = locked;
+        refreshView();
+    }
+
+    /**
+     * The continuous mode of the window drives the sections: they cannot be generated or changed by hand (a running one can be aborted).
+     */
+    public void setFrozen(boolean frozen) {
+        this.frozen = frozen;
         refreshView();
     }
 
@@ -335,14 +344,14 @@ public class MangaSectionCard extends VerticalLayout {
 
     // --- the request ---
 
-    private MangaService.Request buildRequest() throws Exception {
-        return tagsMode ? service.buildTagsRequest(manuscript, manga, section)
+    private MangaService.Request buildRequest(boolean tags) throws Exception {
+        return tags ? service.buildTagsRequest(manuscript, manga, section)
                 : service.buildScriptRequest(manuscript, manga, section, previous.get());
     }
 
     private void showRequest() {
         try {
-            MangaService.Request request = buildRequest();
+            MangaService.Request request = buildRequest(tagsMode);
             Dialog dialog = new Dialog();
             dialog.setHeaderTitle(T.localized("Request"));
             dialog.setWidth("70vw");
@@ -391,10 +400,51 @@ public class MangaSectionCard extends VerticalLayout {
             activeToken.cancel();
             return;
         }
+        start(tagsMode, null);
+    }
+
+    /**
+     * Whether the script (or the tags) of the section has any text.
+     */
+    public boolean hasText(boolean tags) {
+        return StringUtils.isNotBlank(tags ? section.getTags() : section.getScript());
+    }
+
+    /**
+     * Shows the section on the screen.
+     */
+    public void scrollIntoView() {
+        getElement().executeJs("this.scrollIntoView({block: 'nearest'})");
+    }
+
+    /**
+     * Generates the script (or the tags) like the button does, for the continuous mode of the window: the view is switched to it.
+     *
+     * @param whenDone called when the answer is over (completed, aborted or failed), on the thread of the window
+     * @return false when the generation did not start (the section is edited or generating, or the request cannot be made); the
+     * reason is shown, and {@code whenDone} is not called
+     */
+    public boolean generate(boolean tags, Consumer<MangaService.Outcome> whenDone) {
+        if (activeToken != null || editing) {
+            return false;
+        }
+        modeTabs.setSelectedTab(tags ? tagsTab : scriptTab);
+        return start(tags, whenDone);
+    }
+
+    /**
+     * Stops the generation of the section, what came in so far is kept.
+     */
+    public void abort() {
+        if (activeToken != null) {
+            activeToken.cancel();
+        }
+    }
+
+    private boolean start(boolean tags, Consumer<MangaService.Outcome> whenDone) {
         UI ui = UI.getCurrent();
-        boolean tags = tagsMode;
         try {
-            MangaService.Request request = buildRequest();
+            MangaService.Request request = buildRequest(tags);
             if (request.exceedsContext()) {
                 Notification.warning(T.localized("The request (about %d tokens) is more than the model has room for (%d)").formatted(
                         request.promptTokens(), request.promptLimit()));
@@ -416,15 +466,17 @@ public class MangaSectionCard extends VerticalLayout {
             generatingTags = tags;
             // the tokens and the time of the request are the book's
             try (UsageContext _ = UsageContext.open(manuscript)) {
-                activeToken = service.stream(request, new Streaming(ui, tags));
+                activeToken = service.stream(request, new Streaming(ui, tags, whenDone));
             }
             onRun.accept(true);
             refreshView();
+            return true;
         } catch (Exception e) {
             activeToken = null;
             MangaGeneratorLog.get().warn("Failed to start the generation: {}", e.getMessage(), e);
             Notification.error(messageOf(e));
             refreshView();
+            return false;
         }
     }
 
@@ -438,13 +490,15 @@ public class MangaSectionCard extends VerticalLayout {
 
         private final UI ui;
         private final boolean tags;
+        private final Consumer<MangaService.Outcome> whenDone;
         private volatile Snapshot snapshot = new Snapshot("", "", 0, false);
         private volatile boolean scheduled;
         private volatile long lastRefresh;
 
-        private Streaming(UI ui, boolean tags) {
+        private Streaming(UI ui, boolean tags, Consumer<MangaService.Outcome> whenDone) {
             this.ui = ui;
             this.tags = tags;
+            this.whenDone = whenDone;
         }
 
         @Override
@@ -477,6 +531,9 @@ public class MangaSectionCard extends VerticalLayout {
                     Notification.error(InferenceErrors.messageOf(loc, error));
                 }
                 refreshView();
+                if (whenDone != null) {
+                    whenDone.accept(outcome);
+                }
                 UIPushGuard.push(ui);
             });
         }

@@ -19,6 +19,11 @@ public abstract class OutlineNode {
     private String note = "";
     private OutlineState state = OutlineState.PLANNED;
     /**
+     * The part of the story the node is linked to: its place in the active branch, from 1, as the outline of the story numbers the
+     * parts (the arc and the chapter in the Arcs tab can scroll the story to it). {@code null} for a node that is not linked.
+     */
+    private Integer part;
+    /**
      * The reasoning of the model that wrote the node, as it streamed; {@code null} for a node that was not generated.
      * Chapters written in one go all keep the reasoning of that request.
      */
@@ -67,6 +72,14 @@ public abstract class OutlineNode {
 
     public void setState(OutlineState state) {
         this.state = state;
+    }
+
+    public Integer getPart() {
+        return part;
+    }
+
+    public void setPart(Integer part) {
+        this.part = part;
     }
 
     public String getGenerationReasoning() {

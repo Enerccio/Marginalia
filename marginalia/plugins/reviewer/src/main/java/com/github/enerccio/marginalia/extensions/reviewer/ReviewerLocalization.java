@@ -122,6 +122,12 @@ public class ReviewerLocalization extends PluginLocalizationBundle {
         ja("Include Lorebook", "ロアブックを含める");
         zh("Include Lorebook", "包含世界书");
 
+        ja("With summaries", "要約を含める");
+        zh("With summaries", "包含摘要");
+
+        ja("Send the summaries of the story before the part, then the parts after the newest summary, as a generation does, instead of as many of the latest parts as fit", "生成と同様に、パートより前の物語の要約を送り、その後に最新の要約より後のパートを送ります（収まる限りの最新のパートを送る代わりに）");
+        zh("Send the summaries of the story before the part, then the parts after the newest summary, as a generation does, instead of as many of the latest parts as fit", "与生成时一样，先发送该段落之前故事的摘要，再发送最新摘要之后的段落（而不是发送尽可能多的最新段落）");
+
         ja("Token Limit", "トークン上限");
         zh("Token Limit", "词元上限");
 

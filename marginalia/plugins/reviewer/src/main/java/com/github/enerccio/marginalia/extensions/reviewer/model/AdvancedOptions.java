@@ -4,6 +4,8 @@ public class AdvancedOptions {
     private String prompt;
     private boolean usePromptInfo = true;
     private boolean lorebook = false;
+    /** Send the summaries of the story before the reviewed part, then the parts after the newest summary. */
+    private boolean summaries = false;
     private Integer tokenLimit = null;
 
     public String getPrompt() { return prompt; }
@@ -14,6 +16,9 @@ public class AdvancedOptions {
 
     public boolean isLorebook() { return lorebook; }
     public void setLorebook(boolean lorebook) { this.lorebook = lorebook; }
+
+    public boolean isSummaries() { return summaries; }
+    public void setSummaries(boolean summaries) { this.summaries = summaries; }
 
     public Integer getTokenLimit() { return tokenLimit; }
     public void setTokenLimit(Integer tokenLimit) { this.tokenLimit = tokenLimit; }
