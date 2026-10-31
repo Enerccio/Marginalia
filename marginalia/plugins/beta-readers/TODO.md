@@ -152,9 +152,18 @@ Build before every step: `mvn install -DskipTests` in `marginalia/` (the plugin 
   (`screenshots/flows/plugin-betareaders.mjs`, on a copy of `22-arcoutline`: the tab, the dialog, the menu, rename, close and reopen, the personas
   of the book, delete, the chats kept after a reload; the phone drawer by hand). The menu is a button with a context menu (a menu bar moved its
   one item into its overflow), the options of the dialog are folded away.
-- 7b: the messages (`ui/BetaMessageCard`: the icon and name of the speaker, the narrator without an icon, the reasoning as collapsed
-  details above the turn), the composer (the text, *Include the latest parts* with the count of new parts, send / stop), streaming
-  with the unfinished message hidden, the token counter, the line where parts were sent.
+- 7b (done): `ChatPanel` is the conversation: the header (kind, medium, model, the personas in a closed section), the messages
+  (`BetaMessageCard`: your message with *Parts 41-43 sent*, a line for a persona that joined or left, a `Turn` with the reasoning closed above
+  the messages, an icon and the name of each speaker, the narrator without an icon, an action in italics, a reply that could not be read as
+  written), and the composer (the text, *Ctrl+Enter*, *Include the latest parts* with the number of new parts or *Include the story (n
+  parts)* for the first message, a button that checks again, *Send* that becomes *Stop*, and the size of the context). The turn that
+  streams is redrawn at most every 100 ms, only finished messages show; the tabs are locked while a reply is written. When the reply ends
+  (on the thread of the inference service) the panel refreshes inside the request of the user (`InRequestScope`), as the service does when it
+  stores the reply: tried in the screenshot environment, this is what showed that a refresh without it fails. `BetaReadersService.ask` /
+  `regenerate` return `Asked` (the message and the token), `partsStatus`, `contextUsage` and `NoModelException`. The `CHANGELOG.MD` entry
+  is written. The fake model of the screenshots answers the personas (`betaReaders` in `dataset/plugins.mjs`, `betaRule`); the flow
+  `plugin-betareaders.mjs` sends three messages and checks the reply, the parts sent, the context counter and that the conversation is kept.
+  Tests: `BetaMessageCardTest`. Not done: the wait for the first token has no indicator.
 - 7c: regenerate the last reply, edit a user message, delete messages, add / remove a persona (the dialog that asks for the
   "prompt" and inserts the line), *Update from the library*.
 
@@ -197,19 +206,19 @@ below ticked.
 - [ ] Per tab: the AI and the protocol to use instead of the inherited ones (empty: inherited, shown as the placeholder with where it
   comes from, like the fields of the settings dialogs); changing it takes effect with the next message. (Choosing it when the chat is
   started is done in 7a; changing it afterwards, in 7c.)
-- [ ] Chat panel with streaming answers and a stop button.
+- [x] Chat panel with streaming answers and a stop button.
 - [ ] **Regenerate the last reply** (button): drops the last turn and asks again; the roster is built again and the parts sent by the
   message before it stay sent.
 - [ ] **Edit a user message** in the history, and **delete messages** (a user message, or one message of a turn: the turn keeps the
   rest and is sent back to the model as the JSON without the deleted one). What was sent with a deleted or edited message is
   recomputed from the messages that are left (see *New parts*).
-- [ ] The reasoning of a turn as collapsed details above its messages; the messages of the turn below it, each with the icon and
+- [x] The reasoning of a turn as collapsed details above its messages; the messages of the turn below it, each with the icon and
   the name of its speaker, the narrator without an icon.
 - [ ] Choose the personas that take part; address one by name; let the others answer in turn.
 - [ ] What the personas know about the book: lorebook, summaries, a range of parts, the part the user is reading.
 - [ ] Spoiler limit: a persona reads only up to a chosen part.
 - [ ] History of the conversations, saved with the book; clear and delete.
-- [ ] Token budget of the context, shown to the user.
+- [x] Token budget of the context, shown to the user.
 - [ ] Option to use json schema or freefall
 - [x] Json schema output. Preliminary structure (the `speaker` is restricted to the names present plus `Narrator`, built per request):
   `{"reasoning": "...", "messages": [{"speaker": "Athena", "parts": [{"type": "action" | "speech", "text": "..."}]}, ...]}`
@@ -227,14 +236,14 @@ below ticked.
 
 - [x] Each user message stores which parts it sent (the ids of the parts and a hash of their text); what a chat has sent so far
   is the union over its messages, so deleting, editing or regenerating a message gives the parts back.
-- [ ] The message box has a checkbox **Include the latest parts**; it shows how many parts are new (added, or changed since they
+- [x] The message box has a checkbox **Include the latest parts**; it shows how many parts are new (added, or changed since they
   were sent). When checked, the message sends them as "new stuff" (the new text, marked as new, before the user's message; a
   changed part says that it changed) and the chat stores them as sent. Unchecked: nothing is added, what was sent stays in the
   history and is not marked.
-- [ ] The first message of a chat has nothing sent yet: with the box checked it sends the context (summaries, then parts after the
+- [x] The first message of a chat has nothing sent yet: with the box checked it sends the context (summaries, then parts after the
   newest summary, within the token budget, like the Reviewer's *With summaries*), up to the spoiler limit.
 - [ ] Switching the branch: compare with the common part of both branches; parts of the other branch count as changed.
-- [ ] A line in the chat where parts were sent ("parts 41-43 sent"), so it is visible what the personas have read.
+- [x] A line in the chat where parts were sent ("parts 41-43 sent"), so it is visible what the personas have read.
 - [ ] If the history and the new parts do not fit the token limit, the context is built again (summaries and the latest parts) and the
   history is trimmed.
 

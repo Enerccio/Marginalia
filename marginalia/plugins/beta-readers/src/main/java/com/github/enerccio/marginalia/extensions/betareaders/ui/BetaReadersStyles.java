@@ -19,9 +19,23 @@ public final class BetaReadersStyles {
     public static final String HINT = "beta-readers-hint";
     /** The bar with the tabs of the chats. */
     public static final String BAR = "beta-readers-bar";
+    /** Separates the box to write in from the conversation above it. */
+    public static final String TOP = "beta-readers-top";
     /** A persona of a chat in the panel of the chat: its icon and its text. */
     public static final String PERSONA = "beta-readers-persona";
     public static final String PERSONA_LEFT = "beta-readers-persona-left";
+    /** A message of the user. */
+    public static final String USER = "beta-readers-user";
+    /** A line of the history that is not a message: a persona joined or left. */
+    public static final String NOTE = "beta-readers-note";
+    /** A turn of the model: the reasoning and the messages of the personas. */
+    public static final String TURN = "beta-readers-turn";
+    /** One message of a turn: the icon, and the name and the parts of the speaker. */
+    public static final String SPOKEN = "beta-readers-spoken";
+    /** The space where the icon of a speaker would be, so the narrator lines up with the personas. */
+    public static final String NO_ICON = "beta-readers-no-icon";
+    public static final String ACTION = "beta-readers-action";
+    public static final String TEXT = "beta-readers-text";
 
     private static final String RESOURCE = "/betareaders.css";
 

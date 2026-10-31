@@ -28,6 +28,11 @@
     border-bottom: 1px solid var(--lumo-contrast-10pct);
 }
 
+/* The box to write in, separated from the conversation above it */
+.beta-readers-top {
+    border-top: 1px solid var(--lumo-contrast-10pct);
+}
+
 /* A persona of a chat: the icon beside its name and description */
 .beta-readers-persona {
     display: flex;
@@ -38,4 +43,48 @@
 /* A persona that left the group */
 .beta-readers-persona-left {
     opacity: 0.5;
+}
+
+/* A message of the user, aside from the turns of the personas */
+.beta-readers-user {
+    border: 1px solid var(--lumo-contrast-10pct);
+    border-radius: var(--lumo-border-radius-m);
+    background-color: var(--lumo-contrast-5pct);
+    padding: var(--lumo-space-s) var(--lumo-space-m);
+}
+
+/* Joined, left: a line between the messages */
+.beta-readers-note {
+    text-align: center;
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-s);
+}
+
+.beta-readers-turn {
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-s);
+}
+
+.beta-readers-spoken {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--lumo-space-s);
+}
+
+/* The narrator has no icon: its text starts where the text of the personas does */
+.beta-readers-no-icon {
+    flex: none;
+    width: var(--lumo-size-s);
+}
+
+/* What was said keeps its line breaks, an action is set apart */
+.beta-readers-text {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.beta-readers-action {
+    font-style: italic;
+    color: var(--lumo-secondary-text-color);
 }

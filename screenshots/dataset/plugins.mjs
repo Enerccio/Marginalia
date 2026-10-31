@@ -149,3 +149,44 @@ Ending: the cabinet in the room hums, a knock comes from inside it, and Draconia
     },
   },
 };
+
+// Beta Readers: what the personas answer to the questions of the flow. `answer` is what the plugin asks for ({reasoning, messages: [{speaker,
+// parts: [{type, text}]}]}); the fake model writes it as JSON, or as `**Name:** *action* speech` paragraphs when the chat wants free text.
+const a = text => ({ type: 'action', text });
+const s = text => ({ type: 'speech', text });
+export const betaReaders = [
+  {
+    kind: 'group',
+    question: 'Be honest: does the first chapter hook you?',
+    answer: {
+      reasoning: 'Athena reads the structure and likes it, Vesper objects to the pace, Athena answers her.',
+      messages: [
+        { speaker: 'Athena', parts: [a('folds her hands over the pages'), s('The fog on the main street is a quiet, confident opening. It promises that someone is being watched before anyone says so.')] },
+        { speaker: 'Vesper', parts: [a('snorts'), s('Quiet is one word for it. I counted two paragraphs before anybody does anything. I would cut the weather.')] },
+        { speaker: 'Narrator', parts: [a('Athena raises an eyebrow, but for once she does not argue straight away.')] },
+        { speaker: 'Athena', parts: [s('The weather is the point. It is the first thing Draconia lies about.')] },
+      ],
+    },
+  },
+  {
+    kind: 'group',
+    question: 'Which part should I rewrite first?',
+    answer: {
+      reasoning: 'Both agree on one thing for once.',
+      messages: [
+        { speaker: 'Vesper', parts: [s('The Three Broomsticks scene. Everybody explains their motives over butterbeer, and nobody has a motive until they say it.')] },
+        { speaker: 'Athena', parts: [a('nods slowly'), s('She is right. Let the motives show in what they leave on the table.')] },
+      ],
+    },
+  },
+  {
+    kind: 'single',
+    question: 'Read it line by line: what bothers you?',
+    answer: {
+      reasoning: 'One persona, so one voice: the editor goes through the text.',
+      messages: [
+        { speaker: 'Quill', parts: [a('uncaps a red pen'), s('Three "suddenly"s in the second part, and a dialogue tag that says she "exclaimed" a whisper. The fog is mentioned four times in the first page; twice is enough.')] },
+      ],
+    },
+  },
+];

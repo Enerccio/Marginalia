@@ -371,5 +371,120 @@ public class BetaReadersLocalization extends PluginLocalizationBundle {
                 "メディア、モデル、形式");
         zh("Medium, model and format",
                 "媒介、模型和格式");
+
+        ja("%s joined the conversation.",
+                "%s が会話に参加しました。");
+        zh("%s joined the conversation.",
+                "%s 加入了对话。");
+
+        ja("%s left the conversation.",
+                "%s が会話から退出しました。");
+        zh("%s left the conversation.",
+                "%s 离开了对话。");
+
+        ja("You",
+                "あなた");
+        zh("You",
+                "你");
+
+        ja("Parts %s sent",
+                "送信したパート: %s");
+        zh("Parts %s sent",
+                "已发送的部分：%s");
+
+        ja("Reasoning",
+                "推論");
+        zh("Reasoning",
+                "推理");
+
+        ja("Narrator",
+                "ナレーター");
+        zh("Narrator",
+                "旁白");
+
+        ja("Personas (%d)",
+                "ペルソナ (%d)");
+        zh("Personas (%d)",
+                "读者角色 (%d)");
+
+        ja("Write to the beta readers...",
+                "ベータリーダーに書く...");
+        zh("Write to the beta readers...",
+                "写给试读者……");
+
+        ja("Check for new parts",
+                "新しいパートを確認");
+        zh("Check for new parts",
+                "检查新的部分");
+
+        ja("Include the latest parts",
+                "最新のパートを含める");
+        zh("Include the latest parts",
+                "包含最新的部分");
+
+        ja("Send",
+                "送信");
+        zh("Send",
+                "发送");
+
+        ja("Stop",
+                "停止");
+        zh("Stop",
+                "停止");
+
+        ja("There is no model to ask. Choose one for the chat, the book or in the settings.",
+                "問い合わせるモデルがありません。チャット、本、または設定でモデルを選択してください。");
+        zh("There is no model to ask. Choose one for the chat, the book or in the settings.",
+                "没有可询问的模型。请在聊天、书籍或设置中选择一个。");
+
+        ja("Write a message or include the latest parts.",
+                "メッセージを書くか、最新のパートを含めてください。");
+        zh("Write a message or include the latest parts.",
+                "请写一条消息，或包含最新的部分。");
+
+        ja("Can't ask the model: %s",
+                "モデルに問い合わせできません: %s");
+        zh("Can't ask the model: %s",
+                "无法询问模型：%s");
+
+        ja("The model did not answer.",
+                "モデルは応答しませんでした。");
+        zh("The model did not answer.",
+                "模型没有回答。");
+
+        ja("%d older messages were left out of the request to fit the context.",
+                "コンテキストに収めるため、古いメッセージ %d 件をリクエストから省きました。");
+        zh("%d older messages were left out of the request to fit the context.",
+                "为适应上下文，请求中省略了 %d 条较早的消息。");
+
+        ja("Include the story (%d parts)",
+                "ストーリーを含める (%d パート)");
+        zh("Include the story (%d parts)",
+                "包含故事（%d 个部分）");
+
+        ja("Include the latest parts (%d new)",
+                "最新のパートを含める (新規 %d)");
+        zh("Include the latest parts (%d new)",
+                "包含最新的部分（新增 %d）");
+
+        ja("Include the latest parts (the story changed)",
+                "最新のパートを含める (ストーリーが変更されました)");
+        zh("Include the latest parts (the story changed)",
+                "包含最新的部分（故事已更改）");
+
+        ja("Include the latest parts (none new)",
+                "最新のパートを含める (新しいものなし)");
+        zh("Include the latest parts (none new)",
+                "包含最新的部分（没有新的）");
+
+        ja("Context: %1$s of %2$s tokens",
+                "コンテキスト: %1$s / %2$s トークン");
+        zh("Context: %1$s of %2$s tokens",
+                "上下文：%1$s / %2$s 个词元");
+
+        ja("Context: %s tokens",
+                "コンテキスト: %s トークン");
+        zh("Context: %s tokens",
+                "上下文：%s 个词元");
     }
 }

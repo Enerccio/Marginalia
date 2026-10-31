@@ -16,6 +16,7 @@ import com.github.enerccio.marginalia.extensions.betareaders.model.BetaReadersTe
 import com.github.enerccio.marginalia.extensions.betareaders.model.BookData;
 import com.github.enerccio.marginalia.extensions.betareaders.model.ChatKind;
 import com.github.enerccio.marginalia.extensions.betareaders.model.Medium;
+import com.github.enerccio.marginalia.extensions.betareaders.model.ReplyFormat;
 import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersStore.Available;
 import com.github.enerccio.marginalia.extensions.betareaders.service.PartsTracker.Plan;
 import com.github.enerccio.marginalia.extensions.betareaders.service.PartsTracker.StoryPart;
@@ -312,11 +313,11 @@ public class BetaReadersService {
      *
      * @param includeLatest whether the message sends the story: the context when the chat has sent none yet, else the parts that are
      *                      new (see {@link PartsTracker})
-     * @return what stops the request
-     * @throws IllegalStateException    when there is no AI to ask
+     * @return the message that was added and what stops the request
+     * @throws NoModelException         when there is no AI to ask
      * @throws IllegalArgumentException when there is nothing to send
      */
-    public CancellationToken ask(Manuscript manuscript, BetaChat chat, String text, boolean includeLatest, ChatRunner.Listener listener)
+    public Asked ask(Manuscript manuscript, BetaChat chat, String text, boolean includeLatest, ChatRunner.Listener listener)
             throws Exception {
         Run run = prepare(manuscript, chat);
 
@@ -339,16 +340,17 @@ public class BetaReadersService {
         }
         chat.getMessages().add(user);
         saveChat(manuscript, chat);
-        return start(manuscript, chat, run, listener);
+        return new Asked(user, start(manuscript, chat, run, listener));
     }
 
     /**
      * Asks again: takes the last reply back (when the history ends with one) and asks the model for another. The parts the message
      * before it sent stay sent. Also the way to try again after a request that failed, when the history ends with the message of the user.
      *
-     * @throws IllegalStateException when there is no AI to ask, or there is nothing to answer
+     * @throws NoModelException       when there is no AI to ask
+     * @throws IllegalStateException when there is nothing to answer
      */
-    public CancellationToken regenerate(Manuscript manuscript, BetaChat chat, ChatRunner.Listener listener) throws Exception {
+    public Asked regenerate(Manuscript manuscript, BetaChat chat, ChatRunner.Listener listener) throws Exception {
         Run run = prepare(manuscript, chat);
         BetaMessage dropped = ChatEdits.dropLastReply(chat);
         if (chat.getMessages().isEmpty() || !chat.getMessages().getLast().isUserSide()) {
@@ -358,7 +360,43 @@ public class BetaReadersService {
             throw new IllegalStateException("There is nothing to answer");
         }
         saveChat(manuscript, chat);
-        return start(manuscript, chat, run, listener);
+        return new Asked(null, start(manuscript, chat, run, listener));
+    }
+
+    /**
+     * A request that was started.
+     *
+     * @param message the message of the user that was added to the chat; null when the request answers what is there already
+     * @param token   stops the request
+     */
+    public record Asked(BetaMessage message, CancellationToken token) {
+    }
+
+    /**
+     * How the story stands against what the chat has read: the number of parts to include, see {@link PartsTracker#status}.
+     */
+    public PartsTracker.Status partsStatus(Manuscript manuscript, BetaChat chat) throws Exception {
+        return PartsTracker.status(chat, loadStory(manuscript, 0, false).parts(), 0);
+    }
+
+    /**
+     * How much of the context the chat uses.
+     *
+     * @param tokens the tokens of the request the chat would send now, without a new message
+     * @param limit  the tokens the model takes for a prompt; 0 when not known
+     */
+    public record ContextUsage(int tokens, int limit) {
+    }
+
+    /**
+     * The size of the request the chat would send now; fails like {@link #ask} when there is no AI.
+     */
+    public ContextUsage contextUsage(Manuscript manuscript, BetaChat chat) throws Exception {
+        Run run = prepare(manuscript, chat);
+        PromptBuilder.Options options = new PromptBuilder.Options(chat.getFormat() != ReplyFormat.TEXT,
+                !Boolean.TRUE.equals(run.model().ai().getEnabledReasoning()),
+                BetaReadersDefaults.maxMessages(chat.getKind(), chat.present().size()), 0, run.tokens());
+        return new ContextUsage(PromptBuilder.build(chat, run.system(), options).tokens(), run.limit());
     }
 
     /** What a request of a chat needs, found before anything of the chat is changed. */
@@ -368,7 +406,7 @@ public class BetaReadersService {
     private Run prepare(Manuscript manuscript, BetaChat chat) throws Exception {
         Model model = resolveModel(manuscript, chat);
         if (model.ai() == null) {
-            throw new IllegalStateException("There is no AI to ask");
+            throw new NoModelException();
         }
         String system = systemPrompt(manuscript, chat);
         InferenceService inference = inferenceServices.forAIOrThrow(model.ai());
