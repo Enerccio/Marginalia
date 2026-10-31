@@ -147,6 +147,7 @@ Marginalia:
 |---|---|
 | [Arc Outline](extensions/arc-outline.md) | Works. The Arcs tab is in the outline drawer. |
 | [Author's Note](extensions/authors-note.md) | Works. The note is in the outline drawer of the story. |
+| [Beta Readers](extensions/beta-readers.md) | Works. The Beta Readers tab is in the outline drawer; the room for the conversation is small, landscape is easier. |
 | [Chapter Marker](extensions/chapter-marker.md) | Works. Chapter titles are in the outline drawer. |
 | [Character Tracker](extensions/character-tracker.md) | Works. The Characters tab is in the outline drawer. |
 | [Converter](extensions/sillytavern-converter.md) | Works. The Converter tab is in the outline drawer; the range of the chat is chosen with two taps, see [On a phone](extensions/sillytavern-converter.md#on-a-phone). |

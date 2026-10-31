@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846763024416">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846779150890">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846763024416" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846779150890" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846763024416" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846779150890" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846763024416" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846779150890" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -181,7 +181,7 @@ from the beginning to the end.</p>
 <a href="../../phone/#the-story">Using Marginalia on a phone</a>.</p>
 <retype-table copy-text="| Area | |
 |---|---|
-| **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part (the parts before it are loaded first when it is not loaded yet). The header shows how many parts the branch has. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |
+| **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part (the parts before it are loaded first when it is not loaded yet). The header shows how many parts the branch has. A part that has a [summary](summaries.md) has a small document icon after its entry. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |
 | **Lorebook** (left, next to the Outline) | A read only look at the lore of the book, see [The lorebook tab](#the-lorebook-tab). |
 | **Annotations** (left, next to the Outline) | The [notes](annotations.md) on passages of the story, for the whole book. |
 | **Story** (center) | The text of each part, with its menu (☰) and its metadata on the right, and under it the bottom bar. |
@@ -197,7 +197,7 @@ from the beginning to the end.</p>
 <tbody>
 <tr>
 <td><strong>Outline</strong> (left)</td>
-<td>One entry per part, <code translate="no" v-pre>#1</code>, <code translate="no" v-pre>#2</code>... with the part&#x27;s database ID. Click an entry to scroll to the part (the parts before it are loaded first when it is not loaded yet). The header shows how many parts the branch has. The <a href="../../extensions/chapter-marker/">Chapter Marker</a> extension shows chapter titles here.</td>
+<td>One entry per part, <code translate="no" v-pre>#1</code>, <code translate="no" v-pre>#2</code>... with the part&#x27;s database ID. Click an entry to scroll to the part (the parts before it are loaded first when it is not loaded yet). The header shows how many parts the branch has. A part that has a <a href="../summaries/">summary</a> has a small document icon after its entry. The <a href="../../extensions/chapter-marker/">Chapter Marker</a> extension shows chapter titles here.</td>
 </tr>
 <tr>
 <td><strong>Lorebook</strong> (left, next to the Outline)</td>
@@ -618,7 +618,7 @@ generation and drops the summary.</p>
 | `Ctrl+Enter` | Generates from the open panel. `Esc` closes it; the keyboard goes back to the story. |
 | `Ctrl+.` | Stops the generation that runs. |
 | `s` / `r` | **Swipe** / **Regenerate** the last part. |
-| `e` | Opens the editor of the last part. |
+| `e` | Opens the editor of the part that is the most visible on the screen (the last part when none is). |
 | `Ctrl+S` | Saves the part that is being edited (also while the cursor is in its text). |
 | `/` | Puts the cursor into the command bar (the story tab is shown first). |
 | `Ctrl+Shift+F` | Opens the *Outline* tab and puts the cursor into the search of the branch (`Enter` / `Shift+Enter` go to the next / previous match). |
@@ -652,7 +652,7 @@ generation and drops the summary.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>e</code></td>
-<td>Opens the editor of the last part.</td>
+<td>Opens the editor of the part that is the most visible on the screen (the last part when none is).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>Ctrl+S</code></td>
@@ -1027,7 +1027,7 @@ tense, style and <a href="../summaries/">summaries</a>. The jailbreak prompt of 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (71a052f03).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (a1aa407bf).</p></div>
             </footer>
         </div>
     </div>

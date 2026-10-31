@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846763024416">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846779150890">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846763024416" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846779150890" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846763024416" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846779150890" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846763024416" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846779150890" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -228,6 +228,7 @@ reviews the part with the full context of the story.</p>
 | **Prompt Override** | A different review prompt for this review. Starts with the prompt of the profile. |
 | **Use standard prompt info** | On: the prompt the part was written from, as above. Off: only the story parts, with the options below. |
 | **Include Lorebook** | (off only) Adds the lore that was active when the part was written. |
+| **With summaries** | (off only) Sends the [summaries](../books/summaries.md) of the story first, then the parts after the newest summary, the way a generation does: the part with the newest summary and everything before it are represented by the summaries. The summaries take their room from the token limit first, the parts get the rest, newest first. A summary whose story was changed after it was made is not sent (the review does not remove it). Off: no summaries, as many of the latest parts as fit. |
 | **Token Limit** | (off only) How many tokens of story to send: the parts up to and including the reviewed one, newest first, as many as fit. Starts with the room for the prompt of the model. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -249,6 +250,10 @@ reviews the part with the full context of the story.</p>
 <tr>
 <td><strong>Include Lorebook</strong></td>
 <td>(off only) Adds the lore that was active when the part was written.</td>
+</tr>
+<tr>
+<td><strong>With summaries</strong></td>
+<td>(off only) Sends the <a href="../../books/summaries/">summaries</a> of the story first, then the parts after the newest summary, the way a generation does: the part with the newest summary and everything before it are represented by the summaries. The summaries take their room from the token limit first, the parts get the rest, newest first. A summary whose story was changed after it was made is not sent (the review does not remove it). Off: no summaries, as many of the latest parts as fit.</td>
 </tr>
 <tr>
 <td><strong>Token Limit</strong></td>
@@ -366,7 +371,7 @@ stored in your user settings.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (71a052f03).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (a1aa407bf).</p></div>
             </footer>
         </div>
     </div>

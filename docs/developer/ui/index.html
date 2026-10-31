@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846763024416">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846779150890">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846763024416" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846779150890" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846763024416" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846779150890" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846763024416" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846763024416" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846779150890" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846779150890" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -876,7 +876,7 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 | `ManuscriptCloneDialog` (`ui.dialogs`) | The clone button of the book list (`ManuscriptPart`, `PhoneManuscriptPart`): the name of the copy (the book's name and *(Copy)*) and **Only current branch**; **Clone** calls `BackupService.cloneManuscript(source, name, onlyCurrentBranch)` and gives the new book to `setOnClone`, which the book list uses to read itself again. The lorebook is linked, not copied. |
 | `ArchiveUploadDialog`, `ArchiveEntryNamesDialog`, `ArchiveImportRunner` (`ui.dialogs`) | The pieces of the import of `.md` archives (story part, new book, lorebook; the service is `ArchiveImportService`). `ArchiveUploadDialog.show(title, message, handler)` takes a zip file in memory and calls the `Handler`; an `IllegalArgumentException` of the handler (not a usable archive) is a warning and the dialog stays. `ArchiveEntryNamesDialog.show(content, onConfirm)` lists the files with the entry name each would get (`names.txt`, the first heading, the file name) in an editable grid and hands the names over in the order of the files. `ArchiveImportRunner` runs the import behind a progress dialog with **Stop** (what was imported stays, the user is told how much). |
 | `LazyContextMenu` (`ui.widgets`) | A `ContextMenu` whose items are made when it opens: the constructor takes the target and a `beforeOpen` runnable that `onBeforeOpenMenu` runs before Flow sends the menu. The menu of a story card is one (see `createHamburgerMenu` / `prepareMenu` of the cards), so a story of hundreds of parts does not create the items of all of them. |
-| `FolderDialog`, `FolderActions`, `FolderClashDialog`, `OrganiseDialog` (`ui.dialogs`), `PromptSettingsForm`, `InheritedLanguageCombo`, `FolderBookProvider`, `FolderBookRow`, `BookLabels` (`ui.widgets`) | The folders of the book list: the rows of the grid, the settings of a folder and of a book (`PromptSettingsForm` is the *Prompts* tab of the book, desktop and phone, and the body of `FolderDialog`), the two-pane *Organise* window, the question of a name clash and the names of books in combo boxes. All described in [Folders](folders.md#the-lists-and-windows). The grid of `ManuscriptPart` holds `FolderBookRow`s (a folder or a book), so a plugin that read its items as `Manuscript` must read `FolderBookRow.getBook()`. |
+| `FolderDialog`, `FolderActions`, `FolderClashDialog`, `OrganiseDialog` (`ui.dialogs`), `PromptSettingsForm`, `ExtensionSettingsForm` (the *Extension Settings* section below it, see [Inherited settings](plugins/inherited-settings.md)), `InheritedLanguageCombo`, `FolderBookProvider`, `FolderBookRow`, `BookLabels` (`ui.widgets`) | The folders of the book list: the rows of the grid, the settings of a folder and of a book (`PromptSettingsForm` is the *Prompts* tab of the book, desktop and phone, and the body of `FolderDialog`), the two-pane *Organise* window, the question of a name clash and the names of books in combo boxes. All described in [Folders](folders.md#the-lists-and-windows). The grid of `ManuscriptPart` holds `FolderBookRow`s (a folder or a book), so a plugin that read its items as `Manuscript` must read `FolderBookRow.getBook()`. |
 | `MassChangeModelProtocolDialog` (`ui.dialogs`) | Puts a model and/or a protocol on many books, opened from the **Mass changes** menu (`MenuBar`, item **Mass Change Model/Protocol**) of `ManuscriptPart`. A `ModelProtocolPicker` whose empty boxes show *Do not replace* (`setPlaceholder`) and a grid of rows (check box with a *check all* box in its header, name with a name filter in the header row, model, protocol) from `ManuscriptService.findAllRegularForUser`, sorted by name. The filter keeps `shown`, and a book it hides is unchecked, so **Replace and exit** changes only what is visible; the *check all* box ticks the shown, unlocked rows. `replace()` loads each book again by uuid, sets only the model and the protocol that are picked, saves it through `ManuscriptService.save` and calls the `onChange` callback (the book list refreshes). Locked rows (`AgentRunService.findLockingRun`) are grayed out (`CssStyles.MULTI_TAG_LOCKED`), can not be ticked and are skipped, the lock is asked again at the change. |
 | `MassChangeLanguageDialog` (`ui.dialogs`) | Puts a language on many books, the item **Mass Change Language** of the same menu of `ManuscriptPart`. The same list as `MassChangeModelProtocolDialog` (check boxes with *check all*, name with the name filter, language), a `ComboBox&lt;Language&gt;` instead of the picker, and a `replace()` that sets `Manuscript.language` (an extended attribute, so it is saved through `ManuscriptService.save`) on the checked, shown, unlocked books. |
 | `MassRenameDialog` (`ui.dialogs`), `MassRename` (`utils`) | Renames many books, the item **Mass Rename** of the same menu of `ManuscriptPart` and the action `ORGANISE_MASS_RENAME` (`Shift+n`) of `OrganiseDialog`. The same list as `MassChangeLanguageDialog` (check boxes with *check all*, name with the name filter, locked rows grayed out) with a `RadioButtonGroup&lt;Mode&gt;` (`PREFIX`, `POSTFIX`, `REPLACE`, `NUMBER`) that shows the fields of the way and a column *New name*. `MassRename` is the pure part: `prefix`, `postfix`, `replace` (the text is quoted, not a regular expression) and `number(pattern, start, step, digits)` (`{name}` and `{n}` are replaced in one pass, so a name that contains `{n}` is kept) each give an instance whose `rename(name, index)` is the new name without the spaces around it. `preview()` works the new names of the checked, unlocked, shown rows (the index of a numbering is the place among them) and refreshes only the rows that changed; `problem()` is the message for incomplete settings (no text, no `{n}`). `rename()` refuses when no name would change or one would be empty (nothing is renamed then), and renames through `ManuscriptService.update` (only the name is written, a book an agent started on meanwhile is skipped) and calls `onChange`. |
@@ -1006,7 +1006,7 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 <td> </td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>FolderDialog</code>, <code translate="no" v-pre>FolderActions</code>, <code translate="no" v-pre>FolderClashDialog</code>, <code translate="no" v-pre>OrganiseDialog</code> (<code translate="no" v-pre>ui.dialogs</code>), <code translate="no" v-pre>PromptSettingsForm</code>, <code translate="no" v-pre>InheritedLanguageCombo</code>, <code translate="no" v-pre>FolderBookProvider</code>, <code translate="no" v-pre>FolderBookRow</code>, <code translate="no" v-pre>BookLabels</code> (<code translate="no" v-pre>ui.widgets</code>)</td>
+<td><code translate="no" v-pre>FolderDialog</code>, <code translate="no" v-pre>FolderActions</code>, <code translate="no" v-pre>FolderClashDialog</code>, <code translate="no" v-pre>OrganiseDialog</code> (<code translate="no" v-pre>ui.dialogs</code>), <code translate="no" v-pre>PromptSettingsForm</code>, <code translate="no" v-pre>ExtensionSettingsForm</code> (the <em>Extension Settings</em> section below it, see <a href="../plugins/inherited-settings/">Inherited settings</a>), <code translate="no" v-pre>InheritedLanguageCombo</code>, <code translate="no" v-pre>FolderBookProvider</code>, <code translate="no" v-pre>FolderBookRow</code>, <code translate="no" v-pre>BookLabels</code> (<code translate="no" v-pre>ui.widgets</code>)</td>
 <td>The folders of the book list: the rows of the grid, the settings of a folder and of a book (<code translate="no" v-pre>PromptSettingsForm</code> is the <em>Prompts</em> tab of the book, desktop and phone, and the body of <code translate="no" v-pre>FolderDialog</code>), the two-pane <em>Organise</em> window, the question of a name clash and the names of books in combo boxes. All described in <a href="../folders/#the-lists-and-windows">Folders</a>. The grid of <code translate="no" v-pre>ManuscriptPart</code> holds <code translate="no" v-pre>FolderBookRow</code>s (a folder or a book), so a plugin that read its items as <code translate="no" v-pre>Manuscript</code> must read <code translate="no" v-pre>FolderBookRow.getBook()</code>.</td>
 <td> </td>
 </tr>
@@ -1237,7 +1237,7 @@ tab refreshes a menu when it opens (the part menus are <code translate="no" v-pr
 and when the story tab is entered (the user may have changed the keys).</p>
 </li>
 <li>
-<p>A key of a <code translate="no" v-pre>CARD</code> or <code translate="no" v-pre>TEXT</code> item acts on the part that is edited, else the part that holds the text selection (<code translate="no" v-pre>JavascriptLibrary.selectionOwner</code>),
+<p>A key of a <code translate="no" v-pre>CARD</code> or <code translate="no" v-pre>TEXT</code> item acts on the part that is edited, else the part that holds the text selection, else the most visible part (both <code translate="no" v-pre>JavascriptLibrary.selectionOwner</code>),
 else the last part, and on the last part when the item does not apply to the chosen one (<code translate="no" v-pre>ManuscriptStoryPart.runMenuItem</code>).</p>
 </li>
 <li>
@@ -1635,7 +1635,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (71a052f03).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (a1aa407bf).</p></div>
             </footer>
         </div>
     </div>

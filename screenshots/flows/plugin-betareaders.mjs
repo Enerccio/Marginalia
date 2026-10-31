@@ -1,20 +1,60 @@
-// Beta Readers: the tab of the chats in the story sidebar (empty, the new chat window, two chats, the menu, rename, close and reopen,
-// the personas of the book, delete). It makes chats, so run it on a copy of the state (22-arcoutline) that is thrown away.
-import {bookTab, dialog, idle, login, main, menuItem, openBook, pick, press, sleep, snap, snapDialog, field} from '../lib/shot.mjs';
+// Beta Readers: installs the plugin, shows its settings and the tab of the chats in the story sidebar (empty, the new chat window,
+// two chats, the menu, rename, close and reopen, the personas of the book, delete). It makes chats, so run it on a copy of the
+// state (22-arcoutline) that is thrown away; the chain takes the next step (23-betareaders) after it.
+// Pictures: the settings panel and the persona library, the empty tab, the new chat window with its options, the conversation with the
+// reasoning open, the actions of a message, the personas joined, the settings of a chat, the spoiler limit, the menu, the personas of the book.
+import fs from 'node:fs';
+import path from 'node:path';
+import {bookTab, dialog, goto, idle, login, main, menuItem, openBook, openTab, pick, press, repo, sleep, snap, snapDialog, field} from '../lib/shot.mjs';
 import {sideTab, widenSidebar} from '../lib/story.mjs';
 import {betaReaders} from '../dataset/plugins.mjs';
 
 const expect = (ok, what) => { if (!ok) throw new Error('expected: ' + what); console.log('  ok:', what); };
 
+/** Installs the plugin through Admin -> Extensions unless it is there (a full rebuild may have it from step 02). */
+async function install(page) {
+  await page.getByRole('button', { name: 'Admin' }).click();
+  await idle(page, 600);
+  await page.getByText('Extensions', { exact: true }).first().click();
+  await idle(page, 800);
+  if (await page.locator('vaadin-grid-cell-content', { hasText: 'beta-readers' }).count()) {
+    console.log('  already installed beta-readers');
+    return;
+  }
+  const jar = path.join(repo, 'marginalia/plugins/beta-readers/target/beta-readers-1.6.0.jar');
+  if (!fs.existsSync(jar)) throw new Error('not built: ' + jar);
+  await page.locator('vaadin-upload input[type=file]').setInputFiles(jar);
+  await idle(page, 4000);
+  await page.getByRole('button', { name: 'Refresh' }).click();
+  await idle(page, 1500);
+  console.log('  installed beta-readers');
+}
+
 await main(async ({ page }) => {
   await login(page);
+  await install(page);
+  await goto(page, '/');
+
+  // the settings of the plugin and the library of the personas
+  await openTab(page, 'Settings');
+  await page.getByText('Extension Settings', { exact: true }).first().click();
+  await idle(page, 800);
+  await page.getByText('Beta Readers', { exact: true }).last().click();
+  await sleep(800);
+  await snap(page, 'plugin-betareaders-settings');
+  await press(page, 'Edit personas');
+  await idle(page, 700);
+  await snapDialog(page, 'plugin-betareaders-library');
+  await press(dialog(page), 'Cancel');
+  await idle(page, 500);
+
   await openBook(page);
   await bookTab(page, 'Story');
   await widenSidebar(page, 700);
   await sideTab(page, 'Beta Readers');
   await sleep(500);
   expect(await page.getByText('No chats yet. Start one with the + button.').count() === 1, 'the empty tab says there are no chats');
-  await snap(page, '_br-empty');
+  await snap(page, 'plugin-betareaders-tab');
 
   const plus = page.locator('vaadin-button[aria-label="New chat"]').first();
   const menu = async () => { await page.locator('vaadin-button[aria-label="Chats"]').first().click(); await idle(page, 500); };
@@ -28,7 +68,7 @@ await main(async ({ page }) => {
   await d.getByRole('checkbox', { name: 'Vesper', exact: true }).check();
   await d.getByText('Story, medium, model and format', { exact: true }).click();
   await idle(page, 400);
-  await snapDialog(page, '_br-new-group-options');
+  await snapDialog(page, 'plugin-betareaders-new-chat');
   await press(d, 'Create');
   await sleep(700);
   expect(await page.getByRole('tab', { name: 'Athena, Vesper', exact: true }).count() === 1, 'a tab "Athena, Vesper"');
@@ -55,7 +95,7 @@ await main(async ({ page }) => {
   await snap(page, '_br-chat');
   await page.getByText('Reasoning', { exact: true }).click();
   await sleep(400);
-  await snap(page, '_br-chat-reasoning');
+  await snap(page, 'plugin-betareaders-chat');
   await page.getByText('Reasoning', { exact: true }).click();
   await say(second.question);
   await page.getByText('Let the motives show', { exact: false }).first().waitFor({ timeout: 30000 });
@@ -66,7 +106,7 @@ await main(async ({ page }) => {
   // editing and deleting what was said, and asking again
   const confirm = async () => { await press(dialog(page), 'Yes', { exact: false }).catch(async () => press(dialog(page), 'Confirm', { exact: false })); await sleep(700); };
   const button = label => page.locator(`vaadin-button[aria-label="${label}"]`);
-  await snap(page, '_br-chat-actions');
+  await snap(page, 'plugin-betareaders-actions');
   await button('Edit message').first().click();
   await idle(page, 600);
   await dialog(page).locator('textarea').first().fill('Be honest: does the first chapter hook you at all?');
@@ -97,7 +137,7 @@ await main(async ({ page }) => {
   await pick(dialog(page), 'Persona', 'Nox');
   await dialog(page).locator('textarea').first().fill('Nox has read ahead and is not telling.');
   await dialog(page).locator('textarea').first().dispatchEvent('change');
-  await snapDialog(page, '_br-bring-in');
+  await snapDialog(page, 'plugin-betareaders-bring-in');
   await press(dialog(page), 'Bring in');
   await sleep(700);
   expect(await page.getByText('Nox joined the conversation.').count() === 1, 'a persona joins and the history says so');
@@ -116,14 +156,14 @@ await main(async ({ page }) => {
   await say('Nox, you first this time.');
   await page.getByText('Let the motives show', { exact: false }).first().waitFor({ timeout: 30000 });
   await sleep(1500);
-  await snap(page, '_br-chat-joined');
+  await snap(page, 'plugin-betareaders-joined');
 
   // the settings of the chat: another medium leaves a line in the history
   await menu();
   await menuItem(page, 'Chat settings').click();
   await idle(page, 600);
   await pick(dialog(page), 'Medium', 'Manga / comic');
-  await snapDialog(page, '_br-chat-settings');
+  await snapDialog(page, 'plugin-betareaders-chat-settings');
   await press(dialog(page), 'Save');
   await sleep(800);
   expect(await page.getByText('From now on the text is read as: Manga / comic').count() === 1, 'the medium change is a line of the history');
@@ -160,7 +200,7 @@ await main(async ({ page }) => {
   await sleep(800);
   expect(await page.getByText('Parts 2-3 sent').count() === 1, 'parts 2-3 were sent');
   expect(await page.getByText('The personas have read: parts 2-3').count() === 1, 'the panel says what the personas have read');
-  await snap(page, '_br-spoiler');
+  await snap(page, 'plugin-betareaders-spoiler');
   await menu();
   await menuItem(page, 'Chat settings').click();
   await idle(page, 600);
@@ -203,7 +243,7 @@ await main(async ({ page }) => {
 
   // the menu
   await menu();
-  await snap(page, '_br-menu');
+  await snap(page, 'plugin-betareaders-menu');
   await menuItem(page, 'Rename chat').click();
   await idle(page, 600);
   d = dialog(page);
@@ -230,7 +270,7 @@ await main(async ({ page }) => {
   await menu();
   await menuItem(page, 'Personas of this book').click();
   await idle(page, 700);
-  await snapDialog(page, '_br-book-personas');
+  await snapDialog(page, 'plugin-betareaders-book-personas');
   await press(dialog(page), 'Add');
   await idle(page, 600);
   d = dialog(page);

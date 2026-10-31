@@ -10,7 +10,7 @@ This page describes the desktop layout. On a phone the story is one column with 
 
 | Area | |
 |---|---|
-| **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part (the parts before it are loaded first when it is not loaded yet). The header shows how many parts the branch has. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |
+| **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part (the parts before it are loaded first when it is not loaded yet). The header shows how many parts the branch has. A part that has a [summary](summaries.md) has a small document icon after its entry. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |
 | **Lorebook** (left, next to the Outline) | A read only look at the lore of the book, see [The lorebook tab](#the-lorebook-tab). |
 | **Annotations** (left, next to the Outline) | The [notes](annotations.md) on passages of the story, for the whole book. |
 | **Story** (center) | The text of each part, with its menu (☰) and its metadata on the right, and under it the bottom bar. |
@@ -248,7 +248,7 @@ On a computer (the [phone layout](../phone.md) has none) the writing loop works 
 | `Ctrl+Enter` | Generates from the open panel. `Esc` closes it; the keyboard goes back to the story. |
 | `Ctrl+.` | Stops the generation that runs. |
 | `s` / `r` | **Swipe** / **Regenerate** the last part. |
-| `e` | Opens the editor of the last part. |
+| `e` | Opens the editor of the part that is the most visible on the screen (the last part when none is). |
 | `Ctrl+S` | Saves the part that is being edited (also while the cursor is in its text). |
 | `/` | Puts the cursor into the command bar (the story tab is shown first). |
 | `Ctrl+Shift+F` | Opens the *Outline* tab and puts the cursor into the search of the branch (`Enter` / `Shift+Enter` go to the next / previous match). |

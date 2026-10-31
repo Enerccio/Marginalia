@@ -26,6 +26,7 @@ Below the tabs are the settings of the open manga:
 | Script prompt, Tags prompt | Replace the built-in prompts of this manga. **Reset to default** brings the built-in text back. |
 | Additional rules | Put in place of `` in the script prompt, for rules of your own (no sound effects, a style...). |
 | Copy all | Copies every script of the manga, then every tags text, to the clipboard. |
+| Continuous mode | Generates the manga on its own, see [Continuous mode](#continuous-mode). |
 
 ## Settings
 
@@ -61,6 +62,23 @@ cannot be deleted and mangas cannot be changed.
 
 **Override** gives one section its own script prompt, tags prompt or additional rules, or a **Rules addendum** that is added to
 the rules of the manga instead of replacing them. The eye shows the exact request the model would get, with its size.
+
+## Continuous mode
+
+**Continuous mode** (next to *Add section*) lets the manga write itself, one kind of text at a time, so the model gets the same prompt
+again and again (and a server that keeps a prompt cache can reuse it). Choose what it generates in the box next to the button:
+
+- **Scripts only** - it goes through the sections in order and generates the script of every section that has none (a section with a
+  script is left as it is). When all of them have one it adds a section for the next parts of the story - as *Add section* does, with
+  the *Parts per section* and the context of the manga - generates its script, and goes on, until the story has no part left for another
+  section.
+- **Tags only** - it generates the tags of every section that has a script but no tags. It adds no section; it ends when every script has
+  its tags.
+
+In both it ends when you press **Stop continuous mode** (the button turns into it; what the model has written so far is kept). A failure
+of the model, a section with no text in its parts, or an empty answer stops it too, with a message. While it runs the sections cannot
+be generated or changed by hand, and the mangas cannot be changed; closing the window stops it. Each section it works on is scrolled
+into view. To get both, run *Scripts only* first and *Tags only* after it.
 
 ## The lore and the size of the context
 

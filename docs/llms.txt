@@ -57,9 +57,10 @@
 
 ### Extensions
 
-- [Extensions](https://enerccio.github.io/Marginalia/user/extensions/index.md): Extensions add features to Marginalia without changing the application itself. Eighteen extensions come with Marginalia:
+- [Extensions](https://enerccio.github.io/Marginalia/user/extensions/index.md): Extensions add features to Marginalia without changing the application itself. Nineteen extensions come with Marginalia:
 - [Author's Note](https://enerccio.github.io/Marginalia/user/extensions/authors-note.md): A note to the model that is sent with every generation of the book: the tone you want right now, what the current chapter is about, a reminder the model keeps forgetting.
 - [Chinese localization](https://enerccio.github.io/Marginalia/user/extensions/chinese-localization.md): Adds Simplified Chinese (中文（简体）) to the languages of the user interface.
+- [Beta Readers](https://enerccio.github.io/Marginalia/user/extensions/beta-readers.md): Readers you invent, and a chat with them about your book. You describe a persona (a name, an icon and a few lines about how the person reads and what they
 - [Arc Outline](https://enerccio.github.io/Marginalia/user/extensions/arc-outline.md): The plan of your book in the sidebar: arcs, each split into chapters, with the state of every one of them, and a model that can write arcs and chapters for you.
 - [Character Tracker](https://enerccio.github.io/Marginalia/user/extensions/character-tracker.md): The cast of your book in the sidebar: a list of characters with a tagline, a note, an icon and a color, the relationships between them, and a map of those relationships.
 - [Chapter Marker](https://enerccio.github.io/Marginalia/user/extensions/chapter-marker.md): Turns the Outline of the story editor into a table of contents.
@@ -120,6 +121,7 @@
 - [@Extendable hooks](https://enerccio.github.io/Marginalia/developer/plugins/extendable.md): Most of what a plugin does starts with a decorator: an object whose onMethodEnter and onMethodLeave run before and after a method of an application class.
 - [Extended attributes](https://enerccio.github.io/Marginalia/developer/plugins/extended-attributes.md): Plugins can't add tables or columns - there is no way to run their own Flyway migrations. Instead, every data entity carries a JSON object where a plugin can keep whatever it needs: ExtendableEntity.attributes.
 - [Extending the UI](https://enerccio.github.io/Marginalia/developer/plugins/ui-extensions.md): Plugins add to the user interface from decorators: when a method that builds part of a screen runs, the plugin's decorator finds the component it built and adds to it.
+- [Inherited settings](https://enerccio.github.io/Marginalia/developer/plugins/inherited-settings.md): The text settings of a book (the prompts, the point of view, the style...) are inherited: a book uses its own, else the nearest folder above it that sets one, else the user's, else a default.
 - [Generation events](https://enerccio.github.io/Marginalia/developer/plugins/generation-events.md): @Extendable hooks change what the user sees; generation events change what the model sees. A plugin registers listeners with
 - [Sharing data between extensions](https://enerccio.github.io/Marginalia/developer/plugins/ipc.md): Extensions are separate bundles that should not import each other's classes (one can be unloaded and installed again while another keeps running). There
 - [Inference providers from a plugin](https://enerccio.github.io/Marginalia/developer/plugins/ai-providers.md): A plugin can bring a model API of its own. The user then creates an AI of the type Extension, chooses the provider of the plugin in the AI dialog, and the AI works like an OpenAI-compatible one: books use it, it is shared and limited, its usage is counted.

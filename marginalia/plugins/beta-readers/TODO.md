@@ -1,7 +1,7 @@
 # TODO - Beta Readers
 
-The plugin so far has the tab of the chats (without a conversation yet), the settings panel and the inherited settings, the persona and medium libraries and the model of the chats and
-the prompt (steps 1-3); there is no chat yet.
+The plugin is finished apart from what is listed as open below (steps 1-9 are done): the settings, the libraries, the chats, the conversation and
+how much of the story the personas read, with the user manual page and its pictures.
 
 ## Goal
 
@@ -185,7 +185,7 @@ a shorter text box, the status on one line); looked at in the drawer. Tests: `Pa
 `PresenceDialogTest`; the flow checks that a chat limited to part 3 from part 2 sends parts 2-3 only and, with the limit raised, the new parts 4-5.
 Not done: the lorebook is not sent (summaries and parts only); "the part the user is reading" is not a way to set the limit.
 
-**Step 9 - finish.** README, the user manual page `manual/user/extensions/beta-readers.md` (+ the screenshots, `screenshots/flows`), the
+**Step 9 - finish (done).** README, the user manual page `manual/user/extensions/beta-readers.md` (+ the screenshots, `screenshots/flows`), the
 entry in the plugin tables, the `CHANGELOG.MD` entry (*Added: the plugin Beta Readers*, written at 7b, when the plugin first does
 something users see), the dev notes if something new was learned, `tools/retype_build.sh`, ja / zh localization checked, the checklists
 below ticked.
@@ -265,6 +265,6 @@ below ticked.
 ## Plugin basics
 
 - [x] Localization (`BetaReadersLocalization`, ja/zh entries).
-- [ ] README, user manual page (`manual/user/extensions/beta-readers.md`), developer notes if needed.
-- [ ] Entry in the plugin list of `marginalia/plugins/README.md`, `CHANGELOG.MD` entry when it does something.
+- [x] README, user manual page (`manual/user/extensions/beta-readers.md`, the pictures `plugin-betareaders-*` from the flow `plugin-betareaders.mjs`, chain step `23-betareaders`).
+- [x] Entry in the plugin list of `marginalia/plugins/README.md`, `CHANGELOG.MD` entry when it does something.
 - [x] Tests for the service (prompt building, storage of personas, the new-parts diff).

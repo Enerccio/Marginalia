@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846763024416">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846779150890">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846763024416" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846779150890" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846763024416" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846779150890" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846763024416" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846763024416" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846779150890" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846779150890" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -205,6 +205,13 @@ above the book is named),</p>
 <p>The same fields are in the settings of a folder, with the same lines. A blank text counts as not set. Because the lookup is
 done when the prompt is built, moving the book to another folder, or changing the folder, changes the next part you
 generate.</p>
+<h3 id="settings-of-extensions">Settings of extensions</h3>
+<p>An <a href="../../extensions/">extension</a> can add settings that books and folders inherit the same way (for example the medium a
+chat about the book treats it as). They are in an <strong>Extension Settings</strong> section below the prompts, in the <em>Prompts</em> tab of a book
+and in the settings of a folder, one group per extension. They work like the fields above: an empty field is inherited from the
+folders above the book, then from the extension&#x27;s own settings in <em>Settings → Extension Settings</em>, then from its default, and the
+line under the field says which. The section is not shown while no loaded extension has such a setting; a value you set stays with
+the book or the folder when the extension is not loaded.</p>
 <p>Each field has a hints popover with <strong>Insert Default Template</strong>, which copies the default into the field as a starting
 point for your own version. The template fields also list the <strong>Available Template Variables</strong> and the
 <strong>Available Macros</strong>.</p>
@@ -485,7 +492,7 @@ text off.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (71a052f03).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (a1aa407bf).</p></div>
             </footer>
         </div>
     </div>

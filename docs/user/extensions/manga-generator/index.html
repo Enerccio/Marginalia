@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846763024416">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846779150890">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846763024416" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846779150890" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846763024416" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846779150890" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846763024416" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846779150890" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -190,7 +190,8 @@ copies.</p>
 | Context before / after | How many more parts before and after those a new section gives the model as the background. |
 | Script prompt, Tags prompt | Replace the built-in prompts of this manga. **Reset to default** brings the built-in text back. |
 | Additional rules | Put in place of `` in the script prompt, for rules of your own (no sound effects, a style...). |
-| Copy all | Copies every script of the manga, then every tags text, to the clipboard. |">
+| Copy all | Copies every script of the manga, then every tags text, to the clipboard. |
+| Continuous mode | Generates the manga on its own, see [Continuous mode](#continuous-mode). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -227,6 +228,10 @@ copies.</p>
 <tr>
 <td>Copy all</td>
 <td>Copies every script of the manga, then every tags text, to the clipboard.</td>
+</tr>
+<tr>
+<td>Continuous mode</td>
+<td>Generates the manga on its own, see <doc-anchor-trigger to="#continuous-mode">Continuous mode</doc-anchor-trigger>.</td>
 </tr>
 </tbody>
 </table>
@@ -270,6 +275,25 @@ cannot be deleted and mangas cannot be changed.</p>
 </figure>
 <p><strong>Override</strong> gives one section its own script prompt, tags prompt or additional rules, or a <strong>Rules addendum</strong> that is added to
 the rules of the manga instead of replacing them. The eye shows the exact request the model would get, with its size.</p>
+<h2 id="continuous-mode">Continuous mode</h2>
+<p><strong>Continuous mode</strong> (next to <em>Add section</em>) lets the manga write itself, one kind of text at a time, so the model gets the same prompt
+again and again (and a server that keeps a prompt cache can reuse it). Choose what it generates in the box next to the button:</p>
+<ul>
+<li>
+<p><strong>Scripts only</strong> - it goes through the sections in order and generates the script of every section that has none (a section with a
+script is left as it is). When all of them have one it adds a section for the next parts of the story - as <em>Add section</em> does, with
+the <em>Parts per section</em> and the context of the manga - generates its script, and goes on, until the story has no part left for another
+section.</p>
+</li>
+<li>
+<p><strong>Tags only</strong> - it generates the tags of every section that has a script but no tags. It adds no section; it ends when every script has
+its tags.</p>
+</li>
+</ul>
+<p>In both it ends when you press <strong>Stop continuous mode</strong> (the button turns into it; what the model has written so far is kept). A failure
+of the model, a section with no text in its parts, or an empty answer stops it too, with a message. While it runs the sections cannot
+be generated or changed by hand, and the mangas cannot be changed; closing the window stops it. Each section it works on is scrolled
+into view. To get both, run <em>Scripts only</em> first and <em>Tags only</em> after it.</p>
 <h2 id="the-lore-and-the-size-of-the-context">The lore and the size of the context</h2>
 <p>The model gets the text of the section&#x27;s parts, and with it the lore the text calls for: entries of the book&#x27;s lorebook (and its
 sub lorebooks) whose filters appear in that text, found like in a generation, including the scan depth. Entries that are
@@ -335,7 +359,7 @@ Change this in the settings (below).</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (71a052f03).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (a1aa407bf).</p></div>
             </footer>
         </div>
     </div>

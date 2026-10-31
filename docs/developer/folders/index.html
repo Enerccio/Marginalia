@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846763024416">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846779150890">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846763024416" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846779150890" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846763024416" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846779150890" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846763024416" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846779150890" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -330,6 +330,7 @@ for a change that is yours alone.</p>
 | `Viewer` | The reading route's list (`/view`) is the phone list without the buttons: the same `FolderBookProvider` and rows, breadcrumb, *Include subfolders* and favorites; a tap opens a folder or navigates to the book. Where it was left is **not** in the session or the workspace state but in the browser cookie `marginalia_viewer_folder` (the folder's uuid, `favorites`, or empty for the top level), written by `JavascriptLibrary.rememberViewerFolder` on every move and read back by `readViewerFolder` when the list is built; `restoreLocation` maps a gone or foreign uuid (`findForUser`) to the top level. The cookie is read in the browser, not from the request, because a push transport does not resend cookies after the handshake. The grid stays empty until the cookie arrives, so the list does not flash the top level first. |
 | `FolderActions` | New, rename, delete and move to a folder, shared by both lists and Organise: it asks what the rules need and reports what the service refused. |
 | `FolderDialog` | The settings of a folder. Unlike the book's dialog it saves with a button (a change may be refused). |
+| `ExtensionSettingsForm` | The section below `PromptSettingsForm` in the same two places: the editors of the settings that extensions registered (`InheritedSettingRegistry`), one group per extension, with the same placeholder and origin line; empty (and left out) when nothing is registered. See [Inherited settings](plugins/inherited-settings.md). |
 | `PromptSettingsForm` | The editors of the twelve text settings, shared by the book's *Prompts* tab (desktop and phone) and the folder dialog. It takes the values and the folder the empty ones inherit from (`load`), gives the values back (`values`), shows the inherited value as the placeholder and the origin as the line under the field (`LABEL_INHERITED_FROM_FOLDER`, `_FROM_USER`, `_INHERITED_DEFAULT`) and reports a change only when every template is valid. |
 | `InheritedLanguageCombo` | The language box where empty means inherit; the same placeholder and origin line. |
 | `OrganiseDialog`, `FolderClashDialog` | The two-pane window (the entries are marked with `MassDeleteBox`, the check box of the story's mass delete, whose one click event carries Shift for a range; the list reads itself again when the window closes) and the question of a name clash. The keys of the buttons are `ShortcutActions.ORGANISE_*` actions, registered in `ShortcutRegistry` and caught in the browser by `JavascriptLibrary.fireOrganiseKeys`; the navigation keys are fixed. |
@@ -359,6 +360,10 @@ for a change that is yours alone.</p>
 <tr>
 <td><code translate="no" v-pre>FolderDialog</code></td>
 <td>The settings of a folder. Unlike the book&#x27;s dialog it saves with a button (a change may be refused).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ExtensionSettingsForm</code></td>
+<td>The section below <code translate="no" v-pre>PromptSettingsForm</code> in the same two places: the editors of the settings that extensions registered (<code translate="no" v-pre>InheritedSettingRegistry</code>), one group per extension, with the same placeholder and origin line; empty (and left out) when nothing is registered. See <a href="../plugins/inherited-settings/">Inherited settings</a>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>PromptSettingsForm</code></td>
@@ -430,6 +435,11 @@ purges the folders below it. <code translate="no" v-pre>CleanupServiceTest</code
 walk <code translate="no" v-pre>PromptField.values()</code>, so they pick it up.</p>
 </li>
 <li>
+<p><strong>A setting of a plugin:</strong> not a core change. A plugin registers an <code translate="no" v-pre>InheritedSetting</code> and the dialogs, the resolution
+(<code translate="no" v-pre>ManuscriptService.resolveExtension</code>) and the backups handle it, see <a href="../plugins/inherited-settings/">Inherited settings</a>. The values
+are in the <code translate="no" v-pre>attributes</code> of the book and the folder, not in fields.</p>
+</li>
+<li>
 <p><strong>A new list or picker of books:</strong> use <code translate="no" v-pre>BookLabels</code> for the names and <code translate="no" v-pre>FolderService.getPaths</code> for the paths.</p>
 </li>
 <li>
@@ -484,7 +494,7 @@ folder reaches the request the mock server receives), <code translate="no" v-pre
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (71a052f03).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (a1aa407bf).</p></div>
             </footer>
         </div>
     </div>

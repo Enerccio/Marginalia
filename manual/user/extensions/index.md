@@ -6,13 +6,14 @@ icon: plug
 
 # Extensions
 
-Extensions add features to Marginalia without changing the application itself. Eighteen extensions come with Marginalia:
+Extensions add features to Marginalia without changing the application itself. Nineteen extensions come with Marginalia:
 
 | Extension | What it adds |
 |---|---|
 | [Arc Outline](arc-outline.md) | The arcs of the book and their chapters, with their state, in the sidebar; the model can write an arc for you. |
 | [Anthropic Claude](anthropic.md) | Anthropic's Claude models as an inference provider, over Anthropic's own API, with the thinking summaries shown as reasoning. |
 | [Author's Note](authors-note.md) | A note to the model, inserted into every generation of the book. |
+| [Beta Readers](beta-readers.md) | Readers you invent (personas) and a chat with them about the book, alone or in a group. |
 | [Chapter Marker](chapter-marker.md) | Chapter titles in the story outline, from Markdown headings in the parts. |
 | [Character Tracker](character-tracker.md) | The characters of the book with their relationships, and a map of them. |
 | [Gemma 4 tools fix](gemma-4-tools-fix.md) | Makes function calling work with Gemma 4 models whose API wants another role for tool results. |
@@ -44,12 +45,12 @@ Extensions hook into the user interface of one Marginalia version. An extension 
 working or break parts of the application. Use the extensions that come with your version of Marginalia.
 !!!
 
-The eighteen extensions above are part of the Marginalia source code (`marginalia/plugins`) and are built separately;
+The nineteen extensions above are part of the Marginalia source code (`marginalia/plugins`) and are built separately;
 see the [plugins README](https://github.com/Enerccio/Marginalia/blob/master/marginalia/plugins/README.md).
 
 ## Extensions on a phone
 
-The [phone layout](../phone.md) has its own classes, so an extension has to support it. Arc Outline, Author's Note, Chapter Marker,
+The [phone layout](../phone.md) has its own classes, so an extension has to support it. Arc Outline, Author's Note, Beta Readers, Chapter Marker,
 Character Tracker, Instruction Exporter and Reviewer do; Side Query, Lore Generator and Lorebook VCS add nothing on a phone (see [Using Marginalia on a phone](../phone.md#extensions)). Name generator, Name provider, Place provider, Gemma 4 tools fix and Google Gemini have no screens of their own (Google Gemini only adds a provider to the model dialog, which a phone has as well), and Chinese localization is in the language selector of the phone menu. Extensions are installed from the Admin page,
 which a phone doesn't have.
 
