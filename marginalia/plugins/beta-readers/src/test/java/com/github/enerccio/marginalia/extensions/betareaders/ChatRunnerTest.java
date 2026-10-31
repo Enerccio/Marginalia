@@ -247,6 +247,19 @@ class ChatRunnerTest {
     }
 
     @Test
+    void theThinkingIsShownWhileTheModelThinksNotWhenItIsDone() throws Exception {
+        Fake fake = new Fake();
+        fake.think("Let me ").think("think.");
+        Recorder recorder = new Recorder();
+
+        ChatRunner.run(fake, null, request(chat(ReplyFormat.AUTO)), recorder);
+
+        // a model that has not written a word of the reply yet: the reasoning so far is progress
+        assertEquals(List.of("Let me", "Let me think."), recorder.progress.stream().map(Reading::reasoning).toList());
+        assertTrue(recorder.progress.stream().allMatch(r -> r.messages().isEmpty()));
+    }
+
+    @Test
     void theThinkingOfTheModelWinsOverTheReasoningField() throws Exception {
         Fake fake = new Fake();
         fake.think("native");

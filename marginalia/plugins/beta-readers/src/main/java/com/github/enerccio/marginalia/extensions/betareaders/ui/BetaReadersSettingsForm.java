@@ -9,6 +9,8 @@ import com.github.enerccio.marginalia.extensions.betareaders.model.Medium;
 import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersService;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
+import com.github.enerccio.marginalia.ui.widgets.TemplateHints;
+import com.github.enerccio.marginalia.ui.widgets.TextAreaPopoverComponent;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -17,7 +19,6 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,9 +43,9 @@ public class BetaReadersSettingsForm extends VerticalLayout {
 
     private final BetaReadersService service;
 
-    private final TextArea singlePrompt = new TextArea(T.localized(PROMPT_OF_A_CHAT));
-    private final TextArea groupPrompt = new TextArea(T.localized(PROMPT_OF_A_GROUP_CHAT));
-    private final TextArea scene = new TextArea(T.localized(SCENE));
+    private final TextAreaPopoverComponent singlePrompt = new TextAreaPopoverComponent(T.localized(PROMPT_OF_A_CHAT));
+    private final TextAreaPopoverComponent groupPrompt = new TextAreaPopoverComponent(T.localized(PROMPT_OF_A_GROUP_CHAT));
+    private final TextAreaPopoverComponent scene = new TextAreaPopoverComponent(T.localized(SCENE));
     private final ComboBox<Medium> mediumCombo = new ComboBox<>(T.localized(MEDIUM));
     private final ComboBox<AI> aiCombo = new ComboBox<>(T.localized(MODEL_OF_THE_CHATS));
     private final ComboBox<Protocol> protocolCombo = new ComboBox<>(T.localized(PROTOCOL_OF_THE_CHATS));
@@ -74,16 +75,19 @@ public class BetaReadersSettingsForm extends VerticalLayout {
         singlePrompt.setPlaceholder(BetaReadersDefaults.SINGLE_PROMPT);
         singlePrompt.setHelperText(T.localized(EMPTY_THE_BUILT_IN_PROMPT));
         ResizableTextArea.install(loc, singlePrompt, "160px");
+        singlePrompt.setPopoverContent(TemplateHints.create(loc, singlePrompt, singlePrompt.getPopover(), null, BetaReadersDefaults.SINGLE_PROMPT));
 
         groupPrompt.setWidthFull();
         groupPrompt.setPlaceholder(BetaReadersDefaults.GROUP_PROMPT);
         groupPrompt.setHelperText(T.localized(EMPTY_THE_BUILT_IN_PROMPT));
         ResizableTextArea.install(loc, groupPrompt, "160px");
+        groupPrompt.setPopoverContent(TemplateHints.create(loc, groupPrompt, groupPrompt.getPopover(), null, BetaReadersDefaults.GROUP_PROMPT));
 
         scene.setWidthFull();
         scene.setPlaceholder(BetaReadersDefaults.SCENE);
         scene.setHelperText(T.localized(EMPTY_THE_BUILT_IN_SCENE));
         ResizableTextArea.install(loc, scene, "100px");
+        scene.setPopoverContent(TemplateHints.create(loc, scene, scene.getPopover(), null, BetaReadersDefaults.SCENE));
 
         mediumCombo.setWidthFull();
         mediumCombo.setItemLabelGenerator(Medium::getName);
