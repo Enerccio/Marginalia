@@ -1,6 +1,7 @@
 # TODO - Beta Readers
 
-The plugin is an empty stub: it loads, logs one line and registers nothing.
+The plugin so far has the settings panel and the inherited settings, the persona and medium libraries and the model of the chats and
+the prompt (steps 1-3); there is no chat yet.
 
 ## Goal
 
@@ -47,24 +48,19 @@ Build before every step: `mvn install -DskipTests` in `marginalia/` (the plugin 
 `mvn -o -q package` in this folder; run only the tests of the step. The package is `extensions.betareaders` with `model`,
 `service`, `ui` and `commands` below it, as in the other plugins. Tick the boxes of the lists below as the steps are done.
 
-**Step 0 - the core registry and the stub (already written, not committed).**
-- Commit 1: *Inherited settings for extensions* (`InheritedSetting*`, `ExtensionSettingsForm`, `ManuscriptService.resolveExtension`,
-  dialogs, backups, tests, docs, `CHANGELOG.MD`). Then stamp `manual/developer/plugins/inherited-settings.md` with
-  `python3 tools/check_dev_docs.py --stamp` in a commit of its own.
-- Commit 2: *Beta Readers stub* (this folder, the module in the root `pom.xml`, the lists of plugins).
-
-**Step 1 - the model and the storage of personas and mediums.**
+**Step 1 - the model and the storage of personas and mediums (done).**
 - `model`: `Persona` (uuid, name, icon as base64 PNG like `StoryCharacter.icon`, description), `Medium` (id, name, prompt fragment),
   `BetaReadersSettings` (the two prompts, the id of the default medium, the library of personas, the library of mediums, the
   uuids of the default AI and protocol), `BookPersonas` (the personas of one book).
 - `BetaReadersService`: load / save the settings in `UserSetting.getAttributes()` and the book personas in the attributes of the
   book (`settingService.save`, `manuscriptService.save`, a key of the plugin); the built-in starter personas (Athena, Vesper,
-  Ember and a few more), the built-in mediums and the default texts of the two prompts; `createIcon(bytes)` (a copy of the
-  Character Tracker's: a PNG at most N pixels).
+  Ember and a few more), the built-in mediums and the default texts of the two prompts; `PersonaIcons.createIcon(bytes)` (a copy of
+  the Character Tracker's: a PNG at most 200 pixels) and, for a persona without an icon, the circle with the first letters of its
+  name that the tabs of a `TabDock` have (`TabDockIcons`, the color follows the uuid).
 - `personasFor(manuscript)`: the library and the book's, the book's wins by name.
 - Tests: the round trip of the settings and the book personas, the defaults when nothing is stored, the book winning by name.
 
-**Step 2 - the settings panel and the inherited settings.**
+**Step 2 - the settings panel and the inherited settings (done).**
 - `BetaReadersExtension` decorates `UserPart.refresh` / `save` (the panel *Beta Readers* in *Extension Settings*, as the Reviewer
   does) with `ui/BetaReadersSettingsForm`: the two prompts, the default medium, the AI and the protocol, and the buttons that
   open the editors of the persona library and of the mediums.
@@ -73,20 +69,29 @@ Build before every step: `mvn install -DskipTests` in `marginalia/` (the plugin 
 - Register the inherited settings in `onExtensionLoad` (single prompt, group prompt, medium, AI, protocol; `userValue` from the
   settings, `fallback` the built-in text) and `unregisterAll` in `onExtensionUnload`.
 - `BetaReadersLocalization` (`T.localized`, ja / zh entries) from here on, for every text added.
-- Tests: the chain for each setting through `resolveExtension` (the book, the folder, the user level, the default), a deleted AI
-  counting as not set.
+- Tests: the registration (kinds, user level, fallbacks, the choices), every text having its ja / zh entry, the library windows
+  without a browser (copy, move, starters, the editors and their name checks). The chain itself is the core's
+  (`ExtensionSettingsInheritanceTest`); a deleted AI counting as not set is the lookup of step 6.
+- Not tried in a running application yet: the panel in *Settings → Extension Settings* and the section in the dialogs of a book and
+  a folder (load the JAR and look, before step 3 builds on it).
 
-**Step 3 - the chat model and the prompt (no UI, no model call).**
-- `model`: `BetaChat` (uuid, title, kind 1v1 or group, the copies of its personas, the medium, the AI and protocol of the tab, the
-  messages), `BetaMessage` (user: text, the parts it sent, the join / leave lines; assistant: the reasoning and the list of
-  `BetaSpoken` messages with the speaker and the `BetaPart`s of type action / speech), `BetaChats` (the chats of a book).
-- `@LLMSchema` records for the reply (`reasoning`, `messages`, `speaker`, `parts`) and `BetaSchemas` that builds it per request:
-  the `speaker` enum is the personas present plus `Narrator`, `maxItems`, the `reasoning` field only for a model without
-  native reasoning.
-- `PromptBuilder`: the system prompt (the prompt and the medium rendered as a template), the history (the replies sent back as the
-  JSON they were, or as free text), the last user message (the text, the new parts, the roster of the personas), the token budget.
-- Tests (plain JUnit, no model): the prompt for a 1v1 and a group chat, the roster only in the last message, the roster changing when
-  a persona joins or leaves, the schema's speaker enum, the budget.
+**Step 3 - the chat model and the prompt, no UI, no model call (done).**
+- `model`: `BetaChat` (uuid, title, `ChatKind` 1v1 or group, `ReplyFormat` auto / JSON / text, the personas as `ChatPersona` copies with a
+  `present` flag so a persona that left keeps its copy, the medium, the AI and protocol of the tab, the messages), `BetaMessage` (kind
+  USER / ASSISTANT / JOIN / LEAVE; user: the text, the "new stuff" block as it was sent, the `SentPart`s; assistant: the reasoning and the
+  list of `BetaSpoken` with their `BetaPart`s of type action / speech, or the raw text of a reply that could not be read). The chats are
+  in `BookData`, there is no separate `BetaChats`.
+- `Reply` (record, `@LLMSchema`) is the schema of one turn and `BetaSchemas.replySchema(speakers, maxMessages, withReasoning)` builds it per
+  request: the `speaker` enum is the personas present plus `Narrator`, `maxItems`, the `reasoning` field only for a model without native
+  reasoning, no `allOf` around the items, the part types in lower case.
+- `PromptBuilder.build(chat, renderedSystemPrompt, options)`: the system message is the prompt and "How to answer" (JSON or text), the
+  history (replies sent back as the JSON or the text they were, the join / leave lines and the next user message as one message), the
+  roster added to the last user message only (a message of its own when the history ends with a reply), and the token limit (the oldest
+  messages are dropped, the last one stays). `TextFormat` renders messages as `**Name:** *action* speech`; reading it is step 5.
+  `BetaReadersService.renderPrompt(template, medium)` renders the prompt as a template (`BetaReadersTemplateData`: `{{medium}}`).
+- Tests (`PromptBuilderTest`, `BetaSchemasTest`, `TextFormatTest`, the chat round trip in `BetaReadersStoreTest`): the roster only in the
+  last message and not stored, the prefix not changing when a persona joins, joining and leaving lines, 1v1, JSON and text history, the
+  schema validating a good answer and refusing a speaker that is not present, too many messages and a reasoning it does not have, the limit.
 
 **Step 4 - which parts are sent.**
 - `PartsTracker`: the parts of the active branch with a hash of their text, what the messages of the chat have sent, the difference
@@ -126,9 +131,9 @@ below ticked.
 
 ## Settings
 
-- [ ] User settings panel of the plugin (*Settings → Extension Settings*): the single-persona prompt, the group prompt, the default
+- [x] User settings panel of the plugin (*Settings → Extension Settings*): the single-persona prompt, the group prompt, the default
   medium, the persona library.
-- [ ] Inherited settings (`InheritedSettingRegistry`): single-persona prompt, group prompt, medium (a choice), the AI and the
+- [x] Inherited settings (`InheritedSettingRegistry`): single-persona prompt, group prompt, medium (a choice), the AI and the
   protocol (two choices listing the AIs and the protocols of the user, stored by uuid; an AI or protocol that is gone counts as not
   set and the book's is used); `userValue` from the settings panel, `fallback` the built-in default.
 - [ ] Medium: what the text stands for (book, movie, TV series, manga/comic, audio drama, stage play, game / visual novel...). Each
@@ -137,15 +142,15 @@ below ticked.
 
 ## Personas
 
-- [ ] Persona: name, icon, description (the name and the title, like "Athena - The Analytical Archivist", are part of the name and
-  the description).
+- [x] Persona: name, icon, description (the name and the title, like "Athena - The Analytical Archivist", are part of the name and
+  the description). Without an icon: a circle with the first letters of the name, as the `TabDock` tabs have.
 - [ ] A chat stores a copy of its personas; *Update from the library* in the chat (optional) takes the current definition.
-- [ ] Storage of the library (user settings) and of book-local personas (attributes of the book).
-- [ ] Editor: create, edit, copy, delete, reorder personas.
-- [ ] Ready-made starter personas the user can copy.
+- [x] Storage of the library (user settings) and of book-local personas (attributes of the book).
+- [x] Editor: create, edit, copy, delete, reorder personas.
+- [x] Ready-made starter personas the user can copy (the library starts with six; *Add the starter personas* adds the missing ones).
 - [ ] Generate a persona from a short description with the model.
-- [ ] Global per user + create persona in book
-- [ ] Small icon (saved as same as character-tracker)
+- [ ] Global per user (done, the library) + create persona in book (the same window with the book as its list, step 7a)
+- [x] Small icon (saved as same as character-tracker; uploading it is the persona dialog of step 2)
 
 ## Chat
 
@@ -166,12 +171,12 @@ below ticked.
 - [ ] History of the conversations, saved with the book; clear and delete.
 - [ ] Token budget of the context, shown to the user.
 - [ ] Option to use json schema or freefall
-- [ ] Json schema output. Preliminary structure (the `speaker` is restricted to the names present plus `Narrator`, built per request):
+- [x] Json schema output. Preliminary structure (the `speaker` is restricted to the names present plus `Narrator`, built per request):
   `{"reasoning": "...", "messages": [{"speaker": "Athena", "parts": [{"type": "action" | "speech", "text": "..."}]}, ...]}`
   - the narrator describes the scene, the personas speak and act (body expressions), the parts of a message are interleaved.
 - [ ] Reading a reply while it streams (`PartialJson`): show the messages that are finished, hide the one being written, ignore the
   rest of a broken reply but keep what was read; a reply that is not JSON at all is shown as text.
-- [ ] The roster in the last user message (not saved): names and descriptions of the personas present, and who may speak.
+- [x] The roster in the last user message (not saved): names and descriptions of the personas present, and who may speak.
 - [ ] Prompt should encourage interaction between personas
 - [ ] A group chat is an interleaved chat between the defined personas, a 1v1 chat is a chat with the one persona (the 1v1 prompt).
 - [ ] If the user adds / removes a persona (group chat only), it is done via a special button interaction that prompts the user for a

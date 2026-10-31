@@ -1,0 +1,24 @@
+/* Beta Readers: the icon of a persona (an image or a circle with letters) in the lists and in the editor */
+.beta-readers-icon {
+    display: block;
+    flex: none;
+    width: var(--lumo-size-s);
+    height: var(--lumo-size-s);
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.beta-readers-icon-large {
+    display: block;
+    flex: none;
+    width: var(--lumo-size-xl);
+    height: var(--lumo-size-xl);
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* The line under a field of the settings that says what the field is for */
+.beta-readers-hint {
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-s);
+}
