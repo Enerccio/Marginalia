@@ -33,13 +33,13 @@ class ChatEditsTest {
     void aMessageOfTheUserCanBeEdited() {
         BetaChat chat = group();
         BetaMessage message = BetaMessage.user("Old");
-        message.setContext("[New: part 1]");
+        message.getSentParts().add(new SentPart("p1", 1));
         chat.getMessages().add(message);
 
         ChatEdits.edit(chat, message.getId(), "  New text  ");
 
         assertEquals("New text", message.getText());
-        assertEquals("[New: part 1]", message.getContext());
+        assertEquals(1, message.getSentParts().size());
     }
 
     @Test
@@ -59,7 +59,7 @@ class ChatEditsTest {
     void aMessageThatSentPartsMayBeEditedToNothingAsTheTextIsNotAllItSends() {
         BetaChat chat = group();
         BetaMessage message = BetaMessage.user("Old");
-        message.setContext("[New: part 1]");
+        message.getSentParts().add(new SentPart("p1", 1));
         chat.getMessages().add(message);
 
         ChatEdits.edit(chat, message.getId(), "");
@@ -137,14 +137,13 @@ class ChatEditsTest {
         BetaChat chat = group();
         BetaMessage user = BetaMessage.user("Hi");
         List<StoryPart> story = List.of(new StoryPart("p1", 1, "A"));
-        PartsTracker.Plan plan = PartsTracker.plan(chat, story, PartsTracker.Summaries.NONE, 0, 0, null);
-        user.setSentParts(new java.util.ArrayList<>(plan.sent()));
+        user.setSentParts(new java.util.ArrayList<>(PartsTracker.unreleased(chat, story, 0, 0)));
         chat.getMessages().add(user);
         chat.getMessages().add(turn("Athena"));
 
         ChatEdits.dropLastReply(chat);
 
-        assertFalse(PartsTracker.status(chat, story, 0).pending());
+        assertFalse(PartsTracker.status(chat, story, 0, 0).pending());
     }
 
     @Test

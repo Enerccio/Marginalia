@@ -3,8 +3,9 @@ package com.github.enerccio.marginalia.extensions.betareaders;
 import com.github.enerccio.marginalia.extensions.betareaders.model.BetaChat;
 import com.github.enerccio.marginalia.extensions.betareaders.model.BetaMessage;
 import com.github.enerccio.marginalia.extensions.betareaders.model.ChatKind;
+import com.github.enerccio.marginalia.extensions.betareaders.model.SentPart;
 import com.github.enerccio.marginalia.extensions.betareaders.service.PartsTracker;
-import com.github.enerccio.marginalia.extensions.betareaders.service.PartsTracker.Plan;
+import com.github.enerccio.marginalia.extensions.betareaders.service.PartsTracker.Block;
 import com.github.enerccio.marginalia.extensions.betareaders.service.PartsTracker.Status;
 import com.github.enerccio.marginalia.extensions.betareaders.service.PartsTracker.StoryPart;
 import com.github.enerccio.marginalia.extensions.betareaders.service.PartsTracker.Summaries;
@@ -17,8 +18,8 @@ import java.util.function.ToIntFunction;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * What the personas have read: the context of the first message, the parts that are new or changed, a branch that was switched, the
- * spoiler limit, and what a deleted message gives back.
+ * What the personas were given and the story they read: built from the story as it is now, from the parts they were given, within
+ * the spoiler limit and the first part, with the summaries in place of the oldest parts.
  */
 class PartsTrackerTest {
 
@@ -36,177 +37,135 @@ class PartsTrackerTest {
         return new BetaChat("Chat", ChatKind.GROUP);
     }
 
-    /** Sends what the plan says, as the message that stores it does. */
-    private static BetaMessage send(BetaChat chat, Plan plan, String text) {
+    /** A message that includes the latest parts: it gives the chat what it was not given. */
+    private static BetaMessage give(BetaChat chat, List<StoryPart> branch, String text) {
+        return give(chat, branch, 0, 0, text);
+    }
+
+    private static BetaMessage give(BetaChat chat, List<StoryPart> branch, int min, int max, String text) {
         BetaMessage message = BetaMessage.user(text);
-        message.setContext(plan.text());
-        message.setSentParts(new ArrayList<>(plan.sent()));
-        message.setGoneParts(new ArrayList<>(plan.gone()));
+        message.setSentParts(new ArrayList<>(PartsTracker.unreleased(chat, branch, min, max)));
         chat.getMessages().add(message);
         return message;
     }
 
-    private static Plan plan(BetaChat chat, List<StoryPart> branch) {
-        return PartsTracker.plan(chat, branch, Summaries.NONE, 0, 0, TOKENS);
+    private static Block read(BetaChat chat, List<StoryPart> branch) {
+        return PartsTracker.story(chat, branch, Summaries.NONE, 0, 0, 0, TOKENS);
     }
 
     @Test
-    void theFirstMessageSendsTheWholeStory() {
-        BetaChat chat = chat();
-        List<StoryPart> story = story("He came in.", "She left.");
-
-        Status status = PartsTracker.status(chat, story, 0);
-        Plan plan = plan(chat, story);
-
-        assertTrue(status.first());
-        assertEquals(2, status.count());
-        assertTrue(plan.first());
-        assertEquals("[The story the author shows you]\n[Part 1]\nHe came in.\n[Part 2]\nShe left.", plan.text());
-        assertEquals(2, plan.included());
-        assertEquals(0, plan.omitted());
-        assertEquals(List.of("p1", "p2"), plan.sent().stream().map(part -> part.getId()).toList());
-        assertEquals(2, plan.sent().get(1).getNumber());
-    }
-
-    @Test
-    void anEmptyStorySendsNothing() {
-        assertTrue(plan(chat(), story()).isEmpty());
-        assertTrue(plan(chat(), story("  ", "")).isEmpty());
-    }
-
-    @Test
-    void nothingIsNewRightAfterSending() {
-        BetaChat chat = chat();
-        List<StoryPart> story = story("A", "B");
-        send(chat, plan(chat, story), "Hi");
-
-        Status status = PartsTracker.status(chat, story, 0);
-
-        assertFalse(status.first());
-        assertFalse(status.pending());
-        assertTrue(plan(chat, story).isEmpty());
-    }
-
-    @Test
-    void aNewPartIsSentAsNewStuff() {
-        BetaChat chat = chat();
-        send(chat, plan(chat, story("A", "B")), "Hi");
-        List<StoryPart> longer = story("A", "B", "C", "D");
-
-        Status status = PartsTracker.status(chat, longer, 0);
-        Plan plan = plan(chat, longer);
-
-        assertEquals(2, status.added());
-        assertEquals(0, status.changed());
-        assertFalse(plan.first());
-        assertEquals("[New in the story since you last read it]\n[Part 3]\nC\n[Part 4]\nD", plan.text());
-        assertEquals(List.of("p3", "p4"), plan.sent().stream().map(part -> part.getId()).toList());
-    }
-
-    @Test
-    void aChangedPartIsSentAgainAndSaysSo() {
-        BetaChat chat = chat();
-        send(chat, plan(chat, story("A", "B")), "Hi");
-        List<StoryPart> edited = story("A", "B edited");
-
-        Status status = PartsTracker.status(chat, edited, 0);
-        Plan plan = plan(chat, edited);
-
-        assertEquals(1, status.changed());
-        assertEquals(0, status.added());
-        assertEquals("[New in the story since you last read it]\n[Part 2 (changed since you read it)]\nB edited", plan.text());
-    }
-
-    @Test
-    void whatWasSentTwiceIsSentOnce() {
-        BetaChat chat = chat();
-        send(chat, plan(chat, story("A")), "Hi");
-        List<StoryPart> edited = story("A edited");
-        send(chat, plan(chat, edited), "Again");
-
-        assertFalse(PartsTracker.status(chat, edited, 0).pending());
-    }
-
-    @Test
-    void aMessageThatSentNothingKeepsTheFirstMessageForLater() {
+    void aChatThatWasGivenNothingReadsNothing() {
         BetaChat chat = chat();
         chat.getMessages().add(BetaMessage.user("Just a question, no parts"));
 
-        assertTrue(PartsTracker.status(chat, story("A"), 0).first());
-        assertTrue(plan(chat, story("A")).first());
+        Status status = PartsTracker.status(chat, story("A"), 0, 0);
+
+        assertTrue(status.first());
+        assertEquals(1, status.count());
+        assertTrue(read(chat, story("A")).isEmpty());
     }
 
     @Test
-    void deletingTheMessageGivesItsPartsBack() {
+    void includingThePartsGivesTheWholeStory() {
         BetaChat chat = chat();
-        send(chat, plan(chat, story("A", "B")), "Hi");
-        BetaMessage second = send(chat, plan(chat, story("A", "B", "C")), "More");
-        assertFalse(PartsTracker.status(chat, story("A", "B", "C"), 0).pending());
+        List<StoryPart> story = story("He came in.", "She left.");
+
+        BetaMessage message = give(chat, story, "Hi");
+
+        assertEquals(List.of("p1", "p2"), message.getSentParts().stream().map(SentPart::getId).toList());
+        assertEquals(2, message.getSentParts().get(1).getNumber());
+        Block block = read(chat, story);
+        assertEquals("[The story the author shows you]\n[Part 1]\nHe came in.\n[Part 2]\nShe left.", block.text());
+        assertEquals(2, block.included());
+        assertEquals(0, block.omitted());
+        Status status = PartsTracker.status(chat, story, 0, 0);
+        assertFalse(status.first());
+        assertFalse(status.pending());
+    }
+
+    @Test
+    void anEmptyStoryGivesNothing() {
+        assertTrue(PartsTracker.unreleased(chat(), story(), 0, 0).isEmpty());
+        assertTrue(PartsTracker.unreleased(chat(), story("  ", ""), 0, 0).isEmpty());
+    }
+
+    @Test
+    void aNewPartIsNotReadUntilItIsIncluded() {
+        BetaChat chat = chat();
+        give(chat, story("A", "B"), "Hi");
+        List<StoryPart> longer = story("A", "B", "C", "D");
+
+        Status status = PartsTracker.status(chat, longer, 0, 0);
+
+        assertEquals(2, status.added());
+        // the author can wait: the personas read what they were given
+        assertEquals("[The story the author shows you]\n[Part 1]\nA\n[Part 2]\nB", read(chat, longer).text());
+
+        give(chat, longer, "More");
+
+        assertEquals("[The story the author shows you]\n[Part 1]\nA\n[Part 2]\nB\n[Part 3]\nC\n[Part 4]\nD", read(chat, longer).text());
+        assertFalse(PartsTracker.status(chat, longer, 0, 0).pending());
+    }
+
+    @Test
+    void anEditedPartIsReadAsItIsNow() {
+        BetaChat chat = chat();
+        give(chat, story("A", "B"), "Hi");
+        List<StoryPart> edited = story("A", "B edited");
+
+        // nothing to include: the edit is simply the story now, once
+        assertFalse(PartsTracker.status(chat, edited, 0, 0).pending());
+        assertEquals("[The story the author shows you]\n[Part 1]\nA\n[Part 2]\nB edited", read(chat, edited).text());
+    }
+
+    @Test
+    void aPartThatIsGoneFromTheBranchIsNotRead() {
+        BetaChat chat = chat();
+        give(chat, story("A", "B", "C"), "Hi");
+
+        assertEquals("[The story the author shows you]\n[Part 1]\nA", read(chat, story("A")).text());
+    }
+
+    @Test
+    void aSwitchedBranchIsReadFromWhatWasGiven() {
+        BetaChat chat = chat();
+        give(chat, story("A", "B", "C"), "Hi");
+        List<StoryPart> other = List.of(new StoryPart("p1", 1, "A"), new StoryPart("q2", 2, "B2"), new StoryPart("q3", 3, "C2"));
+
+        // the parts of the other branch were not given
+        assertEquals(2, PartsTracker.status(chat, other, 0, 0).added());
+        assertEquals("[The story the author shows you]\n[Part 1]\nA", read(chat, other).text());
+
+        give(chat, other, "Other branch");
+
+        assertEquals("[The story the author shows you]\n[Part 1]\nA\n[Part 2]\nB2\n[Part 3]\nC2", read(chat, other).text());
+        // and back: what was given stays given
+        assertEquals("[The story the author shows you]\n[Part 1]\nA\n[Part 2]\nB\n[Part 3]\nC",
+                read(chat, story("A", "B", "C")).text());
+    }
+
+    @Test
+    void deletingTheMessageTakesItsPartsBack() {
+        BetaChat chat = chat();
+        give(chat, story("A", "B"), "Hi");
+        BetaMessage second = give(chat, story("A", "B", "C"), "More");
+        assertFalse(PartsTracker.status(chat, story("A", "B", "C"), 0, 0).pending());
 
         chat.getMessages().remove(second);
 
-        Status status = PartsTracker.status(chat, story("A", "B", "C"), 0);
-        assertEquals(1, status.added());
-        assertTrue(plan(chat, story("A", "B", "C")).text().contains("[Part 3]\nC"));
+        assertEquals(1, PartsTracker.status(chat, story("A", "B", "C"), 0, 0).added());
+        assertEquals("[The story the author shows you]\n[Part 1]\nA\n[Part 2]\nB", read(chat, story("A", "B", "C")).text());
     }
 
     @Test
-    void deletingTheFirstMessageMakesTheNextOneTheFirstAgain() {
+    void deletingTheFirstMessageMakesTheChatReadNothingAgain() {
         BetaChat chat = chat();
-        BetaMessage first = send(chat, plan(chat, story("A")), "Hi");
+        BetaMessage first = give(chat, story("A"), "Hi");
 
         chat.getMessages().remove(first);
 
-        assertTrue(PartsTracker.status(chat, story("A"), 0).first());
-    }
-
-    @Test
-    void aSwitchedBranchReportsTheGonePartsOnce() {
-        BetaChat chat = chat();
-        List<StoryPart> original = story("A", "B", "C");
-        send(chat, plan(chat, original), "Hi");
-        List<StoryPart> other = List.of(new StoryPart("p1", 1, "A"), new StoryPart("q2", 2, "B2"), new StoryPart("q3", 3, "C2"));
-
-        Status status = PartsTracker.status(chat, other, 0);
-        Plan plan = plan(chat, other);
-
-        assertEquals(2, status.added());
-        assertEquals(2, status.gone());
-        assertEquals(List.of("p2", "p3"), plan.gone());
-        assertTrue(plan.text().contains("(The story was changed: the parts 2-3 you read are not there any more. What follows replaces them.)"));
-        assertTrue(plan.text().contains("[Part 2]\nB2"));
-        assertTrue(plan.text().contains("[Part 3]\nC2"));
-
-        send(chat, plan, "Other branch");
-
-        assertFalse(PartsTracker.status(chat, other, 0).pending());
-        assertTrue(plan(chat, other).isEmpty());
-    }
-
-    @Test
-    void goingBackToTheFirstBranchSendsItsPartsAgain() {
-        BetaChat chat = chat();
-        List<StoryPart> original = story("A", "B");
-        List<StoryPart> other = List.of(new StoryPart("p1", 1, "A"), new StoryPart("q2", 2, "B2"));
-        send(chat, plan(chat, original), "Hi");
-        send(chat, plan(chat, other), "Other");
-
-        Plan back = plan(chat, original);
-
-        assertEquals(List.of("q2"), back.gone());
-        assertTrue(back.text().contains("[Part 2]\nB"));
-    }
-
-    @Test
-    void aPartThatWasOnlyRemovedIsGoneWithoutNewStuff() {
-        BetaChat chat = chat();
-        send(chat, plan(chat, story("A", "B")), "Hi");
-
-        Plan plan = plan(chat, story("A"));
-
-        assertEquals("[New in the story since you last read it]\n(The story was changed: the part 2 you read is not there any more.)",
-                plan.text());
-        assertEquals(List.of("p2"), plan.gone());
+        assertTrue(PartsTracker.status(chat, story("A"), 0, 0).first());
+        assertTrue(read(chat, story("A")).isEmpty());
     }
 
     @Test
@@ -214,104 +173,171 @@ class PartsTrackerTest {
         BetaChat chat = chat();
         List<StoryPart> story = story("A", "B", "C", "D");
 
-        Plan first = PartsTracker.plan(chat, story, Summaries.NONE, 2, 0, TOKENS);
+        give(chat, story, 0, 2, "Hi");
 
-        assertEquals("[The story the author shows you]\n[Part 1]\nA\n[Part 2]\nB", first.text());
-        assertEquals(2, PartsTracker.status(chat, story, 2).count());
-
-        send(chat, first, "Hi");
-
-        assertFalse(PartsTracker.status(chat, story, 2).pending());
-        Plan wider = PartsTracker.plan(chat, story, Summaries.NONE, 3, 0, TOKENS);
-        assertEquals("[New in the story since you last read it]\n[Part 3]\nC", wider.text());
-        // a part beyond the limit that was sent earlier is not gone: it is still in the story
-        assertEquals(0, PartsTracker.status(chat, story, 1).gone());
+        assertEquals("[The story the author shows you]\n[Part 1]\nA\n[Part 2]\nB",
+                PartsTracker.story(chat, story, Summaries.NONE, 0, 2, 0, TOKENS).text());
+        assertFalse(PartsTracker.status(chat, story, 0, 2).pending());
+        assertEquals(2, PartsTracker.status(chat, story, 0, 4).added());
     }
 
     @Test
-    void theFirstMessageSendsTheSummariesAndThePartsAfterTheNewest() {
+    void aLowerSpoilerLimitTakesTheLaterPartsOutOfWhatIsRead() {
         BetaChat chat = chat();
         List<StoryPart> story = story("A", "B", "C", "D");
+        give(chat, story, "Hi");
+
+        // they were given all four, they read two: no resend, the story is simply built from the limit
+        assertEquals("[The story the author shows you]\n[Part 1]\nA\n[Part 2]\nB",
+                PartsTracker.story(chat, story, Summaries.NONE, 0, 2, 0, TOKENS).text());
+        // raised again: what they were given is read again
+        assertEquals(4, PartsTracker.story(chat, story, Summaries.NONE, 0, 0, 0, TOKENS).included());
+    }
+
+    @Test
+    void thePersonasStartFromAPartAndNothingBeforeItIsRead() {
+        BetaChat chat = chat();
+        List<StoryPart> story = story("A", "B", "C", "D");
+
+        BetaMessage message = give(chat, story, 3, 0, "Hi");
+
+        assertEquals(List.of("p3", "p4"), message.getSentParts().stream().map(SentPart::getId).toList());
+        assertEquals(2, PartsTracker.status(chat(), story, 3, 0).count());
+        assertEquals("[The story the author shows you]\n[Part 3]\nC\n[Part 4]\nD",
+                PartsTracker.story(chat, story, Summaries.NONE, 3, 0, 0, TOKENS).text());
+        // a first part chosen later hides the parts before it from a chat that was given them
+        BetaChat wide = chat();
+        give(wide, story, "Hi");
+        assertEquals("[The story the author shows you]\n[Part 3]\nC\n[Part 4]\nD",
+                PartsTracker.story(wide, story, Summaries.NONE, 3, 0, 0, TOKENS).text());
+    }
+
+    @Test
+    void theRangeHasTwoEnds() {
+        BetaChat chat = chat();
+        List<StoryPart> story = story("A", "B", "C", "D", "E");
+        give(chat, story, 2, 4, "Hi");
+
+        assertEquals("[The story the author shows you]\n[Part 2]\nB\n[Part 3]\nC\n[Part 4]\nD",
+                PartsTracker.story(chat, story, Summaries.NONE, 2, 4, 0, TOKENS).text());
+        assertEquals(1, PartsTracker.status(chat, story, 2, 5).added());
+    }
+
+    @Test
+    void theSummariesStandForTheOldestParts() {
+        BetaChat chat = chat();
+        List<StoryPart> story = story("A", "B", "C", "D");
+        give(chat, story, "Hi");
         Summaries summaries = new Summaries(List.of("Summary one.", "Summary two."), "p2");
 
-        Plan plan = PartsTracker.plan(chat, story, summaries, 0, 0, TOKENS);
+        Block block = PartsTracker.story(chat, story, summaries, 0, 0, 0, TOKENS);
 
         assertEquals("[The story the author shows you]\nSummaries of the story so far:\nSummary one.\n\nSummary two."
-                + "\n[Part 3]\nC\n[Part 4]\nD", plan.text());
-        assertEquals(2, plan.included());
-        // the parts the summaries stand for count as sent, so they are not new in the next message
-        assertEquals(4, plan.sent().size());
-        send(chat, plan, "Hi");
-        assertFalse(PartsTracker.status(chat, story, 0).pending());
+                + "\n[Part 3]\nC\n[Part 4]\nD", block.text());
+        assertEquals(2, block.included());
+        // the story is built again from what is there: no summaries, the parts
+        assertEquals(4, read(chat, story).included());
     }
 
     @Test
-    void aSummaryThatEndsBeyondTheLimitIsNotUsed() {
-        Plan plan = PartsTracker.plan(chat(), story("A", "B", "C"), new Summaries(List.of("Summary."), "p3"), 2, 0, TOKENS);
-
-        assertEquals("[The story the author shows you]\n[Part 1]\nA\n[Part 2]\nB", plan.text());
-    }
-
-    @Test
-    void anEditedPartInsideTheSummariesIsSentAsChanged() {
+    void aSummaryMadeLaterIsUsedByAChatThatWasGivenThePartsBefore() {
         BetaChat chat = chat();
-        Summaries summaries = new Summaries(List.of("Summary."), "p2");
-        send(chat, PartsTracker.plan(chat, story("A", "B", "C"), summaries, 0, 0, TOKENS), "Hi");
+        List<StoryPart> story = story("A", "B", "C");
+        give(chat, story, "Hi");
 
-        Plan plan = plan(chat, story("A edited", "B", "C"));
+        assertTrue(read(chat, story).text().contains("[Part 1]\nA"));
 
-        assertEquals("[New in the story since you last read it]\n[Part 1 (changed since you read it)]\nA edited", plan.text());
+        Block later = PartsTracker.story(chat, story, new Summaries(List.of("Summary."), "p2"), 0, 0, 0, TOKENS);
+
+        assertEquals("[The story the author shows you]\nSummaries of the story so far:\nSummary.\n[Part 3]\nC", later.text());
     }
 
     @Test
-    void whatDoesNotFitTheBudgetIsLeftOutOldestFirstButCountsAsSent() {
+    void aSummaryThatEndsBeyondTheLimitOrWhatWasGivenIsNotUsed() {
+        BetaChat chat = chat();
+        List<StoryPart> story = story("A", "B", "C");
+        give(chat, story, 0, 2, "Hi");
+
+        Block block = PartsTracker.story(chat, story, new Summaries(List.of("Summary."), "p3"), 0, 2, 0, TOKENS);
+
+        assertEquals("[The story the author shows you]\n[Part 1]\nA\n[Part 2]\nB", block.text());
+    }
+
+    @Test
+    void theSummariesAreNotUsedWhenTheStoryDoesNotStartAtTheBeginning() {
+        BetaChat chat = chat();
+        List<StoryPart> story = story("A", "B", "C", "D", "E");
+        give(chat, story, 3, 4, "Hi");
+        Summaries summaries = new Summaries(List.of("Summary."), "p2");
+
+        assertEquals("[The story the author shows you]\n[Part 3]\nC\n[Part 4]\nD",
+                PartsTracker.story(chat, story, summaries, 3, 4, 0, TOKENS).text());
+
+        BetaChat fromStart = chat();
+        give(fromStart, story, 1, 4, "Hi");
+        assertEquals("[The story the author shows you]\nSummaries of the story so far:\nSummary.\n[Part 3]\nC\n[Part 4]\nD",
+                PartsTracker.story(fromStart, story, summaries, 1, 4, 0, TOKENS).text());
+    }
+
+    @Test
+    void whatDoesNotFitTheBudgetIsLeftOutOldestFirstAndSaidSo() {
         BetaChat chat = chat();
         String text = "x".repeat(400);
         List<StoryPart> story = story(text, text, text, text);
+        give(chat, story, "Hi");
 
         // a part is about 100 tokens plus the label: room for two
-        Plan plan = PartsTracker.plan(chat, story, Summaries.NONE, 0, 250, TOKENS);
+        Block block = PartsTracker.story(chat, story, Summaries.NONE, 0, 0, 250, TOKENS);
 
-        assertEquals(2, plan.included());
-        assertEquals(2, plan.omitted());
-        assertTrue(plan.text().contains("[Part 3]"));
-        assertTrue(plan.text().contains("[Part 4]"));
-        assertFalse(plan.text().contains("[Part 2]"));
-        assertEquals(4, plan.sent().size());
+        assertEquals(2, block.included());
+        assertEquals(2, block.omitted());
+        assertTrue(block.text().contains("(The 2 parts before the part 3 did not fit and are left out.)"));
+        assertTrue(block.text().contains("[Part 3]"));
+        assertTrue(block.text().contains("[Part 4]"));
+        assertFalse(block.text().contains("[Part 2]"));
     }
 
     @Test
     void theSummariesTakeTheirTokensFromTheBudget() {
+        BetaChat chat = chat();
         String text = "x".repeat(400);
+        List<StoryPart> story = story(text, text, text);
+        give(chat, story, "Hi");
         Summaries summaries = new Summaries(List.of("s".repeat(400)), "p1");
 
-        Plan plan = PartsTracker.plan(chat(), story(text, text, text), summaries, 0, 250, TOKENS);
+        Block block = PartsTracker.story(chat, story, summaries, 0, 0, 250, TOKENS);
 
         // the summary uses 100 tokens: of the 150 left one part fits
-        assertEquals(1, plan.included());
-        assertEquals(1, plan.omitted());
-        assertTrue(plan.text().contains("[Part 3]"));
+        assertEquals(1, block.included());
+        assertEquals(1, block.omitted());
+        assertTrue(block.text().contains("[Part 3]"));
     }
 
     @Test
-    void newPartsAreAlsoLimitedByTheBudget() {
+    void aBudgetTheSummariesUseUpLeavesNoPartRatherThanAllOfThem() {
         BetaChat chat = chat();
-        send(chat, plan(chat, story("A")), "Hi");
         String text = "x".repeat(400);
+        List<StoryPart> story = story(text, text, text);
+        give(chat, story, "Hi");
+        Summaries summaries = new Summaries(List.of("s".repeat(400)), "p1");
 
-        Plan plan = PartsTracker.plan(chat, story("A", text, text, text), Summaries.NONE, 0, 150, TOKENS);
+        Block block = PartsTracker.story(chat, story, summaries, 0, 0, 100, TOKENS);
 
-        assertEquals(1, plan.included());
-        assertEquals(2, plan.omitted());
-        assertTrue(plan.text().contains("[Part 4]"));
-        assertEquals(3, plan.sent().size());
+        assertEquals(0, block.included());
+        assertEquals(2, block.omitted());
     }
 
     @Test
-    void theHashFollowsTheText() {
-        assertEquals(PartsTracker.hash("same"), PartsTracker.hash("same"));
-        assertNotEquals(PartsTracker.hash("same"), PartsTracker.hash("other"));
-        assertEquals(16, PartsTracker.hash("x").length());
+    void whatTheChatWasGivenIsWrittenAsRanges() {
+        BetaChat chat = chat();
+        assertEquals("", PartsTracker.read(chat));
+        BetaMessage message = BetaMessage.user("x");
+        message.getSentParts().add(new SentPart("p1", 1));
+        message.getSentParts().add(new SentPart("p2", 2));
+        message.getSentParts().add(new SentPart("p5", 5));
+        chat.getMessages().add(message);
+
+        assertEquals("1-2, 5", PartsTracker.read(chat));
     }
 
     @Test
@@ -320,59 +346,5 @@ class PartsTrackerTest {
         assertEquals("7", PartsTracker.ranges(List.of(7)));
         assertEquals("1-2, 4-5, 9", PartsTracker.ranges(List.of(1, 2, 4, 5, 9)));
         assertEquals("", PartsTracker.ranges(List.of()));
-    }
-
-    @Test
-    void thePersonasStartFromAPartAndNothingBeforeItIsSent() {
-        BetaChat chat = chat();
-        List<StoryPart> story = story("A", "B", "C", "D");
-
-        Plan first = PartsTracker.plan(chat, story, Summaries.NONE, 3, 0, 0, TOKENS);
-
-        assertEquals("[The story the author shows you]\n[Part 3]\nC\n[Part 4]\nD", first.text());
-        assertEquals(List.of("p3", "p4"), first.sent().stream().map(part -> part.getId()).toList());
-        assertEquals(2, PartsTracker.status(chat, story, 3, 0).count());
-        assertEquals(0, PartsTracker.status(chat, story, 3, 0).gone());
-    }
-
-    @Test
-    void theRangeHasTwoEndsAndTheSummariesAreNotUsedWhenTheStoryDoesNotStartAtTheBeginning() {
-        List<StoryPart> story = story("A", "B", "C", "D", "E");
-        Summaries summaries = new Summaries(List.of("Summary."), "p2");
-
-        Plan fromThree = PartsTracker.plan(chat(), story, summaries, 3, 4, 0, TOKENS);
-        Plan fromStart = PartsTracker.plan(chat(), story, summaries, 1, 4, 0, TOKENS);
-
-        assertEquals("[The story the author shows you]\n[Part 3]\nC\n[Part 4]\nD", fromThree.text());
-        assertEquals("[The story the author shows you]\nSummaries of the story so far:\nSummary.\n[Part 3]\nC\n[Part 4]\nD", fromStart.text());
-    }
-
-    @Test
-    void widerRangesSendWhatIsNewInIt() {
-        BetaChat chat = chat();
-        List<StoryPart> story = story("A", "B", "C", "D");
-        send(chat, PartsTracker.plan(chat, story, Summaries.NONE, 2, 3, 0, TOKENS), "Hi");
-
-        Plan wider = PartsTracker.plan(chat, story, Summaries.NONE, 2, 4, 0, TOKENS);
-
-        assertEquals("[New in the story since you last read it]\n[Part 4]\nD", wider.text());
-    }
-
-    @Test
-    void whatTheChatHasReadIsWrittenAsRanges() {
-        BetaChat chat = chat();
-        assertEquals("", PartsTracker.read(chat));
-
-        send(chat, plan(chat, story("A", "B", "C", "D", "E")), "Hi");
-        chat.getMessages().clear();
-        List<StoryPart> gapped = story("A", "B", "C", "D", "E");
-        BetaMessage message = BetaMessage.user("x");
-        message.getSentParts().add(new com.github.enerccio.marginalia.extensions.betareaders.model.SentPart("p1", "h", 1));
-        message.getSentParts().add(new com.github.enerccio.marginalia.extensions.betareaders.model.SentPart("p2", "h", 2));
-        message.getSentParts().add(new com.github.enerccio.marginalia.extensions.betareaders.model.SentPart("p5", "h", 5));
-        chat.getMessages().add(message);
-
-        assertEquals("1-2, 5", PartsTracker.read(chat));
-        assertEquals(5, gapped.size());
     }
 }

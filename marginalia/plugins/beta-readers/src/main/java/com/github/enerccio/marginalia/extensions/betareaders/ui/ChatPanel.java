@@ -630,8 +630,7 @@ public class ChatPanel extends VerticalLayout {
         if (status.count() > 0) {
             return T.localized(INCLUDE_THE_LATEST_PARTS_NEW).formatted(status.count());
         }
-        return status.pending() ? T.localized(INCLUDE_THE_LATEST_PARTS_THE_STORY)
-                : T.localized(INCLUDE_THE_LATEST_PARTS_NONE);
+        return T.localized(INCLUDE_THE_LATEST_PARTS_NONE);
     }
 
     /** Goes to the end of the conversation and follows it from now on (the user sent something or opened the chat). */

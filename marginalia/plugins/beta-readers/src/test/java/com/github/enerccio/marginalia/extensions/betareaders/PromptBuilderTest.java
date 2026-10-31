@@ -52,8 +52,7 @@ class PromptBuilderTest {
         chat.addPersona(new Persona("Athena", "A reader."));
         chat.getMessages().add(BetaMessage.user("First"));
         BetaMessage draft = BetaMessage.user("Second, still typed");
-        draft.setContext("[Part 1] long story");
-        Options options = new Options(true, 0, 0, null);
+        Options options = new Options(true, 0, 0, null, "[Part 1] long story");
 
         Prompt now = PromptBuilder.build(chat, "P", options);
         Prompt preview = PromptBuilder.build(chat.preview(draft), "P", options);
@@ -247,15 +246,42 @@ class PromptBuilderTest {
     }
 
     @Test
-    void theNewPartsGoBeforeTheTextOfTheMessage() {
+    void theStoryGoesBeforeTheFirstMessageOfTheHistory() {
         BetaChat chat = group(athena());
-        BetaMessage message = BetaMessage.user("What do you think?");
-        message.setContext("[New: part 3]\nHe opened the door.");
-        chat.getMessages().add(message);
+        chat.getMessages().add(BetaMessage.user("What do you think?"));
 
-        String text = history(PromptBuilder.build(chat, "P", JSON)).getFirst().getContent();
+        Prompt prompt = PromptBuilder.build(chat, "P", JSON.withStory("[The story]\n[Part 3]\nHe opened the door."));
 
-        assertTrue(text.startsWith("[New: part 3]\nHe opened the door.\n\nWhat do you think?"));
+        assertTrue(history(prompt).getFirst().getContent().startsWith("[The story]\n[Part 3]\nHe opened the door.\n\nWhat do you think?"));
+        // it is in the prompt once, whatever is asked
+        assertEquals(1, prompt.messages().stream().filter(message -> message.getContent().contains("He opened the door.")).count());
+    }
+
+    @Test
+    void theStoryIsNotDroppedWithTheOldLinesOfTheHistory() {
+        BetaChat chat = group(athena());
+        for (int i = 0; i < 6; i++) {
+            chat.getMessages().add(BetaMessage.user("Question number " + i + " " + "x".repeat(200)));
+            chat.getMessages().add(reply("r", "Athena", "Answer " + i));
+        }
+        chat.getMessages().add(BetaMessage.user("The last question"));
+        Options story = new Options(true, 0, 0, null, "[The story]\n[Part 1]\nOnce upon a time.");
+        int whole = PromptBuilder.build(chat, "P", story).tokens();
+
+        Prompt trimmed = PromptBuilder.build(chat, "P", new Options(true, 0, whole / 2, null, story.story()));
+
+        assertTrue(trimmed.dropped() > 0);
+        assertTrue(history(trimmed).getFirst().getContent().startsWith("[The story]\n[Part 1]\nOnce upon a time.\n\n"));
+        assertTrue(history(trimmed).getLast().getContent().contains("The last question"));
+        assertEquals(1, trimmed.messages().stream().filter(message -> message.getContent().contains("Once upon a time.")).count());
+    }
+
+    @Test
+    void aStoryAloneIsAMessageOfTheUserWhenTheChatHasNoLines() {
+        Prompt prompt = PromptBuilder.build(group(athena()), "P", JSON.withStory("[The story]"));
+
+        assertEquals(2, prompt.messages().size());
+        assertTrue(prompt.messages().getLast().getContent().startsWith("[The story]"));
     }
 
     @Test

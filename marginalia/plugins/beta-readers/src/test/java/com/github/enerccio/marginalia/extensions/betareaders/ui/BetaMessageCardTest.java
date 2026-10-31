@@ -59,11 +59,11 @@ class BetaMessageCardTest {
     @Test
     void aMessageOfTheUserShowsTheTextAndWhichPartsItSent() {
         BetaMessage message = BetaMessage.user("What do you think?");
-        message.getSentParts().add(new SentPart("a", "h", 41));
-        message.getSentParts().add(new SentPart("b", "h", 42));
-        message.getSentParts().add(new SentPart("c", "h", 43));
-        message.getSentParts().add(new SentPart("d", "h", 50));
-        message.getSentParts().add(new SentPart("e", "h", 0));
+        message.getSentParts().add(new SentPart("a", 41));
+        message.getSentParts().add(new SentPart("b", 42));
+        message.getSentParts().add(new SentPart("c", 43));
+        message.getSentParts().add(new SentPart("d", 50));
+        message.getSentParts().add(new SentPart("e", 0));
 
         String shown = text(BetaMessageCard.create(chat(), message));
 
@@ -82,7 +82,7 @@ class BetaMessageCardTest {
     @Test
     void aMessageThatOnlySentPartsHasNoEmptyText() {
         BetaMessage message = BetaMessage.user("");
-        message.getSentParts().add(new SentPart("a", "h", 1));
+        message.getSentParts().add(new SentPart("a", 1));
 
         assertTrue(text(BetaMessageCard.create(chat(), message)).contains("Parts 1 sent"));
     }

@@ -6,8 +6,8 @@ import java.util.List;
 
 /**
  * What the user does to the history of a chat: edit a message, delete a message (or one message of a turn), take the last reply
- * back, bring a persona into a group and send it away. It changes the chat in memory; the caller stores it. What was sent of the
- * story is worked out from the messages that are left ({@link PartsTracker}), so nothing is kept in step here.
+ * back, bring a persona into a group and send it away. It changes the chat in memory; the caller stores it. What the personas were
+ * given of the story is worked out from the messages that are left ({@link PartsTracker}), so nothing is kept in step here.
  */
 public final class ChatEdits {
 
@@ -22,7 +22,7 @@ public final class ChatEdits {
     }
 
     /**
-     * Changes what the user wrote. The parts the message sent stay as they were sent.
+     * Changes what the user wrote. The parts the message gave to the personas stay given.
      *
      * @throws IllegalArgumentException when there is no such message of the user, or the text is empty
      */
@@ -31,7 +31,7 @@ public final class ChatEdits {
         if (message == null || message.getKind() != MessageKind.USER) {
             throw new IllegalArgumentException("There is no message of the user " + id);
         }
-        if (text == null || (text.isBlank() && message.getContext().isBlank())) {
+        if (text == null || (text.isBlank() && message.getSentParts().isEmpty())) {
             throw new IllegalArgumentException("The message is empty");
         }
         message.setText(text.strip());

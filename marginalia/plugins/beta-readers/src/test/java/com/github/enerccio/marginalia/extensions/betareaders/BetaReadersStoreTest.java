@@ -172,8 +172,7 @@ class BetaReadersStoreTest {
         chat.setAi("ai-uuid");
         chat.setFormat(ReplyFormat.TEXT);
         BetaMessage question = BetaMessage.user("Thoughts?");
-        question.setContext("[New: part 2]");
-        question.getSentParts().add(new SentPart("part-2", "abc", 2));
+        question.getSentParts().add(new SentPart("part-2", 2));
         chat.getMessages().add(question);
         chat.getMessages().add(BetaMessage.assistant("short", List.of(new BetaSpoken("Athena",
                 List.of(new BetaPart(PartType.ACTION, "nods"), new BetaPart(PartType.SPEECH, "Good."))))));
@@ -192,7 +191,6 @@ class BetaReadersStoreTest {
         assertNull(read.getProtocol());
         assertEquals("Athena", read.present().getFirst().getName());
         assertEquals(3, read.getMessages().size());
-        assertEquals("[New: part 2]", read.getMessages().get(0).getContext());
         assertEquals("part-2", read.getMessages().get(0).getSentParts().getFirst().getId());
         assertEquals("short", read.getMessages().get(1).getReasoning());
         BetaPart speech = read.getMessages().get(1).getSpoken().getFirst().getParts().get(1);

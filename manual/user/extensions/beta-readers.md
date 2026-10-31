@@ -88,20 +88,24 @@ persona never changes the earlier history.
 
 ### Sending the story
 
-**Include the latest parts** sends the story with your message. The first time it brings everything the chat may read (see
-[below](#how-much-of-the-story-the-personas-read)): the summaries of the story and the parts after them, as far as they fit the context of the
-model. Afterwards it sends only what is **new or changed** since the last time, marked in the request as new, so the personas can notice the
-change. The label of the box says what would be sent (*Include the story (5 parts)*, *Include the latest parts (2 new)*, *none new*, *the story
-changed*), and the button next to it checks again after you wrote something. A message of yours says which parts it sent (*Parts 1-5 sent*).
+The chat does not keep a copy of the story. It remembers which parts you **gave** to the personas, and for every request the story they read
+is built again from the story as it is now: the parts they were given, with the summaries in place of the oldest of them, as far as they
+fit the context of the model. It stands once at the start of the conversation, so there is no second copy of a part in the history. An
+edited part is read as edited, a part you deleted is not read any more, and a new summary is used from the next message on.
+
+**Include the latest parts** is what gives the personas more of the story: it adds the parts they were not given yet (see
+[below](#how-much-of-the-story-the-personas-read)). Leave it off to just chat and give them the story later. The label of the box says how
+many parts it would add (*Include the story (5 parts)*, *Include the latest parts (2 new)*, *none new*), and the button next to it checks
+again after you wrote something. A message of yours says which parts it gave (*Parts 1-5 sent*).
 
 Under the box are what the personas have read (*The personas have read: parts 1-5*) and the size of the context (*Context: 2,266 of 30,720
-tokens*): what the next message would send, that is the history, what you have typed and, when **Include the latest parts** is ticked, the parts it would bring. It changes when you tick the box or pause while typing. When the history does not fit, the oldest messages are left out of the request, not deleted, and a notice says how many.
+tokens*): what the next message would send, that is the history, what you have typed and, when **Include the latest parts** is ticked, the parts it would add. It changes when you tick the box or pause while typing. The story gets at least half of the context; when the history does not fit beside it, the oldest messages are left out of the request, not deleted, and a notice says how many.
 
 ### Changing the conversation
 
 | Button | |
 |---|---|
-| pen (your message) | Edits your message; what it sent stays sent. |
+| pen (your message) | Edits your message; the parts it gave stay given. |
 | trash | Deletes your message, or one message of a reply (the rest of the turn stays, and the model sees the turn without it). |
 | Regenerate | Drops the last reply and asks again. |
 
@@ -171,12 +175,15 @@ is added after the prompt.
 The parts are numbered from 1 as in the *Outline* tab of the story.
 
 - **Personas read up to part** is the spoiler limit: the personas never get a part after it, and the summaries are collected only from the
-  story up to it. Raise it when the story moves on, and the next message offers the parts that were held back as new ones.
+  story up to it. Raise it when the story moves on, and the next message offers the parts that were held back as new ones. Lower it and the personas stop reading the later parts at once.
 - **Start from part** leaves the earlier parts out, not even as summaries. Use it to let the personas read only one chapter.
-- **Use the summaries of the story** (on by default) lets the first message start with the summaries and then the parts after the newest of them.
-  Summaries apply only when the story starts at its beginning.
+- **Use the summaries of the story** (on by default) lets the story start with the summaries and then the parts after the newest of them,
+  which keeps a long story small. Summaries apply only when the story starts at its beginning.
 
-A first part after the last one is refused. Lowering the limit under what was already sent does not unsend it.
+A first part after the last one is refused.
+
+Changing these in **Chat settings** changes the story the personas read from the next message on; nothing is sent again, because the
+story is built for every message.
 
 ![A chat that reads parts 2 to 3 only](../../images/plugin-betareaders-spoiler.png)
 
