@@ -19,6 +19,7 @@ import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.dialogs.agent.AgentLockCheck;
+import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneGlobalStatisticsDialog;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
 import com.github.enerccio.marginalia.ui.widgets.FolderBookProvider;
 import com.github.enerccio.marginalia.ui.widgets.FolderBookRow;
@@ -119,6 +120,7 @@ public class PhoneManuscriptPart implements ManuscriptSection {
                     @APILocals(name = "refreshButton", type = Button.class),
                     @APILocals(name = "importArchiveButton", type = Button.class),
                     @APILocals(name = "importSillyTavernButton", type = Button.class),
+                    @APILocals(name = "statisticsButton", type = Button.class),
                     @APILocals(name = "headerLayout", type = HorizontalLayout.class),
                     @APILocals(name = "navigationLayout", type = VerticalLayout.class),
                     @APILocals(name = "filtersLayout", type = VerticalLayout.class),
@@ -147,7 +149,10 @@ public class PhoneManuscriptPart implements ManuscriptSection {
         searchButton = new Button(Solid.SEARCH.create(), event -> openSearchDialog());
         searchButton.setTooltipText(loc.getValue(L.LABEL_ADVANCED_SEARCH));
 
-        HorizontalLayout headerLayout = new HorizontalLayout(addBookButton, searchButton, importArchiveButton, importSillyTavernButton, refreshButton);
+        Button statisticsButton = new Button(Solid.CHART_LINE.create(), event -> openStatisticsDialog());
+        statisticsButton.setTooltipText(loc.getValue(L.LABEL_STATISTICS));
+
+        HorizontalLayout headerLayout = new HorizontalLayout(addBookButton, searchButton, statisticsButton, importArchiveButton, importSillyTavernButton, refreshButton);
         headerLayout.setWidthFull();
         headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         headerLayout.setFlexGrow(1, addBookButton);
@@ -588,6 +593,34 @@ public class PhoneManuscriptPart implements ManuscriptSection {
     private void openFound(Manuscript manuscript) {
         try {
             if (!new AgentLockCheck().refuses(manuscript)) {
+                openManuscript(manuscript);
+            }
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * Shows what was done to all the books, a tap on a book there opens it.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = PhoneGlobalStatisticsDialog.class)})
+    private void openStatisticsDialog() {
+        PhoneGlobalStatisticsDialog dialog = new PhoneGlobalStatisticsDialog(this::openManuscriptByUuid);
+        dialog.create();
+        dialog.open();
+    }
+
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "uuid", type = String.class)},
+            locals = {@APILocals(name = "manuscript", type = Manuscript.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void openManuscriptByUuid(String uuid) {
+        try {
+            Manuscript manuscript = manuscriptService.findForUser(uuid);
+            if (manuscript != null) {
                 openManuscript(manuscript);
             }
         } catch (Exception e) {

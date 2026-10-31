@@ -143,6 +143,8 @@ public class StoryMenuRegistry implements InitializingBean {
                 .icon(Solid.ROBOT::create).checkedWhen(StoryEditor::isAutoAnnotate));
         application(StoryMenuItem.tools(StoryMenuKeys.BRANCH_TOKENS, L.LABEL_BRANCH_TOKENS, StoryEditor::openBranchTokensDialog)
                 .icon(Solid.CHART_BAR::create));
+        application(StoryMenuItem.tools(StoryMenuKeys.STATISTICS, L.LABEL_STATISTICS, StoryEditor::openStatisticsDialog)
+                .icon(Solid.CHART_LINE::create));
         application(StoryMenuItem.tools(StoryMenuKeys.EXPORT, L.LABEL_EXPORT_STORY, StoryEditor::openExportDialog)
                 .icon(Solid.FILE_EXPORT::create));
         application(StoryMenuItem.tools(StoryMenuKeys.CLEAR_BOOK_HISTORY, L.LABEL_CLEAR_BOOK_HISTORY,

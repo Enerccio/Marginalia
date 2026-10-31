@@ -833,6 +833,36 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_SHOW_IN_HISTORY, "Show in history");
         setValue(L.LABEL_BACKUP_INCLUDE_HISTORY, "Include version history");
         setValue(L.LABEL_COMMAND_SET_BOOK_HISTORY_LIMIT, "Set the number of versions kept");
+        setValue(L.LABEL_STATISTICS, "Statistics");
+        setValue(L.LABEL_GLOBAL_STATISTICS, "Statistics of all books");
+        setValue(L.LABEL_STATISTICS_RANGE, "Period");
+        setValue(L.LABEL_STATISTICS_FROM, "From");
+        setValue(L.LABEL_STATISTICS_TO, "To");
+        setValue(L.LABEL_STATISTICS_SIDE, "Counted for");
+        setValue(L.LABEL_STATISTICS_DAYS, "Days");
+        setValue(L.LABEL_STATISTICS_TIME, "Time");
+        setValue(L.LABEL_STATISTICS_BY_BOOK, "By book");
+        setValue(L.LABEL_STATISTICS_HOURS, "Hours");
+        setValue(L.LABEL_STATISTICS_SHARE, "Share");
+        setValue(L.LABEL_STATISTICS_OTHER, "Other");
+        setValue(L.LABEL_STATISTICS_SHOW_DELETED, "Show deleted books");
+        setValue(L.LABEL_STATISTICS_METRIC, "Chart by");
+        setValue(L.LABEL_WORDS_WRITTEN, "Words written");
+        setValue(L.LABEL_WORDS_GENERATED, "Words generated");
+        setValue(L.LABEL_WORDS_REMOVED, "Words removed");
+        setValue(L.LABEL_PARTS_CREATED, "Parts created");
+        setValue(L.LABEL_PARTS_DELETED, "Parts deleted");
+        setValue(L.LABEL_EDITS, "Edits");
+        setValue(L.LABEL_TIME_EDITING, "Editing");
+        setValue(L.LABEL_TIME_GENERATING, "Generating");
+        setValue(L.LABEL_TIME_AGENTS_RUNNING, "Agents running");
+        setValue(L.LABEL_SIZE_BOOK_WORDS, "Book (words)");
+        setValue(L.LABEL_SIZE_BOOK_TOKENS, "Book (tokens)");
+        setValue(L.LABEL_SIZE_BRANCH_WORDS, "Branch (words)");
+        setValue(L.LABEL_SIZE_BRANCH_TOKENS, "Branch (tokens)");
+        setValue(L.LABEL_GROWTH_WORDS, "Growth (words)");
+        setValue(L.LABEL_GROWTH_TOKENS, "Growth (tokens)");
+        setValue(L.LABEL_COMMAND_GET_BOOK_STATISTICS, "Book statistics");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -989,6 +1019,14 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_REVISION_SOURCE_SNAPSHOT, "Saved version");
         setValue(L.ENUM_PERMISSION_VERSION_HISTORY, "Version history");
         setValue(L.ENUM_DOMAIN_MESSAGE_REVISION, "Version of a part");
+        setValue(L.ENUM_STATISTIC_RANGE_TODAY, "Today");
+        setValue(L.ENUM_STATISTIC_RANGE_YESTERDAY, "Yesterday");
+        setValue(L.ENUM_STATISTIC_RANGE_LAST_7_DAYS, "Last 7 days");
+        setValue(L.ENUM_STATISTIC_RANGE_LAST_30_DAYS, "Last 30 days");
+        setValue(L.ENUM_STATISTIC_RANGE_THIS_MONTH, "This month");
+        setValue(L.ENUM_STATISTIC_RANGE_ALL_TIME, "All time");
+        setValue(L.ENUM_STATISTIC_RANGE_CUSTOM, "Custom");
+        setValue(L.ENUM_STATISTIC_SIDE_AUTHOR, "Me");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -1442,6 +1480,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_HISTORY_LIMIT_NONE, "Nothing above limits the history.");
         setValue(L.MSG_HISTORY_CONFIRM_EMPTY_TRASH, "Delete everything in the trash of the history for good? This cannot be undone.");
         setValue(L.MSG_SEARCH_FOUND_IN_VERSION, "Found in the version of %s (%s)");
+        setValue(L.MSG_STATISTICS_EMPTY, "Nothing was recorded in this period.");
+        setValue(L.MSG_STATISTICS_AGENTS, "The agents' side counts what the agents did, also work that was discarded or never merged into the book.");
+        setValue(L.MSG_STATISTICS_TIMES_OVERLAP, "The times of the books overlap: the total above is the real time, not the sum of the lines.");
+        setValue(L.MSG_STATISTICS_GROUPED_WEEK, "Grouped by week");
+        setValue(L.MSG_STATISTICS_GROUPED_MONTH, "Grouped by month");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1912,6 +1955,15 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT_LLM, "Sets the most versions of a part that the version history of this book keeps (0 keeps no history from now on; the versions that exist stay). Without maxVersions the limit of the book is taken away. The limits of the folders, of the user and of the administrator still apply and the strictest one wins, so the book cannot raise them. Changes the book; deletes no version.");
         setValue(L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT_RETURN, "JSON with bookLimit (the limit of this book, null when it has none), effectiveLimit (the limit that counts, null when there is none) and setBy (BOOK, FOLDER, USER, PERMISSION or NONE)");
         setValue(L.DESC_COMMAND_HISTORY_MAX_VERSIONS_PARAM, "The most versions of a part to keep; 0 keeps no history. Leave it out to take the limit of the book away");
+        setValue(L.DESC_COMMAND_GET_BOOK_STATISTICS, "Shows what was done to the open book day by day.");
+        setValue(L.DESC_COMMAND_GET_BOOK_STATISTICS_LLM, "What was done to the book in a range of days, day by day: tokens sent and generated, words written, generated and removed, parts created and deleted, edits, the minutes the book was open, edited, generated for and worked on by agents, and how the size of the book changed. The range is a name (today, yesterday, last-7-days, last-30-days, this-month, all-time; the default is last-7-days), one day (2026-03-14) or two days (2026-03-01..2026-03-14); the side is all (the default), me or agents. Reads only.");
+        setValue(L.DESC_COMMAND_GET_BOOK_STATISTICS_RETURN, "JSON with the totals of the range and a line for each day");
+        setValue(L.DESC_COMMAND_GET_STATISTICS, "Shows what was done to all the books, by day or by book.");
+        setValue(L.DESC_COMMAND_GET_STATISTICS_LLM, "What the author did to all their books in a range of days: the totals, and a line for each day or for each book (by day, the default, or by book; the books come in the order of the words they got and have a handle, name and folder, also the books that are gone are there, flagged deleted). The numbers are the same as for one book: tokens, words, parts, edits, minutes of time, growth of the size. The range is a name (today, yesterday, last-7-days, last-30-days, this-month, all-time; the default is last-7-days), one day (2026-03-14) or two days (2026-03-01..2026-03-14); the side is all (the default), me or agents. The minutes of the books overlap, the totals are the real time. Reads only.");
+        setValue(L.DESC_COMMAND_GET_STATISTICS_RETURN, "JSON with the totals of the range and a line for each day or book");
+        setValue(L.DESC_COMMAND_STATISTICS_RANGE_PARAM, "The days: today, yesterday, last-7-days, last-30-days, this-month, all-time, one day (2026-03-14) or two days (2026-03-01..2026-03-14)");
+        setValue(L.DESC_COMMAND_STATISTICS_SIDE_PARAM, "Whose work: all (the default), me or agents");
+        setValue(L.DESC_COMMAND_STATISTICS_BY_PARAM, "How to list: day (the default) or book");
 
     }
 

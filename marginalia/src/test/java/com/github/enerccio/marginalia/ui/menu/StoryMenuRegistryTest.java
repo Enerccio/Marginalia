@@ -124,12 +124,12 @@ class StoryMenuRegistryTest extends MarginaliaTestBase {
         assertThat(keys(registry.definition(MenuKind.TOOLS, false, null))).containsExactly(
                 StoryMenuKeys.CHANGE_STYLES, StoryMenuKeys.HIGHLIGHT_GENERATED, StoryMenuKeys.ANNOTATIONS_IN_MARGIN,
                 StoryMenuKeys.SEARCH_REPLACE, StoryMenuKeys.IMPORT_ARCHIVE, StoryMenuKeys.ANNOTATE_RANGE, StoryMenuKeys.AUTO_ANNOTATE,
-                StoryMenuKeys.BRANCH_TOKENS, StoryMenuKeys.EXPORT, StoryMenuKeys.CLEAR_BOOK_HISTORY, StoryMenuKeys.EMPTY_HISTORY_TRASH,
-                StoryMenuKeys.MASS_DELETE, StoryMenuKeys.SAVE_LAYOUT_AS_DEFAULT, StoryMenuKeys.RESTORE_LAYOUT);
+                StoryMenuKeys.BRANCH_TOKENS, StoryMenuKeys.STATISTICS, StoryMenuKeys.EXPORT, StoryMenuKeys.CLEAR_BOOK_HISTORY,
+                StoryMenuKeys.EMPTY_HISTORY_TRASH, StoryMenuKeys.MASS_DELETE, StoryMenuKeys.SAVE_LAYOUT_AS_DEFAULT, StoryMenuKeys.RESTORE_LAYOUT);
         assertThat(keys(registry.definition(MenuKind.TOOLS, true, null))).containsExactly(
                 StoryMenuKeys.CHANGE_STYLES, StoryMenuKeys.SEARCH_REPLACE, StoryMenuKeys.IMPORT_ARCHIVE, StoryMenuKeys.ANNOTATE_RANGE,
-                StoryMenuKeys.AUTO_ANNOTATE, StoryMenuKeys.BRANCH_TOKENS, StoryMenuKeys.EXPORT, StoryMenuKeys.CLEAR_BOOK_HISTORY,
-                StoryMenuKeys.EMPTY_HISTORY_TRASH, StoryMenuKeys.MASS_DELETE);
+                StoryMenuKeys.AUTO_ANNOTATE, StoryMenuKeys.BRANCH_TOKENS, StoryMenuKeys.STATISTICS, StoryMenuKeys.EXPORT,
+                StoryMenuKeys.CLEAR_BOOK_HISTORY, StoryMenuKeys.EMPTY_HISTORY_TRASH, StoryMenuKeys.MASS_DELETE);
         assertThat(registry.definition(MenuKind.CARD, false, null).getItems()).hasSize(17);
         assertThat(keys(registry.definition(MenuKind.CARD, false, null))).startsWith(StoryMenuKeys.EDIT, StoryMenuKeys.DISCARD);
         assertThat(keys(registry.definition(MenuKind.TEXT, true, null))).containsExactly(

@@ -57,7 +57,7 @@ class BuiltInCommandTextsTest extends MarginaliaTestBase {
                 "get-part-metrics", "show-prompt", "search-parts", "find-occurrences", "compare-parts", "count-tokens",
                 "list-summaries", "get-summary", "check-summaries", "get-template-variables",
                 "list-lorebooks", "list-lore-entries", "get-lore-entry", "search-lore", "preview-lore-activation",
-                "list-annotations", "get-annotation")) {
+                "list-annotations", "get-annotation", "get-book-statistics", "get-statistics")) {
             expected.put(name, CommandDataSeverity.NON_DESTRUCTIVE);
         }
         // the commands that change the book: what they do to the text that exists decides (adding is not destructive)

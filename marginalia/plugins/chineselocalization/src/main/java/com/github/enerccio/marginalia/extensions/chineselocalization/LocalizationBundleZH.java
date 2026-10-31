@@ -841,6 +841,36 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_SHOW_IN_HISTORY, "在历史中显示");
         setValue(L.LABEL_BACKUP_INCLUDE_HISTORY, "包含版本历史");
         setValue(L.LABEL_COMMAND_SET_BOOK_HISTORY_LIMIT, "设置保留的版本数");
+        setValue(L.LABEL_STATISTICS, "统计");
+        setValue(L.LABEL_GLOBAL_STATISTICS, "所有书籍的统计");
+        setValue(L.LABEL_STATISTICS_RANGE, "时间范围");
+        setValue(L.LABEL_STATISTICS_FROM, "起始日期");
+        setValue(L.LABEL_STATISTICS_TO, "结束日期");
+        setValue(L.LABEL_STATISTICS_SIDE, "统计对象");
+        setValue(L.LABEL_STATISTICS_DAYS, "按日");
+        setValue(L.LABEL_STATISTICS_TIME, "时间");
+        setValue(L.LABEL_STATISTICS_BY_BOOK, "按书籍");
+        setValue(L.LABEL_STATISTICS_HOURS, "小时");
+        setValue(L.LABEL_STATISTICS_SHARE, "占比");
+        setValue(L.LABEL_STATISTICS_OTHER, "其他");
+        setValue(L.LABEL_STATISTICS_SHOW_DELETED, "显示已删除的书籍");
+        setValue(L.LABEL_STATISTICS_METRIC, "图表依据");
+        setValue(L.LABEL_WORDS_WRITTEN, "手写字数");
+        setValue(L.LABEL_WORDS_GENERATED, "生成字数");
+        setValue(L.LABEL_WORDS_REMOVED, "删除字数");
+        setValue(L.LABEL_PARTS_CREATED, "新建段落");
+        setValue(L.LABEL_PARTS_DELETED, "删除段落");
+        setValue(L.LABEL_EDITS, "编辑");
+        setValue(L.LABEL_TIME_EDITING, "编辑中");
+        setValue(L.LABEL_TIME_GENERATING, "生成中");
+        setValue(L.LABEL_TIME_AGENTS_RUNNING, "智能体运行");
+        setValue(L.LABEL_SIZE_BOOK_WORDS, "全书（字数）");
+        setValue(L.LABEL_SIZE_BOOK_TOKENS, "全书（令牌）");
+        setValue(L.LABEL_SIZE_BRANCH_WORDS, "分支（字数）");
+        setValue(L.LABEL_SIZE_BRANCH_TOKENS, "分支（令牌）");
+        setValue(L.LABEL_GROWTH_WORDS, "增长（字数）");
+        setValue(L.LABEL_GROWTH_TOKENS, "增长（令牌）");
+        setValue(L.LABEL_COMMAND_GET_BOOK_STATISTICS, "书籍统计");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -997,6 +1027,14 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_REVISION_SOURCE_SNAPSHOT, "已保存的版本");
         setValue(L.ENUM_PERMISSION_VERSION_HISTORY, "版本历史");
         setValue(L.ENUM_DOMAIN_MESSAGE_REVISION, "部分的版本");
+        setValue(L.ENUM_STATISTIC_RANGE_TODAY, "今天");
+        setValue(L.ENUM_STATISTIC_RANGE_YESTERDAY, "昨天");
+        setValue(L.ENUM_STATISTIC_RANGE_LAST_7_DAYS, "最近7天");
+        setValue(L.ENUM_STATISTIC_RANGE_LAST_30_DAYS, "最近30天");
+        setValue(L.ENUM_STATISTIC_RANGE_THIS_MONTH, "本月");
+        setValue(L.ENUM_STATISTIC_RANGE_ALL_TIME, "全部时间");
+        setValue(L.ENUM_STATISTIC_RANGE_CUSTOM, "自定义");
+        setValue(L.ENUM_STATISTIC_SIDE_AUTHOR, "我");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -1450,6 +1488,11 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_HISTORY_LIMIT_NONE, "上层没有历史限制。");
         setValue(L.MSG_HISTORY_CONFIRM_EMPTY_TRASH, "永久删除历史回收站中的所有内容？此操作无法撤销。");
         setValue(L.MSG_SEARCH_FOUND_IN_VERSION, "在 %s 的版本中找到（%s）");
+        setValue(L.MSG_STATISTICS_EMPTY, "此期间没有记录。");
+        setValue(L.MSG_STATISTICS_AGENTS, "智能体一侧统计智能体所做的一切，包括被丢弃或从未合并进书中的工作。");
+        setValue(L.MSG_STATISTICS_TIMES_OVERLAP, "各书籍的时间会重叠：上方的合计是实际时间，而不是各行之和。");
+        setValue(L.MSG_STATISTICS_GROUPED_WEEK, "按周汇总");
+        setValue(L.MSG_STATISTICS_GROUPED_MONTH, "按月汇总");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1920,6 +1963,15 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT_LLM, "设置本书的版本历史为每个部分最多保留的版本数（0 表示此后不再保留历史；已有的版本会保留）。省略 maxVersions 时取消本书的限制。文件夹、用户和管理员的限制仍然适用，以最严格的为准，因此书不能放宽它们。会更改书，但不会删除任何版本。");
         setValue(L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT_RETURN, "包含 bookLimit（本书的限制，没有则为 null）、effectiveLimit（实际生效的限制，没有则为 null）和 setBy（BOOK、FOLDER、USER、PERMISSION 或 NONE）的 JSON");
         setValue(L.DESC_COMMAND_HISTORY_MAX_VERSIONS_PARAM, "每个部分最多保留的版本数；0 表示不保留历史。省略则取消本书的限制");
+        setValue(L.DESC_COMMAND_GET_BOOK_STATISTICS, "按日显示对当前打开的书籍所做的工作。");
+        setValue(L.DESC_COMMAND_GET_BOOK_STATISTICS_LLM, "按日显示某个日期范围内对本书所做的工作：发送和生成的令牌、手写/生成/删除的字数、新建和删除的段落、编辑次数、书籍被打开、编辑、为其生成以及智能体处理的分钟数，以及书籍大小的变化。范围可以是名称（today、yesterday、last-7-days、last-30-days、this-month、all-time，默认 last-7-days）、单个日期（2026-03-14）或两个日期（2026-03-01..2026-03-14）；side 为 all（默认）、me 或 agents。只读。");
+        setValue(L.DESC_COMMAND_GET_BOOK_STATISTICS_RETURN, "包含该范围合计和每日明细的 JSON");
+        setValue(L.DESC_COMMAND_GET_STATISTICS, "按日或按书籍显示对所有书籍所做的工作。");
+        setValue(L.DESC_COMMAND_GET_STATISTICS_LLM, "显示某个日期范围内作者对所有书籍所做的工作：合计，以及按日或按书籍的明细（by 为 day（默认）或 book；书籍按字数多少排序，带有 handle、名称和文件夹，已删除的书籍也在其中，并标记为 deleted）。数字与单本书相同：令牌、字数、段落、编辑、时间（分钟）、大小变化。范围可以是名称（today、yesterday、last-7-days、last-30-days、this-month、all-time，默认 last-7-days）、单个日期（2026-03-14）或两个日期（2026-03-01..2026-03-14）；side 为 all（默认）、me 或 agents。各书籍的分钟数会重叠，合计才是实际时间。只读。");
+        setValue(L.DESC_COMMAND_GET_STATISTICS_RETURN, "包含该范围合计以及每日或每本书明细的 JSON");
+        setValue(L.DESC_COMMAND_STATISTICS_RANGE_PARAM, "日期范围：today、yesterday、last-7-days、last-30-days、this-month、all-time、单个日期（2026-03-14）或两个日期（2026-03-01..2026-03-14）");
+        setValue(L.DESC_COMMAND_STATISTICS_SIDE_PARAM, "统计对象：all（默认）、me 或 agents");
+        setValue(L.DESC_COMMAND_STATISTICS_BY_PARAM, "列表方式：day（默认）或 book");
     }
 
     @Override

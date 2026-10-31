@@ -139,6 +139,13 @@ public final class CssStyles {
     // --- Chart.js chart ---
     public static final String CHART_JS = "chart-js";
     public static final String TOKEN_USAGE_SUMMARY = "token-usage-summary";
+
+    // --- statistics ---
+    public static final String STATISTIC_TOTALS = "statistic-totals";
+    public static final String STATISTIC_TOTAL_ITEM = "statistic-total-item";
+    public static final String STATISTIC_GROWTH_UP = "statistic-growth-up";
+    public static final String STATISTIC_GROWTH_DOWN = "statistic-growth-down";
+
     public static final String PROMPT_COMPARE_FIRST_DIFFERENCE = "prompt-compare-first-difference";
     public static final String PROMPT_COMPARE_LOST = "prompt-compare-lost";
     public static final String HISTORY_ROW_DELETED = "history-row-deleted";

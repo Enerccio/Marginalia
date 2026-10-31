@@ -1002,6 +1002,26 @@ vaadin-dialog-overlay.phone-dialog::part(overlay) {
     font-size: var(--lumo-font-size-s);
 }
 
+/* Statistics (ui.dialogs.statistics.StatisticsView): the totals line, and the growth of a book coloured by its sign */
+.statistic-totals {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--lumo-space-xs) var(--lumo-space-l);
+    font-size: var(--lumo-font-size-s);
+}
+
+.statistic-total-item {
+    white-space: nowrap;
+}
+
+vaadin-grid::part(statistic-growth-up) {
+    color: var(--lumo-success-text-color);
+}
+
+vaadin-grid::part(statistic-growth-down) {
+    color: var(--lumo-error-text-color);
+}
+
 /* Prompt comparison (ui.dialogs.PromptComparisonDialog): the message where the prompt first differs from the earlier one, and the ones after it (the cache is not used for them) */
 vaadin-grid::part(prompt-compare-first-difference) {
     background-color: var(--lumo-error-color-10pct);
