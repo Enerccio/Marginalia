@@ -36,6 +36,11 @@ public interface StoryEditor {
     void openBranchTokensDialog();
 
     /**
+     * Shows what was done to the book day by day: words, tokens, time and size.
+     */
+    void openStatisticsDialog();
+
+    /**
      * Opens the dialog that lets a model annotate a range of the parts of the story, the story is shown again when annotations were added.
      */
     void openAnnotateRangeDialog();

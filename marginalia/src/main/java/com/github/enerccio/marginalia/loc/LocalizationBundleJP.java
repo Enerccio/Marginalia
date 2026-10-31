@@ -833,6 +833,36 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_SHOW_IN_HISTORY, "履歴で表示");
         setValue(L.LABEL_BACKUP_INCLUDE_HISTORY, "バージョン履歴を含める");
         setValue(L.LABEL_COMMAND_SET_BOOK_HISTORY_LIMIT, "保持するバージョン数を設定");
+        setValue(L.LABEL_STATISTICS, "統計");
+        setValue(L.LABEL_GLOBAL_STATISTICS, "すべての本の統計");
+        setValue(L.LABEL_STATISTICS_RANGE, "期間");
+        setValue(L.LABEL_STATISTICS_FROM, "開始日");
+        setValue(L.LABEL_STATISTICS_TO, "終了日");
+        setValue(L.LABEL_STATISTICS_SIDE, "集計対象");
+        setValue(L.LABEL_STATISTICS_DAYS, "日別");
+        setValue(L.LABEL_STATISTICS_TIME, "時間");
+        setValue(L.LABEL_STATISTICS_BY_BOOK, "本ごと");
+        setValue(L.LABEL_STATISTICS_HOURS, "時間数");
+        setValue(L.LABEL_STATISTICS_SHARE, "割合");
+        setValue(L.LABEL_STATISTICS_OTHER, "その他");
+        setValue(L.LABEL_STATISTICS_SHOW_DELETED, "削除した本も表示");
+        setValue(L.LABEL_STATISTICS_METRIC, "グラフの基準");
+        setValue(L.LABEL_WORDS_WRITTEN, "書いた単語数");
+        setValue(L.LABEL_WORDS_GENERATED, "生成した単語数");
+        setValue(L.LABEL_WORDS_REMOVED, "削除した単語数");
+        setValue(L.LABEL_PARTS_CREATED, "作成したパート");
+        setValue(L.LABEL_PARTS_DELETED, "削除したパート");
+        setValue(L.LABEL_EDITS, "編集");
+        setValue(L.LABEL_TIME_EDITING, "編集中");
+        setValue(L.LABEL_TIME_GENERATING, "生成中");
+        setValue(L.LABEL_TIME_AGENTS_RUNNING, "エージェント稼働");
+        setValue(L.LABEL_SIZE_BOOK_WORDS, "本（単語）");
+        setValue(L.LABEL_SIZE_BOOK_TOKENS, "本（トークン）");
+        setValue(L.LABEL_SIZE_BRANCH_WORDS, "ブランチ（単語）");
+        setValue(L.LABEL_SIZE_BRANCH_TOKENS, "ブランチ（トークン）");
+        setValue(L.LABEL_GROWTH_WORDS, "増減（単語）");
+        setValue(L.LABEL_GROWTH_TOKENS, "増減（トークン）");
+        setValue(L.LABEL_COMMAND_GET_BOOK_STATISTICS, "本の統計");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -989,6 +1019,14 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_REVISION_SOURCE_SNAPSHOT, "保存したバージョン");
         setValue(L.ENUM_PERMISSION_VERSION_HISTORY, "バージョン履歴");
         setValue(L.ENUM_DOMAIN_MESSAGE_REVISION, "パートのバージョン");
+        setValue(L.ENUM_STATISTIC_RANGE_TODAY, "今日");
+        setValue(L.ENUM_STATISTIC_RANGE_YESTERDAY, "昨日");
+        setValue(L.ENUM_STATISTIC_RANGE_LAST_7_DAYS, "過去7日間");
+        setValue(L.ENUM_STATISTIC_RANGE_LAST_30_DAYS, "過去30日間");
+        setValue(L.ENUM_STATISTIC_RANGE_THIS_MONTH, "今月");
+        setValue(L.ENUM_STATISTIC_RANGE_ALL_TIME, "全期間");
+        setValue(L.ENUM_STATISTIC_RANGE_CUSTOM, "期間を指定");
+        setValue(L.ENUM_STATISTIC_SIDE_AUTHOR, "自分");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -1442,6 +1480,11 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_HISTORY_LIMIT_NONE, "上位に履歴の制限はありません。");
         setValue(L.MSG_HISTORY_CONFIRM_EMPTY_TRASH, "履歴のごみ箱の中身をすべて完全に削除しますか？元に戻せません。");
         setValue(L.MSG_SEARCH_FOUND_IN_VERSION, "%s のバージョンで見つかりました（%s）");
+        setValue(L.MSG_STATISTICS_EMPTY, "この期間の記録はありません。");
+        setValue(L.MSG_STATISTICS_AGENTS, "エージェント側は、破棄された作業や本に統合されなかった作業も含め、エージェントが行ったことを数えます。");
+        setValue(L.MSG_STATISTICS_TIMES_OVERLAP, "本ごとの時間は重なります。上の合計は実際の時間であり、各行の合計ではありません。");
+        setValue(L.MSG_STATISTICS_GROUPED_WEEK, "週ごとにまとめています");
+        setValue(L.MSG_STATISTICS_GROUPED_MONTH, "月ごとにまとめています");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1912,6 +1955,15 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT_LLM, "このブックのバージョン履歴が1つのパートについて保持するバージョンの最大数を設定します（0にすると以後は履歴を残しません。既存のバージョンは残ります）。maxVersionsを省略すると、ブックの上限を解除します。フォルダ、ユーザー、管理者の上限も適用され、最も厳しいものが優先されるため、ブックでそれらを引き上げることはできません。ブックを変更しますが、バージョンは削除しません。");
         setValue(L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT_RETURN, "bookLimit（このブックの上限。なければnull）、effectiveLimit（有効な上限。なければnull）、setBy（BOOK、FOLDER、USER、PERMISSION、NONE）を含むJSON");
         setValue(L.DESC_COMMAND_HISTORY_MAX_VERSIONS_PARAM, "保持するパートごとのバージョンの最大数。0なら履歴を残しません。省略するとブックの上限を解除します");
+        setValue(L.DESC_COMMAND_GET_BOOK_STATISTICS, "開いている本に対して日ごとに行われたことを表示します。");
+        setValue(L.DESC_COMMAND_GET_BOOK_STATISTICS_LLM, "日付範囲における本への作業を日別に：送信・生成トークン、書いた・生成した・削除した単語、作成・削除したパート、編集、本を開いていた・編集していた・生成していた・エージェントが作業していた分数、本のサイズの増減。範囲は名前（today, yesterday, last-7-days, last-30-days, this-month, all-time。既定は last-7-days）、1つの日付（2026-03-14）、または2つの日付（2026-03-01..2026-03-14）。side は all（既定）、me、agents。読み取り専用。");
+        setValue(L.DESC_COMMAND_GET_BOOK_STATISTICS_RETURN, "範囲の合計と日ごとの行を含む JSON");
+        setValue(L.DESC_COMMAND_GET_STATISTICS, "すべての本に対して行われたことを、日別または本ごとに表示します。");
+        setValue(L.DESC_COMMAND_GET_STATISTICS_LLM, "日付範囲で著者がすべての本に対して行ったこと：合計と、日別または本ごとの行（by は day（既定）または book。本は単語数の多い順で、ハンドル・名前・フォルダを持ち、削除された本も deleted の印付きで含まれます）。数値は1冊の場合と同じ：トークン、単語、パート、編集、時間（分）、サイズの増減。範囲は名前（today, yesterday, last-7-days, last-30-days, this-month, all-time。既定は last-7-days）、1つの日付（2026-03-14）、または2つの日付（2026-03-01..2026-03-14）。side は all（既定）、me、agents。本ごとの分は重なり、合計が実際の時間です。読み取り専用。");
+        setValue(L.DESC_COMMAND_GET_STATISTICS_RETURN, "範囲の合計と、日または本ごとの行を含む JSON");
+        setValue(L.DESC_COMMAND_STATISTICS_RANGE_PARAM, "期間：today、yesterday、last-7-days、last-30-days、this-month、all-time、1つの日付（2026-03-14）、または2つの日付（2026-03-01..2026-03-14）");
+        setValue(L.DESC_COMMAND_STATISTICS_SIDE_PARAM, "対象：all（既定）、me、agents");
+        setValue(L.DESC_COMMAND_STATISTICS_BY_PARAM, "一覧の単位：day（既定）または book");
     }
 
     @Override

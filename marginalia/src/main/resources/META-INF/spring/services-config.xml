@@ -91,6 +91,8 @@
         <property name="repository" ref="manuscriptSizeRepository" />
     </bean>
 
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.StatisticReportServiceImpl" />
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AILimitServiceImpl" />
 
     <bean id="protocolRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaProtocolRepository">

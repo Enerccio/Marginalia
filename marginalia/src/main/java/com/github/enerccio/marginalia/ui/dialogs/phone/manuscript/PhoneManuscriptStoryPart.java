@@ -21,6 +21,7 @@ import com.github.enerccio.marginalia.ui.dialogs.manuscript.SummaryDialog;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.SummaryRemoval;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialogPart;
+import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneStatisticsDialog;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneSummariesDialog;
 import com.github.enerccio.marginalia.ui.dialogs.search.ManuscriptSearchReplaceDialog;
 import com.github.enerccio.marginalia.ui.dialogs.story.*;
@@ -449,6 +450,24 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     public void openBranchTokensDialog() {
         try {
             BranchTokensDialog dialog = new BranchTokensDialog(parent.refreshManuscript());
+            dialog.create();
+            dialog.open();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * Shows what was done to the book day by day: words, tokens, time and size.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = PhoneStatisticsDialog.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    @Override
+    public void openStatisticsDialog() {
+        try {
+            PhoneStatisticsDialog dialog = new PhoneStatisticsDialog(parent.refreshManuscript());
             dialog.create();
             dialog.open();
         } catch (Exception e) {

@@ -741,6 +741,24 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         }
     }
 
+    /**
+     * Shows what was done to the book day by day: words, tokens, time and size.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = StatisticsDialog.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    @Override
+    public void openStatisticsDialog() {
+        try {
+            StatisticsDialog dialog = new StatisticsDialog(parent.refreshManuscript());
+            dialog.create();
+            dialog.open();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "dialog", type = SummariesDialog.class),

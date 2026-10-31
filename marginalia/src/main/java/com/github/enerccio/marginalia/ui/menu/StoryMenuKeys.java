@@ -15,6 +15,7 @@ public final class StoryMenuKeys {
     public static final String ANNOTATE_RANGE = "tools.annotateRange";
     public static final String AUTO_ANNOTATE = "tools.autoAnnotate";
     public static final String BRANCH_TOKENS = "tools.branchTokens";
+    public static final String STATISTICS = "tools.statistics";
     public static final String EXPORT = "tools.export";
     public static final String CLEAR_BOOK_HISTORY = "tools.clearBookHistory";
     public static final String EMPTY_HISTORY_TRASH = "tools.emptyHistoryTrash";

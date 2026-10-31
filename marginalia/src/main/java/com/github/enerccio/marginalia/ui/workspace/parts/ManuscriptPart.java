@@ -131,6 +131,7 @@ public class ManuscriptPart implements ManuscriptSection {
                     @APILocals(name = "titleSpan", type = Span.class),
                     @APILocals(name = "addBookButton", type = Button.class),
                     @APILocals(name = "organiseButton", type = Button.class),
+                    @APILocals(name = "statisticsButton", type = Button.class),
                     @APILocals(name = "importArchiveButton", type = Button.class),
                     @APILocals(name = "importSillyTavernButton", type = Button.class),
                     @APILocals(name = "massChangesBar", type = MenuBar.class),
@@ -162,6 +163,7 @@ public class ManuscriptPart implements ManuscriptSection {
                 event -> new FolderActions().create(currentFolder, _ -> refreshGrid()));
         Button organiseButton = new Button(loc.getValue(L.LABEL_ORGANISE), Solid.COLUMNS.create(), event -> openOrganiseDialog());
         tagBooksButton = new Button(loc.getValue(L.LABEL_TAG_BOOKS), Solid.TAGS.create(), event -> openTagDialog());
+        Button statisticsButton = new Button(loc.getValue(L.LABEL_STATISTICS), Solid.CHART_LINE.create(), event -> openStatisticsDialog());
         Button importArchiveButton = new Button(Solid.FILE_IMPORT.create(),
                 event -> new NewBookAction(this::openManuscript, currentFolder).runFromArchive());
         importArchiveButton.setTooltipText(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE));
@@ -175,7 +177,7 @@ public class ManuscriptPart implements ManuscriptSection {
         massChangesItem.getSubMenu().addItem(loc.getValue(L.LABEL_MASS_CHANGE_LANGUAGE), _ -> openMassChangeLanguageDialog());
         massChangesItem.getSubMenu().addItem(loc.getValue(L.LABEL_MASS_RENAME), _ -> openMassRenameDialog());
         massChangesItem.getSubMenu().addItem(loc.getValue(L.LABEL_TAG_FOLDERS), _ -> openTagFoldersDialog());
-        headerLayout.add(titleSpan, searchButton, organiseButton, tagBooksButton, massChangesBar, importArchiveButton, importSillyTavernButton,
+        headerLayout.add(titleSpan, searchButton, organiseButton, tagBooksButton, statisticsButton, massChangesBar, importArchiveButton, importSillyTavernButton,
                 newFolderButton, addBookButton);
         headerLayout.setFlexGrow(1, titleSpan);
         headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
@@ -711,6 +713,34 @@ public class ManuscriptPart implements ManuscriptSection {
         MassRenameDialog dialog = new MassRenameDialog(this::refreshGrid, currentFolder);
         dialog.create();
         dialog.open();
+    }
+
+    /**
+     * Shows what was done to all the books, a click on a book there opens it.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = GlobalStatisticsDialog.class)})
+    private void openStatisticsDialog() {
+        GlobalStatisticsDialog dialog = new GlobalStatisticsDialog(this::openManuscriptByUuid);
+        dialog.create();
+        dialog.open();
+    }
+
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "uuid", type = String.class)},
+            locals = {@APILocals(name = "manuscript", type = Manuscript.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void openManuscriptByUuid(String uuid) {
+        try {
+            Manuscript manuscript = manuscriptService.findForUser(uuid);
+            if (manuscript != null) {
+                openManuscript(manuscript);
+            }
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     /**
