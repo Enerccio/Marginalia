@@ -191,6 +191,9 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
       only as many parts as the enabled entries need (`partsNeeded`, `recentParts`). Not done: the context in the agent
       commands (`/create-lore-entry`, `/update-lore-entry`), searching summaries or the notes of the parts, a context in the
       mass edit.
+    - ✅ Range of parts (`LorebookEntry.fromMessage` / `toMessage`, the numbers of the outline, both included): the entry is
+      used only for the turns that create a part inside it (`Reason.OUT_OF_RANGE`, `LorebookActivationService.turnPosition`).
+      Not done: the range in the agent commands (`/create-lore-entry`, `/update-lore-entry`) and in the mass edit.
     - ✅ A read only *Lorebook* tab in the story editor (desktop) shows the lorebook of the story without leaving it:
       entries with their activation text and Markdown content, optionally with the sub lorebooks (`LorebookPreview`).
       Not done: editing from there, a phone twin, search in it.

@@ -16,6 +16,11 @@ import java.util.List;
  * of them, and its filter (a text or a regular expression, case does not matter) is found in the text of the turn - or it
  * has no filter, which is a constant entry. The entries are used in the order of their {@code order}, the older first.
  * <p>
+ * An entry can be limited to some of the parts of the story ({@code fromMessage}, {@code toMessage} of the entry, the
+ * numbers of the outline, both included, the first part is 1): it is used only for the turn that creates a part inside
+ * them, whatever its filter says ({@link Reason#OUT_OF_RANGE}). {@link #turnPosition} gives the number of the part the turn
+ * creates; without it (null) the limits are not checked.
+ * <p>
  * The filter is looked for in the instructions of the turn, or - when the entry's activation context is
  * {@code INCLUDE_PARTS} - in the instructions and the newest N parts of the story (N is the entry's
  * {@code activationParts}). {@link #partsNeeded} says how many parts the enabled entries ask for at most, so only that many
@@ -47,6 +52,8 @@ public interface LorebookActivationService {
         NEGATIVE_TAG,
         /** Not used, the entry has tags and the book has none of them. */
         MISSING_TAG,
+        /** Not used, the part the turn creates is outside the entry's range of parts (the detail names the range). */
+        OUT_OF_RANGE,
         /** Not used, its filter is not in the text (or is a regular expression that is not valid). */
         FILTER_NOT_MATCHED,
         /** Used, its filter is found in the content of an entry that was used (the detail names the filter and the entry). */
@@ -107,6 +114,29 @@ public interface LorebookActivationService {
     Verdict evaluate(LorebookEntry entry, List<String> manuscriptTags, String instructions, List<String> parts);
 
     /**
+     * Whether the entry is used for the instructions and the parts of the story, and for the turn that creates the part
+     * with the given number: an entry whose range of parts ({@code fromMessage}, {@code toMessage}) does not include it
+     * is {@link Reason#OUT_OF_RANGE}, whatever its filter and tags say.
+     *
+     * @param position the number of the part the turn creates ({@link #turnPosition}), null when it is not known: the
+     *                 range of parts is not checked then
+     */
+    Verdict evaluate(LorebookEntry entry, List<String> manuscriptTags, String instructions, List<String> parts, Integer position);
+
+    /**
+     * The number of the part a turn creates, the first part of the branch being 1: one more than the parts of the branch
+     * that ends in the leaf, or - with {@code excludeLeaf}, for a swipe, a regeneration or the preview of the turn of a
+     * part - the number of the leaf itself. 1 without a leaf.
+     */
+    int turnPosition(ChatMessage leaf, boolean excludeLeaf) throws Exception;
+
+    /**
+     * Whether the position of the turn matters: an enabled entry has a range of parts. When it does not, there is no need
+     * to count the parts of the story ({@link #turnPosition}).
+     */
+    boolean positionNeeded(List<LorebookEntry> entries);
+
+    /**
      * How many of the newest parts of the story the entries look into: the most {@code activationParts} of an enabled
      * entry with {@code INCLUDE_PARTS}, 0 when there is none (no part has to be read then). Disabled entries do not count.
      */
@@ -162,6 +192,13 @@ public interface LorebookActivationService {
      * @param parts the text of the parts of the story, the oldest first (at least {@link #partsNeeded} of the newest)
      */
     List<LorebookEntryVerdict> evaluateAll(Lorebook root, List<Lorebook> lorebooks, List<String> manuscriptTags, String text, List<String> parts);
+
+    /**
+     * {@link #evaluateAll(Lorebook, List, List, String, List)} for the turn that creates the part with the given number.
+     *
+     * @param position the number of the part the turn creates ({@link #turnPosition}), null when it is not known
+     */
+    List<LorebookEntryVerdict> evaluateAll(Lorebook root, List<Lorebook> lorebooks, List<String> manuscriptTags, String text, List<String> parts, Integer position);
 
     /**
      * The text of the entry put into the prompt: its payload as a template. A payload that is not a valid template is

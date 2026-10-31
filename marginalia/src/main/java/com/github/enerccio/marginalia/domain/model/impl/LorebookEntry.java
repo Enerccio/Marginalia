@@ -72,6 +72,17 @@ public class LorebookEntry extends ExtendableEntity {
     @ExtendedAttribute
     private int activationParts = 1;
 
+    // the entry is used only for the turns that create the part with this number (the number in the outline of the
+    // story, the first part is 1) or a later one; null = from the start
+    @Transient
+    @ExtendedAttribute
+    private Integer fromMessage;
+
+    // ... and not for the turns that create a later part than this one; null = to the end
+    @Transient
+    @ExtendedAttribute
+    private Integer toMessage;
+
     public Lorebook getLorebook() {
         return lorebook;
     }
@@ -182,6 +193,37 @@ public class LorebookEntry extends ExtendableEntity {
 
     public void setActivationParts(int activationParts) {
         this.activationParts = Math.max(1, activationParts);
+    }
+
+    public Integer getFromMessage() {
+        return fromMessage;
+    }
+
+    public void setFromMessage(Integer fromMessage) {
+        this.fromMessage = fromMessage == null || fromMessage < 1 ? null : fromMessage;
+    }
+
+    public Integer getToMessage() {
+        return toMessage;
+    }
+
+    public void setToMessage(Integer toMessage) {
+        this.toMessage = toMessage == null || toMessage < 1 ? null : toMessage;
+    }
+
+    /**
+     * Whether the entry is limited to some of the parts of the story ({@code fromMessage} or {@code toMessage} is set).
+     */
+    public boolean hasMessageRange() {
+        return fromMessage != null || toMessage != null;
+    }
+
+    /**
+     * Whether the entry may be used for the turn that creates the part with this number (1 = the first part): inside
+     * {@code fromMessage} and {@code toMessage}, both included; a limit that is not set does not limit.
+     */
+    public boolean inMessageRange(int position) {
+        return (fromMessage == null || position >= fromMessage) && (toMessage == null || position <= toMessage);
     }
 
     /**
