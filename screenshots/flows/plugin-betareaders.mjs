@@ -5,7 +5,24 @@
 // reasoning open, the actions of a message, the personas joined, the settings of a chat, the spoiler limit, the menu, the personas of the book.
 import fs from 'node:fs';
 import path from 'node:path';
-import {bookTab, dialog, goto, idle, login, main, menuItem, openBook, openTab, pick, press, repo, sleep, snap, snapDialog, field} from '../lib/shot.mjs';
+import {
+  bookTab,
+  dialog,
+  field,
+  goto,
+  idle,
+  login,
+  main,
+  menuItem,
+  openBook,
+  openTab,
+  pick,
+  press,
+  repo,
+  sleep,
+  snap,
+  snapDialog
+} from '../lib/shot.mjs';
 import {sideTab, widenSidebar} from '../lib/story.mjs';
 import {betaReaders} from '../dataset/plugins.mjs';
 
@@ -47,6 +64,55 @@ await main(async ({ page }) => {
   await snapDialog(page, 'plugin-betareaders-library');
   await press(dialog(page), 'Cancel');
   await idle(page, 500);
+
+  // a persona added in the library is kept when the Settings page is saved (the plugin stores its part when the page has stored its own)
+  await press(page, 'Edit personas');
+  await idle(page, 700);
+  await press(dialog(page), 'Add');
+  await idle(page, 600);
+  let pd = dialog(page);
+  await field(pd, 'Name').fill('Rook');
+  await field(pd, 'Name').dispatchEvent('change');
+  await field(pd, 'Description').fill('Reads for the plot and wants to know who did it.');
+  await field(pd, 'Description').dispatchEvent('change');
+  await press(pd, 'Save');
+  await sleep(500);
+  await press(dialog(page), 'Save');
+  await sleep(500);
+  expect(await field(page, 'Persona library').inputValue() === 'Personas: 7 (edited)', 'the library has 7 personas, not saved yet');
+  await page.getByRole('button', { name: 'Save', exact: true }).first().click();
+  await idle(page, 1000);
+  await page.reload({ waitUntil: 'load' });
+  await idle(page, 1500);
+  await login(page).catch(() => {});
+  await openTab(page, 'Settings');
+  await page.getByText('Extension Settings', { exact: true }).first().click();
+  await idle(page, 800);
+  await page.getByText('Beta Readers', { exact: true }).last().click();
+  await sleep(800);
+  expect(await field(page, 'Persona library').inputValue() === 'Personas: 7', 'the persona is still there after a reload');
+
+  // and it goes again, so that the pictures after it show the six
+  await press(page, 'Edit personas');
+  await idle(page, 700);
+  await dialog(page).locator('vaadin-grid-cell-content', { hasText: 'Rook' }).first().click();
+  await press(dialog(page), 'Delete');
+  await idle(page, 500);
+  await press(dialog(page), 'Yes', { exact: false }).catch(async () => press(dialog(page), 'Confirm', { exact: false }));
+  await sleep(500);
+  await press(dialog(page), 'Save');
+  await sleep(500);
+  await page.getByRole('button', { name: 'Save', exact: true }).first().click();
+  await idle(page, 1000);
+  await page.reload({ waitUntil: 'load' });
+  await idle(page, 1500);
+  await login(page).catch(() => {});
+  await openTab(page, 'Settings');
+  await page.getByText('Extension Settings', { exact: true }).first().click();
+  await idle(page, 800);
+  await page.getByText('Beta Readers', { exact: true }).last().click();
+  await sleep(800);
+  expect(await field(page, 'Persona library').inputValue() === 'Personas: 6', 'the persona is deleted and the library is stored again');
 
   await openBook(page);
   await bookTab(page, 'Story');
