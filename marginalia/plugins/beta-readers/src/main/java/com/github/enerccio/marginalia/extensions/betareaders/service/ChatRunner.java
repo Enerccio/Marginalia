@@ -61,9 +61,14 @@ public final class ChatRunner {
      * @param maxMessages     the most messages the model may write in a turn
      * @param maxPromptTokens the most tokens the prompt may have; 0 for no limit
      * @param tokens          counts the tokens of a text
+     * @param story           the story the personas read, see {@link PartsTracker#story}; empty for none
      */
     public record Request(BetaChat chat, String system, int maxMessages, int maxPromptTokens,
-                          ToIntFunction<String> tokens) {
+                          ToIntFunction<String> tokens, String story) {
+
+        public Request(BetaChat chat, String system, int maxMessages, int maxPromptTokens, ToIntFunction<String> tokens) {
+            this(chat, system, maxMessages, maxPromptTokens, tokens, "");
+        }
     }
 
     /**
@@ -111,7 +116,7 @@ public final class ChatRunner {
         BetaChat chat = request.chat();
         boolean json = mode.json();
         List<String> speakers = chat.present().stream().map(Persona::getName).toList();
-        Options options = new Options(json, request.maxMessages(), request.maxPromptTokens(), request.tokens());
+        Options options = new Options(json, request.maxMessages(), request.maxPromptTokens(), request.tokens(), request.story());
         Prompt prompt = PromptBuilder.build(chat, request.system(), options);
         List<LLMChatMessage> payload = prompt.messages();
         JsonNode schema = mode.schema() ? BetaSchemas.replySchema(speakers, request.maxMessages()) : null;

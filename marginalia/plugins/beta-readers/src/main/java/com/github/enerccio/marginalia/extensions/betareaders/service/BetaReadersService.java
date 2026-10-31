@@ -10,7 +10,6 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.extensions.InheritedSetting.Choice;
 import com.github.enerccio.marginalia.extensions.betareaders.model.*;
 import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersStore.Available;
-import com.github.enerccio.marginalia.extensions.betareaders.service.PartsTracker.Plan;
 import com.github.enerccio.marginalia.extensions.betareaders.service.PartsTracker.StoryPart;
 import com.github.enerccio.marginalia.extensions.betareaders.service.PartsTracker.Summaries;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
@@ -343,12 +342,12 @@ public class BetaReadersService {
     }
 
     /**
-     * Sends a message of the user and asks the model for the reply. The message (with the parts of the story it brings, when asked
-     * to) is added to the chat and stored first; when the reply is finished it is added and stored too, before the listener hears of
-     * it. Call it from a thread with the request of the user (the UI); the listener is called on other threads.
+     * Sends a message of the user and asks the model for the reply. The message (with the parts of the story it gives to the personas,
+     * when asked to) is added to the chat and stored first; when the reply is finished it is added and stored too, before the listener
+     * hears of it. Call it from a thread with the request of the user (the UI); the listener is called on other threads.
      *
-     * @param includeLatest whether the message sends the story: the context when the chat has sent none yet, else the parts that are
-     *                      new (see {@link PartsTracker})
+     * @param includeLatest whether the message gives the personas the parts of the story they were not given yet (see
+     *                      {@link PartsTracker}); the story they read is built from the story as it is now for every request
      * @return the message that was added and what stops the request
      * @throws NoModelException         when there is no AI to ask
      * @throws IllegalArgumentException when there is nothing to send
@@ -357,38 +356,61 @@ public class BetaReadersService {
             throws Exception {
         Run run = prepare(manuscript, chat);
 
-        BetaMessage user = userMessage(manuscript, chat, run, text, includeLatest);
-        if (user.getText().isBlank() && user.getContext().isBlank()) {
+        Story story = storyFor(manuscript, chat, includeLatest);
+        BetaMessage user = userMessage(chat, story, text, includeLatest);
+        if (user.getText().isBlank() && user.getSentParts().isEmpty()) {
             throw new IllegalArgumentException("There is nothing to send");
         }
         chat.getMessages().add(user);
         saveChat(manuscript, chat);
-        return new Asked(user, start(manuscript, chat, run, listener));
+        return new Asked(user, start(manuscript, chat, run, storyText(chat, chat, run, story), listener));
     }
 
     /**
-     * The message of the user as it would be sent: the text and, when asked to, the parts of the story that fit what is left of the
-     * prompt after the system prompt, the history and the text. It is not added to the chat.
+     * The story as it is now, when a request needs it: the chat includes the latest parts, or it was given parts that the personas read.
+     * Null when it needs none (reading the book costs, so a chat that was only talked to does not).
      */
-    private BetaMessage userMessage(Manuscript manuscript, BetaChat chat, Run run, String text, boolean includeLatest) throws Exception {
+    private Story storyFor(Manuscript manuscript, BetaChat chat, boolean includeLatest) throws Exception {
+        if (!includeLatest && PartsTracker.sentBy(chat).isEmpty()) {
+            return null;
+        }
+        return loadStory(manuscript, chat.getSpoilerLimit(), chat.isSummaries());
+    }
+
+    /**
+     * The message of the user as it would be sent: the text and, when asked to, the parts it gives to the personas. It is not added to
+     * the chat.
+     */
+    private BetaMessage userMessage(BetaChat chat, Story story, String text, boolean includeLatest) {
         BetaMessage user = BetaMessage.user(text == null ? "" : text.strip());
-        if (includeLatest) {
-            Story story = loadStory(manuscript, chat.getSpoilerLimit(), chat.isSummaries());
-            int used = PromptBuilder.build(chat.preview(user), run.system(), new PromptBuilder.Options(true,
-                    BetaReadersDefaults.maxMessages(chat.getKind(), chat.present().size()), 0, run.tokens())).tokens();
-            int budget = run.limit() > 0 ? Math.max(1, run.limit() - used) : 0;
-            Plan plan = PartsTracker.plan(chat, story.parts(), story.summaries(), chat.getFromPart(), chat.getSpoilerLimit(), budget,
-                    run.tokens());
-            user.setContext(plan.text());
-            user.setSentParts(new ArrayList<>(plan.sent()));
-            user.setGoneParts(new ArrayList<>(plan.gone()));
+        if (includeLatest && story != null) {
+            user.setSentParts(new ArrayList<>(PartsTracker.unreleased(chat, story.parts(), chat.getFromPart(), chat.getSpoilerLimit())));
         }
         return user;
     }
 
     /**
+     * The story the personas read in a request: the parts they were given (by the messages of {@code view}, which is the chat or a
+     * view of it with a message about to be sent), as they are now. It gets what is left of the prompt after the system prompt and the
+     * history, and at least half of it, the history is trimmed to make room.
+     *
+     * @param chat the chat that has the settings (the first part, the spoiler limit)
+     */
+    private String storyText(BetaChat chat, BetaChat view, Run run, Story story) {
+        if (story == null) {
+            return "";
+        }
+        PromptBuilder.Options options = new PromptBuilder.Options(ChatRunner.mode(chat.getFormat()).json(),
+                BetaReadersDefaults.maxMessages(chat.getKind(), chat.present().size()), 0, run.tokens());
+        int used = PromptBuilder.build(view, run.system(), options).tokens();
+        int budget = run.limit() > 0 ? Math.max(run.limit() / 2, run.limit() - used) : 0;
+        return PartsTracker.story(view, story.parts(), story.summaries(), chat.getFromPart(), chat.getSpoilerLimit(), budget, run.tokens())
+                .text();
+    }
+
+    /**
      * Asks again: takes the last reply back (when the history ends with one) and asks the model for another. The parts the message
-     * before it sent stay sent. Also the way to try again after a request that failed, when the history ends with the message of the user.
+     * before it gave stay given. Also the way to try again after a request that failed, when the history ends with the message of the user.
      *
      * @throws NoModelException       when there is no AI to ask
      * @throws IllegalStateException when there is nothing to answer
@@ -403,7 +425,7 @@ public class BetaReadersService {
             throw new IllegalStateException("There is nothing to answer");
         }
         saveChat(manuscript, chat);
-        return new Asked(null, start(manuscript, chat, run, listener));
+        return new Asked(null, start(manuscript, chat, run, storyText(chat, chat, run, storyFor(manuscript, chat, false)), listener));
     }
 
     /**
@@ -416,7 +438,7 @@ public class BetaReadersService {
     }
 
     /**
-     * How the story stands against what the chat has read: the number of parts to include, see {@link PartsTracker#status}.
+     * How the story stands against what the chat was given: the number of parts to include, see {@link PartsTracker#status}.
      */
     public PartsTracker.Status partsStatus(Manuscript manuscript, BetaChat chat) throws Exception {
         return PartsTracker.status(chat, loadStory(manuscript, 0, false).parts(), chat.getFromPart(), chat.getSpoilerLimit());
@@ -444,15 +466,18 @@ public class BetaReadersService {
      */
     public ContextUsage contextUsage(Manuscript manuscript, BetaChat chat, String draft, boolean includeLatest) throws Exception {
         Run run = prepare(manuscript, chat);
+        Story story = storyFor(manuscript, chat, includeLatest);
         BetaChat view = chat;
         if (includeLatest || (draft != null && !draft.isBlank())) {
-            BetaMessage user = userMessage(manuscript, chat, run, draft, includeLatest);
-            if (!user.getText().isBlank() || !user.getContext().isBlank()) {
+            BetaMessage user = userMessage(chat, story, draft, includeLatest);
+            if (!user.getText().isBlank() || !user.getSentParts().isEmpty()) {
                 view = chat.preview(user);
             }
         }
         PromptBuilder.Options options = new PromptBuilder.Options(ChatRunner.mode(chat.getFormat()).json(),
-                BetaReadersDefaults.maxMessages(chat.getKind(), chat.present().size()), 0, run.tokens());
+                BetaReadersDefaults.maxMessages(chat.getKind(), chat.present().size()), 0, run.tokens(), "");
+        // a message that is not sent yet may bring parts: the story is the one the request would read
+        options = options.withStory(storyText(chat, view, run, story));
         return new ContextUsage(PromptBuilder.build(view, run.system(), options).tokens(), run.limit());
     }
 
@@ -477,11 +502,12 @@ public class BetaReadersService {
         return new Run(model, system, inference, tokens, TokenLimits.promptTokens(model.ai(), model.protocol()));
     }
 
-    private CancellationToken start(Manuscript manuscript, BetaChat chat, Run run, ChatRunner.Listener listener) throws Exception {
+    private CancellationToken start(Manuscript manuscript, BetaChat chat, Run run, String story, ChatRunner.Listener listener)
+            throws Exception {
         // the reply ends on another thread: it is stored as the user who asked
         RequestAttributes attributes = ThreadCopyRequestAttributes.create();
         ChatRunner.Request request = new ChatRunner.Request(chat, run.system(),
-                BetaReadersDefaults.maxMessages(chat.getKind(), chat.present().size()), run.limit(), run.tokens());
+                BetaReadersDefaults.maxMessages(chat.getKind(), chat.present().size()), run.limit(), run.tokens(), story);
         ChatRunner.Listener storing = new ChatRunner.Listener() {
             @Override
             public void onProgress(ReplyReader.Reading reading) {

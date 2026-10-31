@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846786513238">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846790861600">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846786513238" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846790861600" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846786513238" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846790861600" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846786513238" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846790861600" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -312,17 +312,20 @@ section; a model that does not think shows none) and the messages of the persona
 <p>The personas of the group are told who is present at the end of your last message only (nothing about it is saved), so adding or removing a
 persona never changes the earlier history.</p>
 <h3 id="sending-the-story">Sending the story</h3>
-<p><strong>Include the latest parts</strong> sends the story with your message. The first time it brings everything the chat may read (see
-<doc-anchor-trigger to="#how-much-of-the-story-the-personas-read">below</doc-anchor-trigger>): the summaries of the story and the parts after them, as far as they fit the context of the
-model. Afterwards it sends only what is <strong>new or changed</strong> since the last time, marked in the request as new, so the personas can notice the
-change. The label of the box says what would be sent (<em>Include the story (5 parts)</em>, <em>Include the latest parts (2 new)</em>, <em>none new</em>, <em>the story
-changed</em>), and the button next to it checks again after you wrote something. A message of yours says which parts it sent (<em>Parts 1-5 sent</em>).</p>
+<p>The chat does not keep a copy of the story. It remembers which parts you <strong>gave</strong> to the personas, and for every request the story they read
+is built again from the story as it is now: the parts they were given, with the summaries in place of the oldest of them, as far as they
+fit the context of the model. It stands once at the start of the conversation, so there is no second copy of a part in the history. An
+edited part is read as edited, a part you deleted is not read any more, and a new summary is used from the next message on.</p>
+<p><strong>Include the latest parts</strong> is what gives the personas more of the story: it adds the parts they were not given yet (see
+<doc-anchor-trigger to="#how-much-of-the-story-the-personas-read">below</doc-anchor-trigger>). Leave it off to just chat and give them the story later. The label of the box says how
+many parts it would add (<em>Include the story (5 parts)</em>, <em>Include the latest parts (2 new)</em>, <em>none new</em>), and the button next to it checks
+again after you wrote something. A message of yours says which parts it gave (<em>Parts 1-5 sent</em>).</p>
 <p>Under the box are what the personas have read (<em>The personas have read: parts 1-5</em>) and the size of the context (<em>Context: 2,266 of 30,720
-tokens</em>): what the next message would send, that is the history, what you have typed and, when <strong>Include the latest parts</strong> is ticked, the parts it would bring. It changes when you tick the box or pause while typing. When the history does not fit, the oldest messages are left out of the request, not deleted, and a notice says how many.</p>
+tokens</em>): what the next message would send, that is the history, what you have typed and, when <strong>Include the latest parts</strong> is ticked, the parts it would add. It changes when you tick the box or pause while typing. The story gets at least half of the context; when the history does not fit beside it, the oldest messages are left out of the request, not deleted, and a notice says how many.</p>
 <h3 id="changing-the-conversation">Changing the conversation</h3>
 <retype-table copy-text="| Button | |
 |---|---|
-| pen (your message) | Edits your message; what it sent stays sent. |
+| pen (your message) | Edits your message; the parts it gave stay given. |
 | trash | Deletes your message, or one message of a reply (the rest of the turn stays, and the model sees the turn without it). |
 | Regenerate | Drops the last reply and asks again. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -336,7 +339,7 @@ tokens</em>): what the next message would send, that is the history, what you ha
 <tbody>
 <tr>
 <td>pen (your message)</td>
-<td>Edits your message; what it sent stays sent.</td>
+<td>Edits your message; the parts it gave stay given.</td>
 </tr>
 <tr>
 <td>trash</td>
@@ -462,17 +465,19 @@ is added after the prompt.</p>
 <ul>
 <li>
 <p><strong>Personas read up to part</strong> is the spoiler limit: the personas never get a part after it, and the summaries are collected only from the
-story up to it. Raise it when the story moves on, and the next message offers the parts that were held back as new ones.</p>
+story up to it. Raise it when the story moves on, and the next message offers the parts that were held back as new ones. Lower it and the personas stop reading the later parts at once.</p>
 </li>
 <li>
 <p><strong>Start from part</strong> leaves the earlier parts out, not even as summaries. Use it to let the personas read only one chapter.</p>
 </li>
 <li>
-<p><strong>Use the summaries of the story</strong> (on by default) lets the first message start with the summaries and then the parts after the newest of them.
-Summaries apply only when the story starts at its beginning.</p>
+<p><strong>Use the summaries of the story</strong> (on by default) lets the story start with the summaries and then the parts after the newest of them,
+which keeps a long story small. Summaries apply only when the story starts at its beginning.</p>
 </li>
 </ul>
-<p>A first part after the last one is refused. Lowering the limit under what was already sent does not unsend it.</p>
+<p>A first part after the last one is refused.</p>
+<p>Changing these in <strong>Chat settings</strong> changes the story the personas read from the next message on; nothing is sent again, because the
+story is built for every message.</p>
 <figure class="content-center">
     <img src="../../../images/plugin-betareaders-spoiler.png" alt="A chat that reads parts 2 to 3 only" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
     <figcaption class="caption">A chat that reads parts 2 to 3 only</figcaption>
@@ -587,7 +592,7 @@ settings in your user settings. The model is asked with the usual limits of the 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (46c0b535c).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (a2e1e581c).</p></div>
             </footer>
         </div>
     </div>

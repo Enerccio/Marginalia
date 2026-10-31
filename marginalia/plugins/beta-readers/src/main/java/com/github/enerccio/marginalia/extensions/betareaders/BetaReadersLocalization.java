@@ -130,7 +130,6 @@ public class BetaReadersLocalization extends PluginLocalizationBundle {
     public static final String OLDER_MESSAGES_WERE_LEFT_OUT = "%d older messages were left out of the request to fit the context.";
     public static final String INCLUDE_THE_STORY_PARTS = "Include the story (%d parts)";
     public static final String INCLUDE_THE_LATEST_PARTS_NEW = "Include the latest parts (%d new)";
-    public static final String INCLUDE_THE_LATEST_PARTS_THE_STORY = "Include the latest parts (the story changed)";
     public static final String INCLUDE_THE_LATEST_PARTS_NONE = "Include the latest parts (none new)";
     public static final String CONTEXT_OF_TOKENS = "Context: %1$s of %2$s tokens";
     public static final String CONTEXT_TOKENS = "Context: %s tokens";
@@ -654,11 +653,6 @@ public class BetaReadersLocalization extends PluginLocalizationBundle {
                 "最新のパートを含める (新規 %d)");
         zh(INCLUDE_THE_LATEST_PARTS_NEW,
                 "包含最新的部分（新增 %d）");
-
-        ja(INCLUDE_THE_LATEST_PARTS_THE_STORY,
-                "最新のパートを含める (ストーリーが変更されました)");
-        zh(INCLUDE_THE_LATEST_PARTS_THE_STORY,
-                "包含最新的部分（故事已更改）");
 
         ja(INCLUDE_THE_LATEST_PARTS_NONE,
                 "最新のパートを含める (新しいものなし)");

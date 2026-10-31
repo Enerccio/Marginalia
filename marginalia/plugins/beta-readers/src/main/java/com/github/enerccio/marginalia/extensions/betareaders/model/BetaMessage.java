@@ -18,19 +18,10 @@ public class BetaMessage {
     private String text = "";
 
     /**
-     * USER: the "new stuff" block (the parts of the story that were new when the message was sent) exactly as it was sent, so the
-     * history stays the same text with every request; empty when the message sent no parts.
+     * USER: the parts of the story the message gave to the personas (when it included the latest parts). What a chat has been given is
+     * the union of these; the text of the parts is not kept, the personas read the story as it is now.
      */
-    private String context = "";
-
-    /** USER: the parts the message sent. What a chat has sent is the union of these. */
     private List<SentPart> sentParts = new ArrayList<>();
-
-    /**
-     * USER: the parts the chat had been sent that were not in the story any more when this message was sent (the branch was changed);
-     * they are not counted as sent from this message on.
-     */
-    private List<String> goneParts = new ArrayList<>();
 
     /** JOIN, LEAVE: the persona (uuid and the name it had). */
     private String personaUuid;
@@ -117,28 +108,12 @@ public class BetaMessage {
         this.text = text;
     }
 
-    public String getContext() {
-        return context;
-    }
-
-    public void setContext(String context) {
-        this.context = context == null ? "" : context;
-    }
-
     public List<SentPart> getSentParts() {
         return sentParts;
     }
 
     public void setSentParts(List<SentPart> sentParts) {
         this.sentParts = sentParts;
-    }
-
-    public List<String> getGoneParts() {
-        return goneParts;
-    }
-
-    public void setGoneParts(List<String> goneParts) {
-        this.goneParts = goneParts;
     }
 
     public String getPersonaUuid() {
@@ -187,9 +162,7 @@ public class BetaMessage {
     public BetaMessage normalize() {
         kind = kind == null ? MessageKind.USER : kind;
         text = text == null ? "" : text;
-        context = context == null ? "" : context;
         sentParts = sentParts == null ? new ArrayList<>() : sentParts;
-        goneParts = goneParts == null ? new ArrayList<>() : goneParts;
         reasoning = reasoning == null ? "" : reasoning;
         rawText = rawText == null ? "" : rawText;
         spoken = spoken == null ? new ArrayList<>() : spoken;

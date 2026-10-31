@@ -1,21 +1,19 @@
 package com.github.enerccio.marginalia.extensions.betareaders.model;
 
 /**
- * A part of the story a message sent to the personas: its id, a hash of its text at that moment (so a part that was edited
- * afterwards counts as new again) and its number in the story then (for the line "parts 41-43 sent").
+ * A part of the story a message gave to the personas: its id and its number in the story then (for the line "parts 41-43 sent"). The
+ * text is not kept: the personas read the part as it is in the story now.
  */
 public class SentPart {
 
     private String id = "";
-    private String hash = "";
     private int number;
 
     public SentPart() {
     }
 
-    public SentPart(String id, String hash, int number) {
+    public SentPart(String id, int number) {
         this.id = id;
-        this.hash = hash;
         this.number = number;
     }
 
@@ -33,13 +31,5 @@ public class SentPart {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getHash() {
-        return hash;
-    }
-
-    public void setHash(String hash) {
-        this.hash = hash;
     }
 }
