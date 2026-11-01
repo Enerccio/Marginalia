@@ -83,6 +83,14 @@ Write into the box at the bottom and press **Send**; the answer appears as it is
 answers) cuts it short. One reply is one turn of the model: the thinking of the model, when it sends one (a closed **Reasoning**
 section; a model that does not think shows none) and the messages of the personas, each with what they do and what they say.
 
+### Sending a scene
+
+**Send as scene** (next to *Send*) sends the text as a scene instead of something you say: a change of scene (*The lights go out and the bar
+falls silent.*), or a description of what you do (*I put the manuscript on the table and wait.*). It shows as a **Scene** card in the history
+and the personas react to it as it happens, like to a message. Use the scene of the chat (see [below](#the-scene)) for where the conversation
+starts and this button for what happens after that. A scene message can be edited and deleted like your messages; it does not send parts of the
+story (the box *Include the latest parts* belongs to *Send*).
+
 The personas of the group are told who is present at the end of your last message only (nothing about it is saved), so adding or removing a
 persona never changes the earlier history.
 

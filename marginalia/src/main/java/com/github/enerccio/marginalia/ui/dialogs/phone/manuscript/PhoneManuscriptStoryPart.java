@@ -1176,10 +1176,16 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
                 returns = @APIReturn(type = void.class))
         @Override
         public void openImagesDialog() {
-            new ImagesDialog(message, updated -> {
-                message = updated;
-                messageImages.setImages(updated.getImages());
-            }, this::openImagePreview).open();
+            new ImagesDialog(message, this::imagesChanged, this::openImagePreview).open();
+        }
+
+        @PublicAPI(from = "1.6.0",
+                returns = @APIReturn(type = void.class),
+                parameters = {@APIParameter(name = "updated", type = ChatMessage.class)})
+        @Override
+        public void imagesChanged(ChatMessage updated) {
+            message = updated;
+            messageImages.setImages(updated.getImages());
         }
 
         @PublicAPI(from = "1.6.0",

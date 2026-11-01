@@ -58,13 +58,14 @@
 
 ### Extensions
 
-- [Extensions](https://enerccio.github.io/Marginalia/user/extensions/index.md): Extensions add features to Marginalia without changing the application itself. Nineteen extensions come with Marginalia:
+- [Extensions](https://enerccio.github.io/Marginalia/user/extensions/index.md): Extensions add features to Marginalia without changing the application itself. Twenty extensions come with Marginalia:
 - [Author's Note](https://enerccio.github.io/Marginalia/user/extensions/authors-note.md): A note to the model that is sent with every generation of the book: the tone you want right now, what the current chapter is about, a reminder the model keeps forgetting.
 - [Chinese localization](https://enerccio.github.io/Marginalia/user/extensions/chinese-localization.md): Adds Simplified Chinese (中文（简体）) to the languages of the user interface.
 - [Beta Readers](https://enerccio.github.io/Marginalia/user/extensions/beta-readers.md): Readers you invent, and a chat with them about your book. You describe a persona (a name, an icon and a few lines about how the person reads and what they
 - [Arc Outline](https://enerccio.github.io/Marginalia/user/extensions/arc-outline.md): The plan of your book in the sidebar: arcs, each split into chapters, with the state of every one of them, and a model that can write arcs and chapters for you.
 - [Character Tracker](https://enerccio.github.io/Marginalia/user/extensions/character-tracker.md): The cast of your book in the sidebar: a list of characters with a tagline, a note, an icon and a color, the relationships between them, and a map of those relationships.
 - [Chapter Marker](https://enerccio.github.io/Marginalia/user/extensions/chapter-marker.md): Turns the Outline of the story editor into a table of contents.
+- [Image Generator](https://enerccio.github.io/Marginalia/user/extensions/image-generator.md): Makes an image for a part of the story. The model writes the image prompt from the part, you edit it, an image backend draws the picture, you reroll until
 - [Manga Generator](https://enerccio.github.io/Marginalia/user/extensions/manga-generator.md): Turn your story into a manga: the model adapts parts of the book into a script of pages and panels, and then writes image generation tags for every panel - ready for Stable Diffusion, Forge, Midjourney and the like.
 - [Instruction Exporter](https://enerccio.github.io/Marginalia/user/extensions/instruction-exporter.md): Copies the instructions of the story, with the scene setting, POV character and present characters, to the clipboard.
 - [Gemma 4 tools fix](https://enerccio.github.io/Marginalia/user/extensions/gemma-4-tools-fix.md): Makes function calling work with Gemma 4 models whose API expects another role for the results of the calls.

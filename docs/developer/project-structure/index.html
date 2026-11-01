@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846859002389">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846863386845">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846859002389" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846863386845" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846859002389" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846863386845" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846859002389" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846863386845" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -1253,6 +1253,7 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 | Character Tracker | `extensions.charactertracker` | Model (characters, relationships, the in-memory `CharacterBook`), service, a sidebar tab, dialogs (character, import from the lorebook, relationship map on `GraphView`) and `charactertracker.css`. |
 | Gemma 4 tools fix | `extensions.gemma4toolsfix` | Activator and extension only; registers a `ToolRoleResolver`. |
 | Google Gemini | `extensions.googlegenai` | Activator and extension, `GoogleGenAiFactory` (the `ExtensionAIFactory`), the settings form, the inference service over the Google Gen AI SDK (embedded in the JAR) and helpers for the messages, the errors and the settings; has unit tests. |
+| Image Generator | `extensions.imagegenerator` | Model (`ImageSettings`, `BackendConfig` with its `HttpHook`s), service (`ImageBackend` with `ComfyUiBackend` and `OpenAiImagesBackend`, `WorkflowTemplate`, `ImageSession` that holds a backend between images, `HookRunner`, `UrlGuard`, `ImageGeneratorService`), the window (`ImageGeneratorDialog`), `ImageSettingsForm` (the panel of the extension settings) and `image-generator.css`; has unit tests with fake ComfyUI and OpenAI servers. |
 | Instruction Exporter | `extensions.instructionexporter` | Activator and extension only. |
 | Lore Generator | `extensions.loregenerator` | Model (the prompts), service (lore selection, prompts), a dialog split into `SavePromptAsDialog`, `AttachmentPanel` and `GenerationPane`, a settings form, and `LegacyNameTools` (reads the name categories and hints saved before the tool dialog). |
 | Lorebook VCS | `extensions.lorebookvcs` | Model, service, two UI panels. |
@@ -1308,6 +1309,11 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 <td>Google Gemini</td>
 <td><code translate="no" v-pre>extensions.googlegenai</code></td>
 <td>Activator and extension, <code translate="no" v-pre>GoogleGenAiFactory</code> (the <code translate="no" v-pre>ExtensionAIFactory</code>), the settings form, the inference service over the Google Gen AI SDK (embedded in the JAR) and helpers for the messages, the errors and the settings; has unit tests.</td>
+</tr>
+<tr>
+<td>Image Generator</td>
+<td><code translate="no" v-pre>extensions.imagegenerator</code></td>
+<td>Model (<code translate="no" v-pre>ImageSettings</code>, <code translate="no" v-pre>BackendConfig</code> with its <code translate="no" v-pre>HttpHook</code>s), service (<code translate="no" v-pre>ImageBackend</code> with <code translate="no" v-pre>ComfyUiBackend</code> and <code translate="no" v-pre>OpenAiImagesBackend</code>, <code translate="no" v-pre>WorkflowTemplate</code>, <code translate="no" v-pre>ImageSession</code> that holds a backend between images, <code translate="no" v-pre>HookRunner</code>, <code translate="no" v-pre>UrlGuard</code>, <code translate="no" v-pre>ImageGeneratorService</code>), the window (<code translate="no" v-pre>ImageGeneratorDialog</code>), <code translate="no" v-pre>ImageSettingsForm</code> (the panel of the extension settings) and <code translate="no" v-pre>image-generator.css</code>; has unit tests with fake ComfyUI and OpenAI servers.</td>
 </tr>
 <tr>
 <td>Instruction Exporter</td>
@@ -1555,7 +1561,7 @@ ignored by Git), see <a href="../packaging/#building-the-plugins-in-docker">Pack
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (8e1e166a0).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (801fe6625).</p></div>
             </footer>
         </div>
     </div>
