@@ -139,9 +139,7 @@ class ImagesDialogTest extends MarginaliaTestBase {
     }
 
     @Test
-    void theTextCanFlowAroundAnImageAtTheSideOnly() throws Exception {
-        assertThat(checkbox(loc.getValue(L.LABEL_IMAGE_WRAP)).isEnabled()).isFalse();
-
+    void theTextCanFlowAroundAnImageAtTheSideOrOnBothSidesOfOneInTheMiddle() throws Exception {
         button(loc.getValue(L.ENUM_IMAGE_ANCHOR_CENTER_RIGHT)).click();
         Checkbox wrap = checkbox(loc.getValue(L.LABEL_IMAGE_WRAP));
         assertThat(wrap.isEnabled()).isTrue();
@@ -152,6 +150,12 @@ class ImagesDialogTest extends MarginaliaTestBase {
         assertThat(saved().anchor()).isEqualTo(ImageAnchor.CENTER_RIGHT);
         // the width has less room, the text needs the rest
         assertThat(width().getMax()).isEqualTo(ImageAttachment.MAX_WRAPPED_WIDTH);
+
+        // in the middle the text is on both sides, with even less room for the picture
+        button(loc.getValue(L.ENUM_IMAGE_ANCHOR_CENTER_CENTER)).click();
+        assertThat(saved().wrap()).isTrue();
+        assertThat(checkbox(loc.getValue(L.LABEL_IMAGE_WRAP)).isEnabled()).isTrue();
+        assertThat(width().getMax()).isEqualTo(ImageAttachment.MAX_SURROUNDED_WIDTH);
     }
 
     @Test
@@ -209,6 +213,22 @@ class ImagesDialogTest extends MarginaliaTestBase {
 
         Div block = (Div) all(view).filter(c -> c.getClassNames().contains(CssStyles.PART_PICTURES_LEFT)).findFirst().orElseThrow();
         assertThat(block.getChildren().findFirst().orElseThrow().getStyle().get("width")).isNull();
+    }
+
+    @Test
+    void imagesInTheMiddleOfTheTextAreBetweenTwoColumnsOfIt() {
+        String lorem = " lorem".repeat(40);
+        ImageAttachment middle = new ImageAttachment(image.getUuid(), "Mid", ImageAnchor.TOP_CENTER, true, 25);
+
+        PartView view = new PartView("One" + lorem + "\n\nTwo" + lorem + "\n\nThree" + lorem, List.of(middle));
+
+        Div band = (Div) all(view).filter(c -> c.getClassNames().contains(CssStyles.PART_BAND)).findFirst().orElseThrow();
+        assertThat(band.getStyle().get("grid-template-columns")).isEqualTo("1fr 25% 1fr");
+        List<Component> cells = band.getChildren().toList();
+        assertThat(cells).hasSize(3);
+        assertThat(cells.get(0).getClassNames()).contains(CssStyles.PART_BAND_TEXT);
+        assertThat(cells.get(1).getClassNames()).contains(CssStyles.PART_BAND_MIDDLE);
+        assertThat(cells.get(2).getClassNames()).contains(CssStyles.PART_BAND_TEXT);
     }
 
     @Test

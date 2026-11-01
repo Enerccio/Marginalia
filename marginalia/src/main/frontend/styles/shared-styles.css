@@ -801,6 +801,27 @@ vaadin-markdown.agent-report td {
     margin: 0 0 var(--lumo-space-s) var(--lumo-space-m);
 }
 
+/* pictures with text on both sides: the text in two columns, the pictures between them (the columns are set on the element) */
+.part-band {
+    display: grid;
+    gap: var(--lumo-space-l);
+    align-items: start;
+    clear: both;
+    margin: var(--lumo-space-s) 0;
+}
+
+.part-band-middle {
+    align-self: center;
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-s);
+    align-items: center;
+}
+
+.part-band-text {
+    min-width: 0;
+}
+
 /* a narrow part (a phone) has no room for text beside a picture, the picture goes above the text */
 @container (max-width: 30em) {
     .part-picture-float-left,
@@ -808,6 +829,14 @@ vaadin-markdown.agent-report td {
         float: none;
         width: 100% !important;
         margin: var(--lumo-space-s) 0;
+    }
+
+    .part-band {
+        grid-template-columns: 1fr !important;
+    }
+
+    .part-band-middle .part-picture {
+        width: 100% !important;
     }
 }
 

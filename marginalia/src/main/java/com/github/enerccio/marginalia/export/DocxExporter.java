@@ -15,6 +15,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 
 public class DocxExporter extends ExporterBase {
@@ -210,10 +211,16 @@ public class DocxExporter extends ExporterBase {
                 switch (part) {
                     case TextPart text -> walk(text.markdown(), bodySink);
                     case PicturePart pictures -> writePictures(pictures);
+                    case BandPart band -> {
+                        // Word flows the text around the table on both sides of it, line by line
+                        writeFloating(band.images(), ImageAnchor.CENTER_CENTER);
+                        walk(band.left(), bodySink);
+                        walk(band.right(), bodySink);
+                    }
                 }
             }
             pendingChapter = null;
-            if (!parts.isEmpty() && parts.getLast() instanceof PicturePart last && last.wrap()) {
+            if (!parts.isEmpty() && (parts.getLast() instanceof PicturePart last && last.wrap() || parts.getLast() instanceof BandPart)) {
                 // a table the text flows around needs a paragraph after it, also when there is no text
                 document.createParagraph().setSpacingAfter(0);
             }
@@ -248,9 +255,7 @@ public class DocxExporter extends ExporterBase {
 
         private void writePictures(PicturePart pictures) throws Exception {
             if (pictures.wrap()) {
-                for (ExportImage image : pictures.images()) {
-                    writeWrapped(image, pictures.anchor());
-                }
+                writeFloating(pictures.images(), pictures.anchor());
             } else if (isRow(pictures)) {
                 writeRow(pictures);
             } else {
@@ -333,37 +338,51 @@ public class DocxExporter extends ExporterBase {
         }
 
         /**
-         * A table of one cell that floats at the left or at the right, so that the text after it flows around it (Word does that for a
-         * table with a position, and it can hold the caption under the image).
+         * A table of one cell that floats at the left, at the right or in the middle, so that the text after it flows around it (Word
+         * does that for a table with a position, and it can hold the captions under the images). The images are one above the other.
          */
-        private void writeWrapped(ExportImage image, ImageAnchor anchor) throws Exception {
+        private void writeFloating(List<ExportImage> images, ImageAnchor anchor) throws Exception {
             if (pageBreakPending || pendingChapter != null) {
                 newParagraph().setSpacingAfter(0);
             }
-            BufferedImage decoded = ImageIO.read(new ByteArrayInputStream(image.data()));
-            long[] size = sizeOf(decoded, image);
+            List<long[]> sizes = new ArrayList<>();
+            long widest = 0;
+            for (ExportImage image : images) {
+                long[] size = sizeOf(ImageIO.read(new ByteArrayInputStream(image.data())), image);
+                sizes.add(size);
+                widest = Math.max(widest, size[0]);
+            }
             XWPFTable table = document.createTable(1, 1);
             noBorders(table);
-            int widthDxa = (int) (size[0] / 635) + 120;
+            int widthDxa = (int) (widest / 635) + 120;
             table.setWidth(widthDxa);
             CTTblPPr position = table.getCTTbl().getTblPr().addNewTblpPr();
             position.setHorzAnchor(STHAnchor.MARGIN);
             position.setVertAnchor(STVAnchor.TEXT);
-            position.setTblpXSpec(anchor.horizontal() == ImageAnchor.Horizontal.LEFT ? STXAlign.LEFT : STXAlign.RIGHT);
+            position.setTblpXSpec(switch (anchor.horizontal()) {
+                case LEFT -> STXAlign.LEFT;
+                case CENTER -> STXAlign.CENTER;
+                case RIGHT -> STXAlign.RIGHT;
+            });
             position.setTblpY(BigInteger.ZERO);
             position.setLeftFromText(BigInteger.valueOf(anchor.horizontal() == ImageAnchor.Horizontal.LEFT ? 0 : 200));
-            position.setRightFromText(BigInteger.valueOf(anchor.horizontal() == ImageAnchor.Horizontal.LEFT ? 200 : 0));
+            position.setRightFromText(BigInteger.valueOf(anchor.horizontal() == ImageAnchor.Horizontal.RIGHT ? 0 : 200));
             position.setBottomFromText(BigInteger.valueOf(120));
             XWPFTableCell cell = table.getRow(0).getCell(0);
             cell.setWidth(String.valueOf(widthDxa));
-            XWPFParagraph paragraph = cell.getParagraphs().getFirst();
-            paragraph.setAlignment(ParagraphAlignment.CENTER);
-            paragraph.setKeepNext(!image.caption().isEmpty());
-            picture(paragraph, image, size);
-            if (!image.caption().isEmpty()) {
-                XWPFParagraph caption = cell.addParagraph();
-                caption.setAlignment(ParagraphAlignment.CENTER);
-                addRuns(caption, List.of(new Run(image.caption(), false, true, false, false)), bodySize - 2, false, null);
+            boolean first = true;
+            for (int i = 0; i < images.size(); i++) {
+                ExportImage image = images.get(i);
+                XWPFParagraph paragraph = first ? cell.getParagraphs().getFirst() : cell.addParagraph();
+                first = false;
+                paragraph.setAlignment(ParagraphAlignment.CENTER);
+                paragraph.setKeepNext(!image.caption().isEmpty());
+                picture(paragraph, image, sizes.get(i));
+                if (!image.caption().isEmpty()) {
+                    XWPFParagraph caption = cell.addParagraph();
+                    caption.setAlignment(ParagraphAlignment.CENTER);
+                    addRuns(caption, List.of(new Run(image.caption(), false, true, false, false)), bodySize - 2, false, null);
+                }
             }
         }
 

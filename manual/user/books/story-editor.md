@@ -387,11 +387,15 @@ list of the pictures of the part.
 - **Caption** is shown under the picture. It can be empty.
 - **Position in the part** is a 3x3 grid. The column is the side of the text (left, center, right), the row is the place in it:
   the top is before the text, the middle is in the middle of it, the bottom is after it. Click a square to choose.
-- **Text flows around the image** lets the text run beside the picture instead of above and below it. It works for the
-  left and the right column; text cannot flow on both sides of a picture in the middle, so there the picture stays a block
-  of its own, centered between the paragraphs.
+- **Text flows around the image** lets the text run around the picture instead of above and below it. At the left or the
+  right, the text runs beside the picture. In the middle column the text is on both sides of it: a few blocks of the text (about 400
+  characters, two blocks at least) at that row become two columns, the first part at the left of the picture and the rest at the
+  right, so the text reads down the left column and goes on in the right one. Two pictures in the same place are one above the other
+  between the columns. When the text has no room for two columns (one paragraph only, or the blocks are already taken by the band
+  above), the picture is a block of its own, centered.
 - **Width** is the width of the picture as a percent of the width of the text. **Automatic** keeps the size of the
-  picture (never wider than the text). A picture the text flows around is at most 60 %, so the text keeps some room.
+  picture (never wider than the text; a picture with text on both sides is 30 %). A picture the text flows beside is at most 60 %,
+  and one with text on both sides at most 40 %, so the text keeps some room.
   The height follows the proportions of the picture.
 - The trash button removes the picture from the part.
 

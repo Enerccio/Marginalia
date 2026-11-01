@@ -55,9 +55,9 @@ its size, scaled down to the page). Not every format can put text beside a pictu
 
 | Format | |
 |---|---|
-| **HTML**, **EPUB** | Embedded (in the page, or as files of the book). The text flows around the pictures at the left or the right, and on a narrow screen they go above the text. Pictures next to each other in a place stand in a row. |
-| **Word document** | The picture the text flows around is in a small table that Word places at the side, and Word wraps the text around it; the caption is under the picture. Pictures with a width that fit next to each other are a row of a table. |
-| **PDF** | The text flows around the pictures at the side, the caption is drawn under the picture. Pictures with a width that fit next to each other are a row. A picture that is too tall for the rest of the page goes to the next page. |
+| **HTML**, **EPUB** | Embedded (in the page, or as files of the book). The text flows around the pictures at the left or the right; a picture in the middle is between two columns of text. On a narrow screen they go above the text, and a reader without columns (some e-readers) shows the first text, the picture and the rest one under the other. Pictures next to each other in a place stand in a row. |
+| **Word document** | The picture the text flows around is in a small table that Word places at the side or in the middle, and Word wraps the text around it (on both sides for the middle, line by line); the caption is under the picture. Pictures with a width that fit next to each other are a row of a table. |
+| **PDF** | The text flows around the pictures at the side, the caption is drawn under the picture. A picture in the middle is between two columns of left aligned text (a band that does not fit at the end of a page starts on the next one). Pictures with a width that fit next to each other are a row. A picture that is too tall for the rest of the page goes to the next page. |
 | **Markdown** | Embedded in the file as `![caption](data:...)` images with the caption in italics under them, so it is still one file. The position among the text is kept; the width and the flowing text are not. Not every reader shows embedded images (GitHub does not), and a book with many images has very long lines, so attach images to the parts only when you want them in a Markdown export. |
 | **Plain text** | Marked with `[Image]` or `[Image: caption]` at their place in the text. |
 | **HTML for Archive of Our Own** | Marked with `[Image: caption]`: AO3 takes images only from links. |

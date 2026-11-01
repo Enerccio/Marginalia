@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846857686590">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846858660714">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846857686590" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846858660714" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846857686590" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846858660714" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846857686590" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846857686590" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846858660714" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846858660714" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -501,18 +501,18 @@ Images attached to a part (<code translate="no" v-pre>ChatMessage.getImages()</c
 the type, the caption and where the image is: the effective anchor, whether the text flows around it, its width in percent). The
 part is cut by <code translate="no" v-pre>PartLayout</code> (<code translate="no" v-pre>domain.model</code>, shared with the viewer: the text is cut at the boundaries between its top level
 blocks and the images are put at the cuts their anchors ask for) into <code translate="no" v-pre>Part</code>s, a <code translate="no" v-pre>TextPart</code> (blocks of the text) or a
-<code translate="no" v-pre>PicturePart</code> (the images of one place, one anchor and wrapping), and handed to the writer in <code translate="no" v-pre>message(List&lt;Part&gt;, Chapter)</code>.
+<code translate="no" v-pre>PicturePart</code> (the images of one place, one anchor and wrapping) or a <code translate="no" v-pre>BandPart</code> (images with text on both sides: the left text, the right text), and handed to the writer in <code translate="no" v-pre>message(List&lt;Part&gt;, Chapter)</code>.
 The default of that method calls <code translate="no" v-pre>message(markdown, chapter)</code> for the first text (an empty one when the part starts with images, so a
 chapter starts where its part does), <code translate="no" v-pre>message(markdown, null)</code> for the other text and <code translate="no" v-pre>images(List&lt;ExportImage&gt;)</code> for each group,
-so a format that only writes things in order (TXT, Markdown, Obsidian, AO3) shows the images at their place in the text without
+(a band is the left text, the images and the right text), so a format that only writes things in order (TXT, Markdown, Obsidian, AO3) shows the images at their place in the text without
 code of its own. A part with images but no text is exported with an empty text. HTML and EPUB override <code translate="no" v-pre>message(List&lt;Part&gt;, Chapter)</code>
 with <code translate="no" v-pre>toHtml(parts, source)</code>: <code translate="no" v-pre>&lt;figure&gt;</code>s in a <code translate="no" v-pre>div.pictures</code> (a row, aligned with <code translate="no" v-pre>pictures-left|center|right</code>) or floats
-(<code translate="no" v-pre>figure.float-left|float-right</code>, a <code translate="no" v-pre>div.clear</code> after the part), the width as an inline <code translate="no" v-pre>width: n%</code>, the rules in <code translate="no" v-pre>PICTURES_CSS</code>;
+(<code translate="no" v-pre>figure.float-left|float-right</code>, a <code translate="no" v-pre>div.clear</code> after the part) or a grid <code translate="no" v-pre>div.band</code> (<code translate="no" v-pre>1fr n% 1fr</code>: the text, <code translate="no" v-pre>div.band-middle</code> with the figures, the text; one column on a narrow screen), the width as an inline <code translate="no" v-pre>width: n%</code>, the rules in <code translate="no" v-pre>PICTURES_CSS</code>;
 HTML embeds the pictures as data URIs, EPUB as files in <code translate="no" v-pre>OEBPS/images/</code> with manifest items. PDF lays the parts out itself:
 a picture is scaled to its width (no width: its size at 96 dpi, within the text), a row is a <code translate="no" v-pre>PdfPTable</code>, and a picture the text
-flows around is a <code translate="no" v-pre>PdfTemplate</code> of the picture and its caption added with <code translate="no" v-pre>Image.TEXTWRAP</code> (OpenPDF wraps only images). DOCX
+flows around is a <code translate="no" v-pre>PdfTemplate</code> of the picture and its caption added with <code translate="no" v-pre>Image.TEXTWRAP</code> (OpenPDF wraps only images); a band is a <code translate="no" v-pre>PdfPTable</code> of three cells, the text of the two outer ones gathered by the sink into a list (<code translate="no" v-pre>emit</code>) and left aligned. DOCX
 writes a picture as a run (a paragraph aligned to the side), a row as a table without borders and a picture the text flows around as a
-one cell table with a position (<code translate="no" v-pre>tblpPr</code>: Word wraps the text around it, and the table can hold the caption). TXT writes
+one cell table with a position (<code translate="no" v-pre>tblpPr</code>, left, right or center: Word wraps the text around it, on both sides for the center, and the table can hold the captions); a band is that table in the center followed by the left and the right text. TXT writes
 <code translate="no" v-pre>[Image: caption]</code>, Markdown <code translate="no" v-pre>![caption](data:...)</code> plus an italic caption line. <code translate="no" v-pre>figure(src, caption)</code> renders the XHTML figure.
 An exporter that has fonts and colors returns <code translate="no" v-pre>true</code> from <code translate="no" v-pre>Exporter.supportsStyles()</code> (HTML, EPUB, PDF, DOCX), which is what makes the dialog show
 the <em>Print style</em> choice (<code translate="no" v-pre>PartStyleService.listForExport()</code>: the styles with <code translate="no" v-pre>forExport</code>, built in and the user&#x27;s), preselecting <code translate="no" v-pre>ExportSettingsService.getStyleId(exporter)</code> (the style the user set for the format in <em>Settings → Exports</em>, else <code translate="no" v-pre>Exporter.getDefaultStyleId()</code>) and again when the format changes. The look each format had before styles are the built-in styles <code translate="no" v-pre>PartStyleRegistry.htmlExportStyle()</code> (<code translate="no" v-pre>export-html</code>), <code translate="no" v-pre>epubExportStyle()</code>, <code translate="no" v-pre>pdfExportStyle()</code> and <code translate="no" v-pre>docxExportStyle()</code>, which the exporter uses when <code translate="no" v-pre>ExportOptions.style</code> is null (the text part of the old <code translate="no" v-pre>STYLE</code> constants moved there; what is left in them is the page, the title page, the contents and the figures). HTML and EPUB
@@ -1116,7 +1116,7 @@ call. See
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (cc8327627).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (bb1b960bb).</p></div>
             </footer>
         </div>
     </div>

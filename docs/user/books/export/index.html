@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846857686590">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846858660714">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846857686590" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846858660714" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846857686590" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846858660714" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846857686590" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846858660714" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -326,9 +326,9 @@ place), with their captions, in the width you gave them (a percent of the width 
 its size, scaled down to the page). Not every format can put text beside a picture:</p>
 <retype-table copy-text="| Format | |
 |---|---|
-| **HTML**, **EPUB** | Embedded (in the page, or as files of the book). The text flows around the pictures at the left or the right, and on a narrow screen they go above the text. Pictures next to each other in a place stand in a row. |
-| **Word document** | The picture the text flows around is in a small table that Word places at the side, and Word wraps the text around it; the caption is under the picture. Pictures with a width that fit next to each other are a row of a table. |
-| **PDF** | The text flows around the pictures at the side, the caption is drawn under the picture. Pictures with a width that fit next to each other are a row. A picture that is too tall for the rest of the page goes to the next page. |
+| **HTML**, **EPUB** | Embedded (in the page, or as files of the book). The text flows around the pictures at the left or the right; a picture in the middle is between two columns of text. On a narrow screen they go above the text, and a reader without columns (some e-readers) shows the first text, the picture and the rest one under the other. Pictures next to each other in a place stand in a row. |
+| **Word document** | The picture the text flows around is in a small table that Word places at the side or in the middle, and Word wraps the text around it (on both sides for the middle, line by line); the caption is under the picture. Pictures with a width that fit next to each other are a row of a table. |
+| **PDF** | The text flows around the pictures at the side, the caption is drawn under the picture. A picture in the middle is between two columns of left aligned text (a band that does not fit at the end of a page starts on the next one). Pictures with a width that fit next to each other are a row. A picture that is too tall for the rest of the page goes to the next page. |
 | **Markdown** | Embedded in the file as `![caption](data:...)` images with the caption in italics under them, so it is still one file. The position among the text is kept; the width and the flowing text are not. Not every reader shows embedded images (GitHub does not), and a book with many images has very long lines, so attach images to the parts only when you want them in a Markdown export. |
 | **Plain text** | Marked with `[Image]` or `[Image: caption]` at their place in the text. |
 | **HTML for Archive of Our Own** | Marked with `[Image: caption]`: AO3 takes images only from links. |
@@ -345,15 +345,15 @@ its size, scaled down to the page). Not every format can put text beside a pictu
 <tbody>
 <tr>
 <td><strong>HTML</strong>, <strong>EPUB</strong></td>
-<td>Embedded (in the page, or as files of the book). The text flows around the pictures at the left or the right, and on a narrow screen they go above the text. Pictures next to each other in a place stand in a row.</td>
+<td>Embedded (in the page, or as files of the book). The text flows around the pictures at the left or the right; a picture in the middle is between two columns of text. On a narrow screen they go above the text, and a reader without columns (some e-readers) shows the first text, the picture and the rest one under the other. Pictures next to each other in a place stand in a row.</td>
 </tr>
 <tr>
 <td><strong>Word document</strong></td>
-<td>The picture the text flows around is in a small table that Word places at the side, and Word wraps the text around it; the caption is under the picture. Pictures with a width that fit next to each other are a row of a table.</td>
+<td>The picture the text flows around is in a small table that Word places at the side or in the middle, and Word wraps the text around it (on both sides for the middle, line by line); the caption is under the picture. Pictures with a width that fit next to each other are a row of a table.</td>
 </tr>
 <tr>
 <td><strong>PDF</strong></td>
-<td>The text flows around the pictures at the side, the caption is drawn under the picture. Pictures with a width that fit next to each other are a row. A picture that is too tall for the rest of the page goes to the next page.</td>
+<td>The text flows around the pictures at the side, the caption is drawn under the picture. A picture in the middle is between two columns of left aligned text (a band that does not fit at the end of a page starts on the next one). Pictures with a width that fit next to each other are a row. A picture that is too tall for the rest of the page goes to the next page.</td>
 </tr>
 <tr>
 <td><strong>Markdown</strong></td>
@@ -561,7 +561,7 @@ all of it, make a <a href="../backups/">backup</a>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (cc8327627).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (bb1b960bb).</p></div>
             </footer>
         </div>
     </div>

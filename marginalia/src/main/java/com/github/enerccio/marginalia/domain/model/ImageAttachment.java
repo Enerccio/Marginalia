@@ -8,9 +8,11 @@ package com.github.enerccio.marginalia.domain.model;
  * @param resource uuid of the {@link com.github.enerccio.marginalia.domain.model.impl.Resource} holding the image
  * @param caption  text shown with the image, may be empty
  * @param anchor   where the image is, null for {@link #DEFAULT_ANCHOR} (after the text, centered)
- * @param wrap     true to let the text flow around the image; has an effect only for a left or right anchor
+ * @param wrap     true to let the text flow around the image: beside it for a left or right anchor, on both sides of it (in two
+ *                 columns) for a center one
  * @param width    width of the image in percent of the width of the text, null for the size of the image (never wider than the
- *                 text); {@link #MIN_WIDTH} to {@link #MAX_WIDTH}, and at most {@link #MAX_WRAPPED_WIDTH} when the text flows around it
+ *                 text); {@link #MIN_WIDTH} to {@link #MAX_WIDTH}, at most {@link #MAX_WRAPPED_WIDTH} when the text flows beside it and
+ *                 {@link #MAX_SURROUNDED_WIDTH} when it is in the middle of the text
  */
 public record ImageAttachment(String resource, String caption, ImageAnchor anchor, boolean wrap, Integer width) {
 
@@ -18,6 +20,11 @@ public record ImageAttachment(String resource, String caption, ImageAnchor ancho
     public static final int MIN_WIDTH = 10;
     public static final int MAX_WIDTH = 100;
     public static final int MAX_WRAPPED_WIDTH = 60;
+    public static final int MAX_SURROUNDED_WIDTH = 40;
+    /**
+     * The width of an image in the middle of the text without a width of its own.
+     */
+    public static final int SURROUNDED_WIDTH = 30;
 
     /**
      * An image after the text, in the size it has.
@@ -40,22 +47,36 @@ public record ImageAttachment(String resource, String caption, ImageAnchor ancho
     }
 
     /**
-     * @return true when the text flows around the image: wrapping was asked for and the image is at the left or at the right (text cannot
-     * flow on both sides of an image in the middle)
+     * @return true when the text flows beside the image: wrapping was asked for and the image is at the left or at the right
      */
     public boolean floats() {
         return wrap && effectiveAnchor().horizontal() != ImageAnchor.Horizontal.CENTER;
     }
 
     /**
-     * @return width in percent of the text, null for the size of the image; an image the text flows around is at most
-     * {@link #MAX_WRAPPED_WIDTH}, wider would leave no room for the text
+     * @return true when the text is on both sides of the image: wrapping was asked for and the image is in the middle column
+     */
+    public boolean surrounds() {
+        return wrap && effectiveAnchor().horizontal() == ImageAnchor.Horizontal.CENTER;
+    }
+
+    /**
+     * @return the largest width in percent of the text the image can have: the text needs room beside it
+     */
+    public int maxWidth() {
+        return surrounds() ? MAX_SURROUNDED_WIDTH : floats() ? MAX_WRAPPED_WIDTH : MAX_WIDTH;
+    }
+
+    /**
+     * @return width in percent of the text, null for the size of the image; an image the text flows around is limited by
+     * {@link #maxWidth()}, wider would leave no room for the text, and one in the middle of the text without a width has
+     * {@link #SURROUNDED_WIDTH}
      */
     public Integer effectiveWidth() {
         if (width == null) {
-            return null;
+            return surrounds() ? Integer.valueOf(SURROUNDED_WIDTH) : null;
         }
-        return floats() ? Integer.valueOf(Math.min(width, MAX_WRAPPED_WIDTH)) : width;
+        return Integer.valueOf(Math.min(width, maxWidth()));
     }
 
     public ImageAttachment withCaption(String caption) {
