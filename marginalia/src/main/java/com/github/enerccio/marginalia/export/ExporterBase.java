@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.ExporterService.ExportTempl
 import com.github.enerccio.marginalia.domain.service.ExporterService.Exporter;
 import com.github.enerccio.marginalia.domain.service.ResourceService;
 import com.github.enerccio.marginalia.domain.service.TemplateService;
+import com.github.enerccio.marginalia.domain.templates.ExportFrontMatterTemplateData;
 import com.github.enerccio.marginalia.domain.templates.ExportHeaderTemplateData;
 import com.github.enerccio.marginalia.ui.dialogs.ProgressBarDialog;
 import org.apache.commons.lang3.StringUtils;
@@ -20,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -47,6 +49,13 @@ public abstract class ExporterBase implements Exporter {
      */
     public static final ExportTemplate TITLE_PAGE_TEMPLATE = new ExportTemplate("titlePage", "Title page",
             Defaults.DEFAULT_EXPORT_HEADER_TEMPLATE, ExportHeaderTemplateData.class);
+
+    /**
+     * The YAML front matter of the formats that have one (Markdown for static site generators, the Obsidian vault); the user can change the
+     * template in the settings.
+     */
+    public static final ExportTemplate FRONT_MATTER_TEMPLATE = new ExportTemplate("frontMatter", "Front matter",
+            Defaults.DEFAULT_EXPORT_FRONT_MATTER_TEMPLATE, ExportFrontMatterTemplateData.class);
 
     private static final Logger log = LoggerFactory.getLogger(ExporterBase.class);
 
@@ -201,6 +210,22 @@ public abstract class ExporterBase implements Exporter {
     protected String buildHeader(ExportOptions options) throws Exception {
         return templateService.processTemplate(options.templateText(TITLE_PAGE_TEMPLATE), "exportHeader",
                 new ExportHeaderTemplateData(options.bookName(), StringUtils.trimToNull(options.author())));
+    }
+
+    /**
+     * @return the front matter block (with the {@code ---} lines) the template of the export renders
+     */
+    protected String buildFrontMatter(ExportOptions options) throws Exception {
+        return templateService.processTemplate(options.templateText(FRONT_MATTER_TEMPLATE), "exportFrontMatter",
+                new ExportFrontMatterTemplateData(yamlQuoted(options.bookName()), StringUtils.trimToNull(yamlQuoted(options.author())),
+                        StringUtils.defaultIfBlank(options.language(), "en"), LocalDate.now().toString()));
+    }
+
+    /**
+     * @return the text escaped for use inside a double quoted YAML string, on one line
+     */
+    protected static String yamlQuoted(String text) {
+        return StringUtils.defaultString(text).replace("\\", "\\\\").replace("\"", "\\\"").replaceAll("\\s*[\\r\\n]+\\s*", " ").trim();
     }
 
     protected static Node parse(String markdown) {

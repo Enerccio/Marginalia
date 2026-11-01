@@ -39,6 +39,10 @@ another version of the story, switch to that branch first.
 | **Word document** (`.docx`) | Opens in Word, LibreOffice and similar programs. Justified text, with the title and author set in the file properties. |
 | **PDF** (`.pdf`) | A5 pages with embedded fonts that cover Latin, Greek and Cyrillic text. |
 | **EPUB** (`.epub`) | An e-book for e-readers and reading apps. Long books are split into several files inside the EPUB so readers stay fast. |
+| **HTML for Archive of Our Own** (`.html`) | For posting on AO3, see [below](#for-other-tools). |
+| **Markdown with front matter** (`.md`) | For static site generators, see [below](#for-other-tools). |
+| **SillyTavern chat** (`.jsonl`) | The story as a chat, see [below](#for-other-tools). |
+| **Obsidian vault** (`.zip`) | The chapters and the lorebook as linked notes, see [below](#for-other-tools). |
 
 The text of the parts is Markdown. Emphasis, headings, quotes, lists, code blocks and scene breaks (`---`) are kept in
 every format that can show them. Raw HTML in the text is shown as text, never run.
@@ -51,6 +55,36 @@ every format that can show them. Raw HTML in the text is shown as text, never ru
 | **Markdown** | Embedded in the file as `![caption](data:...)` images with the caption in italics under them, so it is still one file. Not every reader shows embedded images (GitHub does not), and a book with many images has very long lines, so attach images to the parts only when you want them in a Markdown export. |
 | **EPUB**, **Word document**, **PDF** | Embedded in the file and scaled to fit the page. |
 | **Plain text** | Marked with `[Image]` or `[Image: caption]`. |
+| **HTML for Archive of Our Own** | Marked with `[Image: caption]`: AO3 takes images only from links. |
+| **Obsidian vault** | Saved in the `Attachments` folder of the vault and embedded in the note of their chapter, with the caption in italics. |
+| **SillyTavern chat** | Left out, a chat has only text. |
+
+## For other tools
+
+These formats are made for a tool that reads them, not for reading. They do not have the *Print style* choice.
+
+**HTML for Archive of Our Own.** AO3 asks for the title, the author and the chapter titles in fields of its own and drops what it does not
+know (style blocks, the page around the text, images that are not links), so the file has no title page. Open it in a browser to see the work as
+the paste will look. Every chapter (a part that starts with a heading and the parts after it up to the next heading) has its title above two
+comments, `BEGIN chapter N` and `END chapter N`: copy what is between them into the HTML editor of the chapter on AO3 and the title into its
+title field. The text is clean HTML without line breaks between the tags, because AO3 turns each line break into a `<br>`.
+
+**Markdown with front matter.** The same Markdown as the *Markdown* format, but the file starts with a YAML block (`title`, `author`, `lang`,
+`date` of the export) that Jekyll, Hugo, Eleventy and similar generators read, instead of a title page; **Include title page** has no effect on
+it. The block is a template you can change in [Settings → Exports](../account.md#exports) (``, ``, ``,
+``; the title and the author are already escaped for use inside double quotes).
+
+**SillyTavern chat.** A JSON Lines file that the chat import of SillyTavern reads: the character is named after the book and you are the
+author. Each part of the story is a message of the character (the text), and when the part was written with instructions they come before it as
+your message. The reasoning of the model, if the part has any, is kept as the reasoning of the message. The title page does not apply.
+
+**Obsidian vault.** A ZIP with a folder named after the book; unpack it and open the folder as a vault. It has a note named after the book (the
+front matter, the title page and the lists of the chapters and of the lore), a note for each chapter in `Chapters` (with links to the previous and
+next chapter), a note for each enabled entry of the [lorebook](../lorebooks/index.md) of the book and of its sub lorebooks in `Lore/<lorebook>` (the tags
+of the entry are the tags of the note, its comment is a callout), and the images in `Attachments`. In every note the first mention of the name of
+an entry (a name of at least three characters, whole words, as spelled) is a link to its note, so the graph view shows which entry is in which
+chapter. A part with a heading starts a chapter; parts before the first heading are the note *Beginning* (or *Story* when the book has no headings).
+The front matter and the title page are templates you can change in [Settings → Exports](../account.md#exports).
 
 ## Print styles
 

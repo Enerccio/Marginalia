@@ -2055,6 +2055,10 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_STATISTICS_SIDE_PARAM, "统计对象：all（默认）、me 或 agents");
         setValue(L.DESC_COMMAND_STATISTICS_BY_PARAM, "列表方式：day（默认）或 book");
         setValue(L.DESC_TEMPLATE_EXPORT_AUTHOR, "书籍的作者（没有时为空）。");
+        setValue(L.DESC_TEMPLATE_EXPORT_QUOTED_TITLE, "书籍标题（已转义，可用于双引号内）。");
+        setValue(L.DESC_TEMPLATE_EXPORT_QUOTED_AUTHOR, "书籍作者（已转义，可用于双引号内；没有时为空）。");
+        setValue(L.DESC_TEMPLATE_EXPORT_LANGUAGE, "书籍语言的 ISO 639-1 代码。");
+        setValue(L.DESC_TEMPLATE_EXPORT_DATE, "导出日期（YYYY-MM-DD）。");
     }
 
     @Override

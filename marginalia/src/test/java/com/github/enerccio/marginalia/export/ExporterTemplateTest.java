@@ -35,9 +35,11 @@ class ExporterTemplateTest extends MarginaliaTestBase {
     }
 
     @Test
-    void everyFormatHasTheTitlePageTemplate() {
+    void theFormatsWithATitlePageHaveItsTemplate() {
         for (Exporter exporter : exporterService.getExporters()) {
-            assertThat(exporter.getTemplates()).as(exporter.getName()).extracting(ExporterService.ExportTemplate::key).containsExactly("titlePage");
+            if (List.of("txt", "md", "html", "docx", "pdf", "epub").contains(exporter.getId())) {
+                assertThat(exporter.getTemplates()).as(exporter.getName()).extracting(ExporterService.ExportTemplate::key).containsExactly("titlePage");
+            }
         }
     }
 

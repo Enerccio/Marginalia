@@ -588,9 +588,9 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
 
 66. **Serial publishing.** Drip-publish a book to the Viewer on a schedule (one chapter a day), an Atom feed per
     published book, and reading position per reader. Uses the cron setup of the scheduled backups.
-67. **Export targets.** AO3-ready HTML (work skin), Markdown with front matter for static site generators, a plain
-    chat-log export for SillyTavern, and an Obsidian-style vault with the lore. Item 10 covers the missing pieces of
-    the current exporters.
+67. ~~**Export targets.**~~ ✅ Done — HTML for AO3 (the chapter text between comments; no work skin), Markdown with front
+    matter, a SillyTavern chat (`.jsonl`) and an Obsidian vault (ZIP, chapters and lore linked). Item 10 covers the
+    missing pieces of the current exporters.
 68. 🧩 **Translate a branch.** Translate the active branch into another language into a new book, with the lorebook
     names as a glossary so character and place names stay consistent. The book language is already a separate setting.
 69. **Dictation in the turn editor.** The browser's speech recognition filling the instruction box (phone and

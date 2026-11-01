@@ -2047,6 +2047,10 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_STATISTICS_SIDE_PARAM, "Whose work: all (the default), me or agents");
         setValue(L.DESC_COMMAND_STATISTICS_BY_PARAM, "How to list: day (the default) or book");
         setValue(L.DESC_TEMPLATE_EXPORT_AUTHOR, "Author of the book (empty when there is none).");
+        setValue(L.DESC_TEMPLATE_EXPORT_QUOTED_TITLE, "Title of the book, escaped for use inside double quotes.");
+        setValue(L.DESC_TEMPLATE_EXPORT_QUOTED_AUTHOR, "Author of the book, escaped for use inside double quotes (empty when there is none).");
+        setValue(L.DESC_TEMPLATE_EXPORT_LANGUAGE, "ISO 639-1 code of the language of the book.");
+        setValue(L.DESC_TEMPLATE_EXPORT_DATE, "Date of the export (YYYY-MM-DD).");
 
     }
 

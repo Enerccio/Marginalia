@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846849867640">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846850830860">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846849867640" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846850830860" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846849867640" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846850830860" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846849867640" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846850830860" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -260,7 +260,11 @@ bar shows how far it is.</p>
 | **HTML** (`.html`) | One page with a book-like style included, so it looks the same in every browser. It can be printed and has no external files. |
 | **Word document** (`.docx`) | Opens in Word, LibreOffice and similar programs. Justified text, with the title and author set in the file properties. |
 | **PDF** (`.pdf`) | A5 pages with embedded fonts that cover Latin, Greek and Cyrillic text. |
-| **EPUB** (`.epub`) | An e-book for e-readers and reading apps. Long books are split into several files inside the EPUB so readers stay fast. |">
+| **EPUB** (`.epub`) | An e-book for e-readers and reading apps. Long books are split into several files inside the EPUB so readers stay fast. |
+| **HTML for Archive of Our Own** (`.html`) | For posting on AO3, see [below](#for-other-tools). |
+| **Markdown with front matter** (`.md`) | For static site generators, see [below](#for-other-tools). |
+| **SillyTavern chat** (`.jsonl`) | The story as a chat, see [below](#for-other-tools). |
+| **Obsidian vault** (`.zip`) | The chapters and the lorebook as linked notes, see [below](#for-other-tools). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -294,6 +298,22 @@ bar shows how far it is.</p>
 <td><strong>EPUB</strong> (<code translate="no" v-pre>.epub</code>)</td>
 <td>An e-book for e-readers and reading apps. Long books are split into several files inside the EPUB so readers stay fast.</td>
 </tr>
+<tr>
+<td><strong>HTML for Archive of Our Own</strong> (<code translate="no" v-pre>.html</code>)</td>
+<td>For posting on AO3, see <doc-anchor-trigger to="#for-other-tools">below</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td><strong>Markdown with front matter</strong> (<code translate="no" v-pre>.md</code>)</td>
+<td>For static site generators, see <doc-anchor-trigger to="#for-other-tools">below</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td><strong>SillyTavern chat</strong> (<code translate="no" v-pre>.jsonl</code>)</td>
+<td>The story as a chat, see <doc-anchor-trigger to="#for-other-tools">below</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td><strong>Obsidian vault</strong> (<code translate="no" v-pre>.zip</code>)</td>
+<td>The chapters and the lorebook as linked notes, see <doc-anchor-trigger to="#for-other-tools">below</doc-anchor-trigger>.</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -306,7 +326,10 @@ every format that can show them. Raw HTML in the text is shown as text, never ru
 | **HTML** | Embedded in the page, so it is still one file. |
 | **Markdown** | Embedded in the file as `![caption](data:...)` images with the caption in italics under them, so it is still one file. Not every reader shows embedded images (GitHub does not), and a book with many images has very long lines, so attach images to the parts only when you want them in a Markdown export. |
 | **EPUB**, **Word document**, **PDF** | Embedded in the file and scaled to fit the page. |
-| **Plain text** | Marked with `[Image]` or `[Image: caption]`. |">
+| **Plain text** | Marked with `[Image]` or `[Image: caption]`. |
+| **HTML for Archive of Our Own** | Marked with `[Image: caption]`: AO3 takes images only from links. |
+| **Obsidian vault** | Saved in the `Attachments` folder of the vault and embedded in the note of their chapter, with the caption in italics. |
+| **SillyTavern chat** | Left out, a chat has only text. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -332,10 +355,42 @@ every format that can show them. Raw HTML in the text is shown as text, never ru
 <td><strong>Plain text</strong></td>
 <td>Marked with <code translate="no" v-pre>[Image]</code> or <code translate="no" v-pre>[Image: caption]</code>.</td>
 </tr>
+<tr>
+<td><strong>HTML for Archive of Our Own</strong></td>
+<td>Marked with <code translate="no" v-pre>[Image: caption]</code>: AO3 takes images only from links.</td>
+</tr>
+<tr>
+<td><strong>Obsidian vault</strong></td>
+<td>Saved in the <code translate="no" v-pre>Attachments</code> folder of the vault and embedded in the note of their chapter, with the caption in italics.</td>
+</tr>
+<tr>
+<td><strong>SillyTavern chat</strong></td>
+<td>Left out, a chat has only text.</td>
+</tr>
 </tbody>
 </table>
 </div>
 </retype-table>
+<h2 id="for-other-tools">For other tools</h2>
+<p>These formats are made for a tool that reads them, not for reading. They do not have the <em>Print style</em> choice.</p>
+<p><strong>HTML for Archive of Our Own.</strong> AO3 asks for the title, the author and the chapter titles in fields of its own and drops what it does not
+know (style blocks, the page around the text, images that are not links), so the file has no title page. Open it in a browser to see the work as
+the paste will look. Every chapter (a part that starts with a heading and the parts after it up to the next heading) has its title above two
+comments, <code translate="no" v-pre>BEGIN chapter N</code> and <code translate="no" v-pre>END chapter N</code>: copy what is between them into the HTML editor of the chapter on AO3 and the title into its
+title field. The text is clean HTML without line breaks between the tags, because AO3 turns each line break into a <code translate="no" v-pre>&lt;br&gt;</code>.</p>
+<p><strong>Markdown with front matter.</strong> The same Markdown as the <em>Markdown</em> format, but the file starts with a YAML block (<code translate="no" v-pre>title</code>, <code translate="no" v-pre>author</code>, <code translate="no" v-pre>lang</code>,
+<code translate="no" v-pre>date</code> of the export) that Jekyll, Hugo, Eleventy and similar generators read, instead of a title page; <strong>Include title page</strong> has no effect on
+it. The block is a template you can change in <a href="../../account/#exports">Settings → Exports</a> (<code translate="no" v-pre>, </code>, <code translate="no" v-pre>, </code>; the title and the author are already escaped for use inside double quotes).</p>
+<p><strong>SillyTavern chat.</strong> A JSON Lines file that the chat import of SillyTavern reads: the character is named after the book and you are the
+author. Each part of the story is a message of the character (the text), and when the part was written with instructions they come before it as
+your message. The reasoning of the model, if the part has any, is kept as the reasoning of the message. The title page does not apply.</p>
+<p><strong>Obsidian vault.</strong> A ZIP with a folder named after the book; unpack it and open the folder as a vault. It has a note named after the book (the
+front matter, the title page and the lists of the chapters and of the lore), a note for each chapter in <code translate="no" v-pre>Chapters</code> (with links to the previous and
+next chapter), a note for each enabled entry of the <a href="../../lorebooks/">lorebook</a> of the book and of its sub lorebooks in <code translate="no" v-pre>Lore/&lt;lorebook&gt;</code> (the tags
+of the entry are the tags of the note, its comment is a callout), and the images in <code translate="no" v-pre>Attachments</code>. In every note the first mention of the name of
+an entry (a name of at least three characters, whole words, as spelled) is a link to its note, so the graph view shows which entry is in which
+chapter. A part with a heading starts a chapter; parts before the first heading are the note <em>Beginning</em> (or <em>Story</em> when the book has no headings).
+The front matter and the title page are templates you can change in <a href="../../account/#exports">Settings → Exports</a>.</p>
 <h2 id="print-styles">Print styles</h2>
 <p>The export uses the text styles of <a href="../../account/#styles">Settings → Styles</a> that are marked <strong>For exports</strong>. Styles are either for books
 (the story and the reader) or for exports: the <em>Change Styles For Text</em> menu and the reader show only the first kind, the export dialog only the
@@ -498,7 +553,7 @@ all of it, make a <a href="../backups/">backup</a>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (d2c444082).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (209412ea8).</p></div>
             </footer>
         </div>
     </div>

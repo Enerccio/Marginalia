@@ -178,14 +178,16 @@ refused when you save.
 
 ### Exports
 
-What each file format is exported with: the tab has a section for every format (**Plain text**, **Markdown**, **HTML**, **Word**, **PDF**,
-**EPUB**; click its name to open it).
+What each file format is exported with: the tab has a section for every format that has something to set (**Plain text**, **Markdown**, **HTML**,
+**Word**, **PDF**, **EPUB**, **Markdown with front matter**, **Obsidian vault**; click its name to open it).
 
 - **Print style** (HTML, Word, PDF and EPUB, the formats with fonts and colors) - the style the [export dialog](books/export.md) preselects
   for the format. It starts as the look the application brings for the format (**HTML page**, **PDF book**...); the list holds the
   [styles for exports](#styles), the built in ones and yours. Choose another to export that format in it every time, until you change the
   choice in the dialog for one export.
-- **Title page** (every format) - the template of the title page, a Handlebars template that writes Markdown, with `{{title}}` and
+- **Front matter** (Markdown with front matter and the Obsidian vault) - the YAML block that starts the file, with `{{title}}`, `{{author}}`,
+  `{{language}}` and `{{exportDate}}`. Empty is the default block.
+- **Title page** (every format but the ones for other tools; the Obsidian vault has it in the note of the book) - the template of the title page, a Handlebars template that writes Markdown, with `{{title}}` and
   `{{author}}` (the info icon in the field lists them). Empty is the default one: the title as a heading and the author in italics under it.
   **Fill default** in the info popover starts you from the default.
 
