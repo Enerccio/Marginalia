@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846852475792">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846855779581">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846852475792" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846855779581" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846852475792" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846855779581" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846852475792" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846852475792" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846855779581" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846855779581" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -1338,7 +1338,10 @@ resolves to Book.</p>
 <li>
 <p><code translate="no" v-pre>ui.styles.PartStyleApplier.apply(host, style)</code> writes the stylesheet into a <code translate="no" v-pre>&lt;style id=&quot;marginalia-part-style-&lt;id&gt;&quot;&gt;</code> of the page
 (<code translate="no" v-pre>JavascriptLibrary.setPageStyle</code>, every time, so an edited style shows at once) and puts the class on the element, taking the other
-<code translate="no" v-pre>part-style-*</code> classes off. The desktop and phone story tabs call it from <code translate="no" v-pre>applyBookStyles</code> (also in <code translate="no" v-pre>onTabEnter</code>, so edits in the
+<code translate="no" v-pre>part-style-*</code> classes off. The stylesheet lives in the page only as long as the element: a detach
+listener of the host (and a change of the style) takes it out through <code translate="no" v-pre>JavascriptLibrary.removePageStyleUnlessUsed</code>, which keeps it while
+another element still has the class, and an attach listener writes it again. The background color of the style is a rule of the host
+itself, so it fills the whole area. The desktop and phone story tabs call it from <code translate="no" v-pre>applyBookStyles</code> (also in <code translate="no" v-pre>onTabEnter</code>, so edits in the
 settings show). The reader (<code translate="no" v-pre>Viewer</code>) has a <code translate="no" v-pre>ReaderStyleChooser</code> (a floating button with a <code translate="no" v-pre>ContextMenu</code>): it offers only the styles of the logged in
 user (<code translate="no" v-pre>PartStyleService.list()</code>, never the owner of a published book), keeps the choice in the cookie <code translate="no" v-pre>marginalia_reader_style</code> (through a
 <code translate="no" v-pre>ChoiceStore</code>, a map in the tests) and shows the Book style when there is none or the id is not among the user&#x27;s styles.</p>
@@ -1353,7 +1356,13 @@ the texts or ticks changed).</p>
 generated CSS and a preview that applies a copy of the edited style under the id <code translate="no" v-pre>preview</code>. It edits a working copy in memory and reports
 every change through <code translate="no" v-pre>setOnChange</code> (<code translate="no" v-pre>UserPart</code> marks itself changed, which locks the navigation); <code translate="no" v-pre>UserPart.save</code> calls <code translate="no" v-pre>validate()</code> and
 then <code translate="no" v-pre>save()</code> (deletes, saves, <code translate="no" v-pre>setDefault</code>), <code translate="no" v-pre>UserPart.refresh</code> (the discard) calls <code translate="no" v-pre>reload()</code>. <code translate="no" v-pre>UserPart.trackChanges</code> skips it, since
-it would also count the editor filling its own fields.</p>
+it would also count the editor filling its own fields.
+The editor moves styles as files with <code translate="no" v-pre>domain.styles.PartStyleTransfer</code> (<code translate="no" v-pre>toJson(styles)</code>, <code translate="no" v-pre>fromJson(json)</code>): the format
+<code translate="no" v-pre>marginalia-text-style</code> version 1, <code translate="no" v-pre>{format, version, styles: [{name, forExport, options: {KEY: value}, customCss}]}</code>, without ids. An import
+gives every style a new id, drops the options it does not know (<code translate="no" v-pre>Imported.ignoredOptions()</code>), and throws <code translate="no" v-pre>ImportException</code> with a <code translate="no" v-pre>Reason</code>
+(<code translate="no" v-pre>NOT_STYLES</code>, <code translate="no" v-pre>NEWER_VERSION</code>, <code translate="no" v-pre>UNBALANCED_CSS</code>) that the editor turns into a message; the styles join the working copy (<code translate="no" v-pre>importJson</code>), saved by
+the page. <code translate="no" v-pre>exportJson()</code> is the selected style as it is on the screen. The example the manual offers for download is
+<code translate="no" v-pre>manual/files/horror-book.style.json</code>, and <code translate="no" v-pre>PartStyleTransferTest</code> loads it.</p>
 </li>
 <li>
 <p>The <strong>Exports</strong> tab of the settings (<code translate="no" v-pre>createExportsTab</code> of <code translate="no" v-pre>UserPart</code>) is the <code translate="no" v-pre>ui.exports.ExportSettingsEditor</code>, built like the styles editor: a <code translate="no" v-pre>Details</code> per <code translate="no" v-pre>Exporter</code> that supports styles or has templates, with a <code translate="no" v-pre>Select</code> of the styles for exports and a <code translate="no" v-pre>TextAreaPopoverComponent</code> per <code translate="no" v-pre>ExportTemplate</code>. Its edits only fill the fields and call <code translate="no" v-pre>setOnChange</code>; <code translate="no" v-pre>validate()</code> (template syntax), <code translate="no" v-pre>save()</code> (what differs from the stored; the default style of the format and the default template are not stored) and <code translate="no" v-pre>reload()</code> are called by <code translate="no" v-pre>UserPart.save</code> (after the styles editor) and <code translate="no" v-pre>refresh</code>, and <code translate="no" v-pre>trackChanges</code> skips it.</p>
@@ -1694,7 +1703,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (0edcf41d8).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (f7e38b195).</p></div>
             </footer>
         </div>
     </div>

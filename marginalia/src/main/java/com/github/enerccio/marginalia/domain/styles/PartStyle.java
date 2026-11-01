@@ -301,6 +301,9 @@ public class PartStyle {
         String md = root + " ." + CssStyles.CHAT_MESSAGE_MARKDOWN;
         StringBuilder css = new StringBuilder();
 
+        // the background fills the whole element that holds the text, not only the blocks of the messages inside it
+        new Rule(root).option("background-color", PartStyleOption.BACKGROUND_COLOR).appendTo(css);
+
         Rule base = new Rule(md)
                 .option("font-family", PartStyleOption.FONT_FAMILY)
                 .option("font-size", PartStyleOption.FONT_SIZE)

@@ -1201,6 +1201,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_HISTORY_LIMIT_NEGATIVE, "バージョン数に負の数は指定できません。ブックの上限を解除するには省略してください。");
         setValue(L.ERROR_STYLE_NAME_REQUIRED, "スタイルには名前が必要です。");
         setValue(L.ERROR_STYLE_CSS_UNBALANCED, "カスタム CSS の波括弧 { } が対応していません。");
+        setValue(L.ERROR_STYLE_IMPORT_NOT_STYLES, "このファイルはテキストスタイルのファイルではありません。");
+        setValue(L.ERROR_STYLE_IMPORT_NEWER, "このファイルは新しいバージョンのMarginaliaで作成されたため、読み込めません。");
+        setValue(L.ERROR_STYLE_IMPORT_CSS, "スタイル「%s」のカスタムCSSの波括弧 { } が対応していません。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "フォームを保存できません。");
@@ -1567,6 +1570,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_GOAL_PROGRESS_WORDS, "今日：%s / %s 単語");
         setValue(L.MSG_GOAL_PROGRESS_MINUTES, "今日：編集 %s / %s 分");
         setValue(L.MSG_STYLE_PREVIEW_SAMPLE, "# 第一章\n\n*雨*は**三日間**降り続き、港へ続く道は泥の川になっていた。「引き返すべきだ」とマラは言ったが、誰も動かなかった。\n\n> 古い地図は間違っている。水を信じろ。\n\n---\n\n朝は灰色にゆっくりと訪れた。彼女は岸壁の灯りを数え、`七つ`と呟いて、歩き出した。\n\n## 小さな見出し\n\nこの段落は、文章の折り返しや配置、そしてハイフネーションが有効な場合に単語がどう分割されるかを示すのに十分な長さがあります。");
+        setValue(L.MSG_STYLES_IMPORTED, "%d 件のスタイルをインポートしました。保持するには設定を保存してください。");
+        setValue(L.MSG_STYLE_IMPORT_IGNORED, "このバージョンでは不明なオプション %d 件を除外しました。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

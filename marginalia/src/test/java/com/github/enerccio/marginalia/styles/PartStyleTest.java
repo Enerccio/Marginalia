@@ -55,6 +55,16 @@ class PartStyleTest {
     }
 
     @Test
+    void theBackgroundFillsTheWholeElementOfTheStyleAndNotOnlyTheTextBlocks() {
+        String css = new PartStyle("s1", "Dark").set(PartStyleOption.BACKGROUND_COLOR, "#101820").toCss();
+
+        assertThat(css).contains(".part-style-s1 {\n    background-color: #101820;\n}")
+                .contains(".part-style-s1 .chat-message-markdown {");
+        assertThat(css.indexOf(".part-style-s1 {")).isLessThan(css.indexOf(".part-style-s1 .chat-message-markdown {"));
+        assertThat(new PartStyle("s2", "Light").set(PartStyleOption.FONT_SIZE, "1rem").toCss()).doesNotContain(".part-style-s2 {\n");
+    }
+
+    @Test
     void anOptionThatIsNotSetLeavesTheLookOfTheApplication() {
         PartStyle style = new PartStyle("s1", "Small");
         style.set(PartStyleOption.FONT_SIZE, "0.9rem");

@@ -103,10 +103,10 @@ theme) become the dark ones for a white page.
 |---|---|
 | **HTML** | The whole stylesheet of the style, including the **custom CSS**, **drop caps**, the text width and the background; the title page and the contents keep the look of the format. |
 | **EPUB** | The stylesheet of the style without the custom CSS (e-readers do not all understand it; some readers also set their own fonts and sizes). |
-| **PDF** | The font family (serif, sans or monospace of the embedded fonts, chosen from the font stack), size, line height, alignment, the space between paragraphs, the first line indent, the colors of the text, italic, bold, quotes, headings and the scene break, the alignment and size of headings and the symbol of the scene break. |
-| **Word document** | The same as the PDF, with the font named in the style (Word shows its own when the computer lacks it) instead of the embedded ones. |
+| **PDF** | The font family (serif, sans or monospace of the embedded fonts, chosen from the font stack), size, line height, alignment, the space between paragraphs, the first line indent, the **background color** of the page (the whole page, the title page included), the colors of the text, italic, bold, quotes, headings and the scene break, the alignment and size of headings and the symbol of the scene break. |
+| **Word document** | The same as the PDF, with the font named in the style (Word shows its own when the computer lacks it) instead of the embedded ones. The background is the color of the page: Word shows it on the screen, but does not print it unless *Print background colors and images* is on in its print options. |
 
-Drop caps, the custom CSS (PDF, Word, EPUB), small capitals of headings, the background and the text width are not made in the PDF and Word
+Drop caps, the custom CSS (PDF, Word, EPUB), small capitals of headings and the text width are not made in the PDF and Word
 files.
 
 ## Title page template

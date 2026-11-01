@@ -1201,6 +1201,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_HISTORY_LIMIT_NEGATIVE, "The number of versions can't be negative; leave it out to take the limit of the book away.");
         setValue(L.ERROR_STYLE_NAME_REQUIRED, "The style needs a name.");
         setValue(L.ERROR_STYLE_CSS_UNBALANCED, "The braces { } of the custom CSS do not match.");
+        setValue(L.ERROR_STYLE_IMPORT_NOT_STYLES, "The file is not a text style file.");
+        setValue(L.ERROR_STYLE_IMPORT_NEWER, "The file was made by a newer version of Marginalia and cannot be read.");
+        setValue(L.ERROR_STYLE_IMPORT_CSS, "The custom CSS of the style \"%s\" has braces { } that do not match.");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -1567,6 +1570,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_GOAL_PROGRESS_WORDS, "Today: %s of %s words");
         setValue(L.MSG_GOAL_PROGRESS_MINUTES, "Today: %s of %s minutes of editing");
         setValue(L.MSG_STYLE_PREVIEW_SAMPLE, "# Chapter One\n\nThe *rain* had not stopped for **three days**, and the road to the harbor was a river of mud. \"We should turn back,\" Mara said, but nobody moved.\n\n> The old maps are wrong. Trust the water.\n\n---\n\nMorning came grey and slow. She counted the lanterns along the quay, `seven`, and began to walk.\n\n## A Smaller Heading\n\nThe lines of this paragraph are long enough to show how the text wraps, aligns and, if hyphenation is turned on, breaks a word like extraordinarily.");
+        setValue(L.MSG_STYLES_IMPORTED, "Imported %d style(s). Save the settings to keep them.");
+        setValue(L.MSG_STYLE_IMPORT_IGNORED, "%d option(s) of the file are not known to this version and were left out.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

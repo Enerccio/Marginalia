@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.service.PartStyleService;
 import com.github.enerccio.marginalia.domain.styles.PartStyle;
 import com.github.enerccio.marginalia.domain.styles.PartStyleOption;
+import com.github.enerccio.marginalia.domain.styles.PartStyleTransfer;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -15,6 +16,7 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.markdown.Markdown;
@@ -24,9 +26,16 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.server.streams.DownloadResponse;
+import com.vaadin.flow.server.streams.InMemoryUploadHandler;
+import com.vaadin.flow.server.streams.InputStreamDownloadCallback;
+import com.vaadin.flow.server.streams.InputStreamDownloadHandler;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -50,6 +59,7 @@ public class PartStyleEditor extends HorizontalLayout {
     private final Button duplicateButton;
     private final Button deleteButton;
     private final Button defaultButton;
+    private final Button exportButton;
 
     private final TextField nameField = new TextField();
     private final Checkbox forExportBox = new Checkbox();
@@ -79,6 +89,7 @@ public class PartStyleEditor extends HorizontalLayout {
         duplicateButton = new Button(loc.getValue(L.LABEL_DUPLICATE), event -> duplicate());
         deleteButton = new Button(loc.getValue(L.LABEL_DELETE), event -> delete());
         defaultButton = new Button(loc.getValue(L.LABEL_STYLE_SET_DEFAULT), event -> makeDefault());
+        exportButton = new Button(loc.getValue(L.LABEL_EXPORT_BACKUP));
 
         add(createListColumn(), createEditColumn());
         setFlexGrow(1, getComponentAt(1));
@@ -144,7 +155,7 @@ public class PartStyleEditor extends HorizontalLayout {
         buttons.setPadding(false);
         defaultButton.setWidthFull();
 
-        VerticalLayout column = new VerticalLayout(grid, buttons, defaultButton);
+        VerticalLayout column = new VerticalLayout(grid, buttons, createTransferButtons(), defaultButton);
         column.addClassNames(CssStyles.STYLE_EDITOR_LIST, CssStyles.MIN_HEIGHT_0);
         // a VerticalLayout is as wide as its parent unless told otherwise, which the stylesheet can't override
         column.setWidth("18rem");
@@ -152,6 +163,73 @@ public class PartStyleEditor extends HorizontalLayout {
         column.setHeightFull();
         column.setFlexGrow(1, grid);
         return column;
+    }
+
+    // the selected style as a JSON file, and a JSON file of styles into the working copy
+    private Component createTransferButtons() {
+        Anchor download = new Anchor(new InputStreamDownloadHandler((InputStreamDownloadCallback) event -> {
+            byte[] data = exportJson().getBytes(StandardCharsets.UTF_8);
+            return new DownloadResponse(new ByteArrayInputStream(data), exportFileName(), "application/json", data.length);
+        }), "");
+        download.getElement().setAttribute("download", true);
+        download.add(exportButton);
+
+        InMemoryUploadHandler handler = new InMemoryUploadHandler((metadata, data) -> importJson(new String(data, StandardCharsets.UTF_8)));
+        Upload upload = new Upload(handler);
+        upload.setAcceptedFileTypes(".json", "application/json");
+        upload.setMaxFiles(1);
+        upload.setMaxFileSize(PartStyleTransfer.MAX_BYTES);
+        upload.setDropAllowed(false);
+        Button importButton = new Button(loc.getValue(L.LABEL_IMPORT));
+        upload.setUploadButton(importButton);
+        upload.addSucceededListener(event -> upload.clearFileList());
+        upload.addFileRejectedListener(event -> Notification.show(loc.getValue(L.ERROR_STYLE_IMPORT_NOT_STYLES)));
+
+        HorizontalLayout row = new HorizontalLayout(download, upload);
+        row.setPadding(false);
+        return row;
+    }
+
+    /**
+     * The JSON file of the selected style, as it is on the screen (saved or not).
+     */
+    public String exportJson() {
+        return PartStyleTransfer.toJson(selected == null ? List.of() : List.of(selected));
+    }
+
+    private String exportFileName() {
+        String name = selected == null ? "style" : StringUtils.defaultIfBlank(selected.getDisplayName(loc), "style");
+        return name.replaceAll("[\\\\/:*?\"<>|\\p{Cntrl}\\s]+", "-") + ".style.json";
+    }
+
+    /**
+     * Adds the styles of a JSON file to the working copy as styles of the user (the first one is selected); the page saves them. The
+     * user is told when the file can't be read.
+     *
+     * @return whether the file was taken
+     */
+    public boolean importJson(String json) {
+        PartStyleTransfer.Imported imported;
+        try {
+            imported = PartStyleTransfer.fromJson(json);
+        } catch (PartStyleTransfer.ImportException e) {
+            Notification.show(switch (e.getReason()) {
+                case NEWER_VERSION -> loc.getValue(L.ERROR_STYLE_IMPORT_NEWER);
+                case UNBALANCED_CSS -> String.format(loc.getValue(L.ERROR_STYLE_IMPORT_CSS), e.getStyleName());
+                default -> loc.getValue(L.ERROR_STYLE_IMPORT_NOT_STYLES);
+            });
+            return false;
+        }
+        styles.addAll(imported.styles());
+        refreshList();
+        show(imported.styles().getFirst());
+        onChange.run();
+        String message = String.format(loc.getValue(L.MSG_STYLES_IMPORTED), imported.styles().size());
+        if (imported.ignoredOptions() > 0) {
+            message += " " + String.format(loc.getValue(L.MSG_STYLE_IMPORT_IGNORED), imported.ignoredOptions());
+        }
+        Notification.show(message);
+        return true;
     }
 
     private Component listCell(PartStyle style) {
@@ -469,6 +547,7 @@ public class PartStyleEditor extends HorizontalLayout {
     private void refresh() {
         boolean builtin = selected == null || selected.isBuiltin();
         duplicateButton.setEnabled(selected != null);
+        exportButton.setEnabled(selected != null);
         deleteButton.setEnabled(!builtin);
         // the styles for exports are not offered for books
         defaultButton.setEnabled(selected != null && !selected.isForExport() && !selected.getId().equals(defaultId));

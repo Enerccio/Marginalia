@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.github.enerccio.marginalia.ui.dialogs.ProgressBarDialog;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
@@ -19,6 +20,7 @@ import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -210,6 +212,44 @@ class ExporterStyleTest extends MarginaliaTestBase {
             assertThat(first.getFirstLineIndent()).as("the first paragraph after a heading is not indented").isLessThanOrEqualTo(0);
             assertThat(first.getRuns().stream().filter(XWPFRun::isItalic).findFirst().orElseThrow().getColor()).isEqualToIgnoringCase("AA0000");
             assertThat(document.getParagraphs()).anyMatch(p -> p.getText().equals("~ ~ ~"));
+        }
+    }
+
+    @Test
+    void pdfPaintsTheBackgroundOfTheStyleOnEveryPageBelowTheText() throws Exception {
+        PartStyle dark = new PartStyle("s1", "Dark").set(PartStyleOption.BACKGROUND_COLOR, "#102030")
+                .set(PartStyleOption.TEXT_COLOR, "#eeeeee");
+        List<ChatMessage> long_ = new ArrayList<>();
+        for (int i = 0; i < 30; i++) {
+            long_.add(message("A paragraph of the book that goes on for a while so that the pages fill up, " + "and on. ".repeat(40)));
+        }
+
+        try (PDDocument document = Loader.loadPDF(exporter("pdf").export(options(dark), long_, new ProgressBarDialog(false)))) {
+            assertThat(document.getNumberOfPages()).isGreaterThan(2);
+            PDFRenderer renderer = new PDFRenderer(document);
+            for (int page = 0; page < document.getNumberOfPages(); page++) {
+                BufferedImage image = renderer.renderImageWithDPI(page, 36);
+                assertThat(image.getRGB(1, 1) & 0xFFFFFF).as("corner of page %s", page + 1).isEqualTo(0x102030);
+                assertThat(image.getRGB(image.getWidth() - 2, image.getHeight() - 2) & 0xFFFFFF).isEqualTo(0x102030);
+            }
+        }
+        try (PDDocument document = Loader.loadPDF(export("pdf", null))) {
+            assertThat(new PDFRenderer(document).renderImageWithDPI(0, 36).getRGB(1, 1) & 0xFFFFFF).as("white paper").isEqualTo(0xFFFFFF);
+        }
+    }
+
+    @Test
+    void docxHasTheBackgroundOfTheStyleAsTheColorOfThePage() throws Exception {
+        PartStyle style = new PartStyle("s1", "Cream").set(PartStyleOption.BACKGROUND_COLOR, "#fbf7ee");
+
+        try (XWPFDocument document = new XWPFDocument(new ByteArrayInputStream(export("docx", style)))) {
+            assertThat(document.getDocument().isSetBackground()).isTrue();
+            assertThat(document.getDocument().getBackground().xgetColor().getStringValue()).isEqualToIgnoringCase("FBF7EE");
+            assertThat(document.getSettings().getCTSettings().isSetDisplayBackgroundShape()).isTrue();
+        }
+        try (XWPFDocument document = new XWPFDocument(new ByteArrayInputStream(export("docx", null)))) {
+            assertThat(document.getDocument().isSetBackground()).isFalse();
+            assertThat(document.getSettings().getCTSettings().isSetDisplayBackgroundShape()).isFalse();
         }
     }
 

@@ -54,6 +54,14 @@ class PrintStyleTest {
     }
 
     @Test
+    void theBackgroundIsAColorOfThePaperOnlyWhenItIsOne() {
+        assertThat(PrintStyle.of(new PartStyle("s1", "A").set(PartStyleOption.BACKGROUND_COLOR, "#fbf7ee")).getBackgroundColor()).isEqualTo(0xFBF7EE);
+        assertThat(PrintStyle.of(new PartStyle("s2", "B").set(PartStyleOption.BACKGROUND_COLOR, "var(--page, #123)")).getBackgroundColor()).isEqualTo(0x112233);
+        assertThat(PrintStyle.of(new PartStyle("s3", "C").set(PartStyleOption.BACKGROUND_COLOR, "ivory")).getBackgroundColor()).isNull();
+        assertThat(PrintStyle.of(null).getBackgroundColor()).isNull();
+    }
+
+    @Test
     void theNewOptionsMakeTheirRules() {
         PartStyle style = new PartStyle("s1", "Novel");
         style.set(PartStyleOption.FIRST_LINE_INDENT, "1.5em").set(PartStyleOption.DROP_CAP, "true")

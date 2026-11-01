@@ -421,7 +421,8 @@ instructions of the turn take room from the same budget. Without a model with a 
 
 ## Text styles
 
-The settings menu (⚙) in the bottom bar has **Change Styles For Text**, a menu with one entry per style, sorted by name.
+The settings menu (⚙) in the bottom bar has **Appearance → Change Styles For Text**, a menu with one entry per style, sorted by name.
+For how to make a style, see the [styling guide](styling-guide.md).
 A style decides how the text of the parts looks: font, size, colors, alignment, headings... The application brings two
 styles that can not be changed: **Normal** (the look of the application) and **Book** (a book-like reading style, the one the
 [viewer](publishing.md) uses), and you can make your own in [Settings → Styles](../account.md#styles).

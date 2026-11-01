@@ -41,6 +41,7 @@ public final class PrintStyle {
     private final float paragraphSpacing;
     private final float firstLineIndent;
     private final Integer textColor;
+    private final Integer backgroundColor;
     private final Integer emphasisColor;
     private final Integer strongColor;
     private final Integer quoteColor;
@@ -73,6 +74,7 @@ public final class PrintStyle {
         Float indent = styled ? length(option(style, PartStyleOption.FIRST_LINE_INDENT), bodySize, 0f) : null;
         firstLineIndent = indent == null ? 0f : Math.max(0f, Math.min(72f, indent));
         textColor = styled ? color(option(style, PartStyleOption.TEXT_COLOR)) : null;
+        backgroundColor = styled ? color(option(style, PartStyleOption.BACKGROUND_COLOR)) : null;
         emphasisColor = styled ? color(option(style, PartStyleOption.EMPHASIS_COLOR)) : null;
         strongColor = styled ? color(option(style, PartStyleOption.STRONG_COLOR)) : null;
         quoteColor = styled ? color(option(style, PartStyleOption.QUOTE_COLOR)) : null;
@@ -294,6 +296,11 @@ public final class PrintStyle {
     /** RGB of the text, null for the default (black). */
     public Integer getTextColor() {
         return textColor;
+    }
+
+    /** RGB of the page, null for the default (the white of the paper). */
+    public Integer getBackgroundColor() {
+        return backgroundColor;
     }
 
     public Integer getEmphasisColor() {

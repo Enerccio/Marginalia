@@ -729,7 +729,10 @@ can't leave their declaration; the custom CSS is the author's own and must only 
   resolves to Book.
 - `ui.styles.PartStyleApplier.apply(host, style)` writes the stylesheet into a `<style id="marginalia-part-style-<id>">` of the page
   (`JavascriptLibrary.setPageStyle`, every time, so an edited style shows at once) and puts the class on the element, taking the other
-  `part-style-*` classes off. The desktop and phone story tabs call it from `applyBookStyles` (also in `onTabEnter`, so edits in the
+  `part-style-*` classes off. The stylesheet lives in the page only as long as the element: a detach
+  listener of the host (and a change of the style) takes it out through `JavascriptLibrary.removePageStyleUnlessUsed`, which keeps it while
+  another element still has the class, and an attach listener writes it again. The background color of the style is a rule of the host
+  itself, so it fills the whole area. The desktop and phone story tabs call it from `applyBookStyles` (also in `onTabEnter`, so edits in the
   settings show). The reader (`Viewer`) has a `ReaderStyleChooser` (a floating button with a `ContextMenu`): it offers only the styles of the logged in
   user (`PartStyleService.list()`, never the owner of a published book), keeps the choice in the cookie `marginalia_reader_style` (through a
   `ChoiceStore`, a map in the tests) and shows the Book style when there is none or the id is not among the user's styles.
@@ -741,6 +744,12 @@ can't leave their declaration; the custom CSS is the author's own and must only 
   every change through `setOnChange` (`UserPart` marks itself changed, which locks the navigation); `UserPart.save` calls `validate()` and
   then `save()` (deletes, saves, `setDefault`), `UserPart.refresh` (the discard) calls `reload()`. `UserPart.trackChanges` skips it, since
   it would also count the editor filling its own fields.
+  The editor moves styles as files with `domain.styles.PartStyleTransfer` (`toJson(styles)`, `fromJson(json)`): the format
+  `marginalia-text-style` version 1, `{format, version, styles: [{name, forExport, options: {KEY: value}, customCss}]}`, without ids. An import
+  gives every style a new id, drops the options it does not know (`Imported.ignoredOptions()`), and throws `ImportException` with a `Reason`
+  (`NOT_STYLES`, `NEWER_VERSION`, `UNBALANCED_CSS`) that the editor turns into a message; the styles join the working copy (`importJson`), saved by
+  the page. `exportJson()` is the selected style as it is on the screen. The example the manual offers for download is
+  `manual/files/horror-book.style.json`, and `PartStyleTransferTest` loads it.
 - The **Exports** tab of the settings (`createExportsTab` of `UserPart`) is the `ui.exports.ExportSettingsEditor`, built like the styles editor: a `Details` per `Exporter` that supports styles or has templates, with a `Select` of the styles for exports and a `TextAreaPopoverComponent` per `ExportTemplate`. Its edits only fill the fields and call `setOnChange`; `validate()` (template syntax), `save()` (what differs from the stored; the default style of the format and the default template are not stored) and `reload()` are called by `UserPart.save` (after the styles editor) and `refresh`, and `trackChanges` skips it.
 
 ### Styles

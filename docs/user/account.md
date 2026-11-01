@@ -146,6 +146,10 @@ Select a style to edit it on the right; the buttons under the list:
 - **Delete** - deletes a style of yours; a built in style can not be deleted;
 - **Set as default** - makes the style the one the books use unless they [choose another](books/story-editor.md#text-styles) in the
   story's settings menu. The default style is marked *default* in the list.
+- **Export** and **Import** - save the selected style as a `.style.json` file, and add the styles of such a file to your own (not stored
+  until you save the settings). See [Share a style](books/styling-guide.md#share-a-style-export-and-import).
+
+The [styling guide](books/styling-guide.md) goes through every option and has an example style to download.
 
 For a style of your own the form on the right has a **Name**, the box **For exports (not offered for books)** and two tabs. A style is
 either for books or for exports: a style for exports is offered in the [export dialog](books/export.md#print-styles) (the application brings
@@ -154,7 +158,7 @@ in the export dialog. The list marks them *(export)*.
 
 - **Options** - in groups: *Text* (font, size, line height, letter and word spacing, color, alignment, hyphenation, the space
   between paragraphs, the **first line indent** of paragraphs and a **drop cap** after headings), *Page* (the width of the text
-  column, centered, and the **background color**), *Emphasis, links and code* (the colors of italic and bold text and of links, the
+  column, centered, and the **background color**, which fills the whole area behind the text), *Emphasis, links and code* (the colors of italic and bold text and of links, the
   font of code), *Quotes*, *Headings* (font, size of the first level, color, alignment, small capitals) and the symbol and
   color of the *Scene break* (`---`). A box is any CSS value (`1.1rem`, `#336699`, `var(--lumo-body-text-color)`); an empty box
   keeps the look of the application. The font boxes offer common font stacks, and take your own.
