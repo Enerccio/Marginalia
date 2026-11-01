@@ -1,0 +1,28 @@
+.imagegen-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 12em;
+    border: 1px dashed var(--lumo-contrast-30pct);
+    border-radius: var(--lumo-border-radius-m);
+    background: var(--lumo-contrast-5pct);
+    overflow: hidden;
+}
+
+.imagegen-preview img {
+    max-width: 100%;
+    max-height: 60vh;
+    object-fit: contain;
+}
+
+.imagegen-status {
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-s);
+}
+
+.imagegen-section {
+    width: 100%;
+    padding: var(--lumo-space-s);
+    border: 1px solid var(--lumo-contrast-10pct);
+    border-radius: var(--lumo-border-radius-m);
+}

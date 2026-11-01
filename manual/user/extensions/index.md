@@ -6,7 +6,7 @@ icon: plug
 
 # Extensions
 
-Extensions add features to Marginalia without changing the application itself. Nineteen extensions come with Marginalia:
+Extensions add features to Marginalia without changing the application itself. Twenty extensions come with Marginalia:
 
 | Extension | What it adds |
 |---|---|
@@ -18,6 +18,7 @@ Extensions add features to Marginalia without changing the application itself. N
 | [Character Tracker](character-tracker.md) | The characters of the book with their relationships, and a map of them. |
 | [Gemma 4 tools fix](gemma-4-tools-fix.md) | Makes function calling work with Gemma 4 models whose API wants another role for tool results. |
 | [Google Gemini](google-genai.md) | Google's Gemini models as an inference provider, over Google's own API, with the thinking summaries shown as reasoning. |
+| [Image Generator](image-generator.md) | Makes an image for a part of the story: the model writes the prompt, ComfyUI or an OpenAI-style images API draws it, you reroll and accept it. |
 | [Instruction Exporter](instruction-exporter.md) | Copies the instructions, scene settings and characters of the story to the clipboard. |
 | [Lore Generator](lore-generator.md) | Writes the content of a lorebook entry with the model, from the lore you already have. |
 | [Lorebook VCS](lorebook-vcs.md) | Revision history for lorebook entries. |
@@ -45,7 +46,7 @@ Extensions hook into the user interface of one Marginalia version. An extension 
 working or break parts of the application. Use the extensions that come with your version of Marginalia.
 !!!
 
-The nineteen extensions above are part of the Marginalia source code (`marginalia/plugins`) and are built separately;
+The twenty extensions above are part of the Marginalia source code (`marginalia/plugins`) and are built separately;
 see the [plugins README](https://github.com/Enerccio/Marginalia/blob/master/marginalia/plugins/README.md).
 
 ## Extensions on a phone

@@ -1,0 +1,176 @@
+package com.github.enerccio.marginalia.extensions.imagegenerator.service;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class ImageSessionTest {
+
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private final List<String> events = new CopyOnWriteArrayList<>();
+
+    @AfterEach
+    void stop() {
+        scheduler.shutdownNow();
+    }
+
+    private ImageBackend backend() {
+        return new ImageBackend() {
+            @Override
+            public byte[] generate(ImageRequest request, Cancel cancel) {
+                events.add("image");
+                return new byte[]{1};
+            }
+
+            @Override
+            public void test() {
+            }
+        };
+    }
+
+    private ImageSession session(int idleSeconds, java.util.function.Consumer<String> onIdle) {
+        return new ImageSession(backend(), () -> events.add("before"), () -> events.add("after"), idleSeconds, scheduler, onIdle);
+    }
+
+    private static final ImageRequest REQUEST = new ImageRequest("p", "", 1, 64, 64);
+
+    @Test
+    void beforeRunsOnceAndAfterRunsOnEnd() throws Exception {
+        ImageSession session = session(0, null);
+
+        session.generate(REQUEST, () -> false);
+        session.generate(REQUEST, () -> false);
+        session.generate(REQUEST, () -> false);
+        assertTrue(session.isLeased());
+        assertNull(session.end());
+
+        assertEquals(List.of("before", "image", "image", "image", "after"), events);
+        assertFalse(session.isLeased());
+    }
+
+    @Test
+    void endingTwiceRunsAfterOnce() throws Exception {
+        ImageSession session = session(0, null);
+        session.generate(REQUEST, () -> false);
+
+        session.end();
+        session.end();
+
+        assertEquals(List.of("before", "image", "after"), events);
+    }
+
+    @Test
+    void endingWithoutAnImageDoesNothing() {
+        ImageSession session = session(0, null);
+
+        assertNull(session.end());
+
+        assertEquals(List.of(), events);
+    }
+
+    @Test
+    void aFailingBeforeStopsTheImageAndTheNextCallTriesAgain() {
+        int[] calls = {0};
+        ImageSession session = new ImageSession(backend(), () -> {
+            if (calls[0]++ == 0) {
+                throw new ImageBackend.ImageException("no gpu");
+            }
+        }, () -> events.add("after"), 0, scheduler, null);
+
+        var e = assertThrows(ImageBackend.ImageException.class, () -> session.generate(REQUEST, () -> false));
+        assertEquals("no gpu", e.getMessage());
+        assertFalse(session.isLeased());
+        assertEquals(List.of(), events);
+
+        assertDoesNotThrow(() -> session.generate(REQUEST, () -> false));
+        assertEquals(List.of("image"), events);
+    }
+
+    @Test
+    void aFailingAfterIsReportedNotThrown() throws Exception {
+        ImageSession session = new ImageSession(backend(), () -> {
+        }, () -> {
+            throw new ImageBackend.ImageException("hook down");
+        }, 0, scheduler, null);
+        session.generate(REQUEST, () -> false);
+
+        assertEquals("hook down", session.end());
+        assertFalse(session.isLeased());
+    }
+
+    @Test
+    void theIdleTimeEndsTheSession() throws Exception {
+        CountDownLatch ended = new CountDownLatch(1);
+        AtomicReference<String> error = new AtomicReference<>("unset");
+        ImageSession session = session(1, e -> {
+            error.set(e);
+            ended.countDown();
+        });
+
+        session.generate(REQUEST, () -> false);
+
+        assertTrue(ended.await(5, TimeUnit.SECONDS));
+        assertNull(error.get());
+        assertEquals(List.of("before", "image", "after"), events);
+        assertFalse(session.isLeased());
+    }
+
+    @Test
+    void anImageRestartsTheIdleTime() throws Exception {
+        CountDownLatch ended = new CountDownLatch(1);
+        ImageSession session = session(2, e -> ended.countDown());
+
+        session.generate(REQUEST, () -> false);
+        Thread.sleep(1200);
+        session.generate(REQUEST, () -> false);
+        Thread.sleep(1200);
+
+        // 2.4 s after the first image but only 1.2 s after the second: still held
+        assertTrue(session.isLeased());
+        assertTrue(ended.await(5, TimeUnit.SECONDS));
+    }
+
+    @Test
+    void endingWhileAnImageIsBeingMadeWaitsForTheImage() throws Exception {
+        CountDownLatch started = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        ImageBackend slow = new ImageBackend() {
+            @Override
+            public byte[] generate(ImageRequest request, Cancel cancel) {
+                started.countDown();
+                try {
+                    release.await(5, TimeUnit.SECONDS);
+                } catch (InterruptedException ignored) {
+                }
+                events.add("image");
+                return new byte[]{1};
+            }
+
+            @Override
+            public void test() {
+            }
+        };
+        ImageSession session = new ImageSession(slow, () -> events.add("before"), () -> events.add("after"), 0, scheduler, null);
+        Thread worker = new Thread(() -> {
+            try {
+                session.generate(REQUEST, () -> false);
+            } catch (ImageBackend.ImageException ignored) {
+            }
+        });
+        worker.start();
+        assertTrue(started.await(5, TimeUnit.SECONDS));
+
+        assertNull(session.end());
+        assertEquals(List.of("before"), events);
+
+        release.countDown();
+        worker.join(5000);
+
+        assertEquals(List.of("before", "image", "after"), events);
+    }
+}

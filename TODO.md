@@ -323,7 +323,7 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
       with a click). Works on a phone since 1.6.0 (a tab in the story drawer, the range chosen with two taps). Not done: editing the turn details in the tab, the converter wand as a command for the
       command bar and agents, running the wand on a long chat in chunks automatically, an automated test of the tab (only the
       logic has unit tests, the UI was checked by hand).
-35. **Image generation / illustrations** for scenes (would use `Resource`; attaching images by hand is done, see
+35. **Image generation / illustrations** for scenes. 🧩 Started: the `image-generator` plugin (ComfyUI and OpenAI images API, hooks around the images for a single GPU; not done there: a generic HTTP template backend for other hosted services, manga tags as the prompt source). Attaching images by hand is done, see
     *Images* in the part menu - generation, sending images to vision models and showing them to the readers of a
     published book in the Viewer are not; the Viewer deliberately shows them to the owner only). Files of deleted
     resources and of replaced content stay in the data folder until the administrator removes them in *Admin → Resource Files*

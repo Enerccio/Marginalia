@@ -139,7 +139,7 @@ model. Then create a book, choose the provider and a protocol, and start writing
 ## Extensions
 
 Extensions are OSGi bundles (JAR files). Administrators install them in *Admin → Extensions*; they are stored in
-`~/.marginalia/extensions`. Nineteen plugins are included in [`marginalia/plugins`](marginalia/plugins/README.md) and
+`~/.marginalia/extensions`. Twenty plugins are included in [`marginalia/plugins`](marginalia/plugins/README.md) and
 built separately with Maven, or in Docker (see the plugins README):
 
 - [Anthropic Claude](marginalia/plugins/anthropic/README.md) - Anthropic's Claude models as an inference provider, over the Anthropic Java SDK,
@@ -150,6 +150,7 @@ built separately with Maven, or in Docker (see the plugins README):
 - [Character Tracker](marginalia/plugins/character-tracker/README.md) - the characters of the book with their relationships and a map of them,
 - [Gemma 4 tools fix](marginalia/plugins/gemma4toolsfix/README.md) - function calling with Gemma 4 models whose API wants another role for tool results,
 - [Google Gemini](marginalia/plugins/google-genai/README.md) - Google's Gemini models as an inference provider, over the Google Gen AI SDK,
+- [Image Generator](marginalia/plugins/image-generator/README.md) - make an image for a part of the story with ComfyUI or an OpenAI-style images API, the model writes the prompt,
 - [Instruction Exporter](marginalia/plugins/instructionexporter/README.md) - copy the instructions, scene settings and characters of the story to the clipboard,
 - [Lore Generator](marginalia/plugins/lore-generator/README.md) - write a lorebook entry with the model from the existing lore,
 - [Lorebook VCS](marginalia/plugins/lorebookvcs/README.md) - revision history for lorebook entries,

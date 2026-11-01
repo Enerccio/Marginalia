@@ -112,6 +112,12 @@ public interface StoryCard {
     void openImagesDialog();
 
     /**
+     * The images of the part were changed from outside the card (an extension generated one): the card takes the saved part and
+     * shows its images.
+     */
+    void imagesChanged(ChatMessage updated);
+
+    /**
      * Shows the part with its images placed as the viewer places them (the editor lists them after the text); the text is the one in
      * the editor when the part is being edited.
      */
