@@ -199,18 +199,18 @@ Images attached to a part (`ChatMessage.getImages()`) are loaded once per part (
 the type, the caption and where the image is: the effective anchor, whether the text flows around it, its width in percent). The
 part is cut by `PartLayout` (`domain.model`, shared with the viewer: the text is cut at the boundaries between its top level
 blocks and the images are put at the cuts their anchors ask for) into `Part`s, a `TextPart` (blocks of the text) or a
-`PicturePart` (the images of one place, one anchor and wrapping), and handed to the writer in `message(List<Part>, Chapter)`.
+`PicturePart` (the images of one place, one anchor and wrapping) or a `BandPart` (images with text on both sides: the left text, the right text), and handed to the writer in `message(List<Part>, Chapter)`.
 The default of that method calls `message(markdown, chapter)` for the first text (an empty one when the part starts with images, so a
 chapter starts where its part does), `message(markdown, null)` for the other text and `images(List<ExportImage>)` for each group,
-so a format that only writes things in order (TXT, Markdown, Obsidian, AO3) shows the images at their place in the text without
+(a band is the left text, the images and the right text), so a format that only writes things in order (TXT, Markdown, Obsidian, AO3) shows the images at their place in the text without
 code of its own. A part with images but no text is exported with an empty text. HTML and EPUB override `message(List<Part>, Chapter)`
 with `toHtml(parts, source)`: `<figure>`s in a `div.pictures` (a row, aligned with `pictures-left|center|right`) or floats
-(`figure.float-left|float-right`, a `div.clear` after the part), the width as an inline `width: n%`, the rules in `PICTURES_CSS`;
+(`figure.float-left|float-right`, a `div.clear` after the part) or a grid `div.band` (`1fr n% 1fr`: the text, `div.band-middle` with the figures, the text; one column on a narrow screen), the width as an inline `width: n%`, the rules in `PICTURES_CSS`;
 HTML embeds the pictures as data URIs, EPUB as files in `OEBPS/images/` with manifest items. PDF lays the parts out itself:
 a picture is scaled to its width (no width: its size at 96 dpi, within the text), a row is a `PdfPTable`, and a picture the text
-flows around is a `PdfTemplate` of the picture and its caption added with `Image.TEXTWRAP` (OpenPDF wraps only images). DOCX
+flows around is a `PdfTemplate` of the picture and its caption added with `Image.TEXTWRAP` (OpenPDF wraps only images); a band is a `PdfPTable` of three cells, the text of the two outer ones gathered by the sink into a list (`emit`) and left aligned. DOCX
 writes a picture as a run (a paragraph aligned to the side), a row as a table without borders and a picture the text flows around as a
-one cell table with a position (`tblpPr`: Word wraps the text around it, and the table can hold the caption). TXT writes
+one cell table with a position (`tblpPr`, left, right or center: Word wraps the text around it, on both sides for the center, and the table can hold the captions); a band is that table in the center followed by the left and the right text. TXT writes
 `[Image: caption]`, Markdown `![caption](data:...)` plus an italic caption line. `figure(src, caption)` renders the XHTML figure.
 An exporter that has fonts and colors returns `true` from `Exporter.supportsStyles()` (HTML, EPUB, PDF, DOCX), which is what makes the dialog show
 the *Print style* choice (`PartStyleService.listForExport()`: the styles with `forExport`, built in and the user's), preselecting `ExportSettingsService.getStyleId(exporter)` (the style the user set for the format in *Settings → Exports*, else `Exporter.getDefaultStyleId()`) and again when the format changes. The look each format had before styles are the built-in styles `PartStyleRegistry.htmlExportStyle()` (`export-html`), `epubExportStyle()`, `pdfExportStyle()` and `docxExportStyle()`, which the exporter uses when `ExportOptions.style` is null (the text part of the old `STYLE` constants moved there; what is left in them is the page, the title page, the contents and the figures). HTML and EPUB

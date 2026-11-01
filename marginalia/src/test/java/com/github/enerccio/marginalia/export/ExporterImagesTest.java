@@ -285,4 +285,61 @@ class ExporterImagesTest extends MarginaliaTestBase {
             assertInOrder(text, "Bravo two.", "Caption-mid", "Charlie three.");
         }
     }
+
+    // ------------------------------------------------------------------------------------------------------------
+    // text on both sides of an image in the middle
+    // ------------------------------------------------------------------------------------------------------------
+
+    private byte[] exportBand(String extension) throws Exception {
+        BufferedImage image = new BufferedImage(40, 20, BufferedImage.TYPE_INT_RGB);
+        ByteArrayOutputStream png = new ByteArrayOutputStream();
+        ImageIO.write(image, "png", png);
+        String uuid = resourceService.uploadImage("band.png", png.toByteArray()).getUuid();
+        ChatMessage message = new ChatMessage();
+        message.setResponse(String.join("\n\n", List.of("Firstpar", "Secondpar", "Thirdpar", "Fourthpar").stream()
+                .map(name -> name + " " + "lorem ipsum ".repeat(20)).toList()));
+        message.setImages(List.of(new ImageAttachment(uuid, "Caption-band", ImageAnchor.TOP_CENTER, true, 30)));
+        Exporter exporter = exporterService.getExporters().stream().filter(e -> e.getFileExtension().equals(extension)).findFirst().orElseThrow();
+        return exporter.export(new ExportOptions("Book", "Author", false, "en"), List.of(message), new ProgressBarDialog(false));
+    }
+
+    @Test
+    void htmlHasTheTextInTwoColumnsWithTheImageBetweenThem() throws Exception {
+        String html = new String(exportBand("html"), StandardCharsets.UTF_8);
+
+        assertThat(html).contains("<div class=\"band\" style=\"grid-template-columns: 1fr 30% 1fr\">")
+                .contains("<div class=\"band-middle\">");
+        assertInOrder(html, "Firstpar", "Caption-band", "Secondpar", "Thirdpar", "Fourthpar");
+        // two blocks are enough for a band of 400 characters, the rest of the text follows it
+        assertThat(html.indexOf("class=\"band-middle\"")).isLessThan(html.indexOf("Thirdpar"));
+    }
+
+    @Test
+    void formatsWithoutColumnsWriteTheLeftTextTheImageAndTheRightText() throws Exception {
+        String text = new String(exportBand("txt"), StandardCharsets.UTF_8);
+
+        assertInOrder(text, "Firstpar", "[Image: Caption-band]", "Secondpar", "Thirdpar", "Fourthpar");
+        String epub = new String(unzip(exportBand("epub")).get("OEBPS/part1.xhtml"), StandardCharsets.UTF_8);
+        assertInOrder(epub, "Firstpar", "Caption-band", "Secondpar", "Thirdpar");
+    }
+
+    @Test
+    void docxFloatsTheImageInTheMiddleSoTheTextFlowsOnBothSidesOfIt() throws Exception {
+        try (XWPFDocument document = new XWPFDocument(new ByteArrayInputStream(exportBand("docx")))) {
+            assertThat(document.getTables()).hasSize(1);
+            assertThat(document.getTables().getFirst().getCTTbl().getTblPr().getTblpPr().getTblpXSpec().toString()).isEqualTo("center");
+            assertThat(document.getTables().getFirst().getText()).contains("Caption-band");
+            assertThat(document.getParagraphs().stream().map(p -> p.getText()).reduce("", String::concat))
+                    .contains("Firstpar").contains("Fourthpar");
+        }
+    }
+
+    @Test
+    void pdfHasTheBandTextAndTheCaption() throws Exception {
+        try (PDDocument document = Loader.loadPDF(exportBand("pdf"))) {
+            String text = new PDFTextStripper().getText(document);
+
+            assertThat(text).contains("Firstpar").contains("Secondpar").contains("Thirdpar").contains("Fourthpar").contains("Caption-band");
+        }
+    }
 }

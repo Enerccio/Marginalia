@@ -111,6 +111,9 @@ public final class CssStyles {
     public static final String PART_PICTURE_SIZED = "part-picture-sized";
     public static final String PART_PICTURE_FLOAT_LEFT = "part-picture-float-left";
     public static final String PART_PICTURE_FLOAT_RIGHT = "part-picture-float-right";
+    public static final String PART_BAND = "part-band";
+    public static final String PART_BAND_MIDDLE = "part-band-middle";
+    public static final String PART_BAND_TEXT = "part-band-text";
     public static final String IMAGE_ANCHOR_PICKER = "image-anchor-picker";
     public static final String PART_PREVIEW_FRAME = "part-preview-frame";
     public static final String PART_PREVIEW_PHONE = "part-preview-phone";

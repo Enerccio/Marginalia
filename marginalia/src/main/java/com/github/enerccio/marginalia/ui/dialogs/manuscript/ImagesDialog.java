@@ -181,10 +181,7 @@ public class ImagesDialog extends Dialog implements LLMInteract {
             picker.add(button);
         }
 
-        // text cannot flow on both sides of an image in the middle
-        boolean canWrap = anchor.horizontal() != ImageAnchor.Horizontal.CENTER;
-        Checkbox wrap = new Checkbox(loc.getValue(L.LABEL_IMAGE_WRAP), attachment.wrap() && canWrap);
-        wrap.setEnabled(canWrap);
+        Checkbox wrap = new Checkbox(loc.getValue(L.LABEL_IMAGE_WRAP), attachment.wrap());
         wrap.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 change(index, current -> current.withLayout(current.anchor(), e.getValue(), current.width()), true, onChanged);
@@ -194,7 +191,7 @@ public class ImagesDialog extends Dialog implements LLMInteract {
         Checkbox automatic = new Checkbox(loc.getValue(L.LABEL_AUTOMATIC), attachment.width() == null);
         IntegerField width = new IntegerField(loc.getValue(L.LABEL_IMAGE_WIDTH));
         width.setMin(ImageAttachment.MIN_WIDTH);
-        width.setMax(attachment.floats() ? ImageAttachment.MAX_WRAPPED_WIDTH : ImageAttachment.MAX_WIDTH);
+        width.setMax(attachment.maxWidth());
         width.setStepButtonsVisible(true);
         width.setStep(5);
         Integer shown = attachment.effectiveWidth();

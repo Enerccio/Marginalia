@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.domain.model;
 
 import com.github.enerccio.marginalia.domain.model.PartLayout.Pictures;
 import com.github.enerccio.marginalia.domain.model.PartLayout.Segment;
+import com.github.enerccio.marginalia.domain.model.PartLayout.Surrounded;
 import com.github.enerccio.marginalia.domain.model.PartLayout.Text;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import org.junit.jupiter.api.Test;
@@ -36,9 +37,24 @@ class PartLayoutTest {
                 }
                 case Pictures pictures -> shape.append(pictures.images().stream().map(ImageAttachment::resource)
                         .reduce((a, b) -> a + "," + b).orElse(""));
+                case Surrounded band -> shape.append("[").append(words(band.left())).append(" ")
+                        .append(band.images().stream().map(ImageAttachment::resource).reduce((a, b) -> a + "," + b).orElse(""))
+                        .append(" ").append(words(band.right())).append("]");
             }
         }
         return shape.toString();
+    }
+
+    private static String words(String markdown) {
+        String[] paragraphs = markdown.strip().split("\n\n");
+        return paragraphs[0].split(" ")[0] + (paragraphs.length > 1 ? ".." + paragraphs[paragraphs.length - 1].split(" ")[0] : "");
+    }
+
+    /**
+     * Paragraphs of about 150 characters that begin with the given words.
+     */
+    private static String paragraphs(String... names) {
+        return String.join("\n\n", java.util.Arrays.stream(names).map(name -> name + " " + "lorem ".repeat(24).strip()).toList());
     }
 
     @Test
@@ -87,11 +103,57 @@ class PartLayoutTest {
     }
 
     @Test
-    void theTextCannotFlowOnBothSidesOfAnImageInTheMiddle() {
-        List<Segment> segments = PartLayout.layout(TEXT, List.of(image("c", ImageAnchor.BOTTOM_CENTER, true, 30)));
+    void theTextFlowsOnBothSidesOfAnImageInTheMiddleInTwoColumns() {
+        // the top: the blocks from the start until the band is long enough, split in two
+        String text = paragraphs("One", "Two", "Three", "Four", "Five", "Six");
+        List<Segment> segments = PartLayout.layout(text, List.of(image("c", ImageAnchor.TOP_CENTER, true, 30)));
 
-        assertThat(shape(segments)).isEqualTo("First..Fourth | c");
-        assertThat(((Pictures) segments.get(1)).wrap()).isFalse();
+        assertThat(shape(segments)).isEqualTo("[One..Two c Three] | Four..Six");
+        Surrounded band = (Surrounded) segments.getFirst();
+        // the two columns and what follows are the whole text
+        assertThat(band.left() + band.right() + ((Text) segments.get(1)).markdown()).isEqualTo(text);
+    }
+
+    @Test
+    void theBandAtTheBottomEndsWithTheTextAndTheOneInTheMiddleStartsAtTheMiddle() {
+        String text = paragraphs("One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine");
+
+        assertThat(shape(PartLayout.layout(text, List.of(image("b", ImageAnchor.BOTTOM_CENTER, true, 30)))))
+                .isEqualTo("One..Six | [Seven b Eight..Nine]");
+        assertThat(shape(PartLayout.layout(text, List.of(image("m", ImageAnchor.CENTER_CENTER, true, 30)))))
+                .isEqualTo("One..Five | [Six..Seven m Eight] | Nine");
+    }
+
+    @Test
+    void bandsDoNotShareBlocksAndImagesAreAfterTheBandTheyWouldBeIn() {
+        String text = paragraphs("One", "Two", "Three", "Four", "Five", "Six");
+        List<Segment> segments = PartLayout.layout(text, List.of(
+                image("top", ImageAnchor.TOP_CENTER, true, 30),
+                image("bottom", ImageAnchor.BOTTOM_CENTER, true, 30),
+                // in the middle of the first band: after it
+                image("side", ImageAnchor.CENTER_LEFT, false, 20)));
+
+        // the top band takes three blocks, so the bottom one has the last three
+        assertThat(shape(segments)).isEqualTo("[One..Two top Three] | side | [Four bottom Five..Six]");
+    }
+
+    @Test
+    void imagesOfTheSameRowAreTheMiddleOfOneBandOneAboveTheOther() {
+        assertThat(shape(PartLayout.layout(paragraphs("One", "Two", "Three"), List.of(
+                image("a", ImageAnchor.TOP_CENTER, true, 30), image("b", ImageAnchor.TOP_CENTER, true, 20)))))
+                .isEqualTo("[One..Two a,b Three]");
+    }
+
+    @Test
+    void aBandNeedsTwoBlocksOtherwiseTheImageIsABlockOfTheCenterColumn() {
+        List<Segment> segments = PartLayout.layout("Only one.", List.of(image("c", ImageAnchor.TOP_CENTER, true, 30)));
+
+        assertThat(shape(segments)).isEqualTo("c | Only");
+        assertThat(((Pictures) segments.getFirst()).wrap()).isFalse();
+        // the text that is already in a band of the row above does not leave two blocks: the image is a block
+        assertThat(shape(PartLayout.layout(paragraphs("One", "Two"), List.of(
+                image("top", ImageAnchor.TOP_CENTER, true, 30), image("bottom", ImageAnchor.BOTTOM_CENTER, true, 30)))))
+                .isEqualTo("[One top Two] | bottom");
     }
 
     @Test
@@ -162,7 +224,11 @@ class PartLayoutTest {
         assertThat(new ImageAttachment("a", "", null, false, null).width()).isNull();
         // text needs room beside the image
         assertThat(image("a", ImageAnchor.TOP_LEFT, true, 90).effectiveWidth()).isEqualTo(ImageAttachment.MAX_WRAPPED_WIDTH);
-        assertThat(image("a", ImageAnchor.TOP_CENTER, true, 90).effectiveWidth()).isEqualTo(90);
+        assertThat(image("a", ImageAnchor.TOP_CENTER, false, 90).effectiveWidth()).isEqualTo(90);
+        // between two columns of text
+        assertThat(image("a", ImageAnchor.TOP_CENTER, true, 90).effectiveWidth()).isEqualTo(ImageAttachment.MAX_SURROUNDED_WIDTH);
+        assertThat(image("a", ImageAnchor.TOP_CENTER, true, null).effectiveWidth()).isEqualTo(ImageAttachment.SURROUNDED_WIDTH);
+        assertThat(image("a", ImageAnchor.TOP_CENTER, false, null).effectiveWidth()).isNull();
     }
 
     @Test

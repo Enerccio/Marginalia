@@ -92,13 +92,23 @@ public abstract class ExporterBase implements Exporter {
     /**
      * A piece of a message: a run of whole blocks of its text, or the images that are between them (the same anchor and wrapping).
      */
-    protected sealed interface Part permits TextPart, PicturePart {
+    protected sealed interface Part permits TextPart, PicturePart, BandPart {
     }
 
     protected record TextPart(String markdown) implements Part {
     }
 
     protected record PicturePart(ImageAnchor anchor, boolean wrap, List<ExportImage> images) implements Part {
+    }
+
+    /**
+     * Images in the middle of some text: the text in two columns, the images between them (one above the other). A format that has
+     * no columns writes the left text, the images and the right text.
+     *
+     * @param left  Markdown that is read first, at the left of the images
+     * @param right Markdown that follows, at the right of the images
+     */
+    protected record BandPart(List<ExportImage> images, String left, String right) implements Part {
     }
 
     /**
@@ -148,7 +158,8 @@ public abstract class ExporterBase implements Exporter {
         /**
          * A message in its pieces, in the order they are shown. The default writes the first piece with {@link #message(String, Chapter)}
          * (an empty text when the message starts with images, so the chapter starts where the message does), the other text with
-         * {@code message(text, null)} and the images with {@link #images}. A format that places the images overrides this.
+         * {@code message(text, null)} and the images with {@link #images} (the text at the left of images in the middle of it, the images,
+     * the text at their right). A format that places the images overrides this.
          */
         default void message(List<Part> parts, Chapter chapter) throws Exception {
             boolean started = false;
@@ -162,6 +173,11 @@ public abstract class ExporterBase implements Exporter {
                         started = true;
                     }
                     images(pictures.images());
+                } else if (part instanceof BandPart band) {
+                    message(band.left(), started ? null : chapter);
+                    started = true;
+                    images(band.images());
+                    message(band.right(), null);
                 }
             }
         }
@@ -243,22 +259,29 @@ public abstract class ExporterBase implements Exporter {
         for (PartLayout.Segment segment : PartLayout.layout(text, attached)) {
             switch (segment) {
                 case PartLayout.Text piece -> parts.add(new TextPart(piece.markdown()));
-                case PartLayout.Pictures pictures -> {
-                    // the images of a group are objects of the list the layout was made of
-                    List<ExportImage> group = new ArrayList<>();
-                    for (ImageAttachment image : pictures.images()) {
-                        for (int i = 0; i < attached.size(); i++) {
-                            if (attached.get(i) == image) {
-                                group.add(images.get(i));
-                                break;
-                            }
-                        }
-                    }
-                    parts.add(new PicturePart(pictures.anchor(), pictures.wrap(), group));
-                }
+                case PartLayout.Surrounded band -> parts.add(new BandPart(exportImages(band.images(), attached, images), band.left(), band.right()));
+                case PartLayout.Pictures pictures ->
+                        parts.add(new PicturePart(pictures.anchor(), pictures.wrap(), exportImages(pictures.images(), attached, images)));
             }
         }
         return parts;
+    }
+
+    /**
+     * @return the images of the group: the objects of the list the layout was made of are the attachments, the same positions of the
+     * list of the loaded images are theirs
+     */
+    private static List<ExportImage> exportImages(List<ImageAttachment> group, List<ImageAttachment> attached, List<ExportImage> images) {
+        List<ExportImage> result = new ArrayList<>();
+        for (ImageAttachment image : group) {
+            for (int i = 0; i < attached.size(); i++) {
+                if (attached.get(i) == image) {
+                    result.add(images.get(i));
+                    break;
+                }
+            }
+        }
+        return result;
     }
 
     /**
@@ -330,7 +353,16 @@ public abstract class ExporterBase implements Exporter {
             figure.float-left { float: left; margin: 0 1em 0.6em 0; }
             figure.float-right { float: right; margin: 0 0 0.6em 1em; }
             .clear { clear: both; }
-            @media (max-width: 30em) { figure.float-left, figure.float-right { float: none; width: 100% !important; margin: 0.6em 0; } }
+            .band { display: grid; gap: 1.2em; align-items: start; clear: both; margin: 1em 0; }
+            .band-middle { align-self: center; }
+            .band-middle figure { margin: 0 0 0.8em 0; }
+            .band-text > :first-child { margin-top: 0; }
+            .band-text > :last-child { margin-bottom: 0; }
+            @media (max-width: 30em) {
+              figure.float-left, figure.float-right { float: none; width: 100% !important; margin: 0.6em 0; }
+              .band { grid-template-columns: 1fr !important; }
+              .band-middle figure { width: 100% !important; margin: 0.6em 0; }
+            }
             """;
 
     /**
@@ -363,6 +395,18 @@ public abstract class ExporterBase implements Exporter {
         for (Part part : parts) {
             switch (part) {
                 case TextPart text -> html.append(toHtml(text.markdown()));
+                case BandPart band -> {
+                    // the width of the column of the images is the widest of them, each is its own part of it
+                    int widest = band.images().stream().mapToInt(image -> image.width() == null ? ImageAttachment.SURROUNDED_WIDTH : image.width())
+                            .max().orElse(ImageAttachment.SURROUNDED_WIDTH);
+                    html.append("<div class=\"band\" style=\"grid-template-columns: 1fr ").append(widest).append("% 1fr\">\n<div class=\"band-text\">\n")
+                            .append(toHtml(band.left())).append("</div>\n<div class=\"band-middle\">\n");
+                    for (ExportImage image : band.images()) {
+                        int width = image.width() == null ? ImageAttachment.SURROUNDED_WIDTH : image.width();
+                        html.append(figure(source.apply(image), image.caption(), width * 100 / widest, null));
+                    }
+                    html.append("</div>\n<div class=\"band-text\">\n").append(toHtml(band.right())).append("</div>\n</div>\n");
+                }
                 case PicturePart pictures -> {
                     if (pictures.wrap()) {
                         floats = true;

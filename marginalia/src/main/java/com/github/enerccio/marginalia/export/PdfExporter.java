@@ -212,6 +212,17 @@ public class PdfExporter extends ExporterBase {
             document.open();
         }
 
+        // while a band is written, its text is gathered for the cells of its table instead of being added to the document
+        private List<Element> collected;
+
+        private void emit(Element element) {
+            if (collected != null) {
+                collected.add(element);
+            } else {
+                document.add(element);
+            }
+        }
+
         private byte[] render() throws Exception {
             if (titleMarkdown != null) {
                 walk(titleMarkdown, titleSink);
@@ -230,6 +241,7 @@ public class PdfExporter extends ExporterBase {
                     switch (part) {
                         case TextPart text -> walk(text.markdown(), bodySink);
                         case PicturePart pictures -> writePictures(pictures);
+                        case BandPart band -> writeBand(band);
                     }
                 }
                 pendingChapter = null;
@@ -283,6 +295,68 @@ public class PdfExporter extends ExporterBase {
                     writeBlock(export, pictures.anchor());
                 }
             }
+        }
+
+        /**
+         * A table of three columns without borders: the text that is read first, the images, the text that follows. The text flows down
+         * the left column and goes on in the right one.
+         */
+        private void writeBand(BandPart band) throws Exception {
+            int widest = band.images().stream().mapToInt(image -> image.width() == null ? 30 : image.width()).max().orElse(30);
+            float side = (100 - widest) / 2f;
+            PdfPTable table = new PdfPTable(new float[]{side, widest, side});
+            table.setWidthPercentage(100);
+            table.setSpacingBefore(6);
+            table.setSpacingAfter(10);
+
+            table.addCell(textCell(band.left()));
+            PdfPCell middle = new PdfPCell();
+            middle.setBorder(Rectangle.NO_BORDER);
+            middle.setPaddingLeft(6);
+            middle.setPaddingRight(6);
+            middle.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            float textWidth = document.right() - document.left();
+            for (ExportImage export : band.images()) {
+                Image image = Image.getInstance(export.data());
+                float[] size = sizeOf(image, export);
+                // a part of the column of the widest one, less the padding of the cell
+                float column = textWidth * widest / 100f - 12;
+                float width = Math.min(size[0], column) * (export.width() == null ? 30 : export.width()) / widest;
+                width = Math.min(column, Math.max(width, 1));
+                image.scaleAbsolute(width, size[1] * width / size[0]);
+                image.setAlignment(Element.ALIGN_CENTER);
+                middle.addElement(image);
+                if (!export.caption().isEmpty()) {
+                    Paragraph caption = captionOf(export, Element.ALIGN_CENTER);
+                    caption.setSpacingAfter(4);
+                    middle.addElement(caption);
+                }
+            }
+            table.addCell(middle);
+            table.addCell(textCell(band.right()));
+            document.add(table);
+        }
+
+        private PdfPCell textCell(String markdown) throws Exception {
+            PdfPCell cell = new PdfPCell();
+            cell.setBorder(Rectangle.NO_BORDER);
+            cell.setPaddingLeft(0);
+            cell.setPaddingRight(8);
+            List<Element> elements = new ArrayList<>();
+            collected = elements;
+            try {
+                walk(markdown, bodySink);
+            } finally {
+                collected = null;
+            }
+            for (Element element : elements) {
+                // the columns are narrow, justified lines would have wide gaps
+                if (element instanceof Paragraph paragraph && paragraph.getAlignment() == Element.ALIGN_JUSTIFIED) {
+                    paragraph.setAlignment(Element.ALIGN_LEFT);
+                }
+                cell.addElement(element);
+            }
+            return cell;
         }
 
         private void writeBlock(ExportImage export, ImageAnchor anchor) throws Exception {
@@ -475,7 +549,7 @@ public class PdfExporter extends ExporterBase {
                 paragraph.setSpacingAfter(size / 2);
                 paragraph.setAlignment(centered ? Element.ALIGN_CENTER : alignment(style.getHeadingAlign()));
                 paragraph.setKeepTogether(true);
-                document.add(paragraph);
+                emit(paragraph);
                 noIndentNext = true;
             }
 
@@ -495,7 +569,7 @@ public class PdfExporter extends ExporterBase {
                 if (!centered) {
                     noIndentNext = false;
                 }
-                document.add(paragraph);
+                emit(paragraph);
             }
 
             @Override
@@ -503,7 +577,7 @@ public class PdfExporter extends ExporterBase {
                 Paragraph paragraph = anchored(new Paragraph(text.stripTrailing(), code));
                 paragraph.setIndentationLeft((context.listDepth() + context.quoteDepth()) * INDENT);
                 paragraph.setSpacingAfter(8);
-                document.add(paragraph);
+                emit(paragraph);
             }
 
             @Override
@@ -513,7 +587,7 @@ public class PdfExporter extends ExporterBase {
                 paragraph.setAlignment(Element.ALIGN_CENTER);
                 paragraph.setSpacingBefore(8);
                 paragraph.setSpacingAfter(12);
-                document.add(paragraph);
+                emit(paragraph);
                 noIndentNext = true;
             }
         }

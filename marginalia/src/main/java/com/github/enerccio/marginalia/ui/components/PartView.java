@@ -39,16 +39,43 @@ public class PartView extends Div {
         removeAll();
         for (PartLayout.Segment segment : PartLayout.layout(markdown, images)) {
             switch (segment) {
-                case PartLayout.Text text -> {
-                    Markdown piece = new Markdown();
-                    piece.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
-                    piece.setContent(text.markdown());
-                    add(piece);
-                }
+                case PartLayout.Text text -> add(markdown(text.markdown()));
                 case PartLayout.Pictures pictures -> addPictures(pictures);
+                case PartLayout.Surrounded band -> addBand(band);
             }
         }
         setVisible(getComponentCount() > 0);
+    }
+
+    private Markdown markdown(String text) {
+        Markdown piece = new Markdown();
+        piece.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
+        piece.setContent(text);
+        return piece;
+    }
+
+    /**
+     * @param width width in percent of the box the picture is in, null for the size of the picture
+     * @return the picture with its caption, null when the image is gone
+     */
+    private Div picture(ImageAttachment attachment, Integer width) {
+        try {
+            Resource resource = resourceService.findImage(attachment.resource());
+            if (resource == null) {
+                return null;
+            }
+            Div picture = renderer.figure(resource, attachment.caption(), "100%");
+            picture.addClassName(CssStyles.PART_PICTURE);
+            if (width != null) {
+                picture.addClassName(CssStyles.PART_PICTURE_SIZED);
+                // the width asked for by the author
+                picture.getStyle().setWidth(width + "%");
+            }
+            return picture;
+        } catch (Exception e) {
+            log.warn("Can't show image {}", attachment.resource(), e);
+            return null;
+        }
     }
 
     private void addPictures(PartLayout.Pictures pictures) {
@@ -64,30 +91,48 @@ public class PartView extends Div {
             });
         }
         for (ImageAttachment attachment : pictures.images()) {
-            try {
-                Resource resource = resourceService.findImage(attachment.resource());
-                if (resource == null) {
-                    continue;
-                }
-                Div picture = renderer.figure(resource, attachment.caption(), "100%");
-                picture.addClassName(CssStyles.PART_PICTURE);
-                Integer width = attachment.effectiveWidth();
-                if (width != null) {
-                    picture.addClassName(CssStyles.PART_PICTURE_SIZED);
-                    // the width asked for by the author
-                    picture.getStyle().setWidth(width + "%");
-                }
-                if (pictures.wrap()) {
-                    picture.addClassName(pictures.anchor().horizontal() == ImageAnchor.Horizontal.LEFT
-                            ? CssStyles.PART_PICTURE_FLOAT_LEFT : CssStyles.PART_PICTURE_FLOAT_RIGHT);
-                }
-                group.add(picture);
-            } catch (Exception e) {
-                log.warn("Can't show image {}", attachment.resource(), e);
+            Div picture = picture(attachment, attachment.effectiveWidth());
+            if (picture == null) {
+                continue;
             }
+            if (pictures.wrap()) {
+                picture.addClassName(pictures.anchor().horizontal() == ImageAnchor.Horizontal.LEFT
+                        ? CssStyles.PART_PICTURE_FLOAT_LEFT : CssStyles.PART_PICTURE_FLOAT_RIGHT);
+            }
+            group.add(picture);
         }
         if (group.getComponentCount() > 0) {
             add(group);
         }
+    }
+
+    /**
+     * The text in two columns with the pictures between them; the column of the pictures is as wide as the widest of them.
+     */
+    private void addBand(PartLayout.Surrounded band) {
+        int widest = band.images().stream().mapToInt(image -> image.effectiveWidth()).max().orElse(ImageAttachment.SURROUNDED_WIDTH);
+        Div middle = new Div();
+        middle.addClassName(CssStyles.PART_BAND_MIDDLE);
+        for (ImageAttachment attachment : band.images()) {
+            // each is a part of the column
+            Div picture = picture(attachment, attachment.effectiveWidth() * 100 / widest);
+            if (picture != null) {
+                middle.add(picture);
+            }
+        }
+        if (middle.getComponentCount() == 0) {
+            // all the images are gone, the text stays as it was
+            add(markdown(band.left()), markdown(band.right()));
+            return;
+        }
+        Div left = new Div(markdown(band.left()));
+        left.addClassName(CssStyles.PART_BAND_TEXT);
+        Div right = new Div(markdown(band.right()));
+        right.addClassName(CssStyles.PART_BAND_TEXT);
+        Div grid = new Div(left, middle, right);
+        grid.addClassName(CssStyles.PART_BAND);
+        // the width of the middle column is the one the author asked for
+        grid.getStyle().set("grid-template-columns", "1fr " + widest + "% 1fr");
+        add(grid);
     }
 }
