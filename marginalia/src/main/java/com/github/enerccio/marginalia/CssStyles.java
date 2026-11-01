@@ -101,6 +101,19 @@ public final class CssStyles {
     // --- Message images ---
     public static final String MESSAGE_IMAGES = "message-images";
     public static final String MESSAGE_IMAGE = "message-image";
+    public static final String PART_VIEW = "part-view";
+    public static final String PART_PICTURES = "part-pictures";
+    public static final String PART_PICTURES_LEFT = "part-pictures-left";
+    public static final String PART_PICTURES_CENTER = "part-pictures-center";
+    public static final String PART_PICTURES_RIGHT = "part-pictures-right";
+    public static final String PART_PICTURES_FLOAT = "part-pictures-float";
+    public static final String PART_PICTURE = "part-picture";
+    public static final String PART_PICTURE_SIZED = "part-picture-sized";
+    public static final String PART_PICTURE_FLOAT_LEFT = "part-picture-float-left";
+    public static final String PART_PICTURE_FLOAT_RIGHT = "part-picture-float-right";
+    public static final String IMAGE_ANCHOR_PICKER = "image-anchor-picker";
+    public static final String PART_PREVIEW_FRAME = "part-preview-frame";
+    public static final String PART_PREVIEW_PHONE = "part-preview-phone";
 
     // --- Story messages and summaries ---
     public static final String CHAT_MESSAGE_CONTENT = "chat-message-content";

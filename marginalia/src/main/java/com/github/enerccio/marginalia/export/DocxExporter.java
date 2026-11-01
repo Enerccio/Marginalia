@@ -1,11 +1,13 @@
 package com.github.enerccio.marginalia.export;
 
+import com.github.enerccio.marginalia.domain.model.ImageAnchor;
 import com.github.enerccio.marginalia.domain.service.ExporterService.ExportOptions;
 import com.github.enerccio.marginalia.domain.styles.PartStyleRegistry;
 import com.github.enerccio.marginalia.domain.styles.PrintStyle;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.xwpf.model.XWPFHeaderFooterPolicy;
 import org.apache.poi.xwpf.usermodel.*;
+import org.openxmlformats.schemas.officeDocument.x2006.sharedTypes.STXAlign;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.*;
 
 import javax.imageio.ImageIO;
@@ -27,6 +29,8 @@ public class DocxExporter extends ExporterBase {
     // 5.5 inch, within the text width of A4 and Letter, and 8 inch
     private static final long MAX_IMAGE_WIDTH = 5_029_200L;
     private static final long MAX_IMAGE_HEIGHT = 7_315_200L;
+    // the same width in 1/20 of a point (twips): the 100 % of the width of an image
+    private static final int TEXT_WIDTH_DXA = (int) (MAX_IMAGE_WIDTH / 635);
 
     @Override
     public String getName() {
@@ -194,35 +198,172 @@ public class DocxExporter extends ExporterBase {
 
         @Override
         public void message(String markdown, Chapter chapter) throws Exception {
-            pendingChapter = chapter;
-            // a chapter starts on a new page
-            pageBreakPending |= chapter != null;
-            walk(markdown, bodySink);
-            pendingChapter = null;
+            message(List.of(new TextPart(markdown)), chapter);
         }
 
         @Override
-        public void images(List<ExportImage> images) throws Exception {
-            for (ExportImage image : images) {
-                BufferedImage decoded = ImageIO.read(new ByteArrayInputStream(image.data()));
-                // pixels to EMU (96 dpi), scaled down to fit the text width and most of a page
-                double scale = Math.min(1, Math.min(MAX_IMAGE_WIDTH / (decoded.getWidth() * (double) EMU_PER_PIXEL),
-                        MAX_IMAGE_HEIGHT / (decoded.getHeight() * (double) EMU_PER_PIXEL)));
-                int width = (int) (decoded.getWidth() * EMU_PER_PIXEL * scale);
-                int height = (int) (decoded.getHeight() * EMU_PER_PIXEL * scale);
+        public void message(List<Part> parts, Chapter chapter) throws Exception {
+            pendingChapter = chapter;
+            // a chapter starts on a new page
+            pageBreakPending |= chapter != null;
+            for (Part part : parts) {
+                switch (part) {
+                    case TextPart text -> walk(text.markdown(), bodySink);
+                    case PicturePart pictures -> writePictures(pictures);
+                }
+            }
+            pendingChapter = null;
+            if (!parts.isEmpty() && parts.getLast() instanceof PicturePart last && last.wrap()) {
+                // a table the text flows around needs a paragraph after it, also when there is no text
+                document.createParagraph().setSpacingAfter(0);
+            }
+        }
 
-                XWPFParagraph paragraph = newParagraph();
+        /**
+         * @return the size in EMU of the image: the width asked for as a part of the text (else the size it has, 96 dpi, and no more than
+         * the text), and no higher than most of a page, in the proportions of the image
+         */
+        private long[] sizeOf(BufferedImage decoded, ExportImage export) {
+            double naturalWidth = decoded.getWidth() * (double) EMU_PER_PIXEL;
+            double naturalHeight = decoded.getHeight() * (double) EMU_PER_PIXEL;
+            double scale = export.width() == null ? 1 : MAX_IMAGE_WIDTH * export.width() / 100.0 / naturalWidth;
+            scale = Math.min(scale, Math.min(MAX_IMAGE_WIDTH / naturalWidth, MAX_IMAGE_HEIGHT / naturalHeight));
+            return new long[]{(long) (naturalWidth * scale), (long) (naturalHeight * scale)};
+        }
+
+        private static ParagraphAlignment horizontal(ImageAnchor anchor) {
+            return switch (anchor.horizontal()) {
+                case LEFT -> ParagraphAlignment.LEFT;
+                case CENTER -> ParagraphAlignment.CENTER;
+                case RIGHT -> ParagraphAlignment.RIGHT;
+            };
+        }
+
+        private void picture(XWPFParagraph paragraph, ExportImage image, long[] size) throws Exception {
+            paragraph.createRun().addPicture(new ByteArrayInputStream(image.data()),
+                    image.mimeType().equals("image/jpeg") ? XWPFDocument.PICTURE_TYPE_JPEG
+                            : image.mimeType().equals("image/gif") ? XWPFDocument.PICTURE_TYPE_GIF : XWPFDocument.PICTURE_TYPE_PNG,
+                    "image." + image.extension(), (int) size[0], (int) size[1]);
+        }
+
+        private void writePictures(PicturePart pictures) throws Exception {
+            if (pictures.wrap()) {
+                for (ExportImage image : pictures.images()) {
+                    writeWrapped(image, pictures.anchor());
+                }
+            } else if (isRow(pictures)) {
+                writeRow(pictures);
+            } else {
+                for (ExportImage image : pictures.images()) {
+                    BufferedImage decoded = ImageIO.read(new ByteArrayInputStream(image.data()));
+                    XWPFParagraph paragraph = newParagraph();
+                    paragraph.setAlignment(horizontal(pictures.anchor()));
+                    paragraph.setKeepNext(!image.caption().isEmpty());
+                    picture(paragraph, image, sizeOf(decoded, image));
+                    if (!image.caption().isEmpty()) {
+                        XWPFParagraph caption = newParagraph();
+                        caption.setAlignment(horizontal(pictures.anchor()));
+                        addRuns(caption, List.of(new Run(image.caption(), false, true, false, false)), bodySize - 2, false, null);
+                    }
+                }
+            }
+        }
+
+        /**
+         * Images that were given a width and fit next to each other are a row.
+         */
+        private static boolean isRow(PicturePart pictures) {
+            int sum = 0;
+            for (ExportImage image : pictures.images()) {
+                if (image.width() == null) {
+                    return false;
+                }
+                sum += image.width();
+            }
+            return pictures.images().size() > 1 && sum <= 100;
+        }
+
+        private static void noBorders(XWPFTable table) {
+            table.setTopBorder(XWPFTable.XWPFBorderType.NONE, 0, 0, "auto");
+            table.setBottomBorder(XWPFTable.XWPFBorderType.NONE, 0, 0, "auto");
+            table.setLeftBorder(XWPFTable.XWPFBorderType.NONE, 0, 0, "auto");
+            table.setRightBorder(XWPFTable.XWPFBorderType.NONE, 0, 0, "auto");
+            table.setInsideHBorder(XWPFTable.XWPFBorderType.NONE, 0, 0, "auto");
+            table.setInsideVBorder(XWPFTable.XWPFBorderType.NONE, 0, 0, "auto");
+        }
+
+        /**
+         * A table of one row without borders, the images next to each other with their captions under them.
+         */
+        private void writeRow(PicturePart pictures) throws Exception {
+            // the paragraph that carries the page break and the bookmark of a chapter that starts with the images
+            if (pageBreakPending || pendingChapter != null) {
+                newParagraph().setSpacingAfter(0);
+            }
+            List<ExportImage> images = pictures.images();
+            XWPFTable table = document.createTable(1, images.size());
+            noBorders(table);
+            table.setTableAlignment(switch (pictures.anchor().horizontal()) {
+                case LEFT -> TableRowAlign.LEFT;
+                case CENTER -> TableRowAlign.CENTER;
+                case RIGHT -> TableRowAlign.RIGHT;
+            });
+            int sum = images.stream().mapToInt(ExportImage::width).sum();
+            table.setWidth(TEXT_WIDTH_DXA * sum / 100);
+            for (int i = 0; i < images.size(); i++) {
+                ExportImage image = images.get(i);
+                XWPFTableCell cell = table.getRow(0).getCell(i);
+                cell.setWidth(String.valueOf(TEXT_WIDTH_DXA * image.width() / 100));
+                BufferedImage decoded = ImageIO.read(new ByteArrayInputStream(image.data()));
+                long[] size = sizeOf(decoded, image);
+                // a little less than the cell, which has margins
+                size[1] = size[1] * 95 / 100;
+                size[0] = size[0] * 95 / 100;
+                XWPFParagraph paragraph = cell.getParagraphs().getFirst();
                 paragraph.setAlignment(ParagraphAlignment.CENTER);
                 paragraph.setKeepNext(!image.caption().isEmpty());
-                paragraph.createRun().addPicture(new ByteArrayInputStream(image.data()),
-                        image.mimeType().equals("image/jpeg") ? XWPFDocument.PICTURE_TYPE_JPEG
-                                : image.mimeType().equals("image/gif") ? XWPFDocument.PICTURE_TYPE_GIF : XWPFDocument.PICTURE_TYPE_PNG,
-                        "image." + image.extension(), width, height);
+                picture(paragraph, image, size);
                 if (!image.caption().isEmpty()) {
-                    XWPFParagraph caption = newParagraph();
+                    XWPFParagraph caption = cell.addParagraph();
                     caption.setAlignment(ParagraphAlignment.CENTER);
                     addRuns(caption, List.of(new Run(image.caption(), false, true, false, false)), bodySize - 2, false, null);
                 }
+            }
+            document.createParagraph().setSpacingAfter(0);
+        }
+
+        /**
+         * A table of one cell that floats at the left or at the right, so that the text after it flows around it (Word does that for a
+         * table with a position, and it can hold the caption under the image).
+         */
+        private void writeWrapped(ExportImage image, ImageAnchor anchor) throws Exception {
+            if (pageBreakPending || pendingChapter != null) {
+                newParagraph().setSpacingAfter(0);
+            }
+            BufferedImage decoded = ImageIO.read(new ByteArrayInputStream(image.data()));
+            long[] size = sizeOf(decoded, image);
+            XWPFTable table = document.createTable(1, 1);
+            noBorders(table);
+            int widthDxa = (int) (size[0] / 635) + 120;
+            table.setWidth(widthDxa);
+            CTTblPPr position = table.getCTTbl().getTblPr().addNewTblpPr();
+            position.setHorzAnchor(STHAnchor.MARGIN);
+            position.setVertAnchor(STVAnchor.TEXT);
+            position.setTblpXSpec(anchor.horizontal() == ImageAnchor.Horizontal.LEFT ? STXAlign.LEFT : STXAlign.RIGHT);
+            position.setTblpY(BigInteger.ZERO);
+            position.setLeftFromText(BigInteger.valueOf(anchor.horizontal() == ImageAnchor.Horizontal.LEFT ? 0 : 200));
+            position.setRightFromText(BigInteger.valueOf(anchor.horizontal() == ImageAnchor.Horizontal.LEFT ? 200 : 0));
+            position.setBottomFromText(BigInteger.valueOf(120));
+            XWPFTableCell cell = table.getRow(0).getCell(0);
+            cell.setWidth(String.valueOf(widthDxa));
+            XWPFParagraph paragraph = cell.getParagraphs().getFirst();
+            paragraph.setAlignment(ParagraphAlignment.CENTER);
+            paragraph.setKeepNext(!image.caption().isEmpty());
+            picture(paragraph, image, size);
+            if (!image.caption().isEmpty()) {
+                XWPFParagraph caption = cell.addParagraph();
+                caption.setAlignment(ParagraphAlignment.CENTER);
+                addRuns(caption, List.of(new Run(image.caption(), false, true, false, false)), bodySize - 2, false, null);
             }
         }
 

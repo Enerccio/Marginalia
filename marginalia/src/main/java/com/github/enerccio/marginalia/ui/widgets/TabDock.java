@@ -117,6 +117,7 @@ public class TabDock extends Div implements Restorable {
         private final Tab tab;
         // the icon in the bar of the minimized tabs, null for the initials of the caption
         private final TabDockIcon icon;
+        private DragSource<Tab> source;
         private DropTarget<Tab> drop;
         private Button minimizeButton;
 
@@ -362,7 +363,8 @@ public class TabDock extends Div implements Restorable {
 
     /**
      * Enables or disables the contents and the tabs of the dock, except for one tab that is not touched (the content of the
-     * dock that has to go on working while the rest does not). Tabs added later get the state too.
+     * dock that has to go on working while the rest does not). The layout is frozen with them: the tabs cannot be dragged or
+     * minimized and the icons of the bar do not restore. Tabs added later get the state too.
      *
      * @param exceptId the tab that is always enabled, may be null
      */
@@ -374,6 +376,8 @@ public class TabDock extends Div implements Restorable {
         tabsEnabled = enabled;
         enabledId = exceptId;
         entries.values().forEach(this::applyEnabled);
+        // the icons of the minimized tabs (restoring one would show a tab that is disabled: a blank screen) and their order
+        bar.setEnabled(enabled);
     }
 
     /**
@@ -388,6 +392,13 @@ public class TabDock extends Div implements Restorable {
     private void applyEnabled(Entry entry) {
         boolean enabled = tabsEnabled || entry.id.equals(enabledId);
         entry.tab.setEnabled(enabled);
+        // the layout of the dock is frozen with it: no dragging of the tabs, no minimizing
+        if (entry.source != null) {
+            entry.source.setDraggable(tabsEnabled);
+        }
+        if (entry.minimizeButton != null) {
+            entry.minimizeButton.setEnabled(tabsEnabled);
+        }
         if (!enabled) {
             entry.content.getElement().setEnabled(false);
             return;
@@ -1344,6 +1355,7 @@ public class TabDock extends Div implements Restorable {
         entry.tab.addClassName(CssStyles.TAB_DOCK_TAB);
 
         DragSource<Tab> source = DragSource.create(entry.tab);
+        entry.source = source;
         source.setEffectAllowed(EffectAllowed.MOVE);
         source.addDragStartListener(event -> startDrag(entry));
         source.addDragEndListener(event -> finishDrag());

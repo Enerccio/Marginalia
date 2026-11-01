@@ -199,7 +199,7 @@ kinds of fields end up there:
   `Boolean`, `Date` (ISO-8601 instant in UTC, e.g. `2026-10-09T08:15:30.123Z`; values in the old `yyyy.MM.dd'Z'HH:mm:ss.SSS` format, written in the server's time zone, are still read), enums (by name) and any type for `inject = true`: a `JsonObject` has its keys stored flat as `<injectPrefix>_<key>`, any other type is converted with Gson (object-shaped results are flattened the same way, lists and scalars are stored under the plain `injectPrefix` key).
 - **Types**: the values are written with `toString()`, so a field can't be a collection. A list is kept as a JSON string
   in a `String` field with typed accessors, like `ChatMessage.imageAttachments` (`getImages()` / `setImages(...)`, a JSON
-  array of `ImageAttachment(resource uuid, caption)`).
+  array of `ImageAttachment(resource uuid, caption, anchor, wrap, width)`: the 3x3 `ImageAnchor` of the image (null: after the text, centered), whether the text flows around it and its width in percent of the text (null: its size); old values without the last three keep the look they had, and the viewer and the exports place the images with `PartLayout`).
 - **Save**: `JpaExtendableRepository.save` serializes the fields into `extendedContent` before the entity is written.
 
 **Compression.** The document is mostly text, and an entity keeps it next to the fields made from it, so

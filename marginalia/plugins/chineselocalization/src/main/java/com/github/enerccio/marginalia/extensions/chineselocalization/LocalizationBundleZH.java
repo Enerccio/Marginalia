@@ -940,6 +940,12 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_LAYOUT, "布局");
         setValue(L.LABEL_INSPECT, "查看");
         setValue(L.LABEL_BRANCH_AND_MERGE, "分支与合并");
+        setValue(L.LABEL_PREVIEW_AS_VIEWER, "按阅读视图预览");
+        setValue(L.LABEL_PREVIEW_WIDE, "宽");
+        setValue(L.LABEL_PREVIEW_NARROW, "窄（手机）");
+        setValue(L.LABEL_IMAGE_POSITION, "在部分中的位置");
+        setValue(L.LABEL_IMAGE_WRAP, "文字环绕图片");
+        setValue(L.LABEL_IMAGE_WIDTH, "宽度（占文字宽度的百分比）");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1105,6 +1111,15 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_STATISTIC_RANGE_CUSTOM, "自定义");
         setValue(L.ENUM_STATISTIC_SIDE_AUTHOR, "我");
         setValue(L.ENUM_ACTIVATION_REASON_OUT_OF_RANGE, "未使用：回合不在其段落范围内");
+        setValue(L.ENUM_IMAGE_ANCHOR_TOP_LEFT, "左上");
+        setValue(L.ENUM_IMAGE_ANCHOR_TOP_CENTER, "上中");
+        setValue(L.ENUM_IMAGE_ANCHOR_TOP_RIGHT, "右上");
+        setValue(L.ENUM_IMAGE_ANCHOR_CENTER_LEFT, "左中");
+        setValue(L.ENUM_IMAGE_ANCHOR_CENTER_CENTER, "正中");
+        setValue(L.ENUM_IMAGE_ANCHOR_CENTER_RIGHT, "右中");
+        setValue(L.ENUM_IMAGE_ANCHOR_BOTTOM_LEFT, "左下");
+        setValue(L.ENUM_IMAGE_ANCHOR_BOTTOM_CENTER, "下中");
+        setValue(L.ENUM_IMAGE_ANCHOR_BOTTOM_RIGHT, "右下");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -1683,6 +1698,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_STYLE_VALUES, "任意 CSS 值（例如 1.1rem、#336699、var(--lumo-body-text-color)）。留空则保持应用程序的外观。");
         setValue(L.HELP_STYLE_CUSTOM_CSS, "添加在选项之后、样式范围内的 CSS。可以为各部分的文本编写规则（例如 \".chat-message-markdown p { text-indent: 1.5em !important; }\"），或编写应用于整个元素的声明。");
         setValue(L.HELP_EXPORT_SETTINGS, "每种格式都会按此处选择的样式并使用你自己的模板导出，除非你在导出对话框中另行选择。导出用的样式在“样式”选项卡中创建（勾选“用于导出”）。模板留空则使用默认模板。");
+        setValue(L.HELP_IMAGE_LAYOUT, "阅读视图和导出会按此放置图片。故事编辑器把图片列在文字之后；“按阅读视图预览”可查看效果。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

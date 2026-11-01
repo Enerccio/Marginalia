@@ -31,7 +31,7 @@ public class HtmlExporter extends ExporterBase {
             .contents a { color: inherit; text-decoration: none; }
             .contents a:hover { text-decoration: underline; }
             @media print { body { background: none; } main { box-shadow: none; max-width: none; padding: 0; } }
-            """;
+            """ + PICTURES_CSS;
 
     @Override
     public String getName() {
@@ -85,17 +85,16 @@ public class HtmlExporter extends ExporterBase {
 
         @Override
         public void message(String markdown, Chapter chapter) {
-            if (chapter == null) {
-                body.append(toHtml(markdown));
-            } else {
-                body.append("<section id=\"").append(chapter.anchor()).append("\">\n").append(toHtml(markdown)).append("</section>\n");
-            }
+            message(List.of(new TextPart(markdown)), chapter);
         }
 
         @Override
-        public void images(List<ExportImage> images) {
-            for (ExportImage image : images) {
-                body.append(figure("data:" + image.mimeType() + ";base64," + Base64.getEncoder().encodeToString(image.data()), image.caption()));
+        public void message(List<Part> parts, Chapter chapter) {
+            String html = toHtml(parts, image -> "data:" + image.mimeType() + ";base64," + Base64.getEncoder().encodeToString(image.data()));
+            if (chapter == null) {
+                body.append(html);
+            } else {
+                body.append("<section id=\"").append(chapter.anchor()).append("\">\n").append(html).append("</section>\n");
             }
         }
 

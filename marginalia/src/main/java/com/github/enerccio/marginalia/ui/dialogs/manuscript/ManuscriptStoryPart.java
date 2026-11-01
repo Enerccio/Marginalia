@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
+import com.github.enerccio.marginalia.domain.styles.PartStyle;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -1639,7 +1640,23 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             new ImagesDialog(message, updated -> {
                 message = updated;
                 messageImages.setImages(updated.getImages());
-            }).open();
+            }, this::openImagePreview).open();
+        }
+
+        @PublicAPI(from = "1.6.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "text", type = String.class),
+                        @APILocals(name = "style", type = PartStyle.class)})
+        @Override
+        public void openImagePreview() {
+            String text = responseTextArea != null ? responseTextArea.getValue() : message.getResponse();
+            PartStyle style = null;
+            try {
+                style = partStyleService.resolve(currentManuscript);
+            } catch (Exception e) {
+                // the preview is shown without the style of the book
+            }
+            new PartPreviewDialog(text, message.getImages(), style).open();
         }
 
         @PublicAPI(from = "1.1.0",

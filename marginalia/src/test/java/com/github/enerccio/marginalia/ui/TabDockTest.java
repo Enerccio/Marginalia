@@ -991,6 +991,26 @@ class TabDockTest extends MarginaliaTestBase {
     }
 
     @Test
+    void theLayoutOfTheDockIsFrozenWithItsTabs() throws Exception {
+        login();
+        TabDock dock = dock("a", "b", "c");
+        dock.minimize("c");
+        Button minimize = descendants(tab(dock, "B"), Button.class).get(0);
+        assertThat(bar(dock).isEnabled()).isTrue();
+        assertThat(minimize.isEnabled()).isTrue();
+
+        dock.setTabsEnabled(false, "a");
+
+        // the icon of the bar would restore a tab that is disabled, which shows a blank screen
+        assertThat(bar(dock).isEnabled()).isFalse();
+        assertThat(minimize.isEnabled()).isFalse();
+
+        dock.setTabsEnabled(true, null);
+        assertThat(bar(dock).isEnabled()).isTrue();
+        assertThat(minimize.isEnabled()).isTrue();
+    }
+
+    @Test
     void aTabThatIsNotMinimizableStays() throws Exception {
         login();
         TabDock dock = dock("a", "b");

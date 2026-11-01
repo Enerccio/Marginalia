@@ -112,6 +112,12 @@ public interface StoryCard {
     void openImagesDialog();
 
     /**
+     * Shows the part with its images placed as the viewer places them (the editor lists them after the text); the text is the one in
+     * the editor when the part is being edited.
+     */
+    void openImagePreview();
+
+    /**
      * Opens the dialog that shows or generates the summary of the part.
      */
     void openSummaryDialog();

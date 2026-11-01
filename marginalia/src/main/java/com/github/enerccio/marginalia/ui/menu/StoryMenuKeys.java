@@ -49,6 +49,7 @@ public final class StoryMenuKeys {
     public static final String COMPARE_PROMPT = "card.comparePrompt";
     public static final String TOKEN_USAGE = "card.tokenUsage";
     public static final String IMAGES = "card.images";
+    public static final String IMAGE_PREVIEW = "card.imagePreview";
     public static final String SUMMARY = "card.summary";
     public static final String DELETE_SUMMARY = "card.deleteSummary";
     public static final String DELETE = "card.delete";

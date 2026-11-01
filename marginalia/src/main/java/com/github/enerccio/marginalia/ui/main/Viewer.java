@@ -15,7 +15,7 @@ import com.github.enerccio.marginalia.domain.service.search.Sorter.Ordering;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
-import com.github.enerccio.marginalia.ui.components.MessageImages;
+import com.github.enerccio.marginalia.ui.components.PartView;
 import com.github.enerccio.marginalia.ui.dialogs.story.ReaderLazyLoader;
 import com.github.enerccio.marginalia.ui.dialogs.story.StorySupport;
 import com.github.enerccio.marginalia.ui.styles.PartStyleApplier;
@@ -36,7 +36,6 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.markdown.Markdown;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -696,28 +695,14 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
     }
 
     /**
-     * The component of a part of the book: its text and images, {@code null} when it has neither.
+     * The component of a part of the book: its text with its images where their anchors put them, {@code null} when it has neither.
      */
     @PublicAPI(from = "1.4.0",
             returns = @APIReturn(type = Component.class),
             parameters = {@APIParameter(name = "msg", type = ChatMessage.class)},
-            locals = {@APILocals(name = "part", type = VerticalLayout.class),
-                    @APILocals(name = "markdown", type = Markdown.class)})
+            locals = {@APILocals(name = "part", type = PartView.class)})
     private Component createPart(ChatMessage msg) {
-        VerticalLayout part = new VerticalLayout();
-        part.setWidthFull();
-        part.setPadding(false);
-        part.setSpacing(true);
-        if (StringUtils.isNotBlank(msg.getResponse())) {
-            Markdown markdown = new Markdown();
-            markdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
-            markdown.setContent(msg.getResponse());
-
-            part.add(markdown);
-        }
-        if (!msg.getImages().isEmpty()) {
-            part.add(new MessageImages(msg.getImages()));
-        }
+        PartView part = new PartView(msg.getResponse(), msg.getImages());
         return part.getComponentCount() == 0 ? null : part;
     }
 

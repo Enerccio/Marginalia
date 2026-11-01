@@ -932,6 +932,12 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_LAYOUT, "Layout");
         setValue(L.LABEL_INSPECT, "Inspect");
         setValue(L.LABEL_BRANCH_AND_MERGE, "Branch & merge");
+        setValue(L.LABEL_PREVIEW_AS_VIEWER, "Preview as in the viewer");
+        setValue(L.LABEL_PREVIEW_WIDE, "Wide");
+        setValue(L.LABEL_PREVIEW_NARROW, "Narrow (phone)");
+        setValue(L.LABEL_IMAGE_POSITION, "Position in the part");
+        setValue(L.LABEL_IMAGE_WRAP, "Text flows around the image");
+        setValue(L.LABEL_IMAGE_WIDTH, "Width (% of the text)");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1097,6 +1103,15 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_STATISTIC_RANGE_CUSTOM, "Custom");
         setValue(L.ENUM_STATISTIC_SIDE_AUTHOR, "Me");
         setValue(L.ENUM_ACTIVATION_REASON_OUT_OF_RANGE, "Not used: the turn is outside its range of parts");
+        setValue(L.ENUM_IMAGE_ANCHOR_TOP_LEFT, "Top left");
+        setValue(L.ENUM_IMAGE_ANCHOR_TOP_CENTER, "Top center");
+        setValue(L.ENUM_IMAGE_ANCHOR_TOP_RIGHT, "Top right");
+        setValue(L.ENUM_IMAGE_ANCHOR_CENTER_LEFT, "Middle left");
+        setValue(L.ENUM_IMAGE_ANCHOR_CENTER_CENTER, "Center");
+        setValue(L.ENUM_IMAGE_ANCHOR_CENTER_RIGHT, "Middle right");
+        setValue(L.ENUM_IMAGE_ANCHOR_BOTTOM_LEFT, "Bottom left");
+        setValue(L.ENUM_IMAGE_ANCHOR_BOTTOM_CENTER, "Bottom center");
+        setValue(L.ENUM_IMAGE_ANCHOR_BOTTOM_RIGHT, "Bottom right");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -1675,6 +1690,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_STYLE_VALUES, "Any CSS value (for example 1.1rem, #336699 or var(--lumo-body-text-color)). Empty keeps the look of the application.");
         setValue(L.HELP_STYLE_CUSTOM_CSS, "CSS added after the options, inside the scope of the style. Write rules for the text of the parts, for example \".chat-message-markdown p { text-indent: 1.5em !important; }\", or declarations that apply to the whole element.");
         setValue(L.HELP_EXPORT_SETTINGS, "Each format is exported in the style chosen here, and with your version of its templates, until you choose otherwise in the export dialog. Styles for exports are made in the Styles tab (tick \"For exports\"). Leave a template empty to use the default one.");
+        setValue(L.HELP_IMAGE_LAYOUT, "The viewer and the exports place the image like this. The story editor lists the images after the text; \"Preview as in the viewer\" shows the result.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");
